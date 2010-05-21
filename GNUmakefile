@@ -4,7 +4,6 @@ FBOXLIB_HOME= ../../../../fParallel
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
 DEBUG      = FALSE
 
 DIM        = 1
