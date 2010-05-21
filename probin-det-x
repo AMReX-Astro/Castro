@@ -1,5 +1,5 @@
 &fortin
-  T_l = 1.d9
+  T_l = 3.d9
   T_r = 5.d7
 
   dens = 2.d8
