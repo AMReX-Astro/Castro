@@ -151,8 +151,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      call eos_given_RTX(eint_temp, p_temp, state(i,URHO), state(i,UTEMP), xn)
 
      state(i,UMX  ) = 0.d0
-     state(i,UEDEN) = eint_temp   ! if vel /= 0, then KE needs to be added
-     state(i,UEINT) = eint_temp
+     state(i,UEDEN) = state(i,URHO)*eint_temp   ! if vel /= 0, then KE needs to be added
+     state(i,UEINT) = state(i,URHO)*eint_temp
             
   enddo
 

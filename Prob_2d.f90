@@ -161,8 +161,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,UMX  ) = 0.d0
         state(i,j,UMY  ) = 0.d0
-        state(i,j,UEDEN) = eint_temp
-        state(i,j,UEINT) = eint_temp
+        state(i,j,UEDEN) = state(i,j,URHO)*eint_temp
+        state(i,j,UEINT) = state(i,j,URHO)*eint_temp
         
      enddo
   enddo
