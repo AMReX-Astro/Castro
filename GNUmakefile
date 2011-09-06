@@ -1,6 +1,3 @@
-PBOXLIB_HOME= ../../..
-FBOXLIB_HOME= ../../../../fParallel
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -15,11 +12,11 @@ USE_MPI    = FALSE
 
 USE_REACT  = TRUE
 
+# This sets the EOS directory in $(FBOXLIB_HOME)/extern/EOS
+EOS_dir     := helmeos
 
-# These set the EOS and reaction network directories
-EOS_dir     := $(FBOXLIB_HOME)/extern/EOS/helmeos
-Network_dir := $(FBOXLIB_HOME)/extern/networks/ignition_simple
-
+# This sets the network directory in $(FBOXLIB_HOME)/extern/networks
+Network_dir := ignition_simple
 
 Bpack   := ./Make.package
 Blocs   := .
