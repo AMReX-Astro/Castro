@@ -1,0 +1,709 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hydrodynamics Test Problems}
+
+\subsection{Sod's Problem (and Other Shock Tube Problems)}
+
+The {\tt Exec/Sod} problem directory sets up a general one-dimensional
+shock tube.  The left and right primitive-variable states are specified
+and the solution evolves until a user-specified end time.  For a simple
+discontinuity, the exact solution can be found from an exact Riemann 
+solver.  For this problem, the exact solutions were computed with the
+exact Riemann solver from Toro \cite{toro:1997}, Chapter 4.
+
+\subsubsection{Sod's Problem}
+
+The Sod problem \cite{sod:1978} is a simple shock tube problem that
+exhibits a shock, contact discontinuity, and a rarefaction wave.
+The initial conditions are:
+\begin{equation}
+\begin{array}{l}
+\rho_L = 1 \\
+u_L = 0 \\
+p_L = 1
+\end{array}
+\qquad
+\begin{array}{l}
+\rho_R = 0.125 \\
+u_R = 0 \\
+p_R = 0.1
+\end{array}
+\end{equation}
+The {\tt gamma\_law} equation of state is used with $\gamma = 1.4$.
+The system is evolved until $t = 0.2$~s.  Setups for 1-, 2-, and 3-d
+are provided.  The following inputs files and probin files setup the
+Sod's problem:
+\begin{table*}[h]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+\multicolumn{1}{|c}{\em inputs file} &  \multicolumn{1}{|c}{\em probin file} & \multicolumn{1}{|c|}{\em description} \\
+\hline
+{\tt inputs-sod-x} & {\tt probin-sod-x} & Sod's problem along $x$-direction \\
+{\tt inputs-sod-y} & {\tt probin-sod-y} & Sod's problem along $y$-direction \\
+{\tt inputs-sod-z} & {\tt probin-sod-z} & Sod's problem along $z$-direction \\
+\hline
+\end{tabular}
+\label{Table:Sod}
+\end{table*}
+
+For multi-dimensional runs, the directions transverse to the jump are
+kept constant.  We use a CFL number of 0.9, an initial timestep shrink
+({\tt castro.init\_shrink}) of 0.1, and the maximum factor by which
+the timestep can increase ({\tt castro.change\_max}) of 1.05.
+\begin{figure}[h]
+\centering
+\includegraphics[width=4.75in]{CastroVerification/sod_3d}
+\caption{\label{fig:sod} Castro solution for Sod's problem run in 3-d,
+  with the newest ppm limiters, 
+  along the $x$, $y$, and $z$ axes.  A coarse grid of 32 zones in the
+  direction of propagation, with 2 levels of refinement was used.  The
+  analytic solution appears as the red line.}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=4.75in]{CastroVerification/sod_3d_ppm0}
+\caption{\label{fig:sod_ppm0} Castro solution for Sod's problem run in 3-d,
+  with the piecewise-linear Godunov method with limiters,
+  along the $x$, $y$, and $z$ axes.  A coarse grid of 32 zones in the
+  direction of propagation, with 2 levels of refinement was used.  The
+  analytic solution appears as the red line.}
+\end{figure}
+
+Figure~\ref{fig:sod} shows the Castro solution using the newest PPM limiters
+compared to the analytic 
+solution, showing the density, velocity, pressure, and internal energy.
+Figure~\ref{fig:sod_ppm0} is the same as Figure~\ref{fig:sod},
+but with the piecewise-linear Godunov method with limiters, 
+shown for comparison.
+
+The {\tt Verification} subdirectory includes the analytic solution for
+the Sod problem {\tt sod-exact.out}, with $\gamma = 1.4$.  1-d slices
+can be extracted from the Castro plotfile using the {\tt fextract} tool
+from {\tt fParallel/data\_processing/}.  The steps to
+generate this verification plot with Castro are:
+\begin{enumerate}
+\item in {\tt Exec/Sod}, build the Castro executable in 3-d
+\item run the Sod problem with Castro in the $x$, $y$, and $z$ directions: \\
+ {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x} \\
+ {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y} \\
+ {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-z}
+\item build the {\tt fextract} tool in {\tt fParallel/data\_processing}
+\item run {\tt fextract} on the Castro output to generate 1-d slices
+ through the output: \\
+ {\tt fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod\_x\_plt00034} \\
+ {\tt fextract3d.Linux.Intel.exe -d 2 -s sody.out -p sod\_y\_plt00034} \\
+ {\tt fextract3d.Linux.Intel.exe -d 3 -s sodz.out -p sod\_z\_plt00034}
+\item copy the {\tt sodx/y/z.out} files into the {\tt Verification} directory.
+\item in {\tt Verification} run the gnuplot script {\tt sod\_3d.gp} as: \\
+ {\tt gnuplot sod\_3d.gp} \\
+ This will produce the figure {\tt sod\_3d.eps}.
+\end{enumerate}
+
+\subsubsection{Double Rarefaction}
+
+The double rarefaction is the ``Test 2'' problem described by Toro
+\cite{toro:1997}, Chapter 6.  In this test, the center of the domain
+is evacuated as two rarefaction waves propagate in each direction, outward
+from the center.  It is difficult to get the internal energy to 
+behave at the center of the domain because we are creating a vacuum.
+The initial conditions are:
+\begin{equation}
+\begin{array}{l}
+\rho_L = 1 \\
+u_L = -2 \\
+p_L = 0.4
+\end{array}
+\qquad
+\begin{array}{l}
+\rho_R = 1 \\
+u_R = 2 \\
+p_R = 0.4
+\end{array}
+\end{equation}
+The {\tt gamma\_law} equation of state is used with $\gamma = 1.4$.
+The system is evolved until $t = 0.15$~s.  Setups for 1-, 2-, and 3-d
+are provided.  The following inputs files and probin files setup the
+Sod's problem:
+\begin{table*}[h]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+\multicolumn{1}{|c}{\em inputs file} &  \multicolumn{1}{|c}{\em probin file} & \multicolumn{1}{|c|}{\em description} \\
+\hline
+{\tt inputs-test2-x} & {\tt probin-test2-x} & Double rarefaction problem along $x$-direction \\
+{\tt inputs-test2-y} & {\tt probin-test2-y} & Double rarefaction problem along $y$-direction \\
+{\tt inputs-test2-z} & {\tt probin-test2-z} & Double rarefaction problem along $z$-direction \\
+\hline
+\end{tabular}
+\label{Table:Sod}
+\end{table*}
+
+We use a CFL number of 0.8, an initial
+timestep shrink ({\tt castro.init\_shrink}) of 0.1, and the maximum factor by which
+the timestep can increase ({\tt castro.change\_max}) of 1.05.  The PPM
+solver with the new limiters are used.
+\begin{figure}[h]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/test2_3d}
+\caption{\label{fig:test2} Castro solution for the double rarefaction
+  problem run in 3-d, along the $x$, $y$, and $z$ axes.  A coarse grid
+  of 32 zones in the direction of propagation, with 2 levels of
+  refinement was used.  The analytic solution appears as the red
+  line.}
+\end{figure}
+
+Figure~\ref{fig:test2} shows the Castro output, run along all 3
+coordinate axes in 3-d, compared to the analytic solution.  
+
+The comparison to the analytic solution follows the same procedure as
+described for the Sod's problem above.  The gnuplot script {\tt
+  test2\_3d.gp} will generate the figure, from the 1-d slices created by
+{\tt fextract} named {\tt test2x.out}, {\tt test2y.out}, and {\tt test2z.out}.
+
+\subsubsection{Strong Shock}
+
+The strong shock test is the ``Test 3'' problem described by Toro
+\cite{toro:1997}, Chapter 6.  In this test, a large pressure jump
+at the initial interface creates a very strong rightward moving
+shock, followed very closely by a contact discontinuity.
+The initial conditions are:
+\begin{equation}
+\begin{array}{l}
+\rho_L = 1 \\
+u_L = 0 \\
+p_L = 1000
+\end{array}
+\qquad
+\begin{array}{l}
+\rho_R = 1 \\
+u_R = 0 \\
+p_R = 0.01
+\end{array}
+\end{equation}
+The {\tt gamma\_law} equation of state is used with $\gamma = 1.4$.
+The system is evolved until $t = 0.012$~s.  Setups for 1-, 2-, and 3-d
+are provided.  The following inputs files and probin files setup the
+Sod's problem:
+\begin{table*}[h]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+\multicolumn{1}{|c}{\em inputs file} &  \multicolumn{1}{|c}{\em probin file} & \multicolumn{1}{|c|}{\em description} \\
+\hline
+{\tt inputs-test3-x} & {\tt probin-test3-x} & Strong shock problem along $x$-direction \\
+{\tt inputs-test3-y} & {\tt probin-test3-y} & Strong shock problem along $y$-direction \\
+{\tt inputs-test3-z} & {\tt probin-test3-z} & Strong shock problem along $z$-direction \\
+\hline
+\end{tabular}
+\label{Table:Sod}
+\end{table*}
+
+We use a CFL number of 0.9, an initial
+timestep shrink ({\tt castro.init\_shrink}) of 0.1, and the maximum factor by which
+the timestep can increase ({\tt castro.change\_max}) of 1.05.  The PPM
+solver with the new limiters are used.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/test3_3d}
+\caption{\label{fig:test3} Castro solution for the strong shock
+  problem run in 3-d, along the $x$, $y$, and $z$ axes.  A coarse grid
+  of 32 zones in the direction of propagation, with 2 levels of
+  refinement was used.  The analytic solution appears as the red
+  line.}
+\end{figure}
+
+Figure~\ref{fig:test3} shows the Castro output, run along all 3
+coordinate axes in 3-d, compared to the analytic solution.  
+
+The comparison to the analytic solution follows the same procedure as
+described for the Sod's problem above.  The gnuplot script {\tt
+  test3\_3d.gp} will generate the figure, from the 1-d slices created by
+{\tt fextract} named {\tt test3x.out}, {\tt test3y.out}, and {\tt test3z.out}.
+
+
+\subsection{Sedov Problem}
+
+The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
+test problem.  A large amount of energy is placed into a very small
+volume, driving a spherical (or cylindrical in 2-d Cartesian
+coordinates) blast wave.  Analytic solutions were found by Sedov
+\cite{sedov:1959}.  
+
+A cylindrical blast wave (e.g.\ a point explosion in a 2-d plane) can
+be modeled in 2-d Cartesian coordinates.  A spherical blast wave can
+be modeled in 1-d spherical, 2-d axisymmetric (cylindrical $r$-$z$), or 3-d
+Cartesian coordinates.  This provides a good test on the geometric
+factors in the hydrodynamics solver.
+We use a publically available code, {\tt sedov3.f}
+\cite{timmes_sedov_code}, to generate the analytic solutions.
+
+The Castro implementation of the Sedov problem is in {\tt Exec/Sedov}.
+A number of different inputs/probin files are provided, corresponding
+to different Sedov/Castro geometries.  The main ones are:
+
+\begin{table*}[h]
+\centering
+{\small
+\begin{tabular}{|l|l|p{2.25in}|} \hline
+\multicolumn{1}{|c}{\em inputs file} &  \multicolumn{1}{|c}{\em probin file} & \multicolumn{1}{|c|}{\em description} \\
+\hline
+{\tt inputs.1d.sph} & {\tt probin.1d.sph} & Spherical Sedov explosion modeled in 1-d spherical coordinates \\[2mm]
+%
+{\tt inputs.2d.sph\_in\_cylcoords} & {\tt probin.2d.sph\_in\_cylcoords} & Spherical Sedov explosion modeled in 2-d cylindrical (axisymmetric) coordinates \\[2mm]
+%
+{\tt inputs.2d.cyl\_in\_cartcoords} & {\tt probin.2d.cyl\_in\_cartcoords} & Cylindrical Sedov explosion modeled in 2-d Cartesian coordinates \\[2mm]
+%
+{\tt inputs.3d.sph} & {\tt probin.3d.sph} & Spherical Sedov explosion modeled in 3-d Cartesian coordinates \\
+\hline
+\end{tabular}
+\caption{\label{table:sedov_inputs} Sedov inputs files}
+} % end small
+\label{Table:Sod}
+\end{table*}
+
+In the Sedov problem, the explosion energy, $E_\mathrm{exp}$ (in units 
+of energy, not energy/mass or energy/volume)
+is to be deposited into a single point, in a medium of uniform ambient
+density, $\rho_\mathrm{ambient}$, and pressure, $p_\mathrm{ambient}$.
+Initializing the problem can be difficult because the small volume is
+typically only a cell in extent.  This can lead to grid imprinting in
+the solution.  A standard solution (see for example \cite{omang:2006}
+and the references therein)
+is to convert the explosion energy into a pressure contained within a
+certain volume, $V_\mathrm{init}$, of radius $r_\mathrm{init}$ as
+\begin{equation}
+p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
+\end{equation}
+This pressure is then deposited in all of the cells where $r <
+r_\mathrm{init}$.  
+
+To further minimize any grid effects, we do subsampling
+in each zone: each zone is divided it into $N_\mathrm{sub}$ subzones in each
+coordinate direction, each subzone is initialized independently, and
+then the subzones are averaged together (using a volume weighting for
+spherical or cylindrical/axisymmetric Castro grids) to determine the
+initial state of the full zone.
+
+For these runs, we use $\rho_\mathrm{ambient} = 1$,
+$p_\mathrm{ambient} = 10^{-5}$, $E_\mathrm{exp} = 1$, $r_\mathrm{init}
+ = 0.01$, and $N_\mathrm{sub} = 10$.  A base grid with 32 zones in each
+coordinate direction plus 3 levels of refinement is used (the finest
+mesh would coorespond to 256 zones in a coordinate direction).  The
+domain runs from 0 to 1 in each coordinate direction.
+
+
+
+
+Analysis routines for the Sedov problem are provided in {\tt
+  fParallel/data\_processing/Castro\_hydro}.  These routines will
+average the Castro solution over angles, using the proper geometric
+weighting, to produce an average profile as a function of radius.
+The following routines correspond to the inputs files described above:
+\begin{table*}[h]
+\centering
+{\small
+\begin{tabular}{|l|l|} \hline
+\multicolumn{1}{|c}{\em inputs file} &  \multicolumn{1}{|c|}{\em analysis routine} \\
+\hline
+{\tt inputs.1d.sph} & {\tt fsedov1d.f90} \\
+%
+{\tt inputs.2d.sph\_in\_cylcoords} & {\tt fsedov2d\_sph\_in\_cylcoords.f90} \\
+%
+{\tt inputs.2d.cyl\_in\_cartcoords} & {\tt fsedov2d\_cyl\_in\_cartcoords.f90} \\
+%
+{\tt inputs.3d.sph} & {\tt fsedov3d\_sph.f90} \\
+\hline
+\end{tabular}
+} % end small
+\caption{\label{table:fsedov} Analysis routines for Sedov}
+\end{table*}
+
+\subsubsection{Spherical Blast Wave}
+
+A spherical Sedov explosion can be modeled in 1-d spherical, 2-d
+cylindrical (axisymmetric), or 3-d Cartesian coordinates, using the
+inputs files described in Table~\ref{table:sedov_inputs}.  A 1-d radial
+profile can be extracted using the appropriate {\tt fsedov} routine,
+as listed in Table~\ref{table:fsedov}.  For example, to run and process
+the 2-d cylindrical Sedov explosion, one would do:
+\begin{enumerate}
+\item in {\tt Exec/Sedov}, build the Castro executable in 2-d
+\item run the spherical Sedov problem with Castro in 2-d cylindrical coordinates: \\
+ {\tt ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph\_in\_cylcoords} 
+\item build the {\tt fsedov2d\_sph\_in\_cylcoords} tool in {\tt fParallel/data\_processing}
+\item run {\tt fsedov2d\_sph\_in\_cylcoords} on the Castro output to generate 1-d radial
+ profiles: \\
+ {\tt fsedov2d\_sph\_in\_cylcoords.Linux.Intel.exe -s sedov\_2d\_sph\_in\_cyl.out $\mathtt{\backslash}$ } \\
+ $~~~~~${\tt -p sedov\_2d\_sph\_in\_cyl\_plt00246} 
+\end{enumerate}
+A similar procedure can be used for the 1-d and 3-d spherical Sedov
+explosions (with the output named {\tt sedov\_1d\_sph.out} and {\tt
+  sedov\_3d\_sph.out} respectively).  Once this is done, the {\tt
+  sedov\_sph.gp} gnuplot script can be used to make a plot comparing
+the 3 solutions to the analytic solution, {\tt spherical\_sedov.dat}.
+
+Figure~\ref{fig:sedov_sph} shows the comparison of the 3 Castro
+spherical Sedov explosion simulations to the analytic solution.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/sedov_sph}
+\caption{\label{fig:sedov_sph} Castro solution for the Sedov blast wave problem
+  run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
+  Each of these geometries produces a spherical Sedov explosion.}
+\end{figure}
+
+
+\subsubsection{Cylindrical Blast Wave}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/sedov_cyl}
+\caption{\label{fig:sedov_cyl} Castro solution for the Sedov blast wave problem
+  run in 2-d Cartesian coordinates.  This corresponds to a cylindrical
+  Sedov explosion.}
+\end{figure}
+
+\subsection{Rayleigh-Taylor}
+2D.  Domain size 0.5 by 1.0.  256 by 512 cells, single level
+calculation.  Periodic in x, solid walls on top and bottom in y.
+Gamma law gas with $\gamma=1.4$, no reactions.  Zero initial velocity.
+Constant $|\gb|=1$.  The density profile is essentially $\rho=1$ on
+bottom, $\rho=2$ on top, but with a perturbation.  A single-mode
+perturbation is constructed as:
+\begin{equation}
+\tilde y(x) = 0.5 + 0.01 \frac{\cos(4\pi x) + \cos(4\pi(L_x - x))}{2}
+\end{equation}
+We note that the symmetric form of the cosine is done to ensure that 
+roundoff error does not introduce a left-right asymmetry in the problem.
+Without this construction, the R-T instability will lose its symmetry
+as it evolves.  This then applied to the interface with a tanh profile
+to smooth the transition between the high and low density material:
+\begin{equation}
+\rho(x,y) = 1 + 0.5\left[1+\tanh\left(\frac{y-\tilde y(x)}{0.005}\right)\right]
+\end{equation}
+Hydrostatic pressure with $p=5.0$ at bottom of domain, assuming
+$\rho=1$ on the lower half of the domain, and $\rho=2$ on the upper
+half and no density perturbation.  We run to $t=2.5$ with piecewise
+linear, old PPM, and new PPM.  CFL=0.9.  See Figure \ref{fig:RT}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=6.5in]{CastroVerification/RT_ppm_type}
+\caption{\label{fig:RT}Rayleigh-Taylor with different PPM types.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Gravity Test Problems}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Radiation Test Problems}
+
+There are two photon radiation solvers in Castro---a gray solver and a
+multigroup solver.  The gray solver follows the algorithm outlined
+in \cite{howellgreenough:2003}.  We use the notation described in that
+paper.  In particular, the radiation energy equation takes the form
+of:
+\begin{equation}
+\frac{\partial E_R}{\partial t} = 
+ \nabla \cdot \left ( \frac{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
+ \kappa_P (4 \sigma T^4 - c E_R )
+\end{equation}
+Here, $E_R$ is the radiation energy density, $\kappa_R$ is the
+Roseland-mean opacity, $\kappa_P$ is the Planck-mean opaciy, and
+$\lambda$ is a quantity $\le 1/3$ that is subjected to limiting to
+keep the radiation field causal.  Castro allows for $\kappa_R$
+and $\kappa_P$ to be set independently as power-laws.
+
+\subsection{Light Front}
+
+The light front problem tests the ability of the radiation solver to
+operate in the free-streaming limit.  A radiation front is
+estabilished by initializing one end of the computational domain with
+a finite radiation field, and zero radiation field everywhere else.
+The speed of propagation of the radiation front is keep in check by
+the flux-limiters, to prevent it from exceeding $c$.
+
+
+\subsection{Diffusion of a Gaussian Pulse}
+
+The diffusion of a Gaussian pulse problem tests the diffusion term in
+the radiation energy equation.  The radiation energy density is 
+initialized at time $t = t_0$ to a Gaussian distribution:
+\begin{equation}
+E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
+\end{equation}
+As the radiation diffuses, the overall distribution will remain 
+Gaussian, with the time-dependent solution of:
+\begin{equation}
+E_R = (E_R)_0 \frac{t_0}{t_0 + t} \exp \left \{ -\frac{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}
+\end{equation}
+
+
+\subsection{Radiation Source Problem}
+
+The radiation source problem tests the coupling between the radiation
+field and the gas energy through the radiation source term.  The
+problem begins with the radiation field and gas temperature out of
+equilibrium.  If the gas is too cool, then the radiation field will
+heat it.  If the gas is too hot, then it will radiate and cool.  In
+each case, the gas energy and radiation field will evolve until
+thermal equilibrium is achieved.
+
+Our implementation of this problem follows that of
+\cite{swestymyra:2009}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/radiating_source}
+\caption{\label{fig:radsource} Castro solution for radiating source
+  test problem.  Heating and cooling solutions are shown as a function
+  of time, compared to the analytic solution.  The gray photon solver
+  was used.}
+\end{figure}
+
+
+\subsection{Radiating Sphere}
+
+The radiating sphere is a multigroup radiation test problem.  A hot
+sphere is centered at the origin in a spherical geometry.  The
+spectrum from this sphere follows a Planck distribution.  The ambient
+medium is at a much lower temperature.  A frequency-dependent opacity
+makes the domain optically thin for high frequecies and optically
+thick for low frequency.  At long times, the solution will be a
+combination of the blackbody radiation from the ambient medium plus
+the radiation that propagated from the hot sphere.  An analytic
+solution exists \cite{graziani:2008} which gives the radiation energy
+as a function of energy group at a specified time and distance from
+the radiating sphere.
+
+Our implementation of this problem is in {\tt Exec/RadSphere} and
+follows that of \cite{swestymyra:2009}.  The routine that computes
+the analytic solution is provided as {\tt analytic.f90}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/radiating_sphere}
+\caption{\label{fig:radsphere} Castro solution for radiating sphere problem,
+  showing the radiation energy density as a function of energy group.
+  This test was run with 64 photon energy groups.}
+\end{figure}
+
+
+\section{Regression Testing}
+
+An automated regression test suite for Castro (or any BoxLib-based
+code) written in Python exists in {\tt Parallel/util/regtests/} as
+{\tt test.py}.  The test suite consists of a set of problem
+definitions (the Castro problem + their inputs/probin files, etc.).
+When the suite is run the first time, the plotfiles created at the end
+of each problem's executation is stored as a benchmark.  After this
+initialization, each subsequent run of the test suite compares the
+current output of the code, level-by-level and zone-by-zone to the
+stored benchmarks (using the {\tt fcompare.f90} routine in {\tt
+  fParallel/data\_processing/}).  Any differences are flagged as
+errors.  A web page report is generated by the test suite and provides
+a history of the regression testing.  Single-processor and parallel
+test problems, compilation tests, and testing restarting from a
+checkpoint file are supported.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/test_suite_main}
+\caption{\label{fig:test_suite_main} Main test suite results page.  Each 
+row indicates a single test suite run, arranged by date, and each column
+indicates a different test problem.  Note: this page is from the {\tt Maestro}
+code, but a {\tt Castro} test suite run will produce similar output.}
+\end{figure}
+
+\subsection{Test Suite Inputs File}
+
+The inputs file for the test suite separates the problems into blocks.
+The header of a problem block has the form {\tt [problem-name]}.
+Beneath each problem block, there are a number of options set for each
+problem.  A separate heading, {\tt [main]}, is used for the suite-wide
+options.
+
+An example of the {\tt main} block from {\tt Castro-tests.ini} is:
+\begin{verbatim}
+[main]
+sourceDir      = /work/zingale/test/CASTRO/
+testTopDir     = /work/zingale/test/CASTRO/
+compareToolDir = /work/zingale/test/CASTRO/fParallel/data_processing/
+helmeosDir     = /work/zingale/test/CASTRO/fParallel/extern/EOS/helmeos/
+
+sourceTree = Parallel
+
+COMP = Intel
+FCOMP = Intel
+
+suiteName = Castro
+
+MPIcommand = mpiexec -host @host@ -n @nprocs@ @command@
+MPIhost = node1
+\end{verbatim}
+
+The first group of options define the necessary paths.
+Here, {\tt sourceDir} points to the top-level directory, which is
+expected to contain the {\tt Parallel} and {\tt fParallel} subdirectories.
+{\tt testTopDir} refers to the directory that the suite should use as
+its root directory for output---usually this is the same as {\tt sourceDir}.
+The {\tt fcompare.f90} comparison tool is expected to be found in
+{\tt compareToolDir}.  Finally, {\tt helmeosDir} lists the path to the
+{\tt helm\_table.dat} file used by the general stellar equation of state.
+
+Next, we set {\tt sourceTree} to {\tt Parallel}, indicating that
+Castro is built using the C++ BoxLib framework.  ({\tt Maestro} uses
+the Fortran 95 BoxLib framework, and therefore would set {\tt
+  sourceTree} to {\tt fParallel}).  This option tells the test suite
+what build system to use.
+
+{\tt COMP} and {\tt FCOMP} tell the test suite which C++ and Fortran
+compilers to use.  These override what is listed in any {\tt
+  GNUmakefile} to ensure that the compiler stays consistent in the
+tests.
+
+The {\tt suiteName} option simply tells the test suite what name to
+prefix to the output directories.  It does not need to match the
+program name.  
+
+Finally, {\tt MPIcommand} lists the generic manner in which to run an
+MPI program on the target system.  The string {\tt @host@} in the
+{\tt MPIcommand} will be substituted by the {\tt MPIhost} string by
+the test suite.  Similarly the {\tt @nprocs@} string will be
+substituted by the number of processors, which is set on a
+problem-by-problem basis.  Finally, the {\tt MPIcommand} should
+include the string {\tt @command@}, which is where the Castro
+executable and inputs file will be substituted.  For single processor
+runs, these options are ignored.
+
+Each problem to be run by the test suite gets its own block.  For
+example, a Sod's problem test might look like:
+
+\begin{verbatim}
+[Sod-x]
+buildDir = Parallel/Castro/Exec/Sod/
+inputFile = inputs-sod-x
+probinFile = probin-sod-x
+needs_helmeos = 0
+dim = 3
+restartTest = 0
+useMPI = 0
+compileTest = 0
+doVis = 0
+\end{verbatim}
+
+Here {\tt Sod-x} contained inside the {\tt []} is the name of the problem, as the 
+test suite will refer to it.  {\tt buildDir} is the path beneath {\tt sourceDir} 
+where the {\tt make} command should be executed.  The inputs file and probin file
+are given by {\tt inputFile} and {\tt probinFile}, which should be relative
+to the {\tt buildDir}.  The dimensionality is specified by {\tt dim}.
+
+A number of options are available:
+\begin{itemize}
+\item  If the general stellar equation of state is
+used, then {\tt needs\_helmeos} should be set to {\tt 1} to ensure that the
+EOS table is copied into the run directory.  
+
+\item If the test is to be run in parallel,
+the {\tt useMPI} should be {\tt 1} and {\tt numprocs} should give the number
+of processors.  
+
+\item To test the compilation of the problem only (and skip running),
+set {\tt compileTest} to {\tt 1}.  
+
+\item To test the ability of the code to restart, set {\tt restartTest} to
+{\tt 1}.  Also set {\tt restartFileNum} to the number of the checkpoint file to restart
+from.  The suite will run the problem as usual and then restart from the specified
+checkpoint and run to completion again.  The output from the initial run will
+then be compared to the output from the restart.  In a restart test, there
+is no stored benchmark.
+
+\item To add a simple visualization to the test suite webpage, set
+  {\tt doVis} to {\tt 1}, and set {\tt visVar} to the name of the
+  plotfile variable to visualize.  An image of that field from the
+  last plotfile will be appended to the problem's test webpage.
+
+\end{itemize}
+
+
+
+\subsection{Initializing the Test Suite}
+
+The first time you run the test suite there are no benchmark files to compare to.
+Once you generate an inputs file, as described above, you would simply run the
+suite as: \\
+$~~~~~${\tt ./test.py --make\_benchmarks "initial run" ./Castro\_tests.ini} \\
+The string following {\tt --make\_benchmarks} is simply a comment that will
+be added to the web report.
+This command creates three output directories, using the {\tt suiteName} as the prefix.
+\begin{itemize}
+\item {\tt suiteName-tests} is where the tests are run.  Each time the test
+ suite is run, a subdirectory, based on the date, is created, with a subdirectory
+ for each test.  All the files necessary to run the test are copied into the
+ test subdirectory.
+
+\item {\tt suiteName-web} is where the web-based reports for the test are generated.
+ The master webpage is {\tt suiteName-web/index.html}.
+
+\item {\tt suiteName-benchmarks} is where the test benchmark files are stored.  This
+ are used for comparison to the current output.
+\end{itemize}
+
+
+
+\subsection{Regular Use}
+
+Once the initial benchmarks are created, you can compare the current
+version of the code to the stored results by simply doing: \\
+$~~~~~${\tt ./test.py ./Castro\_tests.ini} \\ 
+This will do a CVS update, generate {\tt ChangeLog} files listing all
+of the CVS comments for the code, build the test comparison tools, and
+then loop over each test, building and running the executable and
+comparing the output to the benchmarks.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5.0in]{CastroVerification/test_suite_day}
+\caption{\label{fig:test_suite_date} The test suite output for a
+  single day's run.  Each row indicates a separate test, showing
+  whether they passed or failed.  Clicking on the test name will give
+  more information about that particular test on that day. Note: this
+  page is from the {\tt Maestro} code, but a {\tt Castro} test suite
+  run will produce similar output.}
+\end{figure}
+
+Upon completion of all the runs, a web page for this invocation of the
+test suite will be generated (see figure~\ref{fig:test_suite_date}),
+as well as pages showing the details for each of the problems run.
+Test failures indicate that the current output does not match the stored
+benchmarks.
+
+
+\subsection{Updating Benchmarks}
+
+A test failure means that the current version of the code gives a
+different answer than the stored benchmark.  A test can fail either
+because a bug was introduced into the code or a bug was fixed or new
+feature introduced.
+
+If a bug was introduced into the code recently, then by examing the
+test history you can determine the time period in which the bug was
+introduced.  The {\tt ChangeLog.Parallel} and {\tt
+  ChangeLog.fParallel} files linked to on each test date's webpage
+will list all the changes committed to CVS up to that point, which is
+useful for tracking down the bug.  Once the bug is fixed, rerunning
+the suite should generate a `pass'.
+
+If a bug was fixed or a new feature was introduced, and you are
+confident that the latest output is correct, then you can tell the
+test suite to update the benchmarks.  If you want to do this for all
+the test problems, you would do:\\
+$~~~~~${\tt ./test.py --make\_benchmarks "X bug fixed" ./Castro\_tests.ini} \\
+where the string after ``{\tt --make\_benchmarks}'' is a note that is listed
+on the regression suite web page describing the reason for the benchmark
+update.  Subsequent runs of the test suite will use the new benchmarks.
+If you only want to update the benchmarks of a single test, then you
+can use the ``{\tt --single\_test test}'' flag on the commandline, where
+{\tt test} is the name of the test to update.
+

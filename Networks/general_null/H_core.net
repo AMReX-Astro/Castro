@@ -1,0 +1,19 @@
+# this is the null description for the H_core network
+#
+
+# name short-name aion zion
+ hydrogen-1 H1 1.0 1.0
+ helium-3 He3 3.0 2.0
+ helium-4 He4 4.0 2.0
+ carbon-12 C12 12.0 6.0
+ nitrogen-14 N14 14.0 7.0
+ oxygen-16 O16 16.0 8.0
+ neon-20 Ne20 20.0 10.0
+ magnesium-24 Mg24 24.0 12.0
+ silicon-28 Si28 28.0 14.0
+ sulfur-32 S32 32.0 16.0
+ argon-36 Ar36 36.0 18.0
+ calcium-40 Ca40 40.0 20.0
+ titanium-44 Ti44 44.0 22.0
+ chromium-48 Cr48 48.0 24.0
+ iron-54 Fe54 54.0 26.0

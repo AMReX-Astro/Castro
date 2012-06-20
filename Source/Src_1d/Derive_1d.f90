@@ -1,0 +1,669 @@
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derlapvar(var,var_l1,var_h1,nv, &
+                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                              domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will derive the weighted-Laplacian of the variable for
+!       the purposes of error estimation
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          var_l1,var_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision var(var_l1:var_h1,nv)
+      double precision dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+ 
+      ! added for my routine
+      double precision ::  delu(var_l1:var_h1)
+      double precision :: delua(var_l1:var_h1)
+      double precision :: delu2, delu3, delu4
+      double precision :: num, denom
+      integer          :: i
+
+      ! This value is taken from FLASH
+      double precision, parameter:: epsil=0.02
+
+      ! adapted from ref_marking.f90 in FLASH2.5
+
+      ! d/dx
+      do i=lo(1)-1,hi(1)+1
+         delu(i)  =     dat(i+1,1)  -     dat(i-1,1) 
+         delua(i) = abs(dat(i+1,1)) + abs(dat(i-1,1))
+      end do
+
+      ! d/dxdx
+      do i = lo(1),hi(1)
+
+         delu2 =     delu(i+1)  -     delu(i-1)
+         delu3 = abs(delu(i+1)) + abs(delu(i-1))
+         delu4 =    delua(i+1)  +    delua(i-1)
+
+         ! compute the error
+         num   = abs(delu2)
+         denom = abs(delu3 + (epsil*delu4+1.d-99))
+
+         var(i,1) = num/denom
+
+      end do
+ 
+      end subroutine ca_derlapvar
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derstate(state,state_l1,state_h1,nv, &
+                             dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                             domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     The incoming   "dat" vector contains (rho,T,(rho X)_1)
+!     The outgoing "state" vector contains (rho,T,X_1)
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          state_l1,state_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision state(state_l1:state_h1,nv)
+      double precision dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      if (nv .ne. 3) then
+          print *,'... confusion in derstate ... nv should be 3 but is ',nv
+          call bl_error('Error:: Derive_1d.f90 :: ca_derstate')
+      end if
+
+      do i = lo(1), hi(1)
+         ! Density
+         state(i,1) = dat(i,1)
+         ! Temperature
+         state(i,2) = dat(i,2)
+         ! (rho X)_1 --> X_1
+         state(i,3) = dat(i,3) / dat(i,1)
+      end do
+
+      end subroutine ca_derstate
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dervel(vel,vel_l1,vel_h1,nv, &
+                           dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                           domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will derive the velocity from the momentum.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          vel_l1,vel_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision vel(vel_l1:vel_h1,nv)
+      double precision dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+ 
+      integer    i
+ 
+      do i = lo(1), hi(1)
+         vel(i,1) = dat(i,2) / dat(i,1)
+      end do
+ 
+      end subroutine ca_dervel
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dermagvel(magvel,vel_l1,vel_h1,nv, &
+                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                              domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will magnitude of velocity.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          vel_l1,vel_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision magvel(vel_l1:vel_h1,nv)
+      double precision    dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      do i = lo(1), hi(1)
+         magvel(i,1) = abs(dat(i,2) / dat(i,1))
+      end do
+
+      end subroutine ca_dermagvel
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dermagmom(magmom,mom_l1,mom_h1,nv, &
+                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                              domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will magnitude of momentum.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          mom_l1,mom_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision magmom(mom_l1:mom_h1,nv)
+      double precision    dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      do i = lo(1), hi(1)
+         magmom(i,1) = abs(dat(i,1))
+      end do
+
+      end subroutine ca_dermagmom
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derpres(p,p_l1,p_h1,ncomp_p, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer p_l1,p_h1,ncomp_p
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision p(p_l1:p_h1,ncomp_p)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: e, gamc,c, T, Y(nspec+naux)
+      double precision :: rhoInv,dpdr,dpde
+      integer          :: i,n
+
+!     Compute pressure from the EOS
+      do i = lo(1),hi(1)
+
+         rhoInv = 1.d0/u(i,URHO)
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n=1,nspec
+            Y(n) = u(i,UFS+n-1)*rhoInv
+         enddo
+         do n=1,naux
+            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
+         enddo
+
+         ! Protect against negative internal energy
+         if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
+            call eos_given_RTX(e, p(i,1), u(i,URHO), T, Y)
+         else
+            call eos_given_ReX(gamc, p(i,1), c, T, dpdr, dpde, u(i,URHO), e, Y)
+         end if
+
+      enddo
+
+      end subroutine ca_derpres
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dereint1(e,e_l1,e_h1,ncomp_e, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use meth_params_module, only : URHO, UMX, UEDEN 
+
+      implicit none
+
+      integer e_l1,e_h1,ncomp_e
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision e(e_l1:e_h1,ncomp_e)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: rhoInv,ux
+      integer          :: i
+
+!     Compute internal energy from (rho E)
+      do i = lo(1),hi(1)
+         rhoInv = 1.d0/u(i,URHO)
+         ux = u(i,UMX)*rhoInv
+         e(i,1) = u(i,UEDEN)*rhoInv-0.5d0*(ux**2)
+      enddo
+
+      end subroutine ca_dereint1
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dereint2(e,e_l1,e_h1,ncomp_e, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use meth_params_module, only : URHO, UEINT
+
+      implicit none
+
+      integer e_l1,e_h1,ncomp_e
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision e(e_l1:e_h1,ncomp_e)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      integer          :: i
+
+!     Compute internal energy from (rho e)
+      do i = lo(1),hi(1)
+         e(i,1) = u(i,UEINT) / u(i,URHO)
+      enddo
+
+      end subroutine ca_dereint2
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dersoundspeed(c,c_l1,c_h1,ncomp_c, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer c_l1,c_h1,ncomp_c
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision c(c_l1:c_h1,ncomp_c)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: e, gamc, p, T, Y(nspec+naux)
+      double precision :: rhoInv,dpdr,dpde
+      integer          :: i,n
+
+      c = 0.d0
+
+!     Compute soundspeed from the EOS
+      do i = lo(1),hi(1)
+
+         rhoInv = 1.d0/u(i,URHO)
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n=1,nspec
+            Y(n) = u(i,UFS+n-1)*rhoInv
+         enddo
+         do n=1,naux
+            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
+         enddo
+
+         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
+            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+         end if
+
+      enddo
+
+      end subroutine ca_dersoundspeed
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_dermachnumber(mach,mach_l1,mach_h1,ncomp_mach, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer          :: mach_l1,mach_h1,ncomp_mach
+      integer          :: u_l1,u_h1,ncomp_u
+      integer          :: lo(1), hi(1), domlo(1), domhi(1)
+      double precision :: mach(mach_l1:mach_h1,ncomp_mach)
+      double precision :: u(u_l1:u_h1,ncomp_u)
+      double precision :: dx(1), xlo(1), time, dt
+      integer          :: bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: c, e, gamc, p, T, dpdr, dpde, Y(nspec+naux)
+      double precision :: rhoInv,ux
+      integer          :: i,n
+
+      mach(:,:) = 0.d0
+
+!     Compute Mach number of the flow
+      do i = lo(1),hi(1)
+         rhoInv = 1.d0/u(i,URHO)
+         ux = u(i,UMX  )*rhoInv
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n = 1,nspec
+            Y(n)=u(i,UFS+n-1)*rhoInv
+         enddo
+         do n = 1,naux
+            Y(nspec+n)=u(i,UFX+n-1)*rhoInv
+         enddo
+
+         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
+            call eos_given_ReX(gamc, p, c, T, dpdr, dpde, &
+                               u(i,URHO), e, Y)
+            mach(i,1) = abs(ux) / c
+         end if 
+
+      enddo
+
+      end subroutine ca_dermachnumber
+
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_deruplusc(c,c_l1,c_h1,ncomp_c, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer c_l1,c_h1,ncomp_c
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision c(c_l1:c_h1,ncomp_c)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: e, gamc, p, T, Y(nspec+naux)
+      double precision :: rhoInv,ux,dpdr,dpde
+      integer          :: i,n
+
+      c = 0.d0
+
+!     Compute soundspeed from the EOS
+      do i = lo(1),hi(1)
+
+         rhoInv = 1.d0/u(i,URHO)
+         ux = u(i,UMX)*rhoInv
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n=1,nspec
+            Y(n) = u(i,UFS+n-1)*rhoInv
+         enddo
+         do n=1,naux
+            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
+         enddo
+
+         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
+            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+         end if
+
+         c(i,1) = u(i,UMX)/u(i,URHO) + c(i,1)
+
+      enddo
+
+      end subroutine ca_deruplusc
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_deruminusc(c,c_l1,c_h1,ncomp_c, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer c_l1,c_h1,ncomp_c
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision c(c_l1:c_h1,ncomp_c)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: e, gamc, p, T, Y(nspec+naux)
+      double precision :: rhoInv,ux,dpdr,dpde
+      integer          :: i,n
+
+      c = 0.d0
+
+!     Compute soundspeed from the EOS
+      do i = lo(1),hi(1)
+
+         rhoInv = 1.d0/u(i,URHO)
+         ux = u(i,UMX)*rhoInv
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n=1,nspec
+            Y(n) = u(i,UFS+n-1)*rhoInv
+         enddo
+         do n=1,naux
+            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
+         enddo
+
+         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) &
+            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+
+         c(i,1) = u(i,UMX)/u(i,URHO) - c(i,1)
+
+      enddo
+
+      end subroutine ca_deruminusc
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derentropy(s,s_l1,s_h1,ncomp_s, &
+           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
+           domhi,dx,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+
+      implicit none
+
+      integer s_l1,s_h1,ncomp_s
+      integer u_l1,u_h1,ncomp_u
+      integer lo(1), hi(1), domlo(1), domhi(1)
+      double precision s(s_l1:s_h1,ncomp_s)
+      double precision u(u_l1:u_h1,ncomp_u)
+      double precision dx(1), xlo(1), time, dt
+      integer bc(1,2,ncomp_u), level, grid_no
+
+      double precision :: e, gamc, p, T, Y(nspec+naux)
+      double precision :: rhoInv,dpdr,dpde
+      integer          :: i,n
+
+      s = 0.d0
+
+!     Compute entropy from the EOS
+      do i = lo(1),hi(1)
+
+         rhoInv = 1.d0/u(i,URHO)
+         e  = u(i,UEINT)*rhoInv
+         T  = u(i,UTEMP)
+         do n=1,nspec
+            Y(n) = u(i,UFS+n-1)*rhoInv
+         enddo
+         do n=1,naux
+            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
+         enddo
+
+         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
+            call eos_S_given_ReX(s(i,1), u(i,URHO), e, T, Y)
+         end if
+
+      enddo
+
+      end subroutine ca_derentropy
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derspec(spec,spec_l1,spec_h1,nv, &
+                            dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                            domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will derive the velocity from the momentum.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          spec_l1,spec_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision spec(spec_l1:spec_h1,nv)
+      double precision dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      do i = lo(1), hi(1)
+         spec(i,1) = dat(i,2) / dat(i,1)
+      end do
+
+      end subroutine ca_derspec
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derlogden(logden,ld_l1,ld_h1,nd, &
+                              dat,dat_l1,dat_h1,nc,lo,hi,&
+                              domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will derive magnitude of velocity.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer           ld_l1, ld_h1, nd
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision logden( ld_l1: ld_h1,nd)
+      double precision    dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      do i = lo(1), hi(1)
+         logden(i,1) = dlog10(dat(i,1))
+      end do
+
+      end subroutine ca_derlogden
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derdivu(divu,div_l1,div_h1,nv, &
+                           dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                           domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will divergence of velocity.
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          div_l1,div_h1,nv
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision divu(div_l1:div_h1,nv)
+      double precision  dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer          :: i
+      double precision :: vlo,vhi
+
+      do i = lo(1), hi(1)
+         vhi = dat(i+1,2) / dat(i+1,1)
+         vlo = dat(i-1,2) / dat(i-1,1)
+         divu(i,1) = 0.5d0 * (vhi - vlo) / delta(1)
+      end do
+
+      end subroutine ca_derdivu
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_derkineng(kineng,ken_l1,ken_h1,nk, &
+                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                              domhi,delta,xlo,time,dt,bc,level,grid_no)
+!
+!     This routine will derive kinetic energy = 1/2 rho (u^2 + v^2)
+!
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          ken_l1,ken_h1,nk
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision kineng(ken_l1:ken_h1,nk)
+      double precision    dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      integer    i
+
+      do i = lo(1), hi(1)
+         kineng(i,1) = 0.5d0 * (dat(i,2)**2) / dat(i,1)
+      end do
+
+      end subroutine ca_derkineng
+
+      subroutine ca_dernull(kineng,ken_l1,ken_h1,nk, &
+                            dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
+                            domhi,delta,xlo,time,dt,bc,level,grid_no)
+        !
+        ! This is a derived routine that does nothing.
+        !
+      implicit none
+
+      integer          lo(1), hi(1)
+      integer          ken_l1,ken_h1,nk
+      integer          dat_l1,dat_h1,nc
+      integer          domlo(1), domhi(1)
+      integer          bc(1,2,nc)
+      double precision delta(1), xlo(1), time, dt
+      double precision kineng(ken_l1:ken_h1,nk)
+      double precision    dat(dat_l1:dat_h1,nc)
+      integer    level, grid_no
+
+      end subroutine ca_dernull
+

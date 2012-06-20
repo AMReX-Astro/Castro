@@ -1,0 +1,3 @@
+general_null is a generalized null network.  It provides the ability
+to define the species at compile-time and writes the network module
+that incorporates these as non-reacting passively advecting species.

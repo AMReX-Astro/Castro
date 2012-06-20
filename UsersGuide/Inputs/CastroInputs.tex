@@ -1,0 +1,845 @@
+The Castro executables read run-time information from an "inputs" file (which you put on the command line) 
+and from a "probin" file, the name of which is usually defined in the inputs file, but which defaults to "probin".  
+To set the "probin" file name in the inputs file:\\
+
+{\bf amr.probin\_file} = my\_special\_probin\\ \\
+for example, has the Fortran code read a file called "my\_special\_probin"
+
+\section{Problem Geometry}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values & Default \\
+\hline
+{\bf geometry.prob\_lo} & physical location of low corner of the domain & Real & must be set\\
+{\bf geometry.prob\_hi} & physical location of high corner of the domain & Real  & must be set\\
+{\bf geometry.coord\_sys} & coordinate system & 0 = Cartesian, 1 = r-z, 2 = spherical & must be set \\
+{\bf geometry.is\_periodic} & is the domain periodic in this direction & 0 if false, 1 if true  & 0 0 0 \\
+\hline
+\end{tabular}
+\label{Table:Geometry}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf geometry.prob\_lo} = 0 0 0 \\
+defines the low corner of the domain at (0,0,0) in physical space.  
+
+\item {\bf geometry.prob\_hi} = 1.e8 2.e8 2.e8 \\
+defines the high corner of the domain at (1.e8,2.e8,2.e8) in physical space.  
+
+\item {\bf geometry.coord\_sys} = 0 \\
+defines the coordinate system as Cartesian 
+
+\item {\bf geometry.is\_periodic} = 0 1 0 \\
+says the domain is periodic in the y-direction only. 
+
+\end{itemize}
+
+\section{Domain Boundary Conditions}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.lo\_bc} & boundary type of each low face  & 0,1,2,3,4,5 & must be set \\
+{\bf castro.hi\_bc} & boundary type of each high face & 0,1,2,3,4,5 & must be set \\
+\hline
+\end{tabular}
+\label{Table:BC}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+Boundary types are:
+
+\begin{table*}[h]
+\begin{center}
+\begin{tabular}{llll} 
+0 --  Interior / Periodic \hspace{1.in} & 3  --  Symmetry     \hspace{1.in} & \\
+1 --  Inflow              \hspace{1.in} & 4  --  Slip Wall    \hspace{1.in}& \\
+2 --  Outflow             \hspace{1.in} & 5  --  No Slip Wall \hspace{1.in}& \\
+\end{tabular}
+\end{center}
+\end{table*}
+
+\noindent Note -- {\bf castro.lo\_bc} and {\bf castro.hi\_bc} must be consistent with 
+{\bf geometry.is\_periodic} -- if the domain is periodic in a particular
+direction then the low and high bc's must be set to 0 for that direction.
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf castro.lo\_bc} = 1 4 0 
+
+\item {\bf castro.hi\_bc} = 2 4 0 
+
+\item {\bf geometry.is\_periodic} = 0 0 1
+
+\end{itemize}
+
+\noindent would define a problem with inflow (1) in the low-x direction, 
+outflow(2) in the high-x direction, slip wall (4) on the low and high y-faces, 
+and periodic in the z-direction. 
+
+\section{Resolution}
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.n\_cell} &  number of cells in each direction at the coarsest level & Integer $> 0$ & must be set \\
+{\bf amr.max\_level} &  number of levels of refinement above the coarsest level& Integer $\geq 0$  & must be set \\
+{\bf amr.ref\_ratio} & ratio of coarse to fine grid spacing between subsequent levels & 2 or 4 & must be set \\
+{\bf amr.regrid\_int} & how often to regrid & Integer $> 0$  & must be set \\
+{\bf amr.regrid\_on\_restart} & should we regrid immediately after restarting & 0 or 1 & 0 \\
+\hline
+\end{tabular}
+%\caption{Input Parameters -- Resolution}
+\label{Table:ResInputs}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\noindent Note: if {\bf amr.max\_level} = 0 then you do not need to set {\bf amr.ref\_ratio} or {\bf amr.regrid\_int}.
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf amr.n\_cell} = 32 64 64
+
+would define the domain to have 32 cells in the x-direction, 64 cells in the y-direction, 
+and 64 cells in the z-direction {\em{at the coarsest level}}. 
+(If this line appears in a 2D inputs file then the final number will be ignored.)
+
+\item {\bf amr.max\_level} = 2 \\ 
+would allow a maximum  of 2 refined levels in addition to the coarse level.   
+Note that these additional levels will only be created only if the tagging criteria 
+are such that cells are flagged as needing refinement.  The number of refined levels 
+in a calculation must be $\leq$ {\bf amr.max\_level}, but can change in time and need
+not always be equal to {\bf amr.max\_level}.
+ 
+\item {\bf amr.ref\_ratio} = 2 4 \\ 
+would set factor 2 refinement between levels 0 and 1, and factor 4 refinement between levels 1 and 2. 
+Note that you must have at least {\bf amr.max\_level} values of {\bf amr.ref\_ratio} 
+(Additional values may appear in that line and they will be ignored).
+
+\item {\bf amr.regrid\_int} = 2 2 \\
+tells the code to regrid every 2 steps.  Thus in this example, new level 1 grids will be created every 2 level 0 time steps, and
+new level 2 grids will be created every 2 level 1 time steps.
+
+\end{itemize}
+
+\section{Tagging}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.allow\_untagging} & are cells allowed to be "untagged" & 0 or 1 & 0 \\
+\hline
+\end{tabular}
+\label{Table:Tagging}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+\begin{itemize}
+\item Typically cells at a given level can be tagged as needing refinement by any of a number
+of criteria, but cannot be "untagged", i.e. once tagged no other criteria can untag them.   If
+we set {\bf castro.allow\_untagging} = 1 then the user is allowed to "untag" cells in the
+Fortran tagging routines
+\end{itemize}
+
+\section{Regridding}
+\subsection{Overview}
+
+The details of the regridding strategy are described in a later section; here we 
+cover how the input parameters can control the gridding.
+
+As described later, the user defines Fortran subroutines which tag individual
+cells at a given level if they need refinement.  This list of tagged cells is
+sent to a grid generation routine, which uses the Berger-Rigoutsis algorithm
+to create rectangular grids that contain the tagged cells.   
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.regrid\_file} & name of file from which to read the grids & text & no file  \\ 
+{\bf amr.grid\_eff} & grid efficiency & Real $>0$ and $<1$ & 0.7 \\ 
+{\bf amr.n\_error\_buf} & radius of additional tagging around already tagged cells & Integer $\geq 0$ & 1 \\ 
+{\bf amr.max\_grid\_size} & maximum size of a grid in any direction & Integer $> 0$ & 128 in 2D, 32 in 3D \\ 
+{\bf amr.blocking\_factor} &  grid size must be a multiple of this & Integer $> 0$ & 2\\
+{\bf amr.refine\_grid\_layout} & refine grids more if \# of processors $>$ \# of grids &  0 if false, 1 if true & 1 \\
+\hline
+\end{tabular}
+\label{Table:GriddingInputs}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+\begin{itemize}
+\item {\bf amr.n\_error\_buf}, {\bf amr.max\_grid\_size} and {\bf amr.blocking\_factor} 
+can be read in as a single value which is assigned to every level, 
+or as multiple values, one for each level
+\item {\bf amr.max\_grid\_size} at every level must be even 
+\item {\bf amr.blocking\_factor} at every level must be a power of 2
+\item the domain size must be a multiple of  {\bf amr.blocking\_factor} at level 0
+\item {\bf amr.max\_grid\_size} must be a multiple of {\bf amr.blocking\_factor} at every level
+\end{itemize}
+
+\subsection{Examples of Usage}
+
+\begin{itemize} 
+
+\item {\bf amr.regrid\_file} = fixed\_grids \\ 
+In this case the list of grids at each fine level are contained in the file, {\em fixed\_grids},
+which will be read during the gridding procedure.  These grids must not violate the
+{\bf amr.max\_grid\_size} criterion.   The rest of the gridding procedure described below
+will not occur if {\bf amr.regrid\_file} is set.
+
+\item {\bf amr.grid\_eff} = 0.9\\ 
+During the grid creation process, at least 90\% of the cells in each grid at the
+level at which the grid creation occurs must be tagged cells.  
+
+\item {\bf amr.max\_grid\_size} = 64 \\ 
+The final grids will be no longer than 64 cells on a side at every level.
+
+\item {\bf amr.max\_grid\_size} = 64 32 16 \\ 
+The final grids will be no longer than 64 cells on a side
+at level 0, 32 cells on a side at level 1, and 16 cells on a side at level 2.
+
+\item {\bf amr.blocking\_factor} = 32 \\
+The dimensions of all the final grids will be multiples of 32 at all levels.
+
+\item {\bf amr.blocking\_factor} = 32 16 8\\
+The dimensions of all the final grids will be multiples of 32
+at level 0, multiples of 16 at level 1, and multiples of 8 at level 2..  
+
+Having grids that are large enough to coarsen multiple levels in a V-cycle is essential
+for good multigrid performance in simulations that use self-gravity.
+
+\end{itemize}
+
+\subsection{How Grids are Created}
+
+\noindent The gridding algorithm proceeds in this order:
+
+\begin{enumerate}
+\item Grids are created using the Berger-Rigoutsis clustering algorithm 
+modified to ensure that all new fine grids are divisible by {\bf amr.blocking\_factor}.
+
+\item Next, the grid list is chopped up if any grids are larger than {\bf max\_grid\_size}.
+Note that because {\bf amr.max\_grid\_size} is a multiple of {\bf amr.blocking\_factor}
+the {\bf amr.blocking\_factor} criterion is still satisfied. 
+
+\item Next, if {\bf amr.refine\_grid\_layout} = 1 and there are more processors than grids, and
+\begin{itemize}
+\item if {\bf amr.max\_grid\_size} / 2 is a multiple of {\bf amr.blocking\_factor}
+\end{itemize}
+then the grids will be redefined, at each level independently, so that the 
+maximum length of a grid at level $\ell$, in any dimension, 
+is {\bf amr.max\_grid\_size}[$\ell$] / 2.  
+
+\item Finally, if {\bf amr.refine\_grid\_layout} = 1,  and there are still more processors
+than grids, and 
+\begin{itemize}
+\item if {\bf amr.max\_grid\_size} / 4 is a multiple of {\bf amr.blocking\_factor}
+\end{itemize}
+then the grids will be redefined, at each level independently, so that the 
+maximum length of a grid at level $\ell$, in any dimension, 
+is {\bf amr.max\_grid\_size}[$\ell$] / 4.
+
+
+\end{enumerate}
+
+\section{Simulation Time}
+
+\subsection{List of Parameters}
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default \\
+\hline
+{\bf max\_step} & maximum number of level 0 time steps & Integer $\geq 0$ & -1 \\
+{\bf stop\_time} & final simulation time & Real $\geq 0$ & -1.0 \\
+\hline
+\end{tabular}
+\label{Table:TimeInputs}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+To control the number of time steps, you can limit by the maximum number of 
+level 0 time steps ({\bf max\_step}) or by the final simulation time ({\bf stop\_time}), 
+or both. The code will stop at whichever criterion comes first. 
+Note that if the code reaches {\bf stop\_time} then the final time step will be shortened so as to end 
+exactly at {\bf stop\_time}, not pass it.
+
+\subsection{Examples of Usage}
+\begin{itemize}
+\item {\bf max\_step}  = 1000
+\item {\bf stop\_time}  = 1.0
+\end{itemize}
+will end the calculation when either the simulation time reaches 1.0 or 
+the number of level 0 steps taken equals 1000, whichever comes first.
+
+\section{Time Step}
+If {\bf castro.do\_hydro}$ = 1$, then typically 
+the code chooses a time step based on the CFL number (dt = cfl * dx / max(u+c) ).
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.cfl} & CFL number & Real $> 0$ and $\leq 1$ & 0.8 \\ 
+{\bf castro.init\_shrink} & factor by which to shrink the initial time step & Real $> 0$ and $\leq 1$ & 1.0 \\ 
+{\bf castro.change\_max} & factor by which the time step can grow in subsequent steps & Real $\geq 1$ & 1.1 \\ 
+{\bf castro.fixed\_dt} &  level 0 time step regardless of cfl or other settings & Real $> 0$ & unused if not set \\
+{\bf castro.initial\_dt} &  initial level 0 time step regardless of other settings & Real $> 0$ & unused if not set \\
+{\bf castro.dt\_cutoff} & time step below which calculation will abort & Real $> 0$ & 0.0 \\
+\hline
+\end{tabular}
+\label{Table:TimeStepInputs}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf castro.cfl} = 0.9 \\
+defines the timestep as dt = cfl * dx / umax.
+
+\item {\bf castro.init\_shrink} = 0.01 \\
+sets the initial time step to 1\% of what it would be otherwise.  
+
+\item {\bf castro.change\_max} = 1.1\\
+allows the time step to increase by no more than 10\% in this case.    Note that the time step
+can shrink by any factor; this only controls the extent to which it can grow.
+
+\item {\bf castro.fixed\_dt} = 1.e-4\\
+sets the level 0 time step to be 1.e-4 for the entire simulation, 
+ignoring the other timestep controls.   Note that if {\bf castro.init\_shrink} $\neq 1$
+then the first time step will in fact be {\bf castro.init\_shrink} * {\bf castro.fixed\_dt}.
+
+\item {\bf castro.initial\_dt} = 1.e-4\\
+sets the {\it initial} level 0 time step to be 1.e-4 regardless of 
+{\bf castro.cfl} or {\bf castro.fixed\_dt}.  The time step can
+grow in subsequent steps by a factor of {\bf castro.change\_max} each step.
+
+\item {\bf castro.dt\_cutoff} = 1.e-20\\
+tells the code to abort if the time step ever gets below 1.e-20. 
+This is a safety mechanism so that if things go nuts you don't burn through your 
+entire computer allocation because you don't realize the code is misbehaving.
+
+\end{itemize}
+
+\section{Subcycling}
+Castro supports a number of different modes for subcycling in time.
+
+\begin{itemize}
+\item If {\bf amr.subcycling\_mode}$ = $Auto (default), then the code 
+will run with equal refinement in space and time. In other words, if 
+level $n+1$ is a factor of 2 refinement above level $n$, then $n+1$ 
+will take 2 steps of half the duration for every level $n$ step.
+
+\item If {\bf amr.subcycling\_mode}$ = $None, then the code 
+will not refine in time. All levels will advance together with a 
+timestep dictated by the level with the strictest $dt$. Note that this 
+is identical to the deprecated command {\bf amr.nosub = 1}.
+
+\item If {\bf amr.subcycling\_mode}$ = $Manual, then the code will 
+subcycle according to the values supplied by {\bf 
+subcycling\_iterations}.
+
+\end{itemize}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.subcycling\_mode}& How shall we subcycle &Auto, None or Manual & Auto \\ 
+{\bf amr.subcycling\_iterations} & Number of cycles at each level & 1 
+or {\tt ref\_ratio} & must be set in Manual mode \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf amr.subcycling\_mode}$ = $Manual \\
+Subcycle in manual mode with largest allowable timestep.
+
+\item {\bf amr.subcycling\_iterations} = 1 2 1 2\\
+Take 1 level 0 timestep at a time (required). Take 2 level 1 timesteps for each level 0 step, 1 timestep at level 2 
+for each level 1 step, and take 2 timesteps at level 3 for each level 
+2 step.
+
+\item {\bf amr.subcycling\_iterations} = 2\\
+Alternative form. Subcycle twice at every level (except level 0).
+
+\end{itemize}
+
+\section{Restart Capability}
+
+Castro has a standard sort of checkpointing and restarting capability. 
+In the inputs file, the following options control the generation of checkpoint files (which are really
+directories):\\
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.check\_file} & prefix for restart files & Text & "chk" \\
+{\bf amr.check\_int}  & how often (by level 0 time steps) to write restart files & Integer $> 0$ & -1  \\
+{\bf amr.check\_per}  & how often (by simulation time) to write restart files & Real $> 0$ & -1.0 \\
+{\bf amr.restart}  & name of the file (directory) from which to restart & Text & not used if not set \\
+{\bf amr.checkpoint\_files\_output} & should we write checkpoint files & 0 or 1 & 1 \\
+{\bf amr.check\_nfiles}  & how parallel is the writing of the checkpoint files & Integer $\geq 1$ & 64 \\
+{\bf amr.checkpoint\_on\_restart} & should we write a checkpoint immediately after restarting 
+  & 0 or 1 & 0 \\
+{\bf castro.grown\_factor} & Factor by which domain has been grown & Integer $\geq 1$ & 1 \\
+\hline
+\end{tabular}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+\begin{itemize}
+
+\item You should specify either {\bf amr.check\_int} or {\bf amr.check\_per}.  Do not try to specify both. 
+
+\item Note that if {\bf amr.check\_per} is used then in order to hit that exact time the code 
+may modify the time step slightly, which will change your results ever so slightly than if 
+you didn't set this flag.
+
+\item Note that {\bf amr.plotfile\_on\_restart} and {\bf amr.checkpoint\_on\_restart} 
+only take effect if {\bf amr.regrid\_on\_restart} is in effect.
+
+\item See the Software Section for more details on parallel I/O and the 
+{\bf amr.check\_nfiles} parameter.
+
+\item If you are doing a scaling study then set {\bf amr.checkpoint\_files\_output} = 0
+so you can test scaling of the algorithm without I/O.
+
+\end{itemize}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf amr.check\_file} = chk\_run
+\item {\bf amr.check\_int} = 10
+
+means that restart files (really directories) starting with the prefix "chk\_run" will be
+generated every 10 level 0 time steps.  The directory names will be {\it chk\_run00000}, 
+{\it chk\_run00010}, {\it chk\_run00020}, etc.
+
+\end{itemize}
+
+If instead you specify
+
+\begin{itemize}
+
+\item {\bf amr.check\_file} = chk\_run
+\item {\bf amr.check\_per} = 0.5
+
+then restart files (really directories) starting with the prefix "chk\_run" will be
+generated every 0.1 units of simulation time.  The directory names will be {\it chk\_run00000}, 
+{\it chk\_run00043}, {\it chk\_run00061}, etc, where $t = 0.1$ after 43 level 0 steps, 
+$t = 0.2$ after 61 level 0 steps, etc.
+
+\end{itemize}
+
+To restart from {\it chk\_run00061},for example, then set 
+
+\begin{itemize}
+\item {\bf amr.restart} = chk\_run00061
+\end{itemize}
+
+\section{Controlling PlotFile Generation}
+\label{sec:PlotFiles}
+The main output from Castro is in the form of plotfiles (which are really directories).
+The following options in the inputs file control the generation of plotfiles 
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.plot\_file} & prefix for plotfiles & Text & "plt" \\
+{\bf amr.plot\_int}  & how often (by level 0 time steps) to write plot files & Integer $> 0$ & -1  \\
+{\bf amr.plot\_per}  & how often (by simulation time) to write plot files & Real $> 0$ & -1.0 \\
+{\bf amr.plot\_vars}  & name of state variables to include in plotfiles 
+ & ALL, NONE or list & ALL \\
+{\bf amr.derive\_plot\_vars}  & name of derived variables to include in plotfiles 
+ & ALL, NONE or list & NONE \\
+{\bf castro.plot\_X}  & include all the species mass fractions in the plotfile 
+ & 0 or 1 & 0 \\
+{\bf amr.plot\_files\_output} & should we write plot files & 0 or 1 & 1 \\
+{\bf amr.plotfile\_on\_restart} & should we write a plotfile immediately after restarting 
+  & 0 or 1 & 0 \\
+{\bf amr.plot\_nfiles}  & how parallel is the writing of the plotfiles & Integer $\geq 1$ & 64 \\
+{\bf castro.plot\_phiGrav} & Should we plot the gravitational potential & 0 or 1 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+All the options for {\bf amr.derive\_plot\_vars} are kept in \texttt{derive\_lst} in Castro\_setup.cpp.  Feel free to look at it and see what's there. 
+
+
+\subsection{Notes}
+
+\begin{itemize}
+
+\item You should specify either {\bf amr.plot\_int} or {\bf amr.plot\_per}.  Do not try to specify both. 
+
+\item Note that if {\bf amr.plot\_per} is used then in order to hit that exact time the 
+code may modify the time step slightly, which will change your results ever so slightly 
+than if you didn't set this flag.
+
+\item See the Software Section for more details on parallel I/O and the 
+{\bf amr.plot\_nfiles} parameter.
+
+\item If you are doing a scaling study then set {\bf amr.plot\_files\_output} = 0
+so you can test scaling of the algorithm without I/O.
+
+\item {\bf castro.plot\_phiGrav} is only relevant if 
+{\bf castro.do\_grav} = 1 and {\bf gravity.gravity\_type} = PoissonGrav
+
+\end{itemize}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf amr.plot\_file} = plt\_run
+\item {\bf amr.plot\_int} = 10
+
+means that plot files (really directories) starting with the prefix "plt\_run" will be
+generated every 10 level 0 time steps.  The directory names will be {\it plt\_run00000}, 
+{\it plt\_run00010}, {\it plt\_run00020}, etc.
+
+\end{itemize}
+
+If instead you specify
+
+\begin{itemize}
+
+\item {\bf amr.plot\_file} = plt\_run
+\item {\bf amr.plot\_per} = 0.5
+
+then restart files (really directories) starting with the prefix "plt\_run" will be
+generated every 0.1 units of simulation time.  The directory names will be {\it plt\_run00000}, 
+{\it plt\_run00043}, {\it plt\_run00061}, etc, where $t = 0.1$ after 43 level 0 steps, 
+$t = 0.2$ after 61 level 0 steps, etc.
+
+\end{itemize}
+
+\section{Screen Output}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf amr.v} & verbosity of Amr.cpp & 0 or 1 & 0 \\
+{\bf castro.v} & verbosity of Castro.cpp & 0 or 1 & 0 \\
+{\bf gravity.v} & verbosity of Gravity.cpp & 0 or 1 & 0 \\
+{\bf diffusion.v} & verbosity of Diffusion.cpp & 0 or 1 & 0 \\
+{\bf mg.v} & verbosity of multigrid solver (for gravity) & 0,1,2,3,4 & 0 \\
+{\bf amr.grid\_log}       & name of the file to which the grids are written & Text & not used if not set \\
+{\bf amr.run\_log}        & name of the file to which certain output is written & Text & not used if not set \\
+{\bf amr.run\_log\_terse} & name of the file to which certain (terser) output is written & Text & not used if not set \\
+{\bf amr.sum\_interval}   & if $> 0,$ how often (in level 0 time steps) & &  \\  
+                          & to compute and print integral quantities & Integer & -1 \\  
+{\bf castro.do\_special\_tagging} & & 0 or 1 & 1 \\
+\hline
+\end{tabular}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+\begin{itemize}
+
+\item {\bf castro.do\_special\_tagging} = 1 allows the user to set a special flag based on
+user-specified criteria.  This can be used, for example, to calculate the bounce time in a 
+core collapse simulation; the bounce time is defined as the first time at which the maximum
+density in the domain exceeds a user-specified value.   This time can then be printed into
+a special file as a useful diagnostic.
+
+\end{itemize}
+
+\subsection{Examples of Usage}
+
+\begin{itemize}
+
+\item {\bf amr.grid\_log} = grdlog \\
+Every time the code regrids it prints a list of grids at all relevant levels.  
+Here the code will write these grids lists into the file {\em grdlog}.
+
+\item {\bf amr.run\_log} = runlog \\ 
+Every time step the code prints certain statements to the screen (if {\bf amr.v} = 1), such as \\
+STEP = 1 TIME = 1.91717746 DT = 1.91717746 \\
+PLOTFILE: file = plt00001 \\
+Here these statements will be written into {\em runlog} as well.
+
+\item {\bf amr.run\_log\_terse} = runlogterse \\ 
+This file, {\em runlogterse} differs from {\em runlog}, in that it only contains lines
+of the form \\ 
+10  0.2  0.005 \\
+in which "10" is the number of steps taken, "0.2" is the simulation time, and "0.005" is the 
+level 0 time step.  This file can be plotted very easily to monitor the time step.
+
+\item {\bf castro.sum\_interval} = 2 \\
+if {\bf castro.sum\_interval} $> 0$ then the code computes and prints certain integral quantities, 
+such as total mass, momentum and energy in the domain every {\bf castro.sum\_interval} level 0 steps. 
+In this example the code will print these quantities every two coarse time steps.  The print 
+statements have the form \\
+TIME= 1.91717746 MASS= 1.792410279e+34 \\
+for example. 
+If this line is commented out then it will not compute and print these quanitities.
+
+\end{itemize}
+
+\section{Gravity}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.do\_grav}  & Include gravity as a forcing term & 0 if false, 1 if true & must be set if USE\_GRAV = TRUE  \\
+{\bf gravity.gravity\_type} & if {\bf castro.do\_grav} = 1, how shall gravity be calculated & ConstantGrav, & \\
+& & PoissonGrav,or MonopoleGrav & must be set \\
+{\bf gravity.const\_grav} & if {\bf gravity.gravity\_type} = ConstantGrav, set the value of constant gravity & Real & 0.0 \\
+{\bf gravity.no\_sync} & if {\bf gravity.gravity\_type} = PoissonGrav, whether to perform the "sync solve" &  0 or 1 & 0 \\
+{\bf gravity.no\_composite} & if {\bf gravity.gravity\_type} = PoissonGrav, whether to perform a composite solve & 0 or 1 & 0 \\
+\hline
+\end{tabular}
+\label{Table:Gravity}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+Gravity types are ConstantGrav, PoissonGrav, or MonopoleGrav.  See the Gravity section for more detail.
+
+\begin{itemize}
+\item To include gravity you must set 
+\begin{itemize}
+\item USE\_GRAV  = TRUE in the GNUmakefile 
+\item {\bf castro.do\_grav} = 1 in the inputs file
+\end{itemize}
+\item {\bf gravity.gravity\_type} is  only relevant if {\bf castro.do\_grav} = 1 
+\item {\bf gravity.no\_sync} and {\bf gravity.no\_composite} are only relevant if {\bf gravity.gravity\_type} = PoissonGrav,
+i.e. the code does a full Poisson solve for self-gravity.
+\end{itemize}
+
+\section{Diffusion}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.diffuse\_temp} & Include thermal diffusion & 0 if false, 1 if true & 0 \\
+{\bf diffusion.diff\_coeff} & & Real $> 0$ & 0.0 \\
+\hline
+\end{tabular}
+\label{Table:Diffusion}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+\begin{itemize}
+\item To include diffusion you must set
+\begin{itemize}
+\item USE\_DIFFUSION  = TRUE in the GNUmakefile
+\item {\bf castro.diffuse\_temp} = 1 in the inputs file
+\end{itemize}
+\item You can run a pure diffusion problem (with no hydrodynamics) by setting 
+\begin{itemize}
+\item {\bf castro.diffuse\_temp} = 1
+\item {\bf castro.do\_hydro} = 0 
+\end{itemize}
+\item {\bf diffusion.diff\_coeff} is only relevant if {\bf castro.diffuse\_temp} = 1 
+\end{itemize}
+
+\section{Rotation}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}\hline
+Parameter & Definition & Acceptable Values & Default\\
+\hline
+{\bf castro.do\_rotation} & Include rotation as a forcing term & 0 if false, 1 if true & 0 \\
+{\bf castro.rotational\_frequency} & Frequency (Hz) of rotation & Real & 0.0 \\
+\hline
+\end{tabular}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+This is for constant, solid-body rotation about a fixed axis.  See the Rotation section for more detail.
+\begin{itemize}
+\item To include rotation you must set
+\begin{itemize}
+\item USE\_ROTATION = TRUE in the GNUMakefile
+\item {\bf castro.do\_rotation} = 1 in the inputs file
+\end{itemize}
+\item {\bf castro.rotational\_frequency} is only relevant if {\bf castro.do\_rotation} = 1
+\end{itemize}
+
+\section{Physics}
+
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.do\_hydro} & Time-advance the fluid dynamical equations & 0 if false, 1 if true &
+ must be set \\
+{\bf castro.do\_react} & Include reactions                          & 0 if false, 1 if true & 
+ must be set \\
+% {\bf castro.do\_radiation} & Include radiation                      & 0 if false, 1 if true &
+%  must be set if USE\_RAD = TRUE \\
+{\bf castro.add\_ext\_src} & Include additional user-specified source term & 0 if false, 1 if true & 0 \\
+{\bf castro.point\_mass}   & Point mass at the center of the star & Real $\geq 0$ & 0.0 \\
+{\bf castro.do\_sponge} & Call a user-supplied sponging routine after the solution update & 0 or 1 & 0 \\
+{\bf castro.normalize\_species} & Enforce that $\sum_i X_i = 1$ & 0 or 1 & 0 \\
+{\bf castro.fix\_mass\_flux} & Enforce constant mass flux at domain boundary & 0 or 1 & 1 \\
+{\bf castro.allow\_negative\_energy} & Is internal energy allowed to be negative & 0 or 1 & 1 \\
+{\bf castro.ppm\_type} & Use piecewise linear vs PPM algorithm & 0,1,2 & 1 \\
+{\bf castro.use\_colglaz} & Use the Colella/Glaz algorithm? & 0 or 1 & 0 \\
+{\bf castro.gamma} & Sets the value of $\gamma$ & Real & 0.0 \\
+{\bf castro.spherical\_star} & & 0 or 1 & 0 \\
+{\bf castro.show\_center\_of\_mass} & & 0 or 1 & 0 \\
+{\bf castro.small\_dens} & & Real & -1.e20 \\
+{\bf castro.small\_temp} & & Real & -1.e20 \\
+{\bf castro.small\_pres} & & Real & -1.e20 \\
+\hline
+\end{tabular}
+\label{Table:Physics}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+\begin{itemize}
+\item You must have USE\_POINTMASS  = TRUE in the GNUmakefile for {\bf castro.point\_mass} to be relevant.
+\item {\bf castro.gamma} is only relevant for a gamma law gas.
+\item {\bf castro.use\_colglaz}  = 1 is only implemented in 1D
+\end{itemize}
+
+% \section{Radiation}
+
+% \begin{table*}[h]
+% \begin{scriptsize}
+% \begin{center}
+% \begin{tabular}{|l|l|l|l|} \hline
+% Parameter & Definition & Acceptable Values &Default\\
+% \hline
+% {\bf radiation.do\_timing} & & & \\
+% {\bf radiation.do\_clouds} & & & \\
+% {\bf radiation.do\_shadow} & & & \\
+% {\bf radiation.do\_thermal\_wave} & & & \\
+% {\bf radiation.do\_crooked\_pipe} & & & \\
+% {\bf radiation.do\_linearMGD\_tp} & & & \\
+% {\bf radiation.do\_neutrino\_test} & & & \\
+% {\bf radiation.do\_rad\_sphere} & & & \\
+% {\bf radiation.do\_light\_front} & & & \\
+% {\bf radiation.do\_multigroup} & & & \\
+% {\bf radiation.ngroups} & & & \\
+% {\bf radiation.nNeutrinoSpecies} & & & \\
+% {\bf radiation.nNeutrinoGroups} & & & \\
+% {\bf radiation.plot\_neutrino\_group\_energies\_total} & & & \\
+% \hline
+% \end{tabular}
+% \label{Table:Radiation}
+% \end{center}
+% \end{scriptsize}
+% \end{table*}
+
+% \begin{itemize}
+% \item You must have USE\_RAD  = TRUE in the GNUmakefile for {\bf castro.do\_radiation} to be relevant.
+% \end{itemize}
+

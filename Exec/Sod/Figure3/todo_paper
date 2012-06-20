@@ -1,0 +1,3 @@
+Castro1d.ex inputs-test3-1d amr.n_cell = 32 amr.max_level = 2  amr.ref_ratio = 2 2
+mv  *.pla 128
+mv  grdlog 128

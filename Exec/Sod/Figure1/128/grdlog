@@ -1,0 +1,224 @@
+STEP = 0 TIME = 0 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+INITIAL GRIDS 
+  Level 0   1 grids  32 cells  100 % of domain
+ 0: ((0) (31) (0))   32 :: 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 0 TIME = 0 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  25 % of domain
+ 1: ((48) (79) (0))   32 :: 0
+  Level 2   1 grids  32 cells  6.25 % of domain
+ 2: ((240) (271) (0))   32 :: 0
+
+INITIAL GRIDS 
+  Level 0   1 grids  32 cells  100 % of domain
+ 0: ((0) (31) (0))   32 :: 0
+  Level 1   1 grids  32 cells  25 % of domain
+ 1: ((48) (79) (0))   32 :: 0
+  Level 2   1 grids  32 cells  6.25 % of domain
+ 2: ((240) (271) (0))   32 :: 0
+
+STEP = 0 TIME = 0 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  25 % of domain
+ 1: ((48) (79) (0))   32 :: 0
+  Level 2   1 grids  32 cells  6.25 % of domain
+ 2: ((240) (271) (0))   32 :: 0
+  Level 3   1 grids  32 cells  1.5625 % of domain
+ 3: ((1008) (1039) (0))   32 :: 0
+
+INITIAL GRIDS 
+  Level 0   1 grids  32 cells  100 % of domain
+ 0: ((0) (31) (0))   32 :: 0
+  Level 1   1 grids  32 cells  25 % of domain
+ 1: ((48) (79) (0))   32 :: 0
+  Level 2   1 grids  32 cells  6.25 % of domain
+ 2: ((240) (271) (0))   32 :: 0
+  Level 3   1 grids  32 cells  1.5625 % of domain
+ 3: ((1008) (1039) (0))   32 :: 0
+
+STEP = 0 TIME = 0 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+INITIAL GRIDS 
+  Level 0   1 grids  32 cells  100 % of domain
+ 0: ((0) (31) (0))   32 :: 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.002377 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 2 TIME = 0.00487284 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.00749348 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 4 TIME = 0.0102452 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.0131344 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 6 TIME = 0.0161681 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.0193535 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 8 TIME = 0.0226982 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.0262101 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 10 TIME = 0.0298976 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.0337695 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 12 TIME = 0.037835 : REGRID  with lbase = 0
+  Level 1   1 grids  32 cells  50 % of domain
+ 1: ((16) (47) (0))   32 :: 0
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+TIME = 0.0421037 : REGRID  with lbase = 1
+  Level 2   1 grids  32 cells  25 % of domain
+ 2: ((48) (79) (0))   32 :: 0
+
+STEP = 14 TIME = 0.0465859 : REGRID  with lbase = 0
+  Level 1   1 grids  48 cells  75 % of domain
+ 1: ((16) (63) (0))   48 :: 0
+  Level 2   1 grids  48 cells  37.5 % of domain
+ 2: ((48) (95) (0))   48 :: 0
+
+TIME = 0.0512922 : REGRID  with lbase = 1
+  Level 2   1 grids  48 cells  37.5 % of domain
+ 2: ((48) (95) (0))   48 :: 0
+
+STEP = 16 TIME = 0.0562338 : REGRID  with lbase = 0
+  Level 1   1 grids  48 cells  75 % of domain
+ 1: ((16) (63) (0))   48 :: 0
+  Level 2   1 grids  48 cells  37.5 % of domain
+ 2: ((48) (95) (0))   48 :: 0
+
+TIME = 0.0614225 : REGRID  with lbase = 1
+  Level 2   1 grids  48 cells  37.5 % of domain
+ 2: ((48) (95) (0))   48 :: 0
+
+STEP = 18 TIME = 0.0668706 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+TIME = 0.0725911 : REGRID  with lbase = 1
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+STEP = 20 TIME = 0.0785977 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+TIME = 0.0849045 : REGRID  with lbase = 1
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+STEP = 22 TIME = 0.0915268 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+TIME = 0.0984801 : REGRID  with lbase = 1
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+STEP = 24 TIME = 0.105781 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+TIME = 0.113447 : REGRID  with lbase = 1
+  Level 2   1 grids  64 cells  50 % of domain
+ 2: ((32) (95) (0))   64 :: 0
+
+STEP = 26 TIME = 0.121496 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+TIME = 0.129948 : REGRID  with lbase = 1
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+STEP = 28 TIME = 0.138823 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+TIME = 0.148141 : REGRID  with lbase = 1
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+STEP = 30 TIME = 0.157925 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+TIME = 0.168198 : REGRID  with lbase = 1
+  Level 2   1 grids  80 cells  62.5 % of domain
+ 2: ((32) (111) (0))   80 :: 0
+
+STEP = 32 TIME = 0.178985 : REGRID  with lbase = 0
+  Level 1   1 grids  64 cells  100 % of domain
+ 1: ((0) (63) (0))   64 :: 0
+  Level 2   1 grids  96 cells  75 % of domain
+ 2: ((16) (111) (0))   96 :: 0
+
+TIME = 0.190311 : REGRID  with lbase = 1
+  Level 2   1 grids  112 cells  87.5 % of domain
+ 2: ((16) (127) (0))   112 :: 0
+

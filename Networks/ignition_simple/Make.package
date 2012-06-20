@@ -1,0 +1,6 @@
+f90EXE_sources += network.f90
+f90EXE_sources += castro_burner.f90
+f90EXE_sources += burner_aux.f90
+f90EXE_sources += f_rhs.f90
+fEXE_sources += ../screen.f
+

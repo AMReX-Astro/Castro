@@ -1,0 +1,287 @@
+\section{Introduction}
+CASTRO has a level set package.  The level sets can track a moving interface, but currently do not feed back into the solution.  We have a scalar field $\phi$ which we advect using the equation,
+\begin{equation}
+\frac{\partial\phi}{\partial t} + \Ub\cdot\nabla\phi + (\kappa_a-\kappa_b\kappa)|\nabla\phi| = 0,
+\end{equation}
+where $\kappa$ is the curvature,
+\begin{equation}
+\kappa = \nabla\cdot\left(\frac{\nabla\phi}{|\nabla\phi|}\right).
+\end{equation}
+Typically, the ``zero-levelset'', i.e., locations where $\phi=0$, represents some interface we care about.  Mathematically, $\phi$ can be any scalar field, but we initialize $\phi$ to be a signed distance function, such that $\phi$ represents the physical distance from the zero-levelset.  The sign of $\phi$ indicates which side of the interface you're on, and the sign convention can be different from example to example.  We will use the convection in \cite{Reinecke99}, where $\phi < 0$ in the unburnt region.  By choosing $\phi$ to be a signed distance function, $|\nabla\phi|=1$.\\
+
+In practice, since we only care about tracking an interface, we only store and update $\phi$ in a narrow band of cells, aptly named the narrowband.  Using a narrowband lowers computational expense, since we only advance $\phi$ in cells within the narrowband, and when initializing or reinitializing $\phi$ (see Section \ref{Sec:LevelSet Terminology}), we only compute $\phi$ within the narrowband.  For multilevel problems, the finest level must have enough cells to contain the entire narrowband.  You may have to write special tagging conditions on $\phi$ to make this happen.  Outside of the narrowband, we typically set $\phi$ to some arbitrarily large positive or negative number (depending on which side of the interface you're on).  In practice, we typically use $\phi=\pm 1\times 10^{30}$, but for these notes we refer to these values as $\phi=\pm\infty$.\\
+
+\subsection{An Example}
+The CASTRO/Exec/Sedov\_LS/ directory contains a series of Sedov blast wave problems that use a level set representation to track some interface.  Note that the makefile includes ``USE\_LEVELSET=TRUE'', and the executable has a ``.LevelSet'' string.  Any of the five inputs files (3 in 2D, 2 in 3D) work just fine, except for regions near non-periodic boundary conditions.  The ``probin'' files are where you set the values of $\kappa_a$, $\kappa_b$, and some other parameters which will be described shortly.
+
+\section{Terminology}\label{Sec:LevelSet Terminology}
+At the beginning of a simulation, we initialize $\phi$ within the narrowband using a user-defined description of the initial interface.  We also label each cell that is within the narrowband and greater than a specified distance from the interface as a ``mine''.  As the simulation progresses, we need to ``reinitialize'' $\phi$ when the interface crosses a mine, which is detected by monitoring when the sign of $\phi$ changes in a mine.  During the reinitialization step, we recompute which cells lie in the narrowband, recompute $\phi$ for all cells within the narrowband, redefine which cells are mines, and set $\phi=\pm\infty$ for all cells outside of the narrowband.  For adaptive problems, we also reinitialize after regridding.\\
+
+Note that the level set code uses the convention that the cell-center of cell $(i,j)$ is located at the physical coordinates $(i\Delta x,j\Delta y)$.  This means that the lower-left corner of the domain does not have physical coordinates $(0,0)$, but rather $(-\Delta x/2,-\Delta y/2)$.\\
+
+We carry around some auxiliary data structures to help us advance $\phi$:
+
+\begin{itemize}
+
+\item \type~(in the fortran code) or \LStype~(in the c++ code) is an ``Integer Multifab'' that associates each cell with one of four values:
+
+\begin{itemize}
+\item 0 = part of the narrowband, not a mine
+\item 1 = part of the narrowband, is a mine
+\item 2 = tentative
+\item 3 = outside of the narrowband
+\end{itemize}
+
+\item \nbandwidth~is a fixed real number that indicates half the width of the narrowband.
+
+\item \mineloc~is a fixed real number that indicates half the width of the part of the narrowband that are not mines.  It follows that \mineloc~$<$ \nbandwidth.
+
+\item \lvlerr~is a fixed real number used for the tagging condition for adaptive problems.  We tag if $|\phi|<$ \lvlerr.
+
+\item \nband~(in the fortran code) or \LSnband~(in the c++ code) is a list of cells and associated coordinates that lie within narrowband.  For example, $\nband_{(1,1)}$ is the x-coordinate of the first cell in the list and $\nband_{(3,2)}$ is the y-coordinate of the third cell in the list.  Each grid has its own local \nband.  We mark the end of the list by setting the coordinates of the next cell to be some large negative integer, i.e., $\nband_{(\nbandnum+1,:)}$ = -\LARGEINT.  In the code, \nband~is defined as an Integer Multifab, even though when passed into fortran code it is dimensioned as a two-dimensional integer array.  This was done so that each grid carries its own local copy of \nband, as opposed to each processor carrying its own local copy of \nband.
+
+\item \nbandnum~is an integer indicating the number of cells in \nband.
+
+\item \mine~(in the fortran code) or \LSmine~(in the c++ code) is a list of cells and associated coordinates that are mines, and therefore, must also be part of \nband~(see \nband~for an example of how elements are referenced).  Each grid has its own local \mine.  We mark the end of the list in the same was as \nband.  Similar to \nband, \mine~is defined as an Integer Multifab even though it is used in fortran as a two-dimensional integer array.
+
+\item \heap~is a list of cells and associated coordinates used to dynamically sort tentative cells as they are evaluated in the Fast Marching Method (see \nband~for an example of how elements are referenced).  Each grid has its own local \heap.  \heap~contains only cells at the edge of the region containing known values.  Once values in \heap~become known, they are removed from \heap.  See Section \ref{Sec:Heap Sorting} for more details about \heap~sorting.
+
+\item \heaploc~is a two-dimensional integer array that indicates what position in \heap~a particular cell maps to.  For example, if $\heap_{(5,1)}$ = 8 and $\heap_{(5,2)}$ = 9, then $\heaploc_{(8,9)}$ = 5.  If $\heaploc_\ib$ = -1, then $\ib$ is not in \heap.
+
+\item \intfacen~is a list of cells and associated coordinates that are next to an interface and have a negative value of $\phi$.  We say that a cell is next to an interface if you can construct a box with the cell-center and neighboring three cell-centers as the vertices, in which all four cells must be within the original narrowband and do not all have the same sign of $\phi$.  This indicates that the narrowband crosses the box.  An additional constraint required for a cell to be considered next to an interface is that the nearest point to the interface must lie within the box in which we constructed the bicubic polynomial to find the distance to the interface.  Each grid has its own local \intfacen.
+
+\item \intfacep~is the same as \intfacen~except for positive values of $\phi$.
+
+\item \intfacenumn~is the number of cells in \intfacen.
+
+\item \intfacenump~is the number of cells in \intfacep.
+
+\end{itemize}
+
+\section{Functions}
+Following is a list of functions involving levelsets.  They are written assuming the problem is 2D, but can be generalized to 3D in a straightforward manner.
+\subsection{\INITPHI}
+\begin{enumerate}
+\item Compute $\phi$ everywhere as a signed distance function.
+\item For each cell where $|\phi| <$ \mineloc, we set \type~= 0.
+\item For each cell where $|\phi| <$ \nbandwidth, we set \type~= 1.
+\item For all other cells, we set \type~= 3 and $\phi = \sign(\infty,\phi)$.
+\end{enumerate}
+\subsection{\ADVANCE}
+\begin{enumerate}
+\item Call \NARROWBAND~to compute \nband~and \mine~from \type, making sure to mark the end of both lists.
+\item \label{Step:CFL} Call \LSCFL~to compute a stable level set advance time step for the current level, $\Delta t_\phi$, and then set $\Delta t_\phi = \min(\Delta t-\sum_{\rm prev}\Delta t_\phi, \Delta t_\phi)$, where $\Delta t$ is the full state time step for that level.
+\item Call \PHIUPD~to advance $\phi$ by $\Delta t_\phi$.
+\item \label{Step:REINIT} If the interface crossed any mines, call \REINIT.
+\item If $\min(\Delta t-\sum_{\rm prev}\Delta t_\phi, \Delta t_\phi) \ne \Delta t-\sum_{\rm prev}\Delta t_\phi$, repeat steps \ref{Step:CFL} - \ref{Step:REINIT}.
+\end{enumerate}
+\subsection{\LSCFL}
+For each cell in \nband, define 
+\begin{equation}
+{\rm {\tt speed}} = \sqrt{\left(\frac{u_{\ib+\half\eb_x}+u_{\ib-\half\eb_x}}{2}\right)^2 + \left(\frac{v_{\ib+\half\eb_y}+v_{\ib-\half\eb_y}}{2}\right)^2} + |\kappa_a - \kappa_b\kappa|.
+\end{equation}
+Define the following derivatives:
+\begin{eqnarray}
+\phi_x &=& \frac{\phi_{\ib+\eb_x}-\phi_{\ib-\eb_x}}{2\Delta x}, \\
+\phi_y &=& \frac{\phi_{\ib+\eb_y}-\phi_{\ib-\eb_y}}{2\Delta y}, \\
+\phi_{xx} &=& \frac{\phi_{\ib+\eb_x}-2\phi_{\ib}+\phi_{\ib-\eb_x}}{\Delta x^2}, \\
+\phi_{yy} &=& \frac{\phi_{\ib+\eb_y}-2\phi_{\ib}+\phi_{\ib-\eb_y}}{\Delta y^2}, \\
+\phi_{xy} &=& \frac{\phi_{\ib+\eb_x+\eb_y}-\phi_{\ib+\eb_x-\eb_y}-\phi_{\ib-\eb_x+\eb_y}+\phi_{\ib-\eb_x-\eb_y}}{4\Delta x\Delta y}.
+\end{eqnarray}
+The curvature term is:
+\begin{equation}
+\kappa = 
+\begin{cases}
+0, & \phi_x^2+\phi_y^2 \le 0, \\
+\frac{\phi_{xx}\phi_y^2 - 2\phi_y\phi_x\phi_{xy} + \phi_{yy}\phi_x^2}{(\phi_x^2 + \phi_y^2)^{3/2}}, & {\rm otherwise}. \\
+\end{cases}
+\end{equation}
+We have a speed constraint:
+\begin{equation}
+\Delta t \le \frac{0.8\Delta x}{{\rm {\tt speed}}},
+\end{equation}
+and a curvature constraint:
+\begin{equation}
+\Delta t \le \frac{0.8\Delta x^2}{4|\kappa_b|}.
+\end{equation}
+\subsection{\PHIUPD}\label{Sec:PHIUPD}
+Now we update $\phi$ by $\Delta t$ using the levelset advance equation from above:
+\begin{equation}
+\frac{\partial\phi}{\partial t} + \Ub\cdot\nabla\phi + (\kappa_a-\kappa_b\kappa)|\nabla\phi| = 0.
+\end{equation}
+For each cell in \nband~whose 8 immediate neighbors are also within \nband, we compute the update:
+\begin{equation}
+\phi^\new = \phi^\old - \Delta t\left(\Ub\cdot\nabla\phi + \kappa_a|\nabla\phi| - \kappa_b\kappa|\nabla\phi|\right).
+\end{equation}
+We individually examine the advection, expansion, and curvature terms below.  After computing $\phi^\new$, we determine if the interface crossed any mines by checking if $\sign(\phi)$ changed in any mines.
+\subsubsection{Advection Term}
+We first define cell-centered velocities by averaging the face-centered, time-centered velocities:
+\begin{eqnarray}
+u^{\rm avg} &=& \frac{u_{\ib+\half\eb_x} + u_{\ib-\half\eb_x}}{2}, \\
+v^{\rm avg} &=& \frac{v_{\ib+\half\eb_y} + v_{\ib-\half\eb_y}}{2}.
+\end{eqnarray}
+We define one-sided derivatives:
+\begin{eqnarray}
+\phi_x^+ &=& \frac{\phi_{\ib+\eb_x}-\phi_{\ib}}{\Delta x}, \\
+\phi_x^- &=& \frac{\phi_{\ib}-\phi_{\ib-\eb_x}}{\Delta x}, \\
+\phi_y^+ &=& \frac{\phi_{\ib+\eb_y}-\phi_{\ib}}{\Delta y}, \\
+\phi_y^- &=& \frac{\phi_{\ib}-\phi_{\ib-\eb_y}}{\Delta y}.
+\end{eqnarray}
+The update is:
+\begin{equation}
+\Ub\cdot\nabla\phi = u^{\rm avg}\phi_x^{\pm_x} + v^{\rm avg}\phi_y^{\pm_y},
+\end{equation}
+where $\pm_x = \pm$ if $u^{\rm avg} \gtrless 0$ and $\pm_y = \pm$ if $v^{\rm avg} \gtrless 0$.
+\subsubsection{Expansion Term}
+The expansion term uses upwind differences:\\ \\
+{\bf If} $\kappa_a > 0$ {\bf then}
+\begin{equation}
+|\nabla\phi| = \sqrt{\left[\max(\phi_x^-,0) + \min(\phi_x^+,0)\right]^2 + \left[\max(\phi_y^-,0) + \min(\phi_y^+,0)\right]^2}
+\end{equation}
+{\bf else}
+\begin{equation}
+|\nabla\phi| = \sqrt{\left[\min(\phi_x^-,0) + \max(\phi_x^+,0)\right]^2 + \left[\min(\phi_y^-,0) + \max(\phi_y^+,0)\right]^2}
+\end{equation}
+{\bf end if}
+\subsubsection{Curvature Term}
+The curvature term is:
+\begin{equation}
+\kappa|\nabla\phi| = 
+\begin{cases}
+0, & \phi_x^2+\phi_y^2 \le 0, \\
+\frac{\phi_{xx}\phi_y^2 - 2\phi_y\phi_x\phi_{xy} + \phi_{yy}\phi_x^2}{\phi_x^2 + \phi_y^2}, & {\rm otherwise}. \\
+\end{cases}
+\end{equation}
+\subsection{\REINIT}
+\begin{enumerate}
+\item Call \RETYPIFY~to set \type~= 3 for all cells in \nband.
+\item Call \FINDINTRFCE:
+\begin{enumerate}
+\item For each cell $\ib$ in \nband, set $\phi_\ib^\new = \sign(\infty,\phi_\ib^\old)$.
+\item For each cell $\ib$ in \nband, call \UPDATEF($\ib$):\\ \\
+{\bf if} cell $\ib$ corresponds to the bottom-left vertex of an interface box {\bf then}
+\begin{enumerate}
+\item Construct a bicubic polynomial within the interface box.
+\item For each cell-center that is a vertex of the interface box, compute the physical location of the nearest point to the interface using the bicubic polynomial.
+\item If this point lies within the interface box, return the distance to that point, making sure to use the {\bf min} operator since any particular cell-center might be considered a vertex for other interface boxes.  If this point does not lie within the interface box, do not return a distance and do not mark this cell center as being part of the interface.
+\item Compute \intfacep, \intfacenump, \intfacen, \intfacenumn, making sure not to double count.  This is done by setting \type~=0 after the first pass through for any given cell, and then checking to see if the cell's \type~has been changed from 3 to 0.
+\end{enumerate}
+{\bf end if}\\
+\item Clear \nband~by setting \nband(1,:) = -\LARGEINT.
+\end{enumerate}
+\item For each side of the interface, call \FASTMARCH.
+\item \label{Step:Fill Periodic Ghost} Fill periodic ghost cells.
+\item Compute \nbandnum~from \nband.
+\item \label{Step:FASTMARCH2} For each side of the interface, call \FASTMARCH2.
+\item Loop over steps \ref{Step:Fill Periodic Ghost} - \ref{Step:FASTMARCH2} until \done.
+\item Call \MINE~to compute \mine~from \type~and mark the end of \mine.
+\end{enumerate}
+\subsection{\FASTMARCH}
+Here we generically refer to \intfacep/\intfacen~as \intface.
+\begin{enumerate}
+\item For each cell $\ib$ in \intface, call \UPDATE($\ib$).
+\item For each cell $\ib$ in \intface, increment \nbandnum~and add $\ib$ to \nband.
+\item \label{Step:RMVNODE} If \numtent~$>$ 0, call \RMVNODE, which returns the coordinates of the removed node, $\ib$.
+\item {\bf if} $\phi_\ib < \nbandwidth$ {\bf then}
+\begin{enumerate}
+\item Set $\type_\ib$ = 0, increment \nbandnum, and add $\ib$ to \nband
+\end{enumerate}
+{\bf else}
+\begin{enumerate}
+\item Set $\type_\ib$ = 3, set $\phi_\ib = \sign(\infty,\phi_\ib)$, and go to step \ref{Step:Done RMVNODE}.
+\end{enumerate}
+{\bf end if}
+\item If $\mineloc < \phi_\ib < \nbandwidth$, set $\type_\ib$ = 1.
+\item \label{Step:Update after RMVNODE} Call \UPDATE($\ib$).
+\item Repeat steps \ref{Step:RMVNODE} - \ref{Step:Update after RMVNODE} while \numtent~$>$ 0.
+\item \label{Step:Done RMVNODE} Mark the end of \nband.
+\item Remove all remaining nodes $\ib$ from \heap, set $\type_\ib = 3$, and set $\phi_\ib = \sign(\infty,\phi_\ib)$
+\end{enumerate}
+\subsection{\UPDATE(\ib)}
+\begin{enumerate}
+\item For each cell $\ib'$ directly above, below, left, and right of $\ib$, if $\type_{\ib'}$ $>$ 1 and sign($\phi_{\ib'}$) = sign($\phi_\ib$), call \EVAL($\ib'$).
+\item For each cell $\ib'$ we called \EVAL~for:\\ \\
+{\bf if} \type~$>$ 2 {\bf then}
+\begin{enumerate}
+\item Set \type~= 2 and call \ADDNODE($\ib'$).
+\end{enumerate}
+{\bf else}
+\begin{enumerate}
+\item Call \UPDATENODE($\ib'$).
+\end{enumerate}
+{\bf end if}
+\end{enumerate}
+\subsection{\EVAL(\ib)}
+\begin{enumerate}
+\item Solve $|\nabla\phi|_{\ib}=1$, which can be formulated as a quadratic equation using one-sided differences with known (\type~$\le$ 1) points.
+\end{enumerate}
+\subsection{\FASTMARCH2}
+\begin{enumerate}
+\item Set \numtent~= 0 and clear \heaploc.
+\item For each ghost cell $\ib$ directly above, below, left, or right of a valid cell, if $\type_{\ib} \le 1$  {\bf and} \sign($\phi_\ib$) is positive (if were are currently marching over the positive side of the interface) or negative (if we are marching over the negative side of the interface), call \UPDATE2($\ib$).
+\item Set \done~= false.
+\item \label{Step:RMVNODE2} If \numtent~$>$ 0, call \RMVNODE, which returns the coordines of the removed node, $\ib$.
+\item {\bf if} $\phi_\ib < \nbandwidth$ {\bf then}
+\begin{enumerate}
+\item Set \done~= true.
+\item If $\type_\ib \ge$ 2, add $\ib$ to \nband~and increment \nbandnum.
+\item Set $\type_\ib$ = 0 and call \UPDATE2($\ib$).
+\end{enumerate}
+{\bf else}
+\begin{enumerate}
+\item Set $\type_\ib$ = 3, set $\phi_\ib = \sign(\infty,\phi_\ib)$, and go to step \ref{Step:Done RMVNODE2}.
+\end{enumerate}
+{\bf end if}
+\item \label{Step:MINE2} If $\mineloc < \phi_\ib < \nbandwidth$, set $\type_\ib$ = 1.
+\item Repeat steps \ref{Step:RMVNODE2} - \ref{Step:MINE2}  while \numtent~$>$ 0.
+\item \label{Step:Done RMVNODE2} Mark the end of \nband.
+\item Remove all remaining nodes $\ib$ from \heap, set $\type_\ib = 3$, and set $\phi_\ib = \sign(\infty,\phi_\ib)$
+\end{enumerate}
+\subsection{\UPDATE2(\ib)}
+\begin{enumerate}
+\item For each cell $\ib'$ directly above, below, left, and right of ghost cell $\ib$, check whether it's a valid cell.  If it's not, skip the rest of this function and test the next $\ib'$.
+\item Check the following conditions:
+\begin{enumerate}
+\item \label{Step:First Condition} \sign($\phi_{\ib'}$) = \sign($\phi_\ib$).
+\item $|\phi_{\ib'}| > |\phi_\ib|$.
+\item \label{Step:Last Condition} $|\phi_{\ib'}| \ne \infty$ {\bf or} the sign of the four cells $\phi_{\ib''}$ directly above, below, left, and right of $\phi_{\ib'}$ is positive (if were are currently marching over the positive side of the interface) or negative (if we are marching over the negative side of the interface).
+\end{enumerate}
+\item If conditions \ref{Step:First Condition} - \ref{Step:Last Condition} are all true, call \EVAL2($\ib'$) (reminder: $\ib'$ is the valid cell and $\ib$ is the ghost cell)
+\item Another call to \EVAL2($\ib'$)...
+\item {\bf If} \isnew~{\bf then}
+\begin{enumerate}
+\item Set $\type_{\ib'} = \min(2,\type_{\ib'})$.
+\item If $\heaploc_{\ib'} = -1$, call \ADDNODE($\ib'$).  Otherwise, call \UPDATENODE($\ib'$).
+\end{enumerate}
+\end{enumerate}
+\subsection{\EVAL2(\ib)}
+\begin{enumerate}
+\item Solve $|\nabla\phi|_{\ib}=1$, which can be formulated as a quadratic equation using one-sided differences with valid points.  There's some fancy checking as to whether neighboring points are valid or not.  If any $\phi$ is overwritten, set \isnew~= true.
+\end{enumerate}
+\section{Heap Sorting}\label{Sec:Heap Sorting}
+The heap structure that we use is called a min-heap. It has the property that every node is smaller than its children in addition to the usual heap property, i.e., that the structure is a nearly complete binary tree with nodes being filled out from left to right. Thus, the smallest node will always be the root of the heap. In order for the min-heap to work, this is the only property that we need to satisfy, i.e., we don't need to completely sort the heap. Because of this it only takes at most $\mathcal O(\log N)$ steps to perform heap operations as opposed to $\mathcal O(N\log N)$ steps for a complete sort. Any operations that we perform on the min-heap usually just involves checking to see if the current node is either larger than its parent or smaller than its children and then swapping appropriately.  Jeff got the algorithm from Cormen's book \cite{Cormen2001}. It is also mentioned in Sethian's Level Set book \cite{Sethian99} in Chapter 8.4, page 90.  You could probably find more explanations by googling min heap (or max heap).
+\subsection{\ADDNODE}
+\ADDNODE~works by adding a new node to the bottom of the heap. We then enforce the min-heap property by checking to see if the parent node is smaller and if so we swap the current node with its parent. We then repeat this process until the current node is smaller than its parent.
+\begin{enumerate}
+\item Put $\ib$ at the bottom of the heap.
+\item Restructure \heap~and \heaploc~as described above.
+\item Increment \numtent.
+\end{enumerate}
+\subsection{\UPDATENODE}
+\UPDATENODE~works the same was as ADDNODE except that the current node starts somewhere in the middle of the heap. In our case we only have to check parent nodes since nodes added from the Fast Marching Method can only be made smaller. And, so, for a more general algorithm where a node's value may increase, you may have to also check the value of the children nodes.
+\begin{enumerate}
+\item Restructure \heap~and \heaploc~as described above.
+\end{enumerate}
+\subsection{\RMVNODE}
+\RMVNODE~works by removing and returning the node with the smallest value, which is at the root of the heap. We then fill in the vacant root with the node at the end of the heap. At this point, we see if any of the children nodes are smaller than the current root node. If so, we swap the smaller of the children nodes with the current root node. This process is then repeated at the node where the swap occurred until the current node is indeed smaller than its children.
+\begin{enumerate}
+\item Remove and return the coordinates $\ib$ corresponding to the root of the heap.
+\item Restructure \heap~and \heaploc~as described above.
+\item Decrement \numtent.
+\end{enumerate}
+\section{Future Work}
+\begin{itemize}
+\item Improved hyperbolics (PLM? PPM? BDS?)
+\item Boundary conditions
+\item Checkpoint compatibility
+\end{itemize}

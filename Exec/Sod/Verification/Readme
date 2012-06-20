@@ -1,0 +1,39 @@
+The Verification directory contains the analytic solutions for the
+various shock tube problems, as computing using Toro's exact Riemann
+solver.
+
+To compare Castro output, we need to create 1-d slices in the
+direction across the initial discontinuity.  This can be accomplished
+using fextract3d.f90 in fParallel/data_processing/
+
+   Creating the Castro slices:
+
+   compile fParallel/data_processing/fextract
+
+   fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p ../sod_x_plt00034
+   fextract3d.Linux.Intel.exe -d 2 -s sody.out -p ../sod_y_plt00034
+   fextract3d.Linux.Intel.exe -d 3 -s sodz.out -p ../sod_z_plt00034
+
+Gnuplot scripts to plot the data overtop the analytic solutions are
+provided.  For Sod's problem, execute
+
+   gnuplot sod_3d.gp
+
+in the Sod/Verification/ directory (where the above slices should have been
+output).
+
+
+
+NOTES:
+
+-- to get good agreement with the analytic solution for Sod's problem,
+   it is necessary to start off with a small timestep.  This is
+   accomplished by setting castro.init_shrink = 0.1 in the inputs file.
+
+   Toro notes that this is required for initial discontinuities in section
+   6.4.
+
+
+ 
+
+

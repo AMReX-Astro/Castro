@@ -1,0 +1,142 @@
+#ifndef _Gravity_F_H_
+#define _Gravity_F_H_
+#include <BLFort.H>
+
+BL_FORT_PROC_DECL(GET_GRAV_CONST,get_grav_const)(Real* Gconst);
+
+BL_FORT_PROC_DECL(CA_AVGDOWN_PHI,ca_avgdown_phi)
+    (BL_FORT_FAB_ARG(crse_fab), 
+     const BL_FORT_FAB_ARG(fine_fab),
+     const int ovlo[], const int ovhi[], const int rat[]);
+
+BL_FORT_PROC_DECL(CA_EDGE_INTERP,ca_edge_interp)
+    (const int* flo, const int* fhi,
+     const int* nc, const int* refRatio, const int* dir,
+     BL_FORT_FAB_ARG(fine));
+    
+BL_FORT_PROC_DECL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
+    (const int* lo, const int* hi,
+     const int* nc, const int* refRatio, const int* dir,
+     const BL_FORT_FAB_ARG(crse),
+     BL_FORT_FAB_ARG(fine));
+
+BL_FORT_PROC_DECL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
+    (const int* lo, const int* hi,
+     const int* bc_lo, const int* bc_hi,
+     const int* symmetry_type,
+     BL_FORT_FAB_ARG(phi_cc),
+     D_DECL(const BL_FORT_FAB_ARG(xgrad),
+            const BL_FORT_FAB_ARG(ygrad),
+            const BL_FORT_FAB_ARG(zgrad)),
+     const Real* dx, const Real* problo, const int* coord_type);
+
+BL_FORT_PROC_DECL(CA_AVERAGE_EC,ca_average_ec)
+    (D_DECL(const BL_FORT_FAB_ARG(xgrad_fine),
+            const BL_FORT_FAB_ARG(ygrad_fine),
+            const BL_FORT_FAB_ARG(zgrad_fine)),
+     D_DECL(const BL_FORT_FAB_ARG(xgrad_crse),
+            const BL_FORT_FAB_ARG(ygrad_crse),
+            const BL_FORT_FAB_ARG(zgrad_crse)),
+            const int ovlo[], const int ovhi[], const int rat[]);
+
+BL_FORT_PROC_DECL(CA_TEST_RESIDUAL,ca_test_residual)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(rhs),
+     D_DECL(const BL_FORT_FAB_ARG(xgrad),
+            const BL_FORT_FAB_ARG(ygrad),
+            const BL_FORT_FAB_ARG(zgrad)), 
+            const Real* dx, const Real* problo, 
+            const int* coord_type);
+
+BL_FORT_PROC_DECL(CA_APPLY_METRIC,ca_apply_metric)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     D_DECL(const BL_FORT_FAB_ARG(xedge),
+            const BL_FORT_FAB_ARG(yedge),
+            const BL_FORT_FAB_ARG(zedge)), 
+            const Real* dx, const int* coord_type);
+
+BL_FORT_PROC_DECL(CA_UNWEIGHT_CC,ca_unweight_cc)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     const Real* dx, const int* coord_type);
+
+BL_FORT_PROC_DECL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
+    (const int* lo, const int* hi,
+     D_DECL(const BL_FORT_FAB_ARG(xedge),
+            const BL_FORT_FAB_ARG(yedge),
+            const BL_FORT_FAB_ARG(zedge)), 
+     const Real* dx, const int* coord_type);
+
+BL_FORT_PROC_DECL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
+    (const BL_FORT_FAB_ARG(den),
+     const Real* grav, const Real* dx, const Real* problo);
+
+#ifdef GR_GRAV
+BL_FORT_PROC_DECL(CA_COMPUTE_1D_GR_GRAV,ca_compute_1d_gr_grav)
+    (const BL_FORT_FAB_ARG(state),
+     const Real* grav, const Real* dx,
+     const Real* problo);
+#endif
+
+BL_FORT_PROC_DECL(CA_COMPUTE_AVGDEN,ca_compute_avgden)
+    (const int lo[], const int hi[], 
+     const Real* dx, const Real* dr,
+     const BL_FORT_FAB_ARG(S), 
+     const Real* avgden, const Real* avgvol, 
+     const Real* problo, const int* numpts_1d, 
+     const int* drdxfac, const int* level); 
+
+BL_FORT_PROC_DECL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
+    (const int lo[], const int hi[], 
+     const Real* dx, const Real* dr,
+     const BL_FORT_FAB_ARG(S), 
+     const Real* avgpres,
+     const Real* problo, const int* numpts_1d, 
+     const int* drdxfac, const int* level); 
+
+BL_FORT_PROC_DECL(CA_INTEGRATE_GRAV,ca_integrate_grav)
+    (const Real* avgden, const Real* radial_grav,
+     const Real* dr, const int* numpts_1d);
+
+BL_FORT_PROC_DECL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
+    (const int lo[], const int hi[],
+     const Real* dx,
+     const BL_FORT_FAB_ARG(S),
+     const Real* problo);
+
+#ifdef GR_GRAV
+BL_FORT_PROC_DECL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
+    (const Real* avgden,const Real* avgpres, const Real* radial_grav, 
+     const Real* dr, const int* numpts_1d);
+#endif
+
+BL_FORT_PROC_DECL(CA_INTEGRATE_PHI,ca_integrate_phi)
+    (const Real* avgden, const Real* radial_grav,
+     const Real* radial_phi, 
+     const Real* dr, const int* numpts_1d);
+
+BL_FORT_PROC_DECL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
+    (const int lo[], const int hi[], 
+     const Real* dx, const Real* dr,
+     const BL_FORT_FAB_ARG(grav_vector),
+     const Real* radial_grav, 
+     const Real* problo, 
+     const int* n1d, const int* level); 
+
+BL_FORT_PROC_DECL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
+    (const int lo[], const int hi[], 
+     const int domlo[], const int domhi[], 
+     const Real* dx, const Real* dr,
+     const BL_FORT_FAB_ARG(phi),
+     const Real* radial_phi,
+     const Real* problo, 
+     const int* numpts_1d, const int* fill_interior); 
+
+#ifdef POINTMASS
+BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)
+    (const Real* point_mass, BL_FORT_FAB_ARG(grav_vector),
+     const Real* problo, const Real* dx);
+#endif
+
+#endif

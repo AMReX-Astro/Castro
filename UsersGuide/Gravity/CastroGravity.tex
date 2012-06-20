@@ -1,0 +1,183 @@
+There are currently four options for how gravity is calculated -- 
+these are controlled by setting {\bf gravity.gravity\_type}.  
+The options are {\bf ConstantGrav, PoissonGrav, Monopole Grav} or {\bf PrescribedGrav}.
+Note that these are only relevant if {\bf USE\_GRAV = TRUE} in the GNUmakefile
+and {\bf castro.do\_grav} = 1 in the inputs file.  If both of these are
+set then the user is required to specify the gravity type in the inputs file
+or the program will abort. 
+
+Note that  {\bf MonopoleGrav} and {\bf PoissonGrav} are only correct for
+spherical stars, i.e. in 1D we must have {\bf coord\_sys} = 2, 
+in 2D we must have {\bf coord\_sys} = 1, and in 3D we only support {\bf coord\_sys} = 0.
+
+\section{Types of Approximations}
+
+\begin{itemize}
+\item {\bf ConstantGrav}: Gravity can be defined as constant in direction and magnitude, 
+defined in the inputs file by 
+
+\noindent {\bf gravity.const\_grav} = -9.8
+
+for example, to set the gravity to have magnitude 9.8 in the 
+negative y-direction if in 2D, negative z-direction if in 3-D.
+
+\item {\bf PoissonGrav}: 
+The most general case is time-evolving self-gravity with no assumptions about sphericity:
+\begin{equation}
+\mathbf{g}(\mathbf{x},t) = -\nabla \phi 
+\end{equation}
+is a self-induced gravitational field defined by solving
+\begin{equation}
+\mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+\end{equation}
+
+We only allow {\bf PoissonGrav} in 2D or 3D because in 1D, computing the monopole 
+approximation in spherical coordinates is faster and more accurate than solving
+the Poisson equation.
+
+In 2D or 3D we define boundary conditions for $\phi$ using the monopole approximation
+at the coarsest level.  (Without this the boundary conditions would be homogeneous
+Dirichlet which results in loss of sphericity of the gravitational field.)  We first
+compute a 1D radial profile of the average density at the coarsest level, then integrate
+that to define a 1D radial profile of the gravitational acceleration as below.  We
+then integrate {\bf g} to define $\phi,$ starting with $\phi = 0$ at the center.
+
+\item {\bf MonopoleGrav}: 
+\begin{itemize}
+
+\item In 1D spherical coordinates we compute 
+\[g(r) = G * ({\rm Mass_{enclosed}}) / r^2 \; \; , \]
+where ${\rm Mass_{enclosed}}$ is calculated from the density at the time of the call. 
+For levels above the coarsest level we define the extent of that level's radial arrays 
+as ranging from the center of the star ($r=0$) to the cell at that level farthest away from the
+origin.  If there are gaps between fine grids in that range then we interpolate the density
+from a coarser level in order to construct a continuous density profile.  We note that
+the location of values in the density profile and in the gravitational field exactly match the
+location of data at that level so there is no need to interpolate between points when
+mapping the 1D radial profile of $g$ back onto the original grid.
+
+\item In 2D or 3D we compute a 1D radial average of density and use this to compute 
+gravity as a one-dimensional integral, then interpolate the gravity vector back onto 
+the Cartesian grid cells. At the coarsest level we define the extent of the 1D arrays as
+ranging from the center of the star to the farthest possible point in the grid (plus a
+few extra cells so that we can fill ghost cell values of gravity).  At finer levels
+we first define a single box that contains all boxes on that fine level, then we
+interpolate density from coarser levels as needed to fill the value of density at every
+fine cell in that box.   The extent of the radial array is from the center of the star
+to the {\em nearest} cell on one of the faces of the single box.  This ensures that
+all cells at that maximum radius of the array are contained in this box.
+
+We then average the density onto a 1D radial array.
+We note that there is a mapping from the Cartesian cells to the radial array and back;
+unlike the 1D case this requires interpolation. We use quadratic interpolation with
+limiting so that the interpolation does not create new maxima or minima.
+
+The default resolution of the radial arrays at a level is the grid cell spacing at
+that level, i.e. $\Delta r = \Delta x.$   One optimization we have recently added is that one 
+can define {\bf castro.drdxfac} as a number greater than 1 (2 or 4 are recommended) and the
+spacing of the radial array will then satisfy $\Delta x / \Delta r = $ {\bf drdxfac}.
+Individual Cartesian grid cells are subdivided by {\bf drdxfac} in each coordinate direction
+for the purposing of averaging the density, and the integration that creates $g$ is
+done at the finer resolution of the new $\Delta r.$   
+
+Note that the center of the star is defined in the subroutine PROBINIT and the radius
+is computed as the distance from that center.
+
+\end{itemize}
+
+\item{\bf PrescribedGrav}: 
+
+\noindent{\bf Note: The {\bf PrescribedGrav} option and text here were 
+contributed by Jan Frederik Engels of University of Gottingen.}
+
+With this option, gravity can be defined as a function that
+is specified by the user.  The option is allowed in 2D and 3D.  To define the gravity
+vector, copy {\bf prescribe\_grav\_2d.f90} from {\bf Src\_2d} to your run directory
+(analogously copy {\bf prescribe\_grav\_3d.f90} from {\bf Src\_3d} if you're working in 3D).
+The makefile system will always choose this local copy of the file over the one in another directory.
+Then define the components of gravity inside a loop over the grid inside the file.
+If your problem uses a radial gravity in the form $g(r)$, you can simply adapt 
+{\bf ca\_prescribe\_grav\_gravityprofile}, otherwise you will have to adapt 
+{\bf ca\_prescribe\_grav}, both are located in {\bf prescribed\_grav\_2d.90}.
+\end{itemize}
+
+\section{GR correction}
+
+\noindent{\bf Note: The GR code and text here were contributed by Ken Chen of Univ. of Minnesota.}
+
+In the cases of compact objects or very massive stars, the general relativity 
+(GR) effect starts to play a role. First, we consider the hydrostatic equilibrium 
+due to effects of GR then derive GR-correction term for Newtonian gravity. 
+The correction term is applied to the monopole approximation only when 
+{\bf USE\_GR  = TRUE} is set in the GNUmakefile. 
+
+The formulae of GR-correction here are based on \cite{grbk1}. For detailed physics,
+ please refer to \cite{grbk2}. For describing very strong gravitational field, we need to use Einstein 
+field equations
+\begin{equation}\label{field}
+R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
+\kappa=\frac{8\pi G}{c^{2}}\quad ,
+\end{equation} 
+where $R_{ik}$ is the Ricci tensor, $g_{ik}$ is the metric tensor, $R$ is the Riemann curvature, $c$ is 
+the speed of light and $G$ is gravitational constant. $T_{ik}$ is the energy momentum tensor, which for 
+ideal gas has only the non-vanishing components $T_{00}$ = $\varrho c^2$ , $T_{11}$ = $T_{22}$ = $T_{33}$ = $P$ 
+( contains rest mass and energy density, $P$ is pressure). We are interested in spherically symmetric mass 
+distribution. Then the line element $ds$ for given spherical coordinate $(r, \vartheta, \varphi)$ has the 
+general form
+\begin{equation}\label{metric}
+  ds^{2} = e^{\nu}c^{2}dt^{2}-e^{\lambda}dr^{2}-r^{2}(d\vartheta^{2}+\sin^{2}
+  \vartheta d\varphi) \quad ,
+\end{equation} 
+with $\nu = \nu(r)$, $\lambda = \lambda(r)$. Now we can put the expression of $T_{ik}$ and $ds$ into (\ref{field}), then field equations can be reduced to 3 ordinary differential equations:
+\begin{equation}\label{diff1}
+   \frac{\kappa P}{c^{2}} =
+   e^{-\lambda}(\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}})-\frac{1}{r^{2}}
+   \quad ,
+\end{equation}
+\begin{equation}\label{diff2}
+  \frac{\kappa P}{c^{2}} =
+  \frac{1}{2}e^{-\lambda}(\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
+    {\prime}-\lambda^{\prime}}{r}
+   -\frac{\nu^{\prime}\lambda^{\prime}}{2}) \quad ,
+\end{equation}
+\begin{equation}\label{diff3}
+  \kappa \varrho =
+  e^{-\lambda}(\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}})+\frac{1}{r^{2}} \quad ,
+\end{equation} 
+where primes means the derivatives with respect to $r$. After multiplying with $4\pi r^2$, (\ref{diff3}) can 
+be integrated and yields
+\begin{equation}\label{gmass1}
+  \kappa m = 4\pi r (1-e^{-\lambda}) \quad ,
+\end{equation}
+the $m$ is called ``gravitational mass'' inside r defined as
+\begin{equation}\label{gmass2}
+  m = \int_{0}^{r}4\pi r^{2}  \varrho dr\quad .
+\end{equation}      
+For the $r = R$, $m$ becomes the mass $M$ of the star. $M$ contains not only the rest mass but
+the whole energy (divided by $c^2$), that includes the internal and gravitational energy. So the
+ $\varrho = \varrho_0 +U/c^2$ contains the whole energy density $U$ and rest-mass density $\varrho_0$. 
+Differentiation of (\ref{diff1}) with respect to $r$ gives $P = P^{\prime}(\lambda,\lambda^{\prime},
+\nu,\nu^{\prime},r)$, where $\lambda,\lambda^{\prime},\nu,\nu^{\prime}$  can be eliminated by (\ref{diff1}), 
+(\ref{diff2}), (\ref{diff3}). Finally we reach \textit{Tolman-Oppenheinmer-Volkoff(TOV)} equation for 
+hydrostatic equilibrium in general relativity:
+\begin{equation}\label{tov}
+  \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho (1+\frac{P}{\varrho
+    c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1} \quad .
+\end{equation}                  
+For Newtonian case $c^2 \rightarrow  \infty $, it reverts to usual form
+\begin{equation}\label{newton}
+  \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \quad .
+\end{equation}
+Now we take effective monopole gravity as
+\begin{equation}\label{tov2}                                                      
+\tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
+  c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
+\end{equation}                                 
+For general situations, we neglect the $U/c^2$ and potential energy in m because they are usually
+much smaller than $\varrho_0$. Only when $T$ reaches $10^{13} K$ ($KT \approx m_{p} c^2$, $m_p$ is proton mass)
+ before it really makes a difference. So (\ref{tov2}) can be expressed as
+\begin{equation}\label{tov3}                                                      
+  \tilde{g} = -\frac{GM_{enc}}{r^{2}} (1+\frac{P}{\varrho
+    c^{2}})(1+\frac{4\pi r^3 P}{M_{enc} c^{2}}) (1-\frac{2GM_{enc}}{r c^{2}})^{-1} \quad ,
+\end{equation}                                              
+where $M_{enc}$ is identical to $Mass_{enclosed}$ in the previous section.

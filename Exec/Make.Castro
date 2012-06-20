@@ -1,0 +1,258 @@
+BOXLIB_HOME ?= /path/to/BoxLib
+
+TOP = ../../../Castro
+
+ifeq ($(USE_RAD), TRUE)
+  # CASTRO_DIR is set by Radiation
+  TOP := $(CASTRO_DIR)
+endif
+
+EOS_HOME     ?= $(TOP)/EOS
+NETWORK_HOME ?= $(TOP)/Networks
+
+EBASE     = Castro
+
+# EXTERN_CORE is simply a list of the directories we use in EOS, Networks and Util
+# this list will be searched for runtime parameters
+EXTERN_CORE :=
+
+include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
+
+ifeq ($(USE_GRAV), TRUE)
+  DEFINES += -DGRAVITY
+endif
+
+ifeq ($(USE_GR), TRUE)
+  DEFINES += -DGR_GRAV
+endif
+
+ifeq ($(USE_REACT), TRUE)
+  DEFINES += -DREACTIONS
+endif
+
+ifeq ($(USE_SGS), TRUE)
+  DEFINES += -DSGS
+endif
+
+ifeq ($(USE_DIFFUSION), TRUE)
+  DEFINES += -DDIFFUSION
+endif
+
+ifeq ($(USE_TAU), TRUE)
+  DEFINES += -DTAU
+endif
+
+ifeq ($(USE_PARTICLES), TRUE)
+  DEFINES += -DPARTICLES
+endif
+
+ifeq ($(USE_LEVELSET), TRUE)
+  DEFINES += -DLEVELSET
+endif
+
+ifeq ($(USE_AUX_UPDATE), TRUE)
+  DEFINES += -DAUX_UPDATE
+endif
+
+ifeq ($(USE_POINTMASS), TRUE)
+  DEFINES += -DPOINTMASS
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  DEFINES += -DRADIATION
+  ifeq ($(RAD_INTERP), TRUE)
+    DEFINES += -DRAD_INTERP
+  endif
+  ifeq ($(USE_NEUTRINO), TRUE)
+    DEFINES += -DNEUTRINO
+    optionsSuffix   = $(DIM)d.Neutrino.$(machineSuffix)
+    ifeq ($(USE_DUMPMODEL), TRUE)
+      DEFINES += -DHAS_DUMPMODEL
+    endif
+  endif
+endif
+
+ifeq ($(USE_MAESTRO_INIT), TRUE)
+  DEFINES +=  -DBL_NOLINEVALUES -DBL_PARALLEL_IO -DMAESTRO_INIT
+  CEXE_headers += DataServices.H AmrData.H AmrvisConstants.H
+  CEXE_sources += DataServices.cpp AmrData.cpp
+  FEXE_sources += FABUTIL_$(DIM)D.F
+  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/Extern/amrdata
+  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
+endif
+
+ifeq ($(USE_ROTATION), TRUE)
+  DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_HYPRE), TRUE)
+#  ifeq ($(WHICHLINUX), DELLA)
+#    INCLUDE_LOCATIONS += /usr/local/intel/include/hypre-openmpi
+#    LIBRARY_LOCATIONS += /usr/local/intel/lib64/openmpi-intel-ib
+#  else
+    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+#  endif
+  LIBRARIES += -lHYPRE
+endif
+
+ifeq ($(USE_HDF5), TRUE)
+   INCLUDE_LOCATIONS += $(HDF5_DIR)/include
+   LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
+   LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
+endif
+
+all: $(executable) 
+	@echo SUCCESS
+
+EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
+NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+
+ifeq ($(USE_RAD), TRUE)
+  ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
+    EOS_PATH     := $(RADIATION_DIR)/EOS/$(strip $(EOS_dir))
+  endif
+  ifneq "$(wildcard $(RADIATION_DIR)/Networks/$(strip $(Network_dir)) )" ""
+    NETWORK_PATH := $(RADIATION_DIR)/Networks/$(strip $(Network_dir))
+  endif
+endif
+
+include $(EOS_HOME)/Make.package
+include $(EOS_PATH)/Make.package
+EXTERN_CORE += $(EOS_PATH)
+
+# the helmeos has an include file -- also add a target to link the table
+# into the problem directory.
+ifeq ($(findstring helmeos, $(EOS_dir)), helmeos)
+  all: table
+endif
+
+table:
+	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
+
+include $(NETWORK_PATH)/Make.package
+EXTERN_CORE += $(NETWORK_PATH)
+
+ifeq ($(USE_RAD), TRUE)
+  include $(RADIATION_DIR)/Opacity/$(Opacity_dir)/Make.package
+  EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
+endif
+
+INCLUDE_LOCATIONS += $(EOS_PATH)
+VPATH_LOCATIONS   += $(EOS_PATH)
+VPATH_LOCATIONS   += $(EOS_HOME)/
+
+INCLUDE_LOCATIONS += $(NETWORK_PATH)
+VPATH_LOCATIONS   += $(NETWORK_PATH)
+
+ifeq ($(USE_RAD), TRUE)
+  INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
+  VPATH_LOCATIONS   += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
+endif
+
+ifeq ($(USE_REACT), TRUE)
+VODE_dir    := $(TOP)/Util/VODE
+include $(VODE_dir)/Make.package
+EXTERN_CORE += $(TOP)/Util/VODE
+INCLUDE_LOCATIONS += $(VODE_dir) 
+VPATH_LOCATIONS   += $(VODE_dir) 
+
+BLAS_dir    := $(TOP)/Util/BLAS
+include $(BLAS_dir)/Make.package
+EXTERN_CORE += $(TOP)/Util/BLAS
+INCLUDE_LOCATIONS += $(BLAS_dir) 
+VPATH_LOCATIONS   += $(BLAS_dir) 
+endif
+
+ifeq ($(DIM), 1)
+DEFINES += -DHAS_XGRAPH
+include $(TOP)/Util/plot1d/Make.package
+INCLUDE_LOCATIONS += $(TOP)/Util/plot1d
+VPATH_LOCATIONS   += $(TOP)/Util/plot1d
+endif
+
+Bdirs 	:= Source Source/Src_$(DIM)d
+Pdirs 	:= C_BaseLib C_AMRLib C_BoundaryLib 
+
+ifeq ($(USE_RAD), TRUE)
+   Pdirs += LinearSolvers/C_CellMG
+endif
+
+Bpack	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir)/Make.package)
+Blocs	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir))
+
+Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
+Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
+
+ifeq ($(USE_RAD), TRUE)
+include $(RADIATION_DIR)/Exec/Make.Radiation
+endif
+
+include $(Bpack)
+
+INCLUDE_LOCATIONS += $(Blocs)
+VPATH_LOCATIONS   += $(Blocs)
+
+# end Parallel directories
+
+include $(TOP)/constants/Make.package
+EXTERN_CORE += $(TOP)/constants
+INCLUDE_LOCATIONS += $(TOP)/constants
+VPATH_LOCATIONS   += $(TOP)/constants
+
+ifeq ($(USE_MODELPARSER), TRUE)
+  include $(TOP)/Util/model_parser/Make.package
+  EXTERN_CORE += $(TOP)/Util/model_parser
+  INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
+  VPATH_LOCATIONS   += $(TOP)/Util/model_parser
+endif
+
+USE_MG = FALSE
+
+ifeq ($(USE_GRAV), TRUE)
+  USE_MG = TRUE
+endif
+
+ifeq ($(USE_DIFFUSION), TRUE)
+  USE_MG = TRUE
+endif
+   
+ifeq ($(USE_MG), TRUE)
+  include $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
+  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
+  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
+
+  include $(BOXLIB_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
+  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
+  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
+endif
+
+include $(BOXLIB_HOME)/Src/F_BaseLib/FParallelMG.mak
+INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/F_BaseLib
+VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/F_BaseLib
+
+vpath %.c   . $(VPATH_LOCATIONS)
+vpath %.cpp . $(VPATH_LOCATIONS)
+vpath %.h   . $(VPATH_LOCATIONS)
+vpath %.H   . $(VPATH_LOCATIONS)
+vpath %.F   . $(VPATH_LOCATIONS)
+vpath %.f90 . $(VPATH_LOCATIONS)
+vpath %.f   . $(VPATH_LOCATIONS)
+vpath %.fi  . $(VPATH_LOCATIONS)
+
+# runtime parameter support for extern/ routines
+f90EXE_sources += extern.f90
+
+EXTERN_TEMPLATE := $(TOP)/Source/extern_probin.template
+
+EXTERN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(EXTERN_CORE))
+
+extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+	$(BOXLIB_HOME)/Tools/F_scripts/write_probin.py \
+           -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
+           --pa "$(EXTERN_PARAMETERS)" 
+
+include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+
+clean::
+	$(SILENT) $(RM) extern.f90

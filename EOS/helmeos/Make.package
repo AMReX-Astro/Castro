@@ -1,0 +1,4 @@
+f90EXE_sources += eos_stuff.f90
+f90EXE_sources += helmeos.f90
+f90EXE_headers += vector_eos_f90.dek
+

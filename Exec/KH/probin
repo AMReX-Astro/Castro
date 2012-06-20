@@ -1,0 +1,15 @@
+&fortin
+    u_amb = 10.0d0
+  rho_amb = 1.0d0
+    T_amb = 2.d-4
+
+    u_pert = -10.0d0
+  rho_pert = 2.0d0
+    T_pert = 1.d-4
+
+  idir = 1
+
+  dengrad = 0.1
+  velgrad = 1.0
+/
+

@@ -1,0 +1,215 @@
+For the moment, assume that we are running in comoving coordinates, 
+with dark matter particles only (no hydro) and that the particles all exist at level 0.   These assumptions are
+encapsulated in the following lines in the inputs file: \\
+
+\noindent {\bf castro.use\_comoving = t} \\
+\noindent {\bf castro.do\_dm\_particles = 1} \\
+\noindent {\bf amr.max\_level =  0} \\
+\noindent {\bf castro.do\_hydro = 0} \\
+\noindent {\bf castro.do\_react = 0} \\
+\noindent {\bf castro.do\_grav =  1} 
+
+\section{Equations}
+
+If we define ${\mathbf x}_i$ and ${\bf u}_i$ as the location and velocity of particle $i$, respectively, then we wish
+to solve
+\begin{eqnarray}
+\frac{d {\mathbf x}_i}{d t} &=& \frac{1}{a} {\mathbf u}_i \\
+\frac{d (a {\mathbf u}_i) }{d t} &=& {\mathbf g}_i
+\end{eqnarray}
+where ${\mathbf g}_i$ is the gravitational force evaluated at the location of particle $i$, i.e., 
+${\mathbf g}_i = {\mathbf g}({\mathbf x}_i,t).$
+
+\section{Initializing the Particles}
+
+\noindent There are three different ways in which particles can currently be initialized:
+
+\subsection{Read from an ASCII file}
+
+To enable this option, set \\
+
+\noindent {\bf castro.castro.particle\_init\_type = AsciiFile} \\
+\noindent {\bf castro.castro.ascii\_particle\_file =}{\em particle\_file}
+
+Here {\em particle\_file} is the user-specified name of the file.  The first line in this file is
+assumed to contain the number of particles.  Each line after that contains  \\
+
+x y z mass xdot ydot zdot \\
+
+Note that the variable that we call the particle velocity, ${\mathbf u} = a {\bf \dot{x}}$, 
+so we must multiply ${\bf \dot{x}}$, by $a$ when we initialize the particles.
+
+\subsection{Random placement}
+
+To enable this option, set \\
+
+\noindent {\bf castro.castro.particle\_init\_type = Random} \\
+
+\noindent There are then a number of parameters to set, for example: \\
+
+\noindent {\bf castro.particle\_initrandom\_count = 100000}
+
+\noindent {\bf castro.particle\_initrandom\_mass  = 1}
+
+\noindent {\bf castro.particle\_initrandom\_iseed = 15}
+
+\subsection{Cosmological}
+
+To enable this option, set \\
+
+\noindent {\bf castro.castro.particle\_init\_type = Cosmological} \\
+
+\noindent This process is still under development.
+
+\section{Time Stepping}
+
+\noindent There are currently two different ways in which particles can be moved:
+
+\subsection{Random}
+
+\noindent To enable this option, set \\
+
+\noindent {\bf castro.particle\_move\_type = Random} \\
+
+\noindent Update the particle positions at the end of each coarse time step using a 
+random number between 0 and 1 multiplied by 0.25 dx.
+
+\subsection{Motion by Self-Gravity}
+
+\noindent To enable this option, set \\
+
+\noindent {\bf castro.particle\_move\_type = Gravitational} \\
+
+\subsubsection{Move-Kick-Drift Algorithm}
+
+In each time step:
+\begin{itemize}
+\item Solve for ${\mathbf g}^n$  (only if multilevel, otherwise use ${\mathbf g}^{n+1}$ from previous step)
+\item ${\mathbf u}_i^{\nph} = \frac{1}{a^{\nph}} ( (a^n {\mathbf u}^n_i) + \frac{\dt}{2} \; {\mathbf g}^n_i )$
+\item ${\mathbf x}_i^{n+1 } = {\mathbf x}^n_i +  \frac{\dt}{a^{\nph}}  {\mathbf u}_i^{\nph}$
+\item Solve for ${\mathbf g}^{n+1}$ using ${\mathbf x}_i^{n+1}$
+\item ${\mathbf u}_i^{n+1} = \frac{1}{a^{n+1}} ( (a^{\nph} {\mathbf u}^{\nph}_i) + \frac{\dt}{2} \; {\mathbf g}^{n+1}_i )$
+\end{itemize}
+
+Note that at the end of the timestep ${\bf x}_i^{n+1}$ is consistent with ${\bf g}^{n+1}$ becasue
+we have not advanced the positions after computing the new-time gravity.  This has the benefit that
+we perform only one gravity solve per timestep (in a single-level calculation with no hydro) because
+the particles are only moved once.
+
+\subsubsection{Computing {\bf g}}
+
+We solve for the gravitational vector as follows:
+\begin{itemize}
+\item Assign the mass of the particles onto the grid in the form of density, $\rho_{DM}$.  
+The mass of each particle is assumed to be uniformly distributed over a cube of side $\Delta x$, 
+centered at what we call the position of the particle.    We distribute the mass of each
+particle to the cells on the grid in proportion to the volume of the intersection of each cell
+with the particle's cube.   We then divide these cell values by $\Delta x^3$ so that the
+right hand side of the Poisson solve will be in units of density rather than mass.  
+Note that this is the {\it comoving} density.
+
+\item Solve $\nabla^2 \phi = \frac{4 \pi G}{a} \rho_{DM}$.
+We discretize with the standard 7-point Laplacian (5-point in 2D) 
+and use multigrid with Gauss-Seidel red-black relaxation to solve the equation for $\phi$ at cell centers.
+
+\item Compute the normal component of ${\bf g} = -\nabla \phi$ at cell faces by differencing the adjacent values of $\phi,$
+e.g. if $\gb = (g_x, g_y, g_z),$ then we define $g_x$ on cell faces with a normal in the x-direction by computing
+$g_{x,i-\myhalf,j,k} = -(\phi_{i,j,k} - \phi_{i-1,j,k}) / \Delta x.$
+
+\item  Interpolate each component of ${\bf g}$ from normal cell faces onto each particle position using 
+linear interpolation in the normal direction.
+
+\end{itemize}
+
+%\subsection{Predictor-Corrector}
+%
+%An alternative to the above algorithm would be the following predictor-corrector approach:
+%
+%\begin{itemize}
+%\item Solve for ${\bf g}^n$
+%\item ${\bf v}_i^{n+1,*} = {\bf v}^n_i + \dt \; {\bf g}^n$
+%\item ${\bf x}_i^{n+1,*} = {\bf x}^n_i + \dt \; {\bf v}_i^n$
+%\item Solve for ${\bf g}^{n+1}$ using ${\bf x}_i^{n+1,*}$
+%\item ${\bf v}_i^{n+1} = {\bf v}^{n+1,*}_i + \frac{\dt}{2} \; ({\bf g}^{n+1} - {\bf g}^n)$
+%\item ${\bf x}_i^{n+1} = {\bf x}^{n+1,*}_i + \frac{\dt}{2} \; ({\bf v}_i^{n+1} - {\bf v}_i^n)$
+%\end{itemize}
+%
+%\noindent This has two issues:
+%\begin{itemize}
+%\item First, the gravity at the end of the timestep is not consistent with the particle positions at the end of the timestep.
+%Thus this will require an additional solve per timestep because we move the particles twice per timestep.
+%\item Second, this increases the memory required per particle because we would need to keep both ${\bf v}^n_i$
+%and ${\bf v}^{n+1,*}_i$ over the course of a timestep.
+%\end{itemize}
+
+\section{Output Format}
+
+\subsection{Checkpoint Files}
+
+The particle positions and velocities are stored in a binary file in each checkpoint directory.  
+This format is designed for being read by the code at restart rather than for diagnostics. \\
+
+We note that the value of $a$ is also written in each checkpoint directory, 
+in a separate ASCII file called {\em comoving\_a}, containing only the single value. \\
+
+\subsection{Plot Files}
+
+If {\bf particles.write\_in\_plotfile =} 1 in the inputs file 
+then the particle positions and velocities will be written in a binary file in each plotfile directory.  
+
+In addition, we can also
+visualize the particle locations as represented on the grid.  There are two ``derived quantities''
+which represent the particles.  Setting \\
+
+\noindent {\bf amr.derive\_plot\_vars = particle\_count particle\_mass\_density} \\
+\noindent {\bf amr.plot\_vars = NONE} \\
+
+\noindent in the inputs file will generate plotfiles with only two variables.  
+{\bf particle\_count} represents the number of particles in a grid cell; 
+{\bf particle\_mass\_density} is the density on the grid resulting from the particles.
+
+We note that the value of $a$ is also written in each plotfile directory, 
+in a separate ASCII file called {\em comoving\_a}, containing only the single value. \\
+
+\subsection{ASCII Particle Files}
+
+To generate an ASCII file containing the particle positions and velocities, 
+one needs to restart from a checkpoint
+file but doesn't need to run any steps.  For example, if chk00350 exists, then one can set: \\
+
+\noindent {\bf amr.restart = chk00350} \\
+\noindent {\bf max\_step = 350} \\
+\noindent {\bf particles.particle\_output\_file =} {\em particle\_output} \\
+
+\noindent which would tell the code to restart from chk00350, not to take any further time steps, and to write an ASCII-format 
+file called {\em particle\_output}. \\
+
+\noindent This file has the same format as the ASCII input file: \\
+
+\noindent number of particles \\ 
+x y z mass xdot ydot zdot \\
+
+\subsection{Run-time Data Logs}
+
+If you set \\
+
+\noindent {\bf amr.data\_log = }{\em log\_file}  \\
+
+\noindent in the inputs file, then at run-time the code will write a log file with entries every coarse
+grid time step, containing \\
+
+\noindent nstep  time   dt   redshift   a
+
+
+\subsection{Run-time Screen Output}
+
+There are a number of flags that control the verbosity written to the screen at run-time.  These are:
+
+\noindent {\bf amr.v } \\
+\noindent {\bf castro.v } \\
+\noindent {\bf gravity.v } \\
+\noindent {\bf mg.v } \\
+\noindent {\bf particles.v } \\
+
+These control printing  about the state of the calculation (time, value of $a$, etc) as well as
+timing information.

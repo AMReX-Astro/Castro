@@ -1,0 +1,81 @@
+\section{2D and 3D}
+\subsection{amrvis}
+Our favorite visualization tool is amrvis. We heartily encourage you to build the amrvis2d and amrvis3d executables, and to try using them to visualize your data. A very useful feature is View/Dataset, which allows you to actually view the numbers -- this can be handy for debugging. You can modify how many levels of data you want to see, whether you want to see the grid boxes or not, what palette you use, etc.
+
+If you like to have amrvis display a certain variable, at a certain scale, when you first bring up each plotfile (you can always change it once the amrvis window is open), you can modify the amrvis.defaults file in your directory to have amrvis default to these settings every time you run it. The directories CoreCollapse, HSE\_test, Sod and Sedov have amrvis.defaults files in them. If you are working in a new run directory, simply copy one of these and modify it.
+\subsection{VisIt}
+VisIt is also a great visualization tool, and it directly handles our plotfile format (which it calls Boxlib).  For more information check out visit.llnl.gov.
+
+[Useful tip:] To use the Boxlib3D plugin, select it from File $\rightarrow$ Open file $\rightarrow$ Open file as type Boxlib, and then the key is to read the Header file, plt00000/Header, for example, rather than telling to to read plt00000.
+
+\section{Controlling What's in the PlotFile}
+
+{\bf amr.plot\_vars} = \\
+
+\noindent and  \\
+
+\noindent {\bf amr.derive\_plot\_vars} = \\
+
+\noindent are used to control which variables are included in the plotfiles.  The default for {\bf amr.plot\_vars}
+is all of the state variables.  The default for {\bf amr.derive\_plot\_vars} is none of
+the derived variables.  So if you include neither of these lines then the plotfile
+will contain all of the state variables and none of the derived variables. \\
+
+\noindent If you want all of the state variables plus entropy and pressure, for example, then set \\
+
+\noindent {\bf amr.derive\_plot\_vars} = entropy pressure \\
+
+\noindent If you just want density and pressure, for example, then set \\
+
+\noindent {\bf amr.plot\_vars} =  density \\
+
+\noindent {\bf amr.derive\_plot\_vars} = pressure \\
+
+\section{1D}
+amrvis doesn't like 1-d plotfiles, and for those we use a 1-d plotting capability installed by Mike Singer in CASTRO/Parallel/Castro/Util/plot1d.  If you want to make xmgrace-compatible files, for example, add the following to your inputs file:\\
+
+{\bf xgraph.xmgrace\_file} = 1
+
+{\bf xgraph.format} = xmg
+
+{\bf xgraph.use\_xmgrace\_legend} = 1
+
+{\bf xgraph.use\_xmgrace\_title} = 1
+
+{\bf xgraph.graph} = xvel x\_velocity 100 -1\\ \\
+This tells is to write a file called xvel\_0000.xmgr, for example, every 100 time steps, including all levels of data. (The last variable, -1, specifies the maximum level; if it is -1 then all levels are used.)
+
+If you want to write more than one variable into a single file, then instead of
+setting each variable on a separate line as in the xvel example above,
+you can do the following: \\
+
+\noindent {\bf xgraph.graph} = file\_name ALL 100 -1\\
+
+\noindent If you specify ``ALL'' then \\
+
+\noindent {\bf amr.plot\_vars} = \\
+
+\noindent and \\
+
+\noindent {\bf amr.derive\_plot\_vars} = \\
+
+\noindent are used to control which variables are included.  The default for {\bf amr.plot\_vars}
+is all of the state variables.  The default for {\bf amr.derive\_plot\_vars} is none of
+the derived variables.  So if you include neither of these lines then the file 
+file\_name.xmg will contain all of the state variables and none of the derived variables.
+
+If you want all of the state variables plus entropy and pressure, for example, then set \\
+
+{\bf amr.derive\_plot\_vars} = entropy pressure \\
+
+{\bf xgraph.graph} = file\_name ALL 100 -1\\
+
+If you just want density and pressure, for example, then set \\
+
+{\bf amr.plot\_vars} =  density \\
+
+{\bf amr.derive\_plot\_vars} = pressure \\
+
+{\bf xgraph.graph} = file\_name ALL 100 -1\\ 
+
+Feel free to read the routines in Parallel/Castro/Util/plot1d.

@@ -1,0 +1,175 @@
+\section{Code structure}
+The code structure in the tar file you received is as follows:
+
+\begin{itemize}
+\item {\bf Parallel}   : the ``primary'' directory, all in C++/Fortran 
+  \begin{itemize}
+  \item {\bf amrlib}   : basic routines necessary for AMR 
+  \item {\bf bndrylib} : basic interface routines
+  \item {\bf BoxLib}   : the most basic directory, everything depends on classes defined here
+  \item {\bf Castro}   : this is where all the actual algorithm stuff lives
+  \begin{itemize}
+    \item {\bf ConvertCheckpoint} : a tool to convert a checkpoint file to a larger domain
+    \item {\bf Exec}       : various examples
+    \begin{itemize}
+      \item {\bf Sedov}        : run directory for the Sedov problem
+      \item {\bf Sod}          : run directory for the Sod problem
+    \end{itemize}
+    \item {\bf Source}     : source code
+    \item {\bf UsersGuide} : you're reading this now!
+  \end{itemize}
+  \item {\bf mglib}      : this is the MultiGrid solver written in C++/Fortran -- would be 
+                           used for the Poisson solve if we didn't use the F90 solver
+  \item {\bf MGT solver} : this is the interface between the C++ code and the F90 
+                           multigrid solver
+  \item {\bf mk}         : makefile stuff  for C++/Fortran
+  \item {\bf pAmrvis}    : contains amrvis, a visualization tool for 2D and 3D plotfiles
+  \item {\bf plot1d}     : visualization tool for 1D plotfiles
+  \item {\bf scripts}    : compiling stuff for C++/Fortran
+  \item {\bf util}       : various data analysis utilities
+  \item {\bf volpack}    : package required to compile and run amrvis in 3d
+  \end{itemize}
+\item {\bf fParallel} : the F90 directory, used here only for the multilevel Poisson solver,
+                        EOS, and neworks.
+  \begin{itemize}
+  \item {\bf boxlib}  : the most basic directory which defines things for the F90 codes
+  \item {\bf data processing} : this contains Fortran routines that read in Castro plotfiles and can do
+                                simply processing, including extracting a line along the $x$, $y$, or $z$-axis,
+                                averaging a solution over spherical angles to get the profile as a function
+                                of radius, and dumping out a brick of data that can be read by IDL -- see 
+                                Mike Zingale if interested
+  \item {\bf extern}  : contains EOS and networks
+  \item {\bf mg}      : F90 multigrid -- used for the gravity solver only
+  \item {\bf mk}      : makefile stuff for F90
+  \item {\bf scripts} : compiling stuff for F90
+  \end{itemize}
+\end{itemize}
+
+Within {\bf Parallel/Castro} are the following files:
+
+  \begin{itemize}
+  \item {\bf Castro.cpp}        : this holds the time advancement algorithm 
+  \item {\bf Castro\_setup.cpp} : this is where components of the state, boundary 
+                                  conditions, derived quantities, and error estimation 
+                                  quantities are defined for a run
+  \item {\bf MacBndry.cpp}      : this is needed to correctly do the adaptive boundary 
+                                  conditions for the Poisson solver
+  \item {\bf main.cpp}          : initializes the BoxLib and timing stuff properly -- don't 
+                                  mess with this
+\end{itemize}
+\section{Variable Names}
+The following is a list of variables, routines, etc used in CASTRO. It may not be complete or even entirely accurate; it's mostly intended for my own use.\\
+
+{\bf lo,hi}: index extent of the "grid" of data currently being handled by a CASTRO routine\\
+
+{\bf domlo, domhi}: index extent of the problem domain. This changes according to refinement level: 0th refinement level will have 0, castro.max\_grid\_size, and nth level will go from 0 to castro.max\_grid\_size*(multiplying equivalent of sum)castro.ref\_ratio(n).\\
+
+{\bf dx}: cell spacing, presumably in cm, since CASTRO uses cgs units\\
+
+{\bf xlo}: physical location of the lower left-hand corner of the "grid" of data currently being handled by a CASTRO routine\\
+
+{\bf bc}: array that holds boundary condition of and array. Sometimes it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index of the latter holds the variable index, i.e. density, pressure, species, etc.\\
+
+{\bf EXT\_DIR}: from Parallel/amrlib/BC\_TYPES.H:EXT\_DIR  : data specified on EDGE (FACE) of bndry\\
+
+{\bf FOEXTRAP}: from Parallel/amrlib/BC\_TYPES.H:FOEXTRAP  : first order extrapolation from last cell in interior CASTRO 
+
+\section{Boundaries}
+\subsection{Boundaries Between Grids}
+Boundaries between grids are of two types. The first we call "fine-fine", which is two grids at the same level. 
+Filling ghost cells at the same level is also part of the fillpatch operation -- it's just a straight copy from "valid regions" 
+to ghost cells. The second type is "coarse-fine", which needs interpolation from the coarse grid to fill the fine grid ghost cells. 
+This also happens as part of the FillPatch operation, which is why arrays aren't just arrays, they're "State Data", 
+which means that the data knows how to interpolate itself (in an anthropomorphical sense). 
+The type of interpolation to use is defined in Castro\_setup.cpp as well -- search for cell\_cons\_interp, for example -- 
+that's "cell conservative interpolation", i.e the data is cell-based (as opposed to node-based or edge-based) and the 
+interpolation is such that the average of the fine values created is equal to the coarse value from which they came. 
+(This wouldn't be the case with straight linear interpolation, for example.) 
+
+\subsection{Physical Boundaries}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+Physical BC & Velocity & Temperature & Scalars \\
+\hline
+Outflow & FOEXTRAP & FOEXTRAP & FOEXTRAP \\
+No Slip Wall with Adiabatic Temp & EXT\_DIR $u=v=0$ & REFLECT\_EVEN $dT/dt=0$ & HOEXTRAP \\
+No Slip Wall with Fixed Temp & EXT\_DIR $u=v=0$ & EXT\_DIR & HOEXTRAP \\
+Slip Wall with Adiabatic Temp & EXT\_DIR $u_n=0$, HOEXTRAP $u_t$ & REFLECT\_EVEN $dT/dn=0$ & HOEXTRAP \\
+Slip Wall with Fixed Temp & EXT\_DIR $u_n=0$ & EXT\_DIR & HOEXTRAP \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Conversions from physical to mathematical BCs}
+\label{Table:BC}
+\end{scriptsize}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The boundary conditions in Table \ref{Table:BC} have already been implemented in CASTRO.  The table looks cruddy--it's copied from /CASTRO/Parallel/amrlib/BC\_TYPES.H. Some of that makes more sense if there are linebreaks within the table, but I'm not sure how to do it. Here's definitions of some of the funnier-souding all-caps words from above:\\
+
+INT\_DIR  : data taken from other grids or interpolated
+
+EXT\_DIR  : data specified on EDGE (FACE) of bndry
+
+HOEXTRAP  : higher order extrapolation to EDGE of bndry
+
+FOEXTRAP  : first order extrapolation from last cell in interior
+
+REFLECT\_EVEN : F(-n) = F(n) true reflection from interior cells
+
+REFLECT\_ODD  : F(-n) = -F(n) true reflection from interior cells\\ \\
+Basically, boundary conditions are imposed on "state variables" every time that they're "fillpatched", as part of the fillpatch operation.
+
+For example, the loop that calls CA\_UMDRV (all the integration stuff) starts with \\ \\
+{\tt       for (FillPatchIterator fpi(*this, S\_new, NUM\_GROW,
+                                  time, State\_Type, strtComp, NUM\_STATE);
+            fpi.isValid();
+            ++fpi)
+}\\ \\
+Here the FillPatchIterator is the thing that distributes the grids over processors and 
+makes parallel "just work". This fills the single patch "fpi" , which has NUM\_GROW 
+ghost cells, with data of type "State\_Type" at time "time", starting with component 
+strtComp and including a total of NUM\_STATE components.
+
+The way that you tell the code what kind of physical boundary condition to use is given 
+in Castro\_setup.cpp. At the top we define arrays such as "scalar\_bc", "norm\_vel\_bc", 
+etc, which say which kind of bc to use on which kind of physical boundary. 
+Boundary conditions are set in functions like "set\_scalar\_bc", which uses the 
+scalar\_bc pre-defined arrays.
+
+If you want to specify a value at a function (like at an inflow boundary), 
+there are routines in Prob\_1d.f90, for example, which do that. Which routine is called 
+for which variable is again defined in Castro\_setup.cpp 
+
+\section{Parallel I/O}
+Both checkpoint files and plotfiles are really directories containing subdirectories: 
+one subdirectory for each level of the AMR hierarchy.  The fundamental data structure 
+we read/write to disk is a MultiFab, which is made up of multiple FAB's, one FAB per grid.
+Multiple MultiFabs may be written to each directory in a checkpoint file.  
+MultiFabs of course are shared across CPUs; a single MultiFab may be 
+shared across thousands of CPUs.  Each CPU writes the part of the MultiFab that it owns to disk, 
+but they don't each write to their own distinct file.  Instead each MultiFab is written to a 
+runtime configurable number of files N (N can be set in the inputs file as the
+parameter {\bf amr.checkpoint\_nfiles} and {\bf amr.plot\_nfiles}; the default is 64).  
+That is to say, each MultiFab is written to disk across at most N files, 
+plus a small amount of data that gets written to a header file describing how the 
+file is laid out in those N files.
+
+What happens is N CPUs each opens a unique one of the N files into which the MultiFab is 
+being written, seeks to the end, and writes their data.  The other CPUs are waiting at a 
+barrier for those N writing CPUs to finish.  This repeats for another N CPUs until all the 
+data in the MultiFab is written to disk.  All CPUs then pass some data to CPU 0 which writes 
+a header file describing how the MultiFab is laid out on disk.
+
+We also read MultiFabs from disk in a "chunky" manner opening only N files for reading at a 
+time.  The number N, when the MultiFabs were written, does not have to match the number N when 
+the MultiFabs are being read from disk.  Nor does the number of CPUs running while reading in 
+the MultiFab need to match the number of CPUs running when the MultiFab was written to disk.
+
+Think of the number N as the number of independent I/O pathways in your underlying parallel 
+filesystem.  Of course a "real" parallel filesytem should be able to handle any reasonable 
+value of N.  The value -1 forces N to the number of CPUs on which you're running, which means 
+that each CPU writes to a unique file, which can create a very large number of files, which 
+can lead to inode issues.
