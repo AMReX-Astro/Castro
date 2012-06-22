@@ -1,0 +1,165 @@
+Instructions:
+
+Let's say you have a checkpoint file, chk00100,  say, with 5 levels of refinement 
+and a (real) problem domain size P and (integer) domain size D at level 0.
+
+The inputs file that created this might look like:
+
+****************************************************
+max_step      = 100
+
+amr.max_level = 5
+
+amr.n_cell    = D D
+
+amr.ref_ratio = 4 4 4 4
+
+geometry.prob_lo = 0 0
+geometry.prob_hi = P P
+
+****************************************************
+
+Now let's suppose that:
+
+1) The star is centered in the corner, i.e. you're only modeling an octant, and 
+2) you want to grow the domain by a factor of 8,  and 
+3) you want to cover that new larger domain with a level that is a factor of 2 coarser than the existing level 0 grids.
+
+Then you need to:
+
+1) First, set DIM = in the GNUmakefile, and type  "make" in the ConvertCheckpoint directory.
+This will make an executable from the Embiggen.cpp code.
+
+2) Run the embiggening code as follows:
+
+Embiggen2d.Linux.Intel.Intel.ex checkin=chk00100 checkout=newchk00050 ref_ratio=2 grown_factor=8
+
+This will create a new checkpoint directory, called newchk00050, that represents a simulation
+with *one* additional level of refinement *coarser* than the previous level 0 grids by
+a factor of "ref_ratio" (in this case, 2).   The new domain will be a factor of "grown_factor" (in this case, 8)
+
+Note that ref_ratio must be 2 or 4, because those are the only cromulent
+values in CASTRO.
+
+grown_factor can be any reasonable integer; I've only tested 2, 3, 4 and 8.  It does not need
+to be a multiple of 2.
+
+(You no longer set num_new_levels, that is now hard-wired to one.  You can only add one new level at a time.)
+
+3) Finally ...
+
+  You should now be able to restart your calculation using newchk00050.
+
+  Note that your inputs file now should look something like:
+
+    amr.restart = newchk00050
+
+    amr.regrid_on_restart = 1
+
+    max_step      = 51
+
+    amr.max_level = 6
+
+    amr.n_cell    = 4D 4D
+
+    geometry.prob_lo =  0  0
+    geometry.prob_hi = 8P 8P
+
+    castro.grown_factor = 8
+
+    amr.ref_ratio = 2 4 4 4 4
+
+****************************************************
+
+IMPORTANT:
+
+1) You must set max_level to be one greater than before.
+
+2) Set amr.regrid_on_restart = 1 to make sure that the gridding is as you want it 
+before you take any timesteps.  The first plotfile generated will show the new grids.
+
+2) You must set amr.n_cell = (grown_factor / ref_ratio) times the previous n_cell.
+In this case amr.n_cell = (8/2)*D = 4D.
+
+3) You must set prob_hi to be a factor of grown_factor greater than the previous prob_hi.
+
+4) You must insert the value of "ref_ratio" used in the Embiggen call as the first
+value in the list of ref_ratio, since that will now be the ref_ratio between the new level 0
+and the new level 1.
+
+5) You must set castro.grown_factor in your inputs file to be the same grown_factor you used
+when you called Embiggen*ex so that the CASTRO code knows how big the original domain
+was.
+
+6) Note that if you have run 100 steps at the original level 0, that would be equivalent
+to 50 steps at the new level 0.  Thus once you re-start from the new checkpoint directory,
+the next step will be 51, not 101.  Make sure to keep track of your plotfiles accordingly.
+
+7) Don't forget to adjust max_denerr_lev and comparable variables to control
+the number of fine levels you now want.   If you want to have 6 levels of refinement
+after restart, then make sure max_denerr_lev, etc, are set high enough.  If you
+only want to have 5 levels of refinement (where the new level 5 would now be
+a factor of ref_ratio coarser than the previous level 5), make sure to adjust
+max_denerr_lev accordingly as well.
+
+****************************************************
+
+Now let's suppose that:
+
+1) The star is centered in the **center** of the domain
+2) you want to grow the domain by a factor of 2,  and 
+3) you want to cover that new larger domain with a level that is a factor of 2 coarser than the existing level 0 grids.
+
+Then you must modify your call to Embiggen by setting star_at_center = 1 (it defaults to 0), i.e., do
+
+Embiggen2d.Linux.Intel.Intel.ex checkin=chk00100 checkout=newchk00050 ref_ratio=2 grown_factor=2 star_at_center=1
+
+In this case grown_factor can be either 2 or 3.
+
+  Note that your inputs file now should look something like:
+
+    amr.restart = newchk00050
+
+    amr.regrid_on_restart = 1
+
+    max_step      = 51
+
+    amr.max_level = 6
+
+    amr.n_cell    = D D
+
+    geometry.prob_lo = -P/2 -P/2
+    geometry.prob_hi = 3P/2 3P/2
+
+    castro.grown_factor = 2
+
+    castro.star_at_center = 1
+
+    amr.ref_ratio = 2 4 4 4 4
+
+****************************************************
+
+NOTE: don't forget to set castro.star_at_center in your inputs file when you restart.
+
+NOTE: when star_at_center = 1, MAKE SURE that you have defined the center of the star
+in your subroutine PROBINIT to be 
+
+     center(1) = problo(1) + 0.5d0 * (probhi(1)-problo(1))
+     center(2) = problo(2) + 0.5d0 * (probhi(2)-problo(2))
+
+i.e. don't assume that problo is zero.
+
+Also -- in subroutine ca_initdata, make sure that you set 
+
+         x = xlo(1) + (dble(i-lo(1)) + 0.5d0) * delta(1) - center(1)
+         y = xlo(2) + (dble(j-lo(2)) + 0.5d0) * delta(2) - center(2)
+
+so that you get the correct values for x and y when prob_lo is not 0.
+
+****************************************************
+
+There appears to be a problem with the PathScale compiler on Franklin in optimized (non-DEBUG)
+mode.   The error reveals itself as this process not working on multiple processors.  To get around
+this I have added the line
+DEFINES += -DBL_USEOLDREADS 
+to the GNUmakefile.
