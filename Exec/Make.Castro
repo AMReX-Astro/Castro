@@ -1,11 +1,7 @@
 BOXLIB_HOME ?= /path/to/BoxLib
+CASTRO_DIR  ?= ../../../Castro
 
-TOP = ../../../Castro
-
-ifeq ($(USE_RAD), TRUE)
-  # CASTRO_DIR is set by Radiation
-  TOP := $(CASTRO_DIR)
-endif
+TOP := $(CASTRO_DIR)
 
 EOS_HOME     ?= $(TOP)/EOS
 NETWORK_HOME ?= $(TOP)/Networks
