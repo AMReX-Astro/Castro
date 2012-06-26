@@ -37,14 +37,6 @@ CEXE_sources += Diffusion.cpp
 CEXE_headers += Diffusion.H
 endif
 
-ifeq ($(USE_LEVELSET), TRUE)
-FEXE_headers += LevelSet_F.H
-endif
-
-ifeq ($(USE_MAESTRO_INIT), TRUE)
-CEXE_sources += Castro_from_MAESTRO.cpp
-endif
-
 ifeq ($(USE_ROTATION), TRUE)
 CEXE_sources += Castro_rotation.cpp
 endif
