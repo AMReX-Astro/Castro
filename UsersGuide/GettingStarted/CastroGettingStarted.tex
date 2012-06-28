@@ -1,13 +1,18 @@
 
-\section{Getting Started With Git and CVS}
+\section{Downloading the Code}
 
-CASTRO is now distributed in two parts -- you must download the BoxLib repository and the CASTRO module 
-using git.  If you would like to use CASTRO:
+CASTRO is built on top of the BoxLib framework.  In order to run CASTRO, you must download
+two separate git modules.
+
+\vspace{.1in}
+
+\noindent First, make sure git is installed on your machine -- and we recommend version 1.7.x or higher.
+
+\vspace{.1in}
 
 \begin{enumerate}
 
-\item Assuming git is installed on your machine -- and we recommend version 1.7.x or higher -- download the
-BoxLib repository by typing 
+\item Download the BoxLib repository by typing 
 
 \noindent git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git 
 
@@ -19,43 +24,23 @@ you have put BoxLib.    You will want to periodically update BoxLib by typing
 
 in the BoxLib directory.  
 
-\item Once you have an account on battra.lbl.gov (if you don't, then contact Ann Almgren at asalmgren@lbl.gov),
-please log on immediately to battra and change your password.
-This is the only time you will log in to battra directly.  However, you will use this password every
-time you use CVS or git to check out or update code from battra.
+\item Now download the CASTRO repository by typing 
 
-\item In order to use CVS to download the CASTRO module, set the following environment variables on your machine: \\ \\ 
-CVS\_RSH=ssh \\
-CVSROOT=":ext:$username$@battra.lbl.gov:/home/ccse\_src/cvsroot" 
-
-\item Now, you are ready to download the CASTRO module.  In a directory of your choosing, type 
-
-"cvs co CASTRO"
-
-"co" here is a shorthand for "checkout"
-
-"CASTRO" is the name of a CVS module, which we have defined to include all the directories and subdirectories 
-that you will need (in addition to BoxLib) to successfully build and run CASTRO.
-
-You will again need to enter your battra password here.
-
-\item Another possibility, if you don't want to set CVS\_RSH and CVSROOT, is to simply type
-
-"cvs -d :ext:$username$@battra.lbl.gov:/home/ccse\_src/cvsroot co CASTRO"
+\noindent git clone https://ccse.lbl.gov/pub/Downloads/Castro.git 
 
 \end{enumerate}
 
-\clearpage
+%\clearpage
 
 \section{Building the Code}
 
 \begin{enumerate}
 
-\item From the directory in which you checked out CASTRO, type
+\item From the directory in which you checked out the Castro git repo, type
 
-cd CASTRO/Parallel/Castro/Exec/Sedov
+cd Castro/Exec/Sedov
 
-This will put you into a "run" directory in which you can run the Sedov problem in 1-d, 2-d or 3-d.
+This will put you into a directory in which you can run the Sedov problem in 1-d, 2-d or 3-d.
 \item In Sedov, edit the GNUmakefile, and set
 
 DIM = 2 (for example)
@@ -66,9 +51,8 @@ FCOMP = your favorite Fortran compiler (which must compile F90)
 
 DEBUG = FALSE
 
-We like COMP = Intel and FCOMP = Intel. Some users successfully use 
-COMP = gcc and FCOMP = gfortran. If you want to try other compilers and they don't work, 
-please let us know.  (Note from Andy: g++ version 4.4 didn't work with DIM=1.  I had to revert to version 4.1.  gfortran version 4.4 works fine)
+We like COMP = gcc and FCOMP = gfortran.  If you want to try other compilers and they don't work, 
+please let us know.  
 
 To build a serial (single-processor) code, set {\tt USE\_MPI = FALSE}.
 This will compile the code without the MPI library.  If you want to do
@@ -81,8 +65,8 @@ system will fall back to using the local MPI compiler wrappers
 (e.g.\ mpic++ and mpif90) to do the build.
 
 \item Now type "make". The resulting executable will look something like 
-"Castro2d.Linux.Intel.Intel.ex", which means this is a 2-d version of the code, 
-made on a Linux machine, with COMP = Intel and FCOMP = Intel.
+"Castro2d.Linux.gcc.gfortran.ex", which means this is a 2-d version of the code, 
+made on a Linux machine, with COMP = gcc and FCOMP = gfortran.
 
 \end{enumerate}
 
@@ -90,7 +74,7 @@ made on a Linux machine, with COMP = Intel and FCOMP = Intel.
 
 \begin{enumerate}
 
-\item Type "Castro2d.Linux.Intel.Intel.ex inputs.2d.cyl\_in\_cartcoords" 
+\item Type "Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl\_in\_cartcoords" 
 This will run the 2-d cylindrical Sedov problem in Cartesian (x-y coordinates). 
 You can see other possible options, which should be clear by the names of the inputs files.
 
@@ -105,29 +89,36 @@ used for restarting the code.
 
 \begin{enumerate}
 
-\item To visualize the plotfiles, you will need to go into the CASTRO/Parallel/pAmrvis 
-directory. Edit the GNUmakefile there to set DIM = 2, and again set COMP and FCOMP to 
+\item To visualize the plotfiles, you can use a freely available visualization package
+like VisIt, or you can try ``Amrvis.'' To get Amrvis, type
+
+\noindent git clone https://ccse.lbl.gov/pub/Downloads/Amrvis.git 
+
+\noindent Then cd into Amrvis, ddit the GNUmakefile there to set DIM = 2, and again set COMP and FCOMP to 
 compilers that you have. Leave DEBUG = FALSE. Then type "make".  This will make an 
 executable that looks like "amrvis2d...ex".
 
-[Note from Andy] If you want to build amrvis with DIM = 3, you must first build volpack by 
-typing ``make'' in CASTRO/Parallel/volpack.
+If you want to build amrvis with DIM = 3, you must first download and build volpack.  Type
 
-[Note from Ann] This requires the OSF/Motif libraries and headers, if you don't have these 
+\noindent git clone https://ccse.lbl.gov/pub/Downloads/volpack.git 
+
+\noindent Then cd into volpack and type make.
+
+\noindent Note: This requires the OSF/Motif libraries and headers. If you don't have these 
 you will need to install the development version of motif through your package manager. 
 lesstif gives some functionality and will allow you to build the amrvis executable, 
 but amrvis will not run properly.
 
-[Note from Shaw] On most Linux distributions, motif library is provided by the openmotif package, 
+\noindent Note: On most Linux distributions, motif library is provided by the openmotif package, 
 and its header files (like Xm.h) are provided by openmotif-devel. If those packages are not 
 installed, then use the package management tool to install them, which varies from distribution 
 to distribution, but is straightforward. I can provide detailed instructions if anyone needs them.
 
 You may then want to create an alias to amrvis2d, for example
 
-alias amrvis2d /work/CASTRO/Parallel/pAmrvis/amrvis2d...ex
+alias amrvis2d /tmp/Amrvis/amrvis2d...ex
 
-\item Return to the CASTRO/Parallel/Castro/Exec/Sedov directory. 
+\item Return to the Castro/Exec/Sedov directory. 
 Type "amrvis2d plt00152" to see a single plotfile, or "amrvis2d -a plt*", 
 which will animate the sequence of plotfiles. Try playing around with this -- note you can change which 
 variable you are looking at, you can select a region and click "Dataset" (under View) in order to look at 

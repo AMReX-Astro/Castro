@@ -1,63 +1,25 @@
 \section{Code structure}
-The code structure in the tar file you received is as follows:
+
+The code structure in the Castro directory is as follows:
 
 \begin{itemize}
-\item {\bf Parallel}   : the ``primary'' directory, all in C++/Fortran 
-  \begin{itemize}
-  \item {\bf amrlib}   : basic routines necessary for AMR 
-  \item {\bf bndrylib} : basic interface routines
-  \item {\bf BoxLib}   : the most basic directory, everything depends on classes defined here
-  \item {\bf Castro}   : this is where all the actual algorithm stuff lives
-  \begin{itemize}
+    \item {\bf constants}      : contains a file of useful constants in CGS units
     \item {\bf ConvertCheckpoint} : a tool to convert a checkpoint file to a larger domain
+    \item {\bf EOS}            : contains directories for different EOS routines
     \item {\bf Exec}       : various examples
     \begin{itemize}
       \item {\bf Sedov}        : run directory for the Sedov problem
       \item {\bf Sod}          : run directory for the Sod problem
+      \item {\bf KH}           : run directory for the Kelvin-Helmholz problem
     \end{itemize}
+    \item {\bf Networks}       : contains directories for different reaction networks
     \item {\bf Source}     : source code
     \item {\bf UsersGuide} : you're reading this now!
-  \end{itemize}
-  \item {\bf mglib}      : this is the MultiGrid solver written in C++/Fortran -- would be 
-                           used for the Poisson solve if we didn't use the F90 solver
-  \item {\bf MGT solver} : this is the interface between the C++ code and the F90 
-                           multigrid solver
-  \item {\bf mk}         : makefile stuff  for C++/Fortran
-  \item {\bf pAmrvis}    : contains amrvis, a visualization tool for 2D and 3D plotfiles
-  \item {\bf plot1d}     : visualization tool for 1D plotfiles
-  \item {\bf scripts}    : compiling stuff for C++/Fortran
-  \item {\bf util}       : various data analysis utilities
-  \item {\bf volpack}    : package required to compile and run amrvis in 3d
-  \end{itemize}
-\item {\bf fParallel} : the F90 directory, used here only for the multilevel Poisson solver,
-                        EOS, and neworks.
-  \begin{itemize}
-  \item {\bf boxlib}  : the most basic directory which defines things for the F90 codes
-  \item {\bf data processing} : this contains Fortran routines that read in Castro plotfiles and can do
-                                simply processing, including extracting a line along the $x$, $y$, or $z$-axis,
-                                averaging a solution over spherical angles to get the profile as a function
-                                of radius, and dumping out a brick of data that can be read by IDL -- see 
-                                Mike Zingale if interested
-  \item {\bf extern}  : contains EOS and networks
-  \item {\bf mg}      : F90 multigrid -- used for the gravity solver only
-  \item {\bf mk}      : makefile stuff for F90
-  \item {\bf scripts} : compiling stuff for F90
-  \end{itemize}
+    \item {\bf Util}       : a catch-all for additional things you may need 
 \end{itemize}
 
-Within {\bf Parallel/Castro} are the following files:
-
-  \begin{itemize}
-  \item {\bf Castro.cpp}        : this holds the time advancement algorithm 
-  \item {\bf Castro\_setup.cpp} : this is where components of the state, boundary 
-                                  conditions, derived quantities, and error estimation 
-                                  quantities are defined for a run
-  \item {\bf MacBndry.cpp}      : this is needed to correctly do the adaptive boundary 
-                                  conditions for the Poisson solver
-  \item {\bf main.cpp}          : initializes the BoxLib and timing stuff properly -- don't 
-                                  mess with this
-\end{itemize}
 \section{Variable Names}
+
 The following is a list of variables, routines, etc used in CASTRO. It may not be complete or even entirely accurate; it's mostly intended for my own use.\\
 
 {\bf lo,hi}: index extent of the "grid" of data currently being handled by a CASTRO routine\\
