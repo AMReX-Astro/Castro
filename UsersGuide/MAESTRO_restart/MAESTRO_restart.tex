@@ -73,7 +73,7 @@ This overwrites the initialized CASTRO data using the new 1D initial model for a
 Note that for both single-level and multilevel MAESTRO to CASTRO initialization, the CASTRO base grid structure does not have to match the MAESTRO base grid structure, as long as the problem domain is the same.  For example, if the coarsest level in a MAESTRO plotfile contains $64^3$ cells divided into 8-$32^3$ grids, it is ok to use a CASTRO base grid structure with 1-$64^3$ grid, 64-$16^3$ grids, or anything else you can imagine - the grids don't even have to be the same size.  As is normally the case, the CASTRO base grid structure is created based on the parameters in the CASTRO inputs file, such as {\bf amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc.
 
 \subsection{Multilevel Restart}
-When initialing from a multilevel MAESTRO plotfile, there are some extra steps.  First, you need to create a CASTRO-compatible grids file from the MAESTRO plotfile.  This can be done with the AmrPostprocessing/F_Src/fboxinfo.f90 utility.  
+When initialing from a multilevel MAESTRO plotfile, there are some extra steps.  First, you need to create a CASTRO-compatible grids file from the MAESTRO plotfile.  This can be done with the AmrPostprocessing/F\_Src/fboxinfo.f90 utility.  
 Compile and run this using the ``\texttt{--}castro'' option, e.g., 
 ``fboxinfo.Linux.gfortran.exe \texttt{--}castro pltxxxxx \texttt{|} tee gr0.maestro'', 
 to generate the CASTRO-compatible grids file.  Note that the base grid structure is still controlled 
