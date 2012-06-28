@@ -32,9 +32,9 @@ The following is a list of variables, routines, etc used in CASTRO. It may not b
 
 {\bf bc}: array that holds boundary condition of and array. Sometimes it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index of the latter holds the variable index, i.e. density, pressure, species, etc.\\
 
-{\bf EXT\_DIR}: from Parallel/amrlib/BC\_TYPES.H:EXT\_DIR  : data specified on EDGE (FACE) of bndry\\
+{\bf EXT\_DIR}: from BoxLib/Src/C_AMRLib/BC\_TYPES.H:EXT\_DIR  : data specified on EDGE (FACE) of bndry\\
 
-{\bf FOEXTRAP}: from Parallel/amrlib/BC\_TYPES.H:FOEXTRAP  : first order extrapolation from last cell in interior CASTRO 
+{\bf FOEXTRAP}: from BoxLib/Src/C_AMRLib/BC\_TYPES.H:FOEXTRAP  : first order extrapolation from last cell in interior CASTRO 
 
 \section{Boundaries}
 \subsection{Boundaries Between Grids}
@@ -69,7 +69,10 @@ Slip Wall with Fixed Temp & EXT\_DIR $u_n=0$ & EXT\_DIR & HOEXTRAP \\
 \end{scriptsize}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The boundary conditions in Table \ref{Table:BC} have already been implemented in CASTRO.  The table looks cruddy--it's copied from /CASTRO/Parallel/amrlib/BC\_TYPES.H. Some of that makes more sense if there are linebreaks within the table, but I'm not sure how to do it. Here's definitions of some of the funnier-souding all-caps words from above:\\
+The boundary conditions in Table \ref{Table:BC} have already been implemented in CASTRO.  
+The table looks cruddy--it's copied from /BoxLib/Src/C_AMRLib/amrlib/BC\_TYPES.H. 
+Some of that makes more sense if there are linebreaks within the table, 
+but I'm not sure how to do it. Here's definitions of some of the funnier-souding all-caps words from above:\\
 
 INT\_DIR  : data taken from other grids or interpolated
 
