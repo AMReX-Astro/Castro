@@ -336,7 +336,8 @@ public:
                               MultiFab&  tau,
 #endif
                               Real time, 
-                              Real dt);
+                              Real dt,
+                              int ngrow = 0);
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,

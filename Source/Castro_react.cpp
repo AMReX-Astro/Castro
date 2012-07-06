@@ -44,26 +44,43 @@ Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, Real time, R
 
 void
 #ifdef TAU
-Castro::react_second_half_dt(MultiFab& S_new, MultiFab& tau_diff, Real cur_time, Real dt) 
+Castro::react_second_half_dt(MultiFab& S_new, MultiFab& tau_diff, Real cur_time, Real dt, int ngrow) 
 #else
-Castro::react_second_half_dt(MultiFab& S_new, Real cur_time, Real dt) 
+Castro::react_second_half_dt(MultiFab& S_new, Real cur_time, Real dt, int ngrow) 
 #endif
 {
     BL_PROFILE(BL_PROFILE_THIS_NAME() + "::strang_chem(MultiFab&,...");
     const Real strt_time = ParallelDescriptor::second();
 
+    const Real cur_time = state[State_Type].curTime();
+
     // Note that here we only react on the valid region of the MultiFab
     if (do_react == 1) 
     {
         MultiFab& ReactMF = get_new_data(Reactions_Type);
-        for (MFIter Smfi(S_new); Smfi.isValid(); ++Smfi)
+        if (ngrow > 0) 
         {
-            const Box& bx   = Smfi.validbox();
+            for (FillPatchIterator Sfpi(*this, S_new, 1, cur_time, State_Type, 0, NUM_STATE);
+            {
+                const Box& bx   = Sfpi.box();
 #ifdef TAU
-            reactState(Smfi(), Smfi(), ReactMF[Smfi], tau_diff[Smfi], bx, time, 0.5*dt);
+                reactState(Sfpi(), Sfpi(), ReactMF[Sfpi], tau_diff[Sfpi], bx, time, 0.5*dt);
 #else
-            reactState(Smfi(), Smfi(), ReactMF[Smfi], bx, time, 0.5*dt);
+                reactState(Sfpi(), Sfpi(), ReactMF[Sfpi], bx, time, 0.5*dt);
 #endif
+            }
+        }
+        else
+        {
+            for (MFIter Smfi(S_new); Smfi.isValid(); ++Smfi)
+            {
+                const Box& bx   = Smfi.validbox();
+#ifdef TAU
+                reactState(Smfi(), Smfi(), ReactMF[Smfi], tau_diff[Smfi], bx, time, 0.5*dt);
+#else
+                reactState(Smfi(), Smfi(), ReactMF[Smfi], bx, time, 0.5*dt);
+#endif
+            }
         }
         ReactMF.mult(1.0/dt);
         reset_internal_energy(S_new);
