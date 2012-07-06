@@ -8,24 +8,37 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_first_half_dt(MultiFab& S_old, MultiFab& tau_diff, Real time, Real dt) 
+Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, FArrayBox& tau_diff, Real time, Real dt) 
 #else
-Castro::react_first_half_dt(MultiFab& S_old, Real time, Real dt) 
+Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, Real time, Real dt) 
 #endif
 {
-    // Make sure to zero these even if do_react == 0.
-    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
-    ReactMF_old.setVal(0.);
-    MultiFab& ReactMF = get_new_data(Reactions_Type);
-    ReactMF.setVal(0.);
+    BL_PROFILE(BL_PROFILE_THIS_NAME() + "::strang_chem(MultiFab&,...");
+    const Real strt_time = ParallelDescriptor::second();
+
     if (do_react == 1)
     {
+
+       // Note that here we react on the valid region *and* the ghost cells (i.e. the whole FAB)
+       const Box& bx   = S_old.box();
 #ifdef TAU
-        strang_chem(S_old,ReactMF,tau_diff,time,dt);
+            reactState(S_old, S_old, React_Fab, tau_diff, bx, time, 0.5*dt);
 #else
-        strang_chem(S_old,ReactMF,time,dt);
+            reactState(S_old, S_old, React_Fab, bx, time, 0.5*dt);
 #endif
+
         reset_internal_energy(S_old);
+    }
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+       if (ParallelDescriptor::IOProcessor()) 
+          std::cout << "strang_chem time = " << run_time << '\n';
     }
 }
 
@@ -36,53 +49,35 @@ Castro::react_second_half_dt(MultiFab& S_new, MultiFab& tau_diff, Real cur_time,
 Castro::react_second_half_dt(MultiFab& S_new, Real cur_time, Real dt) 
 #endif
 {
-    if (do_react == 1) 
-    {
-        MultiFab& ReactMF = get_new_data(Reactions_Type);
-
-#ifdef TAU
-        strang_chem(S_new,ReactMF,tau_diff,cur_time,dt);
-#else
-        strang_chem(S_new,ReactMF,cur_time,dt);
-#endif
-        ReactMF.mult(1.0/dt);
-        reset_internal_energy(S_new);
-    }
-}
-
-void
-Castro::strang_chem (MultiFab&  state,
-                     MultiFab&  React_mf,
-#ifdef TAU
-                     MultiFab&  tau,
-#endif
-                     Real       time,
-                     Real       dt)
-{
     BL_PROFILE(BL_PROFILE_THIS_NAME() + "::strang_chem(MultiFab&,...");
     const Real strt_time = ParallelDescriptor::second();
 
-    for (MFIter Smfi(state); Smfi.isValid(); ++Smfi)
+    // Note that here we only react on the valid region of the MultiFab
+    if (do_react == 1) 
     {
-        FArrayBox& fb   = state[Smfi];
-        const Box& bx   = Smfi.validbox();
+        MultiFab& ReactMF = get_new_data(Reactions_Type);
+        for (MFIter Smfi(S_new); Smfi.isValid(); ++Smfi)
+        {
+            const Box& bx   = Smfi.validbox();
 #ifdef TAU
-        FArrayBox& tfab = tau[Smfi];
-        reactState(fb, fb, React_mf[Smfi], tfab, bx, time, 0.5*dt);
+            reactState(Smfi(), Smfi(), ReactMF[Smfi], tau_diff[Smfi], bx, time, 0.5*dt);
 #else
-        reactState(fb, fb, React_mf[Smfi], bx, time, 0.5*dt);
+            reactState(Smfi(), Smfi(), ReactMF[Smfi], bx, time, 0.5*dt);
 #endif
+        }
+        ReactMF.mult(1.0/dt);
+        reset_internal_energy(S_new);
     }
 
-    if (verbose)
+    if (verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
 
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-//      if (ParallelDescriptor::IOProcessor()) 
-//          std::cout << "strang_chem time = " << run_time << '\n';
+       if (ParallelDescriptor::IOProcessor()) 
+          std::cout << "reactState time = " << run_time << '\n';
     }
 }
 

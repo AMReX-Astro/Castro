@@ -323,9 +323,10 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
-    void react_first_half_dt(MultiFab& S_new, 
+    void react_first_half_dt(FArrayBox& S_old, 
+                             FArrayBox& React_Fab,
 #ifdef TAU
-                             MultiFab&  tau,
+                             FArrayBox&  tau,
 #endif
                              Real time, 
                              Real dt);

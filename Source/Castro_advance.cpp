@@ -208,14 +208,6 @@ Castro::advance_hydro (Real time,
     define_tau(tau_diff,grav_vec_old,time);
 #endif
 #endif
- 
-#ifdef REACTIONS
-#ifdef TAU
-       react_first_half_dt(S_old,tau_diff,time,dt);
-#else
-       react_first_half_dt(S_old,time,dt);
-#endif
-#endif
 
 #ifdef GRAVITY
     MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
@@ -539,6 +531,14 @@ Castro::advance_hydro (Real time,
     }
     else {
 #endif
+
+#ifdef REACTIONS
+      // Make sure to zero these even if do_react == 0.
+      MultiFab& ReactMF_old = get_old_data(Reactions_Type);
+      MultiFab& ReactMF     = get_new_data(Reactions_Type);
+      ReactMF_old.setVal(0.);
+      ReactMF.setVal(0.);
+#endif
       
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
@@ -577,6 +577,14 @@ Castro::advance_hydro (Real time,
 	  Real cflLoc = -1.0e+200;
 	  int is_finest_level = 0;
 	  if (level == finest_level) is_finest_level = 1;
+ 
+#ifdef REACTIONS
+#ifdef TAU
+          react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],(time,dt);
+#else
+          react_first_half_dt(state,ReactMF[fpi],time,dt);
+#endif
+#endif
 	  
 	  BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
 	    (&is_finest_level,&time,
