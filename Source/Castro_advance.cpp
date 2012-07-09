@@ -1005,7 +1005,7 @@ Castro::advance_no_hydro (Real time,
 	   fpi.isValid(); ++fpi)
     {
 	  int mfiindex = fpi.index();
-	  
+	  FArrayBox &state = fpi();
 #ifdef TAU
           react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],(time,dt);
 #else
