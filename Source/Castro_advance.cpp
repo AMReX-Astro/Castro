@@ -993,15 +993,21 @@ Castro::advance_no_hydro (Real time,
     // It's possible for interpolation to create very small negative values for
     //   species so we make sure here that all species are non-negative after this point
     enforce_nonnegative_species(S_old);
- 
+
+    for (FillPatchIterator fpi(*this, S_old, 1, time, State_Type, 0, NUM_STATE);
+	   fpi.isValid(); ++fpi)
+    {
+	  int mfiindex = fpi.index();
+	  
 #ifdef REACTIONS
 #ifdef TAU
-       react_first_half_dt(S_old,tau_diff,time,dt);
+          react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],(time,dt);
 #else
-       react_first_half_dt(S_old,time,dt);
+          react_first_half_dt(state,ReactMF[fpi],time,dt);
 #endif
 #endif
-
+    }
+ 
 #ifdef GRAVITY
     MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);

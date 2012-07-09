@@ -13,32 +13,19 @@ Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, FArrayBox& t
 Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, Real time, Real dt) 
 #endif
 {
-    BL_PROFILE(BL_PROFILE_THIS_NAME() + "::strang_chem(MultiFab&,...");
-    const Real strt_time = ParallelDescriptor::second();
-
     if (do_react == 1)
     {
-
        // Note that here we react on the valid region *and* the ghost cells (i.e. the whole FAB)
        const Box& bx   = S_old.box();
 #ifdef TAU
-            reactState(S_old, S_old, React_Fab, tau_diff, bx, time, 0.5*dt);
+       reactState(S_old, S_old, React_Fab, tau_diff, bx, time, 0.5*dt);
 #else
-            reactState(S_old, S_old, React_Fab, bx, time, 0.5*dt);
+       reactState(S_old, S_old, React_Fab, bx, time, 0.5*dt);
 #endif
 
-        reset_internal_energy(S_old);
-    }
-
-    if (verbose > 1)
-    {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
-
-        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
-
-       if (ParallelDescriptor::IOProcessor()) 
-          std::cout << "strang_chem time = " << run_time << '\n';
+       // Synchronize (rho e) and (rho E)
+       BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
+           (BL_TO_FORTRAN(S_old), bx.loVect(), bx.hiVect(),verbose);
     }
 }
 
