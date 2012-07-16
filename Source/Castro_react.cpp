@@ -57,6 +57,7 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
 #else
                 reactState(Sfpi(), Sfpi(), ReactMF[Sfpi], bx, time, 0.5*dt);
 #endif
+                S_new[fpi].copy(fpi());
             }
         }
         else
