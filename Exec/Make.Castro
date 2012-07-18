@@ -260,3 +260,4 @@ include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
 
 clean::
 	$(SILENT) $(RM) extern.f90
+	$(SILENT) $(RM) buildInfo.cpp
