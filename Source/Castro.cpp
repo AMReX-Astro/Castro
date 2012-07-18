@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -41,6 +42,10 @@ using std::string;
 
 #ifdef LEVELSET
 #include "LevelSet_F.H"
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
 static int  sum_interval = -1;
@@ -848,6 +853,53 @@ Castro::writePlotFile (const std::string& dir,
 	  groupfile.close();
 	}
 #endif
+
+        // job_info file with details about the run
+	std::ofstream jobInfoFile;
+	std::string FullPathJobInfoFile = dir;
+	std::string PrettyLine = "===============================================================================\n";
+
+	FullPathJobInfoFile += "/job_info";
+	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
+
+	// job information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Job Information\n";
+	jobInfoFile << PrettyLine;
+	
+	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
+#ifdef _OPENMP
+	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
+#endif
+	jobInfoFile << "\n\n";
+
+        // plotfile information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Plotfile Information\n";
+	jobInfoFile << PrettyLine;
+
+	time_t now = time(0);
+
+	// Convert now to tm struct for local timezone
+	tm* localtm = localtime(&now);
+	jobInfoFile   << "output data / time: " << asctime(localtm);
+
+	char currentDir[FILENAME_MAX];
+	if (getcwd(currentDir, FILENAME_MAX)) {
+	  jobInfoFile << "output dir:         " << currentDir << "\n";
+	}
+
+	jobInfoFile << "\n\n";
+
+	// runtime parameters
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Inputs File Parameters\n";
+	jobInfoFile << PrettyLine;
+	
+	ParmParse::dumpTable(jobInfoFile, true);
+
+	jobInfoFile.close();
+	
 
     }
     // Build the directory to hold the MultiFab at this level.
