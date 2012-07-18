@@ -48,6 +48,8 @@ using std::string;
 #include <omp.h>
 #endif
 
+#include "buildInfo.H"
+
 static int  sum_interval = -1;
 static Real fixed_dt     = -1.0;
 static Real initial_dt   = -1.0;
@@ -890,6 +892,20 @@ Castro::writePlotFile (const std::string& dir,
 	}
 
 	jobInfoFile << "\n\n";
+
+
+        // build information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Build Information\n";
+	jobInfoFile << PrettyLine;
+
+	jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
+	jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
+	jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
+	jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
+
+	jobInfoFile << "\n\n";
+
 
 	// runtime parameters
 	jobInfoFile << PrettyLine;
