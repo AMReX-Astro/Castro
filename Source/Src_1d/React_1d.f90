@@ -73,9 +73,14 @@
            s_out(i,UFS:UFS+nspec-1) = rho * x_out(1:nspec) 
            s_out(i,UFX:UFX+naux -1) = s_in(i,UFX:UFX+naux-1) 
 
-           reaction_terms(i,1:nspec) = reaction_terms(i,1:nspec) + (x_out(1:nspec) - x_in(1:nspec))
-           reaction_terms(i,nspec+1) = reaction_terms(i,nspec+1) +     (e_out - e_in)
-           reaction_terms(i,nspec+2) = reaction_terms(i,nspec+2) + rho*(e_out - e_in)
+           if (i.ge.r_l1 .and. i.le.r_h1) then
+               reaction_terms(i,1:nspec) = reaction_terms(i,1:nspec) + &
+                   (x_out(1:nspec) - x_in(1:nspec))
+               reaction_terms(i,nspec+1) = reaction_terms(i,nspec+1) + &
+                       (e_out - e_in)
+               reaction_terms(i,nspec+2) = reaction_terms(i,nspec+2) + &
+                   rho*(e_out - e_in)
+           end if
 
            ! Use this call to define T_out
            ! We initialize T_out = T_in so the eos will have an initial gues

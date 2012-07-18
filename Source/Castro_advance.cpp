@@ -580,7 +580,7 @@ Castro::advance_hydro (Real time,
  
 #ifdef REACTIONS
 #ifdef TAU
-          react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],(time,dt);
+          react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],time,dt);
 #else
           react_first_half_dt(state,ReactMF[fpi],time,dt);
 #endif
@@ -880,9 +880,9 @@ Castro::advance_hydro (Real time,
     
 #ifdef REACTIONS
 #ifdef TAU
-    react_second_half_dt(S_new,tau_diff,cur_time,dt);
+    react_second_half_dt(S_new,tau_diff,cur_time,dt,1);
 #else
-    react_second_half_dt(S_new,cur_time,dt);
+    react_second_half_dt(S_new,cur_time,dt,1);
 #endif
 #endif
 
@@ -993,15 +993,27 @@ Castro::advance_no_hydro (Real time,
     // It's possible for interpolation to create very small negative values for
     //   species so we make sure here that all species are non-negative after this point
     enforce_nonnegative_species(S_old);
- 
-#ifdef REACTIONS
-#ifdef TAU
-       react_first_half_dt(S_old,tau_diff,time,dt);
-#else
-       react_first_half_dt(S_old,time,dt);
-#endif
-#endif
 
+#ifdef REACTIONS
+    // Make sure to zero these even if do_react == 0.
+    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
+    MultiFab& ReactMF     = get_new_data(Reactions_Type);
+    ReactMF_old.setVal(0.);
+    ReactMF.setVal(0.);
+
+    for (FillPatchIterator fpi(*this, S_old, 1, time, State_Type, 0, NUM_STATE);
+	   fpi.isValid(); ++fpi)
+    {
+	  int mfiindex = fpi.index();
+	  FArrayBox &state = fpi();
+#ifdef TAU
+          react_first_half_dt(state,tau_diff[fpi],ReactMF[fpi],time,dt);
+#else
+          react_first_half_dt(state,ReactMF[fpi],time,dt);
+#endif
+    }
+#endif
+ 
 #ifdef GRAVITY
     MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
@@ -1083,9 +1095,9 @@ Castro::advance_no_hydro (Real time,
         
 #ifdef REACTIONS
 #ifdef TAU
-       react_second_half_dt(S_new,tau_diff,cur_time,dt);
+       react_second_half_dt(S_new,tau_diff,cur_time,dt,1);
 #else
-       react_second_half_dt(S_new,cur_time,dt);
+       react_second_half_dt(S_new,cur_time,dt,1);
 #endif
 #endif
 

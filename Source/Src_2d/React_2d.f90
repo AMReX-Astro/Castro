@@ -73,9 +73,14 @@
              x_out(n) = max(min(x_out(n),1.d0),0.d0)
            end do
 
-           reaction_terms(i,j,1:nspec) = reaction_terms(i,j,1:nspec) + (x_out(1:nspec) - x_in(1:nspec))
-           reaction_terms(i,j,nspec+1) = reaction_terms(i,j,nspec+1) +     (e_out - e_in)
-           reaction_terms(i,j,nspec+2) = reaction_terms(i,j,nspec+2) + rho*(e_out - e_in)
+           if (i.ge.r_l1 .and. i.le.r_h1 .and. j.ge.r_l2 .and. j.le.r_h2) then
+               reaction_terms(i,j,1:nspec) = reaction_terms(i,j,1:nspec) + &
+                                             (x_out(1:nspec) - x_in(1:nspec))
+               reaction_terms(i,j,nspec+1) = reaction_terms(i,j,nspec+1) + &
+                                                 (e_out - e_in)
+               reaction_terms(i,j,nspec+2) = reaction_terms(i,j,nspec+2) + &
+                                             rho*(e_out - e_in)
+           end if
 
            s_out(i,j,URHO)            = rho
            s_out(i,j,UEINT)           = rho * e_out
