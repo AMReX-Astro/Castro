@@ -909,6 +909,11 @@ Castro::writePlotFile (const std::string& dir,
 	jobInfoFile << "COMP:  " << buildInfoGetComp() << "\n";
 	jobInfoFile << "FCOMP: " << buildInfoGetFcomp() << "\n";
 
+	jobInfoFile << "\n";
+
+	jobInfoFile << "EOS:     " << buildInfoGetAux1() << "\n";
+	jobInfoFile << "network: " << buildInfoGetAux2() << "\n";
+
 	jobInfoFile << "\n\n";
 
 
