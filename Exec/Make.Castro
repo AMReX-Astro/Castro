@@ -99,6 +99,7 @@ ifeq ($(USE_HDF5), TRUE)
 endif
 
 all: $(executable) 
+	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
 EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
@@ -244,7 +245,6 @@ INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
 
 buildInfo.cpp: $(BOXLIB_HOME)/Tools/C_scripts/make_build_info_cpp
 	$(BOXLIB_HOME)/Tools/C_scripts/make_build_info_cpp "$(BOXLIB_HOME)"
-
 
 vpath %.c   . $(VPATH_LOCATIONS)
 vpath %.cpp . $(VPATH_LOCATIONS)
