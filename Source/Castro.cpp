@@ -1,7 +1,7 @@
 #include <winstd.H>
 
 #ifndef WIN32
-#include <unistd.H>
+#include <unistd.h>
 #endif
 
 #include <iomanip>
