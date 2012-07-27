@@ -8,6 +8,7 @@
 
 #include <MacBndry.H>
 #include <MGT_Solver.H>
+#include <stencil_types.H>
 #include <mg_cpp_f.h>
 
 #define MAX_LEV 15
@@ -441,7 +442,8 @@ Gravity::solve_for_phi (int               level,
     std::vector<Geometry> fgeom(1);
     fgeom[0] = geom;
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    const int stencil_type = CC_CROSS_STENCIL;
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
 
     Array< Array<Real> > xa(1);
     Array< Array<Real> > xb(1);
@@ -569,7 +571,8 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     for (int lev = crse_level; lev <= fine_level; lev++) 
       fgeom[lev-crse_level] = parent->Geom(lev);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    const int stencil_type = CC_CROSS_STENCIL;
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
 
     Array< Array<Real> > xa(nlevs);
     Array< Array<Real> > xb(nlevs);
@@ -931,7 +934,8 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     for (int i = 0; i < nlevs; i++) 
       fgeom[i] = parent->Geom(level+i);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    const int stencil_type = CC_CROSS_STENCIL;
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     mgt_solver.set_maxorder(3);
     
     Array< Array<Real> > xa(nlevs);
@@ -1801,7 +1805,8 @@ Gravity::test_composite_phi (int level)
     for (int i = 0; i < nlevs; i++) 
       fgeom[i] = parent->Geom(level+i);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    const int stencil_type = CC_CROSS_STENCIL;
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     
     Array< Array<Real> > xa(nlevs);
     Array< Array<Real> > xb(nlevs);
