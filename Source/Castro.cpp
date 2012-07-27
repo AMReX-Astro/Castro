@@ -1,4 +1,9 @@
 #include <winstd.H>
+
+#ifndef WIN32
+#include <unistd.h>
+#endif
+
 #include <iomanip>
 
 #include <algorithm>
