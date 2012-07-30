@@ -58,6 +58,7 @@ protected:
 
   static int   verbose;
   static Real  diff_coeff;
+  static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);

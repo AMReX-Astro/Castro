@@ -5,12 +5,14 @@
 
 #include <MacBndry.H>
 #include <MGT_Solver.H>
+#include <stencil_types.H>
 #include <mg_cpp_f.h>
 
 #define MAX_LEV 15
 
 int  Diffusion::verbose      = 0;
 Real Diffusion::diff_coeff   = 0.0;
+int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
   : 
@@ -145,7 +147,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     std::vector<Geometry> fgeom(1);
     fgeom[0] = parent->Geom(level);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     
     MultiFab* phi_p[1];
     MultiFab* Res_p[1];
@@ -252,7 +254,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     std::vector<Geometry> fgeom(1);
     fgeom[0] = parent->Geom(level);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false);
+    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     
     MultiFab* phi_p[1];
     MultiFab* Res_p[1];
