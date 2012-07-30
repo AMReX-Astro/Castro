@@ -178,6 +178,7 @@ protected:
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
   static std::string gravity_type;
+  static int   stencil_type;
 
   void fill_ec_grow (int level, PArray<MultiFab>& ecF, const PArray<MultiFab>& ecC) const;
 

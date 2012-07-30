@@ -33,6 +33,7 @@ Real Gravity::ml_tol        = 1.e-12;
 Real Gravity::delta_tol     = 1.e-12;
 Real Gravity::const_grav    =  0.0;
 Real Gravity::mass_offset   =  0.0;
+int  Gravity::stencil_type  = CC_CROSS_STENCIL;
 
 // ************************************************************************************** //
 
@@ -442,7 +443,6 @@ Gravity::solve_for_phi (int               level,
     std::vector<Geometry> fgeom(1);
     fgeom[0] = geom;
 
-    const int stencil_type = CC_CROSS_STENCIL;
     MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
 
     Array< Array<Real> > xa(1);
@@ -571,7 +571,6 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     for (int lev = crse_level; lev <= fine_level; lev++) 
       fgeom[lev-crse_level] = parent->Geom(lev);
 
-    const int stencil_type = CC_CROSS_STENCIL;
     MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
 
     Array< Array<Real> > xa(nlevs);
@@ -934,7 +933,6 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     for (int i = 0; i < nlevs; i++) 
       fgeom[i] = parent->Geom(level+i);
 
-    const int stencil_type = CC_CROSS_STENCIL;
     MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     mgt_solver.set_maxorder(3);
     
@@ -1805,7 +1803,6 @@ Gravity::test_composite_phi (int level)
     for (int i = 0; i < nlevs; i++) 
       fgeom[i] = parent->Geom(level+i);
 
-    const int stencil_type = CC_CROSS_STENCIL;
     MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
     
     Array< Array<Real> > xa(nlevs);
