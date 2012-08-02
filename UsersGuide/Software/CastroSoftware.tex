@@ -18,35 +18,111 @@ The code structure in the Castro directory is as follows:
     \item {\bf Util}       : a catch-all for additional things you may need 
 \end{itemize}
 
-\section{Variable Names}
+\section{Castro Data Structures}
 
-The following is a list of variables, routines, etc used in CASTRO. It may not be complete or even entirely accurate; it's mostly intended for my own use.\\
+\subsection{State Data}
 
-{\bf lo,hi}: index extent of the "grid" of data currently being handled by a CASTRO routine\\
+CASTRO relies on the class structure defined by BoxLib to manage the data.  
 
-{\bf domlo, domhi}: index extent of the problem domain. This changes according to refinement level: 0th refinement level will have 0, castro.max\_grid\_size, and nth level will go from 0 to castro.max\_grid\_size*(multiplying equivalent of sum)castro.ref\_ratio(n).\\
+In {\tt Castro.H}, the {\tt enum} {\tt StateType} defines the
+different descriptors for the state data that Castro recognizes.  The
+main descriptors are:
+\begin{itemize}
+\item {\tt State\_Type}: the state variables for the hydrodynamics solver.
+\item {\tt Rad\_Type}: the radiation quantities (only enabled if {\tt
+  RADIATION} is defined).
+\item {\tt Gravity\_Type}: the data required for the gravity solve (only
+  enabled if {\tt GRAVITY} is defined).
+\item {\tt Reactions\_Type}: {\color{red} what is this for?}
+\end{itemize}
 
-{\bf dx}: cell spacing, presumably in cm, since CASTRO uses cgs units\\
+The state data is registered with BoxLib in {\tt Castro\_setup.cpp}.  We access 
+the multifabs that carry the data of interest by interacting with this
+BoxLib data-structure.  Each state quantity always has both an old and new timestate
+and the BoxLib class knows how to interpolate in both space and time.  We interact
+with the data by getting pointers to multifabs.  For instance:
+\begin{verbatim}
+       MultiFab& S_new = get_new_data(State_Type);
+\end{verbatim}
+gets a pointer to the multifab containing the hydrodynamics state data
+at the new time (here {\tt State\_Type} is the {\tt enum} defined in 
+{\tt Castro.H}).
 
-{\bf xlo}: physical location of the lower left-hand corner of the "grid" of data currently being handled by a CASTRO routine\\
+We iterate over the multifabs using an iterator {\tt MFIter}.  This
+iterator knows about the locality of the data---only the boxes on the
+processor will be looped over.  An example loop (for the
+initialization, from {\tt Castro\_setup.cpp} would be):
+\begin{verbatim}
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+       {
 
-{\bf bc}: array that holds boundary condition of and array. Sometimes it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index of the latter holds the variable index, i.e. density, pressure, species, etc.\\
+           const Box& bx      = mfi.validbox();
+           const int* lo      = bx.loVect();
+           const int* hi      = bx.hiVect();
 
-{\bf EXT\_DIR}: from  BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR  : data specified on EDGE (FACE) of bndry\\
+           if (! orig_domain.contains(bx)) {
+              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+                (level, cur_time, lo, hi, ns,
+                 BL_TO_FORTRAN(S_new[mfi]), dx,
+                 gridloc.lo(), gridloc.hi());
+           }
+       }
+\end{verbatim}
+here {\tt BL\_TO\_FORTRAN} is a special BoxLib macro that converts the
+C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
+is a BoxLib macro that is used to interface with Fortran routines.
+\MarginPar{what is the purpose of mfi.isValid()?}
 
-{\bf FOEXTRAP}: from  BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP  : first order extrapolation from last cell in interior CASTRO 
+\subsection{Other Quantities}
+
+The following is a list of variables, routines, etc used in CASTRO. It
+may not be complete or even entirely accurate; it's mostly intended
+for my own use.\\
+
+{\bf lo,hi}: index extent of the "grid" of data currently being
+handled by a CASTRO routine\\
+
+{\bf domlo, domhi}: index extent of the problem domain. This changes
+according to refinement level: 0th refinement level will have 0,
+castro.max\_grid\_size, and nth level will go from 0 to
+castro.max\_grid\_size*(multiplying equivalent of
+sum)castro.ref\_ratio(n).\\
+
+{\bf dx}: cell spacing, presumably in cm, since CASTRO uses cgs
+units\\
+
+{\bf xlo}: physical location of the lower left-hand corner of the
+"grid" of data currently being handled by a CASTRO routine\\
+
+{\bf bc}: array that holds boundary condition of and array. Sometimes
+it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index
+of the latter holds the variable index, i.e. density, pressure,
+species, etc.\\
+
+{\bf EXT\_DIR}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR : data
+specified on EDGE (FACE) of bndry\\
+
+{\bf FOEXTRAP}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP : first
+order extrapolation from last cell in interior CASTRO
 
 \section{Boundaries}
 \subsection{Boundaries Between Grids}
-Boundaries between grids are of two types. The first we call "fine-fine", which is two grids at the same level. 
-Filling ghost cells at the same level is also part of the fillpatch operation -- it's just a straight copy from "valid regions" 
-to ghost cells. The second type is "coarse-fine", which needs interpolation from the coarse grid to fill the fine grid ghost cells. 
-This also happens as part of the FillPatch operation, which is why arrays aren't just arrays, they're "State Data", 
-which means that the data knows how to interpolate itself (in an anthropomorphical sense). 
-The type of interpolation to use is defined in Castro\_setup.cpp as well -- search for cell\_cons\_interp, for example -- 
-that's "cell conservative interpolation", i.e the data is cell-based (as opposed to node-based or edge-based) and the 
-interpolation is such that the average of the fine values created is equal to the coarse value from which they came. 
-(This wouldn't be the case with straight linear interpolation, for example.) 
+Boundaries between grids are of two types. The first we call
+"fine-fine", which is two grids at the same level.  Filling ghost
+cells at the same level is also part of the fillpatch operation --
+it's just a straight copy from "valid regions" to ghost cells. The
+second type is "coarse-fine", which needs interpolation from the
+coarse grid to fill the fine grid ghost cells.  This also happens as
+part of the FillPatch operation, which is why arrays aren't just
+arrays, they're "State Data", which means that the data knows how to
+interpolate itself (in an anthropomorphical sense).  The type of
+interpolation to use is defined in Castro\_setup.cpp as well -- search
+for cell\_cons\_interp, for example -- that's "cell conservative
+interpolation", i.e the data is cell-based (as opposed to node-based
+or edge-based) and the interpolation is such that the average of the
+fine values created is equal to the coarse value from which they came.
+(This wouldn't be the case with straight linear interpolation, for
+example.)
 
 \subsection{Physical Boundaries}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
