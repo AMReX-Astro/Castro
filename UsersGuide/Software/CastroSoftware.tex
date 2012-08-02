@@ -124,6 +124,18 @@ fine values created is equal to the coarse value from which they came.
 (This wouldn't be the case with straight linear interpolation, for
 example.)
 
+A {\tt FillPatchIterator} is used to loop over the grids and fill
+ghostcells.  One should never assume that ghostcells are valid.  A key
+thing to keep in mind about the {\tt FillPatchIterator} is that you
+operate on a copy of the data---the data is disconnected from the
+original source.  If you want to update the data in the source,
+you need to explicitly copy it back.  Also note: {\tt FillPatchIterator}
+takes a multifab, but this is not filled---this is only used to
+get the grid layout.  \MarginPar{did I say that right?} 
+
+{\color{red}simple example}
+
+
 \subsection{Physical Boundaries}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[h]
