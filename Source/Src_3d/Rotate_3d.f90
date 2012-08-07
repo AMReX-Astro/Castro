@@ -29,7 +29,7 @@
     if (coord_type == 0) then
        omega = (/ 0.0d0, 0.0d0, TWO_PI*rot_freq /)
     else
-       call bl_error("Error:: Rotate_2d.f90 :: unknown coord_type")
+       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
     endif
 
     omega2 = dot_product(omega,omega)
