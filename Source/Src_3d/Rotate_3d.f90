@@ -54,8 +54,14 @@
              omegadotv   = dot_product(omega,v)
              vdotr       = dot_product(v,r)
 
+             ! momentum sources: this is the Coriolis force
+             ! (-2 rho omega x v) and the centrifugal force
+             ! (-rho omega x ( omega x r))
              rot_src(i,j,k,1:3) = -2.0d0 * dens * omegacrossv(:) - &
                   dens * (omegadotr * omega(:) - omega2 * r(:))
+
+             ! kinetic energy source: this is v . the momentum
+             ! force -- note that the Coriolis term drops out
              rot_src(i,j,k,4) = -dens * omegadotv * omegadotr + &
                   dens * omega2 * vdotr
 
