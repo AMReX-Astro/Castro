@@ -2575,7 +2575,7 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());
    const Real*       dx_fine = fine_geom.CellSize();
 
-   for (FillPatchIterator fpi(*this,S_old,1,time,State_Type,Density,ncomp);
+   for (FillPatchIterator fpi(*this,S_old,NUM_GROW,time,State_Type,Density,ncomp);
                           fpi.isValid();++fpi)
    {
         Box bx(fpi.validbox());
