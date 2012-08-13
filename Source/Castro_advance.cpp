@@ -203,7 +203,7 @@ Castro::advance_hydro (Real time,
 
 #ifdef DIFFUSION
 #ifdef TAU
-    MultiFab tau_diff(grids,1,1);
+    MultiFab tau_diff(grids,1,NUM_GROW);
     tau_diff.setVal(0.);
     define_tau(tau_diff,grav_vec_old,time);
 #endif
