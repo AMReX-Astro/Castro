@@ -48,7 +48,7 @@ module model_parser_module
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
-  public :: read_model_file
+  public :: read_model_file, close_model_file
 
 contains
 
@@ -209,6 +209,8 @@ contains
 
     close(99)
 
+    model_initialized = .true.
+
     deallocate(vars_stored,varnames_stored)
 
   end subroutine read_model_file
@@ -236,6 +238,16 @@ contains
     return
 
   end function get_model_npts
+
+  subroutine close_model_file
+    
+    if (model_initialized) then
+       deallocate(model_r)
+       deallocate(model_state)
+       npts_model = -1
+       model_initialized = .false.
+    endif
+  end subroutine close_model_file
 
 end module model_parser_module
 
