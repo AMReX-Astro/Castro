@@ -345,7 +345,7 @@ Gravity::solve_for_old_phi (int               level,
 #endif
 
     // This is a correction for fully periodic domains only
-    if (verbose && ParallelDescriptor::IOProcessor()) 
+    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
        Rhs[mfi].plus(-mass_offset);
@@ -373,7 +373,7 @@ Gravity::solve_for_new_phi (int               level,
 #endif
 
     // This is a correction for fully periodic domains only
-    if (verbose && ParallelDescriptor::IOProcessor()) 
+    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
        Rhs[mfi].plus(-mass_offset);
@@ -1048,7 +1048,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 //        BoxLib::Error("Gravity::actual_multilevel_solve -- total mass has changed!");
        }
 
-       if (verbose && ParallelDescriptor::IOProcessor()) 
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
           std::cout << " ... subtracting average density " << mass_offset << 
                        " from RHS at each level " << std::endl;
 
@@ -1481,8 +1481,9 @@ Gravity::test_level_grad_phi_prev(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor()) 
-          std::cout << " ... subtracting average density from RHS at level ... " << level << " " << mass_offset << std::endl;
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+          std::cout << " ... subtracting average density from RHS at level ... " 
+                    << level << " " << mass_offset << std::endl;
        for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
           Rhs[mfi].plus(-mass_offset);
     }
@@ -1547,7 +1548,7 @@ Gravity::test_level_grad_phi_curr(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor()) 
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
        for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
           Rhs[mfi].plus(-mass_offset);
@@ -1847,7 +1848,7 @@ Gravity::test_composite_phi (int level)
        // This is a correction for fully periodic domains only
        if ( Geometry::isAllPeriodic() )
        {
-          if (verbose && ParallelDescriptor::IOProcessor()) 
+          if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
              std::cout << " ... subtracting average density from RHS in solve at level ... " 
                        << level+lev << " " << mass_offset << std::endl;
           for (MFIter mfi((*Rhs_p[lev])); mfi.isValid(); ++mfi)
