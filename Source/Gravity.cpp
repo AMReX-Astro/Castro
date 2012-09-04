@@ -431,7 +431,7 @@ Gravity::solve_for_phi (int               level,
         const int out_rad    = 1;
         const int extent_rad = 2;
         BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
-        crse_br.copyFrom(CPhi,extent_rad,src_comp,dest_comp,num_comp);
+        crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
         bndry.setBndryValues(crse_br,src_comp,phi,src_comp,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
@@ -1127,7 +1127,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
         const int out_rad    = 1;
         const int extent_rad = 2;
         BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
-        crse_br.copyFrom(CPhi,extent_rad,src_comp,dest_comp,num_comp);
+        crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
 
         bndry.setBndryValues(crse_br,src_comp,phi_curr[level],src_comp,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
@@ -1908,7 +1908,7 @@ Gravity::test_composite_phi (int level)
         const int out_rad    = 1;
         const int extent_rad = 2;
         BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
-        crse_br.copyFrom(CPhi,extent_rad,src_comp,dest_comp,num_comp);
+        crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
         bndry.setBndryValues(crse_br,src_comp,phi_curr[level],src_comp,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
