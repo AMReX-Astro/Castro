@@ -116,8 +116,40 @@ tells the build system what problem-specific routines exist.  The
 simplest way to get started is to copy these files from an existing
 problem.  Here we describe how to customize your problem.
 
-Need descriptions of {\tt PROBINIT}, {\tt ca\_initdata}, {\tt ca\_hypfill},
-{\tt ca\_denfill}, {\tt ca\_grav?fill}, and {\tt ca\_reactfill}.
+A typical {\tt Prob\_?d.f90} routine consists of the following 
+subroutines:
+\begin{itemize}
+\item {\tt PROBINIT}
+
+\item {\tt ca\_initdata}
+
+\item the {\tt *fill} routines: The following routines handle how
+  \castro\ fills ghostcells for specific data.  The idea is that these
+  routines are registered in {\tt Castro\_setup.cpp}, and called as
+  needed.  By default, they just pass the arguments through to {\tt
+    filcc}, which handles all of the generic boundary conditions (like
+  reflecting, extrapolation, etc.).  The specific `{\tt fill}'
+  routines can then supply the problem-specific boundary conditions,
+  which are typically just Dirichlet boundary conditions.  The code
+  implementing these specific conditions should {\em follow} the {\tt
+    filcc} call.
+
+\begin{itemize}
+\item {\tt ca\_hypfill}:
+  This handles the boundary filling for the hyperbolic system.
+
+\item {\tt ca\_denfill}: At times, we need to fill just the density
+  (always assumed to be the first element in the hyperbolic state)
+  instead of the entire state.  When the fill patch routine is called
+  with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
+  use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
+
+\item {\tt ca\_grav?fill}
+
+\item {\tt ca\_reactfill}
+\end{itemize}
+
+\end{itemize}
 
 
 \section{Boundaries}
