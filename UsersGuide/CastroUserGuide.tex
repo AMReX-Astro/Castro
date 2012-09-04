@@ -3,16 +3,37 @@
 \tolerance=600
 
 % for \begin{center}, etc.
-\usepackage{geometry}
+\usepackage[margin=1.0in]{geometry}
+
 % all kinds of math macros
 \usepackage{amsmath}
 \usepackage{amssymb}
+
 % eps figures
 \usepackage{epsfig}
-% Margins
-\usepackage{fullpage}
-% for the red MarginPars
-\usepackage{color}
+
+% chapter title styles
+\usepackage[Sonny]{fncychap}
+\ChNameVar{\LARGE}
+\ChTitleVar{\LARGE\sl}
+
+% part page style                                                                                     
+% see http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec            
+\usepackage{titlesec}
+
+\titleformat{\part}[display]
+   {\Huge\filcenter}
+   {{\partname{}} \thepart}
+   {0em}
+   {\hrule}
+
+
+% hyperlinks -- load after fncychap                                                                   
+\usepackage{hyperref}
+
+% color package
+\usepackage[usenames]{color}
+
 % make the MarginPars look pretty
 \setlength{\marginparwidth}{0.75in}
 \newcommand{\MarginPar}[1]{\marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
@@ -28,6 +49,48 @@
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 
+% custom hrule for title page                                                                         
+\newcommand{\HRule}{\rule{\linewidth}{0.125mm}}
+
+
+% short table of contents                                                                             
+\usepackage{shorttoc}
+
+% spacing in the table of contents                                                                    
+\usepackage[titles]{tocloft}
+
+\setlength{\cftbeforechapskip}{2ex}
+\setlength{\cftbeforesecskip}{0.25ex}
+
+% don't put a header on blank pages, see                                                              
+% http://www.latex-community.org/forum/viewtopic.php?f=4&p=51559                                      
+% change ``plain'' to ``empty'' to eliminate the page number                                          
+\makeatletter
+\renewcommand*\cleardoublepage{\clearpage\if@twoside
+\ifodd\c@page\else
+\hbox{}
+\thispagestyle{empty}
+\newpage
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+
+% don't make the chapter/section headings uppercase.  See the fancyhdr                                
+% documentation (section 9)                                                                           
+\usepackage{fancyhdr}
+\renewcommand{\chaptermark}[1]{%                                                                      
+ \markboth{\chaptername
+\ \thechapter.\ #1}{}}
+
+\renewcommand{\sectionmark}[1]{\markright{\thesection---#1}}
+
+
+% skip a bit of space between paragraphs, to enhance readability                                      
+\usepackage{parskip}
+
+
+
+% special fraction
 \newcommand{\sfrac}[2]{\mathchoice
   {\kern0em\raise.5ex\hbox{\the\scriptfont0 #1}\kern-.15em/
    \kern-.15em\lower.25ex\hbox{\the\scriptfont0 #2}}
@@ -124,12 +187,54 @@
 \newcommand{\nablab}{\boldsymbol{\nabla}}
 \newcommand{\castro}{\sf CASTRO}
 
-\title{{\tt CASTRO} User's Guide}
 
+%------------------------------------------------------------------------------
 \begin{document}
 
-\maketitle
+\frontmatter
+
+\begin{titlepage}
+\begin{center}
+\ \\[2in]
+{\sf \Huge CASTRO} 
+
+\begin{minipage}{5.5in}
+\HRule\\[2mm]
+\centering
+{\Large \em An adaptive, parallel, radiation hydrodynamics code\\ for self-gravitating astrophysical flows}
+
+\HRule
+\end{minipage}
+
+\ \\[1 in]
+{\sf \huge User's Guide}
+
+\vfill
+
+{\large \today}
+\end{center}
+
+\end{titlepage}
+
+
+\shorttoc{Chapter Listing}{0}
+
+\setcounter{tocdepth}{2}
 \tableofcontents
+
+\clearpage
+
+\listoffigures
+\addcontentsline{toc}{part}{list of figures}
+
+\clearpage
+
+\listoftables
+\addcontentsline{toc}{part}{list of tables}
+
+\clearpage
+
+\mainmatter
 
 \chapter{Introduction}
 \input Introduction/CastroIntroduction
@@ -190,6 +295,10 @@
 
 \chapter{Suggestions, Warnings, and Gotchas}
 \input Suggestions/Suggestions
+
+
+%------------------------------------------------------------------------------
+\backmatter
 
 \renewcommand\bibname{References}
 \addcontentsline{toc}{chapter}{References}
