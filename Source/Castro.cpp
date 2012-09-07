@@ -150,6 +150,9 @@ int          Castro::show_center_of_mass = 0;
 Real         Castro::sum_turb_src = 0.0;
 #endif
 
+std::string  Castro::job_name = "";
+
+
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 
 void
@@ -394,6 +397,8 @@ Castro::read_params ()
       }
 #endif
 #endif
+
+   pp.query("job_name",job_name);  
 }
 
 Castro::Castro ()
@@ -874,6 +879,8 @@ Castro::writePlotFile (const std::string& dir,
 	jobInfoFile << " Job Information\n";
 	jobInfoFile << PrettyLine;
 	
+	jobInfoFile << "job name: " << job_name << "\n\n";
+
 	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
 #ifdef _OPENMP
 	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";

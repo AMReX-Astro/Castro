@@ -566,6 +566,8 @@ protected:
     static Real      small_pres;
     static Real      gamma;
 
+    static std::string      job_name;
+
 #ifdef POINTMASS
     static Real      point_mass;
 #endif
