@@ -24,12 +24,15 @@ negative y-direction if in 2D, negative z-direction if in 3-D.
 \item {\bf PoissonGrav}: 
 The most general case is time-evolving self-gravity with no assumptions about sphericity:
 \begin{equation}
-\mathbf{g}(\mathbf{x},t) = -\nabla \phi 
+\mathbf{g}(\mathbf{x},t) = \nabla \phi 
 \end{equation}
 is a self-induced gravitational field defined by solving
 \begin{equation}
-\mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+\mathbf{\Delta} \phi = -4 \pi G \rho .\label{eq:Self Gravity}
 \end{equation}
+(We note that the sign convention used for $\phi$ here is opposite
+that traditionally used in astrophysics, but the resulting
+gravitational acceleration will be the same.)
 
 We only allow {\bf PoissonGrav} in 2D or 3D because in 1D, computing the monopole 
 approximation in spherical coordinates is faster and more accurate than solving
