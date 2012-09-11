@@ -1,7 +1,7 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
-  use network   , only : network_init, network_species_index, nspec
+  use network   , only : network_species_index, nspec
   implicit none
 
   integer init, namlen
@@ -21,8 +21,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer maxlen
   parameter (maxlen=256)
   character probin*(maxlen)
-  
-  call network_init()
   
   if (namlen .gt. maxlen) then
      write(6,*) 'probin file name too long'
