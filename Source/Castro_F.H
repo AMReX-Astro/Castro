@@ -497,4 +497,7 @@ BL_FORT_PROC_DECL(CA_ROTATE,ca_rotate)
      const Real* prob_lo, const Real* dx, const Real* freq);
 #endif
 
+/* problem-specific includes */
+#include "Problem_F.H"
+
 #endif

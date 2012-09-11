@@ -10,6 +10,7 @@ CEXE_headers += Castro.H
 CEXE_headers += Problem.H
 
 FEXE_headers += Castro_F.H
+FEXE_headers += Problem_F.H
 FEXE_headers += Castro_error_F.H
 
 f90EXE_sources += Castro_nd.f90
