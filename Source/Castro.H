@@ -647,7 +647,11 @@ protected:
   static Real rotational_frequency;
 #endif
 
-};    
+/* problem-specific includes */
+#include "Problem.H"
+
+
+};
 
 //
 // Inlines.
@@ -745,5 +749,6 @@ Castro::get_point_mass ()
     return point_mass;
 }
 #endif
+
 
 #endif /*_Castro_H_*/
