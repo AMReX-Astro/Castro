@@ -1,0 +1,2 @@
+# use the Coulomb corrections
+use_eos_coulomb                     logical            .true.       
