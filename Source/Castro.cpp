@@ -3175,7 +3175,9 @@ Castro::extern_init ()
   // live in the probin
   std::string probin_file = "probin";
 
-  std::cout << "reading extern runtime parameters ..." << std::endl;
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cout << "reading extern runtime parameters ..." << std::endl;
+  }
 
   ParmParse pp("amr");
   if (pp.contains("probin_file"))
