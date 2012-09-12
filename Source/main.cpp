@@ -127,6 +127,15 @@ main (int   argc,
     delete xgraphptr;
 #endif
 
+    // Write final checkpoint and plotfile
+    if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
+        amrptr->checkPoint();
+    }
+
+    if (amrptr->stepOfLastPlotFile() < amrptr->levelSteps(0)) {
+        amrptr->writePlotFile();
+    }
+
     delete amrptr;
     //
     // This MUST follow the above delete as ~Amr() may dump files to disk.
