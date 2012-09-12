@@ -17,10 +17,6 @@
 !
 !   1/mu = sum_k { (1 + Z_k) X_k / A_k }
 !
-! At the moment, we will select between these 2 ionization extremes
-! (completely neutral vs. completely ionized) by a hard-coded
-! parameter, eos_assume_neutral
-!
 ! The ratio of specific heats (gamma) is allowed to vary.  NOTE: the
 ! expression for entropy is only valid for an ideal MONATOMIC gas
 ! (gamma = 5/3).  
@@ -86,8 +82,6 @@ module eos_module
 
   logical, save, private :: initialized = .false.
 
-  logical, parameter, private :: eos_assume_neutral = .true.
-
   private nspec, aion, zion
 
   public eos_init, eos_get_small_temp, eos_get_small_dens, eos_given_ReX, &
@@ -131,8 +125,6 @@ contains
     else
        smalld = 0.d0
     endif
-
-    print *, 'in eos_init', fully_ionized
 
     initialized = .true.
  
@@ -470,6 +462,7 @@ contains
 
     use bl_error_module
     use fundamental_constants_module, only: k_B, n_A, hbar
+    use extern_probin_module, only: eos_assume_neutral
 
 ! dens     -- mass density (g/cc)
 ! temp     -- temperature (K)
