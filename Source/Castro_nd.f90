@@ -10,6 +10,23 @@
 
       end subroutine ca_network_init
 
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine ca_extern_init(name,namlen)
+
+        ! initialize the external runtime parameters in
+        ! extern_probin_module
+
+        integer :: namlen
+        integer :: name(namlen)
+
+        call runtime_init(name,namlen)
+
+      end subroutine ca_extern_init
+
 ! ::: 
 ! ::: ----------------------------------------------------------------
 ! ::: 

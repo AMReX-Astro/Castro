@@ -10,6 +10,8 @@ BL_FORT_PROC_DECL(FILCC,filcc)
 
 BL_FORT_PROC_DECL(CA_NETWORK_INIT,ca_network_init)();
 
+BL_FORT_PROC_DECL(CA_EXTERN_INIT,ca_extern_init)(const int* name, const int* namlen);
+
 BL_FORT_PROC_DECL(GET_NUM_SPEC,get_num_spec)(int* nspec);
 
 BL_FORT_PROC_DECL(GET_NUM_AUX,get_num_aux)(int* naux);

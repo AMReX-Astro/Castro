@@ -451,6 +451,8 @@ protected:
     //
     //  Call extern/networks/.../network.f90::network_init()
     //
+    static void extern_init ();
+
     static void network_init ();
 
     static void read_params ();

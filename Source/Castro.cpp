@@ -3168,6 +3168,33 @@ Castro::network_init ()
    BL_FORT_PROC_CALL(CA_NETWORK_INIT,ca_network_init) ();
 }
 
+void
+Castro::extern_init ()
+{
+  // initialize the external runtime parameters -- these will
+  // live in the probin
+  std::string probin_file = "probin";
+
+  std::cout << "reading extern runtime parameters ..." << std::endl;
+
+  ParmParse pp("amr");
+  if (pp.contains("probin_file"))
+  {
+    pp.get("probin_file",probin_file);
+  }
+
+  int probin_file_length = probin_file.length();
+  Array<int> probin_file_name(probin_file_length);
+
+  for (int i = 0; i < probin_file_length; i++)
+    probin_file_name[i] = probin_file[i];
+
+
+  BL_FORT_PROC_CALL(CA_EXTERN_INIT,ca_extern_init) 
+    (probin_file_name.dataPtr(),
+     &probin_file_length);
+}
+
 #ifdef SGS
 void
 Castro::reset_old_sgs(Real dt)
