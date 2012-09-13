@@ -650,7 +650,7 @@ protected:
 #endif
 
 /* problem-specific includes */
-#include "Problem.H"
+#include <Problem.H>
 
 
 };
