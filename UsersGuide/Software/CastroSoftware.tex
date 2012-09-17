@@ -144,7 +144,11 @@ subroutines:
   with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
   use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
 
-\item {\tt ca\_grav?fill}
+\item {\tt ca\_grav?fill}: These routines will the ghostcells with the
+  gravitational acceleration.  By default, they will just do something
+  like a first-order extrapolation.  These are needed for the hydro
+  routines to have the gravitational acceleration needed for the 
+  source terms to the interface states.
 
 \item {\tt ca\_reactfill}
 \end{itemize}
