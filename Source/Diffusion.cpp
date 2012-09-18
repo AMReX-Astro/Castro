@@ -37,20 +37,10 @@ Diffusion::read_params ()
 
     if (!done)
     {
-        const Real strt = ParallelDescriptor::second();
-
         ParmParse pp("diffusion");
 
         pp.query("v", verbose);
         pp.query("diff_coeff", diff_coeff);
-
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-
-        if (verbose && ParallelDescriptor::IOProcessor())
-            std::cout << "Diffusion::read_params() time = " << end << std::endl;
 
         done = true;
     }
