@@ -1,0 +1,22 @@
+An implementation of the Homologous Dust Collapse, a 'pressure-less'
+configuration that collapses under its own self gravity.  An analytic
+solution that describes the radius of the sphere as a function of time
+is found in Colgate and White (1966).  This problem is also found in
+the FLASH User's Guide and Mönchmeyer and Müller (1989).
+
+A large density, rho_0, is placed inside a sphere of radius r_0.  The
+pressure should be negligible, formally, p_0 << 4 pi G rho_0^2 r_0^2 /
+gamma (see Flash Users Guide).
+
+It is not clear what value of p_0 different papers use.
+
+From the FLASH User's Guide, we have:
+
+  rho_0 = 1.e9 g/cc
+  r_0   = 6.5e8 cm
+
+and a typical timescale is ~ 0.06 s.
+
+The diagnostic routines to create radius-vs-time plots from the 1d, 2d and 
+3d plotfiles are in Castro/Diagnostics/DustCollapse.
+

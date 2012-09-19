@@ -97,8 +97,6 @@ program fdustcollapse3d
      farg = farg + 1
   end do
 
-  print *, 'Using a density threshhold of half the maximum analytic density'
-
   do f = farg, narg
   
      call get_command_argument(f, value = fname)
@@ -276,6 +274,8 @@ program fdustcollapse3d
          print *,'Dont know the maximum density at this time: ',pf%tm
          stop
      end if
+
+     print *,'Using a threshold of 0.5d0*max_dens: ',0.5d0*max_dens
 
      ! loop over the solution, from r = 0 outward, and find the first
      ! place where the density drops below the threshold density
