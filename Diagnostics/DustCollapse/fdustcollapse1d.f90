@@ -39,6 +39,7 @@ program fdustcollapse1d
 
   real(kind=dp_t) :: rmin
   real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   integer :: narg, farg
   character(len=256) :: fname
@@ -225,10 +226,21 @@ program fdustcollapse1d
      if (index < 0) then
         print *, 'ERROR: density never fell below threshold'
         stop
+     else if (index < 2) then
+        r_interface = rcoord(index)
+     else
+
+        rho_lo = dens(index  )
+        rho_hi = dens(index-1)
+
+        x = ( (0.5d0 * max_dens) - rho_lo) / (rho_hi - rho_lo)
+
+        r_interface = x * rcoord(index-1) + (1.d0-x) * rcoord(index)
+
      endif
 
      ! output
-     print *, pf%tm, rcoord(index)
+     print *, pf%tm, r_interface
 
      ! clean-up
      deallocate(rcoord)

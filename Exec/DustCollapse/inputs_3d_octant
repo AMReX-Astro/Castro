@@ -1,6 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 100000
-stop_time =  0.066
+stop_time =  0.01
+#stop_time =  0.02
+#stop_time =  0.03
+#stop_time =  0.04
+#stop_time =  0.05
+#stop_time =  0.06
+#stop_time =  0.065
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -55,11 +61,11 @@ amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = octant_chk_3d_  # root name of checkpoint file
+amr.check_file      = chk_3d_  # root name of checkpoint file
 amr.check_int       = 100000        # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = octant_plt_3d_  # root name of plotfile
+amr.plot_file       = plt_3d_  # root name of plotfile
 amr.plot_int        = 100000        # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 

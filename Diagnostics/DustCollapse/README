@@ -26,4 +26,5 @@ a.out > analytic.txt
 
 **** PLOTTING ****
 
-To use gnuplot to make Figure 12, use DustCollapse.gp
+To use gnuplot to make Figure 12, use DustCollapse.gp once you have created the files
+analytic.txt, results_1d.txt, results_2d.txt and results_3d.txt

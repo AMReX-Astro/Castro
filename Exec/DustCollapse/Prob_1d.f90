@@ -8,6 +8,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer :: init,namlen,untin,i,k
   integer :: name(namlen)
 
+  double precision :: center_x, center_y, center_z
   double precision :: problo(1), probhi(1)
 
   double precision :: eint
@@ -16,7 +17,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
        rho_0, r_0, p_0, rho_ambient, smooth_delta, &
        denerr, dengrad, max_denerr_lev, max_dengrad_lev, &
        velerr, velgrad, max_velerr_lev, max_velgrad_lev, &
-       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev
+       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
+       center_x, center_y, center_z
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -143,8 +145,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         ! use a tanh profile to smooth the transition between rho_0                                    
         ! and rho_ambient                                                                              
-        rho_n = rho_0 - 0.5d0*(rho_0 - rho_ambient)* &
-             (1.d0 + tanh((dist - r_0)/smooth_delta))
+        rho_n = rho_0 - (rho_0 - rho_ambient)* &
+             0.5d0 * (1.d0 + tanh((dist - r_0)/smooth_delta))
                 
         avg_rho = avg_rho + rho_n
         

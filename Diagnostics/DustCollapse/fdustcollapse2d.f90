@@ -36,6 +36,8 @@ program fdustcollapse2d
 
   real(kind=dp_t) :: r_zone, vol
   real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
+
   integer :: index_r
 
   real(kind=dp_t), pointer :: p(:,:,:,:)
@@ -263,12 +265,10 @@ program fdustcollapse2d
 
      else 
          print *,'Dont know the maximum density at this time: ',pf%tm
-!        print *,'Using density at time 0 '
-!        max_dens = 1.e9
          stop
      end if
 
-     print *,'Using a threshold of 0.5d0*max_dens: ',0.5d0*max_dens
+     ! print *,'Using a threshold of 0.5d0*max_dens: ',0.5d0*max_dens
 
      ! loop over the solution, from r = 0 outward, and find the first
      ! place where the density drops below the threshold density
@@ -283,10 +283,21 @@ program fdustcollapse2d
      if (index_r < 0) then
         print *, 'ERROR: density never fell below threshold'
         stop
+     else if (index_r < 2) then
+        r_interface = r(index_r)
+     else
+
+        rho_lo = dens_bin(index_r  )
+        rho_hi = dens_bin(index_r-1)
+
+        x = ( (0.5d0 * max_dens) - rho_lo) / (rho_hi - rho_lo)
+
+        r_interface = x * r(index_r-1) + (1.d0-x) * r(index_r)
+
      endif
 
      ! output
-     print *, pf%tm, r(index_r)
+     print *, pf%tm, r_interface
 
      ! dump out the radial profile -- if desired
      if (profile) then

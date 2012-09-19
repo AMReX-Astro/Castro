@@ -1,0 +1,1 @@
+../../Diagnostics/DustCollapse/fdustcollapse3d.Linux.gfortran.exe --xctr 7.5e8 --yctr 7.5e8 --zctr 7.5e8 plt_3d_*
