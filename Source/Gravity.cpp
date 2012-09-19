@@ -80,8 +80,6 @@ Gravity::read_params ()
 
     if (!done)
     {
-        const Real strt = ParallelDescriptor::second();
-
         ParmParse pp("gravity");
 
         pp.get("gravity_type", gravity_type);
@@ -133,17 +131,6 @@ Gravity::read_params ()
         pp.query("ml_tol",ml_tol);
         pp.query("sl_tol",sl_tol);
         pp.query("delta_tol",delta_tol);
-
-        if (verbose > 1)
-        {
-            const int IOProc = ParallelDescriptor::IOProcessorNumber();
-            Real      end    = ParallelDescriptor::second() - strt;
-
-            ParallelDescriptor::ReduceRealMax(end,IOProc);
-
-            if (ParallelDescriptor::IOProcessor())
-                std::cout << "Gravity::read_params() time = " << end << std::endl;
-        }
 
         Real Gconst;
         BL_FORT_PROC_CALL(GET_GRAV_CONST, get_grav_const)(&Gconst);
@@ -345,7 +332,7 @@ Gravity::solve_for_old_phi (int               level,
 #endif
 
     // This is a correction for fully periodic domains only
-    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
        Rhs[mfi].plus(-mass_offset);
@@ -373,7 +360,7 @@ Gravity::solve_for_new_phi (int               level,
 #endif
 
     // This is a correction for fully periodic domains only
-    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+    if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
        Rhs[mfi].plus(-mass_offset);
@@ -1048,7 +1035,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 //        BoxLib::Error("Gravity::actual_multilevel_solve -- total mass has changed!");
        }
 
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density " << mass_offset << 
                        " from RHS at each level " << std::endl;
 
@@ -1481,7 +1468,7 @@ Gravity::test_level_grad_phi_prev(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS at level ... " 
                     << level << " " << mass_offset << std::endl;
        for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
@@ -1548,7 +1535,7 @@ Gravity::test_level_grad_phi_curr(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
        for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
           Rhs[mfi].plus(-mass_offset);
@@ -1848,7 +1835,7 @@ Gravity::test_composite_phi (int level)
        // This is a correction for fully periodic domains only
        if ( Geometry::isAllPeriodic() )
        {
-          if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0) 
+          if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
              std::cout << " ... subtracting average density from RHS in solve at level ... " 
                        << level+lev << " " << mass_offset << std::endl;
           for (MFIter mfi((*Rhs_p[lev])); mfi.isValid(); ++mfi)
@@ -2188,15 +2175,13 @@ Gravity::make_monopole_grav(int level, Real time, MultiFab& S, Array<Real>& radi
 
     Array<Real> radial_vol(n1d,0);
     Array<Real> radial_den(n1d,0);
+    Array<Real> radial_mass(n1d,0);
 
-    for (int i = 0; i < n1d; i++) {
-        radial_grav[i] = 0.;
-    }
+    for (int i = 0; i < n1d; i++) radial_grav[i] = 0.;
 
 #ifdef GR_GRAV
-    Real radial_pres[n1d];
-    for (int i = 0; i < n1d; i++) 
-        radial_pres[i] = 0.;
+    Array<Real> radial_pres(n1d,0);
+    for (int i = 0; i < n1d; i++) radial_pres[i] = 0.;
 #endif
 
     const Geometry& geom = parent->Geom(level);
@@ -2212,16 +2197,16 @@ Gravity::make_monopole_grav(int level, Real time, MultiFab& S, Array<Real>& radi
        for (MFIter mfi(S); mfi.isValid(); ++mfi)
        {
           Box bx(mfi.validbox());
-          BL_FORT_PROC_CALL(CA_COMPUTE_AVGDEN,ca_compute_avgden)
+          BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
               (bx.loVect(), bx.hiVect(),dx,&dr,
-               BL_TO_FORTRAN(S[mfi]),
-               radial_den.dataPtr(), radial_vol.dataPtr(),
+               BL_TO_FORTRAN(S[mfi]), 
+               radial_mass.dataPtr(), radial_vol.dataPtr(),
                geom.ProbLo(),&n1d,&drdxfac,&level);
 #ifdef GR_GRAV
           BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
               (bx.loVect(), bx.hiVect(),dx,&dr,
                BL_TO_FORTRAN(S[mfi]),
-               radial_pres, geom.ProbLo(),&n1d,&drdxfac,&level);
+               radial_pres.dataPtr(), geom.ProbLo(),&n1d,&drdxfac,&level);
 #endif
        }
     } 
@@ -2265,41 +2250,44 @@ Gravity::make_monopole_grav(int level, Real time, MultiFab& S, Array<Real>& radi
             fpi.isValid(); ++fpi) 
        {
         Box bx(fpi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_AVGDEN,ca_compute_avgden)
+        BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
             (bx.loVect(), bx.hiVect(),dx,&dr,
              BL_TO_FORTRAN(fpi()),
-             radial_den.dataPtr(),radial_vol.dataPtr(),
+             radial_mass.dataPtr(), radial_vol.dataPtr(),
              geom.ProbLo(),&n1d,&drdxfac,&level);
 #ifdef GR_GRAV
         BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
             (bx.loVect(), bx.hiVect(),dx,&dr,
              BL_TO_FORTRAN(fpi()),
-             radial_pres,geom.ProbLo(),&n1d,&drdxfac,&level);
+             radial_pres.dataPtr(), geom.ProbLo(),&n1d,&drdxfac,&level);
 #endif
        }
     }
    
     ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr() ,n1d);
-    ParallelDescriptor::ReduceRealSum(radial_den.dataPtr() ,n1d);
+    ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr() ,n1d);
 
     for (int i = 0; i < n1d; i++)  
+    {
+        radial_den[i] = radial_mass[i];
         if (radial_vol[i] > 0.) radial_den[i]  /= radial_vol[i];
+    }
 
 #ifdef GR_GRAV
-
-    ParallelDescriptor::ReduceRealSum(radial_pres,n1d);
+    ParallelDescriptor::ReduceRealSum(radial_pres.dataPtr(),n1d);
     for (int i = 0; i < n1d; i++)  
         if (radial_vol[i] > 0.) radial_pres[i]  /= radial_vol[i];
 
     // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
     BL_FORT_PROC_CALL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
-        (radial_den.dataPtr(),radial_pres,radial_grav.dataPtr(),&dr,&n1d);
+        (radial_den.dataPtr(),radial_mass.dataPtr(),
+         radial_pres.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
 
 #else
 
     // Integrate radially outward to define the gravity
     BL_FORT_PROC_CALL(CA_INTEGRATE_GRAV,ca_integrate_grav)
-        (radial_den.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
+        (radial_mass.dataPtr(),radial_grav.dataPtr(),&dr,&n1d); 
 
 #endif
 
@@ -2351,7 +2339,6 @@ void
 Gravity::interpolate_monopole_grav(int level_from, int level_to, 
                                    Array<Real>& radial_grav, MultiFab& grav_vector)
 {
-
     int n1d = radial_grav.size();
 
     const Geometry& geom_to = parent->Geom(level_to);
@@ -2360,15 +2347,15 @@ Gravity::interpolate_monopole_grav(int level_from, int level_to,
  
     Real dr = dx_from[0] / double(drdxfac);
 
-   for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
-   {
-      Box bx(mfi.validbox());
-      BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-          (bx.loVect(), bx.hiVect(),dx_to,&dr,
-           BL_TO_FORTRAN(grav_vector[mfi]),
-           radial_grav.dataPtr(),geom_to.ProbLo(),
-           &n1d,&level_to);
-   }
+    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+    {
+       Box bx(mfi.validbox());
+       BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
+           (bx.loVect(), bx.hiVect(),dx_to,&dr,
+            BL_TO_FORTRAN(grav_vector[mfi]),
+            radial_grav.dataPtr(),geom_to.ProbLo(),
+            &n1d,&level_to);
+    }
 }
 #endif
 
@@ -2383,7 +2370,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     int n1d = drdxfac*numpts_at_level;
 
     Array<Real> radial_vol(n1d,0);
-    Array<Real> radial_den(n1d,0);
+    Array<Real> radial_mass(n1d,0);
     Array<Real> radial_phi(n1d,0);
     Array<Real> radial_grav(n1d+1,0);
 
@@ -2391,28 +2378,25 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     const Real* dx   = geom.CellSize();
     Real dr = dx[0] / double(drdxfac);
 
-    // Create radial average of density
-    // Note that RHS = Ggravity * density 
+    // Define total mass in each shell
+    // Note that RHS = density (we have not yet multiplied by G)
     int drdxfac_here = 1;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
         Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_AVGDEN,ca_compute_avgden)
+        BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
             (bx.loVect(), bx.hiVect(),dx,&dr,
-             BL_TO_FORTRAN(Rhs[mfi]),
-             radial_den.dataPtr(),radial_vol.dataPtr(),
-             geom.ProbLo(),&n1d,&drdxfac_here,&level);
+             BL_TO_FORTRAN(Rhs[mfi]), 
+             radial_mass.dataPtr(), radial_vol.dataPtr(),
+             geom.ProbLo(),&n1d,&drdxfac,&level);
     }
    
     ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),n1d);
-    ParallelDescriptor::ReduceRealSum(radial_den.dataPtr(),n1d);
-
-    for (int i = 0; i < n1d; i++)  
-        if (radial_vol[i] > 0.) radial_den[i] /= radial_vol[i];
+    ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
 
     // Integrate radially outward to define the gravity
     BL_FORT_PROC_CALL(CA_INTEGRATE_PHI,ca_integrate_phi)
-        (radial_den.dataPtr(),radial_grav.dataPtr(),radial_phi.dataPtr(),&dr,&n1d);
+        (radial_mass.dataPtr(),radial_grav.dataPtr(),radial_phi.dataPtr(),&dr,&n1d);
 
     Box domain(parent->Geom(level).Domain());
     for (MFIter mfi(phi); mfi.isValid(); ++mfi)

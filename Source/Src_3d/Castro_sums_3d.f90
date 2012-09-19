@@ -1,6 +1,8 @@
 
 ! ::
 ! :: ----------------------------------------------------------
+! :: summass
+! ::             MASS = sum{ vol(i,j,k)*rho(i,j,k) }
 ! :: INPUTS / OUTPUTS:
 ! ::  rho        => density field
 ! ::  rlo,rhi    => index limits of rho array
@@ -39,6 +41,8 @@
 
 ! ::
 ! :: ----------------------------------------------------------
+! :: sumsquared
+! ::             MASS = sum{ vol(i,j,k)*rho(i,j,k)**2) }
 ! :: INPUTS / OUTPUTS:
 ! ::  rho        => density field
 ! ::  rlo,rhi    => index limits of rho array
@@ -77,6 +81,9 @@
 
 ! ::
 ! :: ----------------------------------------------------------
+! :: sumlocmass
+! ::             MASS = sum{ vol(i,j,k)*rho(i,j,k)*x_idir }
+! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  rho        => density field
 ! ::  rlo,rhi    => index limits of rho array

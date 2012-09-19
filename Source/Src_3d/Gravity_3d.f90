@@ -470,10 +470,10 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_compute_avgden (lo,hi,dx,dr,&
-                                    rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
-                                    radial_den,radial_vol,problo,&
-                                    n1d,drdxfac,level)
+      subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
+                                         rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
+                                         radial_mass,radial_vol,problo,&
+                                         n1d,drdxfac,level)
       use probdata_module
 
       implicit none
@@ -483,17 +483,26 @@
       double precision :: problo(3)
 
       integer          :: n1d,drdxfac,level
-      double precision :: radial_den(0:n1d-1)
-      double precision :: radial_vol(0:n1d-1)
+      double precision :: radial_mass(0:n1d-1)
+      double precision :: radial_vol (0:n1d-1)
 
       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
       integer          :: i,j,k,index
       integer          :: ii,jj,kk
-      double precision :: xc,yc,zc,r,xxsq,yysq,zzsq
+      double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
       double precision :: lo_i,lo_j,lo_k
+
+      if ((abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1)) .and. &
+          (abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2)) .and. &
+          (abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3)) ) then
+         octant_factor = 8.d0
+      else
+         octant_factor = 1.d0
+      end if
+
 
       fac     = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -518,10 +527,10 @@
 
                   if (level .eq. 0) then
                      print *,'   '  
-                     print *,'>>> Error: Gravity_3d::ca_compute_avgden ',i,j,k
+                     print *,'>>> Error: Gravity_3d::ca_compute_radial_mass ',i,j,k
                      print *,'>>> ... index too big: ', index,' > ',n1d-1
                      print *,'>>> ... at (i,j,k)   : ',i,j,k
-                     call bl_error("Error:: Gravity_3d.f90 :: ca_compute_avgden")
+                     call bl_error("Error:: Gravity_3d.f90 :: ca_compute_radial_mass")
                   end if
 
                else
@@ -544,8 +553,8 @@
                            index = int(r/dr)
 
                            if (index .le. n1d-1) then
-                              radial_den(index) = radial_den(index) + rho(i,j,k)
                               radial_vol(index) = radial_vol(index) + 1.d0
+                              radial_mass(index) = radial_mass(index) + rho(i,j,k)
                            end if
                         end do
                      end do
@@ -556,7 +565,7 @@
          enddo
       enddo
 
-      end subroutine ca_compute_avgden
+      end subroutine ca_compute_radial_mass
 
 ! ::
 ! :: ----------------------------------------------------------
@@ -655,87 +664,6 @@
       !$OMP END PARALLEL DO
 
       end subroutine ca_put_radial_grav
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      subroutine ca_integrate_grav (rho,grav,dr,numpts_1d)
-
-      use bl_constants_module,          only : M_PI
-      use fundamental_constants_module, only : Gconst
-
-      implicit none
-
-      integer          :: numpts_1d
-      double precision ::  rho(0:numpts_1d-1)
-      double precision :: grav(0:numpts_1d-1)
-      double precision :: dr
-
-      integer          :: i
-      double precision :: mass_encl,rc,rlo,halfdr
-
-      double precision, parameter :: fourthirdspi = 4.d0 * M_PI / 3.d0
-
-      halfdr    = 0.5d0 * dr
-      mass_encl = 0.d0
-
-      do i = 0,numpts_1d-1
-         rc  = (dble(i)+0.5d0) * dr
-         rlo = (dble(i)      ) * dr
-
-         if (i.eq.0) then
-            mass_encl = fourthirdspi * rc**3 * rho(i)
-         else
-            mass_encl = mass_encl &
-                 + fourthirdspi*halfdr*(rlo**2+rlo*(rlo-halfdr)+(rlo-halfdr)**2) * rho(i-1) &
-                 + fourthirdspi*halfdr*( rc**2+ rc* rlo        + rlo**2        ) * rho(i  )
-         end if
-
-         grav(i) = -Gconst * mass_encl / rc**2
-      enddo
-
-      end subroutine ca_integrate_grav
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      subroutine ca_integrate_phi (rho,grav,phi,dr,numpts_1d)
-
-      use bl_constants_module,          only : M_PI
-      use fundamental_constants_module, only : Gconst
-
-      implicit none
-
-      integer          :: numpts_1d
-      double precision ::  rho(0:numpts_1d-1)
-      double precision :: grav(0:numpts_1d-1)
-      double precision ::  phi(0:numpts_1d-1)
-      double precision :: dr
-
-      integer          :: i
-      double precision :: mass_encl,rlo,rhi
-
-      double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
-
-      mass_encl = 0.d0
-      grav(0)   = 0.d0
-
-      do i = 1,numpts_1d-1
-         rlo = dble(i-1) * dr
-         rhi = dble(i  ) * dr
-         mass_encl = mass_encl + fourthirdspi * (rhi**3  - rlo**3) * rho(i-1) 
-         grav(i) = -Gconst * mass_encl / rhi**2
-      enddo
-
-      phi(0) = 0.d0
-
-      do i = 1,numpts_1d-1
-        phi(i) = phi(i-1) + grav(i) * dr
-      enddo
-
-      end subroutine ca_integrate_phi
 
 ! ::
 ! :: ----------------------------------------------------------
