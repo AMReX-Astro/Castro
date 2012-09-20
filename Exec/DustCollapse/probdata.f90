@@ -23,7 +23,6 @@ module probdata_module
       ! conditions
       double precision, save :: r_old
       double precision, save :: rho_0, rho_ambient, r_0, p_0, T_0, T_ambient, smooth_delta
-      double precision, save :: x_ctr, y_ctr, z_ctr
       double precision, allocatable, save :: X_0(:)
 
       double precision, save ::  center(3)

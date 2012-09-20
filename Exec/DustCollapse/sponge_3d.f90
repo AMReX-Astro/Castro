@@ -59,13 +59,13 @@ subroutine sponge(uout,uout_l1,uout_l2,uout_l3,&
   r_tp = r + 5.0d7
 
   do k = lo(3),hi(3)
-     z = (dble(k)+0.5d0)*dz - z_ctr
+     z = (dble(k)+0.5d0)*dz - center(3)
 
      do j = lo(2),hi(2)
-        y = (dble(j)+0.5d0)*dy - y_ctr
+        y = (dble(j)+0.5d0)*dy - center(2)
 
         do i = lo(1),hi(1)
-           x = (dble(i)+0.5d0)*dx - x_ctr
+           x = (dble(i)+0.5d0)*dx - center(1)
 
            ! compute radius
            radius = sqrt(x**2 + y**2 + z**2)

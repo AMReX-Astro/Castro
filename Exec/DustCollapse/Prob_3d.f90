@@ -64,7 +64,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  ! in 3-d, we center the sphere at x_ctr, y_ctr, z_ctr
+  ! in 3-d, we center the sphere at (center_x, center_y, center_z)
   center(1) = center_x
   center(2) = center_y
   center(3) = center_z
