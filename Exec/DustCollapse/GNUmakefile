@@ -13,7 +13,6 @@ FCOMP	   = gfortran
 USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
-USE_GR     = TRUE
 
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := gamma_law_general
