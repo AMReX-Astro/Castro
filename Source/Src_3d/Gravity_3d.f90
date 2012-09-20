@@ -495,9 +495,9 @@
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
       double precision :: lo_i,lo_j,lo_k
 
-      if ((abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1)) .and. &
-          (abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2)) .and. &
-          (abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3)) ) then
+      if (( abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1) ) .and. &
+          ( abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2) ) .and. &
+          ( abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3) ) ) then
          octant_factor = 8.d0
       else
          octant_factor = 1.d0
@@ -553,8 +553,8 @@
                            index = int(r/dr)
 
                            if (index .le. n1d-1) then
-                              radial_vol(index) = radial_vol(index) + 1.d0
-                              radial_mass(index) = radial_mass(index) + rho(i,j,k)
+                              radial_vol(index)  = radial_vol(index)  + octant_factor
+                              radial_mass(index) = radial_mass(index) + octant_factor * rho(i,j,k)
                            end if
                         end do
                      end do
