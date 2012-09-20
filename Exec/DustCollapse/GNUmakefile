@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -26,4 +24,4 @@ Network_dir := null
 Bpack	:= ./Make.package
 Blocs	:= .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro
