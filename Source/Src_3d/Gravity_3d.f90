@@ -493,6 +493,7 @@
       integer          :: ii,jj,kk
       double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
+      double precision :: vol_frac
       double precision :: lo_i,lo_j,lo_k
 
       if (( abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1) ) .and. &
@@ -508,6 +509,8 @@
       dx_frac = dx(1) / fac
       dy_frac = dx(2) / fac
       dz_frac = dx(3) / fac
+
+      vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
       !
       ! Don't OMP this.
       !
@@ -553,8 +556,8 @@
                            index = int(r/dr)
 
                            if (index .le. n1d-1) then
-                              radial_vol(index)  = radial_vol(index)  + octant_factor
-                              radial_mass(index) = radial_mass(index) + octant_factor * rho(i,j,k)
+                              radial_vol(index)  = radial_vol(index)  + vol_frac
+                              radial_mass(index) = radial_mass(index) + vol_frac * rho(i,j,k)
                            end if
                         end do
                      end do
