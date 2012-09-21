@@ -72,7 +72,6 @@
 
 
 !..declare local variables
-      integer          j
       double precision x,y,zz,zzi,deni,tempi,xni,dxnidd,dxnida, &
                        dpepdt,dpepdd,deepdt,deepdd,dsepdd,dsepdt, &
                        dpraddd,dpraddt,deraddd,deraddt,dpiondd,dpiondt, &
@@ -914,10 +913,6 @@
       logical          first
       data             first/.false./ 
 
-!..   popular format statements
- 03   format(1x,4(a,1pe11.3))
- 04   format(1x,4(a,i4))
-
       if ( first ) return
 
       first = .true.
@@ -993,6 +988,11 @@
       end do
 
       close(unit=2)
+!
+!..   popular format statements
+! 03   format(1x,4(a,1pe11.3))
+! 04   format(1x,4(a,i4))
+!
 !      if ( parallel_ioprocessor() ) then
 !         write(6,*)
 !         write(6,*) 'finished reading eos table'

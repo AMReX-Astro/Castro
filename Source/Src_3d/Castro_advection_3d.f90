@@ -20,8 +20,8 @@
            vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
            courno,verbose)
 
-      use meth_params_module, only : URHO, QVAR, NVAR, NHYP, do_sponge, &
-                                     allow_negative_energy, normalize_species
+      use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
+                                     normalize_species
 
       ! This is used for IsoTurb only
       ! use probdata_module   , only : radiative_cooling_type
@@ -970,7 +970,7 @@
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
       use network, only : nspec, naux
-      use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, QW, &
+      use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
                                      ppm_type
       implicit none
@@ -1501,7 +1501,7 @@
            ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
 
       use network, only : nspec, naux
-      use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, QW, &
+      use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
                                      ppm_type
 
@@ -1817,7 +1817,7 @@
       use network, only : nspec, naux
       use eos_module
       use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-           UEDEN, UEINT, UTEMP, UFS, UFX, normalize_species
+           UEDEN, UEINT, UTEMP, normalize_species
 
       implicit none
 
@@ -2076,7 +2076,7 @@
                            idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
 
       use network, only : nspec, naux
-      use prob_params_module, only : physbc_lo,physbc_hi,Symmetry
+      use prob_params_module, only : physbc_lo,Symmetry
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
                                      nadv, small_dens, small_pres

@@ -12,7 +12,7 @@ contains
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
     use network, only : nspec, naux
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, &
          ppm_type, small_dens, small_pres
 
@@ -691,7 +691,7 @@ contains
                         ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
 
     use network, only : nspec, naux
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, &
          ppm_type, small_dens, small_pres
 

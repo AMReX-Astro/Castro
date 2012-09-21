@@ -375,7 +375,7 @@
 
       use network, only : nspec, naux
       use eos_module
-      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+      use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
 
       implicit none
@@ -504,7 +504,7 @@
 
       use network, only : nspec, naux
       use eos_module
-      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+      use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
       implicit none
 

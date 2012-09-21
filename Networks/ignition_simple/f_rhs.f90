@@ -17,7 +17,6 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   integer :: n
   real(kind=dp_t) :: y(n), ydot(n)
 
-  integer :: k
   real(kind=dp_t) :: ymass(nspec)
 
   real(kind=dp_t) :: rpar
@@ -144,7 +143,7 @@ subroutine jac(neq, t, y, ml, mu, pd, nrpd, rpar, ipar)
   ! we get the thermodynamic state through the burner_aux module -- we freeze
   ! these to the values are the top of the timestep to avoid costly
   ! EOS calls
-  use burner_aux_module, only : dens_pass, c_p_pass, dhdx_pass, X_O16_pass
+  use burner_aux_module, only : dens_pass, c_p_pass, dhdx_pass
 
   implicit none
 
