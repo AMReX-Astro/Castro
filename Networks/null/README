@@ -1,4 +1,0 @@
-This is the NULL burner -- it doesn't do anything except define the
-number of species carried in the flow.  It is useful for shutting off
-all reactions in Maestro, so we are doing pure hydrodynamics.
-
