@@ -77,8 +77,9 @@
                              state,state_l1,state_l2,state_h1,state_h2, &
                              delta,xlo,xhi)
         use probdata_module
-        use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-        use bl_constants_module, only: HALF
+        use meth_params_module, only : NVAR, URHO, UMX, UMY, &
+             UEDEN, UEINT, UFS, UTEMP
+        use bl_constants_module, only: ZERO, HALF, M_PI
         use eos_module, only : gamma_const
 
         implicit none
@@ -92,14 +93,11 @@
         integer i,j
         double precision x,y,pres,presbase,presmid,pertheight
         
-        double precision pi
-        parameter (pi=3.1415926535897932384)
-        
         presmid  = p0_base - rho_1*center(2)
         
-        state(:,:,UMX)   = 0.0
-        state(:,:,UMY)   = 0.0
-        state(:,:,UTEMP) = 0.0
+        state(:,:,UMX)   = ZERO
+        state(:,:,UMY)   = ZERO
+        state(:,:,UTEMP) = ZERO
 
         do j = lo(2), hi(2)
            y = (j+HALF)*delta(2)
@@ -123,8 +121,10 @@
            do i = lo(1), hi(1)
               x = (i+HALF)*delta(1)
 
-              pertheight = 0.01d0*HALF*(cos(2.0d0*pi*x/L_x) + &
-                                        cos(2.0d0*pi*(L_x-x)/L_x)) + 0.5d0
+              ! we explicitly make the perturbation symmetric here
+              ! -- this prevents the RT from bending.
+              pertheight = 0.01d0*HALF*(cos(2.0d0*M_PI*x/L_x) + &
+                                        cos(2.0d0*M_PI*(L_x-x)/L_x)) + 0.5d0
               state(i,j,URHO) = rho_1 + ((rho_2-rho_1)/2.0d0)* &
                    (1+tanh((y-pertheight)/0.005d0))
               state(i,j,UFS) = state(i,j,URHO)
