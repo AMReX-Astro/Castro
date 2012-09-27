@@ -1004,7 +1004,6 @@ Castro::advance_no_hydro (Real time,
     for (FillPatchIterator fpi(*this, S_old, 1, time, State_Type, 0, NUM_STATE);
 	   fpi.isValid(); ++fpi)
     {
-	  int mfiindex = fpi.index();
 	  FArrayBox &state = fpi();
 #ifdef TAU
           react_first_half_dt(state,ReactMF[fpi],tau_diff[fpi],time,dt);

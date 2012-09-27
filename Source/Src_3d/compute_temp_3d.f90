@@ -3,7 +3,7 @@
 
       use network, only : nspec, naux
       use eos_module
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, &
+      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, &
                                      UFS, UFX, allow_negative_energy
 
       implicit none

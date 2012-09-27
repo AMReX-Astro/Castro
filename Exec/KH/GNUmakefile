@@ -17,7 +17,8 @@ USE_OMP    = TRUE
 EOS_dir     := gamma_law_general
 
 # This sets the network directory in Castro/Networks
-Network_dir := gammalaw
+Network_dir := general_null
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
 
 Bpack   := ./Make.package
 Blocs   := .

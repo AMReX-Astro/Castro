@@ -18,7 +18,8 @@ USE_GRAV   = TRUE
 EOS_dir     := gamma_law_general
 
 # This sets the EOS directory in $(CASTRO_DIR)/Networks
-Network_dir := null
+Network_dir := general_null
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
 
 Bpack	:= ./Make.package
 Blocs	:= .

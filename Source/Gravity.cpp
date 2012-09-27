@@ -2380,7 +2380,6 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
-    int drdxfac_here = 1;
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
         Box bx(mfi.validbox());

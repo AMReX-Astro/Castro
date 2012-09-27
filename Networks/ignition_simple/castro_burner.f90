@@ -20,8 +20,7 @@ contains
     real(kind=dp_t), intent(in   ) :: dens, temp, Xin(nspec), ein, dt, time_in
     real(kind=dp_t), intent(  out) :: Xout(nspec), eout
   
-    integer :: n
-    real(kind=dp_t) :: enuc, dX
+    real(kind=dp_t) :: enuc
 
     logical, parameter :: verbose = .false.
 
