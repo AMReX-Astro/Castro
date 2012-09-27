@@ -1,19 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10
-stop_time =  0.01
-#stop_time =  0.02
-#stop_time =  0.03
-#stop_time =  0.04
-#stop_time =  0.05
-#stop_time =  0.06
-#stop_time =  0.065
-
-#amr.restart = chk_2d_00169
-#amr.restart = chk_2d_00327
-#amr.restart = chk_2d_00552
-#amr.restart = chk_2d_00755
-#amr.restart = chk_2d_00987
-#amr.restart = chk_2d_02205
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0
@@ -75,6 +61,8 @@ amr.check_int       = 10000          # number of timesteps between checkpoints
 # PLOTFILES
 amr.plot_file       = plt_2d_  # root name of plotfile
 amr.plot_int        = 10000         # number of timesteps between plotfiles
+
+amr.plot_vars        = density xmom ymom rho_E rho_e Temp grav_x grav_y
 amr.derive_plot_vars = NONE
 
 #PROBIN FILENAME
