@@ -113,7 +113,12 @@ ifeq ($(USE_RAD), TRUE)
   ifneq "$(wildcard $(RADIATION_DIR)/Networks/$(strip $(Network_dir)) )" ""
     NETWORK_PATH := $(RADIATION_DIR)/Networks/$(strip $(Network_dir))
   endif
-  GENERAL_NET_INPUTS := $(NETWORK_PATH)/$(strip $(Network_inputs))
+  # Check if the test directory has Network_inputs
+  ifneq "$(wildcard $(Network_inputs))" ""
+    GENERAL_NET_INPUTS := $(Network_inputs)
+  else 
+    GENERAL_NET_INPUTS := $(NETWORK_PATH)/$(strip $(Network_inputs))
+  endif
 endif
 
 include $(EOS_HOME)/Make.package
