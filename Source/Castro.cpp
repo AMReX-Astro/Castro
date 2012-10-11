@@ -307,20 +307,21 @@ Castro::read_params ()
       }
     }
 #elif (BL_SPACEDIM == 2)
-        if ( Geometry::IsSPHERICAL() )
-        {
-          BoxLib::Abort("We don't support spherical coordinate systems in 2D");
-        }
+    if ( Geometry::IsSPHERICAL() )
+      {
+	BoxLib::Abort("We don't support spherical coordinate systems in 2D");
+      }
 #elif (BL_SPACEDIM == 3)
-        if ( Geometry::IsRZ() )
-        {
-          BoxLib::Abort("We don't support cylindrical coordinate systems in 3D"); 
-        }
-        else if ( Geometry::IsSPHERICAL() )
-        {
-          BoxLib::Abort("We don't support spherical coordinate systems in 3D");
-        }
+    if ( Geometry::IsRZ() )
+      {
+	BoxLib::Abort("We don't support cylindrical coordinate systems in 3D"); 
+      }
+    else if ( Geometry::IsSPHERICAL() )
+      {
+	BoxLib::Abort("We don't support spherical coordinate systems in 3D");
+      }
 #endif
+
 
     pp.get("do_hydro",do_hydro);
     pp.get("do_react",do_react);
@@ -1143,6 +1144,21 @@ Castro::initData ()
     const Real* dx  = geom.CellSize();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
+
+    // make sure dx = dy = dz -- that's all we guarantee to support
+    const Real SMALL = 1.e-13;
+#if (BL_SPACEDIM == 2)
+    if (fabs(dx[0] - dx[1]) > SMALL)
+      {
+	BoxLib::Abort("We don't support dx != dy");
+      }
+#elif (BL_SPACEDIM == 3)
+    if ( (fabs(dx[0] - dx[1]) > SMALL) || (fabs(dx[0] - dx[2]) > SMALL) )
+      {
+	BoxLib::Abort("We don't support dx != dy != dz");
+      }
+#endif
+
 
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
