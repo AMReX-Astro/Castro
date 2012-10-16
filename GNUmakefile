@@ -3,7 +3,7 @@ CASTRO_DIR ?= /path/to/Castro
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = FALSE
+DEBUG      = TRUE
 
 DIM        = 1
 
@@ -18,7 +18,8 @@ USE_REACT  = TRUE
 EOS_dir     := helmeos
 
 # This sets the EOS directory in $(CASTRO_DIR)/Networks
-Network_dir := ignition_simple
+NETWORK_HOME := $(ASTRODEV_DIR)/networks
+Network_dir := approx8
 
 Bpack   := ./Make.package
 Blocs   := .
