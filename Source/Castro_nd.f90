@@ -238,7 +238,7 @@
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
-                                   small_dens_in, small_temp_in, small_pres_in, &
+                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, &
                                    allow_negative_energy_in,ppm_type_in,use_colglaz_in, &
                                    do_sponge_in,gamma_in,normalize_species_in,fix_mass_flux_in,use_sgs)
 !                                  phys_bc_lo,phys_bc_hi
@@ -257,6 +257,7 @@
         integer, intent(in) :: numadv
         integer, intent(in) :: allow_negative_energy_in, ppm_type_in, use_colglaz_in
         integer, intent(in) :: do_sponge_in
+        double precision, intent(in) :: difmag_in
         double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in
         double precision, intent(in) :: gamma_in
         integer, intent(in) :: normalize_species_in
@@ -269,7 +270,9 @@
         call parallel_initialize()
 
         iorder = 2 
-        difmag = 0.1d0
+
+!        difmag = 0.1d0
+        difmag = difmag_in
 
         ! NTHERM: number of thermodynamic variables
         ! NVAR  : number of total variables in initial system

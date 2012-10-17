@@ -97,6 +97,7 @@ int          Castro::NumAdv        = 0;
 int          Castro::FirstAdv      = -1;
 int          Castro::LastAdv       = -1;
 
+Real         Castro::difmag        = 0.1;
 Real         Castro::small_dens    = -1.e200;
 Real         Castro::small_temp    = -1.e200;
 Real         Castro::small_pres    = -1.e200;
@@ -219,6 +220,7 @@ Castro::read_params ()
 
     pp.query("dump_old",dump_old);
 
+    pp.query("difmag",difmag);
     pp.query("small_dens",small_dens);
     pp.query("small_temp",small_temp);
     pp.query("small_pres",small_pres);

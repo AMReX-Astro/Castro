@@ -40,6 +40,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
      const int& NumAdv, 
+     const Real& difmag,
      const Real& small_dens, const Real& small_temp,
      const Real& small_pres, const int& allow_negative_energy,
      const int& ppm_type, const int& use_colglaz, 

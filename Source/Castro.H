@@ -563,6 +563,7 @@ protected:
     static int       use_colglaz;
     static int       spherical_star;
 
+    static Real      difmag;
     static Real      small_dens;
     static Real      small_temp;
     static Real      small_pres;
