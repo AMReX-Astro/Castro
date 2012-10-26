@@ -1,6 +1,6 @@
 
 subroutine sponge(uout,uout_l1,uout_l2,uout_l3,&
-                  uout_h1,uout_h2,uout_h3,lo,hi,dt,t,dx,dy,dz)
+                  uout_h1,uout_h2,uout_h3,lo,hi,dt,t,dx,dy,dz,domlo,domhi)
   
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
   use probdata_module
@@ -9,7 +9,7 @@ subroutine sponge(uout,uout_l1,uout_l2,uout_l3,&
   integer          :: lo(3), hi(3)
   integer          :: uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
   double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-  double precision :: dt,t,dx,dy,dz
+  double precision :: dt,t,dx,dy,dz,domlo(3),domhi(3)
 
   integer :: i,j,k,n
 
