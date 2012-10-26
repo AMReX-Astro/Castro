@@ -275,7 +275,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
          os[i] << "\"" << std::endl;
          os[i] << "; set datafile comment ';'" << std::endl;
          os[i] << "; _(x)=column(x)" << std::endl;
-         os[i] << std::setprecision(12);
+         os[i] << std::setprecision(16);
          os[i] << "; set xlabel \"" << xvar << "\"" << std::endl;
        } else if (format == "pla") {
         // Dont write anything -- this is used for reading in by another code
@@ -289,7 +289,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
 	     } else {
                os[i] << "# step = " << nstep << ", t = " << time;
 	     }
-             os[i] << std::setprecision(12);
+             os[i] << std::setprecision(16);
              if (maxlev<amrlev) os[i] << " level=" << maxlev;
              os[i] << "\"" << std::endl;
            }
@@ -304,7 +304,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
            }
            os[i] << "%# " << varname << ",step=" << nstep << ",t=" << time << std::endl;
          }
-         os[i] << std::setprecision(12);
+         os[i] << std::setprecision(16);
          os[i] << " " << std::endl;
        }
      }
