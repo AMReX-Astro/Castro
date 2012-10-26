@@ -1,4 +1,4 @@
-subroutine sponge(uout, uout_l1, uout_h1, lo, hi, dt, &
+subroutine sponge(uout, uout_l1, uout_h1, lo, hi, time, dt, &
                   dx, domlo)
 
   use meth_params_module, only : NVAR
@@ -7,7 +7,7 @@ subroutine sponge(uout, uout_l1, uout_h1, lo, hi, dt, &
   integer          :: lo(1), hi(1)
   integer          ::  uout_l1, uout_h1
   double precision :: uout(uout_l1:uout_h1,NVAR)
-  double precision :: dt
+  double precision :: time,dt
   double precision :: dx, domlo
 
   ! Nothing happens in this generic version of the sponge routine.

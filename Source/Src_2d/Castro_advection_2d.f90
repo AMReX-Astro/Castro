@@ -145,7 +145,8 @@
          call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
 
       if (do_sponge .eq. 1) &
-           call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi,dt, &
+           call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
+                       time,dt, &
                        dx,dy,domlo,domhi)
 
       deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
