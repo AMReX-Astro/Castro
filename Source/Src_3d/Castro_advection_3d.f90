@@ -158,7 +158,8 @@
       
       ! Impose sponge
       if (do_sponge .eq. 1) then
-         call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi,dt)
+         call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi,dt, &
+                     dx,dy,dz,domlo,domhi)
       end if
 
       deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
