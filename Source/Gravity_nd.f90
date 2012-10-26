@@ -3,6 +3,8 @@
 ! :: ----------------------------------------------------------
 ! ::
 
+      ! Returns the gravitational constant, G
+
       subroutine get_grav_const(Gconst_out)
 
          use fundamental_constants_module, only: Gconst
@@ -16,6 +18,14 @@
 ! ::
 ! :: ----------------------------------------------------------
 ! ::
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Given a radial mass distribution, this computes the gravitational
+      ! acceleration as a function of radius by computing the mass enclosed
+      ! in successive spherical shells.
+      ! Inputs: mass(r), dr, numpts_1d
+      ! Outputs: grav(r)
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       subroutine ca_integrate_grav (mass,grav,dr,numpts_1d)
 
@@ -78,6 +88,35 @@
 ! :: ----------------------------------------------------------
 ! ::
 
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Integrates radial mass elements of a spherically symmetric          
+      ! mass distribution to calculate both the gravitational acceleration,  
+      ! grav, and the gravitational potential, phi. Here the mass variable   
+      ! gives the mass contained in each radial shell.                      
+      !                                                                     
+      ! The convention in Castro for Poisson's equation is                  
+      !                                                                     
+      !     laplacian(phi) = -4*pi*G*rho                                    
+      !
+      ! The gravitational acceleration is then
+      !
+      !     g(r) = -G*M(r) / r**2
+      !
+      ! where M(r) is the mass interior to radius r.
+      !
+      ! The strategy for calculating the potential is to calculate the potential
+      ! at the boundary assuming all the mass is enclosed:
+      !
+      !     phi(R) = G * M / R 
+      !
+      ! Then, the potential in all other zones can be found using
+      !
+      !     d(phi)/dr = g    ==>    phi(r < R) = phi(R) - int(g * dr)
+      !
+      ! Inputs: mass, grav, dr, numpts_1d
+      ! Outputs: phi
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d)
 
       use fundamental_constants_module, only : Gconst
@@ -86,7 +125,7 @@
       integer          :: numpts_1d
       double precision :: mass(0:numpts_1d-1)
       double precision :: grav(0:numpts_1d-1)
-      double precision ::  phi(0:numpts_1d-1)
+      double precision :: phi(0:numpts_1d-1)
       double precision :: dr
 
       integer          :: i
@@ -100,16 +139,25 @@
          grav(i) = -Gconst * mass_encl / rhi**2
       enddo
 
-      phi(0) = 0.d0
-      do i = 1,numpts_1d-1
-        phi(i) = phi(i-1) + grav(i) * dr
-      enddo
+      mass_encl = mass_encl + mass(numpts_1d-1)
+      phi(numpts_1d-1) = Gconst * mass_encl / (numpts_1d*dr)
+      grav(numpts_1d-1) = -Gconst * mass_encl / (numpts_1d*dr)**2
 
+      do i = numpts_1d-2,0,-1
+        phi(i) = phi(i+1) - grav(i+1) * dr
+      enddo
+      
       end subroutine ca_integrate_phi
 
 ! ::
 ! :: ----------------------------------------------------------
 ! ::
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Same as ca_integrate_grav above, but includes general relativistic effects.
+      ! Inputs: rho, mass, pressure, dr, numpts_1d
+      ! Outputs: grav
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d)
 
