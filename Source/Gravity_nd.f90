@@ -127,6 +127,7 @@
       double precision :: grav(0:numpts_1d-1)
       double precision :: phi(0:numpts_1d-1)
       double precision :: dr
+      double precision :: gravBC, phiBC
 
       integer          :: i
       double precision :: mass_encl,rhi
@@ -140,9 +141,10 @@
       enddo
 
       mass_encl = mass_encl + mass(numpts_1d-1)
-      phi(numpts_1d-1) = Gconst * mass_encl / (numpts_1d*dr)
-      grav(numpts_1d-1) = -Gconst * mass_encl / (numpts_1d*dr)**2
-
+      phiBC = Gconst * mass_encl / (numpts_1d*dr)
+      gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
+      phi(numpts_1d-1) = phiBC - gravBC * dr
+       
       do i = numpts_1d-2,0,-1
         phi(i) = phi(i+1) - grav(i+1) * dr
       enddo
