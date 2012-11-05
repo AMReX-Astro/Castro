@@ -28,9 +28,9 @@ int  Gravity::verbose       = 0;
 int  Gravity::no_sync       = 0;
 int  Gravity::no_composite  = 0;
 int  Gravity::drdxfac       = 1;
-Real Gravity::sl_tol        = 1.e-9;
-Real Gravity::ml_tol        = 1.e-9;
-Real Gravity::delta_tol     = 1.e-9;
+Real Gravity::sl_tol        = 1.e100;
+Real Gravity::ml_tol        = 1.e100;
+Real Gravity::delta_tol     = 1.e100;
 Real Gravity::const_grav    =  0.0;
 Real Gravity::mass_offset   =  0.0;
 int  Gravity::stencil_type  = CC_CROSS_STENCIL;
@@ -128,6 +128,16 @@ Gravity::read_params ()
         pp.query("no_composite", no_composite);
 
         // Allow run-time input of solver tolerances
+	if (Geometry::IsCartesian()) {
+	  ml_tol = 1.e-11;
+	  sl_tol = 1.e-11;
+	  delta_tol = 1.e-11;
+	}
+	else {
+	  ml_tol = 1.e-10;
+	  sl_tol = 1.e-10;
+	  delta_tol = 1.e-10;
+	}
         pp.query("ml_tol",ml_tol);
         pp.query("sl_tol",sl_tol);
         pp.query("delta_tol",delta_tol);
