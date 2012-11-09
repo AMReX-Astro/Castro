@@ -5,9 +5,12 @@ CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_error.cpp 
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
-CEXE_sources += sum_integrated_quantities.cpp
+
 CEXE_headers += Castro.H
 CEXE_headers += Problem.H
+
+CEXE_sources += sum_utils.cpp
+CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Problem_F.H

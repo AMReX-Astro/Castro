@@ -410,6 +410,18 @@ public:
 
     Real locWgtSum (const std::string& name, Real time, int idir);
 
+    Real volWgtSumMF (MultiFab* mf, int comp);
+
+    Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir);
+
+    Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir);
+
+#ifdef GRAVITY
+    Real volProductSum (const std::string& name1, const std::string& name2, Real time);
+#endif
+
+    Real locSquaredSum (const std::string& name, Real time, int idir);
+
     Real get_point_mass ();
 
     void set_special_tagging_flag (Real time);
@@ -616,6 +628,12 @@ protected:
 
     // Display center of mass diagnostics
     static int show_center_of_mass;
+
+    // Display breakdown of energy sources
+    static int print_energy_diagnostics;
+
+    // Display warnings in Fortran90 routines 
+    static int print_fortran_warnings;
 
     std::map<std::string,MultiFab*> auxDiag;
     static std::map<std::string,Array<std::string> > auxDiag_names;
