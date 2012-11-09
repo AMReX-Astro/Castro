@@ -270,6 +270,7 @@
            enddo
          enddo
        enddo
+       !$OMP END PARALLEL DO
 
        product = product * vol
 
