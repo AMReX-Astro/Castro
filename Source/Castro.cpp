@@ -1771,8 +1771,6 @@ Castro::post_timestep (int iteration)
         enforce_nonnegative_species(S_new_crse);
 
 #ifdef GRAVITY
-
-
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
            for (MFIter mfi(drho_and_drhoU); mfi.isValid(); ++mfi)

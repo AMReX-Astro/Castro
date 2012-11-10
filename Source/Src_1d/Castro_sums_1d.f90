@@ -146,3 +146,45 @@
       end if
 
       end subroutine ca_sumlocmass
+
+! ::
+! :: ----------------------------------------------------------
+! :: sumproduct
+! ::
+! :: INPUTS / OUTPUTS:
+! ::  f1,f2      => fields whose product is summed
+! ::  flo,fhi    => index limits of field arrays
+! ::  lo,hi      => index limits of grid interior
+! ::  problo     => lower bound of domain in physical units
+! ::  dx         => cell size
+! ::  product    <= sum of product of two quantities
+! :: ----------------------------------------------------------
+! ::
+
+       subroutine ca_sumproduct(f1, f1_l1,f1_h1,&
+                                f2, f2_l1,f2_h1,&
+                                lo,hi,dx,product)
+       implicit none
+
+       integer          :: f1_l1,f1_h1
+       integer          :: f2_l1,f2_h1
+       integer          :: lo(1), hi(1)
+       double precision :: product
+       double precision :: dx(1), vol
+       double precision :: f1(f1_l1:f1_h1)
+       double precision :: f2(f2_l1:f2_h1)
+
+       integer          :: i
+
+       product = 0.d0
+       vol = dx(1)
+ 
+       !$OMP PARALLEL DO PRIVATE(i) REDUCTION(+:product)
+       do i = lo(1), hi(1)
+          product = product + f1(i)*f2(i)
+       enddo
+       !$OMP END PARALLEL DO
+
+       product = product * vol
+
+       end subroutine ca_sumproduct

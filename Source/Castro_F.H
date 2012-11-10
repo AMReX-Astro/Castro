@@ -337,10 +337,6 @@ BL_FORT_PROC_DECL(CA_SUMSQUARED,ca_sumsquared)
 BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
     (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
      const Real* problo, const Real dx[], Real* mass, const int& idir);
-BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
-    (BL_FORT_FAB_ARG(f1), BL_FORT_FAB_ARG(f2),
-     const int lo[], const int hi[], const Real dx[],
-     Real* s);
 BL_FORT_PROC_DECL(CA_SUMLOCSQUAREDMASS,ca_sumlocsquaredmass)
     (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
      const Real* problo, const Real dx[], Real* mass, const int& idir); 
@@ -359,6 +355,11 @@ BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
      const Real* r, const int& rlo, const int& rhi,
      const int& idir);
 #endif
+
+BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
+    (BL_FORT_FAB_ARG(f1), BL_FORT_FAB_ARG(f2),
+     const int lo[], const int hi[], const Real dx[],
+     Real* s);
 
 BL_FORT_PROC_DECL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
     (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);

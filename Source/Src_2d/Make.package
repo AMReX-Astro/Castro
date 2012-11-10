@@ -15,9 +15,9 @@ f90EXE_sources += ext_src_$(DIM)d.f90
 f90EXE_sources += compute_temp_$(DIM)d.f90
 f90EXE_sources += enforce_consistent_e_$(DIM)d.f90
 f90EXE_sources += prescribe_grav_$(DIM)d.f90
+f90EXE_sources += Castro_grav_sources_$(DIM)d.f90
 
 ifeq ($(USE_GRAV), TRUE)
-f90EXE_sources += Castro_grav_sources_$(DIM)d.f90
 f90EXE_sources += Gravity_$(DIM)d.f90
 f90EXE_sources += MGutils_2d.f90
 ifeq ($(USE_GR), TRUE)

@@ -430,6 +430,7 @@ Castro::locWgtSumOneSide (const std::string& name,
     return sum;
 
 }
+#endif
 
 Real
 Castro::volProductSum (const std::string& name1, 
@@ -502,6 +503,7 @@ Castro::volProductSum (const std::string& name1,
     return sum;
 }
 
+#if (BL_SPACEDIM == 3)
 Real
 Castro::locSquaredSum (const std::string& name,
                        Real               time,

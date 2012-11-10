@@ -416,9 +416,7 @@ public:
 
     Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir);
 
-#ifdef GRAVITY
     Real volProductSum (const std::string& name1, const std::string& name2, Real time);
-#endif
 
     Real locSquaredSum (const std::string& name, Real time, int idir);
 
