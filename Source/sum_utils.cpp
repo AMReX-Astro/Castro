@@ -431,7 +431,6 @@ Castro::locWgtSumOneSide (const std::string& name,
 
 }
 
-#ifdef GRAVITY
 Real
 Castro::volProductSum (const std::string& name1, 
                        const std::string& name2,
@@ -442,14 +441,18 @@ Castro::volProductSum (const std::string& name1,
     MultiFab*   mf1;
     MultiFab*   mf2;
 
+#ifdef GRAVITY
     if ( name1 == "phi" )
       mf1 = gravity->get_phi_curr(level);
     else
+#endif
       mf1 = derive(name1,time,0);
-    
+
+#ifdef GRAVITY    
     if ( name2 == "phi" )
       mf2 = gravity->get_phi_curr(level);
     else
+#endif
       mf2 = derive(name2,time,0);
 
     BL_ASSERT(mf1 != 0);
@@ -498,7 +501,6 @@ Castro::volProductSum (const std::string& name1,
 
     return sum;
 }
-#endif
 
 Real
 Castro::locSquaredSum (const std::string& name,
