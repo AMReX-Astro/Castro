@@ -146,6 +146,9 @@ int          Castro::use_colglaz = 0;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
+int          Castro::print_fortran_warnings  = 0;
+int          Castro::print_energy_diagnostics  = 0;
+
 int          Castro::show_center_of_mass = 0;
 
 #ifdef SGS
@@ -353,6 +356,8 @@ Castro::read_params ()
     pp.query("do_sponge",do_sponge);
 
     pp.query("show_center_of_mass",show_center_of_mass);
+    pp.query("print_energy_diagnostics",print_energy_diagnostics);
+    pp.query("print_fortran_warnings",print_fortran_warnings);
 
     if (use_colglaz == 1 && BL_SPACEDIM > 1) 
     {
@@ -3261,15 +3266,32 @@ Castro::reset_new_sgs(Real dt)
 void
 Castro::reset_internal_energy(MultiFab& S_new)
 {
-         // Synchronize (rho e) and (rho E) so they are consistent with each other
-         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-         {
-             const Box bx = mfi.validbox();
+    Real sum  = 0.;
+    Real sum0 = 0.;
 
-             BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-                 (BL_TO_FORTRAN(S_new[mfi]),
-                  bx.loVect(), bx.hiVect(),verbose);
-         }
+    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    {
+        // Pass in the multifab and the component
+        sum0 = volWgtSumMF(&S_new,Eden);
+    }
+
+    // Synchronize (rho e) and (rho E) so they are consistent with each other
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+    {
+        const Box bx = mfi.validbox();
+
+        BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
+            (BL_TO_FORTRAN(S_new[mfi]),
+             bx.loVect(), bx.hiVect(), print_fortran_warnings);
+    }
+
+    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    {
+        // Pass in the multifab and the component
+        sum = volWgtSumMF(&S_new,Eden);
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Contribution of energy reset terms: " << sum-sum0 << " out of " << sum0 << std::endl;
+    }
 }
 
 void
@@ -3281,12 +3303,10 @@ Castro::computeTemp(MultiFab& State)
   radiation->computeTemp(State, resetEint);
 
 #else
-
     reset_internal_energy(State);
 
     for (MFIter mfi(State); mfi.isValid(); ++mfi)
-    {
-        const Box bx = mfi.validbox();
+    { const Box bx = mfi.validbox();
 	BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
 	  (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]));
     }

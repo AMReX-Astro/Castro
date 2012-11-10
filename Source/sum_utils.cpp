@@ -227,7 +227,7 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
         const Box& box  = mfi.validbox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if(BL_SPACEDIM < 3) 
+#if (BL_SPACEDIM < 3) 
         const Real* rad = radius[mfi.index()].dataPtr();
         int irlo        = lo[0]-radius_grow;
         int irhi        = hi[0]+radius_grow;
@@ -239,18 +239,16 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
         //
 #if(BL_SPACEDIM == 1) 
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
+            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 2)
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
+            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 3)
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
+            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s);
 #endif
         sum += s;
     }
-
-    delete mf;
 
     ParallelDescriptor::ReduceRealSum(sum);
 
