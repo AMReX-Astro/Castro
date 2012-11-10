@@ -540,7 +540,9 @@ Castro::advance_hydro (Real time,
       ReactMF.setVal(0.);
 #endif
       
-      Real E_added = 0.;
+      Real E_added_grav = 0.;
+      Real E_added_flux = 0.;
+
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
 	   fpi.isValid();
@@ -612,7 +614,7 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(dloga), 
 #endif
 	     BL_TO_FORTRAN(grid_volume), 
-	     &cflLoc, verbose, E_added);
+	     &cflLoc, verbose, E_added_flux, E_added_grav);
 	  
 	  if (do_reflux)
 	    {
@@ -642,8 +644,11 @@ Castro::advance_hydro (Real time,
 	}  // end for(fpi...)
         if (print_energy_diagnostics)
         {
-           Real domain_vol = geom.ProbSize();
-           std::cout << "Energy added from gravitational source terms " << E_added*domain_vol << std::endl;
+           const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+           ParallelDescriptor::ReduceRealSum(E_added_flux);
+           ParallelDescriptor::ReduceRealSum(E_added_grav);
+           std::cout << "Energy added from fluxes            : " << E_added_flux*cell_vol << std::endl;
+           std::cout << "Energy added from grav. source terms: " << E_added_grav*cell_vol << std::endl;
         }
 
 #ifdef RADIATION
@@ -868,10 +873,12 @@ Castro::advance_hydro (Real time,
 	       dt,E_added);
 	  }
 
+        ParallelDescriptor::ReduceRealSum(E_added);
+
         if (print_energy_diagnostics)
         {
-           Real domain_vol = geom.ProbSize();
-           std::cout << "Energy added from gravitational corr.  terms " << E_added*domain_vol << std::endl;
+           const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+           std::cout << "Energy added by grav. corr. terms: " << E_added*cell_vol << std::endl;
         }
 
 	computeTemp(S_new);

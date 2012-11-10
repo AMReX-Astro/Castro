@@ -255,6 +255,7 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
     return sum;
 }
 
+#if (BL_SPACEDIM == 3)
 Real
 Castro::volWgtSumOneSide (const std::string& name,
                           Real               time, 
@@ -548,3 +549,4 @@ Castro::locSquaredSum (const std::string& name,
 
     return sum;
 }
+#endif

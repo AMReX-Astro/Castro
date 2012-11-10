@@ -18,7 +18,7 @@
            area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
            area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
            vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-           courno,verbose,E_added)
+           courno,verbose,E_added_flux,E_added_grav)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                      normalize_species
@@ -59,7 +59,7 @@
       double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
       double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-      double precision delta(3),dt,time,courno,E_added
+      double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
 
       ! Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:,:)
@@ -132,7 +132,7 @@
                   area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                   area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                   vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                  div,pdivu,lo,hi,dx,dy,dz,dt)
+                  div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
 
       ! Add the radiative cooling -- for SGS only.
       ! if (radiative_cooling_type.eq.2) then
@@ -158,7 +158,7 @@
       call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                            uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                            grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                           lo,hi,dt,E_added)
+                           lo,hi,dt,E_added_grav)
 
       ! Impose sponge
       if (do_sponge .eq. 1) then
@@ -1817,7 +1817,7 @@
                       area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                       area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                       vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                      div,pdivu,lo,hi,dx,dy,dz,dt)
+                      div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
 
       use network, only : nspec, naux
       use eos_module
@@ -1850,7 +1850,7 @@
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
       double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
       double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-      double precision dx, dy, dz, dt
+      double precision dx, dy, dz, dt, E_added_flux
 
       double precision :: div1
       integer          :: i, j, k, n
@@ -1942,6 +1942,11 @@
                      !
                      if (n .eq. UEINT) then
                         uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                     else if (n .eq. UEDEN) then
+                        E_added_flux = E_added_flux + &
+                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k) 
                      endif
                   enddo
                enddo

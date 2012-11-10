@@ -27,7 +27,7 @@
       double precision :: rho
       double precision :: SrU, SrV, SrW, SrE
       double precision :: rhoInv
-      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke
+      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
       integer          :: i, j, k
       integer          :: grav_source_type
 
@@ -46,6 +46,7 @@
             do i = lo(1),hi(1)
 
                ! **** Start Diagnostics ****
+               old_re = uout(i,j,k,UEDEN)
                old_ke = 0.5d0 * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                  uout(i,j,k,URHO) 
                old_rhoeint = uout(i,j,k,UEDEN) - old_ke
@@ -87,7 +88,7 @@
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
                new_rhoeint = uout(i,j,k,UEDEN) - new_ke
  
-                E_added =  E_added + (new_rhoeint - old_rhoeint) + (new_ke - old_ke)
+                E_added =  E_added + uout(i,j,k,UEDEN) - old_re
                ! ****   End Diagnostics ****
 
             enddo
@@ -132,7 +133,7 @@
       double precision rhon, Upn, Vpn, Wpn
 
       double precision rhooinv, rhoninv
-      double precision old_ke, old_rhoeint
+      double precision old_ke, old_rhoeint, old_re
       double precision new_ke, new_rhoeint
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -150,6 +151,7 @@
             do i = lo(1),hi(1)
 
                ! **** Start Diagnostics ****
+               old_re = unew(i,j,k,UEDEN)
                old_ke = 0.5d0 * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                old_rhoeint = unew(i,j,k,UEDEN) - old_ke
@@ -209,14 +211,12 @@
                                  unew(i,j,k,URHO) 
                new_rhoeint = unew(i,j,k,UEDEN) - new_ke
  
-                E_added =  E_added + (new_rhoeint - old_rhoeint) + (new_ke - old_ke)
+                E_added =  E_added + unew(i,j,k,UEDEN) - old_re
                ! ****   End Diagnostics ****
             enddo
          enddo
       enddo
       !$OMP END PARALLEL DO
-
-      print *,'E_ADDED IN CORRG ',E_added
 
       end subroutine ca_corrgsrc
 

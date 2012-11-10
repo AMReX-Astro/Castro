@@ -14,7 +14,8 @@
                           flux,flux_l1,flux_h1,&
                           area,area_l1,area_h1,&
                           dloga,dloga_l1,dloga_h1,&
-                          vol,vol_l1,vol_h1,courno,verbose)
+                          vol,vol_l1,vol_h1,courno,verbose,&
+                          E_added_flux, E_added_grav)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
                                      normalize_species
@@ -55,7 +56,7 @@
       double precision, allocatable:: srcQ(:,:)
       double precision, allocatable:: pdivu(:)
 
-      double precision dx
+      double precision dx,E_added_flux,E_added_grav
       integer i,ngf,iflaten
 
       allocate(     q(uin_l1:uin_h1,QVAR))

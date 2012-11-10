@@ -16,7 +16,8 @@
                           area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                           area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                          vol,vol_l1,vol_l2,vol_h1,vol_h2,courno,verbose)
+                          vol,vol_l1,vol_l2,vol_h1,vol_h2,courno,verbose,&
+                          E_added_flux,E_added_grav)
 
       use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
                                      do_sponge, normalize_species, allow_negative_energy
@@ -51,7 +52,7 @@
       double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
       double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
-      double precision delta(2),dt,time,courno
+      double precision delta(2),dt,time,courno,E_added_flux,E_added_grav
 
 !     Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:)
@@ -143,6 +144,11 @@
       ! Normalize the species 
       if (normalize_species .eq. 1) &
          call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+
+      call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
+                           uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                           grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                           lo,hi,dt,E_added_grav)
 
       if (do_sponge .eq. 1) &
            call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
@@ -1074,7 +1080,7 @@
                         area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                         area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                         vol,vol_l1,vol_l2,vol_h1,vol_h2, &
-                        div,pdivu,lo,hi,dx,dy,dt)
+                        div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
 
       use eos_module
       use network, only : nspec, naux
@@ -1109,7 +1115,7 @@
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
       double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
       double precision pdivu(lo(1):hi(1),lo(2):hi(2))
-      double precision dx, dy, dt
+      double precision dx, dy, dt, E_added_flux
 
       integer i, j, n
 
@@ -1161,6 +1167,16 @@
                       ( flux1(i,j,n) - flux1(i+1,j,n) &
                     +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
                     +   dt * src(i,j,n)
+
+               if (n .eq. UEINT) then
+                  ! Add source term to (rho e)
+                  uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
+               else if (n .eq. UEDEN) then
+                  E_added_flux = E_added_flux + dt * & 
+                      ( flux1(i,j,n) - flux1(i+1,j,n) &
+                    +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+
+               end if
             enddo
             enddo
          end if
@@ -1177,38 +1193,6 @@
           uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
           uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
       enddo
-      enddo
-
-      ! Add source term to (rho e)
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-            uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
-         enddo
-      enddo
-
-      ! Add gravitational source terms to momentum and energy equations
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-            rho = uin(i,j,URHO)
-            Up  = uin(i,j,UMX) / rho
-            Vp  = uin(i,j,UMY) / rho
-
-            SrU = rho * grav(i,j,1)
-            SrV = rho * grav(i,j,2)
-
-            ! This doesn't work (in 1-d)
-            ! SrE = SrU*(Up + SrU*dt/(2*rho)) &
-            !      +SrV*(Vp + SrV*dt/(2*rho))
-
-            ! This does work (in 1-d)
-            SrE = uin(i,j,UMX) * grav(i,j,1) + uin(i,j,UMY) * grav(i,j,2)
-
-            uout(i,j,UMX)   = uout(i,j,UMX)   + dt * SrU
-            uout(i,j,UMY)   = uout(i,j,UMY)   + dt * SrV
-            uout(i,j,UEDEN) = uout(i,j,UEDEN) + dt * SrE
-
-         enddo
       enddo
 
       do j = lo(2),hi(2)
@@ -2357,131 +2341,3 @@
 
       end subroutine divu
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine ca_corrgsrc(lo,hi, &
-                             gold,gold_l1,gold_l2,gold_h1,gold_h2, &
-                             gnew,gnew_l1,gnew_l2,gnew_h1,gnew_h2, &
-                             uold,uold_l1,uold_l2,uold_h1,uold_h2, &
-                             unew,unew_l1,unew_l2,unew_h1,unew_h2,dt)
-
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN
-
-      implicit none
-
-      integer lo(2),hi(2)
-      integer gold_l1,gold_l2,gold_h1,gold_h2
-      integer gnew_l1,gnew_l2,gnew_h1,gnew_h2
-      integer uold_l1,uold_l2,uold_h1,uold_h2
-      integer unew_l1,unew_l2,unew_h1,unew_h2
-      double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,2)
-      double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,2)
-      double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,NVAR)
-      double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,NVAR)
-      double precision dt
-
-      integer i,j
-      double precision SrU_old, SrV_old
-      double precision SrU_new, SrV_new
-      double precision SrUcorr, SrVcorr
-      double precision SrEcorr
-
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-!           Define old source terms
-            SrU_old = uold(i,j,URHO) * gold(i,j,1)
-            SrV_old = uold(i,j,URHO) * gold(i,j,2)
-            
-!           Define new source terms
-            SrU_new = unew(i,j,URHO) * gnew(i,j,1)
-            SrV_new = unew(i,j,URHO) * gnew(i,j,2)
-            
-!           Define corrections to source terms
-            SrUcorr = 0.5d0*(SrU_new - SrU_old)
-            SrVcorr = 0.5d0*(SrV_new - SrV_old)
-
-            ! This doesn't work (in 1-d)
-            ! Upn = unew(i,j,UMX) / unew(i,j,URHO)
-            ! Vpn = unew(i,j,UMY) / unew(i,j,URHO)
-            ! SrEcorr = SrUcorr*(Upn + SrUcorr*dt/(2*unew(i,j,URHO))) &
-            !          +SrVcorr*(Vpn + SrVcorr*dt/(2*unew(i,j,URHO)))
-
-            ! This does work (in 1-d)
-            SrEcorr = 0.5d0 * ( (unew(i,j,UMX) * gnew(i,j,1) - uold(i,j,UMX) * gold(i,j,1)) + &
-                                (unew(i,j,UMY) * gnew(i,j,2) - uold(i,j,UMY) * gold(i,j,2)) )
-
-!           Correct state with correction terms
-            unew(i,j,UMX)   = unew(i,j,UMX)   + SrUcorr*dt
-            unew(i,j,UMY)   = unew(i,j,UMY)   + SrVcorr*dt
-            unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr*dt
-
-         enddo
-      enddo
-
-      end subroutine ca_corrgsrc
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine ca_syncgsrc(lo,hi, &
-                             gphi,gphi_l1,gphi_l2,gphi_h1,gphi_h2, &
-                             gdphi,gdphi_l1,gdphi_l2,gdphi_h1,gdphi_h2, &
-                             state,state_l1,state_l2,state_h1,state_h2, &
-                             dstate,dstate_l1,dstate_l2,dstate_h1,dstate_h2, &
-                             sync_src,src_l1,src_l2,src_h1,src_h2, &
-                             dt)
-
-      use meth_params_module, only : NVAR, URHO, UMX, UMY
-
-      implicit none
-
-      integer lo(2),hi(2)
-      integer gphi_l1,gphi_l2,gphi_h1,gphi_h2
-      integer gdphi_l1,gdphi_l2,gdphi_h1,gdphi_h2
-      integer state_l1,state_l2,state_h1,state_h2
-      integer dstate_l1,dstate_l2,dstate_h1,dstate_h2
-      integer src_l1,src_l2,src_h1,src_h2
-      double precision     gphi(gphi_l1:gphi_h1,gphi_l2:gphi_h2,2)
-      double precision    gdphi(gdphi_l1:gdphi_h1,gdphi_l2:gdphi_h2,2)
-      double precision    state(state_l1:state_h1,state_l2:state_h2,NVAR)
-      double precision   dstate(dstate_l1:dstate_h1,dstate_l2:dstate_h2,2+1)
-      double precision sync_src(src_l1:src_h1,src_l2:src_h2,2+1)
-      double precision dt
-
-!     Note that dstate is drho and drhoU, state is the entire state, and src
-!     is S_rhoU and S_rhoE
-
-      integer i,j
-      double precision rho_pre, rhoU_pre, rhoV_pre
-      double precision gx, gy,dgx, dgy, SrU, SrV, SrE
-
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-            
-            rho_pre  = state(i,j,URHO) - dstate(i,j,1)
-            rhoU_pre = state(i,j,UMX)  - dstate(i,j,2)
-            rhoV_pre = state(i,j,UMY)  - dstate(i,j,3)
-            
-            gx  = gphi(i,j,1)
-            gy  = gphi(i,j,2)
-
-            dgx = gdphi(i,j,1)
-            dgy = gdphi(i,j,2)
-
-            SrU = dstate(i,j,1)*gx + rho_pre*dgx
-            SrV = dstate(i,j,1)*gy + rho_pre*dgy
-
-            SrE = SrU * (rhoU_pre + 0.5*SrU*dt)/rho_pre &
-                 +SrV * (rhoV_pre + 0.5*SrV*dt)/rho_pre
-            
-            sync_src(i,j,1) = SrU
-            sync_src(i,j,2) = SrV
-            sync_src(i,j,3) = SrE
-
-         enddo
-      enddo
-      end subroutine ca_syncgsrc

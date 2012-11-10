@@ -252,7 +252,8 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const BL_FORT_FAB_ARG(volume),
      const Real* cflLoc,
      const int&  verbose,
-     const Real& E_added);
+     const Real& E_added_flux,
+     const Real& E_added_grav);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)

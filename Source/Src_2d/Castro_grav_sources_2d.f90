@@ -20,15 +20,14 @@
 
       double precision  uin( uin_l1: uin_h1, uin_l2: uin_h2,NVAR)
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-      double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2)
-      double precision dt
-      double precision E_added
+      double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,2)
+      double precision dt,E_added
 
       double precision :: div1
       double precision :: rho, Up, Vp
       double precision :: SrU, SrV, SrE
       double precision :: rhoInv
-      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke
+      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
       integer          :: i, j, n
       integer          :: grav_source_type
 
@@ -46,6 +45,7 @@
          do i = lo(1),hi(1)
 
                ! **** Start Diagnostics ****
+               old_re = uout(i,j,UEDEN)
                old_ke = 0.5d0 * (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / &
                                  uout(i,j,URHO) 
                old_rhoeint = uout(i,j,UEDEN) - old_ke
@@ -84,10 +84,9 @@
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
                new_rhoeint = uout(i,j,UEDEN) - new_ke
  
-                E_added =  E_added + (new_rhoeint - old_rhoeint) + (new_ke - old_ke)
+               E_added =  E_added + uout(i,j,UEDEN) - old_re
                ! ****   End Diagnostics ****
 
-            enddo
          enddo
       enddo
       !$OMP END PARALLEL DO
@@ -129,7 +128,7 @@
       double precision rhon, Upn, Vpn
 
       double precision rhooinv, rhoninv
-      double precision old_ke, old_rhoeint
+      double precision old_ke, old_rhoeint, old_re
       double precision new_ke, new_rhoeint
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -146,6 +145,7 @@
          do i = lo(1),hi(1)
 
                ! **** Start Diagnostics ****
+               old_re = unew(i,j,UEDEN)
                old_ke = 0.5d0 * (unew(i,j,UMX)**2 + unew(i,j,UMY)**2) / &
                                  unew(i,j,URHO) 
                old_rhoeint = unew(i,j,UEDEN) - old_ke
@@ -199,10 +199,9 @@
                                  unew(i,j,URHO) 
                new_rhoeint = unew(i,j,UEDEN) - new_ke
  
-                E_added =  E_added + (new_rhoeint - old_rhoeint) + (new_ke - old_ke)
+                E_added =  E_added + unew(i,j,UEDEN) - old_re
                ! ****   End Diagnostics ****
 
-            enddo
          enddo
       enddo
       !$OMP END PARALLEL DO
