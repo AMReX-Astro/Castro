@@ -540,6 +540,7 @@ Castro::advance_hydro (Real time,
       ReactMF.setVal(0.);
 #endif
       
+      Real E_added = 0.;
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
 	   fpi.isValid();
@@ -611,8 +612,7 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(dloga), 
 #endif
 	     BL_TO_FORTRAN(grid_volume), 
-	     &cflLoc,
-	     verbose);
+	     &cflLoc, verbose, E_added);
 	  
 	  if (do_reflux)
 	    {
@@ -640,6 +640,12 @@ Castro::advance_hydro (Real time,
 #endif
 	  
 	}  // end for(fpi...)
+        if (print_energy_diagnostics)
+        {
+           Real domain_vol = geom.ProbSize();
+           std::cout << "Energy added from gravitational source terms " << E_added*domain_vol << std::endl;
+        }
+
 #ifdef RADIATION
     }
 #endif
@@ -848,6 +854,7 @@ Castro::advance_hydro (Real time,
 	MultiFab grav_vec_new(grids,BL_SPACEDIM,0,Fab_allocate);
 	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
 	
+        Real E_added = 0.;
 	for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	  {
 	    const Box bx = mfi.validbox();
@@ -858,8 +865,15 @@ Castro::advance_hydro (Real time,
 	       BL_TO_FORTRAN(grav_vec_new[mfi]),
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
-	       dt);
+	       dt,E_added);
 	  }
+
+        if (print_energy_diagnostics)
+        {
+           Real domain_vol = geom.ProbSize();
+           std::cout << "Energy added from gravitational corr.  terms " << E_added*domain_vol << std::endl;
+        }
+
 	computeTemp(S_new);
       }
 #endif

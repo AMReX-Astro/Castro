@@ -251,7 +251,8 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #endif
      const BL_FORT_FAB_ARG(volume),
      const Real* cflLoc,
-     const int& verbose);
+     const int&  verbose,
+     const Real& E_added);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -300,7 +301,7 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const BL_FORT_FAB_ARG(grad_phi_cc),
      const BL_FORT_FAB_ARG(S_old),
      BL_FORT_FAB_ARG(S_new),
-     const Real& dt);
+     const Real& dt, const Real& E_added);
 
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
     (BL_FORT_FAB_ARG(S_new), 

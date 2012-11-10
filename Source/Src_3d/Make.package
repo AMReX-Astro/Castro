@@ -19,6 +19,7 @@ f90EXE_sources += reset_internal_energy_$(DIM)d.f90
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += Gravity_$(DIM)d.f90
+f90EXE_sources += Castro_grav_sources_$(DIM)d.f90
 ifeq ($(USE_GR), TRUE)
 f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif

@@ -18,7 +18,7 @@
            area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
            area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
            vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-           courno,verbose)
+           courno,verbose,E_added)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                      normalize_species
@@ -59,7 +59,7 @@
       double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
       double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-      double precision delta(3),dt,time,courno
+      double precision delta(3),dt,time,courno,E_added
 
       ! Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:,:)
@@ -125,7 +125,6 @@
       call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                   uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                   src ,  src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3, &
-                  grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
                   flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                   flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                   flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
@@ -155,7 +154,12 @@
          call normalize_new_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                     lo,hi)
       end if
-      
+
+      call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                           uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                           grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                           lo,hi,dt,E_added)
+
       ! Impose sponge
       if (do_sponge .eq. 1) then
          call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
@@ -1806,7 +1810,6 @@
     subroutine consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                       src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                      grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
                       flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                       flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                       flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
@@ -1827,7 +1830,6 @@
       integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
       integer  uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
       integer   src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3 
-      integer  gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3 
       integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
       integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
       integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
@@ -1839,7 +1841,6 @@
       double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
       double precision   src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-      double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2, gv_l3: gv_h3,            3   )
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
       double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
@@ -1852,8 +1853,6 @@
       double precision dx, dy, dz, dt
 
       double precision :: div1
-      double precision :: rho, Up, Vp, Wp
-      double precision :: SrU, SrV, SrW, SrE
       integer          :: i, j, k, n
 
       do n = 1, NVAR
@@ -1951,41 +1950,6 @@
          endif
 
       enddo
-
-      ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rho,Up,Vp,Wp,SrU,SrV,SrW,SrE)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-
-               rho = uin(i,j,k,URHO)
-               Up  = uin(i,j,k,UMX) / rho
-               Vp  = uin(i,j,k,UMY) / rho
-               Wp  = uin(i,j,k,UMZ) / rho
-
-               SrU = rho * grav(i,j,k,1)
-               SrV = rho * grav(i,j,k,2)
-               SrW = rho * grav(i,j,k,3)
-
-               ! This doesn't work (in 1-d)
-               ! SrE = SrU*(Up + SrU*dt/(2*rho)) &
-               !      +SrV*(Vp + SrV*dt/(2*rho)) &
-               !      +SrW*(Wp + SrW*dt/(2*rho))
-
-               ! This does work (in 1-d)
-               SrE = uin(i,j,k,UMX) * grav(i,j,k,1) + &
-                     uin(i,j,k,UMY) * grav(i,j,k,2) + &
-                     uin(i,j,k,UMZ) * grav(i,j,k,3)
-
-               uout(i,j,k,UMX)   = uout(i,j,k,UMX)   + dt * SrU
-               uout(i,j,k,UMY)   = uout(i,j,k,UMY)   + dt * SrV
-               uout(i,j,k,UMZ)   = uout(i,j,k,UMZ)   + dt * SrW
-               uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + dt * SrE
-
-            enddo
-         enddo
-      enddo
-      !$OMP END PARALLEL DO
 
       end subroutine consup
 
@@ -5086,162 +5050,3 @@
 
       end subroutine divu
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine ca_corrgsrc(lo,hi, &
-                             gold,gold_l1,gold_l2,gold_l3,gold_h1,gold_h2,gold_h3, &
-                             gnew,gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3, &
-                             uold,uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3, &
-                             unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3,dt)
-
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
-
-      implicit none
-
-      integer lo(3),hi(3)
-      integer gold_l1,gold_l2,gold_l3,gold_h1,gold_h2,gold_h3
-      integer gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3
-      integer uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3
-      integer unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
-      double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,gold_l3:gold_h3,3)
-      double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
-      double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
-      double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
-      double precision dt
-
-      integer i,j,k
-      double precision SrU_old, SrV_old, SrW_old
-      double precision SrU_new, SrV_new, SrW_new
-      double precision SrUcorr, SrVcorr, SrWcorr, SrEcorr
-      double precision rhoo, Upo, Vpo, Wpo
-      double precision rhon, Upn, Vpn, Wpn
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoo,Upo,Vpo,Wpo,SrU_old,SrV_old,SrW_old,rhon,Upn,Vpn,Wpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-
-               rhoo = uold(i,j,k,URHO)
-               Upo  = uold(i,j,k,UMX) / rhoo
-               Vpo  = uold(i,j,k,UMY) / rhoo
-               Wpo  = uold(i,j,k,UMZ) / rhoo
-
-               ! Define old source terms
-               SrU_old = rhoo * gold(i,j,k,1)
-               SrV_old = rhoo * gold(i,j,k,2)
-               SrW_old = rhoo * gold(i,j,k,3)
-               
-               rhon = unew(i,j,k,URHO)
-               Upn  = unew(i,j,k,UMX) / rhon
-               Vpn  = unew(i,j,k,UMY) / rhon
-               Wpn  = unew(i,j,k,UMZ) / rhon
-               
-               ! Define new source terms
-               SrU_new = rhon * gnew(i,j,k,1)
-               SrV_new = rhon * gnew(i,j,k,2)
-               SrW_new = rhon * gnew(i,j,k,3)
-               
-               ! Define corrections to source terms
-               SrUcorr = 0.5d0*(SrU_new - SrU_old)
-               SrVcorr = 0.5d0*(SrV_new - SrV_old)
-               SrWcorr = 0.5d0*(SrW_new - SrW_old)
-
-               ! This doesn't work (in 1-d)
-               ! SrEcorr = SrUcorr*(Upn + SrUcorr*dt/(2*rhon)) &
-               !          +SrVcorr*(Vpn + SrVcorr*dt/(2*rhon)) &
-               !          +SrWcorr*(Wpn + SrWcorr*dt/(2*rhon))
-
-               ! This does work (in 1-d)
-               SrEcorr =  0.5d0 * ( (SrU_new * Upn - SrU_old * Upo) + &
-                                    (SrV_new * Vpn - SrV_old * Vpo) + &
-                                    (SrW_new * Wpn - SrW_old * Wpo) )
-
-               ! Correct state with correction terms
-               unew(i,j,k,UMX)   = unew(i,j,k,UMX)   + SrUcorr*dt
-               unew(i,j,k,UMY)   = unew(i,j,k,UMY)   + SrVcorr*dt
-               unew(i,j,k,UMZ)   = unew(i,j,k,UMZ)   + SrWcorr*dt
-               unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
-               
-            enddo
-         enddo
-      enddo
-      !$OMP END PARALLEL DO
-
-      end subroutine ca_corrgsrc
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-      
-     subroutine ca_syncgsrc(lo,hi, &
-                            gphi,gphi_l1,gphi_l2,gphi_l3,gphi_h1,gphi_h2,gphi_h3, &
-                            gdphi,gdphi_l1,gdphi_l2,gdphi_l3,gdphi_h1,gdphi_h2,gdphi_h3, &
-                            state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-                            dstate,dstate_l1,dstate_l2,dstate_l3, &
-                            dstate_h1,dstate_h2,dstate_h3, &
-                            sync_src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,dt)
-
-     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
-
-     implicit none
-
-     integer lo(3),hi(3)
-     integer gphi_l1,gphi_l2,gphi_l3,gphi_h1,gphi_h2,gphi_h3
-     integer gdphi_l1,gdphi_l2,gdphi_l3,gdphi_h1,gdphi_h2,gdphi_h3
-     integer state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     integer dstate_l1,dstate_l2,dstate_l3,dstate_h1,dstate_h2,dstate_h3
-     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-     double precision   gphi(gphi_l1:gphi_h1,gphi_l2:gphi_h2,gphi_l3:gphi_h3,3)
-     double precision  gdphi(gdphi_l1:gdphi_h1,gdphi_l2:gdphi_h2,gdphi_l3:gdphi_h3,3)
-     double precision  state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
-     double precision dstate(dstate_l1:dstate_h1,dstate_l2:dstate_h2,dstate_l3:dstate_h3,3+1)
-     double precision sync_src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,3+1)
-     double precision dt
-
-     !    Note that dstate is drho and drhoU, state is the entire state, and src
-     !    is S_rhoU and S_rhoE
-
-     integer          :: i,j,k
-     double precision :: rho_pre, rhoU_pre, rhoV_pre, rhoW_pre
-     double precision :: gx, gy, gz, dgx, dgy, dgz, SrU, SrV, SrW, SrE
-
-     !$OMP PARALLEL DO PRIVATE(i,j,k,rho_pre,rhoU_pre,rhoV_pre,rhoW_pre,gx,gy,gz,dgx,dgy,dgz,SrU,SrV,SrW,SrE)
-     do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               
-               rho_pre  = state(i,j,k,URHO) - dstate(i,j,k,1)
-               rhoU_pre = state(i,j,k,UMX)  - dstate(i,j,k,2)
-               rhoV_pre = state(i,j,k,UMY)  - dstate(i,j,k,3)
-               rhoW_pre = state(i,j,k,UMZ)  - dstate(i,j,k,4)
-               
-               gx  = gphi(i,j,k,1)
-               gy  = gphi(i,j,k,2)
-               gz  = gphi(i,j,k,3)
-               
-               dgx = gdphi(i,j,k,1)
-               dgy = gdphi(i,j,k,2)
-               dgz = gdphi(i,j,k,3)
-               
-               SrU = dstate(i,j,k,1)*gx + rho_pre*dgx
-               SrV = dstate(i,j,k,1)*gy + rho_pre*dgy
-               SrW = dstate(i,j,k,1)*gz + rho_pre*dgz
-
-               SrE = SrU * (rhoU_pre + 0.5*SrU*dt)/rho_pre &
-                    +SrV * (rhoV_pre + 0.5*SrV*dt)/rho_pre &
-                    +SrW * (rhoW_pre + 0.5*SrW*dt)/rho_pre
-
-               sync_src(i,j,k,1) = SrU
-               sync_src(i,j,k,2) = SrV
-               sync_src(i,j,k,3) = SrW
-               sync_src(i,j,k,4) = SrE
-               
-            enddo
-         enddo
-     enddo
-     !$OMP END PARALLEL DO
-
-     end subroutine ca_syncgsrc
