@@ -647,8 +647,13 @@ Castro::advance_hydro (Real time,
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
            ParallelDescriptor::ReduceRealSum(E_added_flux);
            ParallelDescriptor::ReduceRealSum(E_added_grav);
-           std::cout << "Energy added from fluxes            : " << E_added_flux*cell_vol << std::endl;
-           std::cout << "Energy added from grav. source terms: " << E_added_grav*cell_vol << std::endl;
+           if (ParallelDescriptor::IOProcessor()) 
+           {
+               std::cout << "Energy added from fluxes            : " << 
+                             E_added_flux*cell_vol << std::endl;
+               std::cout << "Energy added from grav. source terms: " << 
+                             E_added_grav*cell_vol << std::endl;
+           }
         }
 
 #ifdef RADIATION
@@ -878,7 +883,8 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-           std::cout << "Energy added by grav. corr. terms: " << E_added*cell_vol << std::endl;
+           if (ParallelDescriptor::IOProcessor()) 
+               std::cout << "Energy added by grav. corr. terms: " << E_added*cell_vol << std::endl;
         }
 
 	computeTemp(S_new);
