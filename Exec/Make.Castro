@@ -1,5 +1,4 @@
 BOXLIB_HOME ?= /path/to/BoxLib
-CASTRO_DIR  ?= ../../../Castro
 
 TOP := $(CASTRO_DIR)
 
