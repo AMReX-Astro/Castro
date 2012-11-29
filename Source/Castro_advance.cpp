@@ -542,6 +542,9 @@ Castro::advance_hydro (Real time,
       
       Real E_added_grav = 0.;
       Real E_added_flux = 0.;
+      Real mass_added = 0.;
+      Real eint_added = 0.;
+      Real eden_added = 0.;
 
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
@@ -614,7 +617,9 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(dloga), 
 #endif
 	     BL_TO_FORTRAN(grid_volume), 
-	     &cflLoc, verbose, E_added_flux, E_added_grav);
+	     &cflLoc, verbose, 
+	     mass_added, eint_added, eden_added, 
+	     E_added_flux, E_added_grav);
 	  
 	  if (do_reflux)
 	    {
@@ -645,13 +650,22 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+           ParallelDescriptor::ReduceRealSum(mass_added);
+           ParallelDescriptor::ReduceRealSum(eint_added);
+           ParallelDescriptor::ReduceRealSum(eden_added);
            ParallelDescriptor::ReduceRealSum(E_added_flux);
            ParallelDescriptor::ReduceRealSum(E_added_grav);
            if (ParallelDescriptor::IOProcessor()) 
            {
-               std::cout << "Energy added from fluxes            : " << 
+               std::cout << "   Mass added from negative density correction : " << 
+                             mass_added*cell_vol << std::endl;
+               std::cout << "(rho e) added from negative density correction : " << 
+                             eint_added*cell_vol << std::endl;
+               std::cout << "(rho E) added from negative density correction : " << 
+                             eden_added*cell_vol << std::endl;
+               std::cout << "(rho E) added from fluxes                      : " << 
                              E_added_flux*cell_vol << std::endl;
-               std::cout << "Energy added from grav. source terms: " << 
+               std::cout << "(rho E) added from grav. source terms          : " << 
                              E_added_grav*cell_vol << std::endl;
            }
         }

@@ -252,6 +252,9 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const BL_FORT_FAB_ARG(volume),
      const Real* cflLoc,
      const int&  verbose,
+     const Real& mass_added,
+     const Real& eint_added,
+     const Real& eden,
      const Real& E_added_flux,
      const Real& E_added_grav);
 

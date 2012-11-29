@@ -137,7 +137,7 @@
 
       subroutine enforce_minimum_density( uin,  uin_l1, uin_h1, &
                                           uout,uout_l1,uout_h1,&
-                                          lo, hi, verbose)
+                                          lo, hi, mass_added, eint_added, eden_added, verbose)
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UFA, small_dens, nadv
 
@@ -148,15 +148,32 @@
       integer          :: uout_l1,uout_h1
       double precision :: uin(uin_l1:uin_h1,NVAR)
       double precision :: uout(uout_l1:uout_h1,NVAR)
+      double precision :: mass_added, eint_added, eden_added
 
       ! Local variables
       integer          :: i,ii,n
       double precision :: min_dens
       double precision, allocatable :: fac(:)
+      double precision :: initial_mass, final_mass
+      double precision :: initial_eint, final_eint
+      double precision :: initial_eden, final_eden
 
       allocate(fac(lo(1):hi(1)))
 
+      initial_mass = 0.d0
+        final_mass = 0.d0
+
+      initial_eint = 0.d0
+        final_eint = 0.d0
+
+      initial_eden = 0.d0
+        final_eden = 0.d0
+
       do i = lo(1),hi(1)
+
+         initial_mass = initial_mass + uout(i,URHO)
+         initial_eint = initial_eint + uout(i,UEINT)
+         initial_eden = initial_eden + uout(i,UEDEN)
 
          if (uout(i,URHO) .eq. 0.d0) then
 
@@ -218,9 +235,17 @@
 
          end if
 
+         final_mass = final_mass + uout(i,URHO)
+         final_eint = final_eint + uout(i,UEINT)
+         final_eden = final_eden + uout(i,UEDEN)
+
       enddo
 
       deallocate(fac)
+
+      mass_added = mass_added + (final_mass - initial_mass)
+      eint_added = eint_added + (final_eint - initial_eint)
+      eden_added = eden_added + (final_eden - initial_eden)
 
       end subroutine enforce_minimum_density
 

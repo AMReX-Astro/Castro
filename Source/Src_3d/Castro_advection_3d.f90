@@ -18,7 +18,8 @@
            area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
            area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
            vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-           courno,verbose,E_added_flux,E_added_grav)
+           courno,verbose,mass_added,eint_added,eden_added,&
+           E_added_flux,E_added_grav)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                      normalize_species
@@ -60,6 +61,7 @@
       double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
       double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+      double precision mass_added,eint_added,eden_added
 
       ! Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:,:)
@@ -143,7 +145,7 @@
       ! Enforce the density >= small_dens.
       call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
                                    uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                                   lo,hi,verbose)
+                                   lo,hi,mass_added,eint_added,eden_added,verbose)
 
       ! Enforce species >= 0
       call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &

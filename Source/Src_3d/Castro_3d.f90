@@ -300,7 +300,7 @@
       subroutine enforce_minimum_density(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                                          uout,uout_l1,uout_l2,uout_l3, &
                                          uout_h1,uout_h2,uout_h3, &
-                                         lo,hi,verbose)
+                                         lo,hi,mass_added,eint_added,eden_added,verbose)
 
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
@@ -313,18 +313,37 @@
       integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
       double precision ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
       double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+      double precision :: mass_added, eint_added, eden_added
 
       ! Local variables
       integer          :: i,ii,j,jj,k,kk,n
       double precision :: min_dens
       double precision, allocatable :: fac(:,:,:)
 
+      double precision :: initial_mass, final_mass
+      double precision :: initial_eint, final_eint
+      double precision :: initial_eden, final_eden
+
       allocate(fac(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens)
+      initial_mass = 0.d0
+        final_mass = 0.d0
+
+      initial_eint = 0.d0
+        final_eint = 0.d0
+
+      initial_eden = 0.d0
+        final_eden = 0.d0
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
+
+               initial_mass = initial_mass + uout(i,j,k,URHO)
+               initial_eint = initial_eint + uout(i,j,k,UEINT)
+               initial_eden = initial_eden + uout(i,j,k,UEDEN)
+
                if (uout(i,j,k,URHO) .eq. 0.d0) then
 
                   print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
@@ -368,7 +387,7 @@
       enddo
       !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -394,10 +413,18 @@
 
                end if
 
+               final_mass = final_mass + uout(i,j,k,URHO)
+               final_eint = final_eint + uout(i,j,k,UEINT)
+               final_eden = final_eden + uout(i,j,k,UEDEN)
+
             enddo
          enddo
       enddo
       !$OMP END PARALLEL DO
+
+      mass_added = mass_added + final_mass - initial_mass
+      eint_added = eint_added + final_eint - initial_eint
+      eden_added = eden_added + final_eden - initial_eden
 
       deallocate(fac)
 

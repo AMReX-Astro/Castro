@@ -15,6 +15,7 @@
                           area,area_l1,area_h1,&
                           dloga,dloga_l1,dloga_h1,&
                           vol,vol_l1,vol_h1,courno,verbose,&
+                          mass_added,eint_added,eden_added,&
                           E_added_flux, E_added_grav)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
@@ -56,7 +57,8 @@
       double precision, allocatable:: srcQ(:,:)
       double precision, allocatable:: pdivu(:)
 
-      double precision dx,E_added_flux,E_added_grav
+      double precision :: dx,E_added_flux,E_added_grav
+      double precision :: mass_added, eint_added, eden_added
       integer i,ngf,iflaten
 
       allocate(     q(uin_l1:uin_h1,QVAR))
@@ -137,7 +139,8 @@
            div ,pdivu,lo,hi,dx,dt)
 
       ! Enforce the density >= small_dens.
-      call enforce_minimum_density(uin,uin_l1,uin_h1,uout,uout_l1,uout_h1,lo,hi,verbose)
+      call enforce_minimum_density(uin,uin_l1,uin_h1,uout,uout_l1,uout_h1,lo,hi,&
+                                   mass_added,eint_added,eden_added,verbose)
 
       ! Enforce that the species >= 0
       call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)
