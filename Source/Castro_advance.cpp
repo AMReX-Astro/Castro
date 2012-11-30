@@ -657,16 +657,20 @@ Castro::advance_hydro (Real time,
            ParallelDescriptor::ReduceRealSum(E_added_grav);
            if (ParallelDescriptor::IOProcessor()) 
            {
-               std::cout << "   Mass added from negative density correction : " << 
-                             mass_added*cell_vol << std::endl;
-               std::cout << "(rho e) added from negative density correction : " << 
-                             eint_added*cell_vol << std::endl;
-               std::cout << "(rho E) added from negative density correction : " << 
-                             eden_added*cell_vol << std::endl;
+               if (std::abs(mass_added) != 0)
+               {
+                  std::cout << "   Mass added from negative density correction : " << 
+                                mass_added*cell_vol << std::endl;
+                  std::cout << "(rho e) added from negative density correction : " << 
+                                eint_added*cell_vol << std::endl;
+                  std::cout << "(rho E) added from negative density correction : " << 
+                                eden_added*cell_vol << std::endl;
+               }
                std::cout << "(rho E) added from fluxes                      : " << 
                              E_added_flux*cell_vol << std::endl;
-               std::cout << "(rho E) added from grav. source terms          : " << 
-                             E_added_grav*cell_vol << std::endl;
+               if (do_grav) 
+                  std::cout << "(rho E) added from grav. source terms          : " << 
+                                E_added_grav*cell_vol << std::endl;
            }
         }
 
