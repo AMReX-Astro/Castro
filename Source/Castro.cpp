@@ -3289,8 +3289,8 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         // Pass in the multifab and the component
         sum = volWgtSumMF(&S_new,Eden);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "(rho E) added from reset terms      : " << sum-sum0 << " out of " << sum0 << std::endl;
+        if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
+            std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
     }
 }
 
