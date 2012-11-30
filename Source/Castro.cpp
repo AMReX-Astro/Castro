@@ -143,6 +143,7 @@ int          Castro::allow_negative_energy = 1;
 int          Castro::do_special_tagging = 0;
 int          Castro::ppm_type = 1;
 int          Castro::use_colglaz = 0;
+int          Castro::use_pslope  = 1;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
@@ -352,6 +353,7 @@ Castro::read_params ()
     pp.query("do_special_tagging",do_special_tagging);
     pp.query("ppm_type", ppm_type);
     pp.query("use_colglaz",use_colglaz);
+    pp.query("use_pslope",use_pslope);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
 

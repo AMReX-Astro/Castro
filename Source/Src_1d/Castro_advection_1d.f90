@@ -512,11 +512,12 @@
               dq,qpd_l1,qpd_h1, &
               ilo,ihi,QVAR)
 
-         call pslope(q(:,QPRES),q(:,QRHO), &
-              flatn      , qd_l1, qd_h1, &
-              dq(:,QPRES),qpd_l1,qpd_h1, &
-              grav       , gv_l1, gv_h1, &
-              ilo,ihi,dx)
+         if (use_pslope .eq. 1) &
+            call pslope(q(:,QPRES),q(:,QRHO), &
+                 flatn      , qd_l1, qd_h1, &
+                 dq(:,QPRES),qpd_l1,qpd_h1, &
+                 grav       , gv_l1, gv_h1, &
+                 ilo,ihi,dx)
 
       endif
 

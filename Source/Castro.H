@@ -571,6 +571,7 @@ protected:
     static int       do_special_tagging;
     static int       ppm_type;
     static int       use_colglaz;
+    static int       use_pslope;
     static int       spherical_star;
 
     static Real      difmag;
