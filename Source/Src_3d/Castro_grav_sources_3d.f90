@@ -88,7 +88,7 @@
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
                new_rhoeint = uout(i,j,k,UEDEN) - new_ke
  
-                E_added =  E_added + uout(i,j,k,UEDEN) - old_re
+               E_added =  E_added + uout(i,j,k,UEDEN) - old_re
                ! ****   End Diagnostics ****
 
             enddo
@@ -139,6 +139,7 @@
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
+      ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
       grav_source_type = 1
@@ -196,6 +197,18 @@
                unew(i,j,k,UMZ)   = unew(i,j,k,UMZ)   + SrWcorr*dt
 
                if (grav_source_type .eq. 1) then
+
+                   ! Note SrEcorr was constructed before updating unew
+                   unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
+               else if (grav_source_type .eq. 2) then
+
+                   ! Note SrEcorr  is constructed  after updating unew
+                   Upn     = unew(i,j,k,UMX) * rhoninv
+                   Vpn     = unew(i,j,k,UMY) * rhoninv
+                   Wpn     = unew(i,j,k,UMZ) * rhoninv
+                   SrEcorr =  0.5d0 * ( (SrU_new * Upn - SrU_old * Upo) + &
+                                        (SrV_new * Vpn - SrV_old * Vpo) + &
+                                        (SrW_new * Wpn - SrW_old * Wpo) )
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
                else if (grav_source_type .eq. 3) then
                    new_ke = 0.5d0 * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &

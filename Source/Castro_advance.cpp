@@ -898,7 +898,7 @@ Castro::advance_hydro (Real time,
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
            if (ParallelDescriptor::IOProcessor()) 
-               std::cout << "Energy added by grav. corr. terms: " << E_added*cell_vol << std::endl;
+               std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
         }
 
 	computeTemp(S_new);
