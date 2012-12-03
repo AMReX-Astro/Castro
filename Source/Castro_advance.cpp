@@ -668,9 +668,11 @@ Castro::advance_hydro (Real time,
                }
                std::cout << "(rho E) added from fluxes                      : " << 
                              E_added_flux*cell_vol << std::endl;
+#ifdef GRAVITY
                if (do_grav) 
                   std::cout << "(rho E) added from grav. source terms          : " << 
                                 E_added_grav*cell_vol << std::endl;
+#endif
            }
         }
 
