@@ -446,7 +446,7 @@
 
       use network, only : nspec, naux
       use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, QFA, QFS, QFX, & 
-                                     nadv, small_dens, ppm_type, fix_mass_flux
+                                     nadv, small_dens, ppm_type, fix_mass_flux, use_pslope
       use prob_params_module, only : physbc_lo, physbc_hi, Outflow
       implicit none
 
