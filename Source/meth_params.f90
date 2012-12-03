@@ -31,6 +31,7 @@ module meth_params_module
 
   integer         , save :: allow_negative_energy
   integer         , save :: ppm_type
+  integer         , save :: ppm_reference
   integer         , save :: use_colglaz
   integer         , save :: use_pslope
   integer         , save :: do_sponge
