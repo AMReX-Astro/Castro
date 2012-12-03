@@ -1134,7 +1134,7 @@
                         gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                         idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
 
-      use meth_params_module, only : QVAR, NVAR
+      use meth_params_module, only : QVAR, NVAR, use_colglaz
       use riemann
 
       implicit none
@@ -1193,11 +1193,20 @@
       endif
 
       ! Solve Riemann problem
-      call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                     gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
-                     flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                     ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+      if (use_colglaz == 1) then
+         call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                        gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
+                        flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
+                        ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+
+      else
+         call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                        gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
+                        flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
+                        ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+      endif
 
       deallocate(smallc,cavg,gamcm,gamcp)
 
