@@ -145,6 +145,7 @@ int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::use_pslope  = 1;
+int          Castro::grav_source_type = 1;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
@@ -356,6 +357,7 @@ Castro::read_params ()
     pp.query("ppm_reference", ppm_reference);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_pslope",use_pslope);
+    pp.query("grav_source_type",grav_source_type);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
 

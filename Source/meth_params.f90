@@ -34,6 +34,7 @@ module meth_params_module
   integer         , save :: ppm_reference
   integer         , save :: use_colglaz
   integer         , save :: use_pslope
+  integer         , save :: grav_source_type
   integer         , save :: do_sponge
   integer         , save :: normalize_species
   integer         , save :: fix_mass_flux

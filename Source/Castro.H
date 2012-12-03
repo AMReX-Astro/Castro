@@ -573,6 +573,7 @@ protected:
     static int       ppm_reference;
     static int       use_colglaz;
     static int       use_pslope;
+    static int       grav_source_type;
     static int       spherical_star;
 
     static Real      difmag;

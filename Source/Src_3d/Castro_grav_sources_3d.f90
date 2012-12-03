@@ -9,7 +9,7 @@
 
       use network, only : nspec, naux
       use eos_module
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
 
       implicit none
 
@@ -29,14 +29,13 @@
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
       integer          :: i, j, k
-      integer          :: grav_source_type
 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
+      ! 2: same as original, except in correction, it uses updates U
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-      grav_source_type = 1
 
       ! Add gravitational source terms
       !$OMP PARALLEL DO PRIVATE(i,j,k,rho,SrU,SrV,SrW,SrE,rhoInv) &
@@ -63,7 +62,7 @@
                uout(i,j,k,UMY)   = uout(i,j,k,UMY) + SrV * dt
                uout(i,j,k,UMZ)   = uout(i,j,k,UMZ) + SrW * dt
 
-               if (grav_source_type .eq. 1) then
+               if (grav_source_type == 1 .or. grav_source_type == 2) then
 
                    ! Src = rho u dot g, evaluated with all quantities at t^n
                    SrE = uin(i,j,k,UMX) * grav(i,j,k,1) + &
@@ -109,7 +108,7 @@
                              unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
                              dt,E_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
 
       implicit none
 
@@ -125,7 +124,7 @@
       double precision  dt,E_added
 
       integer i,j,k
-      integer grav_source_type
+
       double precision SrU_old, SrV_old, SrW_old
       double precision SrU_new, SrV_new, SrW_new
       double precision SrUcorr, SrVcorr, SrWcorr, SrEcorr
@@ -142,7 +141,6 @@
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-      grav_source_type = 1
 
       !$OMP PARALLEL DO PRIVATE(i,j,k,rhoo,Upo,Vpo,Wpo,SrU_old,SrV_old,SrW_old,rhon,Upn,Vpn,Wpn,SrU_new) &
       !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr,rhooinv,rhoninv) &
