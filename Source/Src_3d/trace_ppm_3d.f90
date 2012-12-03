@@ -828,6 +828,7 @@ contains
 
     ! Trace to left and right edges using upwind PPM
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
+    !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
     !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(alpha0u,alpha0v,amright,apright,azrright,azeright,azu1rght,azv1rght,amleft,apleft)&
     !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left)
