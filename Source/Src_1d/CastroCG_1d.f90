@@ -727,7 +727,7 @@
           wl = sqrt(wlsq)
           wr = sqrt(wrsq)
           ustarp = ul - (pstar-pl)/wl
-          ustarm = ur + (pstar-pr)/wl
+          ustarm = ur + (pstar-pr)/wr
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           pstar = max(pstar,small_pres)
 
@@ -827,14 +827,14 @@
          rgdnv = frac*rstar + (1.d0 - frac)*ro
          ugdnv(k) = frac*ustar + (1.d0 - frac)*uo
          pgdnv(k) = frac*pstar + (1.d0 - frac)*po
-         gamgdnv =  frac*gamstar + (1.d0-frac)*gamco
+         gamgdnv =  frac*gamstar + (1.d0-frac)*gameo
          regdnv = frac*estar + (1.d0 - frac)*reo
          if (spout .lt. 0.d0) then
             rgdnv = ro
             ugdnv(k) = uo
             pgdnv(k) = po
             regdnv = reo
-            gamgdnv = gamco
+            gamgdnv = gameo
          endif
          if (spin .ge. 0.d0) then
             rgdnv = rstar
@@ -848,7 +848,7 @@
          uflx(k,URHO) = rgdnv*ugdnv(k)
          uflx(k,UMX) = uflx(k,URHO)*ugdnv(k) 
 !        uflx(k,UEDEN) = ugdnv(k)*pgdnv(k) +    &
-!            uflx(k,URHO)*(0.5d0*ugdnv(k)**2 + pgdnv(k)/((gamgdnv-1.d0)*rgdnv))
+!            uflx(k,URHO)*(0.5d0*ugdnv(k)**2 + pgdnv(k)/((gamgdnv-1.d0)))
          uflx(k,UEDEN) = ugdnv(k)*pgdnv(k) +    &
              0.5d0*uflx(k,URHO)*ugdnv(k)**2 + ugdnv(k)*regdnv
 
