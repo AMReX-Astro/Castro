@@ -88,7 +88,8 @@ contains
           enth = ( (rhoe+p)/rho )/csq
 
           ! set the reference state 
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. u - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -177,7 +178,8 @@ contains
 
 
           ! set the reference state 
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. u + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -436,7 +438,8 @@ contains
           enth = ( (rhoe+p)/rho )/csq
 
           ! set the reference state 
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. v - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -524,7 +527,8 @@ contains
 
 
           ! set the reference state 
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. v + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -846,7 +850,8 @@ contains
           enth = ( (rhoe+p)/rho )/csq
 
           ! set the reference state
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. w - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -945,7 +950,8 @@ contains
           enth = ( (rhoe+p)/rho )/csq
 
           ! set the reference state
-          if (ppm_reference == 0) then
+          if (ppm_reference == 0 .or. &
+               (ppm_reference == 2 .and. w + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
