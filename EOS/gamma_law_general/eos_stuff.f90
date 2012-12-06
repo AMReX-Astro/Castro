@@ -327,7 +327,8 @@ contains
   subroutine eos_given_TPX(e, P, R, T, X, pt_index)
 
      ! In/out variables
-     real(kind=dp_t), intent(  out) :: e, R
+     real(kind=dp_t), intent(inout) :: R
+     real(kind=dp_t), intent(  out) :: e
      real(kind=dp_t), intent(in   ) :: P, T, X(:)
      integer, optional, intent(in   ) :: pt_index(:)
 
