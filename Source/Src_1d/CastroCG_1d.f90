@@ -210,7 +210,7 @@
          call uflaten(loq,hiq, &
                       q(q_l1,QPRES), &
                       q(q_l1,QU), &
-                      c,flatn,q_l1,q_h1)
+                      flatn,q_l1,q_h1)
 
 
       endif
