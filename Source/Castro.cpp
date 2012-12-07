@@ -365,11 +365,17 @@ Castro::read_params ()
     pp.query("print_energy_diagnostics",print_energy_diagnostics);
     pp.query("print_fortran_warnings",print_fortran_warnings);
 
-    if (use_colglaz == 1 && BL_SPACEDIM == 1) 
+    if (use_colglaz == 1 && BL_SPACEDIM == 2) 
     {
         std::cerr << "use_colglaz = 1 not implemented for 2-d \n";
         BoxLib::Error();
     }
+
+    if (ppm_reference > 1 || ppm_reference < 0)
+      {
+        std::cerr << "invalid ppm_reference\n";
+        BoxLib::Error();
+      }	
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
