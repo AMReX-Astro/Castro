@@ -68,7 +68,30 @@ contains
     ! PPM CODE
     !!!!!!!!!!!!!!!
 
+    ! This does the characteristic tracing to build the interface
+    ! states using the normal predictor only (no transverse terms).
+    
+    ! We come in with the Im and Ip arrays -- these are the averages
+    ! of the various primitive state variables under the parabolic
+    ! interpolant over the region swept out by one of the 3 different
+    ! characteristic waves.
+    
+    ! Im is integrating to the left interface of the current zone
+    ! (which will be used to build the right state at that interface)
+    ! and Ip is integrating to the right interface of the current zone
+    ! (which will be used to build the left state at that interface).
+
+    ! The choice of reference state is designed to minimize the
+    ! effects of the characteristic projection.  We subtract the I's
+    ! off of the reference state, project the quantity such that it is
+    ! in terms of the characteristic varaibles, and then add all the
+    ! jumps that are moving toward the interface to the reference
+    ! state to get the full state on that interface.
+
+
     ! Trace to left and right edges using upwind PPM
+
+
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
     !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,amright,apright,azrright,azeright,azv1rght,azw1rght) &
@@ -87,9 +110,11 @@ contains
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq
 
+          ! plus state on face i
+
           ! set the reference state 
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. u - cc >= 0.0d0) ) then
+               (ppm_reference == 1 .and. u - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -108,23 +133,31 @@ contains
              rhoe_ref = Im(i,j,kc,1,1,QREINT)
           endif
 
-          ! plus state on face i
+          ! *m are the jumps carried by u-c
+          ! *p are the jumps carried by u+c
+
+          ! note: for the transverse velocities, the jump is carried
+          ! only by the u wave (the contact)
+
           dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,1,QU))
-          dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,1,QV))
-          dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,1,QW))
+          !dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,1,QV))
+          !dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,1,2,QRHO))
-          du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,2,QU))
+          !du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,1,2,QREINT))
 
           dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,3,QU))
-          dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,3,QV))
-          dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,3,QW))
+          !dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,3,QV))
+          !dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,3,QPRES))
+
+          ! these are the beta's from the original PPM paper.  This is essentially
+          ! (l . dq) r for each primitive quantity
 
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
@@ -177,9 +210,12 @@ contains
           end if
 
 
+          ! minus state on face i+1
+
+
           ! set the reference state 
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. u + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. u + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -197,22 +233,22 @@ contains
              rhoe_ref = Ip(i,j,kc,1,3,QREINT)
           endif
 
-          ! minus state on face i+1
+
           dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,1,QU))
-          dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,1,QV))
-          dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,1,QW))
+          !dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,1,QV))
+          !dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,1,2,QRHO))
-          du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,2,QU))
+          !du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,1,2,QREINT))
 
           dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,3,QU))
-          dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,3,QV))
-          dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,3,QW))
+          !dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,3,QV))
+          !dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
@@ -343,6 +379,9 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+
+    ! species
+
     !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,u) IF(nspec.gt.1)
     do ispec = 1, nspec
        ns = QFS + ispec - 1
@@ -381,6 +420,9 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+    
+    ! auxillary quantities
+
     !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,u) IF(naux.gt.1)
     do iaux = 1, naux
        ns = QFX + iaux - 1
@@ -418,7 +460,11 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+
+    ! y-direction
+
     ! Trace to bottom and top edges using upwind PPM
+
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
     !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0u,alpha0w,amright,apright,azrright,azeright,azu1rght,azw1rght,amleft) &
@@ -437,9 +483,11 @@ contains
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq
 
+          ! plus state on face j
+
           ! set the reference state 
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. v - cc >= 0.0d0) ) then
+               (ppm_reference == 1 .and. v - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -457,22 +505,21 @@ contains
              rhoe_ref = Im(i,j,kc,2,1,QREINT)
           endif
 
-          ! plus state on face j
-          dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,1,QU))
+          !dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,1,QU))
           dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,1,QV))
-          dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,1,QW))
+          !dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,2,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,2,QU))
-          dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,2,QV))
+          !dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,2,2,QREINT))
 
-          dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,3,QU))
+          !dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,3,QU))
           dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,3,QV))
-          dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,3,QW))
+          !dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
@@ -525,10 +572,11 @@ contains
              qyp(i,j,kc,QPRES)  = max(qyp(i,j,kc,QPRES),small_pres)
           end if
 
+          ! minus state on face j+1
 
           ! set the reference state 
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. v + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. v + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -546,22 +594,21 @@ contains
              rhoe_ref = Ip(i,j,kc,2,3,QREINT)
           endif
 
-          ! minus state on face j+1
-          dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,1,QU))
+          !dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,1,QU))
           dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,1,QV))
-          dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,1,QW))
+          !dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,2,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,2,QU))
-          dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,2,QV))
+          !dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,2,2,QREINT))
 
-          dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,3,QU))
+          !dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,3,QU))
           dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,3,QV))
-          dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,3,QW))
+          !dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
@@ -692,6 +739,9 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+    
+    ! species
+
     !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,v) IF(nspec.gt.1)
     do ispec = 1, nspec
        ns = QFS + ispec - 1
@@ -728,6 +778,9 @@ contains
        enddo
     enddo
     !$OMP END PARALLEL DO
+
+    
+    ! auxillary quantities
 
     !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,v) IF(naux.gt.1)
     do iaux = 1, naux
@@ -831,6 +884,10 @@ contains
     !!!!!!!!!!!!!!!
 
     ! Trace to left and right edges using upwind PPM
+
+    ! Note: in contrast to the above code for x and y, here the loop
+    ! is over interfaces, not over cell-centers.
+
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
     !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
     !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
@@ -838,6 +895,8 @@ contains
     !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
+
+          ! plus state on face kc
 
           cc = c(i,j,k3d)
           csq = cc**2
@@ -851,7 +910,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. w - cc >= 0.0d0) ) then
+               (ppm_reference == 1 .and. w - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -869,21 +928,20 @@ contains
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
           endif
 
-          ! plus state on face kc
-          dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,1,QU))
-          dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,1,QV))
+          !dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,1,QU))
+          !dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,1,QV))
           dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,3,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,2,QV))
-          dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,2,QW))
+          !dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,3,2,QREINT))
 
-          dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,3,QU))
-          dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,3,QV))
+          !dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,3,QU))
+          !dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,3,QV))
           dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,3,QPRES))
 
@@ -936,6 +994,7 @@ contains
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           ! minus state on face kc
+
           ! note this is different from how we do 1D, 2D, and the
           ! x and y-faces in 3D, where the analogous thing would have
           ! been to find the minus state on face kc+1
@@ -951,7 +1010,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 2 .and. w + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. w + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -969,20 +1028,20 @@ contains
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
           endif
 
-          dum    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,1,QU))
-          dvm    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,1,QV))
+          !dum    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,1,QU))
+          !dvm    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,1,QV))
           dwm    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,1,QW))
           dpm    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,1,QPRES))
 
           drho  = flatn(i,j,k3d-1)*(rho_ref  - Ip(i,j,km,3,2,QRHO))
           du    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,2,QU))
           dv    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,2,QV))
-          dw    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,2,QW))
+          !dw    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,2,QW))
           dp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,2,QPRES))
           drhoe = flatn(i,j,k3d-1)*(rhoe_ref - Ip(i,j,km,3,2,QREINT))
 
-          dup    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,3,QU))
-          dvp    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,3,QV))
+          !dup    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,3,QU))
+          !dvp    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,3,QV))
           dwp    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,3,QW))
           dpp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,3,QPRES))
 
@@ -1108,6 +1167,9 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
+
+    ! species
+
     !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,w) IF(nspec.gt.1)
     do ispec = 1, nspec
        ns = QFS + ispec - 1
@@ -1142,6 +1204,9 @@ contains
        enddo
     enddo
     !$OMP END PARALLEL DO
+
+
+    ! auxillary quantities
 
     !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,w) IF(naux.gt.1)
     do iaux = 1, naux
