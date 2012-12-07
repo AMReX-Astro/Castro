@@ -1,3 +1,12 @@
+module trace_module
+
+  implicit none
+
+  private
+
+  public tracexy, tracez
+  
+contains
 
       subroutine tracexy(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          dqx,dqy,dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3, &
@@ -831,3 +840,5 @@
       !$OMP END PARALLEL DO
 
     end subroutine tracez
+
+end module trace_module

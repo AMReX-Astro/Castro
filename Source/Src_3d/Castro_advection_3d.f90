@@ -1,178 +1,13 @@
-! :::
-! ::: ----------------------------------------------------------------
-! :::
 
-      subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
-           uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-           uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-           ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-           ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-           ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-           src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-           delta,dt, &
-           flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-           flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-           flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-           area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-           area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-           area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-           vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-           courno,verbose,mass_added,eint_added,eden_added,&
-           E_added_flux,E_added_grav)
+module advection_module
 
-      use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
-                                     normalize_species
+  implicit none
 
-      ! This is used for IsoTurb only
-      ! use probdata_module   , only : radiative_cooling_type
+  private
 
-      implicit none
-
-      integer is_finest_level
-      integer lo(3),hi(3),verbose
-      integer domlo(3),domhi(3)
-      integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-      integer uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
-      integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
-      integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
-      integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
-      integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-      integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-      integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-      integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
-      integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
-      integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
-      integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
-      integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-      integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-      double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
-      double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
-      double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
-      double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
-      double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
-      double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
-      double precision  grav( gv_l1:gv_h1,  gv_l2:gv_h2,   gv_l3:gv_h3,    3)
-      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
-      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
-      double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
-      double precision area1(area1_l1:area1_h1,area1_l2:area1_h2, area1_l3:area1_h3)
-      double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
-      double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
-      double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-      double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
-      double precision mass_added,eint_added,eden_added
-
-      ! Automatic arrays for workspace
-      double precision, allocatable:: q(:,:,:,:)
-      double precision, allocatable:: gamc(:,:,:)
-      double precision, allocatable:: flatn(:,:,:)
-      double precision, allocatable:: c(:,:,:)
-      double precision, allocatable:: csml(:,:,:)
-      double precision, allocatable:: div(:,:,:)
-      double precision, allocatable:: pdivu(:,:,:)
-      double precision, allocatable:: srcQ(:,:,:,:)
-
-      double precision dx,dy,dz
-      integer ngq,ngf,iflaten
-
-      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QVAR))
-      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-      allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
-
-      allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
-
-      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR))
-
-      dx = delta(1)
-      dy = delta(2)
-      dz = delta(3)
-
-      ngq = NHYP
-      ngf = 1
-      iflaten = 1
-
-      ! 1) Translate conserved variables (u) to primitive variables (q).
-      ! 2) Compute sound speeds (c) and gamma (gamc).
-      !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-      !    and set to correspond to coordinates of (lo:hi)
-      ! 3) Translate source terms
-      call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                   src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                   courno,dx,dy,dz,dt,ngq,ngf,iflaten)
-
-
-      ! Compute hyperbolic fluxes using unsplit Godunov
-      call umeth3d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                   srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                   grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                   lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
-                   flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                   flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                   flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                   ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-                   ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-                   ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-                   pdivu)
-
-      ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-      call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
-
-      ! Conservative update
-      call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                  uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                  src ,  src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3, &
-                  flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                  flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                  flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                  area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-                  area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-                  area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-                  vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                  div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
-
-      ! Add the radiative cooling -- for SGS only.
-      ! if (radiative_cooling_type.eq.2) then
-      !    call post_step_radiative_cooling(lo,hi,dt, &
-      !         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3)
-      ! endif
-
-      ! Enforce the density >= small_dens.
-      call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
-                                   uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                                   lo,hi,mass_added,eint_added,eden_added,verbose)
-
-      ! Enforce species >= 0
-      call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
-                                          uout_h1,uout_h2,uout_h3,lo,hi)
- 
-      ! Re-normalize the species
-      if (normalize_species .eq. 1) then
-         call normalize_new_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                                    lo,hi)
-      end if
-
-      call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                           uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                           grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                           lo,hi,dt,E_added_grav)
-
-      ! Impose sponge
-      if (do_sponge .eq. 1) then
-         call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
-                     time,dt, &
-                     dx,dy,dz,domlo,domhi)
-      end if
-
-      deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
-
-      end subroutine ca_umdrv
-
+  public umeth3d, ctoprim, divu, consup, enforce_minimum_density, normalize_new_species
+  
+contains
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH3D     Compute hyperbolic fluxes using unsplit second
@@ -213,8 +48,10 @@
                          pdivu)
 
       use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, ppm_type, use_pslope
-      use trace_ppm_module
-      use ppm_module
+      use trace_ppm_module, only : tracexy_ppm, tracez_ppm
+      use trace_module, only : tracexy, tracez
+      use ppm_module, only : ppm
+      use slope_module, only : uslope, pslope
 
       implicit none
 
@@ -1135,7 +972,7 @@
                         idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
 
       use meth_params_module, only : QVAR, NVAR, use_colglaz
-      use riemann
+      use riemann_module, only : riemannus, riemanncg
 
       implicit none
 
@@ -3359,371 +3196,6 @@
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-      subroutine uslope(q,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        dqx,dqy,dqz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        ilo1,ilo2,ihi1,ihi2,kc,k3d,nv)
-
-      use meth_params_module
-
-      implicit none
-
-      integer ilo,ihi
-      integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-      integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-      integer ilo1,ilo2,ihi1,ihi2,kc,k3d,nv
-
-      double precision q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,nv)
-      double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-      double precision dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
-      double precision dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
-      double precision dqz(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
-
-      integer i, j, k, n
-
-      double precision dlft, drgt, slop, dq1
-      double precision dm, dp, dc, ds, sl, dl, dfm, dfp
-
-      double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
-
-      double precision, parameter :: four3rd = 4.d0/3.d0, sixth = 1.d0/6.d0
-
-      ilo = MIN(ilo1,ilo2)
-      ihi = MAX(ihi1,ihi2)
-
-      allocate (dsgn(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (dlim(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (  df(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (dcen(ilo-2:ihi+2,ilo-2:ihi+2))
-
-      if(iorder.eq.1) then
-
-         do n = 1, nv
-            do j = ilo2-1, ihi2+1
-               do i = ilo1-1, ihi1+1
-                  dqx(i,j,kc,n) = 0.d0
-                  dqy(i,j,kc,n) = 0.d0
-                  dqz(i,j,kc,n) = 0.d0
-               enddo
-            enddo
-         enddo
-
-      else
-
-         do n = 1, nv 
-
-            ! Compute slopes in first coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,slop,dq1)
-            do j = ilo2-1, ihi2+1
-
-               ! First compute Fromm slopes
-               do i = ilo1-2, ihi1+2
-                  dlft = 2.d0*(q(i ,j,k3d,n) - q(i-1,j,k3d,n))
-                  drgt = 2.d0*(q(i+1,j,k3d,n) - q(i ,j,k3d,n))
-                  dcen(i,j) = .25d0 * (dlft+drgt)
-                  dsgn(i,j) = sign(1.d0, dcen(i,j))
-                  slop = min( abs(dlft), abs(drgt) )
-                  if (dlft*drgt .ge. 0.d0) then
-                     dlim(i,j) = slop
-                  else
-                     dlim(i,j) = 0.d0
-                  endif
-                  df(i,j) = dsgn(i,j)*min( dlim(i,j), abs(dcen(i,j)) )
-               enddo
-
-               ! Now compute limited fourth order slopes
-               do i = ilo1-1, ihi1+1
-                  dq1       = four3rd*dcen(i,j) - sixth*(df(i+1,j) + df(i-1,j))
-                  dqx(i,j,kc,n) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dq1))
-               enddo
-
-            enddo
-            !$OMP END PARALLEL DO
-
-            ! Compute slopes in second coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,slop,dq1)
-            do i = ilo1-1, ihi1+1
-               ! First compute Fromm slopes for this column
-               do j = ilo2-2, ihi2+2
-                  dlft = 2.d0*(q(i,j ,k3d,n) - q(i,j-1,k3d,n))
-                  drgt = 2.d0*(q(i,j+1,k3d,n) - q(i,j ,k3d,n))
-                  dcen(i,j) = .25d0 * (dlft+drgt)
-                  dsgn(i,j) = sign( 1.d0, dcen(i,j) )
-                  slop = min( abs(dlft), abs(drgt) )
-                  if (dlft*drgt .ge. 0.d0) then
-                     dlim(i,j) = slop
-                  else
-                     dlim(i,j) = 0.d0
-                  endif
-                  df(i,j) = dsgn(i,j)*min( dlim(i,j),abs(dcen(i,j)) )
-               enddo
-
-               ! Now compute limited fourth order slopes
-               do j = ilo2-1, ihi2+1
-                  dq1 = four3rd*dcen(i,j) - sixth*( df(i,j+1) + df(i,j-1) )
-                  dqy(i,j,kc,n) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dq1))
-               enddo
-            enddo
-            !$OMP END PARALLEL DO
-
-            ! Compute slopes in third coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,k,dm,dp,dc,ds,sl,dl,dfm,dfp,dq1)
-            do j = ilo2-1, ihi2+1
-               do i = ilo1-1, ihi1+1
-
-                  ! Compute Fromm slope on slab below
-                  k = k3d-1
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
-                  sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
-                     dl = sl
-                  else
-                     dl = 0.d0
-                  endif
-                  dfm = ds*min(dl,abs(dc))
-
-                  ! Compute Fromm slope on slab above
-                  k = k3d+1
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
-                  sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
-                     dl = sl
-                  else
-                     dl = 0.d0
-                  endif
-                  dfp = ds*min(dl,abs(dc))
-
-                  ! Compute Fromm slope on current slab
-                  k = k3d
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
-                  sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
-                     dl = sl
-                  else
-                     dl = 0.d0
-                  endif
-
-                  ! Now compute limited fourth order slopes
-                  dq1 = four3rd*dc - sixth*( dfp + dfm )
-                  dqz(i,j,kc,n) = flatn(i,j,k3d)*ds*min(dl,abs(dq1))
-               enddo
-            enddo
-            !$OMP END PARALLEL DO
-         enddo
-
-      endif
-
-      deallocate(dsgn,dlim,df,dcen)
-
-      end subroutine uslope
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine pslope(p,rho,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        dpx,dpy,dpz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                        ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
-        
-        use meth_params_module
-
-        implicit none
-
-        integer ilo,ihi
-        integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-        integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-        integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-        integer ilo1,ilo2,ihi1,ihi2,kc,k3d
-
-        double precision p  (qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision rho(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision dpx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision dpy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision dpz(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-        double precision dx,dy,dz
-
-        integer i, j, k
-
-        double precision dlft, drgt, dp1
-        double precision dm, dp, dc, dl, dfm, dfp, ds
-
-        double precision, parameter :: four3rd = 4.d0/3.d0, sixth = 1.d0/6.d0
-
-        !     Local arrays
-        double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
-
-        ilo = MIN(ilo1,ilo2)
-        ihi = MAX(ihi1,ihi2)
-
-        allocate (dsgn(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (dlim(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (  df(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (dcen(ilo-2:ihi+2,ilo-2:ihi+2))
-
-        if(iorder.eq.1) then
-
-           do j = ilo2-1, ihi2+1
-              do i = ilo1-1, ihi1+1
-                 dpx(i,j,kc) = 0.d0
-                 dpy(i,j,kc) = 0.d0
-                 dpz(i,j,kc) = 0.d0
-              enddo
-           enddo
-
-        else
-           ! Compute slopes in first coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,dp1)
-           do j = ilo2-1, ihi2+1
-
-              ! First compute Fromm slopes
-              do i = ilo1-2, ihi1+2
-
-                 dlft = p(i  ,j,k3d) - p(i-1,j,k3d)
-                 drgt = p(i+1,j,k3d) - p(i  ,j,k3d)
-
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * &
-                      (rho(i,j,k3d)+rho(i-1,j,k3d))*(grav(i,j,k3d,1)+grav(i-1,j,k3d,1))*dx
-                 drgt = drgt - 0.25d0 * &
-                      (rho(i,j,k3d)+rho(i+1,j,k3d))*(grav(i,j,k3d,1)+grav(i+1,j,k3d,1))*dx
-
-                 dcen(i,j) = 0.5d0*(dlft+drgt)
-                 dsgn(i,j) = sign(1.d0, dcen(i,j))
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(i,j) = 2.d0 * min( abs(dlft), abs(drgt) )
-                 else
-                    dlim(i,j) = 0.d0
-                 endif
-                 df(i,j) = dsgn(i,j)*min( dlim(i,j), abs(dcen(i,j)) )
-              enddo
-
-              ! Now limited fourth order slopes
-              do i = ilo1-1, ihi1+1
-                 dp1         = four3rd*dcen(i,j) - sixth*(df(i+1,j) + df(i-1,j))
-                 dpx(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,1)*dx
-              enddo
-           enddo
-           !$OMP END PARALLEL DO
-
-           ! Compute slopes in second coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,dp1)
-           do i = ilo1-1, ihi1+1
-
-              ! First compute Fromm slopes
-              do j = ilo2-2, ihi2+2
-                 dlft = p(i,j  ,k3d) - p(i,j-1,k3d)
-                 drgt = p(i,j+1,k3d) - p(i,j  ,k3d)
-
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * &
-                      (rho(i,j,k3d)+rho(i,j-1,k3d))*(grav(i,j,k3d,2)+grav(i,j-1,k3d,2))*dy
-                 drgt = drgt - 0.25d0 * &
-                      (rho(i,j,k3d)+rho(i,j+1,k3d))*(grav(i,j,k3d,2)+grav(i,j+1,k3d,2))*dy
-
-                 dcen(i,j) = 0.5d0*(dlft+drgt)
-                 dsgn(i,j) = sign( 1.d0, dcen(i,j) )
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(i,j) = 2.d0 * min( abs(dlft), abs(drgt) )
-                 else
-                    dlim(i,j) = 0.d0
-                 endif
-                 df(i,j) = dsgn(i,j)*min( dlim(i,j),abs(dcen(i,j)) )
-              enddo
-
-              ! Now limited fourth order slopes
-              do j = ilo2-1, ihi2+1
-                 dp1 = four3rd*dcen(i,j) - sixth*( df(i,j+1) + df(i,j-1) )
-                 dpy(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,2)*dy
-              enddo
-           enddo
-           !$OMP END PARALLEL DO
-
-           ! Compute slopes in third coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,k,dm,dp,dc,ds,dl,dfm,dfp,dp1)
-           do j = ilo2-1, ihi2+1
-              do i = ilo1-1, ihi1+1
-
-                 ! compute Fromm slopes on slab below
-                 k = k3d-1
-                 dm = p(i,j,k  ) - p(i,j,k-1)
-                 dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
-                 else
-                    dl = 0.d0
-                 endif
-                 dfm = ds*min(dl,abs(dc))
-
-                 ! compute Fromm slopes on slab above
-                 k = k3d+1
-                 dm = p(i,j,k  ) - p(i,j,k-1)
-                 dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
-                 else
-                    dl = 0.d0
-                 endif
-                 dfp = ds*min(dl,abs(dc))
-
-                 ! compute Fromm slopes on current slab
-                 k = k3d
-                 dm = p(i,j,k  ) - p(i,j,k-1)
-                 dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
-                 else
-                    dl = 0.d0
-                 endif
-
-                 ! now limited fourth order slopes
-                 dp1 = four3rd*dc - sixth*( dfp + dfm )
-                 dpz(i,j,kc) = flatn(i,j,k3d)*ds*min(dl,abs(dp1))
-                 dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,3)*dz
-              enddo
-           enddo
-           !$OMP END PARALLEL DO
-
-        endif
-
-        deallocate(dsgn,dlim,df,dcen)
-
-      end subroutine pslope
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
       subroutine uflaten(lo,hi,p,u,v,w,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
 
       use meth_params_module, only : iorder, small_pres
@@ -3948,3 +3420,281 @@
 
       end subroutine divu
 
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_l3, &
+                                          flux1_h1,flux1_h2,flux1_h3, &
+                                          flux2,flux2_l1,flux2_l2,flux2_l3, &
+                                          flux2_h1,flux2_h2,flux2_h3, &
+                                          flux3,flux3_l1,flux3_l2,flux3_l3, &
+                                          flux3_h1,flux3_h2,flux3_h3, &
+                                          lo,hi)
+
+      use network, only : nspec
+      use meth_params_module, only : NVAR, URHO, UFS
+
+      implicit none
+
+      integer          :: lo(3),hi(3)
+      integer          :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+      integer          :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+      integer          :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+      double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
+      double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
+      double precision :: flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+
+      ! Local variables
+      integer          :: i,j,k,n
+      double precision :: sum,fac
+
+      !$OMP PARALLEL PRIVATE(i,j,k,sum,n,fac)
+
+      !$OMP DO
+      do k = lo(3),hi(3)
+         do j = lo(2),hi(2)
+            do i = lo(1),hi(1)+1
+               sum = 0.d0
+               do n = UFS, UFS+nspec-1
+                  sum = sum + flux1(i,j,k,n)
+               end do
+               if (sum .ne. 0.d0) then
+                  fac = flux1(i,j,k,URHO) / sum
+               else
+                  fac = 1.d0
+               end if
+               do n = UFS, UFS+nspec-1
+                  flux1(i,j,k,n) = flux1(i,j,k,n) * fac
+               end do
+            end do
+         end do
+      end do
+      !$OMP END DO NOWAIT
+
+      !$OMP DO
+      do k = lo(3),hi(3)
+         do j = lo(2),hi(2)+1
+            do i = lo(1),hi(1)
+               sum = 0.d0
+               do n = UFS, UFS+nspec-1
+                  sum = sum + flux2(i,j,k,n)
+               end do
+               if (sum .ne. 0.d0) then
+                  fac = flux2(i,j,k,URHO) / sum
+               else
+                  fac = 1.d0
+               end if
+               do n = UFS, UFS+nspec-1
+                  flux2(i,j,k,n) = flux2(i,j,k,n) * fac
+               end do
+            end do
+         end do
+      end do
+      !$OMP END DO NOWAIT
+
+      !$OMP DO
+      do k = lo(3),hi(3)+1
+         do j = lo(2),hi(2)
+            do i = lo(1),hi(1)
+               sum = 0.d0
+               do n = UFS, UFS+nspec-1
+                  sum = sum + flux3(i,j,k,n)
+               end do
+               if (sum .ne. 0.d0) then
+                  fac = flux3(i,j,k,URHO) / sum
+               else
+                  fac = 1.d0
+               end if
+               do n = UFS, UFS+nspec-1
+                  flux3(i,j,k,n) = flux3(i,j,k,n) * fac
+               end do
+            end do
+         end do
+      end do
+      !$OMP END DO
+
+      !$OMP END PARALLEL
+
+      end subroutine normalize_species_fluxes
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine enforce_minimum_density(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                                         uout,uout_l1,uout_l2,uout_l3, &
+                                         uout_h1,uout_h2,uout_h3, &
+                                         lo,hi,mass_added,eint_added,eden_added,verbose)
+
+      use network, only : nspec, naux
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
+                                     UFA, small_dens, nadv
+
+      implicit none
+
+      integer          :: lo(3), hi(3), verbose
+      integer          ::  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
+      integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
+      double precision ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
+      double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+      double precision :: mass_added, eint_added, eden_added
+
+      ! Local variables
+      integer          :: i,ii,j,jj,k,kk,n
+      double precision :: min_dens
+      double precision, allocatable :: fac(:,:,:)
+
+      double precision :: initial_mass, final_mass
+      double precision :: initial_eint, final_eint
+      double precision :: initial_eden, final_eden
+
+      allocate(fac(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
+
+      initial_mass = 0.d0
+        final_mass = 0.d0
+
+      initial_eint = 0.d0
+        final_eint = 0.d0
+
+      initial_eden = 0.d0
+        final_eden = 0.d0
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
+      do k = lo(3),hi(3)
+         do j = lo(2),hi(2)
+            do i = lo(1),hi(1)
+
+               initial_mass = initial_mass + uout(i,j,k,URHO)
+               initial_eint = initial_eint + uout(i,j,k,UEINT)
+               initial_eden = initial_eden + uout(i,j,k,UEDEN)
+
+               if (uout(i,j,k,URHO) .eq. 0.d0) then
+
+                  print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
+                  print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
+                  call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
+
+               else if (uout(i,j,k,URHO) < small_dens) then
+
+                  min_dens = uin(i,j,k,URHO)
+                  do kk = -1,1
+                  do jj = -1,1
+                  do ii = -1,1
+                    min_dens = min(min_dens,uin(i+ii,j+jj,k+kk,URHO))
+                    if ((ii.ne.0 .or. jj.ne.0 .or. kk.ne.0) .and. &
+                         uout(i+ii,j+jj,k+kk,URHO).gt.small_dens) &
+                      min_dens = min(min_dens,uout(i+ii,j+jj,k+kk,URHO))
+                  end do
+                  end do
+                  end do
+
+                  if (verbose .gt. 0) then
+                     if (uout(i,j,k,URHO) < 0.d0) then
+                        print *,'   '
+                        print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
+                        print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
+                        print *,'   '
+                     else
+                        print *,'   '
+                        print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
+                        print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
+                        print *,'   '
+                     end if
+                  end if
+
+                  fac(i,j,k) = min_dens / uout(i,j,k,URHO)
+
+               end if
+
+            enddo
+         enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
+      do k = lo(3),hi(3)
+         do j = lo(2),hi(2)
+            do i = lo(1),hi(1)
+
+               if (uout(i,j,k,URHO) < small_dens) then
+
+                  uout(i,j,k,URHO ) = uout(i,j,k,URHO ) * fac(i,j,k)
+                  uout(i,j,k,UEINT) = uout(i,j,k,UEINT) * fac(i,j,k)
+                  uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) * fac(i,j,k)
+                  uout(i,j,k,UMX  ) = uout(i,j,k,UMX  ) * fac(i,j,k)
+                  uout(i,j,k,UMY  ) = uout(i,j,k,UMY  ) * fac(i,j,k)
+                  uout(i,j,k,UMZ  ) = uout(i,j,k,UMZ  ) * fac(i,j,k)
+   
+                  do n = UFS, UFS+nspec-1
+                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                  end do
+                  do n = UFX, UFX+naux-1
+                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                  end do
+                  do n = UFA, UFA+nadv-1
+                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                  end do
+
+               end if
+
+               final_mass = final_mass + uout(i,j,k,URHO)
+               final_eint = final_eint + uout(i,j,k,UEINT)
+               final_eden = final_eden + uout(i,j,k,UEDEN)
+
+            enddo
+         enddo
+      enddo
+      !$OMP END PARALLEL DO
+
+      mass_added = mass_added + final_mass - initial_mass
+      eint_added = eint_added + final_eint - initial_eint
+      eden_added = eden_added + final_eden - initial_eden
+
+      deallocate(fac)
+
+      end subroutine enforce_minimum_density
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+      subroutine normalize_new_species(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi)
+
+      use network, only : nspec
+      use meth_params_module, only : NVAR, URHO, UFS
+
+      implicit none
+
+      integer          :: lo(3), hi(3)
+      integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
+      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
+
+      ! Local variables
+      integer          :: i,j,k,n
+      double precision :: fac,sum
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,sum,n,fac)
+      do k = lo(3),hi(3)
+      do j = lo(2),hi(2)
+         do i = lo(1),hi(1)
+            sum = 0.d0
+            do n = UFS, UFS+nspec-1
+               sum = sum + u(i,j,k,n)
+            end do
+            if (sum .ne. 0.d0) then
+               fac = u(i,j,k,URHO) / sum
+            else
+               fac = 1.d0
+            end if
+            do n = UFS, UFS+nspec-1
+               u(i,j,k,n) = u(i,j,k,n) * fac
+            end do
+         end do
+      end do
+      end do
+      !$OMP END PARALLEL DO
+
+      end subroutine normalize_new_species
+
+end module advection_module

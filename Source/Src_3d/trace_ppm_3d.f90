@@ -2,7 +2,9 @@ module trace_ppm_module
 
   implicit none
 
-  public
+  private
+
+  public tracexy_ppm, tracez_ppm
 
 contains
 

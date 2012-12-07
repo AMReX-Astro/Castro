@@ -1,6 +1,10 @@
-module riemann
+module riemann_module
 
   implicit none
+
+  private
+
+  public riemannus, riemanncg
 
 contains
 
@@ -438,9 +442,6 @@ contains
     return
   end subroutine wsqge
 
-end module riemann
-
-
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
@@ -724,3 +725,5 @@ end module riemann
       !$OMP END PARALLEL DO
 
       end subroutine riemannus
+
+end module riemann_module

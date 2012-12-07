@@ -1,3 +1,173 @@
+! ::: 
+! ::: ------------------------------------------------------------------
+! ::: 
+
+      subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
+                          uin,uin_l1,uin_l2,uin_h1,uin_h2, &
+                          uout,uout_l1,uout_l2,uout_h1,uout_h2, &
+                          ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
+                          ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                          src,src_l1,src_l2,src_h1,src_h2, &
+                          grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                          delta,dt, &
+                          flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                          flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                          area1,area1_l1,area1_l2,area1_h1,area1_h2, &
+                          area2,area2_l1,area2_l2,area2_h1,area2_h2, &
+                          dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
+                          vol,vol_l1,vol_l2,vol_h1,vol_h2,&
+                          courno,verbose,mass_added,eint_added,eden_added,&
+                          E_added_flux,E_added_grav)
+
+      use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
+                                     do_sponge, normalize_species, allow_negative_energy
+      use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
+           normalize_new_species
+      use sponge_module, only : sponge
+      use grav_sources_module, only : add_grav_source
+
+      implicit none
+
+      integer is_finest_level
+      integer lo(2),hi(2),verbose
+      integer domlo(2),domhi(2)
+      integer uin_l1,uin_l2,uin_h1,uin_h2
+      integer uout_l1,uout_l2,uout_h1,uout_h2
+      integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
+      integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
+      integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
+      integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
+      integer area1_l1,area1_l2,area1_h1,area1_h2
+      integer area2_l1,area2_l2,area2_h1,area2_h2
+      integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
+      integer vol_l1,vol_l2,vol_h1,vol_h2
+      integer src_l1,src_l2,src_h1,src_h2
+      integer gv_l1,gv_l2,gv_h1,gv_h2
+
+      double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
+      double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
+      double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
+      double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
+      double precision src(src_l1:src_h1,src_l2:src_h2,NVAR)
+      double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
+      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
+      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+      double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
+      double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
+      double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+      double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
+      double precision delta(2),dt,time,courno,E_added_flux,E_added_grav
+      double precision mass_added,eint_added,eden_added
+
+!     Automatic arrays for workspace
+      double precision, allocatable:: q(:,:,:)
+      double precision, allocatable:: gamc(:,:)
+      double precision, allocatable:: flatn(:,:)
+      double precision, allocatable:: c(:,:)
+      double precision, allocatable:: csml(:,:)
+      double precision, allocatable:: div(:,:)
+      double precision, allocatable:: pgdx(:,:)
+      double precision, allocatable:: pgdy(:,:)
+      double precision, allocatable:: srcQ(:,:,:)
+      double precision, allocatable:: pdivu(:,:)
+
+      integer ngq,ngf,iflaten
+!     integer i_c,j_c
+
+      double precision dx,dy
+
+      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,QVAR))
+      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2))
+      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2))
+      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2))
+      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2))
+
+      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR))
+
+      allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
+      allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
+      allocate(  pgdx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1))
+      allocate(  pgdy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1))
+
+      dx = delta(1)
+      dy = delta(2)
+
+      ngq = NHYP
+      ngf = 1
+      iflaten = 1
+
+!     Translate to primitive variables, compute sound speeds
+!     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
+!       and set to correspond to coordinates of (lo:hi)
+      call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
+                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
+                   src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+                   courno,dx,dy,dt,ngq,ngf,iflaten)
+
+!     Compute hyperbolic fluxes using unsplit Godunov
+      call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
+                   srcQ, src_l1, src_l2, src_h1, src_h2,  &
+                   grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                   lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
+                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                   pgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                   pgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                   ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
+                   ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                   area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+                   area2, area2_l1, area2_l2, area2_h1, area2_h2, &
+                   pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2)
+
+!     Compute divergence of velocity field (on surroundingNodes(lo,hi))
+      call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
+                delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
+
+!     Conservative update
+      call consup(uin,    uin_l1,  uin_l2,  uin_h1,  uin_h2, &
+                  uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
+                  pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                  pgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
+                  src,    src_l1,  src_l2,  src_h1,  src_h2, &
+                  grav,    gv_l1,   gv_l2,   gv_h1,   gv_h2, &
+                  flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                  area1,area1_l1,area1_l2,area1_h1,area1_h2, &
+                  area2,area2_l1,area2_l2,area2_h1,area2_h2, &
+                  vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
+                  div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
+
+      ! Enforce the density >= small_dens.
+      call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
+                                   uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                                   lo,hi,mass_added,eint_added,eden_added,verbose)
+
+      ! Enforce the species >= 0
+      call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+
+      ! Normalize the species 
+      if (normalize_species .eq. 1) &
+         call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+
+      call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
+                           uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                           grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                           lo,hi,dt,E_added_grav)
+
+      if (do_sponge .eq. 1) &
+           call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
+                       time,dt, &
+                       dx,dy,domlo,domhi)
+
+      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
+
+      end subroutine ca_umdrv
+
+! ::: 
+! ::: ------------------------------------------------------------------
+! ::: 
+
       subroutine ca_check_initial_species(lo,hi,&
                              state,state_l1,state_l2,state_h1,state_h2)
 
@@ -207,187 +377,6 @@
 
       end subroutine ca_compute_avgstate
 
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      subroutine normalize_species_fluxes(  &
-                        flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                        flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                        lo,hi)
-
-      use network, only : nspec
-      use meth_params_module, only : NVAR, URHO, UFS
-
-      implicit none
-
-      integer          :: lo(2),hi(2)
-      integer          :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
-      integer          :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
-      double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-      double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
-
-      ! Local variables
-      integer          :: i,j,n
-      double precision :: sum,fac
-
-      do j = lo(2),hi(2)
-            do i = lo(1),hi(1)+1
-               sum = 0.d0
-               do n = UFS, UFS+nspec-1
-                  sum = sum + flux1(i,j,n)
-               end do
-               if (sum .ne. 0.d0) then
-                  fac = flux1(i,j,URHO) / sum
-               else
-                  fac = 1.d0
-               end if
-               do n = UFS, UFS+nspec-1
-                  flux1(i,j,n) = flux1(i,j,n) * fac
-               end do
-            end do
-      end do
-      do j = lo(2),hi(2)+1
-            do i = lo(1),hi(1)
-               sum = 0.d0
-               do n = UFS, UFS+nspec-1
-                  sum = sum + flux2(i,j,n)
-               end do
-               if (sum .ne. 0.d0) then
-                  fac = flux2(i,j,URHO) / sum
-               else
-                  fac = 1.d0
-               end if
-               do n = UFS, UFS+nspec-1
-                  flux2(i,j,n) = flux2(i,j,n) * fac
-               end do
-            end do
-      end do
-
-      end subroutine normalize_species_fluxes
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine enforce_minimum_density( uin,  uin_l1, uin_l2, uin_h1, uin_h2, &
-                                          uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                                          lo, hi, mass_added, eint_added, eden_added, verbose)
-      use network, only : nspec, naux
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, &
-                                     UFS, UFX, UFA, small_dens, nadv
-
-      implicit none
-
-      integer          :: lo(2), hi(2), verbose
-      integer          :: uin_l1,uin_l2,uin_h1,uin_h2
-      integer          :: uout_l1,uout_l2,uout_h1,uout_h2
-      double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
-      double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-      double precision :: mass_added, eint_added, eden_added
-
-      ! Local variables
-      integer                       :: i,ii,j,jj,n
-      double precision              :: min_dens
-      double precision, allocatable :: fac(:,:)
-      double precision              :: initial_mass, final_mass
-      double precision              :: initial_eint, final_eint
-      double precision              :: initial_eden, final_eden
-
-      allocate(fac(lo(1):hi(1),lo(2):hi(2)))
-
-      initial_mass = 0.d0
-        final_mass = 0.d0
-      initial_eint = 0.d0
-        final_eint = 0.d0
-      initial_eden = 0.d0
-        final_eden = 0.d0
-
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-            initial_mass = initial_mass + uout(i,j,URHO)
-            initial_eint = initial_eint + uout(i,j,UEINT)
-            initial_eden = initial_eden + uout(i,j,UEDEN)
-
-            if (uout(i,j,URHO) .eq. 0.d0) then
-
-               print *,'   '
-               print *,'>>> Error: Castro_2d::enforce_minimum_density ',i,j
-               print *,'>>> ... density exactly zero in grid ',lo(1),hi(1),lo(2),hi(2)
-               print *,'    '
-               call bl_error("Error:: Castro_2d.f90 :: enforce_minimum_density")
-
-            else if (uout(i,j,URHO) < small_dens) then
-
-               min_dens = uin(i,j,URHO)
-               do jj = -1,1
-               do ii = -1,1
-                 min_dens = min(min_dens,uin(i+ii,j+jj,URHO))
-                 if (uout(i+ii,j+jj,URHO) > small_dens) &
-                   min_dens = min(min_dens,uout(i+ii,j+jj,URHO))
-               end do
-               end do
-
-               if (verbose .gt. 0) then
-                  if (uout(i,j,URHO) < 0.d0) then
-                     print *,'   '
-                     print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                     print *,'>>> ... resetting negative density '
-                     print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
-                     print *,'    '
-                  else
-                     print *,'   '
-                     print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                     print *,'>>> ... resetting small density '
-                     print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
-                     print *,'    '
-                  end if
-               end if
-
-               fac(i,j) = min_dens / uout(i,j,URHO)
-
-            end if
-
-         enddo
-      enddo
-
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-            if (uout(i,j,URHO) < small_dens) then
-
-               uout(i,j,URHO ) = uout(i,j,URHO ) * fac(i,j)
-               uout(i,j,UEINT) = uout(i,j,UEINT) * fac(i,j)
-               uout(i,j,UEDEN) = uout(i,j,UEDEN) * fac(i,j)
-               uout(i,j,UMX  ) = uout(i,j,UMX  ) * fac(i,j)
-               uout(i,j,UMY  ) = uout(i,j,UMY  ) * fac(i,j)
-
-               do n = UFS, UFS+nspec-1
-                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
-               end do
-               do n = UFX, UFX+naux-1
-                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
-               end do
-               do n = UFA, UFA+nadv-1
-                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
-               end do
-
-            end if
-
-            final_mass = final_mass + uout(i,j,URHO)
-            final_eint = final_eint + uout(i,j,UEINT)
-            final_eden = final_eden + uout(i,j,UEDEN)
-
-         enddo
-      enddo
-
-      mass_added = mass_added + (final_mass - initial_mass)
-      eint_added = eint_added + (final_eint - initial_eint)
-      eden_added = eden_added + (final_eden - initial_eden)
-
-      end subroutine enforce_minimum_density
-
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
@@ -480,138 +469,6 @@
       enddo
 
       end subroutine ca_enforce_nonnegative_species
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-      subroutine normalize_new_species(u,u_l1,u_l2,u_h1,u_h2,lo,hi)
-
-      use network, only : nspec
-      use meth_params_module, only : NVAR, URHO, UFS
-
-      implicit none
-
-      integer          :: lo(2), hi(2)
-      integer          :: u_l1,u_l2,u_h1,u_h2
-      double precision :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
-
-      ! Local variables
-      integer          :: i,j,n
-      double precision :: fac,sum
-
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-            sum = 0.d0
-            do n = UFS, UFS+nspec-1
-               sum = sum + u(i,j,n)
-            end do
-            if (sum .ne. 0.d0) then
-               fac = u(i,j,URHO) / sum
-            else
-               fac = 1.d0
-            end if
-            do n = UFS, UFS+nspec-1
-               u(i,j,n) = u(i,j,n) * fac
-            end do
-         end do
-      end do
-
-      end subroutine normalize_new_species
-
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-      subroutine reset_internal_e(u,u_l1,u_l2,u_h1,u_h2,lo,hi,verbose)
-
-      use eos_module
-      use network, only : nspec, naux
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, &
-                                     small_temp, allow_negative_energy
-
-      implicit none
-
-      integer          :: lo(2), hi(2), verbose
-      integer          :: u_l1,u_l2,u_h1,u_h2
-      double precision :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
-
-      ! Local variables
-      integer          :: i,j
-      integer          :: pt_index(2)
-      double precision :: Up, Vp, ke
-      double precision :: rho_eint, eint_new
-      double precision :: x_in(1:nspec+naux), dummy_pres
-
-      ! Reset internal energy if negative.
-      if (allow_negative_energy .eq. 0) then
-
-         do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-           Up = u(i,j,UMX) / u(i,j,URHO)
-           Vp = u(i,j,UMY) / u(i,j,URHO)
-
-           ke = 0.5d0 * u(i,j,URHO) * (Up**2 + Vp**2)
-
-           rho_eint = u(i,j,UEDEN) - ke
-
-           ! Reset (rho e) if e is greater than 0.01% of E.
-           if (rho_eint .gt. 0.d0 .and. rho_eint / u(i,j,UEDEN) .gt. 1.d-4) then
-
-               u(i,j,UEINT) = rho_eint
-
-           ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-           else if (u(i,j,UEINT) .gt. 0.d0) then
-
-               u(i,j,UEDEN) = u(i,j,UEINT) + ke
-
-           ! If not resetting and little e is negative ...
-           else if (u(i,j,UEINT) .le. 0.d0) then
-
-              x_in(1:nspec) = u(i,j,UFS:UFS+nspec-1) / u(i,j,URHO)
-              if (naux > 0) &
-                x_in(nspec+1:nspec+naux)  = u(i,j,UFX:UFX+naux -1) / u(i,j,URHO)
-
-              pt_index(1) = i
-              pt_index(2) = j
-
-              call eos_given_RTX(eint_new, dummy_pres, u(i,j,URHO), small_temp, x_in, pt_index=pt_index)
-              if (verbose .gt. 0) then
-                 print *,'   '
-                 print *,'>>> Warning: Castro_2d::reset_internal_energy  ',i,j 
-                 print *,'>>> ... resetting neg. e from EOS using small_temp'
-                 print *,'>>> ... from ',u(i,j,UEINT)/u(i,j,URHO),' to ', eint_new
-                 print *,'    '
-              end if
-
-              u(i,j,UEINT) = u(i,j,URHO) * eint_new
-              u(i,j,UEDEN) = u(i,j,URHO) * eint_new + ke
-
-           end if
-
-         enddo
-         enddo
-
-      ! If (allow_negative_energy .eq. 1) then just reset (rho e) from (rho E)
-      else
-
-         do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-
-           Up = u(i,j,UMX) / u(i,j,URHO)
-           Vp = u(i,j,UMY) / u(i,j,URHO)
-           ke = 0.5d0 * u(i,j,URHO) * (Up**2 + Vp**2)
-
-           u(i,j,UEINT) = u(i,j,UEDEN) - ke
-
-         enddo
-         enddo
-
-      endif
-
-    end subroutine reset_internal_e
 
 ! :::
 ! ::: ----------------------------------------------------------------

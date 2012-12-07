@@ -1,3 +1,13 @@
+module CastroCG_module
+
+  implicit none
+
+  private
+
+  public ctoprimcg, umeth1dcg
+
+contains
+
 !
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH1D     Compute hyperbolic fluxes using unsplit second
@@ -85,6 +95,7 @@
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
                                      QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
                                      QGAMC,QGAME, nadv, small_temp, allow_negative_energy
+      use advection_module, only : uflaten
 
       implicit none
 
@@ -230,6 +241,7 @@
       use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, QFA, QFS, QFX, & 
                                      QGAMC,QGAME,  &
                                      nadv, small_dens
+      use slope_module, only : uslope
       implicit none
 
       integer ilo,ihi
@@ -914,3 +926,4 @@
         return
       end subroutine wsqge
 
+end module CastroCG_module

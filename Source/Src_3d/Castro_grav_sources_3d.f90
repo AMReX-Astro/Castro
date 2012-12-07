@@ -1,3 +1,13 @@
+module grav_sources_module
+
+  implicit none
+
+  private
+
+  public add_grav_source
+
+contains
+
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::
@@ -96,6 +106,8 @@
       !$OMP END PARALLEL DO
 
       end subroutine add_grav_source
+
+end module grav_sources_module
 
 ! :::
 ! ::: ------------------------------------------------------------------

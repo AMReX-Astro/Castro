@@ -1,3 +1,12 @@
+module trace_module
+
+  implicit none
+
+  private
+
+  public trace
+
+contains
 
       subroutine trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
@@ -9,6 +18,7 @@
       use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
                                      QREINT, QPRES, QFA, QFS, QFX, &
                                      nadv, small_dens, ppm_type, use_pslope
+      use slope_module, only : uslope, pslope
 
       implicit none
 
@@ -480,3 +490,5 @@
          enddo
 
       end subroutine trace
+
+end module trace_module

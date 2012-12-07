@@ -1,3 +1,13 @@
+module ppm_module
+
+  implicit none
+
+  private 
+
+  public ppm
+
+contains
+  
       ! characteristics based on u
       subroutine ppm(s,qd_l1,qd_l2,qd_h1,qd_h2,u,cspd,Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -406,3 +416,5 @@
         deallocate(sp,sm,dsvl,sedge)
         
       end subroutine ppm
+
+end module ppm_module

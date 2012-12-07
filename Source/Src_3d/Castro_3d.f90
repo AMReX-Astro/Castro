@@ -1,3 +1,186 @@
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
+           uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+           uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+           ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+           ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+           ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+           src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+           delta,dt, &
+           flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+           flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+           flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+           area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
+           area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
+           area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
+           vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+           courno,verbose,mass_added,eint_added,eden_added,&
+           E_added_flux,E_added_grav)
+
+      use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
+                                     normalize_species
+      use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
+           normalize_new_species
+      use sponge_module, only : sponge
+      use grav_sources_module, only : add_grav_source
+
+      ! This is used for IsoTurb only
+      ! use probdata_module   , only : radiative_cooling_type
+
+      implicit none
+
+      integer is_finest_level
+      integer lo(3),hi(3),verbose
+      integer domlo(3),domhi(3)
+      integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
+      integer uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
+      integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
+      integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
+      integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
+      integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+      integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+      integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+      integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
+      integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
+      integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
+      integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
+      integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+      integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+      double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
+      double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
+      double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
+      double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
+      double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
+      double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
+      double precision  grav( gv_l1:gv_h1,  gv_l2:gv_h2,   gv_l3:gv_h3,    3)
+      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
+      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
+      double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
+      double precision area1(area1_l1:area1_h1,area1_l2:area1_h2, area1_l3:area1_h3)
+      double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
+      double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
+      double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
+      double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+      double precision mass_added,eint_added,eden_added
+
+      ! Automatic arrays for workspace
+      double precision, allocatable:: q(:,:,:,:)
+      double precision, allocatable:: gamc(:,:,:)
+      double precision, allocatable:: flatn(:,:,:)
+      double precision, allocatable:: c(:,:,:)
+      double precision, allocatable:: csml(:,:,:)
+      double precision, allocatable:: div(:,:,:)
+      double precision, allocatable:: pdivu(:,:,:)
+      double precision, allocatable:: srcQ(:,:,:,:)
+
+      double precision dx,dy,dz
+      integer ngq,ngf,iflaten
+
+      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QVAR))
+      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+      allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
+
+      allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
+
+      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR))
+
+      dx = delta(1)
+      dy = delta(2)
+      dz = delta(3)
+
+      ngq = NHYP
+      ngf = 1
+      iflaten = 1
+
+      ! 1) Translate conserved variables (u) to primitive variables (q).
+      ! 2) Compute sound speeds (c) and gamma (gamc).
+      !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
+      !    and set to correspond to coordinates of (lo:hi)
+      ! 3) Translate source terms
+      call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                   src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                   courno,dx,dy,dz,dt,ngq,ngf,iflaten)
+
+
+      ! Compute hyperbolic fluxes using unsplit Godunov
+      call umeth3d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                   srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                   grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                   lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
+                   flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                   flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                   flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                   ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+                   ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+                   ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+                   pdivu)
+
+      ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
+      call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
+
+      ! Conservative update
+      call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                  uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                  src ,  src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3, &
+                  flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                  flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                  flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                  area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
+                  area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
+                  area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
+                  vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+                  div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
+
+      ! Add the radiative cooling -- for SGS only.
+      ! if (radiative_cooling_type.eq.2) then
+      !    call post_step_radiative_cooling(lo,hi,dt, &
+      !         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3)
+      ! endif
+
+      ! Enforce the density >= small_dens.
+      call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
+                                   uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                                   lo,hi,mass_added,eint_added,eden_added,verbose)
+
+      ! Enforce species >= 0
+      call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
+                                          uout_h1,uout_h2,uout_h3,lo,hi)
+ 
+      ! Re-normalize the species
+      if (normalize_species .eq. 1) then
+         call normalize_new_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                                    lo,hi)
+      end if
+
+      call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                           uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                           grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                           lo,hi,dt,E_added_grav)
+
+      ! Impose sponge
+      if (do_sponge .eq. 1) then
+         call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
+                     time,dt, &
+                     dx,dy,dz,domlo,domhi)
+      end if
+
+      deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
+
+      end subroutine ca_umdrv
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
       subroutine ca_check_initial_species(lo,hi,&
                           state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3)
 
@@ -199,241 +382,6 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_l3, &
-                                          flux1_h1,flux1_h2,flux1_h3, &
-                                          flux2,flux2_l1,flux2_l2,flux2_l3, &
-                                          flux2_h1,flux2_h2,flux2_h3, &
-                                          flux3,flux3_l1,flux3_l2,flux3_l3, &
-                                          flux3_h1,flux3_h2,flux3_h3, &
-                                          lo,hi)
-
-      use network, only : nspec
-      use meth_params_module, only : NVAR, URHO, UFS
-
-      implicit none
-
-      integer          :: lo(3),hi(3)
-      integer          :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-      integer          :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-      integer          :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-      double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
-      double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
-      double precision :: flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-
-      ! Local variables
-      integer          :: i,j,k,n
-      double precision :: sum,fac
-
-      !$OMP PARALLEL PRIVATE(i,j,k,sum,n,fac)
-
-      !$OMP DO
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)+1
-               sum = 0.d0
-               do n = UFS, UFS+nspec-1
-                  sum = sum + flux1(i,j,k,n)
-               end do
-               if (sum .ne. 0.d0) then
-                  fac = flux1(i,j,k,URHO) / sum
-               else
-                  fac = 1.d0
-               end if
-               do n = UFS, UFS+nspec-1
-                  flux1(i,j,k,n) = flux1(i,j,k,n) * fac
-               end do
-            end do
-         end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)+1
-            do i = lo(1),hi(1)
-               sum = 0.d0
-               do n = UFS, UFS+nspec-1
-                  sum = sum + flux2(i,j,k,n)
-               end do
-               if (sum .ne. 0.d0) then
-                  fac = flux2(i,j,k,URHO) / sum
-               else
-                  fac = 1.d0
-               end if
-               do n = UFS, UFS+nspec-1
-                  flux2(i,j,k,n) = flux2(i,j,k,n) * fac
-               end do
-            end do
-         end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k = lo(3),hi(3)+1
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               sum = 0.d0
-               do n = UFS, UFS+nspec-1
-                  sum = sum + flux3(i,j,k,n)
-               end do
-               if (sum .ne. 0.d0) then
-                  fac = flux3(i,j,k,URHO) / sum
-               else
-                  fac = 1.d0
-               end if
-               do n = UFS, UFS+nspec-1
-                  flux3(i,j,k,n) = flux3(i,j,k,n) * fac
-               end do
-            end do
-         end do
-      end do
-      !$OMP END DO
-
-      !$OMP END PARALLEL
-
-      end subroutine normalize_species_fluxes
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      subroutine enforce_minimum_density(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                                         uout,uout_l1,uout_l2,uout_l3, &
-                                         uout_h1,uout_h2,uout_h3, &
-                                         lo,hi,mass_added,eint_added,eden_added,verbose)
-
-      use network, only : nspec, naux
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-                                     UFA, small_dens, nadv
-
-      implicit none
-
-      integer          :: lo(3), hi(3), verbose
-      integer          ::  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
-      integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-      double precision ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
-      double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-      double precision :: mass_added, eint_added, eden_added
-
-      ! Local variables
-      integer          :: i,ii,j,jj,k,kk,n
-      double precision :: min_dens
-      double precision, allocatable :: fac(:,:,:)
-
-      double precision :: initial_mass, final_mass
-      double precision :: initial_eint, final_eint
-      double precision :: initial_eden, final_eden
-
-      allocate(fac(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
-
-      initial_mass = 0.d0
-        final_mass = 0.d0
-
-      initial_eint = 0.d0
-        final_eint = 0.d0
-
-      initial_eden = 0.d0
-        final_eden = 0.d0
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-
-               initial_mass = initial_mass + uout(i,j,k,URHO)
-               initial_eint = initial_eint + uout(i,j,k,UEINT)
-               initial_eden = initial_eden + uout(i,j,k,UEDEN)
-
-               if (uout(i,j,k,URHO) .eq. 0.d0) then
-
-                  print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
-                  print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                  call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
-
-               else if (uout(i,j,k,URHO) < small_dens) then
-
-                  min_dens = uin(i,j,k,URHO)
-                  do kk = -1,1
-                  do jj = -1,1
-                  do ii = -1,1
-                    min_dens = min(min_dens,uin(i+ii,j+jj,k+kk,URHO))
-                    if ((ii.ne.0 .or. jj.ne.0 .or. kk.ne.0) .and. &
-                         uout(i+ii,j+jj,k+kk,URHO).gt.small_dens) &
-                      min_dens = min(min_dens,uout(i+ii,j+jj,k+kk,URHO))
-                  end do
-                  end do
-                  end do
-
-                  if (verbose .gt. 0) then
-                     if (uout(i,j,k,URHO) < 0.d0) then
-                        print *,'   '
-                        print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
-                        print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
-                        print *,'   '
-                     else
-                        print *,'   '
-                        print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
-                        print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
-                        print *,'   '
-                     end if
-                  end if
-
-                  fac(i,j,k) = min_dens / uout(i,j,k,URHO)
-
-               end if
-
-            enddo
-         enddo
-      enddo
-      !$OMP END PARALLEL DO
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-
-               if (uout(i,j,k,URHO) < small_dens) then
-
-                  uout(i,j,k,URHO ) = uout(i,j,k,URHO ) * fac(i,j,k)
-                  uout(i,j,k,UEINT) = uout(i,j,k,UEINT) * fac(i,j,k)
-                  uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) * fac(i,j,k)
-                  uout(i,j,k,UMX  ) = uout(i,j,k,UMX  ) * fac(i,j,k)
-                  uout(i,j,k,UMY  ) = uout(i,j,k,UMY  ) * fac(i,j,k)
-                  uout(i,j,k,UMZ  ) = uout(i,j,k,UMZ  ) * fac(i,j,k)
-   
-                  do n = UFS, UFS+nspec-1
-                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
-                  end do
-                  do n = UFX, UFX+naux-1
-                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
-                  end do
-                  do n = UFA, UFA+nadv-1
-                     uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
-                  end do
-
-               end if
-
-               final_mass = final_mass + uout(i,j,k,URHO)
-               final_eint = final_eint + uout(i,j,k,UEINT)
-               final_eden = final_eden + uout(i,j,k,UEDEN)
-
-            enddo
-         enddo
-      enddo
-      !$OMP END PARALLEL DO
-
-      mass_added = mass_added + final_mass - initial_mass
-      eint_added = eint_added + final_eint - initial_eint
-      eden_added = eden_added + final_eden - initial_eden
-
-      deallocate(fac)
-
-      end subroutine enforce_minimum_density
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
       subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                                                 uout_h1,uout_h2,uout_h3,lo,hi)
 
@@ -537,48 +485,6 @@
       !$OMP END PARALLEL DO
 
       end subroutine ca_enforce_nonnegative_species
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-      subroutine normalize_new_species(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi)
-
-      use network, only : nspec
-      use meth_params_module, only : NVAR, URHO, UFS
-
-      implicit none
-
-      integer          :: lo(3), hi(3)
-      integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
-      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
-
-      ! Local variables
-      integer          :: i,j,k,n
-      double precision :: fac,sum
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,sum,n,fac)
-      do k = lo(3),hi(3)
-      do j = lo(2),hi(2)
-         do i = lo(1),hi(1)
-            sum = 0.d0
-            do n = UFS, UFS+nspec-1
-               sum = sum + u(i,j,k,n)
-            end do
-            if (sum .ne. 0.d0) then
-               fac = u(i,j,k,URHO) / sum
-            else
-               fac = 1.d0
-            end if
-            do n = UFS, UFS+nspec-1
-               u(i,j,k,n) = u(i,j,k,n) * fac
-            end do
-         end do
-      end do
-      end do
-      !$OMP END PARALLEL DO
-
-      end subroutine normalize_new_species
 
 ! :::
 ! ::: ----------------------------------------------------------------

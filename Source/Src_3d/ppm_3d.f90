@@ -2,9 +2,9 @@ module ppm_module
 
   implicit none
 
-  public
+  private 
 
-  private :: ppm_type1, ppm_type2
+  public ppm
 
 contains
   !

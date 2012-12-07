@@ -1,165 +1,13 @@
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
+module advection_module
 
-      subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
-                          uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                          uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                          ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                          ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-                          src,src_l1,src_l2,src_h1,src_h2, &
-                          grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                          delta,dt, &
-                          flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                          flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                          area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-                          area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-                          dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                          vol,vol_l1,vol_l2,vol_h1,vol_h2,&
-                          courno,verbose,mass_added,eint_added,eden_added,&
-                          E_added_flux,E_added_grav)
+  implicit none
 
-      use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
-                                     do_sponge, normalize_species, allow_negative_energy
+  private
 
-      implicit none
-
-      integer is_finest_level
-      integer lo(2),hi(2),verbose
-      integer domlo(2),domhi(2)
-      integer uin_l1,uin_l2,uin_h1,uin_h2
-      integer uout_l1,uout_l2,uout_h1,uout_h2
-      integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-      integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
-      integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
-      integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
-      integer area1_l1,area1_l2,area1_h1,area1_h2
-      integer area2_l1,area2_l2,area2_h1,area2_h2
-      integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
-      integer vol_l1,vol_l2,vol_h1,vol_h2
-      integer src_l1,src_l2,src_h1,src_h2
-      integer gv_l1,gv_l2,gv_h1,gv_h2
-
-      double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
-      double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-      double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-      double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
-      double precision src(src_l1:src_h1,src_l2:src_h2,NVAR)
-      double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
-      double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
-      double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
-      double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-      double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
-      double precision delta(2),dt,time,courno,E_added_flux,E_added_grav
-      double precision mass_added,eint_added,eden_added
-
-!     Automatic arrays for workspace
-      double precision, allocatable:: q(:,:,:)
-      double precision, allocatable:: gamc(:,:)
-      double precision, allocatable:: flatn(:,:)
-      double precision, allocatable:: c(:,:)
-      double precision, allocatable:: csml(:,:)
-      double precision, allocatable:: div(:,:)
-      double precision, allocatable:: pgdx(:,:)
-      double precision, allocatable:: pgdy(:,:)
-      double precision, allocatable:: srcQ(:,:,:)
-      double precision, allocatable:: pdivu(:,:)
-
-      integer ngq,ngf,iflaten
-!     integer i_c,j_c
-
-      double precision dx,dy
-
-      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,QVAR))
-      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2))
-
-      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR))
-
-      allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
-      allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
-      allocate(  pgdx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1))
-      allocate(  pgdy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1))
-
-      dx = delta(1)
-      dy = delta(2)
-
-      ngq = NHYP
-      ngf = 1
-      iflaten = 1
-
-!     Translate to primitive variables, compute sound speeds
-!     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-!       and set to correspond to coordinates of (lo:hi)
-      call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   src,srcQ,src_l1,src_l2,src_h1,src_h2, &
-                   courno,dx,dy,dt,ngq,ngf,iflaten)
-
-!     Compute hyperbolic fluxes using unsplit Godunov
-      call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   srcQ, src_l1, src_l2, src_h1, src_h2,  &
-                   grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                   lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
-                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                   pgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-                   pgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
-                   ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                   ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-                   area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                   area2, area2_l1, area2_l2, area2_h1, area2_h2, &
-                   pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2)
-
-!     Compute divergence of velocity field (on surroundingNodes(lo,hi))
-      call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
-                delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
-
-!     Conservative update
-      call consup(uin,    uin_l1,  uin_l2,  uin_h1,  uin_h2, &
-                  uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
-                  pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-                  pgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
-                  src,    src_l1,  src_l2,  src_h1,  src_h2, &
-                  grav,    gv_l1,   gv_l2,   gv_h1,   gv_h2, &
-                  flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                  area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-                  area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-                  vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-                  div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
-
-      ! Enforce the density >= small_dens.
-      call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-                                   uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                                   lo,hi,mass_added,eint_added,eden_added,verbose)
-
-      ! Enforce the species >= 0
-      call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-
-      ! Normalize the species 
-      if (normalize_species .eq. 1) &
-         call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-
-      call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
-                           uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                           grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                           lo,hi,dt,E_added_grav)
-
-      if (do_sponge .eq. 1) &
-           call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
-                       time,dt, &
-                       dx,dy,domlo,domhi)
-
-      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
-
-      end subroutine ca_umdrv
+  public umeth2d, ctoprim, divu, consup, enforce_minimum_density, normalize_new_species
+  
+contains
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH2D     Compute hyperbolic fluxes using unsplit second
@@ -198,6 +46,8 @@
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, NVAR, ppm_type
+      use trace_module, only : trace
+      use trace_ppm_module, only : trace_ppm
 
       implicit none
 
@@ -740,6 +590,7 @@
                         idir,ilo,ihi,jlo,jhi)
 
       use meth_params_module, only : QVAR, NVAR
+      use riemann_module, only : riemannus
 
       implicit none
 
@@ -801,248 +652,6 @@
       deallocate(smallc,cavg,gamcm,gamcp)
 
       end subroutine cmpflx
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine riemannus(ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
-                           gamcl, gamcr, cav, smallc, gd_l1, gd_l2, gd_h1, gd_h2, &
-                           uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
-                           pgdnv, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
-                           ugdnv, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
-                           idir, ilo1, ihi1, ilo2, ihi2)
-
-      use network, only : nspec, naux
-      use prob_params_module, only : physbc_lo,physbc_hi,Symmetry
-      use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-                                     URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-                                     small_dens, small_pres
-
-      implicit none
-
-      double precision, parameter:: small = 1.d-8
-
-      integer qpd_l1, qpd_l2, qpd_h1, qpd_h2
-      integer gd_l1, gd_l2, gd_h1, gd_h2
-      integer uflx_l1, uflx_l2, uflx_h1, uflx_h2
-      integer pgd_l1, pgd_l2, pgd_h1, pgd_h2
-      integer ugd_l1, ugd_l2, ugd_h1, ugd_h2
-      integer idir, ilo1, ihi1, ilo2, ihi2
-      integer ilo,ihi,jlo,jhi
-
-      double precision ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-      double precision qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-      double precision gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision cav(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-      double precision pgdnv(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
-      double precision ugdnv(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
-
-      integer iadv, ispec, iaux, n, nq
-      integer i, j
-
-      double precision rgd, vgd, regd, ustar
-      double precision rl, ul, vl, pl, rel
-      double precision rr, ur, vr, pr, rer
-      double precision wl, wr, rhoetot, scr
-      double precision rstar, cstar, estar, pstar
-      double precision ro, uo, po, reo, co, gamco, entho
-      double precision sgnm, spin, spout, ushock, frac
-      double precision wsmall, csmall,qavg
-
-!************************************************************
-!  set min/max based on normal direction
-      if(idir.eq.1) then
-         ilo = ilo1
-         ihi = ihi1 + 1
-         jlo = ilo2
-         jhi = ihi2
-      else
-         ilo = ilo1
-         ihi = ihi1
-         jlo = ilo2
-         jhi = ihi2+1
-      endif
-
-!     Solve Riemann Problem
-!     NOTE: The calling routine will order velocity unknowns so that
-!     for the purposes of this routine, the normal component is always
-!     loaded in the QU slot.
-      do j = jlo, jhi
-         do i = ilo, ihi
-
-            rl = ql(i,j,QRHO)
-
-!  pick left velocities based on direction
-            if(idir.eq.1) then
-               ul = ql(i,j,QU)
-               vl = ql(i,j,QV)
-            else
-               ul = ql(i,j,QV)
-               vl = ql(i,j,QU)
-            endif
-
-            pl = ql(i,j,QPRES)
-            rel = ql(i,j,QREINT)
-
-            rr = qr(i,j,QRHO)
-
-!  pick right velocities based on direction
-            if(idir.eq.1) then
-               ur = qr(i,j,QU)
-               vr = qr(i,j,QV)
-            else
-               ur = qr(i,j,QV)
-               vr = qr(i,j,QU)
-            endif
-
-            pr = qr(i,j,QPRES)
-            rer = qr(i,j,QREINT)
-
-            csmall = smallc(i,j)
-            wsmall = small_dens*csmall
-            wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
-            wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
-
-            pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-            pstar = max(pstar,small_pres)
-            ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
-
-            if (ustar .gt. 0.d0) then
-               ro = rl
-               uo = ul
-               po = pl
-               reo = rel
-               gamco = gamcl(i,j)
-            else if (ustar .lt. 0.d0) then
-               ro = rr
-               uo = ur
-               po = pr
-               reo = rer
-               gamco = gamcr(i,j)
-            else
-               ro = 0.5d0*(rl+rr)
-               uo = 0.5d0*(ul+ur)
-               po = 0.5d0*(pl+pr)
-               reo = 0.5d0*(rel+rer)
-               gamco = 0.5d0*(gamcl(i,j)+gamcr(i,j))               
-            endif
-            ro = max(small_dens,ro)
-
-            co = sqrt(abs(gamco*po/ro))
-            co = max(csmall,co)
-            entho = (reo/ro + po/ro)/co**2
-            rstar = ro + (pstar - po)/co**2
-            rstar = max(small_dens,rstar)
-            estar = reo + (pstar - po)*entho
-            cstar = sqrt(abs(gamco*pstar/rstar))
-            cstar = max(cstar,csmall)
-
-            sgnm = sign(1.d0,ustar)
-            spout = co - sgnm*uo
-            spin = cstar - sgnm*ustar
-            ushock = 0.5d0*(spin + spout)
-            if (pstar-po .ge. 0.d0) then
-               spin = ushock
-               spout = ushock
-            endif
-            if (spout-spin .eq. 0.d0) then
-               scr = small*cav(i,j)
-            else
-               scr = spout-spin
-            endif
-            frac = (1.d0 + (spout + spin)/scr)*0.5d0
-            frac = max(0.d0,min(1.d0,frac))
-
-            if (ustar .gt. 0.d0) then
-               vgd = vl
-            else if (ustar .lt. 0.d0) then
-               vgd = vr
-            else
-               vgd = 0.5d0*(vl+vr)
-            endif
-            rgd = frac*rstar + (1.d0 - frac)*ro
-
-            ugdnv(i,j) = frac*ustar + (1.d0 - frac)*uo
-            pgdnv(i,j) = frac*pstar + (1.d0 - frac)*po
-
-            regd = frac*estar + (1.d0 - frac)*reo
-            if (spout .lt. 0.d0) then
-               rgd = ro
-               ugdnv(i,j) = uo
-               pgdnv(i,j) = po
-               regd = reo
-            endif
-            if (spin .ge. 0.d0) then
-               rgd = rstar
-               ugdnv(i,j) = ustar
-               pgdnv(i,j) = pstar
-               regd = estar
-            endif
-
-            ! Enforce that fluxes through a symmetry plane are hard zero.
-            if (i.eq.0 .and. physbc_lo(1) .eq. Symmetry .and. idir .eq. 1) ugdnv(i,j) = 0.d0
-            if (j.eq.0 .and. physbc_lo(2) .eq. Symmetry .and. idir .eq. 2) ugdnv(i,j) = 0.d0
-
-            ! Compute fluxes, order as conserved state (not q)
-            uflx(i,j,URHO) = rgd*ugdnv(i,j)
-            if(idir.eq.1) then
-               uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
-               uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
-            else
-               uflx(i,j,UMX) = uflx(i,j,URHO)*vgd
-               uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
-            endif
-
-            rhoetot = regd + 0.5d0*rgd*(ugdnv(i,j)**2 + vgd**2)
-            uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
-            uflx(i,j,UEINT) = ugdnv(i,j)*regd
-
-            do iadv = 1, nadv
-               n = UFA + iadv - 1
-               nq = QFA + iadv - 1
-               if (ustar .gt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-               else if (ustar .lt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-               else 
-                  qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))
-                  uflx(i,j,n) = uflx(i,j,URHO)*qavg
-               endif
-            enddo
-
-            do ispec = 1, nspec
-               n  = UFS + ispec - 1
-               nq = QFS + ispec - 1
-               if (ustar .gt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-               else if (ustar .lt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-               else 
-                  qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))
-                  uflx(i,j,n) = uflx(i,j,URHO)*qavg
-               endif
-            enddo
-
-            do iaux = 1, naux
-               n  = UFX + iaux - 1
-               nq = QFX + iaux - 1
-               if (ustar .gt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-               else if (ustar .lt. 0.d0) then
-                  uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-               else 
-                  qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))
-                  uflx(i,j,n) = uflx(i,j,URHO)*qavg
-               endif
-            enddo
-
-         enddo
-      enddo
-      end subroutine riemannus
 
 ! ::: 
 ! ::: ------------------------------------------------------------------
@@ -1467,219 +1076,6 @@
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-      subroutine uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                        dq,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        ilo1,ilo2,ihi1,ihi2,nv,idir)
-        
-        implicit none
-
-        integer ilo,ihi
-        integer qd_l1,qd_l2,qd_h1,qd_h2
-        integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-        integer ilo1,ilo2,ihi1,ihi2,nv,idir
-
-        double precision     q( qd_l1: qd_h1, qd_l2: qd_h2,nv)
-        double precision flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-        double precision    dq(qpd_l1:qpd_h1,qpd_l2:qpd_h2,nv)
-
-        ! local
-        double precision, allocatable::dsgn(:),dlim(:),df(:),dcen(:)
-
-        integer i, j, n
-        double precision dlft, drgt, dq1
-        double precision four3rd, sixth
-
-        four3rd = 4.d0/3.d0
-        sixth = 1.d0/6.d0
-
-        ilo = MIN(ilo1,ilo2)
-        ihi = MAX(ihi1,ihi2)
-
-        allocate (dsgn(ilo-2:ihi+2))
-        allocate (dlim(ilo-2:ihi+2))
-        allocate (  df(ilo-2:ihi+2))
-        allocate (dcen(ilo-2:ihi+2))
-
-        do n = 1, nv 
-
-           if (idir .eq. 1) then
-
-              ! Slopes in first coordinate direction
-              do j = ilo2-1, ihi2+1
-                 ! First compute Fromm slopes
-                 do i = ilo1-2, ihi1+2
-                    dlft = q(i  ,j,n) - q(i-1,j,n)
-                    drgt = q(i+1,j,n) - q(i  ,j,n)
-
-                    dcen(i) = 0.5d0*(dlft+drgt)
-                    dsgn(i) = sign(1.d0, dcen(i))
-
-                    if (dlft*drgt .ge. 0.d0) then
-                       dlim(i) = 2.d0 * min( abs(dlft), abs(drgt) )
-                    else
-                       dlim(i) = 0.d0
-                    endif
-                    df(i) = dsgn(i)*min( dlim(i), abs(dcen(i)) )
-                 enddo
-
-                 ! now limited fourth order slopes
-                 do i = ilo1-1, ihi1+1
-                    dq1 = four3rd*dcen(i) - sixth*(df(i+1) + df(i-1))
-                    dq(i,j,n) = flatn(i,j)*dsgn(i)*min(dlim(i),abs(dq1))
-                 enddo
-              enddo
-
-           else
-
-              ! Slopes in second coordinate direction
-              do i = ilo1-1, ihi1+1
-                 ! First compute Fromm slopes
-                 do j = ilo2-2, ihi2+2
-                    dlft = q(i,j  ,n) - q(i,j-1,n)
-                    drgt = q(i,j+1,n) - q(i,j  ,n)
-
-                    dcen(j) = 0.5d0*(dlft+drgt)
-                    dsgn(j) = sign( 1.d0, dcen(j) )
-
-                    if (dlft*drgt .ge. 0.d0) then
-                       dlim(j) = 2.d0 * min( abs(dlft), abs(drgt) )
-                    else
-                       dlim(j) = 0.d0
-                    endif
-                    df(j) = dsgn(j)*min( dlim(j),abs(dcen(j)) )
-                 enddo
-
-                 ! now limited fourth order slopes
-                 do j = ilo2-1, ihi2+1
-                    dq1 = four3rd*dcen(j) - sixth*(df(j+1) + df(j-1))
-                    dq(i,j,n) = flatn(i,j)*dsgn(j)*min(dlim(j),abs(dq1))
-                 enddo
-              enddo
-
-           endif
-
-        enddo
-
-        deallocate(dsgn,dlim,df,dcen)
-
-      end subroutine uslope
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine pslope(p,rho,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                        dp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                        ilo1,ilo2,ihi1,ihi2,dx,dy,idir)
-        
-        implicit none
-
-        integer ilo,ihi
-        integer qd_l1,qd_l2,qd_h1,qd_h2
-        integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-        integer gv_l1,gv_l2,gv_h1,gv_h2
-        integer ilo1,ilo2,ihi1,ihi2,idir
-
-        double precision, intent(in   ) ::      p( qd_l1: qd_h1, qd_l2: qd_h2)
-        double precision, intent(in   ) ::    rho( qd_l1: qd_h1, qd_l2: qd_h2)
-        double precision, intent(in   ) ::  flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-        double precision, intent(  out) ::     dp(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
-        double precision, intent(in   ) ::   grav( gv_l1: gv_h1, gv_l2: gv_h2,2)
-        double precision, intent(in   ) ::  dx,dy
-
-        ! local
-        double precision, allocatable::dsgn(:),dlim(:),df(:),dcen(:)
-
-        integer i, j
-        double precision dlft, drgt, dp1
-        double precision four3rd, sixth
-
-        four3rd = 4.d0/3.d0
-        sixth = 1.d0/6.d0
-
-        ilo = MIN(ilo1,ilo2)
-        ihi = MAX(ihi1,ihi2)
-
-        allocate (dsgn(ilo-2:ihi+2))
-        allocate (dlim(ilo-2:ihi+2))
-        allocate (  df(ilo-2:ihi+2))
-        allocate (dcen(ilo-2:ihi+2))
-
-        if (idir .eq. 1) then
-
-           ! Slopes in first coordinate direction
-           do j = ilo2-1, ihi2+1
-              ! First compute Fromm slopes
-              do i = ilo1-2, ihi1+2
-                 dlft = p(i  ,j) - p(i-1,j)
-                 drgt = p(i+1,j) - p(i  ,j)
-
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * (rho(i,j)+rho(i-1,j))*(grav(i,j,1)+grav(i-1,j,1))*dx
-                 drgt = drgt - 0.25d0 * (rho(i,j)+rho(i+1,j))*(grav(i,j,1)+grav(i+1,j,1))*dx
-
-                 dcen(i) = 0.5d0*(dlft+drgt)
-                 dsgn(i) = sign(1.d0, dcen(i))
-
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(i) = 2.d0 * min( abs(dlft), abs(drgt) )
-                 else
-                    dlim(i) = 0.d0
-                 endif
-                 df(i) = dsgn(i)*min( dlim(i), abs(dcen(i)) )
-              enddo
-
-              ! now limited fourth order slopes
-              do i = ilo1-1, ihi1+1
-                 dp1 = four3rd*dcen(i) - sixth*(df(i+1) + df(i-1))
-                 dp(i,j) = flatn(i,j)*dsgn(i)*min(dlim(i),abs(dp1))
-                 dp(i,j) = dp(i,j) + rho(i,j)*grav(i,j,1)*dx
-              enddo
-           enddo
-
-        else
-
-           ! Slopes in second coordinate direction
-           do i = ilo1-1, ihi1+1
-              ! First compute Fromm slopes
-              do j = ilo2-2, ihi2+2
-                 dlft = p(i,j  ) - p(i,j-1)
-                 drgt = p(i,j+1) - p(i,j  )
-
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * (rho(i,j)+rho(i,j-1))*(grav(i,j,2)+grav(i,j-1,2))*dy
-                 drgt = drgt - 0.25d0 * (rho(i,j)+rho(i,j+1))*(grav(i,j,2)+grav(i,j+1,2))*dy
-
-                 dcen(j) = 0.5d0*(dlft+drgt)
-                 dsgn(j) = sign( 1.d0, dcen(j) )
-
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(j) = 2.d0 * min( abs(dlft), abs(drgt) )
-                 else
-                    dlim(j) = 0.d0
-                 endif
-                 df(j) = dsgn(j)*min( dlim(j),abs(dcen(j)) )
-              enddo
-
-              ! now limited fourth order slopes
-              do j = ilo2-1, ihi2+1
-                 dp1 = four3rd*dcen(j) - sixth*(df(j+1) + df(j-1))
-                 dp(i,j) = flatn(i,j)*dsgn(j)*min(dlim(j),abs(dp1))
-                 dp(i,j) = dp(i,j) + rho(i,j)*grav(i,j,2)*dy
-              enddo
-           enddo
-
-        endif
-
-        deallocate(dsgn,dlim,df,dcen)
-
-      end subroutine pslope
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
       subroutine uflaten(lo,hi,p,u,v,flatn, &
                          q_l1,q_l2,q_h1,q_h2)
 
@@ -1858,3 +1254,223 @@
 
       end subroutine divu
 
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine normalize_species_fluxes(  &
+                        flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                        flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                        lo,hi)
+
+      use network, only : nspec
+      use meth_params_module, only : NVAR, URHO, UFS
+
+      implicit none
+
+      integer          :: lo(2),hi(2)
+      integer          :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
+      integer          :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
+      double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
+      double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+
+      ! Local variables
+      integer          :: i,j,n
+      double precision :: sum,fac
+
+      do j = lo(2),hi(2)
+            do i = lo(1),hi(1)+1
+               sum = 0.d0
+               do n = UFS, UFS+nspec-1
+                  sum = sum + flux1(i,j,n)
+               end do
+               if (sum .ne. 0.d0) then
+                  fac = flux1(i,j,URHO) / sum
+               else
+                  fac = 1.d0
+               end if
+               do n = UFS, UFS+nspec-1
+                  flux1(i,j,n) = flux1(i,j,n) * fac
+               end do
+            end do
+      end do
+      do j = lo(2),hi(2)+1
+            do i = lo(1),hi(1)
+               sum = 0.d0
+               do n = UFS, UFS+nspec-1
+                  sum = sum + flux2(i,j,n)
+               end do
+               if (sum .ne. 0.d0) then
+                  fac = flux2(i,j,URHO) / sum
+               else
+                  fac = 1.d0
+               end if
+               do n = UFS, UFS+nspec-1
+                  flux2(i,j,n) = flux2(i,j,n) * fac
+               end do
+            end do
+      end do
+
+      end subroutine normalize_species_fluxes
+
+! ::: 
+! ::: ------------------------------------------------------------------
+! ::: 
+
+      subroutine enforce_minimum_density( uin,  uin_l1, uin_l2, uin_h1, uin_h2, &
+                                          uout,uout_l1,uout_l2,uout_h1,uout_h2, &
+                                          lo, hi, mass_added, eint_added, eden_added, verbose)
+      use network, only : nspec, naux
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, &
+                                     UFS, UFX, UFA, small_dens, nadv
+
+      implicit none
+
+      integer          :: lo(2), hi(2), verbose
+      integer          :: uin_l1,uin_l2,uin_h1,uin_h2
+      integer          :: uout_l1,uout_l2,uout_h1,uout_h2
+      double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
+      double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
+      double precision :: mass_added, eint_added, eden_added
+
+      ! Local variables
+      integer                       :: i,ii,j,jj,n
+      double precision              :: min_dens
+      double precision, allocatable :: fac(:,:)
+      double precision              :: initial_mass, final_mass
+      double precision              :: initial_eint, final_eint
+      double precision              :: initial_eden, final_eden
+
+      allocate(fac(lo(1):hi(1),lo(2):hi(2)))
+
+      initial_mass = 0.d0
+        final_mass = 0.d0
+      initial_eint = 0.d0
+        final_eint = 0.d0
+      initial_eden = 0.d0
+        final_eden = 0.d0
+
+      do j = lo(2),hi(2)
+         do i = lo(1),hi(1)
+
+            initial_mass = initial_mass + uout(i,j,URHO)
+            initial_eint = initial_eint + uout(i,j,UEINT)
+            initial_eden = initial_eden + uout(i,j,UEDEN)
+
+            if (uout(i,j,URHO) .eq. 0.d0) then
+
+               print *,'   '
+               print *,'>>> Error: Castro_2d::enforce_minimum_density ',i,j
+               print *,'>>> ... density exactly zero in grid ',lo(1),hi(1),lo(2),hi(2)
+               print *,'    '
+               call bl_error("Error:: Castro_2d.f90 :: enforce_minimum_density")
+
+            else if (uout(i,j,URHO) < small_dens) then
+
+               min_dens = uin(i,j,URHO)
+               do jj = -1,1
+               do ii = -1,1
+                 min_dens = min(min_dens,uin(i+ii,j+jj,URHO))
+                 if (uout(i+ii,j+jj,URHO) > small_dens) &
+                   min_dens = min(min_dens,uout(i+ii,j+jj,URHO))
+               end do
+               end do
+
+               if (verbose .gt. 0) then
+                  if (uout(i,j,URHO) < 0.d0) then
+                     print *,'   '
+                     print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                     print *,'>>> ... resetting negative density '
+                     print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
+                     print *,'    '
+                  else
+                     print *,'   '
+                     print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                     print *,'>>> ... resetting small density '
+                     print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
+                     print *,'    '
+                  end if
+               end if
+
+               fac(i,j) = min_dens / uout(i,j,URHO)
+
+            end if
+
+         enddo
+      enddo
+
+      do j = lo(2),hi(2)
+         do i = lo(1),hi(1)
+
+            if (uout(i,j,URHO) < small_dens) then
+
+               uout(i,j,URHO ) = uout(i,j,URHO ) * fac(i,j)
+               uout(i,j,UEINT) = uout(i,j,UEINT) * fac(i,j)
+               uout(i,j,UEDEN) = uout(i,j,UEDEN) * fac(i,j)
+               uout(i,j,UMX  ) = uout(i,j,UMX  ) * fac(i,j)
+               uout(i,j,UMY  ) = uout(i,j,UMY  ) * fac(i,j)
+
+               do n = UFS, UFS+nspec-1
+                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
+               end do
+               do n = UFX, UFX+naux-1
+                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
+               end do
+               do n = UFA, UFA+nadv-1
+                  uout(i,j,n) = uout(i,j,n) * fac(i,j)
+               end do
+
+            end if
+
+            final_mass = final_mass + uout(i,j,URHO)
+            final_eint = final_eint + uout(i,j,UEINT)
+            final_eden = final_eden + uout(i,j,UEDEN)
+
+         enddo
+      enddo
+
+      mass_added = mass_added + (final_mass - initial_mass)
+      eint_added = eint_added + (final_eint - initial_eint)
+      eden_added = eden_added + (final_eden - initial_eden)
+
+      end subroutine enforce_minimum_density
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+      subroutine normalize_new_species(u,u_l1,u_l2,u_h1,u_h2,lo,hi)
+
+      use network, only : nspec
+      use meth_params_module, only : NVAR, URHO, UFS
+
+      implicit none
+
+      integer          :: lo(2), hi(2)
+      integer          :: u_l1,u_l2,u_h1,u_h2
+      double precision :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
+
+      ! Local variables
+      integer          :: i,j,n
+      double precision :: fac,sum
+
+      do j = lo(2),hi(2)
+         do i = lo(1),hi(1)
+            sum = 0.d0
+            do n = UFS, UFS+nspec-1
+               sum = sum + u(i,j,n)
+            end do
+            if (sum .ne. 0.d0) then
+               fac = u(i,j,URHO) / sum
+            else
+               fac = 1.d0
+            end if
+            do n = UFS, UFS+nspec-1
+               u(i,j,n) = u(i,j,n) * fac
+            end do
+         end do
+      end do
+
+      end subroutine normalize_new_species
+
+end module advection_module

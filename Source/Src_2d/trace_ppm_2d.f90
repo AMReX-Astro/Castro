@@ -1,3 +1,12 @@
+module trace_ppm_module
+
+  implicit none
+
+  private
+
+  public trace_ppm
+
+contains
 
       subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
            dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
@@ -8,6 +17,7 @@
         use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
              QREINT, QPRES, QFA, QFS, QFX, &
              nadv, small_dens, ppm_type
+        use ppm_module, only : ppm
 
         implicit none
 
@@ -557,3 +567,5 @@
         deallocate(Ip,Im)
 
       end subroutine trace_ppm
+
+end module trace_ppm_module
