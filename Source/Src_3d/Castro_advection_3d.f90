@@ -1,11 +1,11 @@
-
 module advection_module
 
   implicit none
 
   private
 
-  public umeth3d, ctoprim, divu, consup, enforce_minimum_density, normalize_new_species
+  public umeth3d, ctoprim, divu, consup, enforce_minimum_density, normalize_new_species, &
+       normalize_species_fluxes, uflaten
   
 contains
 

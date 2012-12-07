@@ -4,7 +4,8 @@ module advection_module
 
   private
 
-  public umeth1d, ctoprim, consup, enforce_minimum_density, normalize_new_species, uflaten
+  public umeth1d, ctoprim, consup, enforce_minimum_density, normalize_new_species, &
+       normalize_species_fluxes, uflaten
 
 contains
 
