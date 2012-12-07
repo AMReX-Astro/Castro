@@ -139,7 +139,7 @@
 !     Load advected quatities, c, into q, assuming they arrived in uin as rho.c
       do iadv = 1, nadv
          n = UFA + iadv - 1
-         nq = QFA + iadv - 1
+         nqs = QFA + iadv - 1
          q(loq(1):hiq(1),nqs) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
       enddo
       
@@ -210,7 +210,7 @@
          call uflaten(loq,hiq, &
                       q(q_l1,QPRES), &
                       q(q_l1,QU), &
-                      c,flatn,q_l1,q_h1)
+                      flatn,q_l1,q_h1)
 
 
       endif
