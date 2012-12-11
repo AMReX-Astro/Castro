@@ -17,8 +17,6 @@ contains
                                grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
                                lo,hi,dt,E_added)
 
-      use network, only : nspec, naux
-      use eos_module
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
 
       implicit none
