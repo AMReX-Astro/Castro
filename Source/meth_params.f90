@@ -6,7 +6,7 @@ module meth_params_module
 
   implicit none
 
-  double precision, save :: difmag        ! used only in consup to weight the divu contributin
+  double precision, save :: difmag        ! used only in consup to weight the divu contribution
   integer         , save :: iorder        ! used only in uslope and uflaten
 
   integer, parameter     :: NHYP    = 4
@@ -47,5 +47,7 @@ module meth_params_module
   double precision, save :: outflow_data_new_time
   logical         , save :: outflow_data_allocated
   double precision, save :: max_dist
+
+  double precision, save :: rot_freq
 
 end module meth_params_module

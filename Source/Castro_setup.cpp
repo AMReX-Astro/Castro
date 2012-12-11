@@ -175,12 +175,16 @@ Castro::variableSetUp ()
 
     const Real run_strt = ParallelDescriptor::second() ; 
 
+#ifndef ROTATION
+    static Real rotational_frequency = 0;
+#endif
+
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, 
          allow_negative_energy,ppm_type,ppm_reference,use_colglaz,use_pslope, 
 	 grav_source_type, do_sponge,
-         gamma,normalize_species,fix_mass_flux,use_sgs);
+         gamma,normalize_species,fix_mass_flux,use_sgs,rotational_frequency);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  

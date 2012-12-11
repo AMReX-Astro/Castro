@@ -1,9 +1,9 @@
   subroutine ca_rotate(lo,hi, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        rot_src,rot_src_l1,rot_src_l2,rot_src_h1,rot_src_h2, &
-                       problo,dx,rot_freq)
+                       problo,dx)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_freq
     use probdata_module, only: center
     use prob_params_module, only: coord_type
 
@@ -15,7 +15,6 @@
     double precision, intent(in   ) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
     double precision, intent(inout) :: rot_src(rot_src_l1:rot_src_h1,rot_src_l2:rot_src_h2,2+1)
     double precision, intent(in   ) :: problo(2), dx(2)
-    double precision, intent(in   ) :: rot_freq
 
     integer          :: i,j
     double precision :: x,y,r(3)

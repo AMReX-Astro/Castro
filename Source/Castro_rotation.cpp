@@ -27,7 +27,7 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
 	  (bx.loVect(), bx.hiVect(),
 	   BL_TO_FORTRAN(Old_fpi()),
 	   BL_TO_FORTRAN(OldRotationTerms[Old_fpi]),
-	   prob_lo, dx, &rotational_frequency);
+	   prob_lo, dx);
       }
 
     // Add the source terms to ext_src_old
@@ -58,7 +58,7 @@ void Castro::time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerms, R
 	  (bx.loVect(), bx.hiVect(),
 	   BL_TO_FORTRAN(New_fpi()),
 	   BL_TO_FORTRAN(NewRotationTerms[New_fpi]),
-	   prob_lo, dx, &rotational_frequency);
+	   prob_lo, dx);
       }
 
     NewRotationTerms.mult( 0.5*dt);
