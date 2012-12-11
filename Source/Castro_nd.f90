@@ -269,8 +269,7 @@
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_freq_in
 
-        integer             :: usecolglaz, QLAST
-        parameter (usecolglaz = 0)
+        integer             :: QLAST
 
         call parallel_initialize()
 
@@ -321,7 +320,7 @@
         ! QVAR  : number of total variables in primitive form
 
         QTHERM = NTHERM
-        if (usecolglaz.eq.1) QTHERM = QTHERM + 2
+        if (use_colglaz_in == 1) QTHERM = QTHERM + 2
 
         QVAR = QTHERM + nspec + naux + numadv
 
@@ -341,7 +340,7 @@
            QLAST = 4
         end if
 
-        if (usecolglaz.eq.1) then
+        if (use_colglaz_in == 1) then
            QGAME   = QLAST + 1
            QGAMC   = QLAST + 2
            QLAST   = QGAMC
