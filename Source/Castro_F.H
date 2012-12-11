@@ -512,7 +512,7 @@ BL_FORT_PROC_DECL(CA_ROTATE,ca_rotate)
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(rotation_terms),
-     const Real* prob_lo, const Real* dx, const Real* freq);
+     const Real* prob_lo, const Real* dx);
 #endif
 
 /* problem-specific includes */
