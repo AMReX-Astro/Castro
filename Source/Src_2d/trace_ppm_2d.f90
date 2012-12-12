@@ -16,7 +16,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QFA, QFS, QFX, &
-         nadv, small_dens, ppm_type, ppm_reference
+         nadv, small_dens, small_pres, ppm_type, ppm_reference
     use ppm_module, only : ppm
 
     implicit none
@@ -205,8 +205,11 @@ contains
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
              qxp(i,j,QU) = u_ref + (apright - amright)*cc/rho
              qxp(i,j,QV) = v_ref + azv1rght
-             qxp(i,j,QPRES) = p_ref + (apright + amright)*csq
+
              qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+
+             qxp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
           end if
 
           ! minus state on face i+1
@@ -287,8 +290,11 @@ contains
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
              qxm(i+1,j,QU) = u_ref + (apleft - amleft)*cc/rho
              qxm(i+1,j,QV) = v_ref + azv1left
-             qxm(i+1,j,QPRES) = p_ref + (apleft + amleft)*csq
+
              qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
+             qxm(i+1,j,QPRES) = p_ref + (apleft + amleft)*csq
+             qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
           end if
 
           ! geometry source terms
@@ -522,8 +528,11 @@ contains
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
              qyp(i,j,QV) = v_ref + (apright - amright)*cc/rho
              qyp(i,j,QU) = u_ref + azu1rght
-             qyp(i,j,QPRES) = p_ref + (apright + amright)*csq
+
              qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+
+             qyp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
           end if
           
           ! minus state on face j+1
@@ -603,8 +612,11 @@ contains
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
              qym(i,j+1,QV) = v_ref + (apleft - amleft)*cc/rho
              qym(i,j+1,QU) = u_ref + azu1left
-             qym(i,j+1,QPRES) = p_ref + (apleft + amleft)*csq
+
              qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
+             qym(i,j+1,QPRES) = p_ref + (apleft + amleft)*csq
+             qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
           end if
 
        end do
