@@ -105,6 +105,11 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
 void
 Castro::variableSetUp ()
 {
+
+  // Castro::variableSetUp is called in the constructor of Amr.cpp, so
+  // it should get called every time we start or restart a job, right
+  // before the inputs file is parmParsed.
+
     BL_ASSERT(desc_lst.size() == 0);
 
     // Initialize the runtime parameters for any of the external
