@@ -965,6 +965,25 @@ Castro::writePlotFile (const std::string& dir,
 	jobInfoFile << "\n\n";
 
 
+	// grid information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Grid Information\n";
+	jobInfoFile << PrettyLine;
+
+	for (i = 0; i <= f_lev; i++)
+	  {
+	    jobInfoFile << "level: " << i << "\n";
+	    jobInfoFile << "  number of boxes = " << parent->numGrids(i) << "\n";
+	    jobInfoFile << "  maximum zones   = ";
+	    for (n = 0; n < BL_SPACEDIM; n++)
+	      {
+		jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
+		//jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
+	      }
+	    jobInfoFile << "\n\n";
+	  }
+	     
+
 	// runtime parameters
 	jobInfoFile << PrettyLine;
 	jobInfoFile << " Inputs File Parameters\n";
