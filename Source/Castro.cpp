@@ -891,6 +891,8 @@ Castro::writePlotFile (const std::string& dir,
 	std::ofstream jobInfoFile;
 	std::string FullPathJobInfoFile = dir;
 	std::string PrettyLine = "===============================================================================\n";
+	std::string OtherLine = "--------------------------------------------------------------------------------\n";
+	std::string SkipSpace = "        ";
 
 	FullPathJobInfoFile += "/job_info";
 	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
@@ -982,7 +984,54 @@ Castro::writePlotFile (const std::string& dir,
 	      }
 	    jobInfoFile << "\n\n";
 	  }
-	     
+	jobInfoFile << "\n";
+
+
+	// species info
+	Real Aion = 0.0;
+	Real Zion = 0.0;
+
+	int mlen = 20;
+
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Species Information\n";
+	jobInfoFile << PrettyLine;
+	
+	jobInfoFile << 
+	      std::setw(6) << "index" << SkipSpace << 
+	      std::setw(mlen+1) << "name" << SkipSpace <<
+	      std::setw(7) << "A" << SkipSpace <<
+	      std::setw(7) << "Z" << "\n";
+	jobInfoFile << OtherLine;
+
+	for (int i = 0; i < NumSpec; i++)
+          {
+
+	    int len = mlen;
+	    Array<int> int_spec_names(len);
+	    //
+	    // This call return the actual length of each string in "len"
+	    //
+	    BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)
+	      (int_spec_names.dataPtr(),&i,&len);
+	    char* spec_name = new char[len+1];
+	    for (int j = 0; j < len; j++) 
+	      spec_name[j] = int_spec_names[j];
+	    spec_name[len] = '\0';
+
+	    // get A and Z
+	    BL_FORT_PROC_CALL(GET_SPEC_AZ, get_spec_az)
+	      (&i, &Aion, &Zion);
+
+	    jobInfoFile << 
+	      std::setw(6) << i << SkipSpace << 
+	      std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
+	      std::setw(7) << Aion << SkipSpace <<
+	      std::setw(7) << Zion << "\n";
+	    delete [] spec_name;
+	  }
+	jobInfoFile << "\n\n";
+
 
 	// runtime parameters
 	jobInfoFile << PrettyLine;

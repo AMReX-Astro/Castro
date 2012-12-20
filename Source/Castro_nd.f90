@@ -88,6 +88,25 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
+      subroutine get_spec_az(ispec,A,Z)
+
+        use network, only : nspec, aion, zion
+
+        implicit none 
+
+        integer         , intent(in   ) :: ispec
+        double precision, intent(inout) :: A, Z
+
+        ! C++ is 0-based indexing, so increment
+        A = aion(ispec+1)
+        Z = zion(ispec+1)
+
+      end subroutine get_spec_az
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
       subroutine get_aux_names(aux_names,iaux,len)
 
         use network, only : naux, short_aux_names

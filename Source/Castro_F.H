@@ -18,6 +18,8 @@ BL_FORT_PROC_DECL(GET_NUM_AUX,get_num_aux)(int* naux);
 
 BL_FORT_PROC_DECL(GET_SPEC_NAMES,get_spec_names)(int* spec_names, int* ispec, int* len);
 
+BL_FORT_PROC_DECL(GET_SPEC_AZ,get_spec_az)(int* ispec, Real* A, Real* Z);
+
 BL_FORT_PROC_DECL(GET_AUX_NAMES,get_aux_names)(int* aux_names, int* iaux, int* len);
 
 BL_FORT_PROC_DECL(GET_METHOD_PARAMS,get_method_params)(int* HYP_GROW);
