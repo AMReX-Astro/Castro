@@ -584,6 +584,13 @@ protected:
 
     static std::string      job_name;
 
+    // for keeping track of the amount of CPU time used -- this will persist
+    // after restarts
+    static Real      previousCPUTimeUsed;
+    static Real      startCPUTime;
+
+    Real getCPUTime();
+
 #ifdef POINTMASS
     static Real      point_mass;
 #endif

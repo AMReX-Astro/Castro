@@ -110,6 +110,11 @@ Castro::variableSetUp ()
   // it should get called every time we start or restart a job, right
   // before the inputs file is parmParsed.
 
+
+  // initialize the start time for our CPU-time tracker
+  startCPUTime = ParallelDescriptor::second();
+
+
     BL_ASSERT(desc_lst.size() == 0);
 
     // Initialize the runtime parameters for any of the external

@@ -161,6 +161,12 @@ Real         Castro::sum_turb_src = 0.0;
 std::string  Castro::job_name = "";
 
 
+// this will be reset upon restart
+Real         Castro::previousCPUTimeUsed = 0.0;
+
+Real         Castro::startCPUTime = 0.0;
+
+
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 
 void
@@ -546,6 +552,23 @@ Castro::restart (Amr&     papa,
 
     buildMetrics();
 
+    // get the elapsed CPU time to now;
+    if (level == 0 && ParallelDescriptor::IOProcessor())
+    {
+      // store ellapsed CPU time
+      std::ifstream CPUFile;
+      std::string FullPathCPUFile = parent->theRestartFile();
+      FullPathCPUFile += "/CPUtime";
+      CPUFile.open(FullPathCPUFile.c_str(), std::ios::in);	
+  
+      CPUFile >> previousCPUTimeUsed;
+      CPUFile.close();
+
+      std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
+
+    }
+    
+
     BL_ASSERT(flux_reg == 0);
     if (level > 0 && do_reflux)
         flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
@@ -703,6 +726,20 @@ Castro::checkPoint(const std::string& dir,
 #ifdef PARTICLES
   ParticleCheckPoint(dir);
 #endif
+
+  if (level == 0 && ParallelDescriptor::IOProcessor())
+    {
+      // store ellapsed CPU time
+      std::ofstream CPUFile;
+      std::string FullPathCPUFile = dir;
+      FullPathCPUFile += "/CPUtime";
+      CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);	
+  
+      CPUFile << std::setprecision(15) << getCPUTime();
+      CPUFile.close();
+
+    }
+
 }
 
 std::string
@@ -890,12 +927,13 @@ Castro::writePlotFile (const std::string& dir,
         // job_info file with details about the run
 	std::ofstream jobInfoFile;
 	std::string FullPathJobInfoFile = dir;
+	FullPathJobInfoFile += "/job_info";
+	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
+
 	std::string PrettyLine = "===============================================================================\n";
 	std::string OtherLine = "--------------------------------------------------------------------------------\n";
 	std::string SkipSpace = "        ";
 
-	FullPathJobInfoFile += "/job_info";
-	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
 
 	// job information
 	jobInfoFile << PrettyLine;
@@ -908,6 +946,11 @@ Castro::writePlotFile (const std::string& dir,
 #ifdef _OPENMP
 	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
+
+	jobInfoFile << "\n";
+	jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
+	  getCPUTime()/3600.0;
+
 	jobInfoFile << "\n\n";
 
         // plotfile information
@@ -3632,3 +3675,19 @@ Castro::write_center ()
 }
 
 #endif
+
+
+Real
+Castro::getCPUTime()
+{
+  
+  int numCores = ParallelDescriptor::NProcs();
+#ifdef _OPENMP
+  numCores = numCores*omp_get_max_threads();
+#endif    
+
+  Real T = numCores*(ParallelDescriptor::second() - startCPUTime) + 
+    previousCPUTimeUsed;
+
+  return T;
+}
