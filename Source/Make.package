@@ -3,6 +3,7 @@ CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_error.cpp 
+CEXE_sources += Castro_io.cpp 
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
