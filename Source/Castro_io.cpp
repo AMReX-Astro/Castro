@@ -248,7 +248,19 @@ Castro::checkPoint(const std::string& dir,
 
 
       // store any problem-specific stuff
-      BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT, problem_checkpoint)();      
+      char * dir_for_pass = new char[dir.size() + 1];
+      std::copy(dir.begin(), dir.end(), dir_for_pass);
+      dir_for_pass[dir.size()] = '\0';
+
+      int len = dir.size();
+      
+      Array<int> int_dir_name(len);
+      for (int j = 0; j < len; j++)
+	int_dir_name[j] = (int) dir_for_pass[j];
+
+      BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT, problem_checkpoint)(int_dir_name.dataPtr(), &len);      
+
+      delete [] dir_for_pass;
 
     }
 
