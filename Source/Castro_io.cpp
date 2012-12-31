@@ -56,7 +56,7 @@ Castro::restart (Amr&     papa,
     // get the elapsed CPU time to now;
     if (level == 0 && ParallelDescriptor::IOProcessor())
     {
-      // store ellapsed CPU time
+      // get ellapsed CPU time
       std::ifstream CPUFile;
       std::string FullPathCPUFile = parent->theRestartFile();
       FullPathCPUFile += "/CPUtime";
@@ -68,7 +68,14 @@ Castro::restart (Amr&     papa,
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
 
     }
-    
+
+
+    if (level == 0)
+      {
+	// get problem-specific stuff -- note all processors do this,
+	// eliminating the need for a broadcast
+	BL_FORT_PROC_CALL(PROBLEM_RESTART,problem_restart)();
+      }
 
     BL_ASSERT(flux_reg == 0);
     if (level > 0 && do_reflux)
@@ -238,6 +245,10 @@ Castro::checkPoint(const std::string& dir,
   
       CPUFile << std::setprecision(15) << getCPUTime();
       CPUFile.close();
+
+
+      // store any problem-specific stuff
+      BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT, problem_checkpoint)();      
 
     }
 
