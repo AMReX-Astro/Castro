@@ -74,7 +74,22 @@ Castro::restart (Amr&     papa,
       {
 	// get problem-specific stuff -- note all processors do this,
 	// eliminating the need for a broadcast
-	BL_FORT_PROC_CALL(PROBLEM_RESTART,problem_restart)();
+	std::string dir = parent->theRestartFile();
+
+	char * dir_for_pass = new char[dir.size() + 1];
+	std::copy(dir.begin(), dir.end(), dir_for_pass);
+	dir_for_pass[dir.size()] = '\0';
+
+	int len = dir.size();
+      
+	Array<int> int_dir_name(len);
+	for (int j = 0; j < len; j++)
+	  int_dir_name[j] = (int) dir_for_pass[j];
+
+	BL_FORT_PROC_CALL(PROBLEM_RESTART, problem_restart)(int_dir_name.dataPtr(), &len);      
+
+	delete [] dir_for_pass;
+
       }
 
     BL_ASSERT(flux_reg == 0);
