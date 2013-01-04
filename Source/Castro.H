@@ -410,6 +410,8 @@ public:
 
     Real locWgtSum (const std::string& name, Real time, int idir);
 
+    Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2);
+
     Real volWgtSumMF (MultiFab* mf, int comp);
 
     Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir);

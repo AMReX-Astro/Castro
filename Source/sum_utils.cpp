@@ -209,6 +209,64 @@ Castro::locWgtSum (const std::string& name,
     return sum;
 }
 
+#if (BL_SPACEDIM == 3)
+Real
+Castro::locWgtSum2D (const std::string& name,
+                     Real               time,
+                     int                idir1,
+                     int                idir2)
+{
+    Real        sum     = 0.0;
+    const Real* dx      = geom.CellSize();
+    MultiFab*   mf      = derive(name,time,0);
+
+    BL_ASSERT(mf != 0);
+
+    BoxArray baf;
+
+    if (level < parent->finestLevel())
+    {
+        baf = parent->boxArray(level+1);
+        baf.coarsen(fine_ratio);
+    }
+
+    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+
+        if (level < parent->finestLevel())
+        {
+            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
+
+            for (int ii = 0; ii < isects.size(); ii++)
+            {
+                fab.setVal(0,isects[ii].second,0,fab.nComp());
+            }
+        }
+        Real s = 0.0;
+        const Box& box  = mfi.validbox();
+        const int* lo   = box.loVect();
+        const int* hi   = box.hiVect();
+
+        //
+        // Note that this routine will do a volume weighted sum of
+        // whatever quantity is passed in, not strictly the "mass".
+        //
+
+	BL_FORT_PROC_CALL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
+	  (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,idir1,idir2);
+
+        sum += s;
+    }
+
+    delete mf;
+
+    ParallelDescriptor::ReduceRealSum(sum);
+
+    return sum;
+}
+#endif
+
 Real
 Castro::volWgtSumMF (MultiFab* mf, int comp) 
 {
