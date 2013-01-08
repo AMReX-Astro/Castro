@@ -734,7 +734,7 @@ Castro::advance_hydro (Real time,
     {
         for (int i = 0; i < S_old.nComp(); i++)
         {
-            if (S_old.contains_nan(Density + i, 1, 0))
+            if (S_new.contains_nan(Density + i, 1, 0))
             {
                 std::cout << "Testing component i for NaNs: " << i << std::endl;
                 BoxLib::Abort("S_new has NaNs in this component::advance_hydro()");
