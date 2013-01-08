@@ -732,7 +732,7 @@ Castro::advance_hydro (Real time,
 
     if (S_new.contains_nan(Density,S_new.nComp(),0))
     {
-        for (int i = 0; i < S_old.nComp(); i++)
+        for (int i = 0; i < S_new.nComp(); i++)
         {
             if (S_new.contains_nan(Density + i, 1, 0))
             {
