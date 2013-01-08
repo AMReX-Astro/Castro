@@ -629,12 +629,12 @@ Castro::initData ()
     // make sure dx = dy = dz -- that's all we guarantee to support
     const Real SMALL = 1.e-13;
 #if (BL_SPACEDIM == 2)
-    if (fabs(dx[0] - dx[1]) > SMALL)
+    if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
       {
 	BoxLib::Abort("We don't support dx != dy");
       }
 #elif (BL_SPACEDIM == 3)
-    if ( (fabs(dx[0] - dx[1]) > SMALL) || (fabs(dx[0] - dx[2]) > SMALL) )
+    if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
       {
 	BoxLib::Abort("We don't support dx != dy != dz");
       }
