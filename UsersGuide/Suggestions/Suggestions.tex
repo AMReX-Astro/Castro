@@ -34,13 +34,14 @@ Machine & Compiler & Modules & Remarks \\
 & {\tt PGI} & PrgEnv-pgi/3.1.61(default) & Date: 1/12/12\\
 & & pgi/11.7.0(default) & \\
 \hline
-{\bf jaguar(interlagos)} & {\tt PathScale} & PrgEnv-pathscale/4.0.30(default) & Date: 1/12/12\\
-& & pathscale/4.0.11(default) & \\
+{\bf titan \& blue waters} & {\tt Cray} & PrgEnv-craye/4.1.20(default) & Date: 1/23/13\\
+& & cce/8.1.2 & \\
 \hline
 \end{tabular}
 \label{Table:Those-that-compile}
 %\end{scriptsize}
 \end{table*}
+{\em Note: Cray compilers version 8.1.2 need the } {\bf -hnopgas\_runtime} {\em flag to be set.}
 
 \subsection{Those that {\em don't} compile...}
 \begin{table*}[!h]
@@ -51,8 +52,8 @@ Machine & Compiler & Modules & Remarks \\
 {\bf hopper} & {\tt PathScale} & PrgEnv-pathscale/3.1.61(default) & Date: 1/12/12\\
 & & pathscale/3.2.99(default) & \\
 \hline
-{\bf jaguar(interlagos)} & {\tt PGI} & PrgEnv-pgi/4.0.30(default) & \\
-& & pgi/11.10.0(default) & Date: 1/12/12\\
+{\bf titan \& blue waters} & {\tt Cray} & PrgEnv-cray/4.1.20(default) & \\
+& & cce/8.1.1(default) & Date: 1/23/13\\
 \hline
 \end{tabular}
 \label{Table:Those-that-dont-compile}
