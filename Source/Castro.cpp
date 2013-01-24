@@ -1019,7 +1019,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
 #ifdef RADIATION
-    radiation->EstTimeStep(estdt, level);
+    if (do_radiation) radiation->EstTimeStep(estdt, level);
 #endif
 
 #ifdef PARTICLES
