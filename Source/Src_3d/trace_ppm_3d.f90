@@ -60,7 +60,7 @@ contains
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call bl_error("Error:: ppm_3d.f90 :: tracexy_ppm")
+       call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
     end if
 
     dtdx = dt/dx
