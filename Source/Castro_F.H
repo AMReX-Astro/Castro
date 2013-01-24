@@ -364,6 +364,11 @@ BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
      const Real* problo, const Real dx[], Real* mass, 
      const Real* r, const int& rlo, const int& rhi,
      const int& idir);
+BL_FORT_PROC_DECL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, 
+     const Real* r, const int& rlo, const int& rhi,
+     const int& idir1, const int& idir2);
 #endif
 
 BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
