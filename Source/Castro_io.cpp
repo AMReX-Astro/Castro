@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <ctime>
 
 #include <Utility.H>
 #include "Castro.H"
