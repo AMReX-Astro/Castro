@@ -1,0 +1,24 @@
+# latex intermediates
+*.aux
+*.log
+*.dvi
+*.toc
+*.bbl
+*.blg
+*.lof
+*.lot
+
+
+# emacs temporaries
+*~
+\#*
+
+
+# Castro executables
+Castro*.ex
+
+
+# build directories
+o/
+d/
+f/
