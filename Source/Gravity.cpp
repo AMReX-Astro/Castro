@@ -2581,15 +2581,18 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     }
 
     // Now add the contribution from coarser levels
-    int ratio = parent->refRatio(level-1)[0];
-    for (int lev = level-1; lev >= 0; lev--)
+    if (level > 0) 
     {
-        if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-        for (int i = 0; i < n1d/ratio; i++)  
+        int ratio = parent->refRatio(level-1)[0];
+        for (int lev = level-1; lev >= 0; lev--)
         {
-            for (int n = 0; n < ratio; n++)
+            if (lev < level-1) ratio *= parent->refRatio(lev)[0];
+            for (int i = 0; i < n1d/ratio; i++)  
             {
-               radial_mass_summed[ratio*i+n] += 1./double(ratio) * radial_mass[lev][i];
+                for (int n = 0; n < ratio; n++)
+                {
+                   radial_mass_summed[ratio*i+n] += 1./double(ratio) * radial_mass[lev][i];
+                }
             }
         }
     }
