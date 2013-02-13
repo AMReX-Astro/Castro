@@ -472,7 +472,7 @@
 
       subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
                                          rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
-                                         radial_mass,radial_vol,problo,&
+                                         radial_mass,problo,&
                                          n1d,drdxfac,level)
       use probdata_module
 
@@ -484,7 +484,6 @@
 
       integer          :: n1d,drdxfac,level
       double precision :: radial_mass(0:n1d-1)
-      double precision :: radial_vol (0:n1d-1)
 
       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
@@ -556,7 +555,6 @@
                            index = int(r/dr)
 
                            if (index .le. n1d-1) then
-                              radial_vol(index)  = radial_vol(index)  + vol_frac
                               radial_mass(index) = radial_mass(index) + vol_frac * rho(i,j,k)
                            end if
                         end do

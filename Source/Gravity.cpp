@@ -49,6 +49,11 @@ static Real Ggravity = 0.;
 
 Array< Array<Real> > Gravity::radial_grav_old(MAX_LEV);
 Array< Array<Real> > Gravity::radial_grav_new(MAX_LEV);
+Array< Array<Real> > Gravity::radial_mass(MAX_LEV);
+#ifdef GR_GRAV
+Array< Array<Real> > Gravity::radial_pres(MAX_LEV);
+Array< Array<Real> > Gravity::radial_vol(MAX_LEV);
+#endif
  
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   : 
@@ -218,6 +223,11 @@ Gravity::install_level (int                   level,
 
            radial_grav_old[level].resize(n1d);
            radial_grav_new[level].resize(n1d);
+           radial_mass[level].resize(n1d);
+#ifdef GR_GRAV
+           radial_vol[level].resize(n1d);
+           radial_pres[level].resize(n1d);
+#endif
         }
 
 #endif
@@ -1197,39 +1207,12 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        make_one_d_grav(level,time,grav_vector);
 #else
 
-       // We always fill radial_grav_old (at every level)
-       MultiFab& S_old = LevelData[level].get_old_data(State_Type);
-
        if (gravity_type == "MonopoleGrav") 
        {
-          make_monopole_grav(level,time,S_old,radial_grav_old[level]);
+          const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
+          make_radial_gravity(level,prev_time,radial_grav_old[level]);
+          interpolate_monopole_grav(level,radial_grav_old[level],grav_vector);
 
-          // At level 0 we don't need to interpolate in time
-          if (level == 0) {
-
-             interpolate_monopole_grav(level,level,radial_grav_old[level],grav_vector);
-
-          // At higher levels we interpolate in time and space for the regions which aren't covered
-          //   at the current level
-          } else {
-   
-             for (int lev = 0; lev < level; lev++) {
-                int n1d = radial_grav_old[lev].size();
-                Array<Real> radial_grav_temp(n1d);
-                const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
-                const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
-                Real alpha = (time - t_old)/(t_new - t_old);
-   
-                for (int i = 0; i < n1d; i++) 
-                   radial_grav_temp[i] = (1.0-alpha) * radial_grav_old[lev][i] + 
-                                              alpha  * radial_grav_new[lev][i];
-      
-                interpolate_monopole_grav(lev,level,radial_grav_temp,grav_vector);
-             }
-
-             // Now fill from radial_grav_old at the current level
-             interpolate_monopole_grav(level,level,radial_grav_old[level],grav_vector);
-          }
        }
        else if (gravity_type == "PrescribedGrav") 
        {
@@ -1346,33 +1329,9 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
        if (gravity_type == "MonopoleGrav")
        {
-          make_monopole_grav(level,time,S_new,radial_grav_new[level]);
-
-          // At level 0 we don't need to interpolate in time
-          if (level == 0) {
-   
-             interpolate_monopole_grav(level,level,radial_grav_new[level],grav_vector);
-
-          // At higher levels we interpolate in time and space for the regions which aren't covered
-          //   at the current level
-          } else {
-   
-             for (int lev = 0; lev < level; lev++) {
-                int n1d = radial_grav_new[lev].size();
-                Array<Real> radial_grav_temp(n1d);
-                const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
-                const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
-                Real alpha = (time - t_old)/(t_new - t_old);
-
-                for (int i = 0; i < n1d; i++) 
-                   radial_grav_temp[i] = (1.0-alpha) * radial_grav_old[lev][i] + 
-                                              alpha  * radial_grav_new[lev][i];
-                interpolate_monopole_grav(lev,level,radial_grav_temp,grav_vector);
-             }
-     
-             // Now fill from radial_grav_new at the current level
-             interpolate_monopole_grav(level,level,radial_grav_new[level],grav_vector);
-          }
+          const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
+          make_radial_gravity(level,cur_time,radial_grav_new[level]);
+          interpolate_monopole_grav(level,radial_grav_new[level],grav_vector);
        }
        else if (gravity_type == "PrescribedGrav") 
        {
@@ -2177,145 +2136,6 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
 
 #if (BL_SPACEDIM > 1)
 void
-Gravity::make_monopole_grav(int level, Real time, MultiFab& S, Array<Real>& radial_grav)
-{
-    const Real strt = ParallelDescriptor::second();
-
-    int n1d = radial_grav.size();
-
-    Array<Real> radial_vol(n1d,0);
-    Array<Real> radial_den(n1d,0);
-    Array<Real> radial_mass(n1d,0);
-
-    for (int i = 0; i < n1d; i++) radial_grav[i] = 0.;
-
-#ifdef GR_GRAV
-    Array<Real> radial_pres(n1d,0);
-    for (int i = 0; i < n1d; i++) radial_pres[i] = 0.;
-#endif
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-    Real dr = dx[0] / double(drdxfac);
-
-    //
-    // Create radial average of density (and pressure if GR_GRAV defined).
-    //
-
-    if (level == 0) 
-    {
-       for (MFIter mfi(S); mfi.isValid(); ++mfi)
-       {
-          Box bx(mfi.validbox());
-          BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-              (bx.loVect(), bx.hiVect(),dx,&dr,
-               BL_TO_FORTRAN(S[mfi]), 
-               radial_mass.dataPtr(), radial_vol.dataPtr(),
-               geom.ProbLo(),&n1d,&drdxfac,&level);
-#ifdef GR_GRAV
-          BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
-              (bx.loVect(), bx.hiVect(),dx,&dr,
-               BL_TO_FORTRAN(S[mfi]),
-               radial_pres.dataPtr(), geom.ProbLo(),&n1d,&drdxfac,&level);
-#endif
-       }
-    } 
-    else 
-    {
-       Box bbox(grids[level].minimalBox());
-       BoxArray ba(bbox);
-
-       int nprocs = ParallelDescriptor::NProcs();
-       int    nb  = ba.size();
-
-       int blocking_factor = parent->blockingFactor(level); 
-
-       int maxlen = 0;
-       for (int i = 0; i < nb; i++) 
-          maxlen = std::max(maxlen,ba[i].longside());
-       maxlen = maxlen/2;
-
-       while (nb < nprocs && maxlen >= blocking_factor)
-       {
-         ba.maxSize(maxlen);
-         nb = ba.size();
-
-         maxlen = 0;
-         for (int i = 0; i < nb; i++) 
-            maxlen = std::max(maxlen,ba[i].longside());
-         maxlen = maxlen/2;
-       }
-
-#ifdef GR_GRAV
-       int nvar = S.nComp(); 
-#else
-       int nvar = 1;
-#endif
-       MultiFab mf(ba,nvar,0,Fab_allocate);
-
-       // Fill density, interpolated from coarser levels where needed
-       //   and copied from fine grids when possible
-       AmrLevel* amrlev = &parent->getLevel(level) ;
-       for (FillPatchIterator fpi(*amrlev,mf,0,time,State_Type,Density,nvar);
-            fpi.isValid(); ++fpi) 
-       {
-        Box bx(fpi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-            (bx.loVect(), bx.hiVect(),dx,&dr,
-             BL_TO_FORTRAN(fpi()),
-             radial_mass.dataPtr(), radial_vol.dataPtr(),
-             geom.ProbLo(),&n1d,&drdxfac,&level);
-#ifdef GR_GRAV
-        BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
-            (bx.loVect(), bx.hiVect(),dx,&dr,
-             BL_TO_FORTRAN(fpi()),
-             radial_pres.dataPtr(), geom.ProbLo(),&n1d,&drdxfac,&level);
-#endif
-       }
-    }
-   
-    ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr() ,n1d);
-    ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr() ,n1d);
-
-    for (int i = 0; i < n1d; i++)  
-    {
-        radial_den[i] = radial_mass[i];
-        if (radial_vol[i] > 0.) radial_den[i]  /= radial_vol[i];
-    }
-
-#ifdef GR_GRAV
-    ParallelDescriptor::ReduceRealSum(radial_pres.dataPtr(),n1d);
-    for (int i = 0; i < n1d; i++)  
-        if (radial_vol[i] > 0.) radial_pres[i]  /= radial_vol[i];
-
-    // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
-    BL_FORT_PROC_CALL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
-        (radial_den.dataPtr(),radial_mass.dataPtr(),
-         radial_pres.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
-
-#else
-
-    // Integrate radially outward to define the gravity
-    BL_FORT_PROC_CALL(CA_INTEGRATE_GRAV,ca_integrate_grav)
-        (radial_mass.dataPtr(),radial_grav.dataPtr(),&dr,&n1d); 
-
-#endif
-
-    if (verbose)
-    {
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_monopole_grav() time = " << end << std::endl;
-    }
-}
-#endif
-
-#if (BL_SPACEDIM > 1)
-void
 Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
 {
     const Real strt = ParallelDescriptor::second();
@@ -2346,25 +2166,22 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
 }
 
 void
-Gravity::interpolate_monopole_grav(int level_from, int level_to, 
-                                   Array<Real>& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector)
 {
     int n1d = radial_grav.size();
 
-    const Geometry& geom_to = parent->Geom(level_to);
-    const Real* dx_to   = geom_to.CellSize();
-    const Real* dx_from = parent->Geom(level_from).CellSize();
- 
-    Real dr = dx_from[0] / double(drdxfac);
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx = geom.CellSize();
+    Real dr        = dx[0] / double(drdxfac);
 
     for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
     {
        Box bx(mfi.validbox());
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-           (bx.loVect(), bx.hiVect(),dx_to,&dr,
+           (bx.loVect(), bx.hiVect(),dx,&dr,
             BL_TO_FORTRAN(grav_vector[mfi]),
-            radial_grav.dataPtr(),geom_to.ProbLo(),
-            &n1d,&level_to);
+            radial_grav.dataPtr(),geom.ProbLo(),
+            &n1d,&level);
     }
 }
 #endif
@@ -2379,7 +2196,6 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     int n1d = drdxfac*numpts_at_level;
 
-    Array<Real> radial_vol(n1d,0);
     Array<Real> radial_mass(n1d,0);
     Array<Real> radial_phi(n1d,0);
     Array<Real> radial_grav(n1d+1,0);
@@ -2396,11 +2212,10 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
         BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
             (bx.loVect(), bx.hiVect(),dx,&dr,
              BL_TO_FORTRAN(Rhs[mfi]), 
-             radial_mass.dataPtr(), radial_vol.dataPtr(),
+             radial_mass.dataPtr(), 
              geom.ProbLo(),&n1d,&drdxfac,&level);
     }
    
-    ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),n1d);
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
 
     // Integrate radially outward to define the gravity
@@ -2634,5 +2449,218 @@ Gravity::computeAvg (int level, MultiFab* mf)
     ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
+}
+#endif
+
+#if (BL_SPACEDIM > 1)
+void
+Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
+{
+    const Real strt = ParallelDescriptor::second();
+
+    // This is just here in case we need to debug ...
+    int do_diag = 0;
+
+    BoxArray baf;
+    Real sum_over_levels = 0.;
+
+    for (int lev = 0; lev <= level; lev++)
+    {
+        const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
+        const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
+        const Real eps   = (t_new - t_old) * 1.e-8;
+
+        if (lev < level)
+        {
+            baf = parent->boxArray(lev+1);
+            baf.coarsen(parent->refRatio(lev));
+        }
+
+        // Create MultiFab with one component and no grow cells
+        MultiFab S(grids[lev],1,0);
+
+        if ( std::abs(time-t_old) < eps)
+        {
+            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+        } 
+        else if ( std::abs(time-t_new) < eps)
+        {
+            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            if (lev < level)
+            {
+                Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev+1));
+                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,1,parent->Geom(lev));
+            }
+        } 
+        else if (time > t_old && time < t_new)
+        {
+            Real alpha   = (time - t_old)/(t_new - t_old);
+            Real omalpha = 1.0 - alpha;
+
+            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+            S.mult(omalpha);
+
+            MultiFab S_new(grids[lev],1,0);
+            S_new.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S_new.mult(alpha);
+
+            S.plus(S_new,Density,1,0);
+        }  
+        else
+        {  
+     	    std::cout << " Level / Time in make_radial_gravity is: " << lev << " " << time  << std::endl;
+      	    std::cout << " but old / new time      are: " << t_old << " " << t_new << std::endl;
+      	    BoxLib::Abort("Problem in Gravity::make_radial_gravity");
+        }  
+
+        int n1d = radial_mass[lev].size();
+
+#ifdef GR_GRAV
+        for (int i = 0; i < n1d; i++) 
+        {
+            radial_pres[lev][i] = 0.;
+            radial_vol[lev][i] = 0.;
+        }
+#endif
+        for (int i = 0; i < n1d; i++) radial_mass[lev][i] = 0.;
+
+        const Geometry& geom = parent->Geom(lev);
+        const Real* dx   = geom.CellSize();
+        Real dr = dx[0] / double(drdxfac);
+
+        for (MFIter mfi(S); mfi.isValid(); ++mfi)
+        {
+           Box bx(mfi.validbox());
+           FArrayBox& fab = S[mfi];
+           if (lev < level)
+           {
+               std::vector< std::pair<int,Box> > isects = baf.intersections(grids[lev][mfi.index()]);
+               for (int ii = 0; ii < isects.size(); ii++)
+                   fab.setVal(0,isects[ii].second,0,fab.nComp());
+           }
+
+           BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
+               (bx.loVect(), bx.hiVect(), dx, &dr,
+                BL_TO_FORTRAN(fab), 
+                radial_mass[lev].dataPtr(), 
+                geom.ProbLo(),&n1d,&drdxfac,&lev);
+#ifdef GR_GRAV
+           BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
+               (bx.loVect(), bx.hiVect(),dx,&dr,
+                BL_TO_FORTRAN(fab),
+                radial_pres[lev].dataPtr(),
+                radial_vol[lev].dataPtr(), 
+                geom.ProbLo(),&n1d,&drdxfac,&lev);
+#endif
+        }
+
+        ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
+#ifdef GR_GRAV
+        ParallelDescriptor::ReduceRealSum(radial_pres[lev].dataPtr()  ,n1d);
+        ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
+#endif
+
+        if (do_diag > 0)
+        {
+            Real sum = 0.;
+            for (int i = 0; i < n1d; i++) sum += radial_mass[lev][i];
+            sum_over_levels += sum;
+        }
+    }
+
+    if (do_diag > 0 && ParallelDescriptor::IOProcessor())
+        std::cout << "Gravity::make_radial_gravity: Sum of mass over all levels " << sum_over_levels << std::endl;
+
+    int n1d = radial_mass[level].size();
+    Array<Real> radial_mass_summed(n1d,0);
+
+    // First add the contribution from this level
+    for (int i = 0; i < n1d; i++)  
+    {
+        radial_mass_summed[i] = radial_mass[level][i];
+    }
+
+    // Now add the contribution from coarser levels
+    int ratio = parent->refRatio(level-1)[0];
+    for (int lev = level-1; lev >= 0; lev--)
+    {
+        if (lev < level-1) ratio *= parent->refRatio(lev)[0];
+        for (int i = 0; i < n1d/ratio; i++)  
+        {
+            for (int n = 0; n < ratio; n++)
+            {
+               radial_mass_summed[ratio*i+n] += 1./double(ratio) * radial_mass[lev][i];
+            }
+        }
+    }
+
+    if (do_diag > 0 && ParallelDescriptor::IOProcessor())
+    {
+        Real sum_added = 0.;
+        for (int i = 0; i < n1d; i++) sum_added += radial_mass_summed[i];
+        std::cout << "Gravity::make_radial_gravity: Sum of combined mass " << sum_added << std::endl;
+    }
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx = geom.CellSize();
+    Real dr        = dx[0] / double(drdxfac);
+
+#ifdef GR_GRAV
+    Array<Real> radial_pres_summed(n1d,0);
+    Array<Real> radial_vol_summed(n1d,0);
+    Array<Real> radial_den_summed(n1d,0);
+
+    // First add the contribution from this level
+    for (int i = 0; i < n1d; i++)  
+    {
+        radial_pres_summed[i] = radial_pres[level][i];
+         radial_vol_summed[i] =  radial_vol[level][i];
+    }
+
+    // Now add the contribution from coarser levels
+    ratio = parent->refRatio(level-1)[0];
+    for (int lev = level-1; lev >= 0; lev--)
+    {
+        if (lev < level-1) ratio *= parent->refRatio(lev)[0];
+        for (int i = 0; i < n1d/ratio; i++)  
+        {
+            for (int n = 0; n < ratio; n++)
+            {
+               radial_pres_summed[ratio*i+n] += 1./double(ratio) * radial_pres[lev][i];
+               radial_vol_summed[ratio*i+n]  += 1./double(ratio) * radial_vol[lev][i];
+            }
+        }
+    }
+
+    for (int i = 0; i < n1d; i++)  
+    {
+        radial_den_summed[i] = radial_mass_summed[i];
+        if (radial_vol_summed[i] > 0.) radial_den_summed[i]  /= radial_vol_summed[i];
+        if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
+    }
+
+    // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
+    BL_FORT_PROC_CALL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
+        (radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
+         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
+
+#else
+
+    // Integrate radially outward to define the gravity
+    BL_FORT_PROC_CALL(CA_INTEGRATE_GRAV,ca_integrate_grav)
+        (radial_mass_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d); 
+
+#endif
+   
+    if (verbose)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real      end    = ParallelDescriptor::second() - strt;
+
+        ParallelDescriptor::ReduceRealMax(end,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl;
+    }
 }
 #endif

@@ -199,7 +199,7 @@ Castro::restart (Amr&     papa,
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
        int nc = S_new.nComp();
-       int n1d = get_numpts(level,geom.Domain());
+       int n1d = get_numpts();
        BL_FORT_PROC_CALL(ALLOCATE_OUTFLOW_DATA,allocate_outflow_data)(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);

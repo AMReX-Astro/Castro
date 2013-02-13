@@ -451,9 +451,14 @@ public:
     static int       FirstSpec, LastSpec, NumSpec;
     static int       FirstAux,  LastAux,  NumAux;
 
-    int get_numpts(int level, Box bx);
+    FluxRegister*        flux_reg;
+
+    FluxRegister& getFluxReg ();
+    FluxRegister& getFluxReg (int lev);
 
 protected:
+
+    int get_numpts();
 
     //
     // Need to pass ugdnv out of cmpflx to do level sets
@@ -470,9 +475,6 @@ protected:
     static void read_params ();
 
     Castro& getLevel (int lev);
-
-    FluxRegister& getFluxReg ();
-    FluxRegister& getFluxReg (int lev);
 
 #ifdef SGS
     FluxRegister& getSGSFluxReg ();
@@ -541,7 +543,6 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
-    FluxRegister*        flux_reg;
 #ifdef SGS
     FluxRegister*        sgs_flux_reg;
 #endif

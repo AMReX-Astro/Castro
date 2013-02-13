@@ -83,7 +83,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
     (const int lo[], const int hi[], 
      const Real* dx, const Real* dr,
      const BL_FORT_FAB_ARG(S), 
-     const Real* avgmass, const Real* avgvol, 
+     const Real* avgmass, 
      const Real* problo, const int* numpts_1d, 
      const int* drdxfac, const int* level); 
 
@@ -91,7 +91,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
     (const int lo[], const int hi[], 
      const Real* dx, const Real* dr,
      const BL_FORT_FAB_ARG(S), 
-     const Real* avgpres,
+     const Real* avgpres, const Real* avgvol, 
      const Real* problo, const int* numpts_1d, 
      const int* drdxfac, const int* level); 
 

@@ -114,8 +114,9 @@ public:
 #if (BL_SPACEDIM == 1)
   void make_one_d_grav(int level, Real time, MultiFab& grav_vector);
 #else
-  void make_monopole_grav(int level, Real time, MultiFab& S, Array<Real>& radial_grav);
-  void interpolate_monopole_grav(int level_from, int level_to, Array<Real>& radial_grav, MultiFab& grav_vector);
+  void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
+  void interpolate_monopole_grav(int level, 
+                                 Array<Real>& radial_grav, MultiFab& grav_vector);
   void make_prescribed_grav(int level, Real time, MultiFab& grav);
 #endif
 
@@ -177,6 +178,11 @@ protected:
   static Real  delta_tol;
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
+  static Array< Array<Real> > radial_mass;
+#ifdef GR_GRAV
+  static Array< Array<Real> > radial_pres;
+  static Array< Array<Real> > radial_vol;
+#endif
   static std::string gravity_type;
   static int   stencil_type;
 

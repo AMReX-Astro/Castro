@@ -451,18 +451,26 @@ Castro::Castro (Amr&            papa,
 
     flux_reg = 0;
     if (level > 0 && do_reflux)
+    {
         flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
+        flux_reg->setVal(0.0);
+    }
 
 #ifdef SGS
     sgs_flux_reg = 0;
     if (level > 0 && do_reflux)
+    {
         sgs_flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
+        sgs_flux_reg->setVal(0.0);
+    }
 #endif
 
 #ifdef RADIATION    
     rad_flux_reg = 0;
-    if (Radiation::rad_hydro_combined && level > 0 && do_reflux) {
+    if (Radiation::rad_hydro_combined && level > 0 && do_reflux) 
+    {
       rad_flux_reg = new FluxRegister(grids,crse_ratio,level,Radiation::nGroups);
+      rad_flux_reg->setVal(0.0);
     }
 #endif
 
@@ -482,7 +490,7 @@ Castro::Castro (Amr&            papa,
       // Passing numpts_1d at level 0 
       if (!Geometry::isAllPeriodic() && gravity != 0)
       {
-         int numpts_1d = get_numpts(level, geom.Domain());
+         int numpts_1d = get_numpts();
          gravity->set_numpts_in_gravity(numpts_1d);
       }
 #endif
@@ -730,7 +738,7 @@ Castro::initData ()
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        int nc = S_new.nComp();
-       int n1d = get_numpts(level,geom.Domain());
+       int n1d = get_numpts();
        BL_FORT_PROC_CALL(ALLOCATE_OUTFLOW_DATA,allocate_outflow_data)(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -1367,7 +1375,7 @@ Castro::post_restart ()
         if (level == 0)
         {
             // Passing numpts_1d at level 0 
-            int numpts_1d = get_numpts (level, geom.Domain());
+            int numpts_1d = get_numpts ();
             gravity->set_numpts_in_gravity(numpts_1d);
 
             for (int lev = 0; lev <= parent->finestLevel(); lev++)
@@ -2806,40 +2814,25 @@ Castro::set_special_tagging_flag(Real time)
 }
 
 int
-Castro::get_numpts (int level, Box bx)
+Castro::get_numpts ()
 {
      int numpts_1d;
 
+     Box bx(geom.Domain());
      int nx = bx.size()[0];
 
 #if (BL_SPACEDIM == 1)
      numpts_1d = nx;
 #elif (BL_SPACEDIM == 2)
      int ny = bx.size()[1];
-
-     if (level == 0)
-     {
-        Real ndiagsq = Real(nx*nx + ny*ny);
-        numpts_1d = int(sqrt(ndiagsq))+6;
-     }
-     else
-     {
-        numpts_1d = std::min(nx,ny);
-     }
+     Real ndiagsq = Real(nx*nx + ny*ny);
+     numpts_1d = int(sqrt(ndiagsq))+6;
 #elif (BL_SPACEDIM == 3)
      int ny = bx.size()[1];
      int nz = bx.size()[2];
-     if (level == 0)
-     {
-        Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-        numpts_1d = int(sqrt(ndiagsq))+6;
-     }
-     else
-     {
-        numpts_1d = std::min(nx,ny);
-        numpts_1d = std::min(numpts_1d,nz);
-     }
-#endif
+     Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
+     numpts_1d = int(sqrt(ndiagsq))+6;
+#endif 
 
      if (verbose && ParallelDescriptor::IOProcessor())
          std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
@@ -2855,7 +2848,7 @@ Castro::make_radial_data(int is_new)
  // We only call this for level = 0
    BL_ASSERT(level == 0);
    
-   int numpts_1d = get_numpts(level, geom.Domain());
+   int numpts_1d = get_numpts();
 
    Array<Real> radial_vol(numpts_1d,0);
 
