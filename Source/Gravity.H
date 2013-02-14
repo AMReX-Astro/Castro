@@ -179,12 +179,14 @@ protected:
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
   static Array< Array<Real> > radial_mass;
+  static Array< Array<Real> > radial_vol;
 #ifdef GR_GRAV
   static Array< Array<Real> > radial_pres;
-  static Array< Array<Real> > radial_vol;
 #endif
   static std::string gravity_type;
   static int   stencil_type;
+
+  static Real max_radius_all_in_domain;
 
   void fill_ec_grow (int level, PArray<MultiFab>& ecF, const PArray<MultiFab>& ecC) const;
 

@@ -4,7 +4,7 @@
 
       subroutine ca_compute_avgpres (lo,hi,dx,dr,&
                                     var,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
-                                    radial_pres,radial_vol,problo,&
+                                    radial_pres,problo,&
                                     n1d,drdxfac,level)
       use probdata_module
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS
@@ -19,7 +19,6 @@
 
       integer          :: n1d,drdxfac,level
       double precision :: radial_pres(0:n1d-1)
-      double precision :: radial_vol (0:n1d-1)
 
       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
       double precision :: var(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
@@ -91,7 +90,6 @@
 
                            if (index .le. n1d-1) then
                               radial_pres(index) = radial_pres(index) + P
-                              radial_vol(index)  = radial_vol (index) + 1.d0
                            end if
 
                         end do

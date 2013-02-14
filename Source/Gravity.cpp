@@ -32,6 +32,7 @@ Real Gravity::sl_tol        = 1.e100;
 Real Gravity::ml_tol        = 1.e100;
 Real Gravity::delta_tol     = 1.e100;
 Real Gravity::const_grav    =  0.0;
+Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset   =  0.0;
 int  Gravity::stencil_type  = CC_CROSS_STENCIL;
 
@@ -50,9 +51,9 @@ static Real Ggravity = 0.;
 Array< Array<Real> > Gravity::radial_grav_old(MAX_LEV);
 Array< Array<Real> > Gravity::radial_grav_new(MAX_LEV);
 Array< Array<Real> > Gravity::radial_mass(MAX_LEV);
+Array< Array<Real> > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
 Array< Array<Real> > Gravity::radial_pres(MAX_LEV);
-Array< Array<Real> > Gravity::radial_vol(MAX_LEV);
 #endif
  
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
@@ -224,14 +225,34 @@ Gravity::install_level (int                   level,
            radial_grav_old[level].resize(n1d);
            radial_grav_new[level].resize(n1d);
            radial_mass[level].resize(n1d);
-#ifdef GR_GRAV
            radial_vol[level].resize(n1d);
+#ifdef GR_GRAV
            radial_pres[level].resize(n1d);
 #endif
         }
 
 #endif
     }
+
+    // Compute the maximum radius at which all the mass at that radius is in the domain,
+    //   assuming that the "hi" side of the domain is away from the center.
+#if (BL_SPACEDIM > 1)
+    if (level == 0)
+    {
+        Real center[BL_SPACEDIM];
+        BL_FORT_PROC_CALL(GET_CENTER,get_center)(center);
+        Real x = Geometry::ProbHi(0) - center[0];
+        Real y = Geometry::ProbHi(1) - center[1];
+        max_radius_all_in_domain = std::min(x,y);
+#if (BL_SPACEDIM == 3)
+        Real z = Geometry::ProbHi(2) - center[2];
+        max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
+#endif
+        if (verbose && ParallelDescriptor::IOProcessor())
+            std::cout << "Maximum radius for which the mass is contained in the domain: " 
+                      << max_radius_all_in_domain << std::endl;
+    }
+#endif
 
     finest_level_allocated = level;
 }
@@ -2197,12 +2218,16 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     int n1d = drdxfac*numpts_at_level;
 
     Array<Real> radial_mass(n1d,0);
+    Array<Real> radial_vol(n1d,0);
     Array<Real> radial_phi(n1d,0);
     Array<Real> radial_grav(n1d+1,0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
     Real dr = dx[0] / double(drdxfac);
+
+    for (int i = 0; i < n1d; i++) radial_mass[i] = 0.;
+    for (int i = 0; i < n1d; i++) radial_vol[i] = 0.;
 
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
@@ -2212,7 +2237,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
         BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
             (bx.loVect(), bx.hiVect(),dx,&dr,
              BL_TO_FORTRAN(Rhs[mfi]), 
-             radial_mass.dataPtr(), 
+             radial_mass.dataPtr(), radial_vol.dataPtr(),
              geom.ProbLo(),&n1d,&drdxfac,&level);
     }
    
@@ -2516,12 +2541,9 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         int n1d = radial_mass[lev].size();
 
 #ifdef GR_GRAV
-        for (int i = 0; i < n1d; i++) 
-        {
-            radial_pres[lev][i] = 0.;
-            radial_vol[lev][i] = 0.;
-        }
+        for (int i = 0; i < n1d; i++) radial_pres[lev][i] = 0.;
 #endif
+        for (int i = 0; i < n1d; i++) radial_vol[lev][i] = 0.;
         for (int i = 0; i < n1d; i++) radial_mass[lev][i] = 0.;
 
         const Geometry& geom = parent->Geom(lev);
@@ -2543,21 +2565,22 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
                (bx.loVect(), bx.hiVect(), dx, &dr,
                 BL_TO_FORTRAN(fab), 
                 radial_mass[lev].dataPtr(), 
+                radial_vol[lev].dataPtr(), 
                 geom.ProbLo(),&n1d,&drdxfac,&lev);
+
 #ifdef GR_GRAV
            BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
                (bx.loVect(), bx.hiVect(),dx,&dr,
                 BL_TO_FORTRAN(fab),
                 radial_pres[lev].dataPtr(),
-                radial_vol[lev].dataPtr(), 
                 geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
         }
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
+        ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
 #ifdef GR_GRAV
         ParallelDescriptor::ReduceRealSum(radial_pres[lev].dataPtr()  ,n1d);
-        ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
 #endif
 
         if (do_diag > 0)
@@ -2608,29 +2631,32 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / double(drdxfac);
 
-#ifdef GR_GRAV
-    Array<Real> radial_pres_summed(n1d,0);
+    // ***************************************************************** //
+    // Compute the average density to use at the radius above
+    //   max_radius_all_in_domain so we effectively count mass outside
+    //   the domain.
+    // ***************************************************************** //
+
     Array<Real> radial_vol_summed(n1d,0);
     Array<Real> radial_den_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)  
-    {
-        radial_pres_summed[i] = radial_pres[level][i];
          radial_vol_summed[i] =  radial_vol[level][i];
-    }
 
     // Now add the contribution from coarser levels
-    ratio = parent->refRatio(level-1)[0];
-    for (int lev = level-1; lev >= 0; lev--)
+    if (level > 0) 
     {
-        if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-        for (int i = 0; i < n1d/ratio; i++)  
+        int ratio = parent->refRatio(level-1)[0];
+        for (int lev = level-1; lev >= 0; lev--)
         {
-            for (int n = 0; n < ratio; n++)
+            if (lev < level-1) ratio *= parent->refRatio(lev)[0];
+            for (int i = 0; i < n1d/ratio; i++)  
             {
-               radial_pres_summed[ratio*i+n] += 1./double(ratio) * radial_pres[lev][i];
-               radial_vol_summed[ratio*i+n]  += 1./double(ratio) * radial_vol[lev][i];
+                for (int n = 0; n < ratio; n++)
+                {
+                   radial_vol_summed[ratio*i+n]  += 1./double(ratio) * radial_vol[lev][i];
+                }
             }
         }
     }
@@ -2639,8 +2665,30 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     {
         radial_den_summed[i] = radial_mass_summed[i];
         if (radial_vol_summed[i] > 0.) radial_den_summed[i]  /= radial_vol_summed[i];
-        if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
     }
+
+#ifdef GR_GRAV
+    Array<Real> radial_pres_summed(n1d,0);
+
+    // First add the contribution from this level
+    for (int i = 0; i < n1d; i++)  
+        radial_pres_summed[i] = radial_pres[level][i];
+
+    // Now add the contribution from coarser levels
+    if (level > 0) 
+    {
+        ratio = parent->refRatio(level-1)[0];
+        for (int lev = level-1; lev >= 0; lev--)
+        {
+            if (lev < level-1) ratio *= parent->refRatio(lev)[0];
+            for (int i = 0; i < n1d/ratio; i++)  
+                for (int n = 0; n < ratio; n++)
+                   radial_pres_summed[ratio*i+n] += 1./double(ratio) * radial_pres[lev][i];
+        }
+    }
+
+    for (int i = 0; i < n1d; i++)  
+        if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
 
     // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
     BL_FORT_PROC_CALL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
@@ -2648,11 +2696,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
          radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
 
 #else
-
     // Integrate radially outward to define the gravity
     BL_FORT_PROC_CALL(CA_INTEGRATE_GRAV,ca_integrate_grav)
-        (radial_mass_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d); 
-
+        (radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
+         radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d); 
 #endif
    
     if (verbose)

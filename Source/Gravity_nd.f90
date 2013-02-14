@@ -27,7 +27,7 @@
       ! Outputs: grav(r)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      subroutine ca_integrate_grav (mass,grav,dr,numpts_1d)
+      subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d)
 
       use fundamental_constants_module, only : Gconst
       use bl_constants_module
@@ -35,8 +35,9 @@
       implicit none
       integer          :: numpts_1d
       double precision :: mass(0:numpts_1d-1)
+      double precision ::  den(0:numpts_1d-1)
       double precision :: grav(0:numpts_1d-1)
-      double precision :: dr
+      double precision :: max_radius,dr
 
       integer          :: i
       double precision :: rc,rlo,rhi,halfdr
@@ -64,7 +65,7 @@
 
             mass_encl = vol_outer_shell * mass(i)  / vol_total_i
 
-         else
+         else if (rc .lt. max_radius) then
 
             ! The mass at (i-1) is distributed into these two shells
             vol_lower_shell = vol_outer_shell   ! This copies from the previous i
@@ -78,8 +79,25 @@
 
             mass_encl = mass_encl + (vol_inner_shell/vol_total_im1) * mass(i-1) + & 
                                     (vol_outer_shell/vol_total_i  ) * mass(i  ) 
+
+         else 
+
+            ! The mass at (i-1) is distributed into these two shells
+            vol_lower_shell = vol_outer_shell   ! This copies from the previous i
+            vol_inner_shell = vol_upper_shell   ! This copies from the previous i
+            vol_total_im1   = vol_total_i       ! This copies from the previous i
+
+            ! The mass at (i)   is distributed into these two shells
+            vol_outer_shell = fourthirdspi * halfdr * ( rc**2 + rlo*rc + rlo**2)
+            vol_upper_shell = fourthirdspi * halfdr * ( rc**2 + rhi*rc + rhi**2)
+            vol_total_i     = vol_outer_shell + vol_upper_shell
+
+            mass_encl = mass_encl + vol_inner_shell*den(i-1) + vol_outer_shell*den(i  )
          end if
+
          grav(i) = -Gconst * mass_encl / rc**2
+!        print *,'GRAV MASS ',rc, mass_encl
+
       enddo
 
       end subroutine ca_integrate_grav
