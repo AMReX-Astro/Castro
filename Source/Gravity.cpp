@@ -101,7 +101,7 @@ Gravity::read_params ()
 	     
         if (  gravity_type == "ConstantGrav") 
         {
-	   if ( Geometry::IsSPHERICAL() || Geometry::IsRZ() ) 
+	  if ( Geometry::IsSPHERICAL() )
 	      BoxLib::Abort("Cant use constant direction gravity with non-Cartesian coordinates");
            pp.get("const_grav", const_grav);
         }
