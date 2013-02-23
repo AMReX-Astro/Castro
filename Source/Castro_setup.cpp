@@ -2,7 +2,7 @@
 #include <cstdio>
 
 #include "LevelBld.H"
-
+#include <ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Derive_F.H"
@@ -107,8 +107,7 @@ Castro::variableSetUp ()
 {
 
   // Castro::variableSetUp is called in the constructor of Amr.cpp, so
-  // it should get called every time we start or restart a job, right
-  // before the inputs file is parmParsed.
+  // it should get called every time we start or restart a job
 
 
   // initialize the start time for our CPU-time tracker
@@ -189,12 +188,20 @@ Castro::variableSetUp ()
     static Real rotational_frequency = 0;
 #endif
 
+    // we want const_grav in F90, get it here from parmparse, since it
+    // it not in the Castro namespace
+    ParmParse pp("gravity");
+    Real const_grav = 0;
+    pp.query("const_grav", const_grav);
+
+
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, 
          allow_negative_energy,ppm_type,ppm_reference,use_colglaz,use_pslope, 
 	 grav_source_type, do_sponge,
-         gamma,normalize_species,fix_mass_flux,use_sgs,rotational_frequency);
+         gamma,normalize_species,fix_mass_flux,use_sgs,rotational_frequency,
+	 const_grav);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  

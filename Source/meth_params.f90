@@ -49,5 +49,6 @@ module meth_params_module
   double precision, save :: max_dist
 
   double precision, save :: rot_freq
+  double precision, save :: const_grav
 
 end module meth_params_module
