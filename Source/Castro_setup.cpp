@@ -150,9 +150,8 @@ Castro::variableSetUp ()
     NumAdv = 0;
     if (NumAdv > 0)
     {
-        FirstAdv = cnt++;
-        cnt += NumAdv - 2;
-        LastAdv = cnt++;
+        FirstAdv = cnt;
+        cnt += NumAdv;
     }
 
     int dm = BL_SPACEDIM;
@@ -162,9 +161,8 @@ Castro::variableSetUp ()
 
     if (NumSpec > 0)
     {
-        FirstSpec = cnt++;
-        cnt += NumSpec - 2;
-        LastSpec = cnt++;
+        FirstSpec = cnt;
+        cnt += NumSpec;
     }
 
     // Get the number of auxillary quantities (these are defined in
@@ -173,9 +171,8 @@ Castro::variableSetUp ()
 
     if (NumAux > 0)
     {
-        FirstAux = cnt++;
-        cnt += NumAux - 2;
-        LastAux = cnt++;
+        FirstAux = cnt;
+        cnt += NumAux;
     }
 
     NUM_STATE = cnt;

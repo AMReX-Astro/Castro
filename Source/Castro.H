@@ -447,9 +447,9 @@ public:
     static int       Esgs;
     static Real      sum_turb_src;
 #endif
-    static int       FirstAdv,  LastAdv,  NumAdv;
-    static int       FirstSpec, LastSpec, NumSpec;
-    static int       FirstAux,  LastAux,  NumAux;
+    static int       FirstAdv,  NumAdv;
+    static int       FirstSpec, NumSpec;
+    static int       FirstAux,  NumAux;
 
     FluxRegister*        flux_reg;
 
