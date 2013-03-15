@@ -167,7 +167,8 @@ Castro::variableSetUp ()
         LastSpec = cnt++;
     }
 
-    // Get the number of species from the network model.
+    // Get the number of auxillary quantities (these are defined in
+    // the network module)
     BL_FORT_PROC_CALL(GET_NUM_AUX, get_num_aux)(&NumAux);
 
     if (NumAux > 0)
