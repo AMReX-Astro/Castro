@@ -88,15 +88,12 @@ int          Castro::Zmom          = -1;
 
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
-int          Castro::LastSpec      = -1;
 
 int          Castro::NumAux        = 0;
 int          Castro::FirstAux      = -1;
-int          Castro::LastAux       = -1;
 
 int          Castro::NumAdv        = 0;
 int          Castro::FirstAdv      = -1;
-int          Castro::LastAdv       = -1;
 
 Real         Castro::difmag        = 0.1;
 Real         Castro::small_dens    = -1.e200;

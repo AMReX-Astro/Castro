@@ -262,7 +262,7 @@
                                    ppm_type_in,ppm_reference_in,use_colglaz_in,use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,gamma_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   rot_freq_in)
+                                   rot_freq_in, const_grav_in)
 !                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
@@ -286,7 +286,7 @@
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
-        double precision, intent(in) :: rot_freq_in
+        double precision, intent(in) :: rot_freq_in, const_grav_in
 
         integer             :: QLAST
 
@@ -414,6 +414,7 @@
         normalize_species     = normalize_species_in
         fix_mass_flux         = fix_mass_flux_in
         rot_freq              = rot_freq_in
+        const_grav            = const_grav_in
         
 
 !       allocate(outflow_bc_lo(dm))
