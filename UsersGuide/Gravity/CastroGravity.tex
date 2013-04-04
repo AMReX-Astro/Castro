@@ -6,7 +6,7 @@ and {\bf castro.do\_grav} = 1 in the inputs file.  If both of these are
 set then the user is required to specify the gravity type in the inputs file
 or the program will abort. 
 
-Note that  {\bf MonopoleGrav} and {\bf PoissonGrav} are only correct for
+Note that {\bf MonopoleGrav} and {\bf PoissonGrav} is only correct for 
 spherical stars, i.e. in 1D we must have {\bf coord\_sys} = 2, 
 in 2D we must have {\bf coord\_sys} = 1, and in 3D we only support {\bf coord\_sys} = 0.
 
@@ -22,11 +22,11 @@ for example, to set the gravity to have magnitude 9.8 in the
 negative y-direction if in 2D, negative z-direction if in 3-D.
 
 \item {\bf PoissonGrav}: 
-The most general case is time-evolving self-gravity with no assumptions about sphericity:
+The most general case is a self-induced gravitational field, 
 \begin{equation}
 \mathbf{g}(\mathbf{x},t) = \nabla \phi 
 \end{equation}
-is a self-induced gravitational field defined by solving
+where $\phi$ is defined by solving
 \begin{equation}
 \mathbf{\Delta} \phi = -4 \pi G \rho .\label{eq:Self Gravity}
 \end{equation}
@@ -38,7 +38,8 @@ We only allow {\bf PoissonGrav} in 2D or 3D because in 1D, computing the monopol
 approximation in spherical coordinates is faster and more accurate than solving
 the Poisson equation.
 
-In 2D or 3D we define boundary conditions for $\phi$ using the monopole approximation
+In 2D or 3D we either have doubly or triply periodic boundary conditions, or
+we define boundary conditions for $\phi$ using the monopole approximation
 at the coarsest level.  (Without this the boundary conditions would be homogeneous
 Dirichlet which results in loss of sphericity of the gravitational field.)  We first
 compute a 1D radial profile of the average density at the coarsest level, then integrate
