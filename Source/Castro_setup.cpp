@@ -165,8 +165,7 @@ Castro::variableSetUp ()
         cnt += NumSpec;
     }
 
-    // Get the number of auxillary quantities (these are defined in
-    // the network module)
+    // Get the number of auxiliary quantities from the network model.
     BL_FORT_PROC_CALL(GET_NUM_AUX, get_num_aux)(&NumAux);
 
     if (NumAux > 0)
