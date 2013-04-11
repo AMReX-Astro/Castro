@@ -15,7 +15,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, &
+         QREINT, QESGS, QPRES, QFA, QFS, nadv, &
          ppm_type, ppm_reference, small_dens, small_pres
 
     implicit none
@@ -40,16 +40,16 @@ contains
 
     ! Local variables
     integer i, j
-    integer n, iadv
-    integer ns, ispec, iaux
+    integer n, iadv, ispec
+    integer npassive,ipassive,qpass_map(QVAR)
 
     double precision dtdx, dtdy
     double precision cc, csq, rho, u, v, w, p, rhoe
-    double precision drho, du, dv, dw, dp, drhoe
-    double precision dup, dvp, dwp, dpp
-    double precision dum, dvm, dwm, dpm
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
 
-    double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision drho, du, dv, dw, dp, drhoe
+    double precision dup, dvp, dpp
+    double precision dum, dvm, dpm
 
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v, alpha0w
@@ -57,6 +57,23 @@ contains
     double precision azu1rght, azv1rght, azw1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left, azw1left
+
+    ! Group all the passively advected quantities together
+    npassive = 0
+    if (QESGS .gt. -1) then
+       qpass_map(1) = QESGS
+       npassive = 1
+    endif
+    do iadv = 1, nadv
+       qpass_map(npassive + iadv) = QFA + iadv - 1
+    enddo
+    npassive = npassive + nadv
+    if(QFS .gt. -1) then
+       do ispec = 1, nspec+naux
+          qpass_map(npassive + ispec) = QFS + ispec - 1
+       enddo
+       npassive = npassive + nspec + naux
+    endif
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -79,9 +96,9 @@ contains
     ! characteristic waves.
     
     ! Im is integrating to the left interface of the current zone
-    ! (which will be used to build the right state at that interface)
+    ! (which will be used to build the right ("p") state at that interface)
     ! and Ip is integrating to the right interface of the current zone
-    ! (which will be used to build the left state at that interface).
+    ! (which will be used to build the left ("m") state at that interface).
 
     ! The choice of reference state is designed to minimize the
     ! effects of the characteristic projection.  We subtract the I's
@@ -91,30 +108,31 @@ contains
     ! state to get the full state on that interface.
 
 
+    ! *********************************************************************************************
+    ! x-direction
+    ! *********************************************************************************************
+
     ! Trace to left and right edges using upwind PPM
-
-
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
-    !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r) &
-    !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,amright,apright,azrright,azeright,azv1rght,azw1rght) &
+    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
+    !$OMP PRIVATE(drho,dv,dw,dp,drhoe,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
+    !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,amright,apright,azrright,azeright,azv1rght,azw1rght) &
     !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j,k3d)
-          csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
-           w = q(i,j,k3d,QW)
+          w = q(i,j,k3d,QW)
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+
+          cc = c(i,j,k3d)
+          csq = cc**2
           enth = ( (rhoe+p)/rho )/csq
 
-          ! plus state on face i
-
-          ! set the reference state 
+          ! Set the reference state 
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. u - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -138,24 +156,19 @@ contains
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          ! note: for the transverse velocities, the jump is carried
-          ! only by the u wave (the contact)
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the u wave (the contact)
 
           dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,1,QU))
-          !dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,1,QV))
-          !dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,1,2,QRHO))
-          !du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,1,2,QREINT))
 
           dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,3,QU))
-          !dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,3,QV))
-          !dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,3,QPRES))
 
           ! these are the beta's from the original PPM paper.  This is essentially
@@ -211,11 +224,9 @@ contains
              qxp(i,j,kc,QPRES)  = max(qxp(i,j,kc,QPRES),small_pres)
           end if
 
+          ! Minus state on face i+1
 
-          ! minus state on face i+1
-
-
-          ! set the reference state 
+          ! Set the reference state 
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. u + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -235,22 +246,19 @@ contains
              rhoe_ref = Ip(i,j,kc,1,3,QREINT)
           endif
 
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the u wave (the contact)
 
           dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,1,QU))
-          !dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,1,QV))
-          !dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,1,2,QRHO))
-          !du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,1,2,QREINT))
 
           dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,3,QU))
-          !dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,3,QV))
-          !dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
@@ -307,9 +315,10 @@ contains
     end do
     !$OMP END PARALLEL DO
 
-    ! Treat K as a passively advected quantity
-    if (QESGS .gt. -1) then
-         n = QESGS
+    ! Do all of the passively advected quantities in one loop
+    !$OMP parallel do private(ipassive,i,j,u,n) IF(npassive .gt. 1)
+    do ipassive = 1, npassive
+         n = qpass_map(ipassive)
          do j = ilo2-1, ihi2+1
 
                ! plus state on face i
@@ -339,155 +348,37 @@ contains
                           + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
                   endif
                enddo
-
-         enddo
-    end if
-
-    ! Now do the passively advected quantities
-    !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,u) IF(nadv.gt.1)
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
-       do j = ilo2-1, ihi2+1
-
-          ! plus state on face i
-          do i = ilo1, ihi1+1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (u .lt. 0.d0) then
-                qxp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
-             else
-                qxp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
-             endif
-          enddo
-
-          ! minus state on face i+1
-          do i = ilo1-1, ihi1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxm(i+1,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
-             else if (u .lt. 0.d0) then
-                qxm(i+1,j,kc,n) = q(i,j,k3d,n)
-             else
-                qxm(i+1,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
-             endif
-          enddo
-
-       enddo
+        enddo
     enddo
-    !$OMP END PARALLEL DO
+    !$OMP end parallel do
 
-
-    ! species
-
-    !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,u) IF(nspec.gt.1)
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-
-       do j = ilo2-1, ihi2+1
-
-          ! plus state on face i
-          do i = ilo1, ihi1+1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (u .lt. 0.d0) then
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             else
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-          ! minus state on face i+1
-          do i = ilo1-1, ihi1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             else if (u .lt. 0.d0) then
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns)
-             else
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-
-    
-    ! auxillary quantities
-
-    !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,u) IF(naux.gt.1)
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       do j = ilo2-1, ihi2+1
-
-          ! plus state on face i
-          do i = ilo1, ihi1+1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (u .lt. 0.d0) then
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             else
-                qxp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-          ! minus state on face i+1
-          do i = ilo1-1, ihi1
-             u = q(i,j,k3d,QU)
-             if (u .gt. 0.d0) then
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             else if (u .lt. 0.d0) then
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns)
-             else
-                qxm(i+1,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,1,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-
-
+    ! *********************************************************************************************
     ! y-direction
+    ! *********************************************************************************************
 
     ! Trace to bottom and top edges using upwind PPM
-
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
-    !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r) &
-    !$OMP PRIVATE(alpha0e,alpha0u,alpha0w,amright,apright,azrright,azeright,azu1rght,azw1rght,amleft) &
+    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
+    !$OMP PRIVATE(drho,du,dw,dp,drhoe,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
+    !$OMP PRIVATE(alpha0e,alpha0u,alpha0w,amright,apright,azrright,azeright,azu1rght,azw1rght,amleft) &
     !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j,k3d)
-          csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+
+          cc = c(i,j,k3d)
+          csq = cc**2
           enth = ( (rhoe+p)/rho )/csq
 
-          ! plus state on face j
+          ! Plus state on face j
 
-          ! set the reference state 
+          ! Set the reference state 
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. v - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -507,21 +398,19 @@ contains
              rhoe_ref = Im(i,j,kc,2,1,QREINT)
           endif
 
-          !dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,1,QU))
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the v wave (the contact)
+
           dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,1,QV))
-          !dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,2,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,2,QU))
-          !dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,2,2,QREINT))
 
-          !dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,3,QU))
           dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,3,QV))
-          !dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
@@ -574,9 +463,8 @@ contains
              qyp(i,j,kc,QPRES)  = max(qyp(i,j,kc,QPRES),small_pres)
           end if
 
-          ! minus state on face j+1
-
-          ! set the reference state 
+          ! Minus state on face j+1 
+          ! Set the reference state 
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. v + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -596,21 +484,19 @@ contains
              rhoe_ref = Ip(i,j,kc,2,3,QREINT)
           endif
 
-          !dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,1,QU))
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the v wave (the contact)
+
           dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,1,QV))
-          !dwm    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,2,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,2,QU))
-          !dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,2,QV))
           dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,2,2,QREINT))
 
-          !dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,3,QU))
           dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,3,QV))
-          !dwp    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,3,QPRES))
 
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
@@ -667,9 +553,10 @@ contains
     end do
     !$OMP END PARALLEL DO
 
-    ! Treat K as a passively advected quantity
-    if (QESGS .gt. -1) then
-         n = QESGS
+    ! Do all of the passively advected quantities in one loop
+    !$OMP parallel do private(n,i,j,v,ipassive) IF(npassive .gt. 1)
+    do ipassive = 1, npassive
+         n = qpass_map(ipassive)
          do i = ilo1-1, ihi1+1
 
                ! plus state on face j
@@ -701,125 +588,7 @@ contains
                enddo
 
          enddo
-    end if
-
-    ! Now do the passively advected quantities
-    !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,v) IF(nadv.gt.1)
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
-       do i = ilo1-1, ihi1+1
-
-          ! plus state on face j
-          do j = ilo2, ihi2+1
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qyp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (v .lt. 0.d0) then
-                qyp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
-             else
-                qyp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
-             endif
-          enddo
-
-          ! minus state on face j+1
-          do j = ilo2-1, ihi2
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qym(i,j+1,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
-             else if (v .lt. 0.d0) then
-                qym(i,j+1,kc,n) = q(i,j,k3d,n)
-             else
-                qym(i,j+1,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
-             endif
-          enddo
-
-       enddo
     enddo
-    !$OMP END PARALLEL DO
-
-    
-    ! species
-
-    !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,v) IF(nspec.gt.1)
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-       do i = ilo1-1, ihi1+1
-
-          ! plus state on face j
-          do j = ilo2, ihi2+1
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (v .lt. 0.d0) then
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             else
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-          ! minus state on face j+1
-          do j = ilo2-1, ihi2
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             else if (v .lt. 0.d0) then
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns)
-             else
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-
-    
-    ! auxillary quantities
-
-    !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,v) IF(naux.gt.1)
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       do i = ilo1-1, ihi1+1
-
-          ! plus state on face j
-          do j = ilo2, ihi2+1
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (v .lt. 0.d0) then
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             else
-                qyp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-          ! minus state on face j+1
-          do j = ilo2-1, ihi2
-             v = q(i,j,k3d,QV)
-             if (v .gt. 0.d0) then
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             else if (v .lt. 0.d0) then
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns)
-             else
-                qym(i,j+1,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,2,2,ns) - q(i,j,k3d,ns))
-             endif
-          enddo
-
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
 
   end subroutine tracexy_ppm
 
@@ -834,7 +603,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, &
+         QREINT, QESGS, QPRES, QFA, QFS, nadv, &
          ppm_type, ppm_reference, small_dens, small_pres
 
     implicit none
@@ -856,15 +625,14 @@ contains
 
     !     Local variables
     integer i, j
-    integer n, iadv
-    integer ns, ispec, iaux
+    integer n, iadv, ispec
 
     double precision dtdz
     double precision cc, csq, rho, u, v, w, p, rhoe
-    double precision dup, dvp, dwp, dpp
-    double precision dum, dvm, dwm, dpm
+    double precision dwp, dpp
+    double precision dwm, dpm
 
-    double precision drho, du, dv, dw, dp, drhoe
+    double precision drho, du, dv, dp, drhoe
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
     double precision apright, amright, azrright, azeright
@@ -874,9 +642,28 @@ contains
 
     double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
 
+    integer npassive,ipassive,qpass_map(QVAR)
+
+    ! Group all the passively advected quantities together
+    npassive = 0
+    if (QESGS .gt. -1) then
+       qpass_map(1) = QESGS
+       npassive = 1
+    endif
+    do iadv = 1, nadv
+       qpass_map(npassive + iadv) = QFA + iadv - 1
+    enddo
+    npassive = npassive + nadv
+    if(QFS .gt. -1) then
+       do ispec = 1, nspec+naux
+          qpass_map(npassive + ispec) = QFS + ispec - 1
+       enddo
+       npassive = npassive + nspec + naux
+    endif
+
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call bl_error("Error:: ppm_3d.f90 :: tracez_ppm")
+       call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
 
     dtdz = dt/dz
@@ -890,9 +677,9 @@ contains
     ! Note: in contrast to the above code for x and y, here the loop
     ! is over interfaces, not over cell-centers.
 
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,dum,dvm,dwm,dpm) &
+    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
-    !$OMP PRIVATE(drho,du,dv,dw,dp,drhoe,dup,dvp,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
+    !$OMP PRIVATE(drho,du,dv,dp,drhoe,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(alpha0u,alpha0v,amright,apright,azrright,azeright,azu1rght,azv1rght,amleft,apleft)&
     !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left)
     do j = ilo2-1, ihi2+1
@@ -900,17 +687,18 @@ contains
 
           ! plus state on face kc
 
-          cc = c(i,j,k3d)
-          csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+
+          cc = c(i,j,k3d)
+          csq = cc**2
           enth = ( (rhoe+p)/rho )/csq
 
-          ! set the reference state
+          ! Set the reference state
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. w - cc >= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -930,20 +718,18 @@ contains
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
           endif
 
-          !dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,1,QU))
-          !dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,1,QV))
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the w wave (the contact)
+
           dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,1,QW))
           dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,1,QPRES))
 
           drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,3,2,QRHO))
           du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,2,QU))
           dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,2,QV))
-          !dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,2,QW))
           dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,2,QPRES))
           drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,3,2,QREINT))
 
-          !dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,3,QU))
-          !dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,3,QV))
           dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,3,QPRES))
 
@@ -1010,7 +796,7 @@ contains
           rhoe = q(i,j,k3d-1,QREINT)
           enth = ( (rhoe+p)/rho )/csq
 
-          ! set the reference state
+          ! Set the reference state
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. w + cc <= 0.0d0) ) then
              ! original Castro way -- cc value
@@ -1030,20 +816,18 @@ contains
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
           endif
 
-          !dum    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,1,QU))
-          !dvm    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,1,QV))
+          ! Note: for the transverse velocities, the jump is carried
+          !       only by the w wave (the contact)
+
           dwm    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,1,QW))
           dpm    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,1,QPRES))
 
           drho  = flatn(i,j,k3d-1)*(rho_ref  - Ip(i,j,km,3,2,QRHO))
           du    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,2,QU))
           dv    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,2,QV))
-          !dw    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,2,QW))
           dp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,2,QPRES))
           drhoe = flatn(i,j,k3d-1)*(rhoe_ref - Ip(i,j,km,3,2,QREINT))
 
-          !dup    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,3,QU))
-          !dvp    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,3,QV))
           dwp    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,3,QW))
           dpp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,3,QPRES))
 
@@ -1099,9 +883,10 @@ contains
     end do
     !$OMP END PARALLEL DO
 
-    ! Treat K as a passively advected quantity
-    if (QESGS .gt. -1) then
-         n = QESGS
+    ! Do all of the passively advected quantities in one loop
+    !$OMP parallel do private(n,w,i,j,ipassive) IF(npassive .gt. 1)
+    do ipassive = 1, npassive
+         n = qpass_map(ipassive)
          do j = ilo2-1, ihi2+1
                do i = ilo1-1, ihi1+1
 
@@ -1131,119 +916,8 @@ contains
 
                enddo
          enddo
-    endif
-
-    ! Now do the passively advected quantities
-    !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,w) IF(nadv.gt.1)
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
-
-             ! plus state on face kc
-             w = q(i,j,k3d,QW)
-             if (w .gt. 0.d0) then
-                qzp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (w .lt. 0.d0) then
-                qzp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
-             else
-                qzp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
-             endif
-
-             ! minus state on face k
-             w = q(i,j,k3d-1,QW)
-             if (w .gt. 0.d0) then
-                qzm(i,j,kc,n) = q(i,j,k3d-1,n) &
-                     + flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
-             else if (w .lt. 0.d0) then
-                qzm(i,j,kc,n) = q(i,j,k3d-1,n)
-             else
-                qzm(i,j,kc,n) = q(i,j,k3d-1,n) &
-                     + 0.5d0*flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
-             endif
-
-          enddo
-       enddo
     enddo
-    !$OMP END PARALLEL DO
-
-
-    ! species
-
-    !$OMP PARALLEL DO PRIVATE(ispec,ns,i,j,w) IF(nspec.gt.1)
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
-
-             ! plus state on face kc
-             w = q(i,j,k3d,QW)
-             if (w .gt. 0.d0) then
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (w .lt. 0.d0) then
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,3,2,ns) - q(i,j,k3d,ns))
-             else
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,3,2,ns) - q(i,j,k3d,ns))
-             endif
-
-             ! minus state on face k
-             w = q(i,j,k3d-1,QW)
-             if (w .gt. 0.d0) then
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns) &
-                     + flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,ns) - q(i,j,k3d-1,ns))
-             else if (w .lt. 0.d0) then
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns)
-             else
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns) &
-                     + 0.5d0*flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,ns) - q(i,j,k3d-1,ns))
-             endif
-
-          enddo
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-
-
-    ! auxillary quantities
-
-    !$OMP PARALLEL DO PRIVATE(iaux,ns,i,j,w) IF(naux.gt.1)
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
-
-             ! plus state on face kc
-             w = q(i,j,k3d,QW)
-             if (w .gt. 0.d0) then
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns)
-             else if (w .lt. 0.d0) then
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,3,2,ns) - q(i,j,k3d,ns))
-             else
-                qzp(i,j,kc,ns) = q(i,j,k3d,ns) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,3,2,ns) - q(i,j,k3d,ns))
-             endif
-
-             ! minus state on face k
-             w = q(i,j,k3d-1,QW)
-             if (w .gt. 0.d0) then
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns) &
-                     + flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,ns) - q(i,j,k3d-1,ns))
-             else if (w .lt. 0.d0) then
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns)
-             else
-                qzm(i,j,kc,ns) = q(i,j,k3d-1,ns) &
-                     + 0.5d0*flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,ns) - q(i,j,k3d-1,ns))
-             endif
-
-          enddo
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
+    !$OMP end parallel do
 
   end subroutine tracez_ppm
 
