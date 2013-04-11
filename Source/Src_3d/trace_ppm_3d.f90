@@ -246,6 +246,9 @@ contains
              rhoe_ref = Ip(i,j,kc,1,3,QREINT)
           endif
 
+          ! *m are the jumps carried by u-c
+          ! *p are the jumps carried by u+c
+
           ! Note: for the transverse velocities, the jump is carried
           !       only by the u wave (the contact)
 
@@ -398,6 +401,9 @@ contains
              rhoe_ref = Im(i,j,kc,2,1,QREINT)
           endif
 
+          ! *m are the jumps carried by v-c
+          ! *p are the jumps carried by v+c
+
           ! Note: for the transverse velocities, the jump is carried
           !       only by the v wave (the contact)
 
@@ -483,6 +489,9 @@ contains
              p_ref    = Ip(i,j,kc,2,3,QPRES)
              rhoe_ref = Ip(i,j,kc,2,3,QREINT)
           endif
+
+          ! *m are the jumps carried by v-c
+          ! *p are the jumps carried by v+c
 
           ! Note: for the transverse velocities, the jump is carried
           !       only by the v wave (the contact)
@@ -718,6 +727,9 @@ contains
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
           endif
 
+          ! *m are the jumps carried by w-c
+          ! *p are the jumps carried by w+c
+
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
@@ -815,6 +827,9 @@ contains
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
           endif
+
+          ! *m are the jumps carried by w-c
+          ! *p are the jumps carried by w+c
 
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
