@@ -11,7 +11,7 @@ contains
   ! characteristics based on u
   !
   subroutine ppm(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,ivar)
+                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
@@ -28,17 +28,17 @@ contains
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
 
     double precision dx,dy,dz,dt
-    integer          k3d,kc,ivar
+    integer          k3d,kc
 
     if (ppm_type .eq. 1) then 
 
        call ppm_type1(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,ivar)
+                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     else if (ppm_type .eq. 2) then 
 
        call ppm_type2(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,ivar)
+                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     end if
 
@@ -49,7 +49,7 @@ contains
   ! :::
   
   subroutine ppm_type1(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,ivar)
+                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
@@ -66,7 +66,7 @@ contains
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
 
     double precision dx,dy,dz,dt
-    integer          k3d,kc,ivar
+    integer          k3d,kc
 
     ! local
     integer i,j,k
@@ -346,7 +346,7 @@ contains
   ! :::
 
   subroutine ppm_type2(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,ivar)
+                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
@@ -360,7 +360,7 @@ contains
     double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision dx,dy,dz,dt
-    integer          k3d,kc,ivar
+    integer          k3d,kc
 
     ! local
     integer i,j,k
