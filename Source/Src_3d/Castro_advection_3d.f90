@@ -237,7 +237,7 @@ contains
             do n=1,QVAR
                call ppm(q(:,:,:,n),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                         q(:,:,:,QU:),c,Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), &
-                        ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc,n)
+                        ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
             end do
 
             ! Compute U_x and U_y at kc (k3d)

@@ -147,7 +147,19 @@ Castro::variableSetUp ()
     use_sgs = 1;
 #endif
     Temp = cnt++;
+
     NumAdv = 0;
+
+    // if we are in 2-d with rotation, carry an advected quantity that
+    // will be the velocity through the plane of the domain (i.e. w).
+    // This can participate in the Coriolis force
+#ifdef ROTATION
+#if (BL_SPACEDIM == 2)
+    if ( Geometry::IsRZ()) {
+      NumAdv = 1;
+    }
+#endif
+#endif
     if (NumAdv > 0)
     {
         FirstAdv = cnt;
