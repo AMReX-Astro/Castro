@@ -358,6 +358,7 @@ contains
            srcQ(i,j,QRHO  ) = src(i,j,URHO)
            srcQ(i,j,QU    ) = (src(i,j,UMX) - q(i,j,QU) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
            srcQ(i,j,QV    ) = (src(i,j,UMY) - q(i,j,QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
+           ! S_rhoe = S_rhoE - u . (S_rhoU - 0.5 u S_rho)
            srcQ(i,j,QREINT) = src(i,j,UEDEN) - q(i,j,QU) *src(i,j,UMX)   &
                                              - q(i,j,QV) *src(i,j,UMY) + &
                       0.5d0 * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
