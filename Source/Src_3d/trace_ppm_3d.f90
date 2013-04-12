@@ -114,7 +114,7 @@ contains
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,dv,dw,dp,drhoe,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,amright,apright,azrright,azeright,azv1rght,azw1rght) &
-    !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left)
+    !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left,xi,xi1)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
@@ -375,7 +375,7 @@ contains
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,du,dw,dp,drhoe,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0u,alpha0w,amright,apright,azrright,azeright,azu1rght,azw1rght,amleft) &
-    !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left)
+    !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left,xi,xi1)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
@@ -711,7 +711,7 @@ contains
     !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
     !$OMP PRIVATE(drho,du,dv,dp,drhoe,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(alpha0u,alpha0v,amright,apright,azrright,azeright,azu1rght,azv1rght,amleft,apleft)&
-    !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left)
+    !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left,xi,xi1)
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
