@@ -43,9 +43,7 @@ contains
     integer n, iadv, ispec
     integer npassive,ipassive,qpass_map(QVAR)
 
-    double precision dtdx, dtdy
     double precision cc, csq, rho, u, v, w, p, rhoe
-    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
 
     double precision drho, du, dv, dw, dp, drhoe
     double precision dup, dvp, dpp
@@ -57,6 +55,8 @@ contains
     double precision azu1rght, azv1rght, azw1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left, azw1left
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision xi, xi1
 
     ! Group all the passively advected quantities together
     npassive = 0
@@ -79,9 +79,6 @@ contains
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
     end if
-
-    dtdx = dt/dx
-    dtdy = dt/dy
 
     !!!!!!!!!!!!!!!
     ! PPM CODE
@@ -219,15 +216,17 @@ contains
                 azw1rght = -0.5d0*alpha0w
              endif
 
-             qxp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-             qxp(i,j,kc,QRHO) = max(small_dens,qxp(i,j,kc,QRHO))
-             qxp(i,j,kc,QU) = u_ref + (apright - amright)*cc/rho
-             qxp(i,j,kc,QV) = v_ref + azv1rght
-             qxp(i,j,kc,QW) = w_ref + azw1rght
-             qxp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             xi1 = 1.0d0-flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+             qxp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
+             qxp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apright - amright)*cc/rho
+             qxp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
+             qxp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1rght
+             qxp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
+             qxp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq
 
-             qxp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
-             qxp(i,j,kc,QPRES)  = max(qxp(i,j,kc,QPRES),small_pres)
+             qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
+             qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
           end if
 
           ! ******************************************************************************
@@ -313,14 +312,16 @@ contains
                 azw1left = -0.5d0*alpha0w
              endif
 
-             qxm(i+1,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-             qxm(i+1,j,kc,QRHO) = max(qxm(i+1,j,kc,QRHO),small_dens)
-             qxm(i+1,j,kc,QU) = u_ref + (apleft - amleft)*cc/rho
-             qxm(i+1,j,kc,QV) = v_ref + azv1left
-             qxm(i+1,j,kc,QW) = w_ref + azw1left
-             qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             xi1 = 1.0d0 - flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+             qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
+             qxm(i+1,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apleft - amleft)*cc/rho
+             qxm(i+1,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
+             qxm(i+1,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
+             qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
 
-             qxm(i+1,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
+             qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
              qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
           end if
 
@@ -388,6 +389,8 @@ contains
           cc = c(i,j,k3d)
           csq = cc**2
           enth = ( (rhoe+p)/rho )/csq
+
+          ! ******************************************************************************
 
           if (j .ge. ilo2) then
 
@@ -470,15 +473,17 @@ contains
                 azw1rght = -0.5d0*alpha0w
              endif
 
-             qyp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-             qyp(i,j,kc,QRHO) = max(small_dens, qyp(i,j,kc,QRHO))
-             qyp(i,j,kc,QV) = v_ref + (apright - amright)*cc/rho
-             qyp(i,j,kc,QU) = u_ref + azu1rght
-             qyp(i,j,kc,QW) = w_ref + azw1rght
-             qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             xi1 = 1.0d0 - flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+             qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*rho_ref + apright + amright + azrright
+             qyp(i,j,kc,QV    ) = xi1*v    + xi*  v_ref + (apright - amright)*cc/rho
+             qyp(i,j,kc,QU    ) = xi1*u    + xi*  u_ref + azu1rght
+             qyp(i,j,kc,QW    ) = xi1*w    + xi*  w_ref + azw1rght
+             qyp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
+             qyp(i,j,kc,QPRES ) = xi1*p    + xi*  p_ref + (apright + amright)*csq
 
-             qyp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
-             qyp(i,j,kc,QPRES)  = max(qyp(i,j,kc,QPRES),small_pres)
+             qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
+             qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
           end if
 
           ! ******************************************************************************
@@ -564,14 +569,16 @@ contains
                 azw1left = -0.5d0*alpha0w
              endif
 
-             qym(i,j+1,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-             qym(i,j+1,kc,QRHO) = max(small_dens, qym(i,j+1,kc,QRHO))
-             qym(i,j+1,kc,QV) = v_ref + (apleft - amleft)*cc/rho
-             qym(i,j+1,kc,QU) = u_ref + azu1left
-             qym(i,j+1,kc,QW) = w_ref + azw1left
-             qym(i,j+1,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             xi1 = 1.0d0 - flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+             qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
+             qym(i,j+1,kc,QV    ) = xi1*v    + xi*   v_ref + (apleft - amleft)*cc/rho
+             qym(i,j+1,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
+             qym(i,j+1,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
+             qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             qym(i,j+1,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
 
-             qym(i,j+1,kc,QPRES) = p_ref + (apleft + amleft)*csq
+             qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
           end if
 
@@ -653,7 +660,6 @@ contains
     integer i, j
     integer n, iadv, ispec
 
-    double precision dtdz
     double precision cc, csq, rho, u, v, w, p, rhoe
     double precision dwp, dpp
     double precision dwm, dpm
@@ -665,8 +671,8 @@ contains
     double precision azu1rght, azv1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left
-
-    double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision xi, xi1
 
     integer npassive,ipassive,qpass_map(QVAR)
 
@@ -691,8 +697,6 @@ contains
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
-
-    dtdz = dt/dz
 
     !!!!!!!!!!!!!!!
     ! PPM CODE
@@ -803,14 +807,16 @@ contains
              azv1rght = -0.5d0*alpha0v
           endif
 
-          qzp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-          qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
-          qzp(i,j,kc,QW) = w_ref + (apright - amright)*cc/rho
-          qzp(i,j,kc,QU) = u_ref + azu1rght
-          qzp(i,j,kc,QV) = v_ref + azv1rght
-          qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+          xi1 = 1.0d0 - flatn(i,j,k3d)
+          xi = flatn(i,j,k3d)
+          qzp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
+          qzp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apright - amright)*cc/rho
+          qzp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1rght
+          qzp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
+          qzp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
+          qzp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq
 
-          qzp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
+          qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           ! **************************************************************************
@@ -909,16 +915,17 @@ contains
              azv1left = -0.5d0*alpha0v
           endif
 
-          qzm(i,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-          qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))
-          qzm(i,j,kc,QW) = w_ref + (apleft - amleft)*cc/rho
-          qzm(i,j,kc,QU) = u_ref + azu1left
-          qzm(i,j,kc,QV) = v_ref + azv1left
-          qzm(i,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+          xi1 = 1.0d0 - flatn(i,j,k3d-1)
+          xi = flatn(i,j,k3d-1)
+          qzm(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
+          qzm(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apleft - amleft)*cc/rho
+          qzm(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
+          qzm(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
+          qzm(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+          qzm(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
 
-          qzm(i,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
+          qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
-
        end do
     end do
     !$OMP END PARALLEL DO
