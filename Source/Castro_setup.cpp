@@ -509,9 +509,13 @@ Castro::variableSetUp ()
     // run with ncomp == 0 just by taking out that assertion.
     //ncomp = (RadTests::do_timing) ? 0 : 2;
     ncomp = (RadTests::do_timing) ? 1 : 2;
+    ncomp = (Radiation::Test_Type_lambda) ? 1 : ncomp;
     int nspec = (Radiation::nNeutrinoSpecies>0) ? Radiation::nNeutrinoSpecies : 1;
     if (Radiation::Test_Type_Flux) {
       ncomp = nspec * BL_SPACEDIM;
+      if (Radiation::Test_Type_lambda) {
+	ncomp++;  // SGFLD only
+      }
     }
 
     ngrow = 0;
@@ -548,6 +552,14 @@ Castro::variableSetUp ()
 	  icomp++;
 	}
       }
+      if (Radiation::Test_Type_lambda) {
+	desc_lst.setComponent(Test_Type, icomp, "lambda", bc,
+			      BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+      }
+    }
+    else if (Radiation::Test_Type_lambda) {
+      desc_lst.setComponent(Test_Type, 0, "lambda", bc,
+			    BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));      
     }
     else {
       char test_name[10];
