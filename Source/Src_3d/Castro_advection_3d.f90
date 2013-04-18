@@ -235,8 +235,9 @@ contains
          if (ppm_type .gt. 0) then
 
             do n=1,QVAR
-               call ppm(q(:,:,:,n),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        q(:,:,:,QU:),c,Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), &
+               call ppm(q(:,:,:,n  ),  qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                        q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                        Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), &
                         ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
             end do
 

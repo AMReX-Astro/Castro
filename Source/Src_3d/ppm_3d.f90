@@ -2,7 +2,7 @@ module ppm_module
 
   implicit none
 
-  private 
+  private
 
   public ppm
 
@@ -10,17 +10,19 @@ contains
   !
   ! characteristics based on u
   !
-  subroutine ppm(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+  subroutine ppm(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                 u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                 Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
     implicit none
 
+    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
     integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer          ilo1,ilo2,ihi1,ihi2
 
-    double precision    s(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision    s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
     double precision    u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
     double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
 
@@ -29,16 +31,18 @@ contains
 
     double precision dx,dy,dz,dt
     integer          k3d,kc
+   
+    if (ppm_type .eq. 1) then
 
-    if (ppm_type .eq. 1) then 
+        call ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-       call ppm_type1(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+    else if (ppm_type .eq. 2) then
 
-    else if (ppm_type .eq. 2) then 
-
-       call ppm_type2(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+        call ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     end if
 
@@ -48,17 +52,19 @@ contains
   ! ::: ----------------------------------------------------------------
   ! :::
   
-  subroutine ppm_type1(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+  subroutine ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
     implicit none
 
+    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
     integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer          ilo1,ilo2,ihi1,ihi2
 
-    double precision    s(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision    s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
     double precision    u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
     double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
 
@@ -93,6 +99,18 @@ contains
 
     if (ppm_type .ne. 1) &
          call bl_error("Should have ppm_type = 1 in ppm_type1")
+
+    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
+         print *,'Low bounds of array: ',s_l1, s_l2
+         print *,'Low bounds of  loop: ',ilo1 , ilo2
+         call bl_error("Need more ghost cells on array in ppm_type1")
+    end if
+
+    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
+         print *,'Hi  bounds of array: ',s_h1, s_h2
+         print *,'Hi  bounds of  loop: ',ihi1 , ihi2
+         call bl_error("Need more ghost cells on array in ppm_type1")
+    end if
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -345,16 +363,18 @@ contains
   ! ::: ----------------------------------------------------------------
   ! :::
 
-  subroutine ppm_type2(s,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3,u,cspd,Ip,Im, &
-                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+  subroutine ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
 
     implicit none
 
+    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
     integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer          ilo1,ilo2,ihi1,ihi2
-    double precision s(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
     double precision u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,1:3)
     double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
@@ -394,6 +414,18 @@ contains
 
     if (ppm_type .ne. 2) &
          call bl_error("Should have ppm_type = 2 in ppm_type2")
+
+    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
+         print *,'Low bounds of array: ',s_l1, s_l2
+         print *,'Low bounds of  loop: ',ilo1 , ilo2
+         call bl_error("Need more ghost cells on array in ppm_type2")
+    end if
+
+    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
+         print *,'Hi  bounds of array: ',s_h1, s_h2
+         print *,'Hi  bounds of  loop: ',ihi1 , ihi2
+         call bl_error("Need more ghost cells on array in ppm_type2")
+    end if
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
