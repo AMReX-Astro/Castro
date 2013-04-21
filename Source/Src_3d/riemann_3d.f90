@@ -494,7 +494,7 @@ contains
 
       !$OMP PARALLEL DO PRIVATE(i,j,rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,csmall,wsmall,wl,wr,pstar,ustar,ro,uo) &
       !$OMP PRIVATE(po,reo,gamco,co,entho,rstar,estar,cstar,sgnm,spout,spin,ushock,scr,frac,v1gdnv,v2gdnv,rgdnv,regdnv) &
-      !$OMP PRIVATE(rhoetot,iadv,n,nq,qavg,ispec,iaux)
+      !$OMP PRIVATE(rhoetot,iadv,n,nq,qavg,ispec,iaux,rho_K_contrib)
       do j = jlo, jhi
          do i = ilo, ihi
 
