@@ -1418,6 +1418,8 @@ contains
       initial_eden = 0.d0
         final_eden = 0.d0
 
+      min_dens = 0.d0
+
       !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
@@ -1505,9 +1507,15 @@ contains
       enddo
       !$OMP END PARALLEL DO
 
-      mass_added = mass_added + final_mass - initial_mass
-      eint_added = eint_added + final_eint - initial_eint
-      eden_added = eden_added + final_eden - initial_eden
+      ! When enabled with OpenMP sometimes there is a small numerical error
+      ! in (final_mass - initial_mass) even if no cells have been reset.
+      ! Guard against this by only taking the difference if any cell has been reset.
+
+      if ( min_dens /= 0.d0 ) then
+        mass_added = mass_added + final_mass - initial_mass
+        eint_added = eint_added + final_eint - initial_eint
+        eden_added = eden_added + final_eden - initial_eden
+      endif
 
       deallocate(fac)
 
