@@ -2825,7 +2825,7 @@ Castro::get_numpts ()
 #elif (BL_SPACEDIM == 2)
      int ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+6;
+     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
 #elif (BL_SPACEDIM == 3)
      int ny = bx.size()[1];
      int nz = bx.size()[2];
