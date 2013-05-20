@@ -140,6 +140,7 @@ int          Castro::allow_negative_energy = 1;
 int          Castro::do_special_tagging = 0;
 int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
+int          Castro::ppm_trace_grav = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 1;
@@ -358,6 +359,7 @@ Castro::read_params ()
     pp.query("do_special_tagging",do_special_tagging);
     pp.query("ppm_type", ppm_type);
     pp.query("ppm_reference", ppm_reference);
+    pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_pslope",use_pslope);
     pp.query("grav_source_type",grav_source_type);

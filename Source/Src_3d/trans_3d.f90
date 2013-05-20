@@ -986,7 +986,7 @@
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                      QPRES, QREINT, QESGS, QFA, QFS, &
                                      URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                     nadv, small_pres
+                                     nadv, small_pres, ppm_type, ppm_trace_grav
       implicit none
 
       integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1179,18 +1179,18 @@
 
             ! Convert back to non-conservation form
             qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-            qpo(i,j,kc,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-            qpo(i,j,kc,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-            qpo(i,j,kc,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+            qpo(i,j,kc,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU) 
+            qpo(i,j,kc,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV) 
+            qpo(i,j,kc,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW) 
             qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
             qpo(i,j,kc,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
 
             qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
-            qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU) + hdt*grav(i,j,k3d-1,1)
-            qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV) + hdt*grav(i,j,k3d-1,2)
-            qmo(i,j,kc,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QW) + hdt*grav(i,j,k3d-1,3)
+            qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU)
+            qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV)
+            qmo(i,j,kc,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QW)
             qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
 
             qmo(i,j,kc,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d-1,QPRES)
@@ -1199,6 +1199,23 @@
          enddo
       enddo
       !$OMP END PARALLEL DO
+
+
+      ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
+      ! gravity to the normal edge states
+      if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+         do j = jlo, jhi 
+            do i = ilo, ihi          
+               qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*grav(i,j,k3d,1)
+               qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*grav(i,j,k3d,2)
+               qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*grav(i,j,k3d,3)
+
+               qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*grav(i,j,k3d-1,1)
+               qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*grav(i,j,k3d-1,2)
+               qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*grav(i,j,k3d-1,3)
+            enddo
+         enddo
+      endif
 
       end subroutine transxy
 
@@ -1220,7 +1237,7 @@
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                      QPRES, QREINT, QESGS, QFA, QFS, &
                                      URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                     nadv, small_pres
+                                     nadv, small_pres, ppm_type, ppm_trace_grav
       implicit none      
 
       integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1389,9 +1406,9 @@
             ! Convert back to non-conservation form
             if (j.ge.jlo+1) then
                qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-               qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-               qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-               qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+               qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
+               qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
+               qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
                qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
    
                qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1400,9 +1417,9 @@
 
             if (j.le.jhi-1) then
                qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
-               qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU) + hdt*grav(i,j,k3d,1)
-               qmo(i,j+1,km,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV) + hdt*grav(i,j,k3d,2)
-               qmo(i,j+1,km,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW) + hdt*grav(i,j,k3d,3)
+               qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
+               qmo(i,j+1,km,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
+               qmo(i,j+1,km,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
                qmo(i,j+1,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
                qmo(i,j+1,km,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
@@ -1411,6 +1428,22 @@
          enddo
       enddo
       !$OMP END PARALLEL DO
+
+      ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
+      ! gravity to the normal edge states
+      if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+         do j = jlo, jhi 
+            do i = ilo, ihi 
+               qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
+               qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
+               qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
+
+               qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*grav(i,j,k3d,1)
+               qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*grav(i,j,k3d,2)
+               qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*grav(i,j,k3d,3)
+            enddo
+         enddo
+      endif
 
       end subroutine transxz
 
@@ -1432,7 +1465,7 @@
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                      QPRES, QREINT, QESGS, QFA, QFS, &
                                      URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                     nadv, small_pres
+                                     nadv, small_pres, ppm_type, ppm_trace_grav
       implicit none
 
       integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1603,9 +1636,9 @@
             ! Convert back to non-conservation form
            if (i.ge.ilo+1) then
                qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-               qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-               qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-               qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+               qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
+               qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
+               qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
                qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
                qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1615,9 +1648,9 @@
 
            if (i.le.ihi-1) then
                qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
-               qmo(i+1,j,km,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-               qmo(i+1,j,km,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-               qmo(i+1,j,km,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+               qmo(i+1,j,km,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
+               qmo(i+1,j,km,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
+               qmo(i+1,j,km,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
                qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
  
                qmo(i+1,j,km,QPRES  ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1627,5 +1660,21 @@
          enddo
       enddo
       !$OMP END PARALLEL DO
+
+      ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
+      ! gravity to the normal edge states
+      if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+         do j = jlo, jhi 
+            do i = ilo, ihi 
+               qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
+               qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
+               qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
+
+               qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*grav(i,j,k3d,1)
+               qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*grav(i,j,k3d,2)
+               qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*grav(i,j,k3d,3)
+            enddo
+         enddo
+      endif
 
       end subroutine transyz

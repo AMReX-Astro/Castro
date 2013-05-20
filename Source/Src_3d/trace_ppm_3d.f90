@@ -9,19 +9,21 @@ module trace_ppm_module
 contains
 
   subroutine tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         Ip,Im, &
+                         Ip,Im,Ip_g,Im_g, &
                          qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                         grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
-         ppm_type, ppm_reference, small_dens, small_pres
+         ppm_type, ppm_reference, ppm_trace_grav, small_dens, small_pres
 
     implicit none
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
     integer ilo1,ilo2,ihi1,ihi2
     integer kc,k3d
 
@@ -32,10 +34,16 @@ contains
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
 
+    double precision   Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision   Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+
     double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+
     double precision dx, dy, dt
 
     ! Local variables
@@ -57,6 +65,11 @@ contains
     double precision azu1left, azv1left, azw1left
     double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
     double precision xi, xi1
+    double precision halfdt
+
+    integer, parameter :: igx = 1
+    integer, parameter :: igy = 2
+    integer, parameter :: igz = 3
 
     ! Group all the passively advected quantities together
     npassive = 0
@@ -79,6 +92,8 @@ contains
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
     end if
+
+    halfdt = 0.5d0 * dt
 
     !!!!!!!!!!!!!!!
     ! PPM CODE
@@ -172,6 +187,13 @@ contains
 
              dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,3,QU))
              dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,3,QPRES))
+
+             if (ppm_trace_grav .eq. 1) then
+                dum = dum - halfdt*Im_g(i,j,kc,1,1,igx)
+                dv  = dv  - halfdt*Im_g(i,j,kc,1,2,igy)
+                dw  = dw  - halfdt*Im_g(i,j,kc,1,2,igz)
+                dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
+             endif
    
              ! these are the beta's from the original PPM paper.  This is essentially
              ! (l . dq) r for each primitive quantity
@@ -271,6 +293,13 @@ contains
 
              dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,3,QU))
              dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,3,QPRES))
+
+             if (ppm_trace_grav .eq. 1) then
+                dum = dum - halfdt*Ip_g(i,j,kc,1,1,igx)
+                dv  = dv  - halfdt*Ip_g(i,j,kc,1,2,igy)
+                dw  = dw  - halfdt*Ip_g(i,j,kc,1,2,igz)
+                dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
+             endif
 
              alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
@@ -432,6 +461,13 @@ contains
 
              dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,3,QV))
              dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,3,QPRES))
+
+             if (ppm_trace_grav .eq. 1) then
+                dvm = dvm - halfdt*Im_g(i,j,kc,2,1,igy)
+                du  = du  - halfdt*Im_g(i,j,kc,2,2,igx)
+                dw  = dw  - halfdt*Im_g(i,j,kc,2,2,igz)
+                dvp = dvp - halfdt*Im_g(i,j,kc,2,3,igy)
+             endif
    
              alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
@@ -528,6 +564,13 @@ contains
 
              dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,3,QV))
              dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,3,QPRES))
+
+             if (ppm_trace_grav .eq. 1) then
+                dvm = dvm - halfdt*Ip_g(i,j,kc,2,1,igy)
+                du  = du  - halfdt*Ip_g(i,j,kc,2,2,igx)
+                dw  = dw  - halfdt*Ip_g(i,j,kc,2,2,igz)
+                dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
+             endif
 
              alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
@@ -630,19 +673,21 @@ contains
   ! ::: 
 
   subroutine tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        Ip,Im, &
+                        Ip,Im,Ip_g,Im_g, &
                         qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                         ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
-         ppm_type, ppm_reference, small_dens, small_pres
+         ppm_type, ppm_reference, ppm_trace_grav, small_dens, small_pres
 
     implicit none
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
     integer ilo1,ilo2,ihi1,ihi2
     integer km,kc,k3d
 
@@ -652,8 +697,15 @@ contains
 
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
+
+    double precision   Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision   Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+
     double precision qzm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qzp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+
     double precision dz, dt
 
     !     Local variables
@@ -673,8 +725,13 @@ contains
     double precision azu1left, azv1left
     double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
     double precision xi, xi1
+    double precision halfdt
 
     integer npassive,ipassive,qpass_map(QVAR)
+
+    integer, parameter :: igx = 1
+    integer, parameter :: igy = 2
+    integer, parameter :: igz = 3
 
     ! Group all the passively advected quantities together
     npassive = 0
@@ -692,6 +749,8 @@ contains
        enddo
        npassive = npassive + nspec + naux
     endif
+
+    halfdt = 0.5d0 * dt
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
@@ -768,6 +827,13 @@ contains
 
           dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,3,QW))
           dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,3,QPRES))
+
+          if (ppm_trace_grav .eq. 1) then
+             dwm = dwm - halfdt*Im_g(i,j,kc,3,1,igz)
+             du  = du  - halfdt*Im_g(i,j,kc,3,2,igx)
+             dv  = dv  - halfdt*Im_g(i,j,kc,3,2,igy)
+             dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
+          endif
 
           alpham = 0.5d0*(dpm/(rho*cc) - dwm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dwp)*rho/cc
@@ -876,6 +942,13 @@ contains
 
           dwp    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,3,QW))
           dpp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,3,QPRES))
+
+          if (ppm_trace_grav .eq. 1) then
+             dwm = dwm - halfdt*Ip_g(i,j,km,3,1,igz)
+             du  = du  - halfdt*Ip_g(i,j,km,3,2,igx)
+             dv  = dv  - halfdt*Ip_g(i,j,km,3,2,igy)
+             dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
+          endif
 
           alpham = 0.5d0*(dpm/(rho*cc) - dwm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dwp)*rho/cc

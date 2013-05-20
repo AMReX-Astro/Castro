@@ -47,7 +47,8 @@ contains
                          ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                          pdivu)
 
-      use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, ppm_type, use_pslope
+      use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, ppm_type, &
+                                     use_pslope, ppm_trace_grav
       use trace_ppm_module, only : tracexy_ppm, tracez_ppm
       use trace_module, only : tracexy, tracez
       use ppm_module, only : ppm
@@ -127,6 +128,7 @@ contains
       double precision, allocatable:: pgdnvzf(:,:,:), ugdnvzf(:,:,:)
 
       double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
+      double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
 
       allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
       allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
@@ -206,6 +208,10 @@ contains
       allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
       allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
 
+      ! for gravity (last index is x,y,z component)
+      allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+      allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+
       ! Local constants
       dtdx = dt/dx
       dtdy = dt/dy
@@ -241,10 +247,20 @@ contains
                         ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
             end do
 
+            if (ppm_trace_grav .eq. 1) then
+               do n=1,3
+                  call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                           q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                           Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
+                           ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+               enddo
+            endif
+
             ! Compute U_x and U_y at kc (k3d)
             call tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             Ip,Im, &
+                             Ip,Im,Ip_g,Im_g, &
                              qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                             grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                              ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
          else
@@ -317,8 +333,9 @@ contains
             ! Compute U_z at kc (k3d)
             if (ppm_type .gt. 0) then
                call tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                               Ip,Im, &
+                               Ip,Im,Ip_g,Im_g, &
                                qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                               grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                                ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
             else
                call tracez(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -509,6 +526,7 @@ contains
       deallocate(fyx,fyz)
       deallocate(fzx,fzy)
       deallocate(Ip,Im)
+      deallocate(Ip_g,Im_g)
 
       end subroutine umeth3d
 

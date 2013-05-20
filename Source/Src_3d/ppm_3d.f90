@@ -442,6 +442,7 @@ contains
     ! interpolate s to x-edges
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+3
+          print *, "here: ", i, j
           sedge(i,j) = (7.d0/12.d0)*(s(i-1,j,k3d)+s(i  ,j,k3d)) &
                - (1.d0/12.d0)*(s(i-2,j,k3d)+s(i+1,j,k3d))
           !

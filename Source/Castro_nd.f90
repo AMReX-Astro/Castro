@@ -259,7 +259,8 @@
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
                                    difmag_in, small_dens_in, small_temp_in, small_pres_in, &
                                    allow_negative_energy_in, &
-                                   ppm_type_in,ppm_reference_in,use_colglaz_in,use_pslope_in, &
+                                   ppm_type_in,ppm_reference_in,ppm_trace_grav_in, &
+                                   use_colglaz_in,use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,gamma_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    rot_freq_in, const_grav_in)
@@ -277,7 +278,8 @@
         integer, intent(in) :: dm
         integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux
         integer, intent(in) :: numadv
-        integer, intent(in) :: allow_negative_energy_in, ppm_type_in, ppm_reference_in
+        integer, intent(in) :: allow_negative_energy_in, ppm_type_in
+        integer, intent(in) :: ppm_reference_in, ppm_trace_grav_in
         integer, intent(in) :: use_colglaz_in, use_pslope_in, grav_source_type_in
         integer, intent(in) :: do_sponge_in
         double precision, intent(in) :: difmag_in
@@ -407,6 +409,7 @@
         allow_negative_energy = allow_negative_energy_in
         ppm_type              = ppm_type_in
         ppm_reference         = ppm_reference_in
+        ppm_trace_grav        = ppm_trace_grav_in
         use_colglaz           = use_colglaz_in
         use_pslope            = use_pslope_in
         grav_source_type      = grav_source_type_in
