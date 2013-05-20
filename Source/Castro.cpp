@@ -2830,7 +2830,7 @@ Castro::get_numpts ()
      int ny = bx.size()[1];
      int nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+6;
+     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
 #endif 
 
      if (verbose && ParallelDescriptor::IOProcessor())

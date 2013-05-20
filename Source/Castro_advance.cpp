@@ -179,7 +179,7 @@ Castro::advance_hydro (Real time,
            gravity->zeroPhiFluxReg(level+1);
        gravity->swapTimeLevels(level);
 
-       grav_vec_old.define(grids,BL_SPACEDIM,3,Fab_allocate); 
+       grav_vec_old.define(grids,BL_SPACEDIM,4,Fab_allocate); 
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
@@ -332,13 +332,13 @@ Castro::advance_hydro (Real time,
 #endif
     
     // Define the gravity vector so we can pass this to ca_umdrv.
-    MultiFab grav_vector(grids,BL_SPACEDIM,3);
+    MultiFab grav_vector(grids,BL_SPACEDIM,4);
     grav_vector.setVal(0.);
     
 #ifdef GRAVITY
     if (do_grav) {
-      // Copy the gravity vector (including 3 ghost cells) for passing to umdrv.
-      MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,3);
+      // Copy the gravity vector (including 4 ghost cells) for passing to umdrv.
+      MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,4);
       grav_vector.FillBoundary();
       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
     }
@@ -1009,7 +1009,7 @@ Castro::advance_no_hydro (Real time,
 
        gravity->swapTimeLevels(level);
 
-       grav_vec_old.define(grids,BL_SPACEDIM,3,Fab_allocate); 
+       grav_vec_old.define(grids,BL_SPACEDIM,4,Fab_allocate); 
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
