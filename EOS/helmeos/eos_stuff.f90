@@ -779,9 +779,9 @@ contains
           else if (dim_ptindex .eq. 3) then 
              write (err_string,1003) pt_index(1), pt_index(2), pt_index(3)
           end if
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations', err_string)
+          call bl_error('EOS: Newton-Raphson failed (eos_input_rh) too many iterations', err_string)
        else
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations')
+          call bl_error('EOS: Newton-Raphson failed (eos_input_rh) too many iterations')
        endif
 
 70     continue
@@ -952,9 +952,9 @@ contains
           else if (dim_ptindex .eq. 3) then 
              write (err_string,1003) pt_index(1), pt_index(2), pt_index(3)
           end if
-          call bl_error('EOS: Newton-Raphson failed:3: too many iterations', err_string)         
+          call bl_error('EOS: Newton-Raphson failed (eos_input_tp) too many iterations', err_string)         
        else
-          call bl_error('EOS: Newton-Raphson failed:3: too many iterations')         
+          call bl_error('EOS: Newton-Raphson failed (eos_input_tp) too many iterations')         
        endif
 
 170    continue
@@ -1135,9 +1135,9 @@ contains
           else if (dim_ptindex .eq. 3) then 
              write (err_string,1003) pt_index(1), pt_index(2), pt_index(3)
           end if
-          call bl_error('EOS: Newton-Raphson failed:4: too many iterations', err_string)          
+          call bl_error('EOS: Newton-Raphson failed (eos_input_rp) too many iterations', err_string)          
        else
-          call bl_error('EOS: Newton-Raphson failed:4: too many iterations')          
+          call bl_error('EOS: Newton-Raphson failed (eos_input_rp) too many iterations')          
        endif
 
 870    continue
@@ -1325,9 +1325,9 @@ contains
           else if (dim_ptindex .eq. 3) then 
              write (err_string,1003) pt_index(1), pt_index(2), pt_index(3)
           end if
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations', err_string)
+          call bl_error('EOS: Newton-Raphson failed (eos_input_re) too many iterations', err_string)
        else
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations')
+          call bl_error('EOS: Newton-Raphson failed (eos_input_re) too many iterations')
        endif
 
 270     continue
@@ -1557,9 +1557,9 @@ contains
           else if (dim_ptindex .eq. 3) then 
              write (err_string,1003) pt_index(1), pt_index(2), pt_index(3)
           end if
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations', err_string)
+          call bl_error('EOS: Newton-Raphson failed (eos_input_ps) too many iterations', err_string)
        else
-          call bl_error('EOS: Newton-Raphson failed:2: too many iterations')
+          call bl_error('EOS: Newton-Raphson failed (eos_input_ps) too many iterations')
        endif
 
 370     continue
