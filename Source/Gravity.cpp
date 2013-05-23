@@ -28,6 +28,7 @@ int  Gravity::verbose       = 0;
 int  Gravity::no_sync       = 0;
 int  Gravity::no_composite  = 0;
 int  Gravity::drdxfac       = 1;
+int  Gravity::lnum          = 0;
 Real Gravity::sl_tol        = 1.e100;
 Real Gravity::ml_tol        = 1.e100;
 Real Gravity::delta_tol     = 1.e100;
@@ -132,6 +133,8 @@ Gravity::read_params ()
         pp.query("v", verbose);
         pp.query("no_sync", no_sync);
         pp.query("no_composite", no_composite);
+ 
+        pp.query("max_multipole_order", lnum);
 
         // Allow run-time input of solver tolerances
 	if (Geometry::IsCartesian()) {
@@ -428,7 +431,16 @@ Gravity::solve_for_phi (int               level,
     if (level == 0  && !Geometry::isAllPeriodic()) {
       if (verbose && ParallelDescriptor::IOProcessor()) 
          std::cout << " ... Making bc's for phi at level 0 and time "  << time << std::endl;
-      make_radial_phi(level,Rhs,phi,fill_interior);
+      
+      // Fill the ghost cells using a multipole approximation. By default, lnum = 0
+      // and a monopole approximation is used.
+
+#if (BL_SPACEDIM < 3)
+      make_radial_phi(level,Rhs,phi,fill_interior)
+#else
+      fill_multipole_BCs(level,Rhs,phi,lnum);
+#endif
+
     }
 
     Rhs.mult(Ggravity);
@@ -2274,6 +2286,81 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     BoxLib::Abort("Can't use make_radial_phi with dim == 1");
 #endif
 }
+
+
+#if (BL_SPACEDIM == 3)
+void
+Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int lnum)
+{
+    BL_ASSERT(level==0);
+
+    const Real strt = ParallelDescriptor::second();
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx   = geom.CellSize();
+
+    // Storage arrays for the multipole moments.
+    // It's a little messy to hand arrays of unknown
+    // size as function arguments if they're multidimensional,
+    // so cap the size of the array at the maximum
+    // allowed value of l. If you want to change this,
+    // make sure you edit the argument list in 
+    // the header file (and also code in the higher
+    // order Legendre polynomials in Gravity_3d.f90).
+
+    const int lmax = 5;
+
+    Real q0[lmax+1]         = {   0.0   };
+    Real qC[lmax+1][lmax+1] = { { 0.0 } };
+    Real qS[lmax+1][lmax+1] = { { 0.0 } };
+
+    // Loop through the grids and compute the individual contributions
+    // to the various moments. The multipole moment constructor
+    // is coded to only add to the moment arrays, so it is safe
+    // to directly hand the arrays to them.
+
+    Box domain(parent->Geom(level).Domain());
+    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+    {
+        Box bx(mfi.validbox());
+        BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
+	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), dx,
+             BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),&lnum,&lmax,q0,qC,qS);
+    }
+
+    for (int l = 0; l <= lnum; l++)
+    {
+      ParallelDescriptor::ReduceRealSum(q0[l]);
+      for (int m = 1; m <= l; m++)
+      {
+        ParallelDescriptor::ReduceRealSum(qC[l][m]);
+        ParallelDescriptor::ReduceRealSum(qS[l][m]);
+      }
+    }
+
+    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+    {
+        Box bx(mfi.validbox());
+        BL_FORT_PROC_CALL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
+            (bx.loVect(), bx.hiVect(),
+             domain.loVect(), domain.hiVect(),
+             dx, BL_TO_FORTRAN(phi[mfi]),
+             geom.ProbLo(),&lnum,&lmax,q0,qC,qS);
+    }
+
+    if (verbose)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real      end    = ParallelDescriptor::second() - strt;
+
+        ParallelDescriptor::ReduceRealMax(end,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl;
+    }
+
+}
+#endif
 
 #if (BL_SPACEDIM < 3)
 void

@@ -134,7 +134,23 @@ BL_FORT_PROC_DECL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
      const BL_FORT_FAB_ARG(phi),
      const Real* radial_phi,
      const Real* problo, 
-     const int* numpts_1d, const int* fill_interior); 
+     const int* numpts_1d, const int* fill_interior);
+
+BL_FORT_PROC_DECL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
+    (const int lo[], const int hi[], 
+     const int domlo[], const int domhi[], 
+     const Real* dx,
+     const BL_FORT_FAB_ARG(phi),
+     const Real* problo, const int* lnum, const int* lmax,
+     Real q0[6], Real qC[6][6], Real qS[6][6]); 
+
+BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
+    (const int lo[], const int hi[], 
+     const int domlo[], const int domhi[], 
+     const Real* dx,
+     const BL_FORT_FAB_ARG(rho),
+     const Real* problo, const int* lnum, const int* lmax,
+     Real q0[6], Real qC[6][6], Real qS[6][6]); 
 
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)

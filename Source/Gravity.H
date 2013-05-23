@@ -122,6 +122,10 @@ public:
 
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
+#if (BL_SPACEDIM == 3)
+  void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int lmax);
+#endif
+
   void make_mg_bc();
 
 protected:
@@ -171,6 +175,7 @@ protected:
   static int   no_sync;
   static int   no_composite;
   static int   drdxfac;
+  static int   lnum;
   static Real  const_grav;
   static Real  mass_offset;
   static Real  sl_tol;
