@@ -801,9 +801,9 @@
         double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: l,m
+        integer          :: l,m,ll
         double precision :: x,y,z,r,cosTheta,phiAngle
-        double precision :: legendrePolynomial, associatedLegendrePolynomial
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
 
         do k = p_l3,p_h3
            if (k .gt. domhi(3)) then
@@ -844,14 +844,23 @@
 
                    phi(i,j,k) = 0.0d0
 
+                   ! First, calculate the Legendre polynomials.
+
+                   legPolyArr(:) = 0.0d0
+                   assocLegPolyArr(:,:) = 0.0d0
+
+                   call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum, lmax)
+
+                   ! Now compute the potentials on the ghost cells.
+
                    do l = 0, lnum
  
-                     phi(i,j,k) = phi(i,j,k) + q0(l) * legendrePolynomial(l,cosTheta) / r**(l+1)
+                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) / r**(l+1)
                                  
                      do m = 1, l
        
                        phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle) ) * &
-                                                associatedLegendrePolynomial(l,m,cosTheta) / r**(l+1)
+                                                assocLegPolyArr(l,m) / r**(l+1)
 
                      enddo
 
@@ -894,11 +903,19 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: l,m
+        integer          :: l,m,ll
         double precision :: x,y,z,r,cosTheta,phiAngle,dV
-        double precision :: legendrePolynomial, associatedLegendrePolynomial, factorial
+        double precision :: factorial
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
 
         dV = dx(1) * dx(2) * dx(3)
+
+        ! Safety check: if lnum > lmax, set it equal to lmax to avoid array overflows.
+        ! lmax is set so that you really could never need that many terms.
+
+        if ( lnum > lmax ) then
+          lnum = lmax
+        endif
 
         ! Compute pre-factors now to save computation time, for qC and qS
 
@@ -945,17 +962,25 @@
                  phiAngle = atan2(y,x)
 
                  ! Compute contribution from this cell to all multipole moments.
+                 ! First, calculate the Legendre polynomials.
 
-                 do l = 0, lnum
+                 legPolyArr(:) = 0.0d0
+                 assocLegPolyArr(:,:) = 0.0d0
 
-                   q0(l) = q0(l) + legendrePolynomial(l,cosTheta) * (r ** l) * rho(i,j,k) * dV
+                 call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum, lmax)
+
+                 ! Now, compute the multipole moments using the tabulated polynomials.
+
+                 do l = 0, lnum 
+                  
+                   q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho(i,j,k) * dV
 
                    do m = 1, l
 
-                     qC(l,m) = qC(l,m) + factArray(l,m) * associatedLegendrePolynomial(l,m,cosTheta) * &
+                     qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
                                          cos(m * phiAngle) * (r ** l) * rho(i,j,k)
 
-                     qS(l,m) = qS(l,m) + factArray(l,m) * associatedLegendrePolynomial(l,m,cosTheta) * &
+                     qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
                                          sin(m * phiAngle) * (r ** l) * rho(i,j,k)
                    enddo
 
@@ -967,113 +992,6 @@
 
       end subroutine ca_compute_multipole_moments
 
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      double precision function legendrePolynomial(l,x) result(p)
-
-        implicit none
-
-        integer :: l
-        double precision :: x
-
-        SELECT CASE (l)
-          CASE ( 0 )
-            p = 1.0d0
-          CASE ( 1 )
-            p = x
-          CASE ( 2 )
-            p = (3.0d0*x**2 - 1) / 2.0d0
-          CASE ( 3 )
-            p = (5.0d0*x**3 - 3.0*x) / 2.0d0
-          CASE ( 4 )
-            p = (35.0d0*x**4 - 30.0d0*x**2 + 3.0d0) / 8.0d0
-          CASE ( 5 )
-            p = (63.0d0*x**5 - 70.0d0*x**3 + 15.0d0*x) / 8.0d0
-        END SELECT
-
-      end function legendrePolynomial
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      double precision function associatedLegendrePolynomial(l,m,x) result(p)
-
-        implicit none
-
-        integer :: l, m
-        double precision :: x, s
-
-        ! Source for the associated Legendre polynomials:
-        ! http://ciks.cbt.nist.gov/~garbocz/paper134/node10.html
-        ! These have been modified to include the Condon-Shortley
-        ! phase convention, which is standard in physics.
-
-        s = (1.0d0 - x**2)**(0.5d0)
- 
-        SELECT CASE ( l )
-          CASE ( 0 )
-            p = 1
-          CASE ( 1 )
-            SELECT CASE ( m )
-              CASE ( 0 )
-                p = x
-              CASE ( 1 )
-                p = -s
-            END SELECT
-          CASE ( 2 )
-            SELECT CASE ( m )
-              CASE ( 0 )
-                p = (3.0d0*x**2 - 1.0d0) / 2.0d0
-              CASE ( 1 )
-                p = -3.0d0 * x * s
-              CASE ( 2 )
-                p = 3.0d0 * (1.0d0 - x**2)
-            END SELECT
-          CASE ( 3 )
-            SELECT CASE ( m )
-              CASE ( 0 )
-                p = x * (5.0d0*x**2 - 3.0d0) / 2.0d0
-              CASE ( 1 )
-                p = -3.0 * (5.0d0*x**2 - 1.0d0) * s / 2.0d0
-              CASE ( 2 )
-                p = 15.0d0 * x * (1.0d0 - x**2)
-              CASE ( 3 )
-                p = -15.0d0 * s**3
-            END SELECT
-          CASE ( 4 )
-            SELECT CASE ( m )
-              CASE ( 0 )
-                p = (35.0d0*x**4 - 30.0d0*x**2 + 3.0d0) / 8.0d0
-              CASE ( 1 )
-                p = -5.0d0 * (7.0d0*x**3 - 3.0d0*x) * s / 2.0d0
-              CASE ( 2 )
-                p = 15.0d0 * (7.0d0*x**2 - 1.0d0) * (1.0d0 - x**2) / 2.0d0
-              CASE ( 3 )
-                p = -105.0d0 * x * s**3
-              CASE ( 4 )
-                p = 105.0d0 * s**4
-            END SELECT
-          CASE ( 5 )
-            SELECT CASE ( m )
-              CASE ( 0 )
-                p = x * (63.0d0*x**4 - 70.0d0*x**2 + 15.0d0) / 8.0d0
-              CASE ( 1 )
-                p = -15.0d0 * s * (21.0d0*x**4 - 14.0d0*x**2 + 1.0d0) / 8.0d0
-              CASE ( 2 )
-                p = 105.0d0 * x * (1.0d0 - x**2) * (3.0d0*x**2 - 1.0d0) / 2.0d0
-              CASE ( 3 )
-                p = -105.0d0 * s**3 * (9.0d0*x**2 - 1.0d0) / 2.0d0
-              CASE ( 4 )
-                p = 945.0d0 * x * s**4
-              CASE ( 5 )
-                p = -945.0d0 * s**5
-            END SELECT
-        END SELECT
-
-      end function associatedLegendrePolynomial
 
 ! ::
 ! :: ----------------------------------------------------------
@@ -1092,3 +1010,72 @@
         enddo
 
       end function factorial
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine fill_legendre_arrays(legPolyArr, assocLegPolyArr, x, lnum, lmax)
+      
+        implicit none
+
+        integer :: lnum, lmax
+        integer :: l, m, ll
+        double precision :: x
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
+
+        do l = 0, lnum
+
+          ! If l = 0 or 1, use explicit expressions for the polynomials.
+          ! Otherwise, use the recurrence relations.
+
+          if ( l == 0 ) then
+
+            legPolyArr(0) = 1.0d0
+            assocLegPolyArr(0,0) = 1.0d0
+
+          elseif ( l == 1 ) then
+
+            legPolyArr(1) = x
+
+            assocLegPolyArr(1,0) = x
+            assocLegPolyArr(1,1) = -(1 - x**2)**(0.5d0)
+
+          else
+
+            legPolyArr(l) = ( (2*l - 1) * x * legPolyArr(l-1) - (l-1) * legPolyArr(l-2) ) / l
+
+            ! The m = l term has an explicit expression using a double factorial:
+            ! P_l^l(x) = (-1)^l * (2l-1)!! * (1-x^2)^(l/2)
+
+            assocLegPolyArr(l,l) = (-1)**l * (1 - x**2)**(l / 2.0d0)
+
+            do ll = (2*l-1), 3, -2
+
+              assocLegPolyArr(l,l) = assocLegPolyArr(l,l) * (2*l - 1)
+
+            enddo
+
+            ! For 1 < m < l, use the following recurrence relation (Wikipedia):
+            ! P_l^m(x) = -(1 - x^2)^(1/2) / (2*m) * ( P_{l-1}^{m+1}(x) + (l+m-1)(l+m)*P_{l-1}^{m-1}(x) )
+
+            do m = 1, l-1
+
+              assocLegPolyArr(l,m) = -(1.0d0 - x**2)**(0.5d0) / (2*m) * &
+                                      ( assocLegPolyArr(l-1,m+1) + &
+                                      (l+m-1)*(l+m)*assocLegPolyArr(l-1,m-1) )
+
+            enddo
+
+            ! That one fails for m = 0, which we need to populate for the next l
+            ! even though it's not used in the expansion directly. Wikipedia:
+            ! l * P_l^0 (x) = x * (2l - 1)*P_{l-1}^0 (x) - (l - 1) P_{l-2}^0(x)
+
+            assocLegPolyArr(l,0) = 1.0d0 / l * ( x * (2*l - 1) * assocLegPolyArr(l-1,0) &
+                                   - (l-1) * assocLegPolyArr(l-2,0) )
+
+          endif
+
+        enddo
+
+      end subroutine fill_legendre_arrays

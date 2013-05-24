@@ -142,7 +142,7 @@ BL_FORT_PROC_DECL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
      const Real* dx,
      const BL_FORT_FAB_ARG(phi),
      const Real* problo, const int* lnum, const int* lmax,
-     Real q0[6], Real qC[6][6], Real qS[6][6]); 
+     Real q0[51], Real qC[51][51], Real qS[51][51]); 
 
 BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
     (const int lo[], const int hi[], 
@@ -150,7 +150,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
      const Real* dx,
      const BL_FORT_FAB_ARG(rho),
      const Real* problo, const int* lnum, const int* lmax,
-     Real q0[6], Real qC[6][6], Real qS[6][6]); 
+     Real q0[51], Real qC[51][51], Real qS[51][51]); 
 
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)

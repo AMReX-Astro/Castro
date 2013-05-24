@@ -135,6 +135,17 @@ Gravity::read_params ()
         pp.query("no_composite", no_composite);
  
         pp.query("max_multipole_order", lnum);
+    
+        // Reset lnum to the hard-coded maximum possible value
+        // of l, if it exceeds it. lmax is set in the header file.
+
+        if (lnum > lmax)
+        {
+          lnum = lmax;
+          if (ParallelDescriptor::IOProcessor())
+	    std::cout << " ... Requested value of multipole moments exceeds the possible value."
+                      << " ... Resetting to the maximum possible value." << std::endl;
+        }
 
         // Allow run-time input of solver tolerances
 	if (Geometry::IsCartesian()) {
@@ -438,7 +449,7 @@ Gravity::solve_for_phi (int               level,
 #if (BL_SPACEDIM < 3)
       make_radial_phi(level,Rhs,phi,fill_interior)
 #else
-      fill_multipole_BCs(level,Rhs,phi,lnum);
+      fill_multipole_BCs(level,Rhs,phi);
 #endif
 
     }
@@ -2290,7 +2301,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
 #if (BL_SPACEDIM == 3)
 void
-Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int lnum)
+Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 {
     BL_ASSERT(level==0);
 
@@ -2303,16 +2314,14 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int l
     // It's a little messy to hand arrays of unknown
     // size as function arguments if they're multidimensional,
     // so cap the size of the array at the maximum
-    // allowed value of l. If you want to change this,
-    // make sure you edit the argument list in 
-    // the header file (and also code in the higher
-    // order Legendre polynomials in Gravity_3d.f90).
+    // allowed value of l. 
 
-    const int lmax = 5;
+    const int dim = lmax + 1;
+    const int max_l = lmax;
 
-    Real q0[lmax+1]         = {   0.0   };
-    Real qC[lmax+1][lmax+1] = { { 0.0 } };
-    Real qS[lmax+1][lmax+1] = { { 0.0 } };
+    Real q0[dim]      = {   0.0   };
+    Real qC[dim][dim] = { { 0.0 } };
+    Real qS[dim][dim] = { { 0.0 } };
 
     // Loop through the grids and compute the individual contributions
     // to the various moments. The multipole moment constructor
@@ -2325,7 +2334,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int l
         Box bx(mfi.validbox());
         BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
 	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), dx,
-             BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),&lnum,&lmax,q0,qC,qS);
+             BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),&lnum,&max_l,q0,qC,qS);
     }
 
     for (int l = 0; l <= lnum; l++)
@@ -2345,7 +2354,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, const int l
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),
              dx, BL_TO_FORTRAN(phi[mfi]),
-             geom.ProbLo(),&lnum,&lmax,q0,qC,qS);
+             geom.ProbLo(),&lnum,&max_l,q0,qC,qS);
     }
 
     if (verbose)
