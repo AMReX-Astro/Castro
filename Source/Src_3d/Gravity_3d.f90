@@ -805,6 +805,7 @@
         double precision :: x,y,z,r,cosTheta,phiAngle
         double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
 
+        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
         do k = p_l3,p_h3
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
@@ -873,6 +874,7 @@
               enddo
            enddo
         enddo
+        !$OMP END PARALLEL DO
 
       end subroutine ca_put_multipole_bc
 
@@ -925,6 +927,7 @@
           enddo
         enddo
 
+        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
         do k = p_l3,p_h3
 
            ! Don't add to multipole moments if we're outside the main array
@@ -989,6 +992,7 @@
               enddo
            enddo
         enddo
+        !$OMP END PARALLEL DO
 
       end subroutine ca_compute_multipole_moments
 
