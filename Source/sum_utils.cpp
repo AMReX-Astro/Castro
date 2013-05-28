@@ -564,21 +564,33 @@ Castro::volProductSum (const std::string& name1,
 {
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf1;
-    MultiFab*   mf2;
+    MultiFab*   mf1 = 0;
+    MultiFab*   mf2 = 0;
+    std::string tempString;
 
+
+    if (name1 == "phi" || name1 == "PHI" || name1 == "Phi")
+    {
 #ifdef GRAVITY
-    if ( name1 == "phi" )
-      mf1 = gravity->get_phi_curr(level);
-    else
+      mf1 = derive("density",time,0);
+      MultiFab::Copy(*mf1,*gravity->get_phi_curr(level),0,0,1,0);
+#else
+      BoxLib::Abort("Phi does not exist when gravity is not turned on.");
 #endif
+    }
+    else
       mf1 = derive(name1,time,0);
 
-#ifdef GRAVITY    
-    if ( name2 == "phi" )
-      mf2 = gravity->get_phi_curr(level);
-    else
+    if (name2 == "phi" || name2 == "PHI" || name2 == "Phi")
+    {
+#ifdef GRAVITY
+      mf2 = derive("density",time,0);
+      MultiFab::Copy(*mf2,*gravity->get_phi_curr(level),0,0,1,0);
+#else
+      BoxLib::Abort("Phi does not exist when gravity is not turned on.");
 #endif
+    }
+    else
       mf2 = derive(name2,time,0);
 
     BL_ASSERT(mf1 != 0);
