@@ -447,7 +447,7 @@ Gravity::solve_for_phi (int               level,
       // and a monopole approximation is used.
 
 #if (BL_SPACEDIM < 3)
-      make_radial_phi(level,Rhs,phi,fill_interior)
+      make_radial_phi(level,Rhs,phi,fill_interior);
 #else
       fill_multipole_BCs(level,Rhs,phi);
 #endif
