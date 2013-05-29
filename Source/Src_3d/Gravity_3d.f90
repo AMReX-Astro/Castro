@@ -776,3 +776,310 @@
         enddo
 
       end subroutine ca_put_radial_phi
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine ca_put_multipole_bc (lo,hi,domlo,domhi,dx,&
+                                      phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
+                                      problo,lnum,lmax,q0,qC,qS)
+        use probdata_module
+        use fundamental_constants_module, only: Gconst
+
+        implicit none
+
+        integer          :: lo(3),hi(3)
+        integer          :: domlo(3),domhi(3)
+        double precision :: dx(3)
+        double precision :: problo(3)
+
+        integer          :: lnum, lmax
+        double precision :: q0(0:lmax), qC(0:lmax,0:lmax), qS(0:lmax,0:lmax)
+
+        integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
+        double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+
+        integer          :: i,j,k
+        integer          :: l,m,ll
+        double precision :: x,y,z,r,cosTheta,phiAngle
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
+
+        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
+        do k = p_l3,p_h3
+           if (k .gt. domhi(3)) then
+              z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
+           else if (k .lt. domlo(3)) then
+              z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
+           else 
+              z = problo(3) + (dble(k  )+0.50d0) * dx(3) - center(3)
+           end if
+
+           do j = p_l2,p_h2
+              if (j .gt. domhi(2)) then
+                 y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
+              else if (j .lt. domlo(2)) then
+                 y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
+              else 
+                 y = problo(2) + (dble(j  )+0.50d0) * dx(2) - center(2)
+              end if
+
+              do i = p_l1,p_h1
+                 if (i .gt. domhi(1)) then
+                    x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
+                 else if (i .lt. domlo(1)) then
+                    x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
+                 else 
+                    x = problo(1) + (dble(i  )+0.50d0) * dx(1) - center(1)
+                 end if
+
+                 ! Only adjust ghost zones here
+
+                 if ( i .lt. domlo(1) .or. i .gt. domhi(1) .or. &
+                      j .lt. domlo(2) .or. j .gt. domhi(2) .or. &
+                      k .lt. domlo(3) .or. k .gt. domhi(3) ) then
+
+                   r = sqrt( x**2 + y**2 + z**2 )
+                   cosTheta = z / r
+                   phiAngle = atan2(y,x)
+
+                   phi(i,j,k) = 0.0d0
+
+                   ! First, calculate the Legendre polynomials.
+
+                   legPolyArr(:) = 0.0d0
+                   assocLegPolyArr(:,:) = 0.0d0
+
+                   call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum, lmax)
+
+                   ! Now compute the potentials on the ghost cells.
+
+                   do l = 0, lnum
+ 
+                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) / r**(l+1)
+                                 
+                     do m = 1, l
+       
+                       phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle) ) * &
+                                                assocLegPolyArr(l,m) / r**(l+1)
+
+                     enddo
+
+                   enddo
+
+                   phi(i,j,k) = Gconst * phi(i,j,k)
+
+                 endif
+                 
+              enddo
+           enddo
+        enddo
+        !$OMP END PARALLEL DO
+
+      end subroutine ca_put_multipole_bc
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,dx,&
+                                               rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
+                                               problo,lnum,lmax,q0,qC,qS)
+        use probdata_module
+
+        implicit none
+
+        integer          :: lo(3),hi(3)
+        integer          :: domlo(3),domhi(3)
+        double precision :: dx(3)
+        double precision :: problo(3)
+
+        ! lmax only controls the size of the arrays;
+        ! lnum is the actual maximum value of l we calculate.
+
+        integer          :: lnum, lmax
+        double precision :: q0(0:lmax), qC(0:lmax,0:lmax), qS(0:lmax,0:lmax)
+        double precision :: factArray(0:lmax,0:lmax)
+
+        integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
+        double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+
+        integer          :: i,j,k
+        integer          :: l,m,ll
+        double precision :: x,y,z,r,cosTheta,phiAngle,dV
+        double precision :: factorial
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
+
+        dV = dx(1) * dx(2) * dx(3)
+
+        ! Safety check: if lnum > lmax, set it equal to lmax to avoid array overflows.
+        ! lmax is set so that you really could never need that many terms.
+
+        if ( lnum > lmax ) then
+          lnum = lmax
+        endif
+
+        ! Compute pre-factors now to save computation time, for qC and qS
+
+        do l = 0, lnum
+          do m = 1, l
+            factArray(l,m) = 2.0 * factorial(l-m) / factorial(l+m) * dV
+          enddo
+        enddo
+
+        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
+        do k = p_l3,p_h3
+
+           ! Don't add to multipole moments if we're outside the main array
+
+           if (k .gt. domhi(3)) then
+              cycle
+           else if (k .lt. domlo(3)) then
+              cycle
+           else
+              z = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+           end if
+
+           do j = p_l2,p_h2
+
+              if (j .gt. domhi(2)) then
+                 cycle
+              else if (j .lt. domlo(2)) then
+                 cycle
+              else 
+                 y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+              end if
+
+              do i = p_l1,p_h1
+
+                 if (i .gt. domhi(1)) then
+                    cycle
+                 else if (i .lt. domlo(1)) then
+                    cycle
+                 else 
+                    x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+                 end if
+
+                 r = sqrt( x**2 + y**2 + z**2 )
+                 cosTheta = z / r
+                 phiAngle = atan2(y,x)
+
+                 ! Compute contribution from this cell to all multipole moments.
+                 ! First, calculate the Legendre polynomials.
+
+                 legPolyArr(:) = 0.0d0
+                 assocLegPolyArr(:,:) = 0.0d0
+
+                 call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum, lmax)
+
+                 ! Now, compute the multipole moments using the tabulated polynomials.
+
+                 do l = 0, lnum 
+                  
+                   q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho(i,j,k) * dV
+
+                   do m = 1, l
+
+                     qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
+                                         cos(m * phiAngle) * (r ** l) * rho(i,j,k)
+
+                     qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
+                                         sin(m * phiAngle) * (r ** l) * rho(i,j,k)
+                   enddo
+
+                 enddo
+
+              enddo
+           enddo
+        enddo
+        !$OMP END PARALLEL DO
+
+      end subroutine ca_compute_multipole_moments
+
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      double precision function factorial(n)
+      
+        implicit none
+
+        integer :: n, i
+
+        factorial = 1
+ 
+        do i = 1, n
+          factorial = factorial * i
+        enddo
+
+      end function factorial
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine fill_legendre_arrays(legPolyArr, assocLegPolyArr, x, lnum, lmax)
+      
+        implicit none
+
+        integer :: lnum, lmax
+        integer :: l, m, ll
+        double precision :: x
+        double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
+
+        do l = 0, lnum
+
+          ! If l = 0 or 1, use explicit expressions for the polynomials.
+          ! Otherwise, use the recurrence relations.
+
+          if ( l == 0 ) then
+
+            legPolyArr(0) = 1.0d0
+            assocLegPolyArr(0,0) = 1.0d0
+
+          elseif ( l == 1 ) then
+
+            legPolyArr(1) = x
+
+            assocLegPolyArr(1,0) = x
+            assocLegPolyArr(1,1) = -(1 - x**2)**(0.5d0)
+
+          else
+
+            legPolyArr(l) = ( (2*l - 1) * x * legPolyArr(l-1) - (l-1) * legPolyArr(l-2) ) / l
+
+            ! The m = l term has an explicit expression using a double factorial:
+            ! P_l^l(x) = (-1)^l * (2l-1)!! * (1-x^2)^(l/2)
+
+            assocLegPolyArr(l,l) = (-1)**l * (1 - x**2)**(l / 2.0d0)
+
+            do ll = (2*l-1), 3, -2
+
+              assocLegPolyArr(l,l) = assocLegPolyArr(l,l) * (2*l - 1)
+
+            enddo
+
+            ! For 1 < m < l, use the following recurrence relation (Wikipedia):
+            ! P_l^m(x) = -(1 - x^2)^(1/2) / (2*m) * ( P_{l-1}^{m+1}(x) + (l+m-1)(l+m)*P_{l-1}^{m-1}(x) )
+
+            do m = 1, l-1
+
+              assocLegPolyArr(l,m) = -(1.0d0 - x**2)**(0.5d0) / (2*m) * &
+                                      ( assocLegPolyArr(l-1,m+1) + &
+                                      (l+m-1)*(l+m)*assocLegPolyArr(l-1,m-1) )
+
+            enddo
+
+            ! That one fails for m = 0, which we need to populate for the next l
+            ! even though it's not used in the expansion directly. Wikipedia:
+            ! l * P_l^0 (x) = x * (2l - 1)*P_{l-1}^0 (x) - (l - 1) P_{l-2}^0(x)
+
+            assocLegPolyArr(l,0) = 1.0d0 / l * ( x * (2*l - 1) * assocLegPolyArr(l-1,0) &
+                                   - (l-1) * assocLegPolyArr(l-2,0) )
+
+          endif
+
+        enddo
+
+      end subroutine fill_legendre_arrays
