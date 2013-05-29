@@ -9,6 +9,7 @@
       use eos_module
       use network                     , only : nspec
       use fundamental_constants_module, only : Gconst
+      use bl_constants_module         , only : M_PI
 
       implicit none
 
@@ -23,8 +24,8 @@
       double precision :: R,e,G, P, C, T,dpdr, dpde, X(nspec)
       double precision :: ga, gb, gc
 
-      double precision, parameter ::  fourpi       = 4.d0 * 3.1415926535d0
-      double precision, parameter ::  fourthirdspi = 4.d0 * 3.1415926535d0 / 3.d0
+      double precision, parameter ::  fourpi       = 4.d0 * M_PI
+      double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
       double precision, parameter ::  sqvc         = 29979245800.d0**2
 
       halfdx = 0.5d0 * dx

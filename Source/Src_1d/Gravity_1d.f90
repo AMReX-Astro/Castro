@@ -272,6 +272,7 @@
 
       use probdata_module
       use fundamental_constants_module, only : Gconst
+      use bl_constants_module, only : M_PI
 
       implicit none
 
@@ -280,7 +281,7 @@
       double precision, intent(  out) :: grav(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
-      double precision, parameter ::  fourthirdspi = 4.d0 * 3.1415926535d0 / 3.d0
+      double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
       double precision :: rc,rlo,mass_encl,halfdx
       integer          :: i,n
 

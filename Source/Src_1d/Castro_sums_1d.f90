@@ -18,6 +18,7 @@
                             dx,mass,r,irlo,irhi)
  
       use prob_params_module, only: coord_type 
+      use bl_constants_module, only: M_PI
 
       implicit none
       integer irlo, irhi
@@ -29,7 +30,7 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*3.14159265358979323846d0
+      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
 
       mass = 0.d0
       if (coord_type .eq. 2) then
@@ -67,6 +68,7 @@
                                dx,mass,r,irlo,irhi)
  
       use prob_params_module, only: coord_type 
+      use bl_constants_module, only: M_PI
 
       implicit none
       integer irlo, irhi
@@ -78,7 +80,7 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*3.14159265358979323846d0
+      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
 
       mass = 0.d0
       if (coord_type .eq. 2) then
@@ -117,6 +119,7 @@
                                dx,mass,r,irlo,irhi,idir) 
  
       use prob_params_module, only: coord_type 
+      use bl_constants_module, only: M_PI
 
       implicit none
       integer irlo, irhi, idir
@@ -128,7 +131,7 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*3.14159265358979323846d0
+      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
 
       mass = 0.d0
       if (coord_type .eq. 2) then

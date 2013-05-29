@@ -6,6 +6,7 @@
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_freq
     use probdata_module, only: center
     use prob_params_module, only: coord_type
+    use bl_constants_module, only: M_PI
 
     implicit none
 
@@ -23,7 +24,7 @@
     double precision :: vdotr,omegadotr,omegadotv,omegacrossv(3),omega2
 
     double precision :: TWO_PI
-    parameter (TWO_PI = 2.d0 * 3.1415926535d0)
+    parameter (TWO_PI = 2.d0 * M_PI)
 
     if (coord_type == 0) then
        omega = (/ 0.0d0, 0.0d0, TWO_PI*rot_freq /)

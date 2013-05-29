@@ -19,6 +19,7 @@
                              dx,mass,r,irlo,irhi)
 
        use prob_params_module, only : coord_type
+       use bl_constants_module, only : M_PI
   
        implicit none
        integer irlo, irhi
@@ -29,15 +30,13 @@
        double precision r(irlo:irhi)
        double precision  tmp(lo(2):hi(2))
 
-       double precision, parameter ::  Pi = 3.1415926535897932384d0
-
        integer i, j
        double precision vol
 
        if (coord_type .eq. 0) then
           vol = dx(1) * dx(2)
        else
-          vol = 2.d0 * Pi * dx(1) * dx(2)
+          vol = 2.d0 * M_PI * dx(1) * dx(2)
        endif
 
        do j = lo(2),hi(2)
@@ -77,6 +76,7 @@
                                 dx,mass,r,irlo,irhi)
 
        use prob_params_module, only : coord_type
+       use bl_constants_module, only : M_PI
   
        implicit none
        integer irlo, irhi
@@ -87,15 +87,13 @@
        double precision r(irlo:irhi)
        double precision  tmp(lo(2):hi(2))
 
-       double precision, parameter ::  Pi = 3.1415926535897932384d0
-
        integer i, j
        double precision vol
 
        if (coord_type .eq. 0) then
           vol = dx(1) * dx(2)
        else
-          vol = 2.d0 * Pi * dx(1) * dx(2)
+          vol = 2.d0 * M_PI * dx(1) * dx(2)
        endif
 
        do j = lo(2),hi(2)
@@ -136,6 +134,7 @@
 
        use prob_params_module, only : coord_type
        use probdata_module, only : center
+       use bl_constants_module, only : M_PI
 
        implicit none
 
@@ -146,15 +145,13 @@
        double precision :: rho(r_l1:r_h1,r_l2:r_h2)
        double precision :: r(irlo:irhi)
 
-       double precision, parameter ::  Pi = 3.1415926535897932384d0
-
        integer i, j
        double precision x,y,vol_weighting
 
        if (coord_type .eq. 0) then
           vol_weighting = dx(1) * dx(2)
        else
-          vol_weighting = 2.d0 * Pi * dx(1) * dx(2)
+          vol_weighting = 2.d0 * M_PI * dx(1) * dx(2)
        endif
 
        mass = 0.d0
@@ -197,6 +194,7 @@
 
        use prob_params_module, only : coord_type
        use probdata_module, only : center
+       use bl_constants_module, only : M_PI
 
        implicit none
 
@@ -207,15 +205,13 @@
        double precision :: rho(r_l1:r_h1,r_l2:r_h2)
        double precision :: r(irlo:irhi)
 
-       double precision, parameter ::  Pi = 3.1415926535897932384d0
-
        integer i, j
        double precision x,y,vol_weighting
 
        if (coord_type .eq. 0) then
           vol_weighting = dx(1) * dx(2)
        else
-          vol_weighting = 2.d0 * Pi * dx(1) * dx(2)
+          vol_weighting = 2.d0 * M_PI * dx(1) * dx(2)
        endif
 
        mass = 0.d0
@@ -268,6 +264,11 @@
        subroutine ca_sumproduct(f1, f1_l1,f1_l2,f1_h1,f1_h2,&
                                 f2, f2_l1,f2_l2,f2_h1,f2_h2,&
                                 lo,hi,dx,product)
+
+       use prob_params_module, only : coord_type
+       use probdata_module, only : center
+       use bl_constants_module, only : M_PI
+
        implicit none
 
        integer          :: f1_l1,f1_l2,f1_h1,f1_h2
@@ -281,7 +282,12 @@
        integer          :: i,j
 
        product = 0.d0
-       vol = dx(1) * dx(2)
+
+       if (coord_type .eq. 0) then
+          vol = dx(1) * dx(2)
+       else
+          vol = 2.d0 * M_PI * dx(1) * dx(2)
+       endif
  
        !$OMP PARALLEL DO PRIVATE(i,j) REDUCTION(+:product)
        do i = lo(1), hi(1)
