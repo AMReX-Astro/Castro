@@ -468,11 +468,15 @@ Gravity::solve_for_phi (int               level,
            abs( probhi[1] - center[1] ) < edge_tol ||
            abs( probhi[2] - center[2] ) < edge_tol )
         doMultipole = false;
-#endif
+
       if ( doMultipole )
         fill_multipole_BCs(level,Rhs,phi);
       else
         make_radial_phi(level,Rhs,phi,fill_interior);
+
+#else
+     make_radial_phi(level,Rhs,phi,fill_interior);
+#endif
     }
 
     Rhs.mult(Ggravity);
