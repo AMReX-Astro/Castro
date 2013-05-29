@@ -444,14 +444,35 @@ Gravity::solve_for_phi (int               level,
          std::cout << " ... Making bc's for phi at level 0 and time "  << time << std::endl;
       
       // Fill the ghost cells using a multipole approximation. By default, lnum = 0
-      // and a monopole approximation is used.
+      // and a monopole approximation is used. Do this only if we are in 3D and if
+      // we are in a full star geometry; octant, half-star, etc. do not
+      // work with the multipole BCs at present.
 
-#if (BL_SPACEDIM < 3)
-      make_radial_phi(level,Rhs,phi,fill_interior);
-#else
-      fill_multipole_BCs(level,Rhs,phi);
+      bool doMultipole = false;
+
+#if (BL_SPACEDIM == 3)
+      doMultipole = true;
+
+      Real center[3];
+      BL_FORT_PROC_CALL(GET_CENTER,get_center)(center);
+
+      const Real* problo = parent->Geom(level).ProbLo();
+      const Real* probhi = parent->Geom(level).ProbHi();
+
+      Real edge_tol = 1.0e-2;
+
+      if ( abs( problo[0] - center[0] ) < edge_tol ||
+           abs( problo[1] - center[1] ) < edge_tol ||
+           abs( problo[2] - center[2] ) < edge_tol ||
+           abs( probhi[0] - center[0] ) < edge_tol ||
+           abs( probhi[1] - center[1] ) < edge_tol ||
+           abs( probhi[2] - center[2] ) < edge_tol )
+        doMultipole = false;
 #endif
-
+      if ( doMultipole )
+        fill_multipole_BCs(level,Rhs,phi);
+      else
+        make_radial_phi(level,Rhs,phi,fill_interior);
     }
 
     Rhs.mult(Ggravity);
