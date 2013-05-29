@@ -8,7 +8,7 @@
 !     double precision, intent(in) :: r
 !     double precision             :: g
 !         ! put function for g(r) in here
-!         g =-rho_c*Gconst*2*3.1415926535*(1/sqrt(1+(r/r_c)**2)-atanh(1/sqrt(1+(r/r_c)**2)))
+!         g =-rho_c*Gconst*2*M_PI*(1/sqrt(1+(r/r_c)**2)-atanh(1/sqrt(1+(r/r_c)**2)))
 !     end function ca_prescribe_grav_gravityprofile
  
       subroutine ca_prescribe_grav (lo,hi,dx, &
@@ -17,6 +17,7 @@
 
       use fundamental_constants_module, only : Gconst
       use probdata_module
+      use bl_constants_module, only : M_PI
 
       implicit none
       integer          :: g_l1,g_l2,g_l3,g_h1,g_h2,g_h3
