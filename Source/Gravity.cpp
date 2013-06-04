@@ -444,39 +444,15 @@ Gravity::solve_for_phi (int               level,
          std::cout << " ... Making bc's for phi at level 0 and time "  << time << std::endl;
       
       // Fill the ghost cells using a multipole approximation. By default, lnum = 0
-      // and a monopole approximation is used. Do this only if we are in 3D and if
-      // we are in a full star geometry; octant, half-star, etc. do not
-      // work with the multipole BCs at present.
-
-      bool doMultipole = false;
+      // and a monopole approximation is used. Do this only if we are in 3D; otherwise,
+      // default to the make_radial_phi approach, that integrates spherical shells of mass.
 
 #if (BL_SPACEDIM == 3)
-      doMultipole = true;
-
-      Real center[3];
-      BL_FORT_PROC_CALL(GET_CENTER,get_center)(center);
-
-      const Real* problo = parent->Geom(level).ProbLo();
-      const Real* probhi = parent->Geom(level).ProbHi();
-
-      Real edge_tol = 1.0e-2;
-
-      if ( abs( problo[0] - center[0] ) < edge_tol ||
-           abs( problo[1] - center[1] ) < edge_tol ||
-           abs( problo[2] - center[2] ) < edge_tol ||
-           abs( probhi[0] - center[0] ) < edge_tol ||
-           abs( probhi[1] - center[1] ) < edge_tol ||
-           abs( probhi[2] - center[2] ) < edge_tol )
-        doMultipole = false;
-
-      if ( doMultipole )
-        fill_multipole_BCs(level,Rhs,phi);
-      else
-        make_radial_phi(level,Rhs,phi,fill_interior);
-
+      fill_multipole_BCs(level,Rhs,phi);
 #else
-     make_radial_phi(level,Rhs,phi,fill_interior);
+      make_radial_phi(level,Rhs,phi,fill_interior);
 #endif
+
     }
 
     Rhs.mult(Ggravity);
@@ -1087,11 +1063,18 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
            coeffs[lev][i].setVal(1.0);
        }
 
-       if ( (level == 0) && (lev == 0) && !Geometry::isAllPeriodic() ) {
+       if ( (level == 0) && (lev == 0) && !Geometry::isAllPeriodic() ) 
+       {
          if (verbose && ParallelDescriptor::IOProcessor()) 
-            std::cout << " ... Making bc's for phi at level 0 " << std::endl;
-         int fill_interior = 1;
-         make_radial_phi(0,*(Rhs_p[lev]),*(phi_p[lev]),fill_interior);
+             std::cout << " ... Making bc's for phi at level 0 " << std::endl;
+
+             int fill_interior = 1;
+             make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
+#if (BL_SPACEDIM == 3)
+             // Note that the ghost cells of phi are zero'd out before being filled
+             //      so the previous values from make_radial_phi will be forgotten
+             fill_multipole_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
+#endif
        }
     }
      
@@ -2353,13 +2336,25 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // is coded to only add to the moment arrays, so it is safe
     // to directly hand the arrays to them.
 
+    int lo_bc[3];
+    int hi_bc[3];
+
+    for (int dir = 0; dir < 3; dir++)
+    {
+      lo_bc[dir] = phys_bc->lo(dir);
+      hi_bc[dir] = phys_bc->hi(dir);
+    }
+
+    int symmetry_type = Symmetry;
+
     Box domain(parent->Geom(level).Domain());
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
         Box bx(mfi.validbox());
         BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
-	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), dx,
-             BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),&lnum,&max_l,q0,qC,qS);
+	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
+             &symmetry_type,lo_bc,hi_bc,
+             dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),&lnum,&max_l,q0,qC,qS);
     }
 
     for (int l = 0; l <= lnum; l++)

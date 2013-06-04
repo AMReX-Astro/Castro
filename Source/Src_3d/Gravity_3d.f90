@@ -801,11 +801,11 @@
         double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: l,m,ll
+        integer          :: l,m
         double precision :: x,y,z,r,cosTheta,phiAngle
         double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
-
-        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
+        
+        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr)
         do k = p_l3,p_h3
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
@@ -832,7 +832,7 @@
                  else 
                     x = problo(1) + (dble(i  )+0.50d0) * dx(1) - center(1)
                  end if
-
+        
                  ! Only adjust ghost zones here
 
                  if ( i .lt. domlo(1) .or. i .gt. domhi(1) .or. &
@@ -857,11 +857,11 @@
                    do l = 0, lnum
  
                      phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) / r**(l+1)
-                                 
+
                      do m = 1, l
        
-                       phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle) ) * &
-                                                assocLegPolyArr(l,m) / r**(l+1)
+                       phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle)) * &
+                                                 assocLegPolyArr(l,m) / r**(l+1)
 
                      enddo
 
@@ -882,17 +882,19 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,dx,&
-                                               rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
-                                               problo,lnum,lmax,q0,qC,qS)
+      subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,symmetry_type,lo_bc,hi_bc,&
+                                               dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
+                                               problo,probhi,lnum,lmax,q0,qC,qS)
         use probdata_module
 
         implicit none
 
         integer          :: lo(3),hi(3)
+        integer          :: lo_bc(3),hi_bc(3)
+        integer          :: symmetry_type
         integer          :: domlo(3),domhi(3)
         double precision :: dx(3)
-        double precision :: problo(3)
+        double precision :: problo(3), probhi(3)
 
         ! lmax only controls the size of the arrays;
         ! lnum is the actual maximum value of l we calculate.
@@ -905,10 +907,35 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: l,m,ll
-        double precision :: x,y,z,r,cosTheta,phiAngle,dV
+        integer          :: ilo, ihi, jlo, jhi, klo, khi
+        integer          :: l,m,b
+
         double precision :: factorial
+
+        double precision :: x,y,z,r,cosTheta,phiAngle,dV
+
+        double precision :: volumeFactor, parityFactor
+        double precision :: edgeTolerance = 1.0d-2
         double precision :: legPolyArr(0:lmax), assocLegPolyArr(0:lmax,0:lmax)
+
+        ! Variables for symmetric BCs
+
+        double precision :: xLo, yLo, zLo, xHi, yHi, zHi
+        double precision :: cosThetaLoX(4), phiAngleLoX(4)
+        double precision :: cosThetaLoY(2), phiAngleLoY(2)
+        double precision :: cosThetaLoZ(1), phiAngleLoZ(1)
+        double precision :: cosThetaHiX(4), phiAngleHiX(4)
+        double precision :: cosThetaHiY(2), phiAngleHiY(2)
+        double precision :: cosThetaHiZ(1), phiAngleHiZ(1)
+        double precision :: legPolyArrLoX(0:lmax,4), assocLegPolyArrLoX(0:lmax,0:lmax,4)
+        double precision :: legPolyArrLoY(0:lmax,2), assocLegPolyArrLoY(0:lmax,0:lmax,2)
+        double precision :: legPolyArrLoZ(0:lmax,1), assocLegPolyArrLoZ(0:lmax,0:lmax,1)
+        double precision :: legPolyArrHiX(0:lmax,4), assocLegPolyArrHiX(0:lmax,0:lmax,4)
+        double precision :: legPolyArrHiY(0:lmax,2), assocLegPolyArrHiY(0:lmax,0:lmax,2)
+        double precision :: legPolyArrHiZ(0:lmax,1), assocLegPolyArrHiZ(0:lmax,0:lmax,1)
+
+        logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3)
+        logical          :: doReflectionLo(3), doReflectionHi(3)
 
         dV = dx(1) * dx(2) * dx(3)
 
@@ -919,46 +946,114 @@
           lnum = lmax
         endif
 
+        ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
+        ! to lie on the opposite side of the symmetric axis. If the center in any direction 
+        ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
+        ! Otherwise, we need to do a more general solve.
+
+        volumeFactor = 1.0d0
+        parityFactor = 1.0d0
+
+        doSymmetricAddLo(:) = .false.
+        doSymmetricAddHi(:) = .false.
+
+        doReflectionLo(:)   = .false.
+        doReflectionHi(:)   = .false.
+
+        do b = 1, 3
+
+          if ( (lo_bc(b) .eq. symmetry_type) ) then
+            if ( abs(center(b) - problo(b)) < edgeTolerance ) then
+              volumeFactor = volumeFactor * 2.0d0
+              doReflectionLo(b) = .true.
+            else
+              doSymmetricAddLo(b) = .true.
+            endif
+          endif
+
+          if ( (hi_bc(b) .eq. symmetry_type) ) then
+            if ( abs(center(b) - probhi(b)) < edgeTolerance ) then
+              volumeFactor = volumeFactor * 2.0d0
+              doReflectionHi(b) = .true.
+            else
+              doSymmetricAddHi(b) = .true.
+            endif
+          endif
+
+        enddo 
+
+
         ! Compute pre-factors now to save computation time, for qC and qS
 
         do l = 0, lnum
           do m = 1, l
-            factArray(l,m) = 2.0 * factorial(l-m) / factorial(l+m) * dV
+            factArray(l,m) = 2.0 * factorial(l-m) / factorial(l+m) * dV * volumeFactor
           enddo
         enddo
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle,l,m) reduction(+:q0,qC,qS)
-        do k = p_l3,p_h3
 
-           ! Don't add to multipole moments if we're outside the main array
 
-           if (k .gt. domhi(3)) then
-              cycle
-           else if (k .lt. domlo(3)) then
-              cycle
-           else
-              z = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
-           end if
+        ! Don't add to multipole moments if we're outside the physical domain
 
-           do j = p_l2,p_h2
+        if ( p_l3 .lt. domlo(3) ) then
+          klo = domlo(3)
+        else
+          klo = p_l3
+        endif
 
-              if (j .gt. domhi(2)) then
-                 cycle
-              else if (j .lt. domlo(2)) then
-                 cycle
-              else 
-                 y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
-              end if
+        if ( p_h3 .gt. domhi(3) ) then
+          khi = domhi(3)
+        else
+          khi = p_h3
+        endif
 
-              do i = p_l1,p_h1
+        if ( p_l2 .lt. domlo(2) ) then
+          jlo = domlo(2)
+        else
+          jlo = p_l2
+        endif
 
-                 if (i .gt. domhi(1)) then
-                    cycle
-                 else if (i .lt. domlo(1)) then
-                    cycle
-                 else 
-                    x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
-                 end if
+        if ( p_h2 .gt. domhi(2) ) then
+          jhi = domhi(2)
+        else
+          jhi = p_h2
+        endif
+
+        if ( p_l1 .lt. domlo(1) ) then
+          ilo = domlo(1)
+        else
+          ilo = p_l1
+        endif
+
+        if ( p_h1 .gt. domhi(1) ) then
+          ihi = domhi(1)
+        else
+          ihi = p_h1
+        endif
+
+        !$OMP PARALLEL DO PRIVATE(i,j,k,legPolyArr,assocLegPolyArr,x,y,z,r,cosTheta,phiAngle ) &
+        !$OMP PRIVATE(l,m,parityFactor,xLo,yLo,zLo,xHi,yHi,zHi                               ) &
+        !$OMP PRIVATE(cosThetaLoX,phiAngleLoX,cosThetaLoY,phiAngleLoY,cosThetaLoZ,phiAngleLoZ) &
+        !$OMP PRIVATE(legPolyArrLoX,legPolyArrLoY,legPolyArrLoZ                              ) &
+        !$OMP PRIVATE(assocLegPolyArrLoX,assocLegPolyArrLoY,assocLegPolyArrLoZ               ) &
+        !$OMP PRIVATE(cosThetaHiX,phiAngleHiX,cosThetaHiY,phiAngleHiY,cosThetaHiZ,phiAngleHiZ) &
+        !$OMP PRIVATE(legPolyArrHiX,legPolyArrHiY,legPolyArrHiZ                              ) &
+        !$OMP PRIVATE(assocLegPolyArrHiX,assocLegPolyArrHiY,assocLegPolyArrHiZ               ) &
+        !$OMP REDUCTION(+:q0,qC,qS)
+        do k = klo, khi
+           z = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+
+           ! Compute reflections of x, y and z about their respective axes,
+           ! modulo any difference of center from zero. These are used
+           ! if we have symmetric boundary conditions, though in those cases
+           ! the center will most likely coincide with the symmetric axis.
+ 
+
+           do j = jlo, jhi
+              y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+ 
+              do i = ilo, ihi
+                 x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
 
                  r = sqrt( x**2 + y**2 + z**2 )
                  cosTheta = z / r
@@ -972,19 +1067,398 @@
 
                  call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum, lmax)
 
+                 ! Now, determine the contributions from any symmetric axes. First we do the 
+                 ! lower boundaries. We pre-populate the arrays now instead of doing it
+                 ! in the loop over multipole orders. This minimizes function calls at
+                 ! the expense of longer code.
+
+                 if ( doSymmetricAddLo(1) ) then
+
+                   legPolyArrLoX(:,:) = 0.0d0
+                   assocLegPolyArrLoX(:,:,:) = 0.0d0
+
+                   cosThetaLoX(1) = z / r
+                   phiAngleLoX(1) = atan2(y,xLo)
+                   call fill_legendre_arrays(legPolyArrLoX(:,1), assocLegPolyArrLoX(:,:,1), cosThetaLoX(1), lnum, lmax) 
+
+                   if ( doSymmetricAddLo(2) ) then
+
+                     cosThetaLoX(2) = z / r
+                     phiAngleLoX(2) = atan2(yLo,xLo)
+                     call fill_legendre_arrays(legPolyArrLoX(:,2), assocLegPolyArrLoX(:,:,2), cosThetaLoX(2), lnum, lmax)
+
+                   endif
+
+                   if ( doSymmetricAddLo(3) ) then
+
+                     cosThetaLoX(3) = zLo / r
+                     phiAngleLoX(3) = atan2(y,xLo)
+                     call fill_legendre_arrays(legPolyArrLoX(:,3), assocLegPolyArrLoX(:,:,3), cosThetaLoX(3), lnum, lmax)
+
+                   endif
+
+                   if ( doSymmetricAddLo(2) .and. doSymmetricAddLo(3) ) then
+ 
+                     cosThetaLoX(4) = zLo / r
+                     phiAngleLoX(4) = atan2(yLo,xLo)
+                     call fill_legendre_arrays(legPolyArrLoX(:,4), assocLegPolyArrLoX(:,:,4), cosThetaLoX(4), lnum, lmax)
+                
+                   endif
+
+                 endif
+
+                 if ( doSymmetricAddLo(2) ) then
+
+                   legPolyArrLoY(:,:) = 0.0d0
+                   assocLegPolyArrLoY(:,:,:) = 0.0d0
+
+                   cosThetaLoY(1) = z / r
+                   phiAngleLoY(1) = atan2(yLo,x)
+                   call fill_legendre_arrays(legPolyArrLoY(:,1), assocLegPolyArrLoY(:,:,1), cosThetaLoY(1), lnum, lmax)
+
+                   if ( doSymmetricAddLo(3) ) then
+
+                     cosThetaLoY(2) = zLo / r
+                     phiAngleLoY(2) = atan2(yLo,x)
+                     call fill_legendre_arrays(legPolyArrLoY(:,2), assocLegPolyArrLoY(:,:,2), cosThetaLoY(2), lnum, lmax)
+
+                   endif
+
+                 endif
+
+                 if ( doSymmetricAddLo(3) ) then
+
+                   legPolyArrLoZ(:,:) = 0.0d0
+                   assocLegPolyArrLoZ(:,:,:) = 0.0d0
+
+                   cosThetaLoZ(1) = zLo / r
+                   phiAngleLoZ(1) = atan2(y,x)
+                   call fill_legendre_arrays(legPolyArrLoZ(:,1), assocLegPolyArrLoZ(:,:,1), cosThetaLoZ(1), lnum, lmax)
+
+                 endif
+
+
+                 ! Do the same for the upper boundaries.
+
+                 if ( doSymmetricAddHi(1) ) then
+
+                   legPolyArrHiX(:,:) = 0.0d0
+                   assocLegPolyArrHiX(:,:,:) = 0.0d0
+
+                   cosThetaHiX(1) = z / r
+                   phiAngleHiX(1) = atan2(y,xHi)
+                   call fill_legendre_arrays(legPolyArrHiX(:,1), assocLegPolyArrHiX(:,:,1), cosThetaHiX(1), lnum, lmax) 
+
+                   if ( doSymmetricAddHi(2) ) then
+
+                     cosThetaHiX(2) = z / r
+                     phiAngleHiX(2) = atan2(yHi,xHi)
+                     call fill_legendre_arrays(legPolyArrHiX(:,2), assocLegPolyArrHiX(:,:,2), cosThetaHiX(2), lnum, lmax)
+
+                   endif
+
+                   if ( doSymmetricAddHi(3) ) then
+
+                     cosThetaHiX(3) = zHi / r
+                     phiAngleHiX(3) = atan2(y,xHi)
+                     call fill_legendre_arrays(legPolyArrHiX(:,3), assocLegPolyArrHiX(:,:,3), cosThetaHiX(3), lnum, lmax)
+
+                   endif
+
+                   if ( doSymmetricAddHi(2) .and. doSymmetricAddHi(3) ) then
+ 
+                     cosThetaHiX(4) = zHi / r
+                     phiAngleHiX(4) = atan2(yHi,xHi)
+                     call fill_legendre_arrays(legPolyArrHiX(:,4), assocLegPolyArrHiX(:,:,4), cosThetaHiX(4), lnum, lmax)
+                
+                   endif
+
+                 endif
+
+                 if ( doSymmetricAddHi(2) ) then
+
+                   legPolyArrHiY(:,:) = 0.0d0
+                   assocLegPolyArrHiY(:,:,:) = 0.0d0
+
+                   cosThetaHiY(1) = z / r
+                   phiAngleHiY(1) = atan2(yHi,x)
+                   call fill_legendre_arrays(legPolyArrHiY(:,1), assocLegPolyArrHiY(:,:,1), cosThetaHiY(1), lnum, lmax)
+
+                   if ( doSymmetricAddHi(3) ) then
+
+                     cosThetaHiY(2) = zHi / r
+                     phiAngleHiY(2) = atan2(yHi,x)
+                     call fill_legendre_arrays(legPolyArrHiY(:,2), assocLegPolyArrHiY(:,:,2), cosThetaHiY(2), lnum, lmax)
+
+                   endif
+
+                 endif
+
+                 if ( doSymmetricAddHi(3) ) then
+
+                   legPolyArrHiZ(:,:) = 0.0d0
+                   assocLegPolyArrHiZ(:,:,:) = 0.0d0
+
+                   cosThetaHiZ(1) = zHi / r
+                   phiAngleHiZ(1) = atan2(y,x)
+                   call fill_legendre_arrays(legPolyArrHiZ(:,1), assocLegPolyArrHiZ(:,:,1), cosThetaHiZ(1), lnum, lmax)
+
+                 endif
+
+
+
                  ! Now, compute the multipole moments using the tabulated polynomials.
 
                  do l = 0, lnum 
-                  
-                   q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho(i,j,k) * dV
+
+                   ! The odd l Legendre polynomials are odd in their argument, so
+                   ! a symmetric reflection about the z axis leads to a total cancellation.
+
+                   parityFactor = 1.0d0
+
+                   if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+                     parityFactor = 0.0d0
+                   endif
+
+                   q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho(i,j,k) * dV * volumeFactor * parityFactor
+
+
+
+                   ! Add contributions from any symmetric boundaries that were not handled
+                   ! by the reflections.       
+
+                   if ( doSymmetricAddLo(1) ) then
+
+                     q0(l) = q0(l) + legPolyArrLoX(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                     if ( doSymmetricAddLo(2) ) then
+                       q0(l) = q0(l) + legPolyArrLoX(l,2) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                     if ( doSymmetricAddLo(3) ) then
+                       q0(l) = q0(l) + legPolyArrLoX(l,3) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                     if ( doSymmetricAddLo(2) .and. doSymmetricAddLo(3) ) then
+                       q0(l) = q0(l) + legPolyArrLoX(l,4) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                   endif
+
+                   if ( doSymmetricAddLo(2) ) then
+ 
+                     q0(l) = q0(l) + legPolyArrLoY(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                     if ( doSymmetricAddLo(3) ) then
+                       q0(l) = q0(l) + legPolyArrLoY(l,2) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                   endif
+
+                   if ( doSymmetricAddLo(3) ) then
+
+                     q0(l) = q0(l) + legPolyArrLoZ(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                   endif
+
+
+
+
+
+                   if ( doSymmetricAddHi(1) ) then
+
+                     q0(l) = q0(l) + legPolyArrHiX(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                     if ( doSymmetricAddHi(2) ) then
+                       q0(l) = q0(l) + legPolyArrHiX(l,2) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                     if ( doSymmetricAddHi(3) ) then
+                       q0(l) = q0(l) + legPolyArrHiX(l,3) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                     if ( doSymmetricAddHi(2) .and. doSymmetricAddHi(3) ) then
+                       q0(l) = q0(l) + legPolyArrHiX(l,4) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                   endif
+
+                   if ( doSymmetricAddHi(2) ) then
+ 
+                     q0(l) = q0(l) + legPolyArrHiY(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                     if ( doSymmetricAddHi(3) ) then
+                       q0(l) = q0(l) + legPolyArrHiY(l,2) * (r ** l) * rho(i,j,k) * dV
+                     endif
+
+                   endif
+
+                   if ( doSymmetricAddHi(3) ) then
+
+                     q0(l) = q0(l) + legPolyArrHiZ(l,1) * (r ** l) * rho(i,j,k) * dV
+
+                   endif
+
 
                    do m = 1, l
 
+                     ! The parity properties of the associated Legendre polynomials are:
+                     ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
+                     ! Therefore, a complete cancellation occurs if l+m is odd and
+                     ! we are reflecting about the z axis.
+
+                     ! Additionally, the cosine and sine terms flip sign when reflected
+                     ! about the x or y axis, so if we have a reflection about x or y
+                     ! then the terms have a complete cancellation.
+
+                     parityFactor = 1.0d0
+
+                     if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+                       parityFactor = 0.0d0
+                     endif
+
+                     if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
+                       parityFactor = 0.0d0
+                     endif
+
                      qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
-                                         cos(m * phiAngle) * (r ** l) * rho(i,j,k)
+                                         cos(m * phiAngle) * (r ** l) * rho(i,j,k) * parityFactor
 
                      qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * &
-                                         sin(m * phiAngle) * (r ** l) * rho(i,j,k)
+                                         sin(m * phiAngle) * (r ** l) * rho(i,j,k) * parityFactor
+
+
+                     ! Now add in contributions if we have any symmetric boundaries
+
+                     if ( doSymmetricAddLo(1) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,1) * &
+                                           cos(m * phiAngleLoX(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,1) * &
+                                           sin(m * phiAngleLoX(1)) * (r ** l) * rho(i,j,k)
+
+                       if ( doSymmetricAddLo(2) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,2) * &
+                                             cos(m * phiAngleLoX(2)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,2) * &
+                                             sin(m * phiAngleLoX(2)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                       if ( doSymmetricAddLo(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,3) * &
+                                             cos(m * phiAngleLoX(3)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,3) * &
+                                             sin(m * phiAngleLoX(3)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                       if ( doSymmetricAddLo(2) .and. doSymmetricAddLo(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,4) * &
+                                             cos(m * phiAngleLoX(4)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,4) * &
+                                             sin(m * phiAngleLoX(4)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                     endif
+
+                     if ( doSymmetricAddLo(2) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoY(l,m,1) * &
+                                           cos(m * phiAngleLoY(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoY(l,m,1) * &
+                                           sin(m * phiAngleLoY(1)) * (r ** l) * rho(i,j,k)
+
+                       if ( doSymmetricAddLo(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoY(l,m,2) * &
+                                             cos(m * phiAngleLoY(2)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoY(l,m,2) * &
+                                             sin(m * phiAngleLoY(2)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                     endif
+
+                     if ( doSymmetricAddLo(3) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrLoZ(l,m,1) * &
+                                           cos(m * phiAngleLoZ(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrLoX(l,m,1) * &
+                                           sin(m * phiAngleLoZ(1)) * (r ** l) * rho(i,j,k)
+
+                     endif
+
+
+                     ! Repeat for the upper boundaries.
+
+                     if ( doSymmetricAddHi(1) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,1) * &
+                                           cos(m * phiAngleHiX(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,1) * &
+                                           sin(m * phiAngleHiX(1)) * (r ** l) * rho(i,j,k)
+
+                       if ( doSymmetricAddHi(2) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,2) * &
+                                             cos(m * phiAngleHiX(2)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,2) * &
+                                             sin(m * phiAngleHiX(2)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                       if ( doSymmetricAddHi(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,3) * &
+                                             cos(m * phiAngleHiX(3)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,3) * &
+                                             sin(m * phiAngleHiX(3)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                       if ( doSymmetricAddHi(2) .and. doSymmetricAddHi(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,4) * &
+                                             cos(m * phiAngleHiX(4)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,4) * &
+                                             sin(m * phiAngleHiX(4)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                     endif
+
+                     if ( doSymmetricAddHi(2) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiY(l,m,1) * &
+                                           cos(m * phiAngleHiY(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiY(l,m,1) * &
+                                           sin(m * phiAngleHiY(1)) * (r ** l) * rho(i,j,k)
+
+                       if ( doSymmetricAddHi(3) ) then
+
+                         qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiY(l,m,2) * &
+                                             cos(m * phiAngleHiY(2)) * (r ** l) * rho(i,j,k)
+                         qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiY(l,m,2) * &
+                                             sin(m * phiAngleHiY(2)) * (r ** l) * rho(i,j,k)
+
+                       endif
+
+                     endif
+
+                     if ( doSymmetricAddHi(3) ) then
+
+                       qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArrHiZ(l,m,1) * &
+                                           cos(m * phiAngleHiZ(1)) * (r ** l) * rho(i,j,k)
+                       qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArrHiX(l,m,1) * &
+                                           sin(m * phiAngleHiZ(1)) * (r ** l) * rho(i,j,k)
+
+                     endif
+
                    enddo
 
                  enddo

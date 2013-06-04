@@ -147,9 +147,10 @@ BL_FORT_PROC_DECL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
 BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
     (const int lo[], const int hi[], 
      const int domlo[], const int domhi[], 
+     const int* symmetry_type, const int lo_bc[], const int hi_bc[],
      const Real* dx,
      const BL_FORT_FAB_ARG(rho),
-     const Real* problo, const int* lnum, const int* lmax,
+     const Real* problo, const Real* probhi, const int* lnum, const int* lmax,
      Real q0[51], Real qC[51][51], Real qS[51][51]); 
 
 #ifdef POINTMASS
