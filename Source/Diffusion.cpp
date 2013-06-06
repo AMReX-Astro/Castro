@@ -336,14 +336,30 @@ Diffusion::make_mg_bc ()
             if (phys_bc->lo(dir) == Symmetry   || 
                 phys_bc->lo(dir) == SlipWall   || 
                 phys_bc->lo(dir) == NoSlipWall || 
-                phys_bc->lo(dir) == Outflow)   {
+                phys_bc->lo(dir) == Outflow)   
+            { 
               mg_bc[2*dir + 0] = MGT_BC_NEU;
             }
+            else if (phys_bc->lo(dir) ==  Inflow)
+            { 
+              mg_bc[2*dir + 0] = MGT_BC_DIR;
+            } else {
+              BoxLib::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
+            }
+
             if (phys_bc->hi(dir) == Symmetry   || 
                 phys_bc->hi(dir) == SlipWall   || 
                 phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) == Outflow)   {
+                phys_bc->hi(dir) ==  Inflow    || 
+                phys_bc->hi(dir) == Outflow)   
+            {
               mg_bc[2*dir + 1] = MGT_BC_NEU;
+            } 
+            else if (phys_bc->hi(dir) ==  Inflow)
+            { 
+              mg_bc[2*dir + 0] = MGT_BC_DIR;
+            } else {
+              BoxLib::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
             }
         }
     }
