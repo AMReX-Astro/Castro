@@ -124,6 +124,7 @@ public:
 
 #if (BL_SPACEDIM == 3)
   void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi);
 #endif
 
   void make_mg_bc();
@@ -176,7 +177,7 @@ protected:
   static int   no_composite;
   static int   drdxfac;
   static int   lnum;
-  static const int lmax = 50;
+  static int   direct_sum_bcs;
   static Real  const_grav;
   static Real  mass_offset;
   static Real  sl_tol;

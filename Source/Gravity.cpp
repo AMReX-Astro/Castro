@@ -24,18 +24,19 @@ int Gravity::test_solves  = 0;
 #else
 int Gravity::test_solves  = 0;
 #endif
-int  Gravity::verbose       = 0;
-int  Gravity::no_sync       = 0;
-int  Gravity::no_composite  = 0;
-int  Gravity::drdxfac       = 1;
-int  Gravity::lnum          = 0;
-Real Gravity::sl_tol        = 1.e100;
-Real Gravity::ml_tol        = 1.e100;
-Real Gravity::delta_tol     = 1.e100;
-Real Gravity::const_grav    =  0.0;
+int  Gravity::verbose        = 0;
+int  Gravity::no_sync        = 0;
+int  Gravity::no_composite   = 0;
+int  Gravity::drdxfac        = 1;
+int  Gravity::lnum           = 0;
+int  Gravity::direct_sum_bcs = 0;
+Real Gravity::sl_tol         = 1.e100;
+Real Gravity::ml_tol         = 1.e100;
+Real Gravity::delta_tol      = 1.e100;
+Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
-Real Gravity::mass_offset   =  0.0;
-int  Gravity::stencil_type  = CC_CROSS_STENCIL;
+Real Gravity::mass_offset    =  0.0;
+int  Gravity::stencil_type   = CC_CROSS_STENCIL;
 
 // ************************************************************************************** //
 
@@ -136,16 +137,10 @@ Gravity::read_params ()
  
         pp.query("max_multipole_order", lnum);
     
-        // Reset lnum to the hard-coded maximum possible value
-        // of l, if it exceeds it. lmax is set in the header file.
+        // Check if the user wants to compute the boundary conditions using the brute force method.
+        // Default is false, since this method is slow.
 
-        if (lnum > lmax)
-        {
-          lnum = lmax;
-          if (ParallelDescriptor::IOProcessor())
-	    std::cout << " ... Requested value of multipole moments exceeds the possible value."
-                      << " ... Resetting to the maximum possible value." << std::endl;
-        }
+        pp.query("direct_sum_bcs", direct_sum_bcs);
 
         // Allow run-time input of solver tolerances
 	if (Geometry::IsCartesian()) {
@@ -446,9 +441,14 @@ Gravity::solve_for_phi (int               level,
       // Fill the ghost cells using a multipole approximation. By default, lnum = 0
       // and a monopole approximation is used. Do this only if we are in 3D; otherwise,
       // default to the make_radial_phi approach, that integrates spherical shells of mass.
+      // We can also do a brute force sum that explicitly calculates the potential
+      // at each ghost zone by summing over all the cells in the domain.
 
 #if (BL_SPACEDIM == 3)
-      fill_multipole_BCs(level,Rhs,phi);
+      if ( direct_sum_bcs )
+        fill_direct_sum_BCs(level,Rhs,phi);
+      else
+        fill_multipole_BCs(level,Rhs,phi);
 #else
       make_radial_phi(level,Rhs,phi,fill_interior);
 #endif
@@ -1071,9 +1071,12 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
              int fill_interior = 1;
              make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
 #if (BL_SPACEDIM == 3)
-             // Note that the ghost cells of phi are zero'd out before being filled
-             //      so the previous values from make_radial_phi will be forgotten
-             fill_multipole_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
+             if ( direct_sum_bcs )
+               fill_direct_sum_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
+             else
+               // Note that the ghost cells of phi are zero'd out before being filled
+               //      so the previous values from make_radial_phi will be forgotten
+               fill_multipole_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
 #endif
        }
     }
@@ -2319,17 +2322,20 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     const Real* dx   = geom.CellSize();
 
     // Storage arrays for the multipole moments.
-    // It's a little messy to hand arrays of unknown
-    // size as function arguments if they're multidimensional,
-    // so cap the size of the array at the maximum
-    // allowed value of l. 
+    // We will initialize them to zero, and then
+    // sum up the results over grids.
 
-    const int dim = lmax + 1;
-    const int max_l = lmax;
+    Box boxq0( IntVect( {0, 0, 0} ), IntVect( {lnum, 0,    0} ) );
+    Box boxqC( IntVect( {0, 0, 0} ), IntVect( {lnum, lnum, 0} ) );
+    Box boxqS( IntVect( {0, 0, 0} ), IntVect( {lnum, lnum, 0} ) );
 
-    Real q0[dim]      = {   0.0   };
-    Real qC[dim][dim] = { { 0.0 } };
-    Real qS[dim][dim] = { { 0.0 } };
+    FArrayBox q0(boxq0);
+    FArrayBox qC(boxqC);
+    FArrayBox qS(boxqS);
+
+    q0.setVal(0.0);
+    qC.setVal(0.0);
+    qS.setVal(0.0);
 
     // Loop through the grids and compute the individual contributions
     // to the various moments. The multipole moment constructor
@@ -2354,18 +2360,19 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
         BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
 	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
              &symmetry_type,lo_bc,hi_bc,
-             dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),&lnum,&max_l,q0,qC,qS);
+             dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
+             &lnum,q0.dataPtr(),qC.dataPtr(),qS.dataPtr());
     }
 
-    for (int l = 0; l <= lnum; l++)
-    {
-      ParallelDescriptor::ReduceRealSum(q0[l]);
-      for (int m = 1; m <= l; m++)
-      {
-        ParallelDescriptor::ReduceRealSum(qC[l][m]);
-        ParallelDescriptor::ReduceRealSum(qS[l][m]);
-      }
-    }
+    // Now, do a global reduce over all processes.
+
+    ParallelDescriptor::ReduceRealSum(q0.dataPtr(),boxq0.numPts());
+    ParallelDescriptor::ReduceRealSum(qC.dataPtr(),boxqC.numPts());
+    ParallelDescriptor::ReduceRealSum(qS.dataPtr(),boxqS.numPts());
+
+    // Finally, construct the boundary conditions using the
+    // complete multipole moments, for all points on the
+    // boundary that are held on this process.
 
     for (MFIter mfi(phi); mfi.isValid(); ++mfi)
     {
@@ -2374,7 +2381,8 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),
              dx, BL_TO_FORTRAN(phi[mfi]),
-             geom.ProbLo(),&lnum,&max_l,q0,qC,qS);
+             geom.ProbLo(), geom.ProbHi(),
+             &lnum,q0.dataPtr(),qC.dataPtr(),qS.dataPtr());
     }
 
     if (verbose)
@@ -2388,6 +2396,118 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
             std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl;
     }
 
+}
+
+void
+Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
+{
+    BL_ASSERT(level==0);
+
+    const Real strt = ParallelDescriptor::second();
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx   = geom.CellSize();
+
+    // Storage arrays for the BCs.
+
+    const int* domlo = geom.Domain().loVect();
+    const int* domhi = geom.Domain().hiVect();
+
+    const int loVectXY[3] = {domlo[0]-1, domlo[1]-1, 0         };
+    const int hiVectXY[3] = {domhi[0]+1, domhi[1]+1, 0         };
+
+    const int loVectXZ[3] = {domlo[0]-1, 0         , domlo[2]-1};
+    const int hiVectXZ[3] = {domhi[0]+1, 0         , domhi[2]+1};
+
+    const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
+    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
+
+    IntVect smallEndXY( loVectXY );
+    IntVect bigEndXY  ( hiVectXY );
+    IntVect smallEndXZ( loVectXZ );
+    IntVect bigEndXZ  ( hiVectXZ );
+    IntVect smallEndYZ( loVectYZ );
+    IntVect bigEndYZ  ( hiVectYZ );
+
+    Box boxXY(smallEndXY, bigEndXY);
+    Box boxXZ(smallEndXZ, bigEndXZ);
+    Box boxYZ(smallEndYZ, bigEndYZ);
+
+    const int nPtsXY = boxXY.numPts();
+    const int nPtsXZ = boxXZ.numPts();
+    const int nPtsYZ = boxYZ.numPts(); 
+
+    FArrayBox bcXYLo(boxXY);
+    FArrayBox bcXYHi(boxXY);
+    FArrayBox bcXZLo(boxXZ);
+    FArrayBox bcXZHi(boxXZ);
+    FArrayBox bcYZLo(boxYZ);
+    FArrayBox bcYZHi(boxYZ);
+
+    bcXYLo.setVal(0.0);
+    bcXYHi.setVal(0.0);
+    bcXZLo.setVal(0.0);
+    bcXZHi.setVal(0.0);
+    bcYZLo.setVal(0.0);
+    bcYZHi.setVal(0.0);
+    
+    // Loop through the grids and compute the individual contributions
+    // to the BCs. The BC constructor is coded to only add to the 
+    // BCs, so it is safe to directly hand the arrays to them.
+
+    int lo_bc[3];
+    int hi_bc[3];
+
+    for (int dir = 0; dir < 3; dir++)
+    {
+      lo_bc[dir] = phys_bc->lo(dir);
+      hi_bc[dir] = phys_bc->hi(dir);
+    }
+
+    int symmetry_type = Symmetry;
+    
+    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+    {
+        Box bx(mfi.validbox());
+        BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
+	    (bx.loVect(), bx.hiVect(), domlo, domhi, 
+             &symmetry_type,lo_bc,hi_bc,
+             dx,BL_TO_FORTRAN(Rhs[mfi]),
+             geom.ProbLo(),geom.ProbHi(),
+             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+             bcYZLo.dataPtr(), bcYZHi.dataPtr());
+    }
+
+    ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
+    ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), nPtsXY);
+    ParallelDescriptor::ReduceRealSum(bcXZLo.dataPtr(), nPtsXZ);
+    ParallelDescriptor::ReduceRealSum(bcXZHi.dataPtr(), nPtsXZ);
+    ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), nPtsYZ);
+    ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), nPtsYZ);
+    
+    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+    {
+        Box bx(mfi.validbox());
+        BL_FORT_PROC_CALL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
+            (bx.loVect(), bx.hiVect(), domlo, domhi,
+             BL_TO_FORTRAN(phi[mfi]),
+             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+             bcYZLo.dataPtr(), bcYZHi.dataPtr());
+    }
+
+    if (verbose)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real      end    = ParallelDescriptor::second() - strt;
+
+        ParallelDescriptor::ReduceRealMax(end,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl;
+    }
+    
 }
 #endif
 
