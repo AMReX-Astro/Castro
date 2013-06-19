@@ -2325,9 +2325,9 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // We will initialize them to zero, and then
     // sum up the results over grids.
 
-    Box boxq0( IntVect( {0, 0, 0} ), IntVect( {lnum, 0,    0} ) );
-    Box boxqC( IntVect( {0, 0, 0} ), IntVect( {lnum, lnum, 0} ) );
-    Box boxqS( IntVect( {0, 0, 0} ), IntVect( {lnum, lnum, 0} ) );
+    Box boxq0( IntVect(), IntVect( lnum, 0,    0 ) );
+    Box boxqC( IntVect(), IntVect( lnum, lnum, 0 ) );
+    Box boxqS( IntVect(), IntVect( lnum, lnum, 0 ) );
 
     FArrayBox q0(boxq0);
     FArrayBox qC(boxqC);
