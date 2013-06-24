@@ -208,7 +208,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      enddo
 
-     do j = lo(2)-1, hi(2)+1
+     do j = lo(2), hi(2)
         do i = lo(1), hi(1)
            state(i,j,URHO ) = state(i,lo(2),URHO)
            state(i,j,UMX  ) = 0.d0
