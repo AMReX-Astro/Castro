@@ -246,21 +246,21 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = true;
     desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,1,NUM_STATE,
+                           StateDescriptor::Point,0,NUM_STATE,
                            interp,state_data_extrap,store_in_checkpoint);
 
 #ifdef GRAVITY
     store_in_checkpoint = true;
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,1,BL_SPACEDIM,
+                           StateDescriptor::Point,0,BL_SPACEDIM,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef LEVELSET
     store_in_checkpoint = true;
     desc_lst.addDescriptor(LS_State_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,1,1,
+                           StateDescriptor::Point,0,1,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
