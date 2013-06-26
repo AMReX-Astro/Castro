@@ -138,24 +138,24 @@ contains
           found_model = .false.
 
 
-          if (trim(varnames_stored(j)) == "density") then
+          if (varnames_stored(j) == "density") then
              model_state(i,idens_model) = vars_stored(j)
              found_model = .true.
              found_dens  = .true.
 
-          else if (trim(varnames_stored(j)) == "temperature") then
+          else if (varnames_stored(j) == "temperature") then
              model_state(i,itemp_model) = vars_stored(j)
              found_model = .true.
              found_temp  = .true.
 
-          else if (trim(varnames_stored(j)) == "pressure") then
+          else if (varnames_stored(j) == "pressure") then
              model_state(i,ipres_model) = vars_stored(j)
              found_model = .true.
              found_pres  = .true.
 
           else
              do comp = 1, nspec
-                if (trim(varnames_stored(j)) == spec_names(comp)) then
+                if (varnames_stored(j) == spec_names(comp)) then
                    model_state(i,ispec_model-1+comp) = vars_stored(j)
                    found_model = .true.
                    found_spec(comp) = .true.

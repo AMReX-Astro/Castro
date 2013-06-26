@@ -89,8 +89,7 @@ contains
     r = -1
 
     do n = 1, nspec
-       if (trim(name) == trim(spec_names(n)) .or. &
-           trim(name) == trim(short_spec_names(n))) then
+       if (name == spec_names(n) .or. name == short_spec_names(n)) then
           r = n
           exit
        endif
