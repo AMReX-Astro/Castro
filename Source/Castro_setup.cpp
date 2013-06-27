@@ -244,9 +244,15 @@ Castro::variableSetUp ()
     bool state_data_extrap = false;
     bool store_in_checkpoint;
 
+#ifdef RADIATION
+    int ngrow_state = 1;
+#else
+    int ngrow_state = 0;
+#endif
+
     store_in_checkpoint = true;
     desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,0,NUM_STATE,
+                           StateDescriptor::Point,ngrow_state,NUM_STATE,
                            interp,state_data_extrap,store_in_checkpoint);
 
 #ifdef GRAVITY
