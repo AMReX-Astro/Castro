@@ -771,9 +771,9 @@
                vz = 0.5d0 * (dat(i,j,k+1,3) - dat(i,j,k-1,3)) / delta(3)
                wx = 0.5d0 * (dat(i+1,j,k,4) - dat(i-1,j,k,4)) / delta(1)
                wy = 0.5d0 * (dat(i,j+1,k,4) - dat(i,j-1,k,4)) / delta(2)
-               v1 = abs(wy - vz)
-               v2 = abs(uz - wx)
-               v3 = abs(vx - uy)
+               v1 = wy - vz
+               v2 = uz - wx
+               v3 = vx - uy
                vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
             end do
          end do
