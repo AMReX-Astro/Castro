@@ -382,6 +382,16 @@ Castro::read_params ()
         BoxLib::Error();
       }	
 
+    // for the moment, ppm_type = 0 does not support ppm_trace_grav --
+    // we need to add the gravitational sources to the states (and not
+    // add it in trans_3d
+    if (ppm_type == 0 && ppm_trace_grav == 1)
+      {
+        std::cerr << "ppm_trace_grav = 1 not implemented for ppm_type = 0 \n";
+        BoxLib::Error();
+      }
+	
+
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
 
