@@ -3,7 +3,7 @@ PRECISION  = DOUBLE
 PROFILE    = FALSE
 
 DEBUG      = TRUE
-DEBUG      = FALSE
+
 
 #DIM        = 1
 #DIM        = 2
@@ -19,12 +19,13 @@ USE_OMP    = FALSE
 CASTRO_DIR  := ../..
 
 # This sets the EOS directory in Castro/EOS
-#EOS_dir     := helmeos
-EOS_dir     := gamma_law_general
+EOS_dir     := helmeos
+#EOS_dir     := gamma_law_general
 
 # This sets the network directory in Castro/Networks
 Network_dir := general_null
-GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
+#GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
 
 Bpack   := ./Make.package
 Blocs   := .
