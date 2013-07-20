@@ -123,6 +123,7 @@ end subroutine PROBINIT
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                       state,state_l1,state_h1,delta,xlo,xhi)
 
+  use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
 
@@ -154,6 +155,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UTEMP) = T_r
      endif
 
+     state(i,UFS:UFS-1+nspec) = 0.0d0
      state(i,UFS  ) = state(i,URHO)
 
 
