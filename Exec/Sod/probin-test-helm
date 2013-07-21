@@ -1,11 +1,13 @@
 &fortin
-  p_l = 8.4e23
+  T_l = 1.d8
   u_l = 0.0d0
   rho_l = 1.0d7
 
-  p_r = 2.55d22
+  T_r = 1.d6
   u_r = 0.0d0
   rho_r = 1.d6
+
+  use_Tinit = T
 
   idir = 1
   frac = 0.5d0

@@ -17,7 +17,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   type (eos_t) :: eos_state
 
-  namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, frac, idir, &
+  namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, T_l, T_r, frac, idir, &
+       use_Tinit, &
        denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
        velgrad,  max_velgrad_lev, &
        presserr,pressgrad,max_presserr_lev,max_pressgrad_lev
@@ -42,13 +43,17 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   p_l = 1.0               ! left pressure (erg/cc)
   u_l = 0.0               ! left velocity (cm/s)
   rho_l = 1.0             ! left density (g/cc)
+  T_l = 1.0
 
   p_r = 0.1               ! right pressure (erg/cc)
   u_r = 0.0               ! right velocity (cm/s)
   rho_r = 0.125           ! right density (g/cc)
+  T_r = 1.0
 
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
+
+  use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
 
   denerr = 1.d20
   dengrad = 1.d20
@@ -77,25 +82,49 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xn(:) = 0.0d0
   xn(1) = 1.0d0
 
-  eos_state%rho = rho_l
-  eos_state%p = p_l
-  eos_state%T = 100000.d0  ! initial guess
-  eos_state%xn(:) = xn(:)
+  if (use_Tinit) then
 
-  call eos(eos_input_rp, eos_state, .false.)
+     eos_state%rho = rho_l
+     eos_state%T = T_l
+     eos_state%xn(:) = xn(:)
+
+     call eos(eos_input_rt, eos_state, .false.)
  
-  rhoe_l = rho_l*eos_state%e
-  T_l = eos_state%T
+     rhoe_l = rho_l*eos_state%e
+     p_l = eos_state%p
 
-  eos_state%rho = rho_r
-  eos_state%p = p_r
-  eos_state%T = 100000.d0  ! initial guess
-  eos_state%xn(:) = xn(:)
+     eos_state%rho = rho_r
+     eos_state%T = T_r
+     eos_state%xn(:) = xn(:)
 
-  call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rt, eos_state, .false.)
  
-  rhoe_r = rho_r*eos_state%e
-  T_r = eos_state%T
+     rhoe_r = rho_r*eos_state%e
+     p_r = eos_state%p
+
+  else
+
+     eos_state%rho = rho_l
+     eos_state%p = p_l
+     eos_state%T = 100000.d0  ! initial guess
+     eos_state%xn(:) = xn(:)
+
+     call eos(eos_input_rp, eos_state, .false.)
+ 
+     rhoe_l = rho_l*eos_state%e
+     T_l = eos_state%T
+
+     eos_state%rho = rho_r
+     eos_state%p = p_r
+     eos_state%T = 100000.d0  ! initial guess
+     eos_state%xn(:) = xn(:)
+
+     call eos(eos_input_rp, eos_state, .false.)
+ 
+     rhoe_r = rho_r*eos_state%e
+     T_r = eos_state%T
+
+  endif
 
 end subroutine PROBINIT
 
