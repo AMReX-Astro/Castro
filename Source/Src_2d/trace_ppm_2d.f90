@@ -58,6 +58,8 @@ contains
     double precision azu1left, azv1left
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
 
+    double precision :: xi, xi1
+
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
 
@@ -145,7 +147,6 @@ contains
 
           ! note: for the transverse velocities, the jump is carried
           ! only by the u wave (the contact)
-          drhom  = flatn(i,j)*(rho_ref  - Im(i,j,1,1,QRHO))
           dum    = flatn(i,j)*(u_ref    - Im(i,j,1,1,QU))
           !dvm    = flatn(i,j)*(v_ref    - Im(i,j,1,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Im(i,j,1,1,QPRES))
@@ -157,7 +158,6 @@ contains
           dp    = flatn(i,j)*(p_ref    - Im(i,j,1,2,QPRES))
           drhoe = flatn(i,j)*(rhoe_ref - Im(i,j,1,2,QREINT))
 
-          drhop  = flatn(i,j)*(rho_ref  - Im(i,j,1,3,QRHO))
           dup    = flatn(i,j)*(u_ref    - Im(i,j,1,3,QU))
           !dvp    = flatn(i,j)*(v_ref    - Im(i,j,1,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,1,3,QPRES))
@@ -201,14 +201,17 @@ contains
           endif
 
           if (i .ge. ilo1) then
-             qxp(i,j,QRHO) = rho_ref + apright + amright + azrright
+
+             xi1 = 1.0d0-flatn(i,j)
+             xi = flatn(i,j)
+             qxp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
+             qxp(i,j,QU)     = xi1*u    + xi*   u_ref + (apright - amright)*cc/rho
+             qxp(i,j,QV)     = xi1*v    + xi*   v_ref + azv1rght
+
+             qxp(i,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
+             qxp(i,j,QPRES)  = xi1*p    + xi*   p_ref + (apright + amright)*csq
+
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
-             qxp(i,j,QU) = u_ref + (apright - amright)*cc/rho
-             qxp(i,j,QV) = v_ref + azv1rght
-
-             qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
-
-             qxp(i,j,QPRES) = p_ref + (apright + amright)*csq
              qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
           end if
 
@@ -233,7 +236,6 @@ contains
              rhoe_ref = Ip(i,j,1,3,QREINT)
           endif
 
-          drhom  = flatn(i,j)*(rho_ref  - Ip(i,j,1,1,QRHO))
           dum    = flatn(i,j)*(u_ref    - Ip(i,j,1,1,QU))
           !dvm    = flatn(i,j)*(v_ref    - Ip(i,j,1,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Ip(i,j,1,1,QPRES))
@@ -245,7 +247,6 @@ contains
           dp    = flatn(i,j)*(p_ref    - Ip(i,j,1,2,QPRES))
           drhoe = flatn(i,j)*(rhoe_ref - Ip(i,j,1,2,QREINT))
           
-          drhop  = flatn(i,j)*(rho_ref  - Ip(i,j,1,3,QRHO))
           dup    = flatn(i,j)*(u_ref    - Ip(i,j,1,3,QU))
           !dvp    = flatn(i,j)*(v_ref    - Ip(i,j,1,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,1,3,QPRES))
@@ -286,14 +287,16 @@ contains
           endif
           
           if (i .le. ihi1) then
-             qxm(i+1,j,QRHO) = rho_ref + apleft + amleft + azrleft
+             xi1 = 1.0d0 - flatn(i,j)
+             xi = flatn(i,j)
+             qxm(i+1,j,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
+             qxm(i+1,j,QU)     = xi1*u    + xi*   u_ref + (apleft - amleft)*cc/rho
+             qxm(i+1,j,QV)     = xi1*v    + xi*   v_ref + azv1left
+
+             qxm(i+1,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             qxm(i+1,j,QPRES)  = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
+
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
-             qxm(i+1,j,QU) = u_ref + (apleft - amleft)*cc/rho
-             qxm(i+1,j,QV) = v_ref + azv1left
-
-             qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-
-             qxm(i+1,j,QPRES) = p_ref + (apleft + amleft)*csq
              qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
           end if
 
@@ -471,7 +474,6 @@ contains
           endif
             
 
-          drhom  = flatn(i,j)*(rho_ref  - Im(i,j,2,1,QRHO))
           !dum    = flatn(i,j)*(u_ref    - Im(i,j,2,1,QU))
           dvm    = flatn(i,j)*(v_ref    - Im(i,j,2,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Im(i,j,2,1,QPRES))
@@ -483,7 +485,6 @@ contains
           dp    = flatn(i,j)*(p_ref    - Im(i,j,2,2,QPRES))
           drhoe = flatn(i,j)*(rhoe_ref - Im(i,j,2,2,QREINT))
           
-          drhop  = flatn(i,j)*(rho_ref  - Im(i,j,2,3,QRHO))
           !dup    = flatn(i,j)*(u_ref    - Im(i,j,2,3,QU))
           dvp    = flatn(i,j)*(v_ref    - Im(i,j,2,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,2,3,QPRES))
@@ -524,14 +525,16 @@ contains
           endif
           
           if (j .ge. ilo2) then
-             qyp(i,j,QRHO) = rho_ref + apright + amright + azrright
+             xi1 = 1.0d0 - flatn(i,j)
+             xi = flatn(i,j)
+             qyp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
+             qyp(i,j,QV)     = xi1*v    + xi*   v_ref + (apright - amright)*cc/rho
+             qyp(i,j,QU)     = xi1*u    + xi*   u_ref + azu1rght
+
+             qyp(i,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
+             qyp(i,j,QPRES)  = xi1*p    + xi*   p_ref + (apright + amright)*csq
+
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-             qyp(i,j,QV) = v_ref + (apright - amright)*cc/rho
-             qyp(i,j,QU) = u_ref + azu1rght
-
-             qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
-
-             qyp(i,j,QPRES) = p_ref + (apright + amright)*csq
              qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
           end if
           
@@ -555,7 +558,6 @@ contains
              rhoe_ref = Ip(i,j,2,3,QREINT)
           endif
 
-          drhom  = flatn(i,j)*(rho_ref  - Ip(i,j,2,1,QRHO))
           !dum    = flatn(i,j)*(u_ref    - Ip(i,j,2,1,QU))
           dvm    = flatn(i,j)*(v_ref    - Ip(i,j,2,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Ip(i,j,2,1,QPRES))
@@ -567,7 +569,6 @@ contains
           dp    = flatn(i,j)*(p_ref    - Ip(i,j,2,2,QPRES))
           drhoe = flatn(i,j)*(rhoe_ref - Ip(i,j,2,2,QREINT))
           
-          drhop  = flatn(i,j)*(rho_ref  - Ip(i,j,2,3,QRHO))
           !dup    = flatn(i,j)*(u_ref    - Ip(i,j,2,3,QU))
           dvp    = flatn(i,j)*(v_ref    - Ip(i,j,2,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,2,3,QPRES))
@@ -608,14 +609,16 @@ contains
           endif
           
           if (j .le. ihi2) then
-             qym(i,j+1,QRHO) = rho_ref + apleft + amleft + azrleft
+             xi1 = 1.0d0 - flatn(i,j)
+             xi = flatn(i,j)
+             qym(i,j+1,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
+             qym(i,j+1,QV)     = xi1*v    + xi*   v_ref + (apleft - amleft)*cc/rho
+             qym(i,j+1,QU)     = xi1*u    + xi*   u_ref + azu1left
+
+             qym(i,j+1,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             qym(i,j+1,QPRES)  = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
+
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-             qym(i,j+1,QV) = v_ref + (apleft - amleft)*cc/rho
-             qym(i,j+1,QU) = u_ref + azu1left
-
-             qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-
-             qym(i,j+1,QPRES) = p_ref + (apleft + amleft)*csq
              qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
           end if
 
