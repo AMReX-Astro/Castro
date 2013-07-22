@@ -14,6 +14,9 @@ contains
                        ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
 
+    ! this implements the approximate Riemann solver of Colella & Glaz (1985)
+
+    use bl_error_module
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo,Symmetry
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -62,8 +65,12 @@ contains
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
     integer :: iter
-    integer, parameter :: itno= 3
-    
+    integer, parameter :: iter_max= 8
+    double precision, parameter :: tol = 1.d-5
+    double precision :: err
+
+    logical :: converged
+
     double precision :: pstnm1
     double precision :: taul, taur, tauo
     double precision :: ustarm, ustarp, ustnm1, ustnp1
@@ -177,7 +184,9 @@ contains
           pstar = max(pstar,small_pres)
 
           ! sectant iteration
-          do iter = 1, itno
+          converged = .false.
+          iter = 1
+          do while (iter < iter_max .and. .not. converged)
                
              call wsqge(pl,taul,gamel,gdot,  &
                         gamstar,pstar,wlsq,clsql,gmin,gmax)
@@ -211,8 +220,18 @@ contains
              pstnm1 = pstar
              pstar=pstar-denom*(ustarm-ustarp)
              pstar=max(pstar,small_pres)
+
+             err = abs(pstar - pstnm1)
+             if (err < tol*pstar) converged = .true.
+
+             iter = iter + 1
              
           enddo
+
+          if (.not. converged) then
+             call bl_error("ERROR: non-convergence in the Riemann solver")
+          endif
+          
           
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves
