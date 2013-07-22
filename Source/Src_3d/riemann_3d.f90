@@ -126,6 +126,12 @@ contains
           clsqr = gamcr(i,j)*pr*rr
           
           ! gamma_e = p/(rho e) + 1
+
+          ! Note: in the original Colella & Glaz paper, they predicted
+          ! gamma_e to the interfaces using a special (non-hyperbolic)
+          ! evolution equation.  In Castro, we instead bring (rho e)
+          ! to the edges, so we construct the necessary gamma_e here from
+          ! what we have on the interfaces.
           gamel = pl/rel + 1
           gamer = pr/rer + 1
           
@@ -141,12 +147,15 @@ contains
           
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
-          wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
-          wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
+          wl = max(wsmall,sqrt(abs(clsql)))
+          wr = max(wsmall,sqrt(abs(clsqr)))
           
+          ! make an initial guess for pstar -- this is a two-shock 
+          ! approximation
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           pstar = max(pstar,small_pres)
 
+          ! get the shock speeds -- this computes W_s from CG Eq. 34
           call wsqge(pl,taul,gamel,gdot,  &
                      gamstar,pstar,wlsq,clsql,gmin,gmax)
 
@@ -158,9 +167,12 @@ contains
           wl = sqrt(wlsq)
           wr = sqrt(wrsq)
 
+          ! R-H jump conditions give ustar across each wave -- these should
+          ! be equal when we are done iterating
           ustarp = ul - (pstar-pl)/wl
           ustarm = ur + (pstar-pr)/wr
 
+          ! revise our pstar guess
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           pstar = max(pstar,small_pres)
 
@@ -194,6 +206,7 @@ contains
                 zm = dpditer*wr
              endif
              
+             ! the new pstar is found via CG Eq. 18
              denom=dpditer/max(zp+zm,small*(cav(i,j)))
              pstnm1 = pstar
              pstar=pstar-denom*(ustarm-ustarp)
@@ -201,9 +214,14 @@ contains
              
           enddo
           
+          ! we converged!  construct the single ustar for the region
+          ! between the left and right waves
           ustar = 0.5d0* ( ustarp + ustarm )
 
           
+          ! sample the solution -- here we look first at the direction
+          ! that the contact is moving.  This tells us if we need to
+          ! worry about the L/L* states or the R*/R states.  
           if (ustar .gt. 0.d0) then
              ro = rl
              uo = ul
@@ -274,6 +292,8 @@ contains
           frac = (1.d0 + (spout + spin)/scr)*0.5d0
           frac = max(0.d0,min(1.d0,frac))
 
+          ! the transverse velocity states only depend on the
+          ! direction that the contact moves
           if (ustar .gt. 0.d0) then
              v1gdnv = v1l
              v2gdnv = v2l
@@ -284,25 +304,29 @@ contains
              v1gdnv = 0.5d0*(v1l+v1r)
              v2gdnv = 0.5d0*(v2l+v2r)
           endif
-          rgdnv = frac*rstar + (1.d0 - frac)*ro
-          
+
+          ! linearly interpolate between the star and normal state -- this covers the
+          ! case where we are inside the rarefaction fan.
+          rgdnv = frac*rstar + (1.d0 - frac)*ro          
           ugdnv(i,j,kc) = frac*ustar + (1.d0 - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (1.d0 - frac)*po
+          !regdnv = frac*estar + (1.d0 - frac)*reo
           gamgdnv =  frac*gamstar + (1.d0-frac)*gameo          
-          regdnv = frac*estar + (1.d0 - frac)*reo
-          
+
+          ! now handle the cases where instead we are fully in the
+          ! star or fully in the original (l/r) state
           if (spout .lt. 0.d0) then
              rgdnv = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
-             regdnv = reo
+             !regdnv = reo
              gamgdnv = gameo
           endif
           if (spin .ge. 0.d0) then
              rgdnv = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
-             regdnv = estar
+             !regdnv = estar
              gamgdnv = gamstar
           endif
 
@@ -334,11 +358,15 @@ contains
              uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
           endif
 
-!          rhoetot = regdnv + 0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
-          rhoetot = pgdnv(i,j,kc)/(gamgdnv - 1.0d0) + 0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+          ! this is an alternate way to deal with the energy, but it ignores the gamstar stuff
+          !rhoetot = regdnv + 0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+          !uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
+
+          ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
+          rhoetot = pgdnv(i,j,kc)/(gamgdnv - 1.0d0) + &
+               0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
-          !uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*pgdnv(i,j,kc)/(gamgdnv - 1.d0)
 
 
@@ -370,6 +398,7 @@ contains
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
 
+          ! advected quantities -- only the contact matters
           do iadv = 1, nadv
              n  = UFA + iadv - 1
              nq = QFA + iadv - 1
@@ -383,6 +412,7 @@ contains
              endif
           enddo
           
+          ! species -- only the contact matters
           do ispec = 1, nspec
              n  = UFS + ispec - 1
              nq = QFS + ispec - 1
@@ -396,6 +426,7 @@ contains
              endif
           enddo
           
+          ! auxillary quantities -- only the contact matters
           do iaux = 1, naux
              n  = UFX + iaux - 1
              nq = QFX + iaux - 1
@@ -419,12 +450,16 @@ contains
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
     double precision smlp1,small,divide,temp
 
-    data smlp1,small/.001,1.e-07/
+    data smlp1,small/.001d0,1.d-07/
 
+    ! CG Eq. 31
     gstar=(pstar-p)*gdot/(pstar+p) + gam
     gstar=max(gmin,min(gmax,gstar))
+
+
+    ! CG Eq. 34
     wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
-    temp = ((gstar-gam)/(gam-1.))
+    temp = ((gstar-gam)/(gam-1.0d0))
 
     if (pstar-p.eq.0.0d0) then
        divide=small
