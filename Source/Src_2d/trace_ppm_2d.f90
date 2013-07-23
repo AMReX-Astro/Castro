@@ -11,6 +11,7 @@ contains
   subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec, naux
@@ -25,6 +26,7 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
+    integer gv_l1,gv_l2,gv_h1,gv_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
@@ -35,6 +37,9 @@ contains
     double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
+
     double precision dx, dy, dt
     
     ! Local variables
@@ -71,6 +76,7 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
 
+    ! indices: (x, y, dimension, wave, variable)
     allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
     allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
 
@@ -105,6 +111,8 @@ contains
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2,q(:,:,QU:),c, &
             Ip(:,:,:,:,n),Im(:,:,:,:,n),ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
+
+
 
     ! Trace to left and right edges using upwind PPM
     do j = ilo2-1, ihi2+1
