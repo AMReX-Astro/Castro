@@ -65,6 +65,10 @@ contains
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
 
     double precision :: xi, xi1
+    double precision :: halfdt
+
+    integer, parameter :: igx = 1
+    integer, parameter :: igy = 2
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
@@ -88,6 +92,9 @@ contains
        allocate(Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
        allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
     endif
+
+    halfdt = 0.5d0 * dt
+
 
     !!!!!!!!!!!!!!!
     ! PPM CODE
@@ -188,8 +195,14 @@ contains
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,1,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,1,3,QREINT))
 
-          ! these are the beta's from the original PPM paper.  This is essentially
-          ! (l . dq) r for each primitive quantity
+          if (ppm_trace_grav == 1) then
+             dum = dum - halfdt*Im_g(i,j,1,1,igx)
+             dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
+             dup = dup - halfdt*Im_g(i,j,1,3,igx)
+          endif
+
+          ! these are the beta's from the original PPM paper.  This is
+          ! essentially (l . dq) r for each primitive quantity
 
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
@@ -276,6 +289,13 @@ contains
           !dvp    = flatn(i,j)*(v_ref    - Ip(i,j,1,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,1,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,1,3,QREINT))
+
+          if (ppm_trace_grav == 1) then
+             dum = dum - halfdt*Ip_g(i,j,1,1,igx)
+             dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
+             dup = dup - halfdt*Ip_g(i,j,1,3,igx)
+          endif
+
           
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
@@ -514,6 +534,13 @@ contains
           dvp    = flatn(i,j)*(v_ref    - Im(i,j,2,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,2,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,2,3,QREINT))
+
+          if (ppm_trace_grav == 1) then
+             dvm = dvm - halfdt*Im_g(i,j,2,1,igy)
+             du  = du  - halfdt*Im_g(i,j,2,2,igx)
+             dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
+          endif
+
           
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
@@ -598,6 +625,13 @@ contains
           dvp    = flatn(i,j)*(v_ref    - Ip(i,j,2,3,QV))
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,2,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,2,3,QREINT))
+
+          if (ppm_trace_grav == 1) then
+             dvm = dvm - halfdt*Ip_g(i,j,2,1,igy)
+             du  = du  - halfdt*Ip_g(i,j,2,2,igx)
+             dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
+          endif
+
           
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
