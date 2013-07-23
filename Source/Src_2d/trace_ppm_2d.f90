@@ -17,7 +17,8 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QFA, QFS, QFX, &
-         nadv, small_dens, small_pres, ppm_type, ppm_reference
+         nadv, small_dens, small_pres, &
+         ppm_type, ppm_reference, ppm_trace_grav
     use ppm_module, only : ppm
 
     implicit none
@@ -68,6 +69,9 @@ contains
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
 
+    double precision, allocatable :: Ip_g(:,:,:,:,:)
+    double precision, allocatable :: Im_g(:,:,:,:,:)
+
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_2d.f90 :: trace_ppm")
@@ -80,6 +84,10 @@ contains
     allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
     allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
 
+    if (ppm_trace_grav == 1) then
+       allocate(Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+       allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+    endif
 
     !!!!!!!!!!!!!!!
     ! PPM CODE
@@ -108,11 +116,20 @@ contains
 
     ! Compute Ip and Im
     do n=1,QVAR
-       call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2,q(:,:,QU:),c, &
-            Ip(:,:,:,:,n),Im(:,:,:,:,n),ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
+                q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                Ip(:,:,:,:,n),Im(:,:,:,:,n), &
+                ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
 
-
+    if (ppm_trace_grav == 1) then
+       do n = 1,2
+          call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
+                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
+                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       enddo
+    endif
 
     ! Trace to left and right edges using upwind PPM
     do j = ilo2-1, ihi2+1

@@ -9,15 +9,19 @@ module ppm_module
 contains
   
       ! characteristics based on u
-      subroutine ppm(s,qd_l1,qd_l2,qd_h1,qd_h2,u,cspd,Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+      subroutine ppm(s,s_l1,s_l2,s_h1,s_h2, &
+                     u,cspd,qd_l1,qd_l2,qd_h1,qd_h2, &
+                     Ip,Im, &
+                     ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
         use meth_params_module, only : ppm_type
 
         implicit none
 
+        integer          s_l1,s_l2,s_h1,s_h2
         integer          qd_l1,qd_l2,qd_h1,qd_h2
         integer          ilo1,ilo2,ihi1,ihi2
-        double precision s(qd_l1:qd_h1,qd_l2:qd_h2)
+        double precision s(s_l1:s_h1,s_l2:s_h2)
         double precision u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
         double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2)
         double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
