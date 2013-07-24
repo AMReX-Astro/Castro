@@ -575,6 +575,7 @@ protected:
     static int       ppm_type;
     static int       ppm_reference;
     static int       ppm_trace_grav;
+    static int       ppm_temp_fix;
     static int       use_colglaz;
     static int       use_pslope;
     static int       grav_source_type;

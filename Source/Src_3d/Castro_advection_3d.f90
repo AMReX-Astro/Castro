@@ -47,12 +47,15 @@ contains
                          ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                          pdivu)
 
-      use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, ppm_type, &
-                                     use_pslope, ppm_trace_grav
+      use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QTEMP, QREINT, ppm_type, &
+                                     use_pslope, ppm_trace_grav, ppm_temp_fix
       use trace_ppm_module, only : tracexy_ppm, tracez_ppm
       use trace_module, only : tracexy, tracez
       use ppm_module, only : ppm
       use slope_module, only : uslope, pslope
+      use network
+      use eos_type_module
+      use eos_module
 
       implicit none
 
@@ -67,7 +70,7 @@ contains
       integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
       integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
       integer km,kc,kt,k3d,n
-      integer i,j
+      integer i,j,iwave,idim
 
       double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
       double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
@@ -129,6 +132,8 @@ contains
 
       double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
       double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
+
+      type (eos_t) :: eos_state
 
       allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
       allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
@@ -254,6 +259,38 @@ contains
                            Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
                            ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
                enddo
+            endif
+
+            ! temperature-based PPM
+            if (ppm_temp_fix == 1) then
+               do j = ilo2-1, ihi2+1
+                  do i = ilo1-1, ihi1+1
+                     do iwave = 1, 3
+                        do idim = 1, 3
+                           eos_state%rho   = Ip(i,j,kc,iwave,idim,QRHO)
+                           eos_state%T     = Ip(i,j,kc,iwave,idim,QTEMP)
+                           eos_state%xn(:) = Ip(i,j,kc,iwave,idim,QFS:QFS-1+nspec)
+                           
+                           call eos(eos_input_rt, eos_state, .false.)
+                           
+                           Ip(i,j,kc,iwave,idim,QPRES) = eos_state%p
+                           Ip(i,j,kc,iwave,idim,QREINT) = Ip(i,j,kc,iwave,idim,QRHO)*eos_state%e
+                           
+                           
+                           eos_state%rho   = Im(i,j,kc,iwave,idim,QRHO)
+                           eos_state%T     = Im(i,j,kc,iwave,idim,QTEMP)
+                           eos_state%xn(:) = Im(i,j,kc,iwave,idim,QFS:QFS-1+nspec)
+                           
+                           call eos(eos_input_rt, eos_state, .false.)
+                           
+                           Im(i,j,kc,iwave,idim,QPRES) = eos_state%p
+                           Im(i,j,kc,iwave,idim,QREINT) = Im(i,j,kc,iwave,idim,QRHO)*eos_state%e
+                           
+                        enddo
+                     enddo
+                  enddo
+               enddo
+               
             endif
 
             ! Compute U_x and U_y at kc (k3d)

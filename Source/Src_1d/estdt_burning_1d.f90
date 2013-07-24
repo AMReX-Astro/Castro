@@ -8,7 +8,6 @@
                                  dt_hydro, dt_nuc_out, initial_step)
 
      use network, only : nspec, naux
-     use eos_module
      use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX
      use burner_dt_module	
 
