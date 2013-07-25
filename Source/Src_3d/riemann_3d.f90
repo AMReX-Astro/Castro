@@ -12,7 +12,7 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -33,7 +33,7 @@ contains
     integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
     integer :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
     integer :: idir,ilo,ihi,jlo,jhi
-    integer :: i,j,kc,kflux,k3d
+    integer :: i,j,kc,kflux
 
     double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
@@ -471,10 +471,14 @@ contains
 
     data smlp1,small/.001d0,1.d-07/
 
+    ! First predict a value of game across the shock
+
     ! CG Eq. 31
     gstar=(pstar-p)*gdot/(pstar+p) + gam
     gstar=max(gmin,min(gmax,gstar))
 
+    ! Now use that predicted value of game with the R-H jump conditions
+    ! to compute the wave speed.
 
     ! CG Eq. 34
     wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
@@ -504,7 +508,7 @@ contains
                            gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                            uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                            ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                           idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+                           idir,ilo,ihi,jlo,jhi,kc,kflux)
 
       use network, only : nspec, naux
       use prob_params_module, only : physbc_lo,Symmetry
@@ -521,7 +525,7 @@ contains
       integer uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
       integer pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
       integer idir,ilo,ihi,jlo,jhi
-      integer i,j,kc,kflux,k3d
+      integer i,j,kc,kflux
 
       double precision ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
       double precision qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
