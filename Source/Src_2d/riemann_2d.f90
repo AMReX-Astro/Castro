@@ -24,9 +24,9 @@ contains
     use bl_error_module
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo,Symmetry
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
                                    QPRES, QREINT, QFA, QFS, &
-                                   QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres
 
@@ -53,7 +53,7 @@ contains
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
-    double precision :: rgdnv,vgdnv,regdnv,ustar,gamgdnv
+    double precision :: rgdnv,vgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, pl, rel
     double precision :: rr, ur, vr, pr, rer
     double precision :: wl, wr, rhoetot, scr
@@ -139,7 +139,6 @@ contains
           clsql = gamcl(i,j)*pl*rl
           clsqr = gamcr(i,j)*pr*rr
           
-          ! gamma_e = p/(rho e) + 1
 
           ! Note: in the original Colella & Glaz paper, they predicted
           ! gamma_e to the interfaces using a special (non-hyperbolic)
@@ -236,6 +235,10 @@ contains
           enddo
 
           if (.not. converged) then
+             print *, iter
+             print *, pstar, pstnm1
+             print *, ustarm, ustarp
+             print *, err, tol*pstar
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
           
@@ -333,7 +336,6 @@ contains
           rgdnv = frac*rstar + (1.d0 - frac)*ro          
           ugdnv(i,j) = frac*ustar + (1.d0 - frac)*uo
           pgdnv(i,j) = frac*pstar + (1.d0 - frac)*po
-          !regdnv = frac*estar + (1.d0 - frac)*reo
           gamgdnv =  frac*gamstar + (1.d0-frac)*gameo          
 
           ! now handle the cases where instead we are fully in the
@@ -342,14 +344,12 @@ contains
              rgdnv = ro
              ugdnv(i,j) = uo
              pgdnv(i,j) = po
-             !regdnv = reo
              gamgdnv = gameo
           endif
           if (spin .ge. 0.d0) then
              rgdnv = rstar
              ugdnv(i,j) = ustar
              pgdnv(i,j) = pstar
-             !regdnv = estar
              gamgdnv = gamstar
           endif
 
