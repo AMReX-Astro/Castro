@@ -155,7 +155,8 @@ contains
           sp(i,j) = sedge(i+1,j)
           sm(i,j) = sedge(i  ,j)
 
-          ! modify using quadratic limiters
+          ! modify using quadratic limiters -- note this version of the limiting comes
+          ! from Colella and Sekora (2008), not the original PPM paper.  
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
