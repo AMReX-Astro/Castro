@@ -372,11 +372,6 @@ Castro::read_params ()
     pp.query("print_energy_diagnostics",print_energy_diagnostics);
     pp.query("print_fortran_warnings",print_fortran_warnings);
 
-    if (use_colglaz == 1 && BL_SPACEDIM == 2) 
-    {
-        std::cerr << "use_colglaz = 1 not implemented for 2-d \n";
-        BoxLib::Error();
-    }
 
     if (ppm_reference > 1 || ppm_reference < 0)
       {

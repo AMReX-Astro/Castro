@@ -592,8 +592,8 @@ contains
                         gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
                         idir,ilo,ihi,jlo,jhi)
 
-      use meth_params_module, only : QVAR, NVAR
-      use riemann_module, only : riemannus
+      use meth_params_module, only : QVAR, NVAR, use_colglaz
+      use riemann_module, only : riemannus, riemanncg
 
       implicit none
 
@@ -644,13 +644,22 @@ contains
          enddo
       endif
 
-!     Solve Riemann problem (godunov state passed back, but only (u,p) saved
-      call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
-                     gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
-                     flx, flx_l1, flx_l2, flx_h1, flx_h2, &
-                     pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
-                     ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
-                     idir, ilo, ihi, jlo, jhi)
+      ! Solve Riemann problem (godunov state passed back, but only (u,p) saved
+      if (use_colglaz == 1) then
+         call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                        gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                        flx, flx_l1, flx_l2, flx_h1, flx_h2, &
+                        pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
+                        ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                        idir, ilo, ihi, jlo, jhi)
+      else
+         call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                        gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                        flx, flx_l1, flx_l2, flx_h1, flx_h2, &
+                        pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
+                        ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                        idir, ilo, ihi, jlo, jhi)
+      endif
 
       deallocate(smallc,cavg,gamcm,gamcp)
 
