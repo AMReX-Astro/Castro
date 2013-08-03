@@ -454,7 +454,7 @@ contains
 
       use eos_module
       use network, only : nspec, naux
-      use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX, &
+      use meth_params_module, only : difmag, NVAR, UMX, UMY, UEDEN, UEINT, UTEMP, &
                                      normalize_species
 
       implicit none
@@ -490,8 +490,8 @@ contains
       integer i, j, n
 
       double precision div1
-      double precision SrU, SrV
-      double precision rho, Up, Vp, SrE
+      !double precision SrU, SrV
+      !double precision rho, Up, Vp, SrE
 
       ! Normalize the species fluxes
       if (normalize_species .eq. 1) &
