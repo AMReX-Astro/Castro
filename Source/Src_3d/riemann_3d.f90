@@ -274,6 +274,9 @@ contains
           co = max(csmall,co)
           clsq = (co*ro)**2
 
+          ! now that we know which state (left or right) we need to worry 
+          ! about, get the value of gamstar and wosq across the wave we
+          ! are dealing with.
           call wsqge(po,tauo,gameo,gdot,   &
                      gamstar,pstar,wosq,clsq,gmin,gmax)
 
