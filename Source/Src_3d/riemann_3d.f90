@@ -77,6 +77,17 @@ contains
 
     double precision, parameter :: weakwv = 1.d-3
 
+    !$OMP PARALLEL DO PRIVATE(i,j) &
+    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer) &
+    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
+    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
+    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
+    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
+    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
+    !$OMP PRIVATE(ro,uo,po,tauo,reo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
+    !$OMP PRIVATE(rstar,entho,estar,cstar,spout,spin,ushock,scr,frac) &
+    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
+    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux)
     do j = jlo, jhi
        do i = ilo, ihi
 
