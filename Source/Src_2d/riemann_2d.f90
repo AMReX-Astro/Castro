@@ -365,12 +365,15 @@ contains
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgdnv*ugdnv(i,j)
           
+          ! note: here we do not include the pressure, since in 2-d,
+          ! for some geometries, div{F} + grad{p} cannot be written
+          ! in a flux difference form
           if(idir.eq.1) then
-             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j) + pgdnv(i,j)
+             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j) 
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
           else
              uflx(i,j,UMX) = uflx(i,j,URHO)*vgdnv
-             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j) + pgdnv(i,j)
+             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j) 
           endif
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
@@ -652,6 +655,10 @@ contains
           
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgd*ugdnv(i,j)
+
+          ! note: here we do not include the pressure, since in 2-d,
+          ! for some geometries, div{F} + grad{p} cannot be written
+          ! in a flux difference form
           if(idir.eq.1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
