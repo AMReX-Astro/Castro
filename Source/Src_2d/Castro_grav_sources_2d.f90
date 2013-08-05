@@ -17,9 +17,7 @@ contains
                                grav, gv_l1, gv_l2, gv_h1, gv_h2, &
                                lo,hi,dt,E_added)
 
-      use network, only : nspec, naux
-      use eos_module
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, grav_source_type
 
       implicit none
 
@@ -33,23 +31,21 @@ contains
       double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,2)
       double precision dt,E_added
 
-      double precision :: div1
-      double precision :: rho, Up, Vp
+      double precision :: rho
       double precision :: SrU, SrV, SrE
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-      integer          :: i, j, n
-      integer          :: grav_source_type
+      integer          :: i, j
 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
+      ! 2: same as original, except in correction, it uses updates U
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-      grav_source_type = 1
 
       ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,rho,Up,Vp,SrU,SrV,SrE,rhoInv) &
+      !$OMP PARALLEL DO PRIVATE(i,j,rho,SrU,SrV,SrE,rhoInv) &
       !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added)
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -70,7 +66,7 @@ contains
                uout(i,j,UMX)   = uout(i,j,UMX) + SrU * dt
                uout(i,j,UMY)   = uout(i,j,UMY) + SrV * dt
 
-               if (grav_source_type .eq. 1) then
+               if (grav_source_type == 1 .or. grav_source_type == 2) then
 
                    ! Src = rho u dot g, evaluated with all quantities at t^n
                    SrE = uin(i,j,UMX) * grav(i,j,1) + &
@@ -116,7 +112,7 @@ end module grav_sources_module
                              unew,unew_l1,unew_l2,unew_h1,unew_h2, &
                              dt,E_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, grav_source_type
 
       implicit none
 
@@ -132,7 +128,7 @@ end module grav_sources_module
       double precision  dt,E_added
 
       integer i,j
-      integer grav_source_type
+
       double precision SrU_old, SrV_old
       double precision SrU_new, SrV_new
       double precision SrUcorr, SrVcorr, SrEcorr
@@ -146,9 +142,9 @@ end module grav_sources_module
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
+      ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-      grav_source_type = 1
 
       !$OMP PARALLEL DO PRIVATE(i,j,rhoo,Upo,Vpo,SrU_old,SrV_old,rhon,Upn,Vpn,SrU_new) &
       !$OMP PRIVATE(SrV_new,SrUcorr,SrVcorr,SrEcorr,rhooinv,rhoninv) &
@@ -196,7 +192,17 @@ end module grav_sources_module
                unew(i,j,UMY)   = unew(i,j,UMY)   + SrVcorr*dt
 
                if (grav_source_type .eq. 1) then
-                   unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr*dt
+
+                  ! Note SrEcorr was constructed before updating unew
+                  unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr*dt
+               else if (grav_source_type .eq. 2) then
+                  ! Note SrEcorr  is constructed  after updating unew
+                  Upn     = unew(i,j,UMX) * rhoninv
+                  Vpn     = unew(i,j,UMY) * rhoninv
+
+                  SrEcorr = 0.5d0 * ( (SrU_new * Upn - SrU_old * Upo) + &
+                                      (SrV_new * Vpn - SrV_old * Vpo) )
+                  unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr*dt
                else if (grav_source_type .eq. 3) then
                    new_ke = 0.5d0 * (unew(i,j,UMX)**2 + unew(i,j,UMY)**2) / &
                                      unew(i,j,URHO) 
