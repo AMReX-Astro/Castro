@@ -144,7 +144,7 @@ int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::use_pslope  = 1;
-int          Castro::grav_source_type = 1;
+int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
