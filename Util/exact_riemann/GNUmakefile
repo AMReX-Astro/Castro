@@ -5,7 +5,8 @@ MKVERBOSE :=t
 COMP := gfortran
 
 # define the location of the CASTRO root directory
-CASTRO_TOP_DIR := ../../
+CASTRO_DIR ?= ../../
+CASTRO_TOP_DIR = $(CASTRO_DIR)
 
 
 # include the main Makefile stuff
