@@ -1,0 +1,18 @@
+&PROBIN
+rho_r = 1.0d0
+u_r   = 0.0d0
+p_r   = 1.0d0
+
+
+rho_l = 0.125d0
+u_l   = 0.0d0
+p_l   = 0.1d0
+
+xmin  = 0.0d0
+xmax  = 1.0d0
+xjump = 0.5d0
+
+t     = 0.2d0
+
+npts  = 128
+/
