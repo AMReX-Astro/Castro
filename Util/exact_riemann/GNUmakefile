@@ -59,7 +59,7 @@ all: $(pnames)
 
 ifeq ($(findstring helmeos, $(EOS_DIR)), helmeos)
   Fmincludes := EOS/helmeos
-  EOS_PATH := $(MAESTRO_TOP_DIR)/EOS/$(strip $(EOS_DIR))
+  EOS_PATH := $(CASTRO_TOP_DIR)/EOS/$(strip $(EOS_DIR))
   all: table
 endif
 
