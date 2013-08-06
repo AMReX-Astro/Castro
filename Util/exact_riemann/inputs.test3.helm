@@ -14,7 +14,7 @@ xmin  = 0.0d0
 xmax  = 2.0d5
 xjump = 0.1d6
 
-t     = 1.d-4
+t     = 2.d-4
 
 npts  = 512
 /
