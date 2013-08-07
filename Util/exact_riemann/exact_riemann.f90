@@ -14,8 +14,6 @@ program riemann_exact
 
   real (kind=dp_t) :: xn(nspec)
 
-  real (kind=dp_t) :: cs_l, cs_r
-
   real (kind=dp_t) :: pstar, ustar
 
   real (kind=dp_t) :: W_l, W_r
