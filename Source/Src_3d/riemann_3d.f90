@@ -18,7 +18,7 @@ contains
 
     use bl_error_module
     use network, only : nspec, naux
-    use prob_params_module, only : physbc_lo,Symmetry, SlipWall, NoSlipWall
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
@@ -549,7 +549,7 @@ contains
                            idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
 
       use network, only : nspec, naux
-      use prob_params_module, only : physbc_lo,Symmetry, SlipWall, NoSlipWall
+      use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
                                      nadv, small_dens, small_pres
@@ -721,13 +721,37 @@ contains
 
             pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
-            ! Enforce that fluxes through a symmetry plane are hard zero.
-            if (i    .eq.0 .and. physbc_lo(1) .eq. Symmetry .and. idir .eq. 1) &
-                 ugdnv(i,j,kc) = 0.d0
-            if (j    .eq.0 .and. physbc_lo(2) .eq. Symmetry .and. idir .eq. 2) &
-                 ugdnv(i,j,kc) = 0.d0
-            if (kflux.eq.0 .and. physbc_lo(3) .eq. Symmetry .and. idir .eq. 3) &
-                 ugdnv(i,j,kc) = 0.d0
+            ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+            if (idir .eq. 1) then
+             if (i.eq.domlo(1) .and. &
+                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
+                  physbc_lo(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (i.eq.domhi(1)+1 .and. &
+                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
+                  physbc_hi(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
+            if (idir .eq. 2) then
+             if (j.eq.domlo(2) .and. &
+                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
+                  physbc_lo(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (j.eq.domhi(2)+1 .and. &
+                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
+                  physbc_hi(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
+            if (idir .eq. 3) then
+             if (kflux.eq.domlo(3) .and. &
+                 (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
+                  physbc_lo(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (kflux.eq.domhi(3)+1 .and. &
+                 (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
+                  physbc_hi(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
 
             ! Compute fluxes, order as conserved state (not q)
             uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
