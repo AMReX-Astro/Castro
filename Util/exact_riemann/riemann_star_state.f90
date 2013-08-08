@@ -46,6 +46,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   real (kind=dp_t) :: smallp = 1.d-8
 
+  logical, parameter :: debug = .false.
 
   ! get the initial sound speeds
   eos_state%rho = rho_l
@@ -169,7 +170,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   print *, 'found pstar, ustar: ', pstar, ustar
 
   ! let's test if our integration across the rarefaction works, as expected
-  if (lwave == "rarefaction") then
+  if (lwave == "rarefaction" .and. debug) then
      call rarefaction(pstar, rho_l, u_l, p_l, xn_l, 1, Z_temp, W_temp, rhostar)
 
      print *, "here"
@@ -194,7 +195,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   endif
 
-  if (rwave == "rarefaction") then
+  if (rwave == "rarefaction" .and. debug) then
      call rarefaction(pstar, rho_r, u_r, p_r, xn_r, 3, Z_temp, W_temp, rhostar)
 
      ! get the soundspeed via the EOS (C&G suggest getting it from
