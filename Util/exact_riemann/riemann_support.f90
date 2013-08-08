@@ -21,7 +21,7 @@ contains
     logical, optional, intent(in) :: verbose_in
 
     real (kind=dp_t) :: e_s
-    
+
     type (eos_t) :: eos_state
     
     real (kind=dp_t) :: rhostar_s, taustar_s
@@ -29,7 +29,7 @@ contains
     real (kind=dp_t) :: C
     real (kind=dp_t) :: f, fprime, dW
     
-    real (kind=dp_t) :: p_e, p_rho, p_tau, dedrho_p
+    real (kind=dp_t) :: p_e, p_rho, p_tau
     real (kind=dp_t) :: gammaE_s, gammaE_star
 
     real (kind=dp_t), parameter :: tol_p = 1.e-6_dp_t
@@ -112,40 +112,20 @@ contains
     if (taustar_s < ZERO) then
        rhostar_s = smallrho
        W_s = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
-    else
-       rhostar_s = ONE/taustar_s
     endif
 
     converged = .false.
     iter = 1
     do while (.not. converged .and. iter < max_iters)
-      
-       ! get the thermodynamics
-       eos_state%rho = rhostar_s
-       eos_state%p = pstar
-       eos_state%xn(:) = xn(:)
-       eos_state%T = 100000.0   ! we need an initial guess
 
-       call eos(eos_input_rp, eos_state, .false.)
-
-       ! compute the correction
-       f = W_s**2 * (eos_state%e - e_s) - HALF*(pstar**2 - p_s**2)
-
-       ! we need de/drho at constant p -- this is not returned by the EOS
-       dedrho_p = eos_state%dedr - eos_state%dedT*eos_state%dpdr/eos_state%dpdT
-       
-       fprime = TWO*W_s*(eos_state%e - e_s) - TWO*dedrho_p*(pstar - p_s)*rhostar_s**2/W_s
-
+       call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
        dW = -f/fprime
 
        if (abs(dW) < tol*W_s) converged = .true.
           
        W_s = min(1.1d0*W_s, max(0.9d0*W_s,W_s + dW))
 
-       ! we need rhostar -- get it from the R-H conditions
-       taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
-       rhostar_s = ONE/taustar_s
-
+       ! store some history
        rhostar_hist(iter) = rhostar_s
        Ws_hist(iter) = W_s
 
@@ -185,6 +165,36 @@ contains
 
   end subroutine shock
 
+  subroutine W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
+
+    real (kind=dp_t), intent(in) :: W_s, pstar, rho_s, p_s, e_s, xn(nspec)
+    real (kind=dp_t), intent(out) :: rhostar_s, f, fprime
+    type (eos_t), intent(inout) :: eos_state
+
+    real (kind=dp_t) :: taustar_s
+    real (kind=dp_t) :: dedrho_p
+
+    ! we need rhostar -- get it from the R-H conditions
+    taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
+    rhostar_s = ONE/taustar_s
+      
+    ! get the thermodynamics
+    eos_state%rho = rhostar_s
+    eos_state%p = pstar
+    eos_state%xn(:) = xn(:)
+    eos_state%T = 100000.0   ! we need an initial guess
+
+    call eos(eos_input_rp, eos_state, .false.)
+
+    ! compute the correction
+    f = W_s**2 * (eos_state%e - e_s) - HALF*(pstar**2 - p_s**2)
+
+    ! we need de/drho at constant p -- this is not returned by the EOS
+    dedrho_p = eos_state%dedr - eos_state%dedT*eos_state%dpdr/eos_state%dpdT
+       
+    fprime = TWO*W_s*(eos_state%e - e_s) - TWO*dedrho_p*(pstar - p_s)*rhostar_s**2/W_s
+
+  end subroutine W_s_shock
 
   subroutine rarefaction(pstar, rho_s, u_s, p_s, xn, iwave, Z_s, W_s, rhostar)
 
