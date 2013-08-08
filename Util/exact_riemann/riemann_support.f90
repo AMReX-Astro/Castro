@@ -11,11 +11,14 @@ module riemann_support
 
 contains
 
-  subroutine shock(pstar, rho_s, u_s, p_s, xn, gammaE_bar, gammaC_bar, Z_s, W_s)
+  subroutine shock(pstar, rho_s, u_s, p_s, xn, &
+                   gammaE_bar, gammaC_bar, Z_s, W_s, &
+                   verbose_in)
 
     real (kind=dp_t), intent(in) :: pstar, rho_s, u_s, p_s, gammaE_bar, gammaC_bar
     real (kind=dp_t), intent(in) :: xn(nspec)
     real (kind=dp_t), intent(out) :: Z_s, W_s
+    logical, optional, intent(in) :: verbose_in
 
     real (kind=dp_t) :: e_s
     
@@ -39,6 +42,15 @@ contains
     real (kind=dp_t) :: tol = 1.e-8_dp_t
 
     logical :: converged
+
+    logical :: verbose
+
+    if (present(verbose_in)) then
+       verbose = verbose_in
+    else
+       verbose = .false.
+    endif
+
 
     ! compute the Z_s function for a shock following C&G Eq. 20 and
     ! 23.  Here the "_s" variables are the state (L or R) that we are
@@ -70,9 +82,11 @@ contains
 
     ! in the limit that pstar - p_s is small, drop down to the
     ! Lagrangian sound speed
-    print *, 'pstar, ps = ', pstar, p_s, gammaE_s, gammaE_star
-    print *, (pstar/rho_s - (gammaE_star - ONE)/(gammaE_s - ONE)*p_s/rho_s)
-    print *, (pstar + HALF*(gammaE_star - ONE)*(pstar + p_s))
+    if (verbose) then
+       print *, 'pstar, ps = ', pstar, p_s, gammaE_s, gammaE_star
+       print *, (pstar/rho_s - (gammaE_star - ONE)/(gammaE_s - ONE)*p_s/rho_s)
+       print *, (pstar + HALF*(gammaE_star - ONE)*(pstar + p_s))
+    endif
 
     if (pstar - p_s < tol_p*p_s) then
        W_s = sqrt(eos_state%gam1*p_s*rho_s)
@@ -177,7 +191,7 @@ contains
     real (kind=dp_t) :: dtaudp1, dtaudp2, dtaudp3, dtaudp4
     real (kind=dp_t) :: dudp1, dudp2, dudp3, dudp4
 
-    integer, parameter :: npts = 1000
+    integer, parameter :: npts = 200
 
     type (eos_t) :: eos_state
 
@@ -242,12 +256,14 @@ contains
   end subroutine rarefaction
 
 
-  subroutine rarefaction_to_u(rho_s, u_s, p_s, xn, iwave, xi, rho, p, u)
+  subroutine rarefaction_to_u(rho_s, u_s, p_s, xn, iwave, xi, rho, p, u, &
+                              verbose_in)
 
     real (kind=dp_t), intent(in) :: rho_s, u_s, p_s, xi
     real (kind=dp_t), intent(in) :: xn(nspec)
     integer, intent(in) :: iwave
     real (kind=dp_t), intent(out) :: rho, p, u
+    logical, optional, intent(in) :: verbose_in
 
     real (kind=dp_t) :: du, du2
     real (kind=dp_t) :: tau
@@ -258,13 +274,21 @@ contains
 
     logical :: finished 
 
-    integer, parameter :: npts = 1000
+    integer, parameter :: npts = 200
 
     type (eos_t) :: eos_state
 
     real (kind=dp_t) :: tol = 1.e-8
 
     integer :: i
+
+    logical :: verbose
+
+    if (present(verbose_in)) then
+       verbose = verbose_in
+    else
+       verbose = .false.
+    endif
 
     ! here we integrate the Riemann invariants for a rarefaction up to
     ! some intermediate u (between u_s and ustar).  This accounts for
@@ -305,7 +329,7 @@ contains
 
     finished = .false.
 
-    print *, 'integrating from u: ', u, ustop, xi, c
+    if (verbose) print *, 'integrating from u: ', u, ustop, xi, c
 
     do while (.not. finished)
 

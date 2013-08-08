@@ -1,7 +1,12 @@
+module riemann_star_module
+
+contains
+
 subroutine riemann_star_state(rho_l, u_l, p_l, &
                               rho_r, u_r, p_r, &
                               xn_l, xn_r, &
-                              ustar, pstar, W_l, W_r)
+                              ustar, pstar, W_l, W_r, &
+                              verbose_in)
 
   use bl_types
   use bl_constants_module
@@ -16,6 +21,9 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   real (kind=dp_t), intent(in) :: rho_r, u_r, p_r
   real (kind=dp_t), intent(in) :: xn_l(nspec), xn_r(nspec)
   real (kind=dp_t), intent(out) :: ustar, pstar, W_l, W_r
+  logical, optional, intent(in) :: verbose_in
+
+
 
   real (kind=dp_t) :: cs_l, cs_r
 
@@ -48,6 +56,17 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   logical, parameter :: debug = .false.
 
+  logical :: verbose
+
+  if (present(verbose_in)) then
+     verbose = verbose_in
+  else
+     verbose = .false.
+  endif
+
+
+
+
   ! get the initial sound speeds
   eos_state%rho = rho_l
   eos_state%p = p_l
@@ -58,7 +77,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   cs_l = sqrt(eos_state%gam1*p_l/rho_l)
 
-  print *, 'T_l = ', eos_state%T
+  if (verbose) print *, 'T_l = ', eos_state%T
 
   gammaE_l = p_l/(rho_l*eos_state%e) + ONE
   gammaC_l = eos_state%gam1
@@ -72,7 +91,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   cs_r = sqrt(eos_state%gam1*p_r/rho_r)
 
-  print *, 'T_r = ', eos_state%T
+  if (verbose) print *, 'T_r = ', eos_state%T
 
   gammaE_r = p_r/(rho_r*eos_state%e) + ONE
   gammaC_r = eos_state%gam1
@@ -135,24 +154,24 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
         rwave = "rarefaction"
      endif
 
-     print *, 'left wave: ', trim(lwave), ';   rightwave: ', trim(rwave)
+     if (verbose) print *, 'left wave: ', trim(lwave), ';   rightwave: ', trim(rwave)
 
      ustar_l = u_l - (pstar - p_l)/W_l
      ustar_r = u_r + (pstar - p_r)/W_r
 
      pstar_new = pstar - Z_l*Z_r*(ustar_r - ustar_l)/(Z_l + Z_r)
 
-     print *, "done with iteration", iter
-     print *, "ustar_l/r, pstar: ", &
+     if (verbose) print *, "done with iteration", iter
+     if (verbose) print *, "ustar_l/r, pstar: ", &
           real(ustar_l), real(ustar_r), real(pstar_new)
-     print * , " "
+     if (verbose) print * , " "
 
      ! estimate the error in the current star solution
      err1 = abs(ustar_r - ustar_l)
      err2 = pstar_new - pstar
 
-     print *, "ERRORS: ", err1, err2
-     print *, " "
+     if (verbose) print *, "ERRORS: ", err1, err2
+     if (verbose) print *, " "
 
      if (err1 < tol*max(abs(ustar_l),abs(ustar_r)) .and. err2 < tol*pstar) then
         converged = .true.
@@ -167,13 +186,11 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   ustar = HALF*(ustar_l + ustar_r)
 
-  print *, 'found pstar, ustar: ', pstar, ustar
+  if (verbose) print *, 'found pstar, ustar: ', pstar, ustar
 
   ! let's test if our integration across the rarefaction works, as expected
   if (lwave == "rarefaction" .and. debug) then
      call rarefaction(pstar, rho_l, u_l, p_l, xn_l, 1, Z_temp, W_temp, rhostar)
-
-     print *, "here"
 
      ! get the soundspeed via the EOS (C&G suggest getting it from
      ! the jump conditions)
@@ -185,8 +202,6 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
      call eos(eos_input_rp, eos_state, .false.)
         
      cs_star = sqrt(eos_state%gam1*pstar/rhostar)
-
-     print *, "about to test"
 
      call rarefaction_to_u(rho_l, u_l, p_l, xn_l, 1, ustar-cs_star, rho_tmp, p_tmp, u_tmp)
 
@@ -217,3 +232,4 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   endif
 
 end subroutine riemann_star_state
+end module riemann_star_module

@@ -9,6 +9,8 @@ program riemann_exact
                            xmin, xmax, xjump, t, npts, use_Tinit
   use riemann_support
   use runtime_init_module
+  use riemann_sample_module
+  use riemann_star_module
 
   implicit none
 
@@ -65,7 +67,7 @@ program riemann_exact
 
 
   call riemann_star_state(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn, &
-                          ustar, pstar, W_l, W_r)
+                          ustar, pstar, W_l, W_r, .true.)
 
 
 

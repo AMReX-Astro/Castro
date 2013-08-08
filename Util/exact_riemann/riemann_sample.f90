@@ -1,3 +1,7 @@
+module riemann_sample_module
+
+contains
+
 subroutine riemann_sample(rho_l, u_l, p_l, &
                           rho_r, u_r, p_r, &
                           xn_l, xn_r, &
@@ -178,3 +182,4 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
 end subroutine riemann_sample
 
+end module riemann_sample_module
