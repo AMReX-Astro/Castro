@@ -463,9 +463,6 @@
         SlipWall   = SlipWall_in
         NoSlipWall = NoSlipWall_in
 
-        print *,'SLIP WALL ',SlipWall
-        stop
-
         coord_type = coord_type_in
 
       end subroutine set_problem_params
