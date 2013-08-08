@@ -679,15 +679,10 @@ contains
                  (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
                   physbc_lo(2) .eq. NoSlipWall) ) &
                   ugdnv(i,j) = 0.d0
-             print *,'PHYSBC HI ',physbc_hi(2), domhi(2) 
              if (j.eq.domhi(2)+1 .and. &
                  (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
                   physbc_hi(2) .eq. NoSlipWall) ) &
                   ugdnv(i,j) = 0.d0
-             if (j.eq.domhi(2)+1 .and. &
-                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
-                  physbc_hi(2) .eq. NoSlipWall) ) &
-                  print *,'SETTING TO ZERO ',i,j
           end if
           
           ! Compute fluxes, order as conserved state (not q)
