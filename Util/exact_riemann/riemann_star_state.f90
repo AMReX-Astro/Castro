@@ -114,10 +114,16 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   W_l = rho_l*cs_l
   W_r = rho_r*cs_r
 
-  pstar = ((W_r*p_l + W_l*p_r) + W_l*W_r*(u_l - u_r))/(W_l + W_r)
+  ! prevent roundoff errors from giving us a pstar that is unphysical
+  ! if our input states are the same
+  if (W_l == W_r) then
+     pstar = 0.5d0*(p_l + p_r + W_l*(u_l - u_r))
+  else
+     pstar = ((W_r*p_l + W_l*p_r) + W_l*W_r*(u_l - u_r))/(W_l + W_r)
+  endif
 
   pstar = max(pstar, smallp)
-  
+
 
   !---------------------------------------------------------------------------
   ! find the exact pstar and ustar
