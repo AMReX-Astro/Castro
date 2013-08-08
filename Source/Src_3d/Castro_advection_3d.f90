@@ -45,7 +45,7 @@ contains
                      ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                      ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3, &
                      ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-                     pdivu)
+                     pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_temp_fix
@@ -69,6 +69,7 @@ contains
     integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
     integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
     integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
+    integer domlo(3),domhi(3)
     integer km,kc,kt,k3d,n
     integer i,j,iwave,idim
     
@@ -328,14 +329,14 @@ contains
                    fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                    ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                   1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d)
+                   1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
        ! Compute \tilde{F}^y at kc (k3d)
        call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                    ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                   2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d)
+                   2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
        
        ! Compute U'^y_x at kc (k3d)
        call transy1(qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -356,14 +357,14 @@ contains
                    fxy,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                    ugdnvtmpx,pgdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                   1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d)
+                   1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
 
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fyx,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                    ugdnvtmpy,pgdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                   2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d)
+                   2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
 
        if (k3d.ge.ilo3) then
           
@@ -386,7 +387,7 @@ contains
                       fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                       ugdnvz,pgdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                      3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d)
+                      3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute U'^y_z at kc (k3d)
           call transy2(qzm,qmzy,qzp,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -407,14 +408,14 @@ contains
                       fzx,ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
                       ugdnvtmpz1,pgdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                      3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d)
+                      3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute F^{z|y} at kc (k3d)
           call cmpflx(qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fzy,ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
                       ugdnvtmpz2,pgdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                      3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d)
+                      3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
           
           ! Compute U''_z at kc (k3d)
           call transxy(qzm,qzl,qzp,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -432,7 +433,7 @@ contains
                       flux3,fd3_l1,fd3_l2,fd3_l3,fd3_h1,fd3_h2,fd3_h3, &
                       ugdnvzf,pgdnvzf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                      3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d)
+                      3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
 
           do j=ilo2-1,ihi2+1
              do i=ilo1-1,ihi1+1
@@ -465,14 +466,14 @@ contains
                          fxz,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                          ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1)
+                         1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fyz,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                          ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1)
+                         2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute U''_x at km (k3d-1)
              call transyz(qxm,qxl,qxp,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -501,7 +502,7 @@ contains
                          flux1,fd1_l1,fd1_l2,fd1_l3,fd1_h1,fd1_h2,fd1_h3, &
                          ugdnvxf,pgdnvxf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1)
+                         1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
              
              do j=ilo2-1,ihi2+1
                 do i=ilo1-1,ihi1+2
@@ -514,7 +515,7 @@ contains
                          flux2,fd2_l1,fd2_l2,fd2_l3,fd2_h1,fd2_h2,fd2_h3, &
                          ugdnvyf,pgdnvyf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1)
+                         2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
 
              do j=ilo2-1,ihi2+2
                 do i=ilo1-1,ihi1+1
@@ -1026,7 +1027,7 @@ contains
                     flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                     ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                     gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                    idir,ilo,ihi,jlo,jhi,kc,kflux,k3d)
+                    idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use eos_type_module
     use eos_module
@@ -1042,6 +1043,7 @@ contains
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer idir,ilo,ihi,jlo,jhi
     integer i,j,kc,kflux,k3d
+    integer domlo(3),domhi(3)
 
     double precision qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
@@ -1137,14 +1139,14 @@ contains
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
 
     else
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
     endif
 
     deallocate(smallc,cavg,gamcm,gamcp)

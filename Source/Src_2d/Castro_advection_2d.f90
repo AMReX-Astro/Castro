@@ -43,7 +43,8 @@ contains
                          area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                          area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                          pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                         dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2)
+                         dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
+                         domlo, domhi)
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, NVAR, ppm_type
@@ -66,6 +67,7 @@ contains
       integer area2_l1, area2_l2, area2_h1, area2_h2
       integer vol_l1, vol_l2, vol_h1, vol_h2
       integer ilo1, ilo2, ihi1, ihi2
+      integer domlo(2), domhi(2)
 
       double precision dx, dy, dt
       double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -141,14 +143,14 @@ contains
                   pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                   ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                   gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  1, ilo1, ihi1, ilo2-1, ihi2+1)
+                  1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
       call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                   fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                   pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                   ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                   gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  2, ilo1-1, ihi1+1, ilo2, ihi2)
+                  2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
       call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                   fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
@@ -165,7 +167,7 @@ contains
                   pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                   ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                   gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  1, ilo1, ihi1, ilo2, ihi2)
+                  1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
       call transx(qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                   fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
@@ -184,7 +186,7 @@ contains
                   pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                   ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                   gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  2, ilo1, ihi1, ilo2, ihi2)
+                  2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
 
       do j = ilo2,ihi2
@@ -444,7 +446,6 @@ contains
                         pgdx,pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2, &
                         pgdy,pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2, &
                         src , src_l1, src_l2, src_h1, src_h2, &
-                        grav,  gv_l1,  gv_l2,  gv_h1,  gv_h2, &
                         flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                         flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                         area1,area1_l1,area1_l2,area1_h1,area1_h2, &
@@ -454,7 +455,7 @@ contains
 
       use eos_module
       use network, only : nspec, naux
-      use meth_params_module, only : difmag, NVAR, UMX, UMY, UEDEN, UEINT, UTEMP, &
+      use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
                                      normalize_species
 
       implicit none
@@ -465,7 +466,6 @@ contains
       integer pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2
       integer pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2
       integer   src_l1,  src_l2,  src_h1,  src_h2
-      integer    gv_l1,   gv_l2,   gv_h1,   gv_h2
       integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
       integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
       integer area1_l1,area1_l2,area1_h1,area1_h2
@@ -477,7 +477,6 @@ contains
       double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
       double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
       double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
-      double precision  grav(   gv_l1:   gv_h1,   gv_l2:   gv_h2,2)
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
       double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -590,7 +589,7 @@ contains
                         pgd,pgd_l1,pgd_l2,pgd_h1,pgd_h2, &
                         ugd,ugd_l1,ugd_l2,ugd_h1,ugd_h2, &
                         gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                        idir,ilo,ihi,jlo,jhi)
+                        idir,ilo,ihi,jlo,jhi,domlo,domhi)
 
       use meth_params_module, only : QVAR, NVAR, use_colglaz
       use riemann_module, only : riemannus, riemanncg
@@ -603,6 +602,7 @@ contains
       integer ugd_l1,ugd_l2,ugd_h1,ugd_h2
       integer qd_l1,qd_l2,qd_h1,qd_h2
       integer idir,ilo,ihi,jlo,jhi
+      integer domlo(2),domhi(2)
 
       double precision    qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
       double precision    qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
@@ -651,14 +651,14 @@ contains
                         flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                         pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                         ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
-                        idir, ilo, ihi, jlo, jhi)
+                        idir, ilo, ihi, jlo, jhi, domlo, domhi)
       else
          call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
                         gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
                         flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                         pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                         ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
-                        idir, ilo, ihi, jlo, jhi)
+                        idir, ilo, ihi, jlo, jhi, domlo, domhi)
       endif
 
       deallocate(smallc,cavg,gamcm,gamcp)

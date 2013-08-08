@@ -7,7 +7,7 @@ module prob_params_module
   implicit none
   integer         , save, allocatable :: physbc_lo(:)
   integer         , save, allocatable :: physbc_hi(:)
-  integer         , save :: Outflow, Symmetry
+  integer         , save :: Outflow, Symmetry, SlipWall, NoSlipWall
   integer         , save :: coord_type
 
 end module prob_params_module

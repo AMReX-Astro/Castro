@@ -121,7 +121,7 @@
                    ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                    ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                    ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-                   pdivu)
+                   pdivu, domlo, domhi)
 
       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
       call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &

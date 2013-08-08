@@ -437,7 +437,9 @@
 ! ::: ----------------------------------------------------------------
 ! ::: 
 
-      subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,Outflow_in,Symmetry_in,coord_type_in)
+      subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
+                                    Outflow_in,Symmetry_in,SlipWall_in,NoSlipWall_in, &
+                                    coord_type_in)
 
         ! Passing data from C++ into f90
 
@@ -447,8 +449,7 @@
  
         integer, intent(in) :: dm
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-        integer, intent(in) :: Outflow_in
-        integer, intent(in) :: Symmetry_in
+        integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
 
         allocate(physbc_lo(dm))
@@ -457,8 +458,13 @@
         physbc_lo(:) = physbc_lo_in(:)
         physbc_hi(:) = physbc_hi_in(:)
 
-        Outflow  = Outflow_in
-        Symmetry = Symmetry_in
+        Outflow    = Outflow_in
+        Symmetry   = Symmetry_in
+        SlipWall   = SlipWall_in
+        NoSlipWall = NoSlipWall_in
+
+        print *,'SLIP WALL ',SlipWall
+        stop
 
         coord_type = coord_type_in
 
