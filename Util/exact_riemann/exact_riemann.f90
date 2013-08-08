@@ -102,11 +102,11 @@ program riemann_exact
      call eos(eos_input_rp, eos_state, .false.)
         
      if (i == 1) then
-        write (unit=lun, fmt="(a1, a3, 8(1x, a20))") &
+        write (unit=lun, fmt="(a1, a3, 8(1x, a25))") &
              "#", "i", "x", "rho", "u", "p", "T", "e", "gamma_1"
      endif
 
-     write (unit=lun, fmt="(1x, i3, 8(1x, g20.10))") &
+     write (unit=lun, fmt="(1x, i3, 8(1x, g25.15))") &
           i, x, rho, u, p, eos_state%T, eos_state%e, eos_state%gam1
 
   enddo

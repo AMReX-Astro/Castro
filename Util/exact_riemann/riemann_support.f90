@@ -142,7 +142,7 @@ contains
        
        ! first we need to find a range that potentially contains the root
 
-       ! the lower limit on W_s should be the Lagrangian sound speed
+       ! the lower limit on W_s should be around the Lagrangian sound speed
        eos_state%rho = rho_s
        eos_state%p = p_s
        eos_state%xn(:) = xn(:)
@@ -150,7 +150,8 @@ contains
 
        call eos(eos_input_rp, eos_state, .false.)
 
-       W1 = 0.5d0*sqrt(eos_state%gam1*p_s*rho_s)
+       ! give ourselves a little wiggle room
+       W1 = 0.1d0*sqrt(eos_state%gam1*p_s*rho_s)
 
        call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
 

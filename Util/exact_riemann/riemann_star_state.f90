@@ -129,6 +129,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   !if (verbose) 
   print *, 'solving for star state: ', rho_l, u_l, p_l, rho_r, u_r, p_r
+  if (verbose) print *, 'pstar: ', pstar, (pstar-p_l)/pstar, (pstar-p_r)/pstar
 
   ! this procedure follows directly from Colella & Glaz 1985, section 1
 
