@@ -645,15 +645,15 @@ contains
       endif
 
       ! Solve Riemann problem (godunov state passed back, but only (u,p) saved
-      if (use_colglaz == 1) then
-         call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+      if (use_colglaz == 0) then
+         call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
                         gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
                         flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                         pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                         ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
                         idir, ilo, ihi, jlo, jhi)
       else
-         call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+         call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
                         gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
                         flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                         pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
