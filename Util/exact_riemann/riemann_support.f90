@@ -35,9 +35,10 @@ contains
     real (kind=dp_t), parameter :: tol_p = 1.e-6_dp_t
 
     real (kind=dp_t), parameter :: smallrho = 100.d0
-
-    integer :: iter
+    
+    integer :: iter, i
     integer, parameter :: max_iters = 100
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
     real (kind=dp_t) :: tol = 1.e-8_dp_t
 
@@ -139,18 +140,25 @@ contains
 
        if (abs(dW) < tol*W_s) converged = .true.
           
-       W_s = min(1.2d0*W_s, max(0.8d0*W_s,W_s + dW))
+       W_s = min(1.1d0*W_s, max(0.9d0*W_s,W_s + dW))
 
        ! we need rhostar -- get it from the R-H conditions
        taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
        rhostar_s = ONE/taustar_s
+
+       rhostar_hist(iter) = rhostar_s
+       Ws_hist(iter) = W_s
 
        iter = iter + 1
 
     enddo
 
     if (.not. converged) then
-       call bl_error("ERROR: shock did not converge")
+       do i = 1, max_iters-1
+          print *, i, rhostar_hist(i), Ws_hist(i)
+       enddo
+
+       call bl_error("ERROR: shock did not converge", abs(dW)/W_s)
     endif
 
     ! now that we have W_s, we can get rhostar from the R-H conditions

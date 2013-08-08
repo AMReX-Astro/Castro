@@ -65,8 +65,6 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   endif
 
 
-
-
   ! get the initial sound speeds
   eos_state%rho = rho_l
   eos_state%p = p_l
@@ -122,6 +120,8 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   !---------------------------------------------------------------------------
   ! find the exact pstar and ustar
   !---------------------------------------------------------------------------
+
+  print *, 'solving for star state: ', rho_l, u_l, p_l, rho_r, u_r, p_r
 
   ! this procedure follows directly from Colella & Glaz 1985, section 1
 
