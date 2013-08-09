@@ -43,7 +43,7 @@ contains
     integer, parameter :: max_iters = 100
     real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
-    real (kind=dp_t) :: tol = 1.e-8_dp_t
+    real (kind=dp_t) :: tol = 1.e-6_dp_t
 
     logical :: converged
 
@@ -155,7 +155,15 @@ contains
           call eos(eos_input_rp, eos_state, .false.)
 
           ! give ourselves a little wiggle room
-          W1 = 0.01d0*sqrt(eos_state%gam1*p_s*rho_s)
+          W1 = 0.1d0*sqrt(eos_state%gam1*p_s*rho_s)
+
+          ! make sure it's ok
+          taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
+
+          if (taustar_s < ZERO) then
+             rhostar_s = 1.0000001d0*rho_s
+             W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
+          endif
 
           call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
 
@@ -182,7 +190,7 @@ contains
              converged = .false.
              do while (.not. converged .and. iter < max_iters)
                 
-                print *, 'trying to bisect: ', abs(W2 - W1)/(W1 + W2)
+                if (verbose) print *, 'trying to bisect: ', abs(W2 - W1)/(W1 + W2)
                 
                 ! bisect
                 Wm = 0.5d0*(W1 + W2)
