@@ -9,6 +9,8 @@ module riemann_support
 
   implicit none
 
+  real (kind=dp_t), parameter :: smallrho = 100.d0
+
 contains
 
   subroutine shock(pstar, rho_s, u_s, p_s, xn, &
@@ -36,8 +38,6 @@ contains
     real (kind=dp_t) :: gammaE_s, gammaE_star
 
     real (kind=dp_t), parameter :: tol_p = 1.e-6_dp_t
-
-    real (kind=dp_t), parameter :: smallrho = 100.d0
     
     integer :: iter, i
     integer, parameter :: max_iters = 100
@@ -45,7 +45,6 @@ contains
 
     real (kind=dp_t) :: tol = 1.e-8_dp_t
 
-    real (kind=dp_t) :: SMALL = 1.e-14_dp_t
     logical :: converged
 
     logical :: verbose
@@ -121,9 +120,6 @@ contains
     ! there is a pathalogical case that if p_s - pstar ~ 0, the root finding
     ! just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
     ! take W = sqrt(gamma p rho)
-    if (abs(pstar - p_s) < SMALL*p_s) then
-       W_s = sqrt(eos_state%gam1*p_s*rho_s)
-    else
 
        ! do the root finding
        converged = .false.
@@ -221,7 +217,6 @@ contains
           
        endif
 
-    endif
 
     ! now that we have W_s, we can get rhostar from the R-H conditions
     ! (C&G Eq. 12)
@@ -259,7 +254,7 @@ contains
     ! we need rhostar -- get it from the R-H conditions
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
     rhostar_s = ONE/taustar_s
-      
+
     ! get the thermodynamics
     eos_state%rho = rhostar_s
     eos_state%p = pstar

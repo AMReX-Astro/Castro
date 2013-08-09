@@ -52,7 +52,8 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   character (len=16) :: lwave, rwave
 
-  real (kind=dp_t) :: smallp = 1.d-8
+  real (kind=dp_t), parameter :: smallp = 1.d-8
+  real (kind=dp_t), parameter :: SMALL = 1.d-13
 
   logical, parameter :: debug = .false.
 
@@ -103,10 +104,6 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   ! ---------------------------------------------------------------------------
 
   ! We follow the PVRS solver from Toro (Chapter 9)
-  !rhobar = HALF*(rho_l + rho_r)
-  !csbar = HALF*(cs_l + cs_r)
-
-  !pstar = HALF*(p_l + p_r) + HALF*(u_l - u_r)*rhobar*csbar
 
   ! alternative: two shock solver (see Toro 9.42)
   W_l = rho_l*cs_l
@@ -119,6 +116,15 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   else
      pstar = ((W_r*p_l + W_l*p_r) + W_l*W_r*(u_l - u_r))/(W_l + W_r)
   endif
+
+
+  ! if (abs(p_l - pstar) < SMALL*pstar .and. abs(p_r - pstar) < SMALL*pstar) then
+  !    rhobar = HALF*(rho_l + rho_r)
+  !    csbar = HALF*(cs_l + cs_r)
+
+  !    pstar = HALF*(p_l + p_r) + HALF*(u_l - u_r)*rhobar*csbar
+  ! endif
+
 
   pstar = max(pstar, smallp)
 
@@ -141,7 +147,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
      ! wave is a shock or a rarefaction
      
      ! left wave
-     if (pstar > p_l) then
+     if (pstar - p_l > SMALL*p_l) then
         ! left shock
         call shock(pstar, rho_l, u_l, p_l, xn_l, gammaE_bar, gammaC_bar, Z_l, W_l)
         lwave = "shock"
@@ -152,7 +158,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
      endif
 
      ! right wave
-     if (pstar > p_r) then
+     if (pstar - p_r > SMALL*p_r) then
         ! right shock
         call shock(pstar, rho_r, u_r, p_r, xn_r, gammaE_bar, gammaC_bar, Z_r, W_r)
         rwave = "shock"
