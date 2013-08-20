@@ -1,0 +1,19 @@
+rho_l      real     1.0d0
+u_l        real     0.0d0
+p_l        real     1.0d0
+T_l        real     1.0d0
+
+rho_r      real     0.125d0
+u_r        real     0.0d0
+p_r        real     0.1d0
+T_r        real     1.0d0
+
+xmin       real     0.0d0
+xmax       real     1.0d0
+xjump      real     0.5d0
+
+t          real     0.2d0
+
+npts       integer  128
+
+use_Tinit  logical  .false.

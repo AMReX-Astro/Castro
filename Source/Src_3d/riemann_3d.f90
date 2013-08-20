@@ -12,13 +12,13 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
     use bl_error_module
     use network, only : nspec, naux
-    use prob_params_module, only : physbc_lo,Symmetry
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
@@ -33,7 +33,7 @@ contains
     integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
     integer :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
     integer :: idir,ilo,ihi,jlo,jhi
-    integer :: i,j,kc,kflux
+    integer :: domlo(3),domhi(3)
 
     double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
@@ -45,6 +45,7 @@ contains
     double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
+    integer :: i,j,kc,kflux
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -77,6 +78,17 @@ contains
 
     double precision, parameter :: weakwv = 1.d-3
 
+    !$OMP PARALLEL DO PRIVATE(i,j) &
+    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer) &
+    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
+    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
+    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
+    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
+    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
+    !$OMP PRIVATE(ro,uo,po,tauo,reo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
+    !$OMP PRIVATE(rstar,entho,estar,cstar,spout,spin,ushock,scr,frac) &
+    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
+    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -274,6 +286,9 @@ contains
           co = max(csmall,co)
           clsq = (co*ro)**2
 
+          ! now that we know which state (left or right) we need to worry 
+          ! about, get the value of gamstar and wosq across the wave we
+          ! are dealing with.
           call wsqge(po,tauo,gameo,gdot,   &
                      gamstar,pstar,wosq,clsq,gmin,gmax)
 
@@ -348,18 +363,41 @@ contains
              !regdnv = estar
              gamgdnv = gamstar
           endif
-
           
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
-          ! Enforce that fluxes through a symmetry plane are hard zero.
-          if (i    .eq.0 .and. physbc_lo(1) .eq. Symmetry .and. idir .eq. 1) &
-               ugdnv(i,j,kc) = 0.d0
-          if (j    .eq.0 .and. physbc_lo(2) .eq. Symmetry .and. idir .eq. 2) &
-               ugdnv(i,j,kc) = 0.d0
-          if (kflux.eq.0 .and. physbc_lo(3) .eq. Symmetry .and. idir .eq. 3) &
-               ugdnv(i,j,kc) = 0.d0
-          
+          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+          if (idir .eq. 1) then
+             if (i.eq.domlo(1) .and. &
+                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
+                  physbc_lo(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (i.eq.domhi(1)+1 .and. &
+                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
+                  physbc_hi(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+          end if
+          if (idir .eq. 2) then
+             if (j.eq.domlo(2) .and. &
+                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
+                  physbc_lo(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (j.eq.domhi(2)+1 .and. &
+                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
+                  physbc_hi(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+          end if
+          if (idir .eq. 3) then
+             if (kflux.eq.domlo(3) .and. &
+                 (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
+                  physbc_lo(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (kflux.eq.domhi(3)+1 .and. &
+                 (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
+                  physbc_hi(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+          end if
+
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
           
@@ -508,10 +546,10 @@ contains
                            gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                            uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                            ugdnv,pgdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                           idir,ilo,ihi,jlo,jhi,kc,kflux)
+                           idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
 
       use network, only : nspec, naux
-      use prob_params_module, only : physbc_lo,Symmetry
+      use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
       use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
                                      nadv, small_dens, small_pres
@@ -520,35 +558,36 @@ contains
       double precision, parameter:: small = 1.d-8
       double precision, parameter:: twothirds = 2.d0/3.d0
 
-      integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-      integer gd_l1,gd_l2,gd_h1,gd_h2
-      integer uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
-      integer pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
-      integer idir,ilo,ihi,jlo,jhi
-      integer i,j,kc,kflux
+      integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+      integer :: gd_l1,gd_l2,gd_h1,gd_h2
+      integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
+      integer :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
+      integer :: idir,ilo,ihi,jlo,jhi
+      integer :: domlo(3),domhi(3)
 
-      double precision ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision    cav(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-      double precision uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-      double precision ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-      double precision pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+      double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+      double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+      double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
+      double precision ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
+      double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
+      double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
+      double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
+      double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+      double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
-      integer n, nq
-      integer iadv, ispec, iaux
+      integer :: i,j,kc,kflux
+      integer :: n, nq
+      integer :: iadv, ispec, iaux
 
-      double precision rgdnv,v1gdnv,v2gdnv,regdnv,ustar
-      double precision rl, ul, v1l, v2l, pl, rel
-      double precision rr, ur, v1r, v2r, pr, rer
-      double precision wl, wr, rhoetot, scr
-      double precision rstar, cstar, estar, pstar
-      double precision ro, uo, po, reo, co, gamco, entho
-      double precision sgnm, spin, spout, ushock, frac
-      double precision wsmall, csmall,qavg
-      double precision rho_K_contrib
+      double precision :: rgdnv,v1gdnv,v2gdnv,regdnv,ustar
+      double precision :: rl, ul, v1l, v2l, pl, rel
+      double precision :: rr, ur, v1r, v2r, pr, rer
+      double precision :: wl, wr, rhoetot, scr
+      double precision :: rstar, cstar, estar, pstar
+      double precision :: ro, uo, po, reo, co, gamco, entho
+      double precision :: sgnm, spin, spout, ushock, frac
+      double precision :: wsmall, csmall,qavg
+      double precision :: rho_K_contrib
 
       !$OMP PARALLEL DO PRIVATE(i,j,rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,csmall,wsmall,wl,wr,pstar,ustar,ro,uo) &
       !$OMP PRIVATE(po,reo,gamco,co,entho,rstar,estar,cstar,sgnm,spout,spin,ushock,scr,frac,v1gdnv,v2gdnv,rgdnv,regdnv) &
@@ -682,13 +721,37 @@ contains
 
             pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
-            ! Enforce that fluxes through a symmetry plane are hard zero.
-            if (i    .eq.0 .and. physbc_lo(1) .eq. Symmetry .and. idir .eq. 1) &
-                 ugdnv(i,j,kc) = 0.d0
-            if (j    .eq.0 .and. physbc_lo(2) .eq. Symmetry .and. idir .eq. 2) &
-                 ugdnv(i,j,kc) = 0.d0
-            if (kflux.eq.0 .and. physbc_lo(3) .eq. Symmetry .and. idir .eq. 3) &
-                 ugdnv(i,j,kc) = 0.d0
+            ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+            if (idir .eq. 1) then
+             if (i.eq.domlo(1) .and. &
+                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
+                  physbc_lo(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (i.eq.domhi(1)+1 .and. &
+                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
+                  physbc_hi(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
+            if (idir .eq. 2) then
+             if (j.eq.domlo(2) .and. &
+                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
+                  physbc_lo(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (j.eq.domhi(2)+1 .and. &
+                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
+                  physbc_hi(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
+            if (idir .eq. 3) then
+             if (kflux.eq.domlo(3) .and. &
+                 (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
+                  physbc_lo(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+             if (kflux.eq.domhi(3)+1 .and. &
+                 (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
+                  physbc_hi(3) .eq. NoSlipWall) ) &
+                  ugdnv(i,j,kc) = 0.d0
+            end if
 
             ! Compute fluxes, order as conserved state (not q)
             uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)

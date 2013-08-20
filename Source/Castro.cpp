@@ -144,7 +144,7 @@ int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::use_pslope  = 1;
-int          Castro::grav_source_type = 1;
+int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
@@ -372,11 +372,6 @@ Castro::read_params ()
     pp.query("print_energy_diagnostics",print_energy_diagnostics);
     pp.query("print_fortran_warnings",print_fortran_warnings);
 
-    if (use_colglaz == 1 && BL_SPACEDIM == 2) 
-    {
-        std::cerr << "use_colglaz = 1 not implemented for 2-d \n";
-        BoxLib::Error();
-    }
 
     if (ppm_reference > 1 || ppm_reference < 0)
       {

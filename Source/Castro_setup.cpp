@@ -223,7 +223,7 @@ Castro::variableSetUp ()
 
     int coord_type = Geometry::Coord();
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
-         (dm,phys_bc.lo(),phys_bc.hi(),Outflow,Symmetry,coord_type);
+         (dm,phys_bc.lo(),phys_bc.hi(),Outflow,Symmetry,SlipWall,NoSlipWall,coord_type);
 
     Interpolater* interp = &cell_cons_interp;
 

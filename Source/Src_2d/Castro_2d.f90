@@ -118,7 +118,8 @@
                    area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                    area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                    pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2)
+                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
+                   domlo, domhi)
 
 !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
       call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
@@ -130,7 +131,6 @@
                   pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
                   pgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
                   src,    src_l1,  src_l2,  src_h1,  src_h2, &
-                  grav,    gv_l1,   gv_l2,   gv_h1,   gv_h2, &
                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                   area1,area1_l1,area1_l2,area1_h1,area1_h2, &

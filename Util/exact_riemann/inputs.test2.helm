@@ -1,0 +1,20 @@
+&PROBIN
+rho_l = 1.0d7
+u_l   = -1.0d8
+T_l   = 1.e8
+
+
+rho_r = 1.0d7
+u_r   = 1.0d8
+T_r   = 1.e8
+
+use_Tinit = T
+
+xmin  = 0.0d0
+xmax  = 1.0d5
+xjump = 0.5d5
+
+t     = 0.00008d0
+
+npts  = 512
+/

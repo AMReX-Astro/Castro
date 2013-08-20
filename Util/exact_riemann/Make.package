@@ -1,0 +1,3 @@
+f90EXE_sources += riemann_star_state.f90
+f90EXE_sources += riemann_sample.f90
+f90EXE_sources += riemann_support.f90
