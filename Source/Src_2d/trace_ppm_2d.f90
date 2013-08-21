@@ -152,7 +152,9 @@ contains
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
 
+          !-------------------------------------------------------------------
           ! plus state on face i
+          !-------------------------------------------------------------------
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
@@ -253,7 +255,9 @@ contains
              qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
           end if
 
+          !-------------------------------------------------------------------
           ! minus state on face i+1
+          !-------------------------------------------------------------------
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
@@ -483,7 +487,9 @@ contains
     enddo
 
 
+    !-------------------------------------------------------------------------
     ! y-direction
+    !-------------------------------------------------------------------------
 
     ! Trace to bottom and top edges using upwind PPM
     do j = ilo2-1, ihi2+1
@@ -497,8 +503,11 @@ contains
           p = q(i,j,QPRES)
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-          
+
+
+          !------------------------------------------------------------------- 
           ! plus state on face j
+          !-------------------------------------------------------------------
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
@@ -590,7 +599,9 @@ contains
              qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
           end if
           
+          !-------------------------------------------------------------------
           ! minus state on face j+1
+          !-------------------------------------------------------------------
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
