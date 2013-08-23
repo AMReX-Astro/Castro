@@ -18,12 +18,14 @@ contains
 
     use bl_error_module
     use network, only : nspec, naux
+    use eos_type_module
+    use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UESGS, UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres
+                                   nadv, small_dens, small_pres, small_temp
 
     double precision, parameter:: small = 1.d-8
     double precision, parameter:: twothirds = 2.d0/3.d0
@@ -80,6 +82,7 @@ contains
 
     double precision, allocatable :: pstar_hist(:)
 
+    type (eos_t) :: eos_state
 
     allocate (pstar_hist(iter_max))
 
@@ -95,6 +98,7 @@ contains
     !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
     !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux)
     !$OMP PRIVATE(pstar_hist)
+    !$OMP PRIVATE(eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -122,6 +126,13 @@ contains
           ! sometime we come in here with negative energy
           if (rel < 0.0d0) then
              print *, "WARNING: (rho e)_l < 0 in Riemann"
+             eos_state%T = small_temp
+             eos_state%rho = rl
+             eos_state%xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
+
+             call eos(eos_input_rt, eos_state, .false.)
+
+             rel = rl*eos_state%e
           endif
 
           ! right state
@@ -147,6 +158,13 @@ contains
 
           if (rer < 0.0d0) then
              print *, "WARNING: (rho e)_r < 0 in Riemann"
+             eos_state%T = small_temp
+             eos_state%rho = rr
+             eos_state%xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
+
+             call eos(eos_input_rt, eos_state, .false.)
+
+             rer = rr*eos_state%e
           endif
 
             
