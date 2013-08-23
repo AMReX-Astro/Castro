@@ -96,7 +96,7 @@ contains
     !$OMP PRIVATE(ro,uo,po,tauo,reo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
     !$OMP PRIVATE(rstar,entho,estar,cstar,spout,spin,ushock,scr,frac) &
     !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
-    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux)
+    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
     !$OMP PRIVATE(pstar_hist)
     !$OMP PRIVATE(eos_state)
     do j = jlo, jhi
