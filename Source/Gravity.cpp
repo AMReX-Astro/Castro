@@ -1380,8 +1380,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 #else
 
        // We always fill radial_grav_new (at every level)
-       MultiFab& S_new = LevelData[level].get_new_data(State_Type);
-
        if (gravity_type == "MonopoleGrav")
        {
           const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();

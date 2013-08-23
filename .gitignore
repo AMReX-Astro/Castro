@@ -17,6 +17,13 @@
 # Castro executables
 Castro*.ex
 
+# plt and chk files
+plt*
+chk*
+
+# These files are created at build time
+extern.f90
+network.f90
 
 # build directories
 o/

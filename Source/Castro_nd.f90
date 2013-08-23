@@ -417,6 +417,8 @@
         ppm_trace_grav        = ppm_trace_grav_in
         ppm_temp_fix          = ppm_temp_fix_in
         use_colglaz           = use_colglaz_in
+        cg_tol                = cg_tol_in
+        cg_maxiter            = cg_maxiter_in
         use_pslope            = use_pslope_in
         grav_source_type      = grav_source_type_in
         do_sponge             = do_sponge_in
