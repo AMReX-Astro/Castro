@@ -119,6 +119,10 @@ contains
           pl  = max(ql(i,j,kc,QPRES ),small_pres)
           rel =     ql(i,j,kc,QREINT)
 
+          ! sometime we come in here with negative energy
+          if (rel < 0.0d0) then
+             print *, "WARNING: (rho e)_l < 0 in Riemann"
+          endif
 
           ! right state
           rr = max(qr(i,j,kc,QRHO),small_dens)
@@ -140,6 +144,10 @@ contains
           
           pr  = max(qr(i,j,kc,QPRES),small_pres)
           rer =     qr(i,j,kc,QREINT)
+
+          if (rer < 0.0d0) then
+             print *, "WARNING: (rho e)_r < 0 in Riemann"
+          endif
 
             
           ! common quantities
