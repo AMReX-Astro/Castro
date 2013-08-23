@@ -157,8 +157,8 @@ contains
           ! evolution equation.  In Castro, we instead bring (rho e)
           ! to the edges, so we construct the necessary gamma_e here from
           ! what we have on the interfaces.
-          gamel = pl/rel + 1
-          gamer = pr/rer + 1
+          gamel = pl/rel + 1.d0
+          gamer = pr/rer + 1.d0
           
           ! these should consider a wider average of the cell-centered
           ! gammas
@@ -168,7 +168,7 @@ contains
           game_bar = 0.5d0*(gamel + gamer)
           gamc_bar = 0.5d0*(gamcl(i,j) + gamcr(i,j))
           
-          gdot = 2.d0*(1.d0 - game_bar/gamc_bar)*(game_bar - 1.0)
+          gdot = 2.d0*(1.d0 - game_bar/gamc_bar)*(game_bar - 1.0d0)
           
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
@@ -517,9 +517,10 @@ contains
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-    double precision smlp1,small,divide,temp
+    double precision divide,temp
 
-    data smlp1,small/.001d0,1.d-07/
+    double precision, parameter :: smlp1 = 1.d-10
+    double precision, parameter :: small = 1.d-7
 
     ! First predict a value of game across the shock
 
@@ -534,7 +535,7 @@ contains
     wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
     temp = ((gstar-gam)/(gam-1.0d0))
 
-    if (pstar-p.eq.0.0d0) then
+    if (pstar-p == 0.0d0) then
        divide=small
     else
        divide=pstar-p
@@ -542,10 +543,12 @@ contains
     
     temp=temp/divide
     wsq = wsq/(v - temp*p*v)
-    if (abs(pstar/p-1.d0)-smlp1 .lt. 0.0d0 ) then
+
+    !if (abs(pstar/p-1.d0)-smlp1 .lt. 0.0d0 ) then
+    if (abs(pstar - p) < smlp1*(pstar + p)) then
        wsq = csq
     endif
-    wsq=max(wsq,(.5d0*(gam-1.d0)/gam)*csq)
+    wsq=max(wsq,(0.5d0*(gam-1.d0)/gam)*csq)
     
     return
   end subroutine wsqge
