@@ -789,7 +789,7 @@ This is for constant, solid-body rotation about a fixed axis.  See the Rotation 
 \begin{table*}[h]
 \begin{scriptsize}
 \begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
+\begin{tabular}{|l|p{3.0in}|l|l|} \hline
 Parameter & Definition & Acceptable Values &Default\\
 \hline
 {\bf castro.do\_hydro} & Time-advance the fluid dynamical equations & 0 if false, 1 if true &
@@ -805,7 +805,11 @@ Parameter & Definition & Acceptable Values &Default\\
 {\bf castro.fix\_mass\_flux} & Enforce constant mass flux at domain boundary & 0 or 1 & 1 \\
 {\bf castro.allow\_negative\_energy} & Is internal energy allowed to be negative & 0 or 1 & 1 \\
 {\bf castro.ppm\_type} & Use piecewise linear vs PPM algorithm & 0,1,2 & 1 \\
-{\bf castro.use\_colglaz} & Use the Colella/Glaz algorithm? & 0 or 1 & 0 \\
+{\bf castro.ppm\_reference} & Use the integral under the parabolic interpolant as the reference state (=1; original PPM algorithm),
+                              or the cell-centered quantity (=0; Castro paper) & 0,1 & 1 \\
+{\bf castro.ppm\_temp\_fix} & Different methods of reconstructing using temperature information (experimental) & 0,1,2 & 0 \\
+{\bf castro.ppm\_trace\_grav} & Reconstruct the gravitational acceleration as a parabola and do characteristic tracing on it? (1=yes) & 0,1 & 0 \\
+{\bf castro.use\_colglaz} & Use the Colella/Glaz Riemann solver (2- and 3-d) or the original C-G algorithm (1-d)? & 0 or 1 & 0 \\
 {\bf castro.cg\_maxiter} & Number of iterations for C/G algorithm & Integer & 12 \\
 {\bf castro.cg\_tol} & Tolerance for C/G solver & Real & 1.0d-5 \\
 {\bf castro.gamma} & Sets the value of $\gamma$ & Real & 0.0 \\
