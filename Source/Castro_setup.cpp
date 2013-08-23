@@ -209,7 +209,9 @@ Castro::variableSetUp ()
          NumAdv, difmag, small_dens, small_temp, small_pres, 
          allow_negative_energy,ppm_type,ppm_reference,
 	 ppm_trace_grav,ppm_temp_fix,
-	 use_colglaz,use_pslope, 
+	 use_colglaz,
+         cg_maxiter, cg_tol,
+         use_pslope, 
 	 grav_source_type, do_sponge,
          gamma,normalize_species,fix_mass_flux,use_sgs,rotational_frequency,
 	 const_grav);

@@ -35,6 +35,8 @@ module meth_params_module
   integer         , save :: ppm_trace_grav
   integer         , save :: ppm_temp_fix
   integer         , save :: use_colglaz
+  integer         , save :: cg_maxiter
+  double precision, save :: cg_tol
   integer         , save :: use_pslope
   integer         , save :: grav_source_type
   integer         , save :: do_sponge

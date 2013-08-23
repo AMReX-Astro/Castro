@@ -25,7 +25,8 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UESGS, UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres, small_temp
+                                   nadv, small_dens, small_pres, small_temp, &
+                                   cg_maxiter, cg_tol
 
     double precision, parameter:: small = 1.d-8
     double precision, parameter:: twothirds = 2.d0/3.d0
@@ -67,9 +68,8 @@ contains
     double precision :: gamc_bar, game_bar
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
-    integer :: iter
-    integer, parameter :: iter_max= 12
-    double precision, parameter :: tol = 1.d-5
+    integer :: iter, iter_max
+    double precision :: tol
     double precision :: err
 
     logical :: converged
@@ -83,6 +83,9 @@ contains
     double precision, allocatable :: pstar_hist(:)
 
     type (eos_t) :: eos_state
+
+    tol = cg_tol
+    iter_max = cg_maxiter
 
     allocate (pstar_hist(iter_max))
 

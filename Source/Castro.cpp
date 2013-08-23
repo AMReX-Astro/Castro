@@ -143,6 +143,8 @@ int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::use_colglaz = 0;
+int          Castro::cg_maxiter  = 12;
+Real         Castro::cg_tol      = 1.0d-5;
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
@@ -363,6 +365,8 @@ Castro::read_params ()
     pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("use_colglaz",use_colglaz);
+    pp.query("cg_maxiter",cg_maxiter);
+    pp.query("cg_tol",cg_tol);
     pp.query("use_pslope",use_pslope);
     pp.query("grav_source_type",grav_source_type);
     pp.query("spherical_star",spherical_star);

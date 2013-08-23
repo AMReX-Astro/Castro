@@ -261,7 +261,9 @@
                                    allow_negative_energy_in, &
                                    ppm_type_in,ppm_reference_in, &
                                    ppm_trace_grav_in, ppm_temp_fix_in, &
-                                   use_colglaz_in,use_pslope_in, &
+                                   use_colglaz_in, &
+                                   cg_maxiter_in, cg_tol_in, &
+                                   use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,gamma_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    rot_freq_in, const_grav_in)
@@ -282,6 +284,8 @@
         integer, intent(in) :: allow_negative_energy_in, ppm_type_in
         integer, intent(in) :: ppm_reference_in, ppm_trace_grav_in, ppm_temp_fix_in
         integer, intent(in) :: use_colglaz_in, use_pslope_in, grav_source_type_in
+        integer, intent(in) :: cg_maxiter_in
+        double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
         double precision, intent(in) :: difmag_in
         double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in

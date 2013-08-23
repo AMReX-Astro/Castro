@@ -577,6 +577,8 @@ protected:
     static int       ppm_trace_grav;
     static int       ppm_temp_fix;
     static int       use_colglaz;
+    static int       cg_maxiter;
+    static Real      cg_tol;
     static int       use_pslope;
     static int       grav_source_type;
     static int       spherical_star;
