@@ -78,6 +78,11 @@ contains
 
     double precision, parameter :: weakwv = 1.d-3
 
+    double precision, allocatable :: pstar_hist(:)
+
+
+    allocate (pstar_hist(iter_max))
+
     !$OMP PARALLEL DO PRIVATE(i,j) &
     !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer) &
     !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
@@ -89,6 +94,7 @@ contains
     !$OMP PRIVATE(rstar,entho,estar,cstar,spout,spin,ushock,scr,frac) &
     !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
     !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux)
+    !$OMP PRIVATE(pstar_hist)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -198,7 +204,7 @@ contains
           ! sectant iteration
           converged = .false.
           iter = 1
-          do while (iter < iter_max .and. .not. converged)
+          do while (iter <= iter_max .and. .not. converged)
                
              call wsqge(pl,taul,gamel,gdot,  &
                         gamstar,pstar,wlsq,clsql,gmin,gmax)
@@ -236,11 +242,17 @@ contains
              err = abs(pstar - pstnm1)
              if (err < tol*pstar) converged = .true.
 
+             pstar_hist(iter) = pstar
+
              iter = iter + 1
              
           enddo
 
           if (.not. converged) then
+             print *, 'pstar history: '
+             do iter = 1, iter_max
+                print *, iter, pstar_hist(iter)
+             enddo
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
           
