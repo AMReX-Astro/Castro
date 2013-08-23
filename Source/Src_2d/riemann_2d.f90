@@ -28,7 +28,8 @@ contains
                                    QPRES, QREINT, QFA, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres
+                                   nadv, small_dens, small_pres, &
+                                   cg_maxiter, cg_tol
 
     double precision, parameter:: small = 1.d-8
 
@@ -69,9 +70,8 @@ contains
     double precision :: gamc_bar, game_bar
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
-    integer :: iter
-    integer, parameter :: iter_max= 12
-    double precision, parameter :: tol = 1.d-5
+    integer :: iter, iter_max
+    double precision :: tol
     double precision :: err
 
     logical :: converged
@@ -83,6 +83,9 @@ contains
     double precision, parameter :: weakwv = 1.d-3
 
     double precision, allocatable :: pstar_hist(:)
+
+    tol = cg_tol
+    iter_max = cg_maxiter
 
     !************************************************************
     !  set min/max based on normal direction
