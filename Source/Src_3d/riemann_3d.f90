@@ -66,7 +66,7 @@ contains
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
     integer :: iter
-    integer, parameter :: iter_max= 8
+    integer, parameter :: iter_max= 12
     double precision, parameter :: tol = 1.d-5
     double precision :: err
 
@@ -253,6 +253,10 @@ contains
              do iter = 1, iter_max
                 print *, iter, pstar_hist(iter)
              enddo
+
+             print *, ' '
+             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gamcl(i,j)
+             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gamcr(i,j)
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
           
