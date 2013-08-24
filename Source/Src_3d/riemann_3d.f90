@@ -62,6 +62,7 @@ contains
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
 
+    double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
     double precision :: zm, zp
     double precision :: denom, dpditer, dpjmp
@@ -90,7 +91,7 @@ contains
     allocate (pstar_hist(iter_max))
 
     !$OMP PARALLEL DO PRIVATE(i,j) &
-    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer) &
+    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,gcl,gcr) &
     !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
     !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
     !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
@@ -123,12 +124,15 @@ contains
              v2l = ql(i,j,kc,QV)
           endif
           
-          pl  = max(ql(i,j,kc,QPRES ),small_pres)
-          rel =     ql(i,j,kc,QREINT)
+          pl  = ql(i,j,kc,QPRES)
+          rel = ql(i,j,kc,QREINT)
+          gcl = gamcl(i,j)
 
-          ! sometime we come in here with negative energy
-          if (rel < 0.0d0) then
-             print *, "WARNING: (rho e)_l < 0 in Riemann"
+          ! sometime we come in here with negative energy or pressure
+          ! note: reset both in either case, to remain thermo
+          ! consistent
+          if (rel <= 0.0d0 .or. pl <= small_pres) then
+             print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
              eos_state%T = small_temp
              eos_state%rho = rl
              eos_state%xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
@@ -136,6 +140,8 @@ contains
              call eos(eos_input_rt, eos_state, .false.)
 
              rel = rl*eos_state%e
+             pl = eos_state%p
+             gcl = eos_state%gam1
           endif
 
           ! right state
@@ -156,11 +162,12 @@ contains
              v2r = qr(i,j,kc,QV)
           endif
           
-          pr  = max(qr(i,j,kc,QPRES),small_pres)
-          rer =     qr(i,j,kc,QREINT)
+          pr  = qr(i,j,kc,QPRES)
+          rer = qr(i,j,kc,QREINT)
+          gcr = gamcr(i,j)
 
-          if (rer < 0.0d0) then
-             print *, "WARNING: (rho e)_r < 0 in Riemann"
+          if (rer <= 0.0d0 .or. pr < small_pres) then
+             print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
              eos_state%T = small_temp
              eos_state%rho = rr
              eos_state%xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
@@ -168,6 +175,8 @@ contains
              call eos(eos_input_rt, eos_state, .false.)
 
              rer = rr*eos_state%e
+             pr = eos_state%p
+             gcr = eos_state%gam1
           endif
 
             
@@ -176,8 +185,8 @@ contains
           taur = 1.d0/rr
           
           ! lagrangian sound speeds
-          clsql = gamcl(i,j)*pl*rl
-          clsqr = gamcr(i,j)*pr*rr
+          clsql = gcl*pl*rl
+          clsqr = gcr*pr*rr
           
           ! gamma_e = p/(rho e) + 1
 
@@ -195,7 +204,7 @@ contains
           gmax = max(gamel, gamer, 5.d0/3.d0)
           
           game_bar = 0.5d0*(gamel + gamer)
-          gamc_bar = 0.5d0*(gamcl(i,j) + gamcr(i,j))
+          gamc_bar = 0.5d0*(gcl + gcr)
           
           gdot = 2.d0*(1.d0 - game_bar/gamc_bar)*(game_bar - 1.0d0)
           
@@ -284,8 +293,8 @@ contains
              enddo
 
              print *, ' '
-             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gamcl(i,j)
-             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gamcr(i,j)
+             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
           
@@ -304,7 +313,7 @@ contains
              po = pl
              tauo = taul
              reo = rel
-             gamco = gamcl(i,j)
+             gamco = gcl
              gameo = gamel
              
           else if (ustar .lt. 0.d0) then
@@ -313,7 +322,7 @@ contains
              po = pr
              tauo = taur
              reo = rer
-             gamco = gamcr(i,j)
+             gamco = gcr
              gameo = gamer
           else
              ro = 0.5d0*(rl+rr)
@@ -321,7 +330,7 @@ contains
              po = 0.5d0*(pl+pr)
              tauo = 1.d0/ro
              reo = 0.5d0*(rel+rer)
-             gamco = 0.5d0*(gamcl(i,j)+gamcr(i,j))
+             gamco = 0.5d0*(gcl+gcr)
              gameo = 0.5d0*(gamel + gamer)
           endif
 
