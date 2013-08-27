@@ -75,6 +75,8 @@ Castro::read_particle_params ()
 void
 Castro::init_particles ()
 {
+    BL_PROFILE("Castro::init_particles()");
+
      if (level > 0)
         return;
      //
@@ -242,6 +244,8 @@ Castro::ParticleDerive(const std::string& name,
                        Real               time,
                        int                ngrow)
 {
+    BL_PROFILE("Castro::ParticleDerive()");
+
   if (DMPC && name == "particle_count")
   {
       MultiFab* derive_dat = new MultiFab(grids,1,0);

@@ -31,6 +31,8 @@ Castro::advance (Real time,
                  int  iteration,
                  int  ncycle)
 {
+    BL_PROFILE("Castro::advance()");
+
     Real dt_new = dt;
 
     if (do_hydro) 
@@ -80,6 +82,8 @@ Castro::advance_hydro (Real time,
                        int  iteration,
                        int  ncycle)
 {
+    BL_PROFILE("Castro::advance_hydro()");
+
     if (!do_hydro)  
        BoxLib::Abort("In advance_hydro but do_hydro not true");
 
@@ -592,6 +596,7 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 	  
+  BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 	  BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
 	    (&is_finest_level,&time,
 	     bx.loVect(), bx.hiVect(),
@@ -620,6 +625,7 @@ Castro::advance_hydro (Real time,
 	     &cflLoc, verbose, 
 	     mass_added, eint_added, eden_added, 
 	     E_added_flux, E_added_grav);
+  BL_PROFILE_VAR_STOP(CA_UMDRV);
 	  
 	  if (do_reflux)
 	    {
@@ -947,6 +953,8 @@ Castro::advance_no_hydro (Real time,
                           int  iteration,
                           int  ncycle)
 {
+    BL_PROFILE("Castro::advance_no_hydro()");
+
     if (do_hydro)  
        BoxLib::Abort("In advance_no_hydro but do_hydro is true");
     

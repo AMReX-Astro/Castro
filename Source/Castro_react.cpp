@@ -13,6 +13,8 @@ Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, FArrayBox& t
 Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, Real time, Real dt) 
 #endif
 {
+    BL_PROFILE("Castro::react_first_half_dt()");
+
     if (do_react == 1)
     {
        // Note that here we react on the valid region *and* the ghost cells (i.e. the whole FAB)
@@ -36,7 +38,8 @@ Castro::react_second_half_dt(MultiFab& S_new, MultiFab& tau_diff, Real time, Rea
 Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow) 
 #endif
 {
-    BL_PROFILE(BL_PROFILE_THIS_NAME() + "::strang_chem(MultiFab&,...");
+    BL_PROFILE("Castro::react_second_half_dt()");
+
     const Real strt_time = ParallelDescriptor::second();
 
     const Real cur_time = state[State_Type].curTime();
@@ -100,6 +103,8 @@ Castro::reactState(FArrayBox&        Snew,
                    Real              time,
                    Real              dt_react)
 {
+    BL_PROFILE("Castro::reactState()");
+
     // Note that box is *not* necessarily just the valid region!
     BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
                      (box.loVect(), box.hiVect(), 

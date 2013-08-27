@@ -36,6 +36,9 @@ main (int   argc,
     // Make sure to catch new failures.
     //
     BoxLib::Initialize(argc,argv);
+
+    BL_PROFILE_VAR("main()", pmain);
+
     Real dRunTime1 = ParallelDescriptor::second();
 
     std::cout << std::setprecision(10);
@@ -173,6 +176,9 @@ main (int   argc,
 
         std::cout << buf << std::endl;
     }
+
+    BL_PROFILE_VAR_STOP(pmain);
+    BL_PROFILE_SET_RUN_TIME(dRunTime2);
 
     BoxLib::Finalize();
 

@@ -636,6 +636,8 @@ Castro::setTimeLevel (Real time,
 void
 Castro::initData ()
 {
+    BL_PROFILE("Castro::initData()");
+
     //
     // Loop over grids, call FORTRAN function to init with data.
     //
@@ -801,6 +803,8 @@ Castro::initData ()
 void
 Castro::init (AmrLevel &old)
 {
+    BL_PROFILE("Castro::init(old)");
+
     Castro* oldlev = (Castro*) &old;
     //
     // Create new grid data by fillpatching from old.
@@ -893,6 +897,8 @@ Castro::init (AmrLevel &old)
 void
 Castro::init ()
 {
+    BL_PROFILE("Castro::init()");
+
     Real dt        = parent->dtLevel(level);
     Real cur_time  = getLevel(level-1).state[State_Type].curTime();
     Real prev_time = getLevel(level-1).state[State_Type].prevTime();
@@ -941,6 +947,8 @@ Castro::initialTimeStep ()
 Real
 Castro::estTimeStep (Real dt_old)
 {
+    BL_PROFILE("Castro::estTimeStep()");
+
     if (fixed_dt > 0.0)
         return fixed_dt;
 
@@ -1062,6 +1070,8 @@ Castro::computeNewDt (int                   finest_level,
                       Real                  stop_time,
                       int                   post_regrid_flag)
 {
+    BL_PROFILE("Castro::computeNewDt()");
+
     //
     // We are at the start of a coarse grid timecycle.
     // Compute the timesteps for the next iteration.
@@ -1149,6 +1159,8 @@ Castro::computeInitialDt (int                   finest_level,
                           Array<Real>&          dt_level,
                           Real                  stop_time)
 {
+    BL_PROFILE("Castro::computeInitialDt()");
+
     //
     // Grids have been constructed, compute dt for all levels.
     //
@@ -1188,6 +1200,8 @@ Castro::computeInitialDt (int                   finest_level,
 void
 Castro::post_timestep (int iteration)
 {
+    BL_PROFILE("Castro::post_timestep()");
+
     //
     // Integration cycle on fine level grids is complete
     // do post_timestep stuff here.
@@ -1373,6 +1387,8 @@ Castro::post_timestep (int iteration)
 void
 Castro::post_restart ()
 {
+    BL_PROFILE("Castro::post_restart()");
+
    Real cur_time = state[State_Type].curTime();
 
 #ifdef PARTICLES
@@ -1495,6 +1511,8 @@ Castro::post_regrid (int lbase,
 void
 Castro::post_init (Real stop_time)
 {
+    BL_PROFILE("Castro::post_init()");
+
     if (level > 0)
         return;
     //
@@ -1653,6 +1671,8 @@ Castro::advance_aux(Real time, Real dt)
 void
 Castro::advance_levelset(Real time, Real dt)
 {
+    BL_PROFILE("Castro::advance_levelset()");
+
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... update levelset\n";
 
@@ -1779,6 +1799,8 @@ Castro::advance_levelset(Real time, Real dt)
 void
 Castro::reinit_phi(Real time)
 {
+    BL_PROFILE("Castro::reinit_phi()");
+
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "...... reinitialzing levelset\n";
 
@@ -1921,6 +1943,8 @@ Castro::reinit_phi(Real time)
 void
 Castro::time_center_source_terms(MultiFab& S_new, MultiFab& ext_src_old, MultiFab &ext_src_new, Real dt)
 {
+    BL_PROFILE("Castro::time_center_source_terms()");
+
     // Subtract off half of the old source term, and add half of the new.
 
     ext_src_old.mult(-0.5*dt);
@@ -2113,6 +2137,8 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
 void
 Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 {
+    BL_PROFILE("Castro::getTempDiffusionTerm()");
+
    MultiFab& S_old = get_old_data(State_Type);
    if (verbose && ParallelDescriptor::IOProcessor()) 
       std::cout << "Calculating diffusion term at time " << time << std::endl;
@@ -2186,6 +2212,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 void
 Castro::reflux ()
 {
+    BL_PROFILE("Castro::reflux()");
+
     BL_ASSERT(level<parent->finestLevel());
 
     const Real strt = ParallelDescriptor::second();
@@ -2217,6 +2245,8 @@ Castro::reflux ()
 void
 Castro::avgDown ()
 {
+    BL_PROFILE("Castro::avgDown()");
+
   if (level == parent->finestLevel()) return;
 
   avgDown(State_Type);
@@ -2268,6 +2298,8 @@ Castro::enforce_consistent_e (MultiFab& S)
 void
 Castro::avgDown (int state_indx)
 {
+    BL_PROFILE("Castro::avgDown(state_indx)");
+
     if (level == parent->finestLevel()) return;
 
     Castro& fine_lev = getLevel(level+1);
@@ -2334,6 +2366,8 @@ Castro::errorEst (TagBoxArray& tags,
                   int          n_error_buf,
                   int          ngrow)
 {
+    BL_PROFILE("Castro::errorEst()");
+
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
@@ -2541,6 +2575,8 @@ Castro::SyncInterp (MultiFab&      CrseSync,
                     SyncInterpType which_interp,
                     int            state_comp)
 {
+    BL_PROFILE("Castro::SyncInterp()");
+
     BL_ASSERT(which_interp >= 0 && which_interp <= 5);
 
     Interpolater* interpolater = 0;

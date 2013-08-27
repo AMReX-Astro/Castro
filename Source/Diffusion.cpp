@@ -83,6 +83,8 @@ void
 Diffusion::applyop (int level, MultiFab& Temperature, 
                     MultiFab& DiffTerm, PArray<MultiFab>& temp_cond_coef)
 {
+    BL_PROFILE("Diffusion::applyop()");
+
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';

@@ -12,6 +12,8 @@ Real
 Castro::volWgtSum (const std::string& name,
                    Real               time)
 {
+    BL_PROFILE("Castro::volWgtSum()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
@@ -77,6 +79,8 @@ Real
 Castro::volWgtSquaredSum (const std::string& name,
                           Real               time)
 {
+    BL_PROFILE("Castro::volWgtSquaredSum()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
@@ -143,6 +147,8 @@ Castro::locWgtSum (const std::string& name,
                    Real               time,
                    int                idir)
 {
+    BL_PROFILE("Castro::locWgtSum()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
@@ -216,6 +222,8 @@ Castro::locWgtSum2D (const std::string& name,
                      int                idir1,
                      int                idir2)
 {
+    BL_PROFILE("Castro::locWgtSum2D()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
@@ -278,6 +286,8 @@ Castro::locWgtSum2D (const std::string& name,
 Real
 Castro::volWgtSumMF (MultiFab* mf, int comp) 
 {
+    BL_PROFILE("Castro::volWgtSumMF()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
 
@@ -328,6 +338,8 @@ Castro::volWgtSumOneSide (const std::string& name,
                           int                side,
                           int                bdir)
 {
+    BL_PROFILE("Castro::volWgtSumOneSide()");
+
     // This function is a clone of volWgtSum except it computes the result only on half of the domain.
     // The lower half corresponds to side == 0 and the upper half corresponds to side == 1.
     // The argument bdir gives the direction along which to bisect.
@@ -446,6 +458,8 @@ Castro::locWgtSumOneSide (const std::string& name,
                           int                side,
                           int                bdir)
 {
+    BL_PROFILE("Castro::locWgtSumOneSide()");
+
   // This function is a clone of locWgtSum except that it only sums over one half of the domain.
   // The lower half corresponds to side == 0, and the upper half corresponds to side == 1.
   // The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
@@ -562,6 +576,8 @@ Castro::volProductSum (const std::string& name1,
                        const std::string& name2,
                        Real time)
 {
+    BL_PROFILE("Castro::volProductSum()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf1 = 0;
@@ -646,6 +662,8 @@ Castro::locSquaredSum (const std::string& name,
                        Real               time,
                        int                idir)
 {
+    BL_PROFILE("Castro::locSquaredSum()");
+
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
