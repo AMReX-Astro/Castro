@@ -30,7 +30,7 @@ contains
 ! ::: :: flux1      <=  (modify) flux in X direction on X edges
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
-! L:: ----------------------------------------------------------------
+! ::: ----------------------------------------------------------------
 
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
                      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
@@ -266,26 +266,26 @@ contains
           if (ppm_temp_fix == 1) then
              do j = ilo2-1, ihi2+1
                 do i = ilo1-1, ihi1+1
-                   do iwave = 1, 3
-                      do idim = 1, 3
-                         eos_state%rho   = Ip(i,j,kc,iwave,idim,QRHO)
-                         eos_state%T     = Ip(i,j,kc,iwave,idim,QTEMP)
-                         eos_state%xn(:) = Ip(i,j,kc,iwave,idim,QFS:QFS-1+nspec)
+                   do idim = 1, 3
+                      do iwave = 1, 3
+                         eos_state%rho   = Ip(i,j,kc,idim,iwave,QRHO)
+                         eos_state%T     = Ip(i,j,kc,idim,iwave,QTEMP)
+                         eos_state%xn(:) = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
                          
                          call eos(eos_input_rt, eos_state, .false.)
                          
-                         Ip(i,j,kc,iwave,idim,QPRES) = eos_state%p
-                         Ip(i,j,kc,iwave,idim,QREINT) = Ip(i,j,kc,iwave,idim,QRHO)*eos_state%e
+                         Ip(i,j,kc,idim,iwave,QPRES) = eos_state%p
+                         Ip(i,j,kc,idim,iwave,QREINT) = Ip(i,j,kc,idim,iwave,QRHO)*eos_state%e
                          
                          
-                         eos_state%rho   = Im(i,j,kc,iwave,idim,QRHO)
-                         eos_state%T     = Im(i,j,kc,iwave,idim,QTEMP)
-                         eos_state%xn(:) = Im(i,j,kc,iwave,idim,QFS:QFS-1+nspec)
+                         eos_state%rho   = Im(i,j,kc,idim,iwave,QRHO)
+                         eos_state%T     = Im(i,j,kc,idim,iwave,QTEMP)
+                         eos_state%xn(:) = Im(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
                          
                          call eos(eos_input_rt, eos_state, .false.)
                          
-                         Im(i,j,kc,iwave,idim,QPRES) = eos_state%p
-                         Im(i,j,kc,iwave,idim,QREINT) = Im(i,j,kc,iwave,idim,QRHO)*eos_state%e
+                         Im(i,j,kc,idim,iwave,QPRES) = eos_state%p
+                         Im(i,j,kc,idim,iwave,QREINT) = Im(i,j,kc,idim,iwave,QRHO)*eos_state%e
                          
                       enddo
                    enddo
