@@ -138,34 +138,33 @@ contains
     if (ppm_temp_fix == 1) then
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1
-             do iwave = 1, 3
-                do idim = 1, 3
-                   eos_state%rho   = Ip(i,j,iwave,idim,QRHO)
-                   eos_state%T     = Ip(i,j,iwave,idim,QTEMP)
-                   eos_state%xn(:) = Ip(i,j,iwave,idim,QFS:QFS-1+nspec)
-                         
+             do idim = 1, 2
+                do iwave = 1, 3
+                   eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
+                   eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
+                   eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
+
                    call eos(eos_input_rt, eos_state, .false.)
-                         
-                   Ip(i,j,iwave,idim,QPRES) = eos_state%p
-                   Ip(i,j,iwave,idim,QREINT) = Ip(i,j,iwave,idim,QRHO)*eos_state%e
-                         
-                         
-                   eos_state%rho   = Im(i,j,iwave,idim,QRHO)
-                   eos_state%T     = Im(i,j,iwave,idim,QTEMP)
-                   eos_state%xn(:) = Im(i,j,iwave,idim,QFS:QFS-1+nspec)
-                         
+
+                   Ip(i,j,idim,iwave,QPRES) = eos_state%p
+                   Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO)*eos_state%e
+
+
+                   eos_state%rho   = Im(i,j,idim,iwave,QRHO)
+                   eos_state%T     = Im(i,j,idim,iwave,QTEMP)
+                   eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
+
                    call eos(eos_input_rt, eos_state, .false.)
-                         
-                   Im(i,j,iwave,idim,QPRES) = eos_state%p
-                   Im(i,j,iwave,idim,QREINT) = Im(i,j,iwave,idim,QRHO)*eos_state%e
-                         
+
+                   Im(i,j,idim,iwave,QPRES) = eos_state%p
+                   Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO)*eos_state%e
+
                 enddo
              enddo
           enddo
        enddo
-       
-    endif
 
+    endif
 
 
     if (ppm_trace_grav == 1) then
