@@ -101,23 +101,25 @@ contains
     halfdt = 0.5d0 * dt
 
 
-    !!!!!!!!!!!!!!!
+    !=========================================================================
     ! PPM CODE
-    !!!!!!!!!!!!!!!
+    !=========================================================================
 
     ! This does the characteristic tracing to build the interface
     ! states using the normal predictor only (no transverse terms).
-    
+    !
     ! We first fill the Im and Ip arrays -- these are the averages of
     ! the various primitive state variables under the parabolic
     ! interpolant over the region swept out by one of the 3 different
     ! characteristic waves.
-    
+    !
     ! Im is integrating to the left interface of the current zone
     ! (which will be used to build the right state at that interface)
     ! and Ip is integrating to the right interface of the current zone
     ! (which will be used to build the left state at that interface).
-
+    !
+    ! The indices are: Ip(i, j, dim, wave, var)
+    !
     ! The choice of reference state is designed to minimize the
     ! effects of the characteristic projection.  We subtract the I's
     ! off of the reference state, project the quantity such that it is
@@ -126,7 +128,9 @@ contains
     ! state to get the full state on that interface.
 
 
-    ! Compute Ip and Im
+    ! Compute Ip and Im -- this does the parabolic reconstruction,
+    ! limiting, and returns the integral of each profile under
+    ! each wave to each interface
     do n=1,QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
@@ -134,7 +138,8 @@ contains
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
 
-    ! temperature-based PPM
+    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
     if (ppm_temp_fix == 1) then
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1
@@ -166,7 +171,8 @@ contains
 
     endif
 
-
+    ! if desired, do parabolic reconstruction of the gravitational
+    ! acceleration -- we'll use this for the force on the velocity
     if (ppm_trace_grav == 1) then
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
@@ -175,6 +181,11 @@ contains
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        enddo
     endif
+
+
+    !-------------------------------------------------------------------------
+    ! x-direction
+    !-------------------------------------------------------------------------
 
     ! Trace to left and right edges using upwind PPM
     do j = ilo2-1, ihi2+1
@@ -205,7 +216,9 @@ contains
              rhoe_ref = rhoe
              
           else
-             ! this will be the fastest moving state to the left
+             ! this will be the fastest moving state to the left --
+             ! this is the method that Miller & Colella and Colella &
+             ! Woodward use
              rho_ref  = Im(i,j,1,1,QRHO)
              u_ref    = Im(i,j,1,1,QU)
              v_ref    = Im(i,j,1,1,QV)
@@ -217,8 +230,6 @@ contains
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          ! note: for the transverse velocities, the jump is carried
-          ! only by the u wave (the contact)
           dum    = flatn(i,j)*(u_ref    - Im(i,j,1,1,QU))
           !dvm    = flatn(i,j)*(v_ref    - Im(i,j,1,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Im(i,j,1,1,QPRES))
@@ -235,15 +246,17 @@ contains
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,1,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,1,3,QREINT))
 
+          ! if we are doing gravity tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
           if (ppm_trace_grav == 1) then
              dum = dum - halfdt*Im_g(i,j,1,1,igx)
              dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
              dup = dup - halfdt*Im_g(i,j,1,3,igx)
           endif
 
-          ! these are the beta's from the original PPM paper.  This is
-          ! essentially (l . dq) r for each primitive quantity
-
+          ! these are the beta's from the original PPM paper.  This 
+          ! is simply (l . dq), where dq = qref - I(q)
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dp/csq
@@ -257,6 +270,7 @@ contains
           else
              amright = -0.5d0*alpham
           endif
+
           if (u+cc .gt. 0.d0) then
              apright = 0.d0
           else if (u+cc .lt. 0.d0) then
@@ -264,6 +278,7 @@ contains
           else
              apright = -0.5d0*alphap
           endif
+
           if (u .gt. 0.d0) then
              azrright = 0.d0
              azeright = 0.d0
@@ -278,10 +293,13 @@ contains
              azv1rght = -0.5d0*alpha0v
           endif
 
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r
           if (i .ge. ilo1) then
 
              xi1 = 1.0d0-flatn(i,j)
              xi = flatn(i,j)
+
              qxp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
              qxp(i,j,QU)     = xi1*u    + xi*   u_ref + (apright - amright)*cc/rho
              qxp(i,j,QV)     = xi1*v    + xi*   v_ref + azv1rght
@@ -316,6 +334,9 @@ contains
              rhoe_ref = Ip(i,j,1,3,QREINT)
           endif
 
+          ! *m are the jumps carried by u-c
+          ! *p are the jumps carried by u+c
+
           dum    = flatn(i,j)*(u_ref    - Ip(i,j,1,1,QU))
           !dvm    = flatn(i,j)*(v_ref    - Ip(i,j,1,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Ip(i,j,1,1,QPRES))
@@ -332,13 +353,17 @@ contains
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,1,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,1,3,QREINT))
 
+          ! if we are doing gravity tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
           if (ppm_trace_grav == 1) then
              dum = dum - halfdt*Ip_g(i,j,1,1,igx)
              dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
              dup = dup - halfdt*Ip_g(i,j,1,3,igx)
           endif
 
-          
+          ! these are the beta's from the original PPM paper.  This 
+          ! is simply (l . dq), where dq = qref - I(q)          
           alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dp/csq
@@ -352,6 +377,7 @@ contains
           else
              amleft = -0.5d0*alpham
           endif
+
           if (u+cc .gt. 0.d0) then
              apleft = -alphap
           else if (u+cc .lt. 0.d0) then
@@ -359,6 +385,7 @@ contains
           else
              apleft = -0.5d0*alphap
           endif
+
           if (u .gt. 0.d0) then
              azrleft = -alpha0r
              azeleft = -alpha0e
@@ -373,9 +400,12 @@ contains
              azv1left = -0.5d0*alpha0v
           endif
           
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r
           if (i .le. ihi1) then
              xi1 = 1.0d0 - flatn(i,j)
              xi = flatn(i,j)
+
              qxm(i+1,j,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
              qxm(i+1,j,QU)     = xi1*u    + xi*   u_ref + (apleft - amleft)*cc/rho
              qxm(i+1,j,QV)     = xi1*v    + xi*   v_ref + azv1left
@@ -387,7 +417,9 @@ contains
              qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
           end if
 
+          !-------------------------------------------------------------------
           ! geometry source terms
+          !-------------------------------------------------------------------
           if(dloga(i,j).ne.0)then
              courn = dtdx*(cc+abs(u))
              eta = (1.d0-courn)/(cc*dt*abs(dloga(i,j)))
@@ -395,24 +427,30 @@ contains
              sourcr = -0.5d0*dt*rho*dlogatmp*u
              sourcp = sourcr*csq
              source = sourcp*enth
+
              if (i .le. ihi1) then
                 qxm(i+1,j,QRHO) = qxm(i+1,j,QRHO) + sourcr
                 qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
                 qxm(i+1,j,QPRES) = qxm(i+1,j,QPRES) + sourcp
                 qxm(i+1,j,QREINT) = qxm(i+1,j,QREINT) + source
              end if
+
              if (i .ge. ilo1) then
                 qxp(i,j,QRHO) = qxp(i,j,QRHO) + sourcr
                 qxp(i,j,QRHO) = max(qxp(i,j,QRHO),small_dens)
                 qxp(i,j,QPRES) = qxp(i,j,QPRES) + sourcp
                 qxp(i,j,QREINT) = qxp(i,j,QREINT) + source
              end if
+
           endif
 
        end do
     end do
 
+
+    !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
+    !-------------------------------------------------------------------------
 
     do iadv = 1, nadv
        n = QFA + iadv - 1
@@ -566,6 +604,9 @@ contains
           endif
             
 
+          ! *m are the jumps carried by v-c
+          ! *p are the jumps carried by v+c
+
           !dum    = flatn(i,j)*(u_ref    - Im(i,j,2,1,QU))
           dvm    = flatn(i,j)*(v_ref    - Im(i,j,2,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Im(i,j,2,1,QPRES))
@@ -582,13 +623,17 @@ contains
           dpp    = flatn(i,j)*(p_ref    - Im(i,j,2,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,2,3,QREINT))
 
+          ! if we are doing gravity tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
           if (ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Im_g(i,j,2,1,igy)
              du  = du  - halfdt*Im_g(i,j,2,2,igx)
              dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
           endif
 
-          
+          ! these are the beta's from the original PPM paper.  This 
+          ! is simply (l . dq), where dq = qref - I(q)
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dp/csq
@@ -602,6 +647,7 @@ contains
           else
              amright = -0.5d0*alpham
           endif
+
           if (v+cc .gt. 0.d0) then
              apright = 0.d0
           else if (v+cc .lt. 0.d0) then
@@ -609,6 +655,7 @@ contains
           else
              apright = -0.5d0*alphap
           endif
+
           if (v .gt. 0.d0) then
              azrright = 0.d0
              azeright = 0.d0
@@ -622,10 +669,13 @@ contains
              azeright = -0.5d0*alpha0e
              azu1rght = -0.5d0*alpha0u
           endif
-          
+
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r          
           if (j .ge. ilo2) then
              xi1 = 1.0d0 - flatn(i,j)
              xi = flatn(i,j)
+
              qyp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
              qyp(i,j,QV)     = xi1*v    + xi*   v_ref + (apright - amright)*cc/rho
              qyp(i,j,QU)     = xi1*u    + xi*   u_ref + azu1rght
@@ -659,6 +709,9 @@ contains
              rhoe_ref = Ip(i,j,2,3,QREINT)
           endif
 
+          ! *m are the jumps carried by v-c
+          ! *p are the jumps carried by v+c
+
           !dum    = flatn(i,j)*(u_ref    - Ip(i,j,2,1,QU))
           dvm    = flatn(i,j)*(v_ref    - Ip(i,j,2,1,QV))
           dpm    = flatn(i,j)*(p_ref    - Ip(i,j,2,1,QPRES))
@@ -675,13 +728,17 @@ contains
           dpp    = flatn(i,j)*(p_ref    - Ip(i,j,2,3,QPRES))
           drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,2,3,QREINT))
 
+          ! if we are doing gravity tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
           if (ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Ip_g(i,j,2,1,igy)
              du  = du  - halfdt*Ip_g(i,j,2,2,igx)
              dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
           endif
 
-          
+          ! these are the beta's from the original PPM paper.  This 
+          ! is simply (l . dq), where dq = qref - I(q)                    
           alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
           alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dp/csq
@@ -695,6 +752,7 @@ contains
           else
              amleft = -0.5d0*alpham
           endif
+
           if (v+cc .gt. 0.d0) then
              apleft = -alphap
           else if (v+cc .lt. 0.d0) then
@@ -702,6 +760,7 @@ contains
           else
              apleft = -0.5d0*alphap
           endif
+
           if (v .gt. 0.d0) then
              azrleft = -alpha0r
              azeleft = -alpha0e
@@ -715,10 +774,13 @@ contains
              azeleft = -0.5d0*alpha0e
              azu1left = -0.5d0*alpha0u
           endif
-          
+
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r          
           if (j .le. ihi2) then
              xi1 = 1.0d0 - flatn(i,j)
              xi = flatn(i,j)
+
              qym(i,j+1,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
              qym(i,j+1,QV)     = xi1*v    + xi*   v_ref + (apleft - amleft)*cc/rho
              qym(i,j+1,QU)     = xi1*u    + xi*   u_ref + azu1left
@@ -734,7 +796,10 @@ contains
     end do
 
     
+    !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
+    !-------------------------------------------------------------------------
+
     do iadv = 1, nadv
        n = QFA + iadv - 1
        do i = ilo1-1, ihi1+1
