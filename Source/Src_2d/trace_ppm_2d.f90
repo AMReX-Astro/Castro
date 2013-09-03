@@ -912,7 +912,10 @@ contains
     enddo
     
     deallocate(Ip,Im)
-    
+    if (ppm_trace_grav == 1) then
+       deallocate(Ip_g,Im_g)
+    endif
+
   end subroutine trace_ppm
   
 end module trace_ppm_module
