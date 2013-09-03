@@ -142,6 +142,7 @@ int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
+int          Castro::ppm_tau_in_tracing = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
@@ -364,6 +365,7 @@ Castro::read_params ()
     pp.query("ppm_reference", ppm_reference);
     pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("ppm_temp_fix", ppm_temp_fix);
+    pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
     pp.query("use_colglaz",use_colglaz);
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);

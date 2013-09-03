@@ -208,7 +208,7 @@ Castro::variableSetUp ()
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, 
          allow_negative_energy,ppm_type,ppm_reference,
-	 ppm_trace_grav,ppm_temp_fix,
+	 ppm_trace_grav,ppm_temp_fix,ppm_tau_in_tracing,
 	 use_colglaz,
          cg_maxiter, cg_tol,
          use_pslope, 
