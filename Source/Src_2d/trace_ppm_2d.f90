@@ -15,10 +15,13 @@ contains
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec, naux
+    use eos_type_module
+    use eos_module
+
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
-         QREINT, QPRES, QFA, QFS, QFX, &
+         QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
          nadv, small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav
+         ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix
     use ppm_module, only : ppm
 
     implicit none
@@ -44,7 +47,7 @@ contains
     double precision dx, dy, dt
     
     ! Local variables
-    integer i, j
+    integer i, j, iwave, idim
     integer n, iadv
     integer ns, ispec, iaux
     
@@ -75,6 +78,8 @@ contains
 
     double precision, allocatable :: Ip_g(:,:,:,:,:)
     double precision, allocatable :: Im_g(:,:,:,:,:)
+
+    type (eos_t) :: eos_state
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
@@ -128,6 +133,40 @@ contains
                 Ip(:,:,:,:,n),Im(:,:,:,:,n), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
+
+    ! temperature-based PPM
+    if (ppm_temp_fix == 1) then
+       do j = ilo2-1, ihi2+1
+          do i = ilo1-1, ihi1+1
+             do iwave = 1, 3
+                do idim = 1, 3
+                   eos_state%rho   = Ip(i,j,iwave,idim,QRHO)
+                   eos_state%T     = Ip(i,j,iwave,idim,QTEMP)
+                   eos_state%xn(:) = Ip(i,j,iwave,idim,QFS:QFS-1+nspec)
+                         
+                   call eos(eos_input_rt, eos_state, .false.)
+                         
+                   Ip(i,j,iwave,idim,QPRES) = eos_state%p
+                   Ip(i,j,iwave,idim,QREINT) = Ip(i,j,iwave,idim,QRHO)*eos_state%e
+                         
+                         
+                   eos_state%rho   = Im(i,j,iwave,idim,QRHO)
+                   eos_state%T     = Im(i,j,iwave,idim,QTEMP)
+                   eos_state%xn(:) = Im(i,j,iwave,idim,QFS:QFS-1+nspec)
+                         
+                   call eos(eos_input_rt, eos_state, .false.)
+                         
+                   Im(i,j,iwave,idim,QPRES) = eos_state%p
+                   Im(i,j,iwave,idim,QREINT) = Im(i,j,iwave,idim,QRHO)*eos_state%e
+                         
+                enddo
+             enddo
+          enddo
+       enddo
+       
+    endif
+
+
 
     if (ppm_trace_grav == 1) then
        do n = 1,2
