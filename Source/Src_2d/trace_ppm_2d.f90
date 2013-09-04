@@ -21,7 +21,8 @@ contains
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
          nadv, small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix
+         ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
+         ppm_tau_in_tracing
     use ppm_module, only : ppm
 
     implicit none
@@ -52,13 +53,14 @@ contains
     integer ns, ispec, iaux
     
     double precision dtdx, dtdy
-    double precision cc, csq, rho, u, v, p, rhoe
-    double precision drho, du, dv, dp, drhoe
+    double precision cc, csq, Clag, rho, u, v, p, rhoe
+    double precision drho, du, dv, dp, drhoe, dtau
     double precision drhop, dup, dvp, dpp, drhoep
     double precision drhom, dum, dvm, dpm, drhoem
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
-    
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
+    double precision :: tau_s
+
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
     double precision apright, amright, azrright, azeright
@@ -193,6 +195,7 @@ contains
 
           cc = c(i,j)
           csq = cc**2
+
           rho = q(i,j,QRHO)
           u = q(i,j,QU)
           v = q(i,j,QV)
@@ -200,6 +203,8 @@ contains
           p = q(i,j,QPRES)
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
+
+          Clag = rho*cc
 
           !-------------------------------------------------------------------
           ! plus state on face i
@@ -212,9 +217,11 @@ contains
              rho_ref  = rho
              u_ref    = u
              v_ref    = v
+
              p_ref    = p
              rhoe_ref = rhoe
-             
+
+             tau_ref  = 1.0d0/rho
           else
              ! this will be the fastest moving state to the left --
              ! this is the method that Miller & Colella and Colella &
@@ -225,26 +232,29 @@ contains
 
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
+
+             tau_ref  = 1.0d0/Im(i,j,1,1,QRHO)
           endif
 
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          dum    = flatn(i,j)*(u_ref    - Im(i,j,1,1,QU))
-          !dvm    = flatn(i,j)*(v_ref    - Im(i,j,1,1,QV))
-          dpm    = flatn(i,j)*(p_ref    - Im(i,j,1,1,QPRES))
-          drhoem = flatn(i,j)*(rhoe_ref - Im(i,j,1,1,QREINT))
+          dum    = (u_ref    - Im(i,j,1,1,QU))
+          !dvm    = (v_ref    - Im(i,j,1,1,QV))
+          dpm    = (p_ref    - Im(i,j,1,1,QPRES))
+          drhoem = (rhoe_ref - Im(i,j,1,1,QREINT))
 
-          drho  = flatn(i,j)*(rho_ref  - Im(i,j,1,2,QRHO))
-          !du    = flatn(i,j)*(u_ref    - Im(i,j,1,2,QU))
-          dv    = flatn(i,j)*(v_ref    - Im(i,j,1,2,QV))
-          dp    = flatn(i,j)*(p_ref    - Im(i,j,1,2,QPRES))
-          drhoe = flatn(i,j)*(rhoe_ref - Im(i,j,1,2,QREINT))
+          drho  = (rho_ref  - Im(i,j,1,2,QRHO))
+          !du    = (u_ref    - Im(i,j,1,2,QU))
+          dv    = (v_ref    - Im(i,j,1,2,QV))
+          dp    = (p_ref    - Im(i,j,1,2,QPRES))
+          drhoe = (rhoe_ref - Im(i,j,1,2,QREINT))
+          dtau  = (tau_ref  - 1.0d0/Im(i,j,1,2,QRHO))
 
-          dup    = flatn(i,j)*(u_ref    - Im(i,j,1,3,QU))
-          !dvp    = flatn(i,j)*(v_ref    - Im(i,j,1,3,QV))
-          dpp    = flatn(i,j)*(p_ref    - Im(i,j,1,3,QPRES))
-          drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,1,3,QREINT))
+          dup    = (u_ref    - Im(i,j,1,3,QU))
+          !dvp    = (v_ref    - Im(i,j,1,3,QV))
+          dpp    = (p_ref    - Im(i,j,1,3,QPRES))
+          drhoep = (rhoe_ref - Im(i,j,1,3,QREINT))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -255,61 +265,131 @@ contains
              dup = dup - halfdt*Im_g(i,j,1,3,igx)
           endif
 
-          ! these are the beta's from the original PPM paper.  This 
-          ! is simply (l . dq), where dq = qref - I(q)
-          alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0v = dv
+          if (ppm_tau_in_tracing == 0) then
 
-          if (u-cc .gt. 0.d0) then
-             amright = 0.d0
-          else if (u-cc .lt. 0.d0) then
-             amright = -alpham
+             ! these are the beta's from the original PPM paper
+             ! (except we work with rho instead of tau).  This is
+             ! simply (l . dq), where dq = qref - I(q)
+             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
+             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0v = dv
+
+             if (u-cc .gt. 0.d0) then
+                amright = 0.d0
+             else if (u-cc .lt. 0.d0) then
+                amright = -alpham
+             else
+                amright = -0.5d0*alpham
+             endif
+             
+             if (u+cc .gt. 0.d0) then
+                apright = 0.d0
+             else if (u+cc .lt. 0.d0) then
+                apright = -alphap
+             else
+                apright = -0.5d0*alphap
+             endif
+             
+             if (u .gt. 0.d0) then
+                azrright = 0.d0
+                azeright = 0.d0
+                azv1rght = 0.d0
+             else if (u .lt. 0.d0) then
+                azrright = -alpha0r
+                azeright = -alpha0e
+                azv1rght = -alpha0v
+             else
+                azrright = -0.5d0*alpha0r
+                azeright = -0.5d0*alpha0e
+                azv1rght = -0.5d0*alpha0v
+             endif
+
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r
+             if (i .ge. ilo1) then
+
+                xi1 = 1.0d0-flatn(i,j)
+                xi = flatn(i,j)
+
+                qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
+
+
+                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc/rho)
+                qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
+                
+                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth*csq + azeright)
+                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq)
+                
+                qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
+                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+             end if
+             
           else
-             amright = -0.5d0*alpham
+
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
+
+             alpham = 0.5d0*( dum - dpm/Clag)/Clag
+             alphap = 0.5d0*(-dup - dpp/Clag)/Clag
+             alpha0r = dtau - dp/Clag**2
+             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0v = dv
+
+             if (u-cc .gt. 0.d0) then
+                amright = 0.d0
+             else if (u-cc .lt. 0.d0) then
+                amright = -alpham
+             else
+                amright = -0.5d0*alpham
+             endif
+             
+             if (u+cc .gt. 0.d0) then
+                apright = 0.d0
+             else if (u+cc .lt. 0.d0) then
+                apright = -alphap
+             else
+                apright = -0.5d0*alphap
+             endif
+             
+             if (u .gt. 0.d0) then
+                azrright = 0.d0
+                azeright = 0.d0
+                azv1rght = 0.d0
+             else if (u .lt. 0.d0) then
+                azrright = -alpha0r
+                azeright = -alpha0e
+                azv1rght = -alpha0v
+             else
+                azrright = -0.5d0*alpha0r
+                azeright = -0.5d0*alpha0e
+                azv1rght = -0.5d0*alpha0v
+             endif
+
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r
+             if (i .ge. ilo1) then
+
+                xi1 = 1.0d0-flatn(i,j)
+                xi = flatn(i,j)
+
+                ! we need to undo the flattening to construct tau and then apply it for rho
+                tau_s = tau_ref + apright + amright + azrright
+                qxp(i,j,QRHO)   = xi1*rho + xi/tau_s
+
+                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (amright - apright)*Clag)
+                qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
+                
+                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apright - amright)*enth*csq*rho**2 + azeright)
+                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
+                
+                qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
+                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+             end if
+
           endif
-
-          if (u+cc .gt. 0.d0) then
-             apright = 0.d0
-          else if (u+cc .lt. 0.d0) then
-             apright = -alphap
-          else
-             apright = -0.5d0*alphap
-          endif
-
-          if (u .gt. 0.d0) then
-             azrright = 0.d0
-             azeright = 0.d0
-             azv1rght = 0.d0
-          else if (u .lt. 0.d0) then
-             azrright = -alpha0r
-             azeright = -alpha0e
-             azv1rght = -alpha0v
-          else
-             azrright = -0.5d0*alpha0r
-             azeright = -0.5d0*alpha0e
-             azv1rght = -0.5d0*alpha0v
-          endif
-
-          ! the final interface states are just
-          ! q_s = q_ref - sum (l . dq) r
-          if (i .ge. ilo1) then
-
-             xi1 = 1.0d0-flatn(i,j)
-             xi = flatn(i,j)
-
-             qxp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
-             qxp(i,j,QU)     = xi1*u    + xi*   u_ref + (apright - amright)*cc/rho
-             qxp(i,j,QV)     = xi1*v    + xi*   v_ref + azv1rght
-
-             qxp(i,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
-             qxp(i,j,QPRES)  = xi1*p    + xi*   p_ref + (apright + amright)*csq
-
-             qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
-             qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
-          end if
 
           !-------------------------------------------------------------------
           ! minus state on face i+1
@@ -322,8 +402,11 @@ contains
              rho_ref  = rho
              u_ref    = u
              v_ref    = v
+
              p_ref    = p
              rhoe_ref = rhoe
+
+             tau_ref = 1.0d0/rho
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
@@ -332,26 +415,29 @@ contains
 
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
+
+             tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
           endif
 
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          dum    = flatn(i,j)*(u_ref    - Ip(i,j,1,1,QU))
-          !dvm    = flatn(i,j)*(v_ref    - Ip(i,j,1,1,QV))
-          dpm    = flatn(i,j)*(p_ref    - Ip(i,j,1,1,QPRES))
-          drhoem = flatn(i,j)*(rhoe_ref - Ip(i,j,1,1,QREINT))
+          dum    = (u_ref    - Ip(i,j,1,1,QU))
+          !dvm    = (v_ref    - Ip(i,j,1,1,QV))
+          dpm    = (p_ref    - Ip(i,j,1,1,QPRES))
+          drhoem = (rhoe_ref - Ip(i,j,1,1,QREINT))
           
-          drho  = flatn(i,j)*(rho_ref  - Ip(i,j,1,2,QRHO))
-          !du    = flatn(i,j)*(u_ref    - Ip(i,j,1,2,QU))
-          dv    = flatn(i,j)*(v_ref    - Ip(i,j,1,2,QV))
-          dp    = flatn(i,j)*(p_ref    - Ip(i,j,1,2,QPRES))
-          drhoe = flatn(i,j)*(rhoe_ref - Ip(i,j,1,2,QREINT))
+          drho  = (rho_ref  - Ip(i,j,1,2,QRHO))
+          !du    = (u_ref    - Ip(i,j,1,2,QU))
+          dv    = (v_ref    - Ip(i,j,1,2,QV))
+          dp    = (p_ref    - Ip(i,j,1,2,QPRES))
+          drhoe = (rhoe_ref - Ip(i,j,1,2,QREINT))
+          dtau  = (tau_ref  - 1.0d0/Ip(i,j,1,2,QRHO))
           
-          dup    = flatn(i,j)*(u_ref    - Ip(i,j,1,3,QU))
-          !dvp    = flatn(i,j)*(v_ref    - Ip(i,j,1,3,QV))
-          dpp    = flatn(i,j)*(p_ref    - Ip(i,j,1,3,QPRES))
-          drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,1,3,QREINT))
+          dup    = (u_ref    - Ip(i,j,1,3,QU))
+          !dvp    = (v_ref    - Ip(i,j,1,3,QV))
+          dpp    = (p_ref    - Ip(i,j,1,3,QPRES))
+          drhoep = (rhoe_ref - Ip(i,j,1,3,QREINT))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -362,64 +448,133 @@ contains
              dup = dup - halfdt*Ip_g(i,j,1,3,igx)
           endif
 
-          ! these are the beta's from the original PPM paper.  This 
-          ! is simply (l . dq), where dq = qref - I(q)          
-          alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0v = dv
-          
-          if (u-cc .gt. 0.d0) then
-             amleft = -alpham
-          else if (u-cc .lt. 0.d0) then
-             amleft = 0.d0
+          if (ppm_tau_in_tracing == 0) then
+
+             ! these are the beta's from the original PPM paper.  This 
+             ! is simply (l . dq), where dq = qref - I(q)          
+             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
+             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0v = dv
+             
+             if (u-cc .gt. 0.d0) then
+                amleft = -alpham
+             else if (u-cc .lt. 0.d0) then
+                amleft = 0.d0
+             else
+                amleft = -0.5d0*alpham
+             endif
+             
+             if (u+cc .gt. 0.d0) then
+                apleft = -alphap
+             else if (u+cc .lt. 0.d0) then
+                apleft = 0.d0
+             else
+                apleft = -0.5d0*alphap
+             endif
+             
+             if (u .gt. 0.d0) then
+                azrleft = -alpha0r
+                azeleft = -alpha0e
+                azv1left = -alpha0v
+             else if (u .lt. 0.d0) then
+                azrleft = 0.d0
+                azeleft = 0.d0
+                azv1left = 0.d0
+             else
+                azrleft = -0.5d0*alpha0r
+                azeleft = -0.5d0*alpha0e
+                azv1left = -0.5d0*alpha0v
+             endif
+             
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r
+             if (i .le. ihi1) then
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                qxm(i+1,j,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
+                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc/rho)
+                qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
+                
+                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth*csq + azeleft)
+                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq)
+                
+                qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
+                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+             end if
+
           else
-             amleft = -0.5d0*alpham
+
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
+
+             alpham = 0.5d0*( dum - dpm/Clag)/Clag
+             alphap = 0.5d0*(-dup - dpp/Clag)/Clag
+             alpha0r = dtau - dp/Clag**2
+             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0v = dv
+
+             if (u-cc .gt. 0.d0) then
+                amleft = -alpham
+             else if (u-cc .lt. 0.d0) then
+                amleft = 0.d0
+             else
+                amleft = -0.5d0*alpham
+             endif
+             
+             if (u+cc .gt. 0.d0) then
+                apleft = -alphap
+             else if (u+cc .lt. 0.d0) then
+                apleft = 0.d0
+             else
+                apleft = -0.5d0*alphap
+             endif
+             
+             if (u .gt. 0.d0) then
+                azrleft = -alpha0r
+                azeleft = -alpha0e
+                azv1left = -alpha0v
+             else if (u .lt. 0.d0) then
+                azrleft = 0.d0
+                azeleft = 0.d0
+                azv1left = 0.d0
+             else
+                azrleft = -0.5d0*alpha0r
+                azeleft = -0.5d0*alpha0e
+                azv1left = -0.5d0*alpha0v
+             endif
+             
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r
+             if (i .le. ihi1) then
+
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                ! we need to undo the flattening to construct tau and then apply it for rho
+                tau_s = tau_ref + (apleft + amleft + azrleft)
+                qxm(i+1,j,QRHO)   = xi1*rho  + xi/tau_s
+
+                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag)
+                qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
+                
+                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apleft - amleft)*enth*csq*rho**2 + azeleft)
+                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
+                
+                qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
+                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+
+             end if
+
           endif
-
-          if (u+cc .gt. 0.d0) then
-             apleft = -alphap
-          else if (u+cc .lt. 0.d0) then
-             apleft = 0.d0
-          else
-             apleft = -0.5d0*alphap
-          endif
-
-          if (u .gt. 0.d0) then
-             azrleft = -alpha0r
-             azeleft = -alpha0e
-             azv1left = -alpha0v
-          else if (u .lt. 0.d0) then
-             azrleft = 0.d0
-             azeleft = 0.d0
-             azv1left = 0.d0
-          else
-             azrleft = -0.5d0*alpha0r
-             azeleft = -0.5d0*alpha0e
-             azv1left = -0.5d0*alpha0v
-          endif
-          
-          ! the final interface states are just
-          ! q_s = q_ref - sum (l . dq) r
-          if (i .le. ihi1) then
-             xi1 = 1.0d0 - flatn(i,j)
-             xi = flatn(i,j)
-
-             qxm(i+1,j,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qxm(i+1,j,QU)     = xi1*u    + xi*   u_ref + (apleft - amleft)*cc/rho
-             qxm(i+1,j,QV)     = xi1*v    + xi*   v_ref + azv1left
-
-             qxm(i+1,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-             qxm(i+1,j,QPRES)  = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
-
-             qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
-             qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
-          end if
 
           !-------------------------------------------------------------------
           ! geometry source terms
           !-------------------------------------------------------------------
+
           if(dloga(i,j).ne.0)then
              courn = dtdx*(cc+abs(u))
              eta = (1.d0-courn)/(cc*dt*abs(dloga(i,j)))
@@ -573,13 +728,16 @@ contains
           
           cc = c(i,j)
           csq = cc**2
+
           rho = q(i,j,QRHO)
           u = q(i,j,QU)
           v = q(i,j,QV)
+
           p = q(i,j,QPRES)
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
 
+          Clag = rho*cc
 
           !------------------------------------------------------------------- 
           ! plus state on face j
@@ -592,36 +750,43 @@ contains
              rho_ref  = rho
              u_ref    = u
              v_ref    = v
+
              p_ref    = p
              rhoe_ref = rhoe
+
+             tau_ref  = 1.0d0/rho
           else
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
              u_ref    = Im(i,j,2,1,QU)
              v_ref    = Im(i,j,2,1,QV)
+
              p_ref    = Im(i,j,2,1,QPRES)
              rhoe_ref = Im(i,j,2,1,QREINT)
+
+             tau_ref  = 1.0d0/Im(i,j,2,1,QRHO)
           endif
             
 
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
-          !dum    = flatn(i,j)*(u_ref    - Im(i,j,2,1,QU))
-          dvm    = flatn(i,j)*(v_ref    - Im(i,j,2,1,QV))
-          dpm    = flatn(i,j)*(p_ref    - Im(i,j,2,1,QPRES))
-          drhoem = flatn(i,j)*(rhoe_ref - Im(i,j,2,1,QREINT))
+          !dum    = (u_ref    - Im(i,j,2,1,QU))
+          dvm    = (v_ref    - Im(i,j,2,1,QV))
+          dpm    = (p_ref    - Im(i,j,2,1,QPRES))
+          drhoem = (rhoe_ref - Im(i,j,2,1,QREINT))
           
-          drho  = flatn(i,j)*(rho_ref  - Im(i,j,2,2,QRHO))
-          du    = flatn(i,j)*(u_ref    - Im(i,j,2,2,QU))
-          !dv    = flatn(i,j)*(v_ref    - Im(i,j,2,2,QV))
-          dp    = flatn(i,j)*(p_ref    - Im(i,j,2,2,QPRES))
-          drhoe = flatn(i,j)*(rhoe_ref - Im(i,j,2,2,QREINT))
-          
-          !dup    = flatn(i,j)*(u_ref    - Im(i,j,2,3,QU))
-          dvp    = flatn(i,j)*(v_ref    - Im(i,j,2,3,QV))
-          dpp    = flatn(i,j)*(p_ref    - Im(i,j,2,3,QPRES))
-          drhoep = flatn(i,j)*(rhoe_ref - Im(i,j,2,3,QREINT))
+          drho  = (rho_ref  - Im(i,j,2,2,QRHO))
+          du    = (u_ref    - Im(i,j,2,2,QU))
+          !dv    = (v_ref    - Im(i,j,2,2,QV))
+          dp    = (p_ref    - Im(i,j,2,2,QPRES))
+          drhoe = (rhoe_ref - Im(i,j,2,2,QREINT))
+          dtau  = (tau_ref  - 1.0d0/Im(i,j,2,2,QRHO))
+
+          !dup    = (u_ref    - Im(i,j,2,3,QU))
+          dvp    = (v_ref    - Im(i,j,2,3,QV))
+          dpp    = (p_ref    - Im(i,j,2,3,QPRES))
+          drhoep = (rhoe_ref - Im(i,j,2,3,QREINT))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -632,61 +797,130 @@ contains
              dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
           endif
 
-          ! these are the beta's from the original PPM paper.  This 
-          ! is simply (l . dq), where dq = qref - I(q)
-          alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0u = du
+          if (ppm_tau_in_tracing == 0) then
+
+             ! these are the beta's from the original PPM paper
+             ! (except we work with rho instead of tau).  This is
+             ! simply (l . dq), where dq = qref - I(q)
+             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
+             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0u = du
           
-          if (v-cc .gt. 0.d0) then
-             amright = 0.d0
-          else if (v-cc .lt. 0.d0) then
-             amright = -alpham
+             if (v-cc .gt. 0.d0) then
+                amright = 0.d0
+             else if (v-cc .lt. 0.d0) then
+                amright = -alpham
+             else
+                amright = -0.5d0*alpham
+             endif
+
+             if (v+cc .gt. 0.d0) then
+                apright = 0.d0
+             else if (v+cc .lt. 0.d0) then
+                apright = -alphap
+             else
+                apright = -0.5d0*alphap
+             endif
+
+             if (v .gt. 0.d0) then
+                azrright = 0.d0
+                azeright = 0.d0
+                azu1rght = 0.d0
+             else if (v .lt. 0.d0) then
+                azrright = -alpha0r
+                azeright = -alpha0e
+                azu1rght = -alpha0u
+             else
+                azrright = -0.5d0*alpha0r
+                azeright = -0.5d0*alpha0e
+                azu1rght = -0.5d0*alpha0u
+             endif
+
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r          
+             if (j .ge. ilo2) then
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                qyp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
+                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (apright - amright)*cc/rho)
+                qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)
+
+                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth*csq + azeright)
+                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq)
+                
+                qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
+                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+             end if
+
           else
-             amright = -0.5d0*alpham
-          endif
 
-          if (v+cc .gt. 0.d0) then
-             apright = 0.d0
-          else if (v+cc .lt. 0.d0) then
-             apright = -alphap
-          else
-             apright = -0.5d0*alphap
-          endif
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
 
-          if (v .gt. 0.d0) then
-             azrright = 0.d0
-             azeright = 0.d0
-             azu1rght = 0.d0
-          else if (v .lt. 0.d0) then
-             azrright = -alpha0r
-             azeright = -alpha0e
-             azu1rght = -alpha0u
-          else
-             azrright = -0.5d0*alpha0r
-             azeright = -0.5d0*alpha0e
-             azu1rght = -0.5d0*alpha0u
-          endif
-
-          ! the final interface states are just
-          ! q_s = q_ref - sum (l . dq) r          
-          if (j .ge. ilo2) then
-             xi1 = 1.0d0 - flatn(i,j)
-             xi = flatn(i,j)
-
-             qyp(i,j,QRHO)   = xi1*rho  + xi* rho_ref + apright + amright + azrright
-             qyp(i,j,QV)     = xi1*v    + xi*   v_ref + (apright - amright)*cc/rho
-             qyp(i,j,QU)     = xi1*u    + xi*   u_ref + azu1rght
-
-             qyp(i,j,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
-             qyp(i,j,QPRES)  = xi1*p    + xi*   p_ref + (apright + amright)*csq
-
-             qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-             qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
-          end if
+             alpham = 0.5d0*( dvm - dpm/Clag)/Clag
+             alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
+             alpha0r = dtau - dp/Clag**2
+             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0u = du
           
+             if (v-cc .gt. 0.d0) then
+                amright = 0.d0
+             else if (v-cc .lt. 0.d0) then
+                amright = -alpham
+             else
+                amright = -0.5d0*alpham
+             endif
+
+             if (v+cc .gt. 0.d0) then
+                apright = 0.d0
+             else if (v+cc .lt. 0.d0) then
+                apright = -alphap
+             else
+                apright = -0.5d0*alphap
+             endif
+
+             if (v .gt. 0.d0) then
+                azrright = 0.d0
+                azeright = 0.d0
+                azu1rght = 0.d0
+             else if (v .lt. 0.d0) then
+                azrright = -alpha0r
+                azeright = -alpha0e
+                azu1rght = -alpha0u
+             else
+                azrright = -0.5d0*alpha0r
+                azeright = -0.5d0*alpha0e
+                azu1rght = -0.5d0*alpha0u
+             endif
+
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r          
+             if (j .ge. ilo2) then
+
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                ! we need to undo the flattening to construct tau and then apply it for rho
+                tau_s = tau_ref + apright + amright + azrright
+                qyp(i,j,QRHO)   = xi1*rho  + xi/tau_s
+
+                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (amright - apright)*Clag)
+                qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)
+
+                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apright - amright)*enth*csq*rho**2 + azeright)
+                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
+                
+                qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
+                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+
+             end if
+
+          endif
+
           !-------------------------------------------------------------------
           ! minus state on face j+1
           !-------------------------------------------------------------------
@@ -698,35 +932,42 @@ contains
              rho_ref  = rho
              u_ref    = u
              v_ref    = v
+
              p_ref    = p
              rhoe_ref = rhoe
+
+             tau_ref  = 1.0d0/rho
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,2,3,QRHO)
              u_ref    = Ip(i,j,2,3,QU)
              v_ref    = Ip(i,j,2,3,QV)
+
              p_ref    = Ip(i,j,2,3,QPRES)
              rhoe_ref = Ip(i,j,2,3,QREINT)
+
+             tau_ref  = 1.0d0/Ip(i,j,2,3,QRHO)
           endif
 
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
-          !dum    = flatn(i,j)*(u_ref    - Ip(i,j,2,1,QU))
-          dvm    = flatn(i,j)*(v_ref    - Ip(i,j,2,1,QV))
-          dpm    = flatn(i,j)*(p_ref    - Ip(i,j,2,1,QPRES))
-          drhoem = flatn(i,j)*(rhoe_ref - Ip(i,j,2,1,QREINT))
+          !dum    = (u_ref    - Ip(i,j,2,1,QU))
+          dvm    = (v_ref    - Ip(i,j,2,1,QV))
+          dpm    = (p_ref    - Ip(i,j,2,1,QPRES))
+          drhoem = (rhoe_ref - Ip(i,j,2,1,QREINT))
           
-          drho  = flatn(i,j)*(rho_ref  - Ip(i,j,2,2,QRHO))
-          du    = flatn(i,j)*(u_ref    - Ip(i,j,2,2,QU))
-          !dv    = flatn(i,j)*(v_ref    - Ip(i,j,2,2,QV))
-          dp    = flatn(i,j)*(p_ref    - Ip(i,j,2,2,QPRES))
-          drhoe = flatn(i,j)*(rhoe_ref - Ip(i,j,2,2,QREINT))
+          drho  = (rho_ref  - Ip(i,j,2,2,QRHO))
+          du    = (u_ref    - Ip(i,j,2,2,QU))
+          !dv    = (v_ref    - Ip(i,j,2,2,QV))
+          dp    = (p_ref    - Ip(i,j,2,2,QPRES))
+          drhoe = (rhoe_ref - Ip(i,j,2,2,QREINT))
+          dtau  = (tau_ref  - 1.0d0/Ip(i,j,2,2,QRHO))
           
-          !dup    = flatn(i,j)*(u_ref    - Ip(i,j,2,3,QU))
-          dvp    = flatn(i,j)*(v_ref    - Ip(i,j,2,3,QV))
-          dpp    = flatn(i,j)*(p_ref    - Ip(i,j,2,3,QPRES))
-          drhoep = flatn(i,j)*(rhoe_ref - Ip(i,j,2,3,QREINT))
+          !dup    = (u_ref    - Ip(i,j,2,3,QU))
+          dvp    = (v_ref    - Ip(i,j,2,3,QV))
+          dpp    = (p_ref    - Ip(i,j,2,3,QPRES))
+          drhoep = (rhoe_ref - Ip(i,j,2,3,QREINT))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -737,63 +978,132 @@ contains
              dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
           endif
 
-          ! these are the beta's from the original PPM paper.  This 
-          ! is simply (l . dq), where dq = qref - I(q)                    
-          alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0u = du
-          
-          if (v-cc .gt. 0.d0) then
-             amleft = -alpham
-          else if (v-cc .lt. 0.d0) then
-             amleft = 0.d0
+          if (ppm_tau_in_tracing == 0) then
+
+             ! these are the beta's from the original PPM paper.  This 
+             ! is simply (l . dq), where dq = qref - I(q)                    
+             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
+             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0u = du
+             
+             if (v-cc .gt. 0.d0) then
+                amleft = -alpham
+             else if (v-cc .lt. 0.d0) then
+                amleft = 0.d0
+             else
+                amleft = -0.5d0*alpham
+             endif
+             
+             if (v+cc .gt. 0.d0) then
+                apleft = -alphap
+             else if (v+cc .lt. 0.d0) then
+                apleft = 0.d0
+             else
+                apleft = -0.5d0*alphap
+             endif
+             
+             if (v .gt. 0.d0) then
+                azrleft = -alpha0r
+                azeleft = -alpha0e
+                azu1left = -alpha0u
+             else if (v .lt. 0.d0) then
+                azrleft = 0.d0
+                azeleft = 0.d0
+                azu1left = 0.d0
+             else
+                azrleft = -0.5d0*alpha0r
+                azeleft = -0.5d0*alpha0e
+                azu1left = -0.5d0*alpha0u
+             endif
+             
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r          
+             if (j .le. ihi2) then
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                qym(i,j+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
+                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (apleft - amleft)*cc/rho)
+                qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
+             
+                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth*csq + azeleft)
+                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq)
+                
+                qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
+                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+             end if
+
           else
-             amleft = -0.5d0*alpham
+
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
+
+             alpham = 0.5d0*( dvm - dpm/Clag)/Clag
+             alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
+             alpha0r = dtau - dp/Clag**2
+             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0u = du
+             
+             if (v-cc .gt. 0.d0) then
+                amleft = -alpham
+             else if (v-cc .lt. 0.d0) then
+                amleft = 0.d0
+             else
+                amleft = -0.5d0*alpham
+             endif
+             
+             if (v+cc .gt. 0.d0) then
+                apleft = -alphap
+             else if (v+cc .lt. 0.d0) then
+                apleft = 0.d0
+             else
+                apleft = -0.5d0*alphap
+             endif
+             
+             if (v .gt. 0.d0) then
+                azrleft = -alpha0r
+                azeleft = -alpha0e
+                azu1left = -alpha0u
+             else if (v .lt. 0.d0) then
+                azrleft = 0.d0
+                azeleft = 0.d0
+                azu1left = 0.d0
+             else
+                azrleft = -0.5d0*alpha0r
+                azeleft = -0.5d0*alpha0e
+                azu1left = -0.5d0*alpha0u
+             endif
+             
+             ! the final interface states are just
+             ! q_s = q_ref - sum (l . dq) r          
+             if (j .le. ihi2) then
+
+                xi1 = 1.0d0 - flatn(i,j)
+                xi = flatn(i,j)
+                
+                tau_s = tau_ref + apleft + amleft + azrleft
+                qym(i,j+1,QRHO)   = xi1*rho  + xi/tau_s
+
+                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag)
+                qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
+             
+                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apleft - amleft)*enth*csq*rho**2 + azeleft)
+                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
+                
+                qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
+                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+
+             end if
+
           endif
-
-          if (v+cc .gt. 0.d0) then
-             apleft = -alphap
-          else if (v+cc .lt. 0.d0) then
-             apleft = 0.d0
-          else
-             apleft = -0.5d0*alphap
-          endif
-
-          if (v .gt. 0.d0) then
-             azrleft = -alpha0r
-             azeleft = -alpha0e
-             azu1left = -alpha0u
-          else if (v .lt. 0.d0) then
-             azrleft = 0.d0
-             azeleft = 0.d0
-             azu1left = 0.d0
-          else
-             azrleft = -0.5d0*alpha0r
-             azeleft = -0.5d0*alpha0e
-             azu1left = -0.5d0*alpha0u
-          endif
-
-          ! the final interface states are just
-          ! q_s = q_ref - sum (l . dq) r          
-          if (j .le. ihi2) then
-             xi1 = 1.0d0 - flatn(i,j)
-             xi = flatn(i,j)
-
-             qym(i,j+1,QRHO)   = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qym(i,j+1,QV)     = xi1*v    + xi*   v_ref + (apleft - amleft)*cc/rho
-             qym(i,j+1,QU)     = xi1*u    + xi*   u_ref + azu1left
-
-             qym(i,j+1,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-             qym(i,j+1,QPRES)  = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
-
-             qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-             qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
-          end if
 
        end do
     end do
+       
+
 
     
     !-------------------------------------------------------------------------
