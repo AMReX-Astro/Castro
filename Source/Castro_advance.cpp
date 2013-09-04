@@ -400,7 +400,12 @@ Castro::advance_hydro (Real time,
 	Erborder[fpi].copy(fpi());
       }
 
-      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+      if (radiation->pure_hydro) {
+	  lamborder.setVal(0.0, NUM_GROW);
+      }
+      else {
+	  radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+      }
 
       int nstep_fsp = -1;
 
