@@ -148,7 +148,7 @@
                                state(i,j,UTEMP),state(i,j,UFS:))
 
             !  rho X = rho * X
-            state(i,j,UFS  ) = state(i,j,URHO) * state(i,j,URHO)
+            state(i,j,UFS  ) = state(i,j,URHO) * state(i,j,UFS)
 
             !  rho e = rho * e
             state(i,j,UEINT) = state(i,j,URHO) * e
