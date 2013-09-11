@@ -1,16 +1,19 @@
 module probdata_module
 
-!     These determine the refinement criteria
+!     These determine the refinement criteria in Tagging_?d.f90
       double precision, save :: dengrad
       double precision, save :: velgrad
 
-!     KH variables for initializatoin
-      double precision, save ::  u_amb, rho_amb, T_amb, u_pert, rho_pert, T_pert
+!     KH variables for initialization; see McNally+ 2012 ApJS 201, 18
+      double precision, save ::  rho1, rho2, u1, u2, L, pres
+!     These control the amplitude and number of modes in the velocity 
+!     perturbation; equivalent to 0.01 and 4 in McNally+ Equation 5
+      double precision, save :: vfac, vmode
 
-!     These help specify which specific problem
-      integer        , save ::  probtype,idir
+!     This specifies the direction of the flow; see Prob_?d.f90
+      integer        , save ::  idir
 
-!     This is needed for other problems
+!     This needs to be defined in all probdata modules.
       double precision, save ::  center(3)
       
 end module probdata_module

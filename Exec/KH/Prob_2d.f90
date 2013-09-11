@@ -2,7 +2,6 @@
       subroutine PROBINIT (init,name,namlen,problo,probhi)
 
       use probdata_module
-      use eos_module, only : gamma_const
       implicit none
 
       integer init, namlen
@@ -11,8 +10,8 @@
 
       integer untin,i
 
-      namelist /fortin/ u_amb, rho_amb, T_amb, u_pert, rho_pert, T_pert, dengrad,  velgrad, &
-                        probtype, idir
+      namelist /fortin/ rho1, rho2, u1, u2, L, pres, vfac, vmode, &
+                        dengrad, velgrad, idir, center
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -32,27 +31,29 @@
          
 ! set namelist defaults
 
-      rho_amb  = 1.d0
-        u_amb  = 10.0d0
-        T_amb  = 2.e-4
+      rho1 = 1.0d0
+      rho2 = 2.0d0
+      u1 = 0.5d0
+      u2 = -0.5d0
+      pres = 2.5d0
 
-      rho_pert = 2.0d0
-        u_pert = -10.0d0
-        T_pert = 1.d-4
+      L = 0.025
 
-      probtype = 1
+      vfac = 0.01
+      vmode = 4.0d0
+
       idir     = 1
 
       dengrad = 1.d20
       velgrad = 1.d20
-
-      idir = 1     
 
 !     Read namelists
       untin = 9
       open(untin,file=probin(1:namlen),form='formatted',status='old')
       read(untin,fortin)
       close(unit=untin)
+
+      center(:2) = 0.5d0 * (probhi+problo)
 
       end
 
@@ -93,72 +94,101 @@
      double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
      double precision xcen,ycen
-     double precision top, bot
-     double precision e,p
+     double precision rhom, um
+     double precision e,rho,u
+     double precision pi
      integer i,j
+
+     rhom = 0.5d0 * (rho1 - rho2)   ! McNally+ Eq. 2
+     um = 0.5d0 * (u1 - u2)         ! McNally+ Eq. 4
+
+     pi = 2.0d0 * asin(1.0d0)
 
       do j = lo(2), hi(2)
          ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
          
          do i = lo(1), hi(1)
             xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+
+            ! single species for all zones
+            state(i,j,UFS) = 1.0d0
             
             if (idir == 1) then
 
-               top = 2.5d0 + 0.05 * sin(xcen / 0.05) 
-               bot = 1.5d0 - 0.05 * sin(xcen / 0.05) 
-               if (ycen > top .or. ycen < bot) then
-                  state(i,j,URHO)  = rho_amb
-                  state(i,j,UMX)   = rho_amb * u_amb
-                  state(i,j,UMY)   = 0.d0
-                  state(i,j,UTEMP) = T_amb
+               ! this assumes 0 <= y <= 1
+               ! McNally Eqns. 1 and 3
+               if (ycen < 0.25d0) then
+                  rho = smooth(rho1,-rhom,-0.25d0,L,ycen)
+                  u   = smooth(u1  ,-um  ,-0.25d0,L,ycen)
+               else if (ycen < 0.5d0) then
+                  rho = smooth(rho2,rhom,0.25d0,L,-ycen)
+                  u   = smooth(u2  ,um  ,0.25d0,L,-ycen)
+               else if (ycen < 0.75d0) then
+                  rho = smooth(rho2,rhom,-0.75d0,L,ycen)
+                  u   = smooth(u2  ,um  ,-0.75d0,L,ycen)
                else
-                  state(i,j,URHO)  = rho_pert
-                  state(i,j,UMX)   = rho_pert * u_pert
-                  state(i,j,UMY)   = 0.d0
-                  state(i,j,UTEMP) = T_pert
-               endif
-               
+                  rho = smooth(rho1,-rhom,0.75d0,L,-ycen)
+                  u   = smooth(u1  ,-um  ,0.75d0,L,-ycen)
+               end if
+
+               ! momentum field
+               state(i,j,UMX) = u * rho
+               state(i,j,UMY) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq. 5
+
             else if (idir == 2) then
 
-               top = 2.5d0 + 0.05 * sin(ycen / 0.05) 
-               bot = 1.5d0 - 0.05 * sin(ycen / 0.05) 
-               if (xcen > top .or. xcen < bot) then
-                  state(i,j,URHO)  = rho_amb
-                  state(i,j,UMY)   = rho_amb * u_amb
-                  state(i,j,UMX)   = 0.d0
-                  state(i,j,UTEMP) = T_amb
+               ! this assumes 0 <= x <= 1
+               ! McNally Eqns. 1 and 3
+               if (xcen < 0.25d0) then
+                  rho = smooth(rho1,-rhom,-0.25d0,L,xcen)
+                  u   = smooth(u1  ,-um  ,-0.25d0,L,xcen)
+               else if (xcen < 0.5d0) then
+                  rho = smooth(rho2,rhom,0.25d0,L,-xcen)
+                  u   = smooth(u2  ,um  ,0.25d0,L,-xcen)
+               else if (xcen < 0.75d0) then
+                  rho = smooth(rho2,rhom,-0.75d0,L,xcen)
+                  u   = smooth(u2  ,um  ,-0.75d0,L,xcen)
                else
-                  state(i,j,URHO)  = rho_pert
-                  state(i,j,UMY)   = rho_pert * u_pert
-                  state(i,j,UMX)   = 0.d0
-                  state(i,j,UTEMP) = T_pert
-               endif
+                  rho = smooth(rho1,-rhom,0.75d0,L,-xcen)
+                  u   = smooth(u1  ,-um  ,0.75d0,L,-xcen)
+               end if
+
+               ! momentum field
+               state(i,j,UMX) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq. 5
+               state(i,j,UMY) = u * rho
                
             else
                call bl_abort('invalid idir')
             endif
 
-            ! This just has a single species ("X")
-            state(i,j,UFS) = 1.d0
+            ! The rest of the variables that don't depend on direction
 
-            ! rho, T, X are the inputs
-            ! e, p    are the outputs
-            call eos_given_RTX(e,p,state(i,j,URHO), &
-                               state(i,j,UTEMP),state(i,j,UFS:))
+            state(i,j,URHO) = rho
 
-            !  rho X = rho * X
-            state(i,j,UFS  ) = state(i,j,URHO) * state(i,j,UFS)
+            ! Get the temperature and internal energy assuming fixed pressure
+            call eos_e_given_RPX(e, state(i,j,UTEMP), &
+                 rho,pres,state(i,j,UFS:))
+            state(i,j,UEINT) = e * rho
+               
+            ! Total energy
+            state(i,j,UEDEN) = state(i,j,UEINT) + 0.5d0 * &
+                 (state(i,j,UMX)**2 + state(i,j,UMY)**2) / state(i,j,URHO)
 
-            !  rho e = rho * e
-            state(i,j,UEINT) = state(i,j,URHO) * e
+            ! Convert mass fractions to conserved quantity
+            state(i,j,UFS) = state(i,j,UFS) * rho
 
-            !  rho E = rho e + 1/2 rho u^2 
-            state(i,j,UEDEN) = state(i,j,UEINT) + &
-               0.5d0 * ( state(i,j,UMX)**2 + state(i,j,UMY)**2 ) / state(i,j,URHO)
 
          enddo
       enddo
+
+    contains
+      function smooth(a,b,offset,L,pos) result(r)
+        ! this is the general form of the smooth function in McNally+ Eq 1 or 3
+        double precision :: a, b, offset, L, pos
+        double precision :: r
+
+        r = a + b*exp((pos+offset)/L)
+      end function smooth
 
       end subroutine ca_initdata
 
