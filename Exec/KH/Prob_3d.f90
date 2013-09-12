@@ -1,64 +1,61 @@
 
-      subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine PROBINIT (init,name,namlen,problo,probhi)
 
-      use probdata_module
-      use eos_module, only : gamma_const
-      implicit none
+  use probdata_module
+  implicit none
 
-      integer init, namlen
-      integer name(namlen)
-      double precision problo(3), probhi(3)
+  integer init, namlen
+  integer name(namlen)
+  double precision problo(3), probhi(3)
 
-      integer untin,i
+  integer untin,i
 
-      namelist /fortin/ u_amb, rho_amb, T_amb, u_pert, rho_pert, T_pert, dengrad,  velgrad, &
-                        probtype, idir
+  namelist /fortin/ rho1, rho2, u1, u2, pres, L, vfac, vmode, &
+       dengrad, velgrad, idir, center
 
-!
-!     Build "probin" filename -- the name of file containing fortin namelist.
-!     
-      integer maxlen
-      parameter (maxlen=256)
-      character probin*(maxlen)
+  !
+  !     Build "probin" filename -- the name of file containing fortin namelist.
+  !     
+  integer maxlen
+  parameter (maxlen=256)
+  character probin*(maxlen)
 
-      if (namlen .gt. maxlen) then
-         write(6,*) 'probin file name too long'
-         stop
-      end if
+  if (namlen .gt. maxlen) then
+     write(6,*) 'probin file name too long'
+     stop
+  end if
 
-      do i = 1, namlen
-         probin(i:i) = char(name(i))
-      end do
-         
-! set namelist defaults
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
 
-      rho_amb  = 1.d0
-        u_amb  = 10.0d0
-        T_amb  = 2.e-4
+  ! set namelist defaults
 
-      rho_pert = 2.0d0
-        u_pert = -10.0d0
-        T_pert = 1.d-4
+  rho1 = 1.0d0
+  rho2 = 2.0d0
+  u1 = 0.5d0
+  u2 = -0.5d0
+  pres = 2.5d0
 
-      probtype = 1
-      idir     = 1
+  L = 0.025d0
 
-      dengrad = 1.d20
-      velgrad = 1.d20
+  vfac = 0.01d0
+  vmode = 4.0d0
 
-      idir = 1     
+  idir     = 1
 
-      center(1) = 0.5d0 * (problo(1) + probhi(1))
-      center(2) = 0.5d0 * (problo(2) + probhi(2))
-      center(3) = 0.5d0 * (problo(3) + probhi(3))
+  dengrad = 1.d20
+  velgrad = 1.d20
 
-!     Read namelists
-      untin = 9
-      open(untin,file=probin(1:namlen),form='formatted',status='old')
-      read(untin,fortin)
-      close(unit=untin)
+  center = 0.5d0 * (problo + probhi)
 
-      end
+  !     Read namelists
+  untin = 9
+  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  read(untin,fortin)
+  close(unit=untin)
+
+end subroutine PROBINIT
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -81,110 +78,191 @@
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-     subroutine ca_initdata(level,time,lo,hi,nscal, &
-                            state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-                            delta,xlo,xhi)
-     use probdata_module
-     use eos_module
-     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
+subroutine ca_initdata(level,time,lo,hi,nscal, &
+     state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+     delta,xlo,xhi)
+  use probdata_module
+  use eos_module
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
+       UEINT, UFS, UTEMP
 
-     implicit none
+  implicit none
 
-     integer level, nscal
-     integer lo(3), hi(3)
-     integer state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     double precision xlo(3), xhi(3), time, delta(3)
-     double precision state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  integer level, nscal
+  integer lo(3), hi(3)
+  integer state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
+  double precision xlo(3), xhi(3), time, delta(3)
+  double precision state(state_l1:state_h1, &
+                         state_l2:state_h2, &
+                         state_l3:state_h3,NVAR)
 
-     double precision xcen,ycen,zcen
-     double precision top, bot
-     double precision e,p
-     integer i,j,k
+  double precision xcen,ycen,zcen
+  double precision rhom, um
+  double precision e,rho,u
+  double precision pi
+  integer i,j,k
 
-      do k = lo(3), hi(3)
-         zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5d0)
-      do j = lo(2), hi(2)
-         ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
-         
-         do i = lo(1), hi(1)
-            xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+  rhom = 0.5d0 * (rho1 - rho2) ! McNally+ Eq. 2
+  um = 0.5d0 * (u1 - u2)       ! McNally+ Eq. 4
 
-            top = 2.5d0 + 0.05 * sin(xcen / 0.05) 
-            bot = 1.5d0 - 0.05 * sin(xcen / 0.05) 
-            if (ycen > top .or. ycen < bot) then
-               state(i,j,k,URHO)  = rho_amb
-               state(i,j,k,UMX)   = rho_amb * u_amb
-               state(i,j,k,UTEMP) = T_amb
-            else
-               state(i,j,k,URHO)  = rho_pert
-               state(i,j,k,UMX)   = rho_pert * u_pert
-               state(i,j,k,UTEMP) = T_pert
-            endif
+  pi = 2.0d0*asin(1.0d0)
 
-            state(i,j,k,UMY)   = 0.d0
-            state(i,j,k,UMZ)   = 0.d0
+  state = 0.0d0
 
-            ! This just has a single species ("X")
-            state(i,j,k,UFS) = 1.d0
+  ! single species 
+  state(:,:,:,UFS) = 1.0d0
 
-            ! rho, T, X are the inputs
-            ! e, p    are the outputs
-            call eos_given_RTX(e,p,state(i,j,k,URHO), &
-                               state(i,j,k,UTEMP),state(i,j,k,UFS:))
+  do k = lo(3), hi(3)
+     zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5d0)
+     do j = lo(2), hi(2)
+        ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+        do i = lo(1), hi(1)
+           xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
 
-            !  rho X = rho * X
-            state(i,j,k,UFS  ) = state(i,j,k,URHO) * state(i,j,k,UFS)
+           if (idir == 1) then
+              ! flow in x-direction; use z-direction as shear; perturb vy,vz
 
-            !  rho e = rho * e
-            state(i,j,k,UEINT) = state(i,j,k,URHO) * e
+               ! this assumes 0 <= z <= 1
+               ! McNally Eqns. 1 and 3
+               if (zcen < 0.25d0) then
+                  rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
+                  u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
+               else if (zcen < 0.5d0) then
+                  rho = smooth(rho2,rhom,0.25d0,L,-zcen)
+                  u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
+               else if (zcen < 0.75d0) then
+                  rho = smooth(rho2,rhom,-0.75d0,L,zcen)
+                  u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
+               else
+                  rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
+                  u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
+               end if
 
-            !  rho E = rho e + 1/2 rho u^2 
-            state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
-               0.5d0 * ( state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + &
-                         state(i,j,k,UMZ)**2 ) / state(i,j,k,URHO)
+               ! momentum field
+               state(i,j,k,UMX) = u * rho
+               state(i,j,k,UMY) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+               state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
 
-         enddo
-      enddo
-      enddo
+           else if (idir == 2) then
+              ! flow in y-direction; use z-direction as shear; perturb vx,vz
 
-      end subroutine ca_initdata
+               ! this assumes 0 <= z <= 1
+               ! McNally Eqns. 1 and 3
+               if (zcen < 0.25d0) then
+                  rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
+                  u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
+               else if (zcen < 0.5d0) then
+                  rho = smooth(rho2,rhom,0.25d0,L,-zcen)
+                  u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
+               else if (zcen < 0.75d0) then
+                  rho = smooth(rho2,rhom,-0.75d0,L,zcen)
+                  u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
+               else
+                  rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
+                  u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
+               end if
+
+               ! momentum field
+               state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+               state(i,j,k,UMY) = u * rho
+               state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
+
+           else if (idir == 3) then
+              ! flow in z-direction; use y-direction as shear; perturb vx,vy
+
+               ! this assumes 0 <= y <= 1
+               ! McNally Eqns. 1 and 3
+               if (ycen < 0.25d0) then
+                  rho = smooth(rho1,-rhom,-0.25d0,L,ycen)
+                  u   = smooth(u1  ,-um  ,-0.25d0,L,ycen)
+               else if (ycen < 0.5d0) then
+                  rho = smooth(rho2,rhom,0.25d0,L,-ycen)
+                  u   = smooth(u2  ,um  ,0.25d0,L,-ycen)
+               else if (ycen < 0.75d0) then
+                  rho = smooth(rho2,rhom,-0.75d0,L,ycen)
+                  u   = smooth(u2  ,um  ,-0.75d0,L,ycen)
+               else
+                  rho = smooth(rho1,-rhom,0.75d0,L,-ycen)
+                  u   = smooth(u1  ,-um  ,0.75d0,L,-ycen)
+               end if
+
+               ! momentum field
+               state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+               state(i,j,k,UMY) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
+               state(i,j,k,UMZ) = u * rho
+
+           else
+
+              call bl_abort("invalid idir")
+           end if
+
+            ! The rest of the variables
+            state(i,j,k,URHO) = rho
+
+            ! Get the temperature and internal energy assuming fixed pressure
+            call eos_e_given_RPX(e, state(i,j,k,UTEMP), &
+                 rho,pres,state(i,j,k,UFS:))
+            state(i,j,k,UEINT) = e * rho
+               
+           !  Total energy
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
+                0.5d0 * ( state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + &
+                state(i,j,k,UMZ)**2 ) / state(i,j,k,URHO)
+
+           ! Convert mass fractions to conserved quantity
+           state(i,j,k,UFS:) = state(i,j,k,UFS:) * rho
+
+        enddo
+     enddo
+  enddo
+
+contains
+  function smooth(a,b,offset,L,pos) result(r)
+    ! this is the general form of the smooth function in McNally+ Eq 1 or 3
+    double precision :: a, b, offset, L, pos
+    double precision :: r
+
+    r = a + b*exp((pos+offset)/L)
+  end function smooth
+
+end subroutine ca_initdata
 
 ! ::: -----------------------------------------------------------
 
-     subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-                           domlo,domhi,delta,xlo,time,bc)
- 
-     use meth_params_module, only : NVAR
+subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+     domlo,domhi,delta,xlo,time,bc)
 
-     implicit none
-     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
-     integer bc(3,2,*)
-     integer domlo(3), domhi(3)
-     double precision delta(3), xlo(3), time
-     double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
+  use meth_params_module, only : NVAR
 
-     integer n
+  implicit none
+  integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
+  integer bc(3,2,*)
+  integer domlo(3), domhi(3)
+  double precision delta(3), xlo(3), time
+  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
-      do n = 1,NVAR
-         call filcc(adv(adv_l1,adv_l2,adv_l3,n), &
-              adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-              domlo,domhi,delta,xlo,bc(1,1,n))
-      enddo
+  integer n
 
-      end subroutine ca_hypfill
+  do n = 1,NVAR
+     call filcc(adv(adv_l1,adv_l2,adv_l3,n), &
+          adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+          domlo,domhi,delta,xlo,bc(1,1,n))
+  enddo
+
+end subroutine ca_hypfill
 
 ! ::: -----------------------------------------------------------
 
-      subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-           domlo,domhi,delta,xlo,time,bc)
+subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+     domlo,domhi,delta,xlo,time,bc)
 
-      implicit none
-      integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
-      integer bc(3,2,*)
-      integer domlo(3), domhi(3)
-      double precision delta(3), xlo(3), time
-      double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
+  implicit none
+  integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
+  integer bc(3,2,*)
+  integer domlo(3), domhi(3)
+  double precision delta(3), xlo(3), time
+  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
 
-      call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
+  call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
 
-      end subroutine ca_denfill
+end subroutine ca_denfill
