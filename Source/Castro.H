@@ -681,7 +681,7 @@ protected:
 
 #ifdef ROTATION
   static int do_rotation;
-  static Real rotational_frequency;
+  static Real rotational_period;
 #endif
 
 /* problem-specific includes */

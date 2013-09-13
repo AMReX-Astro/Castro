@@ -53,7 +53,7 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   double precision, save :: max_dist
 
-  double precision, save :: rot_freq
+  double precision, save :: rot_period
   double precision, save :: const_grav
 
 end module meth_params_module
