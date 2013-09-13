@@ -127,7 +127,7 @@ Radiation*   Castro::radiation = 0;
 
 #ifdef ROTATION
 int          Castro::do_rotation = -1;
-Real         Castro::rotational_frequency = 0.0;
+Real         Castro::rotational_period = 0.0;
 #endif
 
 int          Castro::grown_factor = 1;
@@ -428,7 +428,7 @@ Castro::read_params ()
 
 #ifdef ROTATION
     pp.get("do_rotation",do_rotation);
-    if (do_rotation) pp.get("rotational_frequency",rotational_frequency);
+    if (do_rotation) pp.get("rotational_period",rotational_period);
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";

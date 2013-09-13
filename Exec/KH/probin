@@ -1,11 +1,17 @@
 &fortin
-    u_amb = 10.0d0
-  rho_amb = 1.0d0
-    T_amb = 2.d-4
 
-    u_pert = -10.0d0
-  rho_pert = 2.0d0
-    T_pert = 1.d-4
+  rho1 = 1.0d0
+  rho2 = 2.0d0
+  
+  u1 = 0.5d0
+  u2 = -0.5d0
+
+  L = 0.025
+
+  pres = 2.5d0
+
+  vfac = 0.01
+  vmode = 4.0d0
 
   idir = 1
 

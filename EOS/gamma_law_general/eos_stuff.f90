@@ -1,4 +1,4 @@
-! This is a constant gamma equation of state, using and ideal gas.
+! This is a constant gamma equation of state, using an ideal gas.
 !
 ! We compute the mean molecular weight, mu, based on the mass fractions
 ! of the different species.

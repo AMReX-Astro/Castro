@@ -1,0 +1,7 @@
+This is a standard Kelvin-Helmholtz instability test problem.  The particular
+formulation comes from McNally et al., 2012 ApJS 201, 18
+
+http://arxiv.org/pdf/1111.1764v2.pdf
+
+The 3d version is a mock up, and probably doesn't live up to the
+scaling relations presented in McNally+.

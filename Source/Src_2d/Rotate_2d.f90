@@ -3,7 +3,7 @@
                        rot_src,rot_src_l1,rot_src_l2,rot_src_h1,rot_src_h2, &
                        problo,dx)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_freq
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period
     use probdata_module, only: center
     use prob_params_module, only: coord_type
     use bl_constants_module, only: M_PI
@@ -27,9 +27,9 @@
     parameter (TWO_PI = 2.d0 * M_PI)
 
     if (coord_type == 0) then
-       omega = (/ 0.0d0, 0.0d0, TWO_PI*rot_freq /)
+       omega = (/ 0.0d0, 0.0d0, TWO_PI/rot_period /)
     elseif (coord_type == 1) then
-       omega = (/ 0.0d0, TWO_PI*rot_freq, 0.0d0 /)
+       omega = (/ 0.0d0, TWO_PI/rot_period, 0.0d0 /)
     else
        call bl_error("Error:: Rotate_2d.f90 :: unknown coord_type")
     endif

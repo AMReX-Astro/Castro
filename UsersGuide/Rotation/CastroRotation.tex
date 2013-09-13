@@ -1,12 +1,12 @@
 Currently, CASTRO supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.  The rotational
-frequency (in Hz) is specified by setting {\bf
-  castro.rotational\_frequency} in the inputs file.  Note that this
+period (in s) is specified by setting {\bf
+  castro.rotational\_period} in the inputs file.  Note that this
 parameter is only relevant if USE\_ROTATION = TRUE in the GNUmakefile
 and {\bf castro.do\_rotation} = 1 in the inputs file.  The rotational
-frequency specified by {\bf castro.rotational\_frequency} is internally
-converted to an angular freqeuncy for use in the source term
+period specified by {\bf castro.rotational\_period} is internally
+converted to an angular frequency for use in the source term
 equations.
 
 The axis of rotation currently depends on the dimensionality of the

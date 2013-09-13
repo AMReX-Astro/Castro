@@ -764,7 +764,7 @@ Parameter & Definition & Acceptable Values &Default\\
 Parameter & Definition & Acceptable Values & Default\\
 \hline
 {\bf castro.do\_rotation} & Include rotation as a forcing term & 0 if false, 1 if true & 0 \\
-{\bf castro.rotational\_frequency} & Frequency (Hz) of rotation & Real & 0.0 \\
+{\bf castro.rotational\_period} & Period (s) of rotation & Real & 0.0 \\
 \hline
 \end{tabular}
 \end{center}
@@ -779,7 +779,7 @@ This is for constant, solid-body rotation about a fixed axis.  See the Rotation 
 \item USE\_ROTATION = TRUE in the GNUMakefile
 \item {\bf castro.do\_rotation} = 1 in the inputs file
 \end{itemize}
-\item {\bf castro.rotational\_frequency} is only relevant if {\bf castro.do\_rotation} = 1
+\item {\bf castro.rotational\_period} is only relevant if {\bf castro.do\_rotation} = 1, and must be specified in that case.
 \end{itemize}
 
 \section{Physics}
