@@ -59,7 +59,7 @@ contains
     double precision drhom, dum, dvm, dpm, drhoem
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
-    double precision :: tau_s
+    double precision :: tau_s, e_s, de
 
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
@@ -221,7 +221,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref  = 1.0d0/rho
+             tau_ref  = 1.d0/rho
           else
              ! this will be the fastest moving state to the left --
              ! this is the method that Miller & Colella and Colella &
@@ -261,19 +261,20 @@ contains
           ! trans_X routines
           if (ppm_trace_grav == 1) then
              dum = dum - halfdt*Im_g(i,j,1,1,igx)
-             dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
              dup = dup - halfdt*Im_g(i,j,1,3,igx)
+
+             dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
           endif
 
           if (ppm_tau_in_tracing == 0) then
 
-             ! these are the beta's from the original PPM paper
-             ! (except we work with rho instead of tau).  This is
-             ! simply (l . dq), where dq = qref - I(q)
+             ! these are analogous to the beta's from the original 
+             ! PPM paper (except we work with rho instead of tau).  
+             ! This is simply (l . dq), where dq = qref - I(q)
              alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
              alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpha0e = drhoe - dp*enth  ! note enth has a 1/c**2 in it
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -315,7 +316,6 @@ contains
 
                 qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
 
-
                 qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc/rho)
                 qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
                 
@@ -327,15 +327,19 @@ contains
              end if
              
           else
+             ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
+             ! we are dealing with e
+             de = (rhoe_ref/rho_ref - Im(i,j,1,2,QREINT)/Im(i,j,1,2,QRHO))
+
              alpham = 0.5d0*( dum - dpm/Clag)/Clag
              alphap = 0.5d0*(-dup - dpp/Clag)/Clag
-             alpha0r = dtau - dp/Clag**2
-             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0r = dtau + dp/Clag**2
+             alpha0e = de - dp*p/Clag**2
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -375,14 +379,15 @@ contains
                 xi1 = 1.0d0-flatn(i,j)
                 xi = flatn(i,j)
 
-                ! we need to undo the flattening to construct tau and then apply it for rho
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,QRHO)   = xi1*rho + xi/tau_s
 
                 qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (amright - apright)*Clag)
                 qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
                 
-                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apright - amright)*enth*csq*rho**2 + azeright)
+                e_s = rhoe_ref/rho_ref + (azeright - p*amright -p*apright)
+                qxp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+
                 qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
                 
                 qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
@@ -406,7 +411,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref = 1.0d0/rho
+             tau_ref = 1.d0/rho
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
@@ -444,18 +449,20 @@ contains
           ! trans_X routines
           if (ppm_trace_grav == 1) then
              dum = dum - halfdt*Ip_g(i,j,1,1,igx)
-             dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
              dup = dup - halfdt*Ip_g(i,j,1,3,igx)
+
+             dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
           endif
 
           if (ppm_tau_in_tracing == 0) then
 
-             ! these are the beta's from the original PPM paper.  This 
-             ! is simply (l . dq), where dq = qref - I(q)          
+             ! these are analogous to the beta's from the original 
+             ! PPM paper (except we work with rho instead of tau).
+             ! This is simply (l . dq), where dq = qref - I(q)          
              alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
              alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpha0e = drhoe - dp*enth  ! enth has a 1/c**2 in it
              alpha0v = dv
              
              if (u-cc .gt. 0.d0) then
@@ -506,15 +513,18 @@ contains
              end if
 
           else
+             ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
+             de = (rhoe_ref/rho_ref - Ip(i,j,1,2,QREINT)/Ip(i,j,1,2,QRHO))
+
              alpham = 0.5d0*( dum - dpm/Clag)/Clag
              alphap = 0.5d0*(-dup - dpp/Clag)/Clag
-             alpha0r = dtau - dp/Clag**2
-             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0r = dtau + dp/Clag**2
+             alpha0e = de - dp*p/Clag**2
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -554,14 +564,15 @@ contains
                 xi1 = 1.0d0 - flatn(i,j)
                 xi = flatn(i,j)
                 
-                ! we need to undo the flattening to construct tau and then apply it for rho
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,QRHO)   = xi1*rho  + xi/tau_s
 
                 qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag)
                 qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
                 
-                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apleft - amleft)*enth*csq*rho**2 + azeleft)
+                e_s = rhoe_ref/rho_ref + (azeleft - p*amleft -p*apleft)
+                qxm(i+1,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+
                 qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
                 
                 qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
@@ -799,13 +810,13 @@ contains
 
           if (ppm_tau_in_tracing == 0) then
 
-             ! these are the beta's from the original PPM paper
-             ! (except we work with rho instead of tau).  This is
-             ! simply (l . dq), where dq = qref - I(q)
+             ! these are analogous to the beta's from the original PPM 
+             ! paper (except we work with rho instead of tau).  This 
+             ! is simply (l . dq), where dq = qref - I(q)
              alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
              alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpha0e = drhoe - dp*enth  ! enth has 1/c**2 in it
              alpha0u = du
           
              if (v-cc .gt. 0.d0) then
@@ -856,15 +867,18 @@ contains
              end if
 
           else
+             ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
+             de = (rhoe_ref/rho_ref - Im(i,j,2,2,QREINT)/Im(i,j,2,2,QRHO))
+
              alpham = 0.5d0*( dvm - dpm/Clag)/Clag
              alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
-             alpha0r = dtau - dp/Clag**2
-             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0r = dtau + dp/Clag**2
+             alpha0e = de - dp*p/Clag**2
              alpha0u = du
           
              if (v-cc .gt. 0.d0) then
@@ -904,14 +918,15 @@ contains
                 xi1 = 1.0d0 - flatn(i,j)
                 xi = flatn(i,j)
                 
-                ! we need to undo the flattening to construct tau and then apply it for rho
                 tau_s = tau_ref + apright + amright + azrright
                 qyp(i,j,QRHO)   = xi1*rho  + xi/tau_s
 
                 qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (amright - apright)*Clag)
                 qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)
 
-                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apright - amright)*enth*csq*rho**2 + azeright)
+                e_s = rhoe_ref/rho_ref + (azeright - p*amright -p*apright)
+                qyp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+
                 qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
                 
                 qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
@@ -980,8 +995,8 @@ contains
 
           if (ppm_tau_in_tracing == 0) then
 
-             ! these are the beta's from the original PPM paper.  This 
-             ! is simply (l . dq), where dq = qref - I(q)                    
+             ! these are analogous to the beta's from the original PPM 
+             ! paper.  This is simply (l . dq), where dq = qref - I(q)
              alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
              alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
              alpha0r = drho - dp/csq
@@ -1036,15 +1051,18 @@ contains
              end if
 
           else
+             ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
+             de = (rhoe_ref/rho_ref - Ip(i,j,2,2,QREINT)/Ip(i,j,2,2,QRHO))
+
              alpham = 0.5d0*( dvm - dpm/Clag)/Clag
              alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
-             alpha0r = dtau - dp/Clag**2
-             alpha0e = drhoe - dp*enth   ! note that enth has a 1/c**2 in it
+             alpha0r = dtau + dp/Clag**2
+             alpha0e = de - dp*p/Clag**2
              alpha0u = du
              
              if (v-cc .gt. 0.d0) then
@@ -1089,8 +1107,10 @@ contains
 
                 qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag)
                 qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
-             
-                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (-apleft - amleft)*enth*csq*rho**2 + azeleft)
+
+                e_s = rhoe_ref/rho_ref + (azeleft - p*amleft -p*apleft)
+                qym(i,j+1,QREINT) = xi1*rhoe + xi*e_s/tau_s
+
                 qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
                 
                 qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
@@ -1103,8 +1123,6 @@ contains
        end do
     end do
        
-
-
     
     !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
