@@ -123,9 +123,19 @@ Castro::advance_hydro (Real time,
 #endif
     }
 
-    for (int k = 0; k < NUM_STATE_TYPE; k++) {
-        state[k].allocOldData();
-        state[k].swapTimeLevels(dt);
+    // Swap the new data from the last timestep into the old state data.
+    // If we're on level 0, do it for all levels below this one as well.
+    // Or, if we're on a later iteration at a finer timestep, swap for all
+    // lower time levels as well.
+
+    if (level == 0 || iteration > 1) {
+        for (int lev = level; lev <= finest_level; lev++) {
+            Real dt_lev = parent->dtLevel(lev);
+            for (int k = 0; k < NUM_STATE_TYPE; k++) {
+	        getLevel(lev).state[k].allocOldData();
+                getLevel(lev).state[k].swapTimeLevels(dt_lev);
+            }
+        } 
     }
 
 #ifdef SGS
@@ -179,9 +189,19 @@ Castro::advance_hydro (Real time,
 
 #ifdef GRAVITY
     if (do_grav) {
-       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav")
-           gravity->zeroPhiFluxReg(level+1);
-       gravity->swapTimeLevels(level);
+
+       // Swap the old and new data at this level and all finer levels,
+       // and zero out the flux registers. 
+
+       if (level == 0 || iteration > 1) {
+	   for (int lev = level; lev < finest_level; lev++) {
+               if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
+                   gravity->zeroPhiFluxReg(lev+1);
+           }
+
+           for (int lev = level; lev <= finest_level; lev++)
+               gravity->swapTimeLevels(lev);
+       }
 
        grav_vec_old.define(grids,BL_SPACEDIM,4,Fab_allocate); 
 
