@@ -22,7 +22,7 @@ contains
          QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
          nadv, small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
-         ppm_tau_in_tracing
+         ppm_tau_in_tracing, ppm_reference_eigenvectors
     use ppm_module, only : ppm
 
     implicit none
@@ -61,6 +61,10 @@ contains
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de
 
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
+    double precision :: gam
+    
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
     double precision apright, amright, azrright, azeright
@@ -206,6 +210,10 @@ contains
 
           Clag = rho*cc
 
+          ! recover gamma from the sound speed
+          gam = rho*csq/p
+
+
           !-------------------------------------------------------------------
           ! plus state on face i
           !-------------------------------------------------------------------
@@ -235,6 +243,12 @@ contains
 
              tau_ref  = 1.0d0/Im(i,j,1,1,QRHO)
           endif
+
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
@@ -266,15 +280,35 @@ contains
              dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
           endif
 
+
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+             p_ev    = p
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+             p_ev    = p_ref
+          endif
+
+
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original 
              ! PPM paper (except we work with rho instead of tau).  
              ! This is simply (l . dq), where dq = qref - I(q)
-             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth  ! note enth has a 1/c**2 in it
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -316,11 +350,11 @@ contains
 
                 qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
 
-                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc/rho)
+                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
                 qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
                 
-                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth*csq + azeright)
-                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq)
+                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
+                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
                 
                 qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
                 qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
@@ -336,10 +370,10 @@ contains
              ! we are dealing with e
              de = (rhoe_ref/rho_ref - Im(i,j,1,2,QREINT)/Im(i,j,1,2,QRHO))
 
-             alpham = 0.5d0*( dum - dpm/Clag)/Clag
-             alphap = 0.5d0*(-dup - dpp/Clag)/Clag
-             alpha0r = dtau + dp/Clag**2
-             alpha0e = de - dp*p/Clag**2
+             alpham = 0.5d0*( dum - dpm/Clag_ev)/Clag_ev
+             alphap = 0.5d0*(-dup - dpp/Clag_ev)/Clag_ev
+             alpha0r = dtau + dp/Clag_ev**2
+             alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -382,13 +416,13 @@ contains
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,QRHO)   = xi1*rho + xi/tau_s
 
-                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (amright - apright)*Clag)
+                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (amright - apright)*Clag_ev)
                 qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
                 
-                e_s = rhoe_ref/rho_ref + (azeright - p*amright -p*apright)
+                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
                 qxp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
 
-                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
+                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
                 
                 qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
                 qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
@@ -424,6 +458,12 @@ contains
              tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
           endif
 
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
@@ -454,15 +494,34 @@ contains
              dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
           endif
 
+
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+             p_ev    = p
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+             p_ev    = p_ref
+          endif
+
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original 
              ! PPM paper (except we work with rho instead of tau).
              ! This is simply (l . dq), where dq = qref - I(q)          
-             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth  ! enth has a 1/c**2 in it
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev  ! enth has a 1/c**2 in it
              alpha0v = dv
              
              if (u-cc .gt. 0.d0) then
@@ -502,11 +561,11 @@ contains
                 xi = flatn(i,j)
                 
                 qxm(i+1,j,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc/rho)
+                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
                 qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
                 
-                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth*csq + azeleft)
-                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq)
+                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
+                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
                 
                 qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
                 qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
@@ -521,10 +580,10 @@ contains
 
              de = (rhoe_ref/rho_ref - Ip(i,j,1,2,QREINT)/Ip(i,j,1,2,QRHO))
 
-             alpham = 0.5d0*( dum - dpm/Clag)/Clag
-             alphap = 0.5d0*(-dup - dpp/Clag)/Clag
-             alpha0r = dtau + dp/Clag**2
-             alpha0e = de - dp*p/Clag**2
+             alpham = 0.5d0*( dum - dpm/Clag_ev)/Clag_ev
+             alphap = 0.5d0*(-dup - dpp/Clag_ev)/Clag_ev
+             alpha0r = dtau + dp/Clag_ev**2
+             alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0v = dv
 
              if (u-cc .gt. 0.d0) then
@@ -567,13 +626,13 @@ contains
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,QRHO)   = xi1*rho  + xi/tau_s
 
-                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag)
+                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag_ev)
                 qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
                 
-                e_s = rhoe_ref/rho_ref + (azeleft - p*amleft -p*apleft)
+                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
                 qxm(i+1,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
 
-                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
+                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
                 
                 qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
                 qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
@@ -750,6 +809,9 @@ contains
 
           Clag = rho*cc
 
+          ! recover gamma from the sound speed
+          gam = rho*csq/p
+
           !------------------------------------------------------------------- 
           ! plus state on face j
           !-------------------------------------------------------------------
@@ -778,7 +840,12 @@ contains
              tau_ref  = 1.0d0/Im(i,j,2,1,QRHO)
           endif
             
-
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+          
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
@@ -808,15 +875,34 @@ contains
              dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
           endif
 
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+             p_ev    = p
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+             p_ev    = p_ref
+          endif
+
+
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original PPM 
              ! paper (except we work with rho instead of tau).  This 
              ! is simply (l . dq), where dq = qref - I(q)
-             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth  ! enth has 1/c**2 in it
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev  ! enth has 1/c**2 in it
              alpha0u = du
           
              if (v-cc .gt. 0.d0) then
@@ -856,11 +942,11 @@ contains
                 xi = flatn(i,j)
                 
                 qyp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (apright - amright)*cc/rho)
+                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
                 qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)
 
-                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth*csq + azeright)
-                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq)
+                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
+                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
                 
                 qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
                 qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
@@ -875,10 +961,10 @@ contains
 
              de = (rhoe_ref/rho_ref - Im(i,j,2,2,QREINT)/Im(i,j,2,2,QRHO))
 
-             alpham = 0.5d0*( dvm - dpm/Clag)/Clag
-             alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
-             alpha0r = dtau + dp/Clag**2
-             alpha0e = de - dp*p/Clag**2
+             alpham = 0.5d0*( dvm - dpm/Clag_ev)/Clag_ev
+             alphap = 0.5d0*(-dvp - dpp/Clag_ev)/Clag_ev
+             alpha0r = dtau + dp/Clag_ev**2
+             alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0u = du
           
              if (v-cc .gt. 0.d0) then
@@ -921,13 +1007,13 @@ contains
                 tau_s = tau_ref + apright + amright + azrright
                 qyp(i,j,QRHO)   = xi1*rho  + xi/tau_s
 
-                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (amright - apright)*Clag)
+                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (amright - apright)*Clag_ev)
                 qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)
 
-                e_s = rhoe_ref/rho_ref + (azeright - p*amright -p*apright)
+                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
                 qyp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
 
-                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag**2)
+                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
                 
                 qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
                 qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
@@ -964,6 +1050,12 @@ contains
              tau_ref  = 1.0d0/Ip(i,j,2,3,QRHO)
           endif
 
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
@@ -993,14 +1085,32 @@ contains
              dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
           endif
 
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+             p_ev    = p
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+             p_ev    = p_ref
+          endif
+
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original PPM 
              ! paper.  This is simply (l . dq), where dq = qref - I(q)
-             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev
              alpha0u = du
              
              if (v-cc .gt. 0.d0) then
@@ -1040,11 +1150,11 @@ contains
                 xi = flatn(i,j)
                 
                 qym(i,j+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (apleft - amleft)*cc/rho)
+                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
                 qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
              
-                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth*csq + azeleft)
-                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq)
+                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
+                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
                 
                 qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
                 qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
@@ -1059,10 +1169,10 @@ contains
 
              de = (rhoe_ref/rho_ref - Ip(i,j,2,2,QREINT)/Ip(i,j,2,2,QRHO))
 
-             alpham = 0.5d0*( dvm - dpm/Clag)/Clag
-             alphap = 0.5d0*(-dvp - dpp/Clag)/Clag
-             alpha0r = dtau + dp/Clag**2
-             alpha0e = de - dp*p/Clag**2
+             alpham = 0.5d0*( dvm - dpm/Clag_ev)/Clag_ev
+             alphap = 0.5d0*(-dvp - dpp/Clag_ev)/Clag_ev
+             alpha0r = dtau + dp/Clag_ev**2
+             alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0u = du
              
              if (v-cc .gt. 0.d0) then
@@ -1105,13 +1215,13 @@ contains
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,QRHO)   = xi1*rho  + xi/tau_s
 
-                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag)
+                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag_ev)
                 qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
 
-                e_s = rhoe_ref/rho_ref + (azeleft - p*amleft -p*apleft)
+                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
                 qym(i,j+1,QREINT) = xi1*rhoe + xi*e_s/tau_s
 
-                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag**2)
+                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
                 
                 qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
                 qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
