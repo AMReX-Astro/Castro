@@ -12,6 +12,7 @@ contains
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                        grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                       gamc,gc_l1,gc_h1,gc_l2,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec, naux
@@ -32,6 +33,7 @@ contains
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer gv_l1,gv_l2,gv_h1,gv_h2
+    integer gc_l1,gc_h1,gc_l2,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
@@ -44,7 +46,7 @@ contains
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-
+    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision dx, dy, dt
     
     ! Local variables

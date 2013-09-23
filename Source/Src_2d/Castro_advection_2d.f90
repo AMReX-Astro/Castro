@@ -135,6 +135,7 @@ contains
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                      gamc,qd_l1,qd_h1,qd_l2,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
 
