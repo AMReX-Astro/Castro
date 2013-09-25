@@ -299,6 +299,7 @@ contains
                            Ip,Im,Ip_g,Im_g, &
                            qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                            ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
        else
@@ -374,6 +375,7 @@ contains
                              Ip,Im,Ip_g,Im_g, &
                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                              grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                             gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                              ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
           else
              call tracez(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
