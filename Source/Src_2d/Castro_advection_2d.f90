@@ -687,22 +687,26 @@ contains
              ! minus state
              eos_state%rho = qm(i,j,QRHO)
              eos_state%p   = qm(i,j,QPRES)
+             eos_state%e   = qm(i,j,QREINT)/qm(i,j,QRHO)
              eos_state%xn  = qm(i,j,QFS:QFS-1+nspec)
 
-             call eos(eos_input_rp, eos_state, .false.)
+             call eos(eos_input_re, eos_state, .false.)
 
              qm(i,j,QREINT) = qm(i,j,QRHO)*eos_state%e
+             qm(i,j,QPRES) = eos_state%p
              gamcm(i,j) = eos_state%gam1
 
 
              ! plus state
              eos_state%rho = qp(i,j,QRHO)
              eos_state%p   = qp(i,j,QPRES)
+             eos_state%e   = qp(i,j,QREINT)/qp(i,j,QRHO)
              eos_state%xn  = qp(i,j,QFS:QFS-1+nspec)
 
-             call eos(eos_input_rp, eos_state, .false.)
+             call eos(eos_input_re, eos_state, .false.)
 
              qp(i,j,QREINT) = qp(i,j,QRHO)*eos_state%e
+             qp(i,j,QPRES) = eos_state%p  
              gamcp(i,j) = eos_state%gam1
 
           enddo
