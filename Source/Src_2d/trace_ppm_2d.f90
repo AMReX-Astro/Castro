@@ -12,7 +12,7 @@ contains
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                        grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                       gamc,gc_l1,gc_h1,gc_l2,gc_h2, &
+                       gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec, naux
