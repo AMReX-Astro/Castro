@@ -155,6 +155,11 @@ contains
        do i = ilo1-1, ihi1+1
 
           rho = q(i,j,k3d,QRHO)
+
+          cc = c(i,j,k3d)
+          csq = cc**2
+          Clag = rho*cc
+
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
@@ -162,10 +167,6 @@ contains
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-
-          cc = c(i,j,k3d)
-          csq = cc**2
-          Clag = rho*cc
 
           gam = gamc(i,j,k3d)
 
@@ -515,6 +516,11 @@ contains
        do i = ilo1-1, ihi1+1
 
           rho = q(i,j,k3d,QRHO)
+
+          cc = c(i,j,k3d)
+          csq = cc**2
+          Clag = rho*cc
+
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
@@ -522,10 +528,6 @@ contains
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-
-          cc = c(i,j,k3d)
-          csq = cc**2
-          Clag = rho*cc
 
           gam = gamc(i,j,k3d)
 
@@ -982,6 +984,11 @@ contains
        do i = ilo1-1, ihi1+1
 
           rho  = q(i,j,k3d,QRHO)
+
+          cc   = c(i,j,k3d)
+          csq  = cc**2
+          Clag = rho*cc
+
           u    = q(i,j,k3d,QU)
           v    = q(i,j,k3d,QV)
           w    = q(i,j,k3d,QW)
@@ -989,10 +996,6 @@ contains
           p    = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-
-          cc   = c(i,j,k3d)
-          csq  = cc**2
-          Clag = rho*cc
 
           gam = gamc(i,j,k3d)
 
@@ -1135,6 +1138,11 @@ contains
           ! been to find the minus state on face kc+1
 
           rho  = q(i,j,k3d-1,QRHO)
+
+          cc   = c(i,j,k3d-1)
+          csq  = cc**2
+          Clag = rho*cc
+
           u    = q(i,j,k3d-1,QU)
           v    = q(i,j,k3d-1,QV)
           w    = q(i,j,k3d-1,QW)
@@ -1142,10 +1150,6 @@ contains
           p    = q(i,j,k3d-1,QPRES)
           rhoe = q(i,j,k3d-1,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-
-          cc   = c(i,j,k3d-1)
-          csq  = cc**2
-          Clag = rho*cc
 
           gam = gamc(i,j,k3d-1)
 
