@@ -2768,7 +2768,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     {
         const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
         const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
-        const Real eps   = (t_new - t_old) * 1.e-8;
+        const Real eps   = (t_new - t_old) * 1.e-6;
 
         if (lev < level)
         {
