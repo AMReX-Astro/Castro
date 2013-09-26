@@ -18,7 +18,9 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
-         ppm_type, ppm_reference, ppm_trace_grav, small_dens, small_pres
+         small_dens, small_pres, &
+         ppm_type, ppm_reference, ppm_trace_grav, &
+         ppm_reference_eigenvectors
 
     implicit none
 
@@ -57,11 +59,17 @@ contains
     integer n, iadv, ispec
     integer npassive,ipassive,qpass_map(QVAR)
 
-    double precision cc, csq, rho, u, v, w, p, rhoe
+    double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
     double precision drho, du, dv, dw, dp, drhoe
     double precision dup, dvp, dpp
     double precision dum, dvm, dpm
+
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev
+    double precision :: gam
 
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v, alpha0w
@@ -69,7 +77,7 @@ contains
     double precision azu1rght, azv1rght, azw1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left, azw1left
-    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+
     double precision xi, xi1
     double precision halfdt
 
@@ -138,7 +146,11 @@ contains
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,dv,dw,dp,drhoe,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,amright,apright,azrright,azeright,azv1rght,azw1rght) &
-    !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left,xi,xi1)
+    !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left,xi,xi1) &
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
+    !$OMP PRIVATE(gam)
+
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
@@ -146,12 +158,16 @@ contains
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
+
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+          enth = ( (rhoe+p)/rho )/csq
 
           cc = c(i,j,k3d)
           csq = cc**2
-          enth = ( (rhoe+p)/rho )/csq
+          Clag = rho*cc
+
+          gam = gamc(i,j,k3d)
 
 
           !--------------------------------------------------------------------
@@ -170,7 +186,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
-   
+                gam_ref  = gam
              else
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
@@ -181,8 +197,15 @@ contains
                 w_ref    = Im(i,j,kc,1,1,QW)
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
+                gam_ref  = Im_gc(i,j,kc,1,1,1)
              endif
    
+             ! for tracing (optionally)
+             cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+             csq_ref = cc_ref**2
+             Clag_ref = rho_ref*cc_ref
+             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
    
@@ -211,14 +234,31 @@ contains
                 dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
              endif
    
+             ! optionally use the reference state in evaluating the
+             ! eigenvectors
+             if (ppm_reference_eigenvectors == 0) then
+                rho_ev  = rho
+                cc_ev   = cc
+                csq_ev  = csq
+                Clag_ev = Clag
+                enth_ev = enth
+             else
+                rho_ev  = rho_ref
+                cc_ev   = cc_ref
+                csq_ev  = csq_ref
+                Clag_ev = Clag_ref
+                enth_ev = enth_ref
+             endif
+
+
              ! these are analogous to the beta's from the original PPM
              ! paper (except we work with rho instead of tau).  This is 
              ! simply (l . dq), where dq = qref - I(q)
    
-             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth  ! note enth has a 1/c**2 in it
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
              alpha0v = dv
              alpha0w = dw
 
@@ -261,11 +301,11 @@ contains
              xi1 = 1.0d0-flatn(i,j,k3d)
              xi = flatn(i,j,k3d)
              qxp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
-             qxp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apright - amright)*cc/rho
+             qxp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apright - amright)*cc_ev/rho_ev
              qxp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
              qxp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1rght
-             qxp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
-             qxp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq
+             qxp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+             qxp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq_ev
 
              qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
@@ -287,6 +327,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                gam_ref  = gam
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
@@ -294,9 +335,16 @@ contains
                 v_ref    = Ip(i,j,kc,1,3,QV)
                 w_ref    = Ip(i,j,kc,1,3,QW)
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
-             rhoe_ref = Ip(i,j,kc,1,3,QREINT)
+                rhoe_ref = Ip(i,j,kc,1,3,QREINT)
+                gam_ref  = Ip_gc(i,j,kc,1,3,1)
              endif
    
+             ! for tracing (optionally)
+             cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+             csq_ref = cc_ref**2
+             Clag_ref = rho_ref*cc_ref
+             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
    
@@ -325,14 +373,31 @@ contains
                 dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
              endif
 
+             ! optionally use the reference state in evaluating the
+             ! eigenvectors
+             if (ppm_reference_eigenvectors == 0) then
+                rho_ev  = rho
+                cc_ev   = cc
+                csq_ev  = csq
+                Clag_ev = Clag
+                enth_ev = enth
+             else
+                rho_ev  = rho_ref
+                cc_ev   = cc_ref
+                csq_ev  = csq_ref
+                Clag_ev = Clag_ref
+                enth_ev = enth_ref
+             endif
+
+
              ! these are analogous to the beta's from the original PPM
              ! paper (except we work with rho instead of tau).  This is 
              ! simply (l . dq), where dq = qref - I(q)
              
-             alpham = 0.5d0*(dpm/(rho*cc) - dum)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dup)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth  ! enth has a 1/c**2 in it
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev  ! enth has a 1/c**2 in it
              alpha0v = dv
              alpha0w = dw
    
@@ -375,11 +440,11 @@ contains
              xi = flatn(i,j,k3d)
 
              qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qxm(i+1,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apleft - amleft)*cc/rho
+             qxm(i+1,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apleft - amleft)*cc_ev/rho_ev
              qxm(i+1,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
              qxm(i+1,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
-             qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-             qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
+             qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+             qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
 
              qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
              qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
@@ -441,7 +506,11 @@ contains
     !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,du,dw,dp,drhoe,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,alpha0u,alpha0w,amright,apright,azrright,azeright,azu1rght,azw1rght,amleft) &
-    !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left,xi,xi1)
+    !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left,xi,xi1) &
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
+    !$OMP PRIVATE(gam)
+
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
@@ -449,12 +518,17 @@ contains
           u = q(i,j,k3d,QU)
           v = q(i,j,k3d,QV)
           w = q(i,j,k3d,QW)
+
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+          enth = ( (rhoe+p)/rho )/csq
 
           cc = c(i,j,k3d)
           csq = cc**2
-          enth = ( (rhoe+p)/rho )/csq
+          Clag = rho*cc
+
+          gam = gamc(i,j,k3d)
+
 
           !--------------------------------------------------------------------
           ! plus state on face j
@@ -472,6 +546,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                gam_ref  = gam
              else
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
@@ -480,8 +555,15 @@ contains
                 w_ref    = Im(i,j,kc,2,1,QW)
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
+                gam_ref  = Im_gc(i,j,kc,2,1,1)
              endif
    
+             ! for tracing (optionally)
+             cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+             csq_ref = cc_ref**2
+             Clag_ref = rho_ref*cc_ref
+             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
    
@@ -509,15 +591,31 @@ contains
                 dw  = dw  - halfdt*Im_g(i,j,kc,2,2,igz)
                 dvp = dvp - halfdt*Im_g(i,j,kc,2,3,igy)
              endif
-   
+
+             ! optionally use the reference state in evaluating the
+             ! eigenvectors
+             if (ppm_reference_eigenvectors == 0) then
+                rho_ev  = rho
+                cc_ev   = cc
+                csq_ev  = csq
+                Clag_ev = Clag
+                enth_ev = enth
+             else
+                rho_ev  = rho_ref
+                cc_ev   = cc_ref
+                csq_ev  = csq_ref
+                Clag_ev = Clag_ref
+                enth_ev = enth_ref
+             endif
+
              ! these are analogous to the beta's from the original PPM
              ! paper (except we work with rho instead of tau).  This
              ! is simply (l . dq), where dq = qref - I(q)
 
-             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev
              alpha0u = du
              alpha0w = dw
    
@@ -560,11 +658,11 @@ contains
              xi = flatn(i,j,k3d)
 
              qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*rho_ref + apright + amright + azrright
-             qyp(i,j,kc,QV    ) = xi1*v    + xi*  v_ref + (apright - amright)*cc/rho
+             qyp(i,j,kc,QV    ) = xi1*v    + xi*  v_ref + (apright - amright)*cc_ev/rho_ev
              qyp(i,j,kc,QU    ) = xi1*u    + xi*  u_ref + azu1rght
              qyp(i,j,kc,QW    ) = xi1*w    + xi*  w_ref + azw1rght
-             qyp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
-             qyp(i,j,kc,QPRES ) = xi1*p    + xi*  p_ref + (apright + amright)*csq
+             qyp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+             qyp(i,j,kc,QPRES ) = xi1*p    + xi*  p_ref + (apright + amright)*csq_ev
 
              qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
@@ -587,6 +685,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                gam_ref  = gam
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
@@ -595,7 +694,14 @@ contains
                 w_ref    = Ip(i,j,kc,2,3,QW)
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
+                gam_ref  = Ip_gc(i,j,kc,2,3,1)
              endif
+
+             ! for tracing (optionally)
+             cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+             csq_ref = cc_ref**2
+             Clag_ref = rho_ref*cc_ref
+             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
@@ -625,13 +731,30 @@ contains
                 dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
              endif
 
+             ! optionally use the reference state in evaluating the
+             ! eigenvectors
+             if (ppm_reference_eigenvectors == 0) then
+                rho_ev  = rho
+                cc_ev   = cc
+                csq_ev  = csq
+                Clag_ev = Clag
+                enth_ev = enth
+             else
+                rho_ev  = rho_ref
+                cc_ev   = cc_ref
+                csq_ev  = csq_ref
+                Clag_ev = Clag_ref
+                enth_ev = enth_ref
+             endif
+
+
              ! these are analogous to the beta's from the original PPM
              ! paper.  This is simply (l . dq), where dq = qref - I(q)
  
-             alpham = 0.5d0*(dpm/(rho*cc) - dvm)*rho/cc
-             alphap = 0.5d0*(dpp/(rho*cc) + dvp)*rho/cc
-             alpha0r = drho - dp/csq
-             alpha0e = drhoe - dp*enth
+             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpha0r = drho - dp/csq_ev
+             alpha0e = drhoe - dp*enth_ev
              alpha0u = du
              alpha0w = dw
 
@@ -674,11 +797,11 @@ contains
              xi = flatn(i,j,k3d)
 
              qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qym(i,j+1,kc,QV    ) = xi1*v    + xi*   v_ref + (apleft - amleft)*cc/rho
+             qym(i,j+1,kc,QV    ) = xi1*v    + xi*   v_ref + (apleft - amleft)*cc_ev/rho_ev
              qym(i,j+1,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
              qym(i,j+1,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
-             qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-             qym(i,j+1,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
+             qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+             qym(i,j+1,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
 
              qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
@@ -744,7 +867,9 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
-         ppm_type, ppm_reference, ppm_trace_grav, small_dens, small_pres
+         small_dens, small_pres, &
+         ppm_type, ppm_reference, ppm_trace_grav, &
+         ppm_reference_eigenvectors
 
     implicit none
 
@@ -779,23 +904,29 @@ contains
     !     Local variables
     integer i, j
     integer n, iadv, ispec
+    integer npassive,ipassive,qpass_map(QVAR)
 
-    double precision cc, csq, rho, u, v, w, p, rhoe
+    double precision cc, csq, Clag, rho, u, v, w, p, rhoe
+
+    double precision drho, du, dv, dp, drhoe
     double precision dwp, dpp
     double precision dwm, dpm
 
-    double precision drho, du, dv, dp, drhoe
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev
+    double precision :: gam
+
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
     double precision apright, amright, azrright, azeright
     double precision azu1rght, azv1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left
-    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+
     double precision xi, xi1
     double precision halfdt
-
-    integer npassive,ipassive,qpass_map(QVAR)
 
     integer, parameter :: igx = 1
     integer, parameter :: igy = 2
@@ -839,7 +970,10 @@ contains
     !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
     !$OMP PRIVATE(drho,du,dv,dp,drhoe,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(alpha0u,alpha0v,amright,apright,azrright,azeright,azu1rght,azv1rght,amleft,apleft)&
-    !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left,xi,xi1)
+    !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left,xi,xi1) &
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
+    !$OMP PRIVATE(gam)
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
@@ -851,12 +985,16 @@ contains
           u    = q(i,j,k3d,QU)
           v    = q(i,j,k3d,QV)
           w    = q(i,j,k3d,QW)
+
           p    = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
+          enth = ( (rhoe+p)/rho )/csq
 
           cc   = c(i,j,k3d)
           csq  = cc**2
-          enth = ( (rhoe+p)/rho )/csq
+          Clag = rho*cc
+
+          gam = gamc(i,j,k3d)
 
 
           ! Set the reference state
@@ -869,6 +1007,7 @@ contains
              w_ref    = w
              p_ref    = p
              rhoe_ref = rhoe
+             gam_ref  = gam
           else
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
@@ -877,7 +1016,14 @@ contains
              w_ref    = Im(i,j,kc,3,1,QW)
              p_ref    = Im(i,j,kc,3,1,QPRES)
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
+             gam_ref  = Im_gc(i,j,kc,3,1,1)
           endif
+
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by w-c
           ! *p are the jumps carried by w+c
@@ -907,12 +1053,28 @@ contains
              dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
           endif
 
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+          endif
+
           ! these are analogous to the beta's from the original PPM
           ! paper.  This is simply (l . dq), where dq = qref - I(q)
-          alpham = 0.5d0*(dpm/(rho*cc) - dwm)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dwp)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
+          alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dwm)*rho_ev/cc_ev
+          alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dwp)*rho_ev/cc_ev
+          alpha0r = drho - dp/csq_ev
+          alpha0e = drhoe - dp*enth_ev
           alpha0u = du
           alpha0v = dv
 
@@ -953,11 +1115,11 @@ contains
           xi = flatn(i,j,k3d)
 
           qzp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
-          qzp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apright - amright)*cc/rho
+          qzp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apright - amright)*cc_ev/rho_ev
           qzp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1rght
           qzp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
-          qzp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth*csq + azeright
-          qzp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq
+          qzp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+          qzp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq_ev
 
           qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
@@ -976,12 +1138,17 @@ contains
           u    = q(i,j,k3d-1,QU)
           v    = q(i,j,k3d-1,QV)
           w    = q(i,j,k3d-1,QW)
+
           p    = q(i,j,k3d-1,QPRES)
           rhoe = q(i,j,k3d-1,QREINT)
+          enth = ( (rhoe+p)/rho )/csq
 
           cc   = c(i,j,k3d-1)
           csq  = cc**2
-          enth = ( (rhoe+p)/rho )/csq
+          Clag = rho*cc
+
+          gam = gamc(i,j,k3d-1)
+
 
           ! Set the reference state
           if (ppm_reference == 0 .or. &
@@ -992,6 +1159,7 @@ contains
              w_ref    = w
              p_ref    = p
              rhoe_ref = rhoe
+             gam_ref  = gam
           else
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
@@ -1000,7 +1168,14 @@ contains
              w_ref    = Ip(i,j,km,3,3,QW)
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
+             gam_ref  = Ip_gc(i,j,km,3,3,1)
           endif
+
+          ! for tracing (optionally)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          csq_ref = cc_ref**2
+          Clag_ref = rho_ref*cc_ref
+          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by w-c
           ! *p are the jumps carried by w+c
@@ -1030,12 +1205,28 @@ contains
              dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
           endif
 
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+          if (ppm_reference_eigenvectors == 0) then
+             rho_ev  = rho
+             cc_ev   = cc
+             csq_ev  = csq
+             Clag_ev = Clag
+             enth_ev = enth
+          else
+             rho_ev  = rho_ref
+             cc_ev   = cc_ref
+             csq_ev  = csq_ref
+             Clag_ev = Clag_ref
+             enth_ev = enth_ref
+          endif
+
           ! these are analogous to the beta's from the original PPM
           ! paper.  This is simply (l . dq), where dq = qref - I(q)
-          alpham = 0.5d0*(dpm/(rho*cc) - dwm)*rho/cc
-          alphap = 0.5d0*(dpp/(rho*cc) + dwp)*rho/cc
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
+          alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dwm)*rho_ev/cc_ev
+          alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dwp)*rho_ev/cc_ev
+          alpha0r = drho - dp/csq_ev
+          alpha0e = drhoe - dp*enth_ev
           alpha0u = du
           alpha0v = dv
 
@@ -1076,11 +1267,11 @@ contains
           xi = flatn(i,j,k3d-1)
 
           qzm(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-          qzm(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apleft - amleft)*cc/rho
+          qzm(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apleft - amleft)*cc_ev/rho_ev
           qzm(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
           qzm(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
-          qzm(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-          qzm(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq
+          qzm(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+          qzm(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
 
           qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
