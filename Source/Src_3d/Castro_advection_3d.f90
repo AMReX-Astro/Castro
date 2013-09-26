@@ -133,6 +133,7 @@ contains
 
     double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
+    double precision, allocatable:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
     
     type (eos_t) :: eos_state
 
@@ -218,6 +219,10 @@ contains
     allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
     allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
 
+    ! for gamc -- needed for the reference state in eigenvectors
+    allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+    allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+
     ! Local constants
     dtdx = dt/dx
     dtdy = dt/dy
@@ -261,6 +266,14 @@ contains
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
              enddo
           endif
+
+
+          if (ppm_temp_fix /= 1) then
+             call ppm(gamc(:,:,:),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), &
+                      ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+          endif
           
           ! temperature-based PPM
           if (ppm_temp_fix == 1) then
@@ -276,7 +289,8 @@ contains
                          
                          Ip(i,j,kc,idim,iwave,QPRES) = eos_state%p
                          Ip(i,j,kc,idim,iwave,QREINT) = Ip(i,j,kc,idim,iwave,QRHO)*eos_state%e
-                         
+                         Ip_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
+
                          
                          eos_state%rho   = Im(i,j,kc,idim,iwave,QRHO)
                          eos_state%T     = Im(i,j,kc,idim,iwave,QTEMP)
@@ -286,6 +300,7 @@ contains
                          
                          Im(i,j,kc,idim,iwave,QPRES) = eos_state%p
                          Im(i,j,kc,idim,iwave,QREINT) = Im(i,j,kc,idim,iwave,QRHO)*eos_state%e
+                         Im_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
                          
                       enddo
                    enddo
@@ -296,7 +311,7 @@ contains
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           Ip,Im,Ip_g,Im_g, &
+                           Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
                            qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                            gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -372,7 +387,7 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
              call tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             Ip,Im,Ip_g,Im_g, &
+                             Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                              grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                              gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -567,6 +582,7 @@ contains
     deallocate(fzx,fzy)
     deallocate(Ip,Im)
     deallocate(Ip_g,Im_g)
+    deallocate(Ip_gc,Im_gc)
       
   end subroutine umeth3d
 
