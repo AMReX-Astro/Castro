@@ -33,7 +33,7 @@ contains
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer gv_l1,gv_l2,gv_h1,gv_h2
-    integer gc_l1,gc_h1,gc_l2,gc_h2
+    integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
@@ -47,6 +47,7 @@ contains
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
+
     double precision dx, dy, dt
     
     ! Local variables
@@ -63,7 +64,7 @@ contains
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
     double precision :: gam
     
@@ -87,6 +88,10 @@ contains
     double precision, allocatable :: Ip_g(:,:,:,:,:)
     double precision, allocatable :: Im_g(:,:,:,:,:)
 
+    ! gamma_c/1 on the interfaces
+    double precision, allocatable :: Ip_gc(:,:,:,:,:)
+    double precision, allocatable :: Im_gc(:,:,:,:,:)
+
     type (eos_t) :: eos_state
 
     if (ppm_type .eq. 0) then
@@ -105,6 +110,9 @@ contains
        allocate(Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
        allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
     endif
+
+    allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
+    allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
     halfdt = 0.5d0 * dt
 
@@ -161,6 +169,7 @@ contains
 
                    Ip(i,j,idim,iwave,QPRES) = eos_state%p
                    Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO)*eos_state%e
+                   Ip_gc(i,j,idim,iwave,1) = eos_state%gam1
 
 
                    eos_state%rho   = Im(i,j,idim,iwave,QRHO)
@@ -171,13 +180,22 @@ contains
 
                    Im(i,j,idim,iwave,QPRES) = eos_state%p
                    Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO)*eos_state%e
-
+                   Im_gc(i,j,idim,iwave,1) = eos_state%gam1
                 enddo
              enddo
           enddo
        enddo
 
     endif
+
+    ! get an edge-based gam1 here if we didn't get it from the
+    ! call above (for ppm_temp_fix = 1)
+    if (ppm_temp_fix /= 1) then
+          call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
+                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
+                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       endif
 
     ! if desired, do parabolic reconstruction of the gravitational
     ! acceleration -- we'll use this for the force on the velocity
@@ -212,8 +230,7 @@ contains
 
           Clag = rho*cc
 
-          ! recover gamma from the sound speed
-          gam = rho*csq/p
+          gam = gamc(i,j)
 
 
           !-------------------------------------------------------------------
@@ -232,6 +249,9 @@ contains
              rhoe_ref = rhoe
 
              tau_ref  = 1.d0/rho
+
+             gam_ref = gamc(i,j)
+
           else
              ! this will be the fastest moving state to the left --
              ! this is the method that Miller & Colella and Colella &
@@ -244,10 +264,12 @@ contains
              rhoe_ref = Im(i,j,1,1,QREINT)
 
              tau_ref  = 1.0d0/Im(i,j,1,1,QRHO)
+
+             gam_ref  = Im_gc(i,j,1,1,1)
           endif
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam*p_ref/rho_ref)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
@@ -307,6 +329,7 @@ contains
              ! these are analogous to the beta's from the original 
              ! PPM paper (except we work with rho instead of tau).  
              ! This is simply (l . dq), where dq = qref - I(q)
+
              alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
              alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
@@ -448,6 +471,9 @@ contains
              rhoe_ref = rhoe
 
              tau_ref = 1.d0/rho
+
+             gam_ref = gamc(i,j)
+
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
@@ -458,10 +484,12 @@ contains
              rhoe_ref = Ip(i,j,1,3,QREINT)
 
              tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
+
+             gam_ref    = Ip_gc(i,j,1,3,1)
           endif
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam*p_ref/rho_ref)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
@@ -811,8 +839,7 @@ contains
 
           Clag = rho*cc
 
-          ! recover gamma from the sound speed
-          gam = rho*csq/p
+          gam = gamc(i,j)
 
           !------------------------------------------------------------------- 
           ! plus state on face j
@@ -830,6 +857,8 @@ contains
              rhoe_ref = rhoe
 
              tau_ref  = 1.0d0/rho
+
+             gam_ref = gamc(i,j)
           else
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
@@ -840,10 +869,12 @@ contains
              rhoe_ref = Im(i,j,2,1,QREINT)
 
              tau_ref  = 1.0d0/Im(i,j,2,1,QRHO)
+
+             gam_ref    = Im_gc(i,j,2,1,1)
           endif
             
           ! for tracing (optionally)
-          cc_ref = sqrt(gam*p_ref/rho_ref)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
@@ -1040,6 +1071,9 @@ contains
              rhoe_ref = rhoe
 
              tau_ref  = 1.0d0/rho
+
+             gam_ref = gamc(i,j)
+
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,2,3,QRHO)
@@ -1050,10 +1084,12 @@ contains
              rhoe_ref = Ip(i,j,2,3,QREINT)
 
              tau_ref  = 1.0d0/Ip(i,j,2,3,QRHO)
+
+             gam_ref    = Ip_gc(i,j,2,3,1)
           endif
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam*p_ref/rho_ref)
+          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
