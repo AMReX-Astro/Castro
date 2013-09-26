@@ -92,7 +92,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer :: i,j,k
   double precision :: x,y,z,r2d,pres,presmid,pertheight
   
-  presmid  = p0_base - rho_1*center(2)
+  presmid  = p0_base - rho_1*center(3)
         
   state(:,:,:,UMX)   = ZERO
   state(:,:,:,UMY)   = ZERO
