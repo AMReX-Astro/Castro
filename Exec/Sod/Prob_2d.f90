@@ -260,7 +260,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
      end if
 
      !        XHI
-     if ( bc(1,2,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+     if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.lt.domhi(1)) then
         call bl_error('SHOULD NEVER GET HERE bc(1,2,n) .eq. EXT_DIR) ')
      end if
 
@@ -270,7 +270,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
      end if
 
      !        YHI
-     if ( bc(2,2,n).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+     if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.lt.domhi(2)) then
         call bl_error('SHOULD NEVER GET HERE bc(2,2,n) .eq. EXT_DIR) ')
      end if
 
@@ -308,7 +308,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   end if
 
   !     XHI
-  if ( bc(1,2,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+  if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.lt.domhi(1)) then
      call bl_error('SHOULD NEVER GET HERE bc(1,2,1) .eq. EXT_DIR) ')
   end if
 
@@ -318,7 +318,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   end if
 
   !     YHI
-  if ( bc(2,2,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+  if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.lt.domhi(2)) then
      call bl_error('SHOULD NEVER GET HERE bc(2,2,1) .eq. EXT_DIR) ')
   end if
 
