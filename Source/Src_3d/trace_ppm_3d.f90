@@ -20,7 +20,7 @@ contains
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
-         ppm_reference_eigenvectors
+         ppm_tau_in_tracing, ppm_reference_eigenvectors
 
     implicit none
 
@@ -61,11 +61,12 @@ contains
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
-    double precision drho, du, dv, dw, dp, drhoe
+    double precision drho, du, dv, dw, dp, drhoe, dtau
     double precision dup, dvp, dpp
     double precision dum, dvm, dpm
 
-    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref, tau_ref
+    double precision :: tau_s, e_s, de
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev
@@ -166,7 +167,7 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
-          enth = ( (rhoe+p)/rho )/csq
+          enth = ( (rhoe+p)/rho )/csq          
 
           gam = gamc(i,j,k3d)
 
@@ -187,6 +188,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                tau_ref  = 1.d0/rho
                 gam_ref  = gam
              else
                 ! This will be the fastest moving state to the left --
@@ -198,6 +200,7 @@ contains
                 w_ref    = Im(i,j,kc,1,1,QW)
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
+                tau_ref  = 1.d0/Im(i,j,kc,1,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,1,1,1)
              endif
    
@@ -213,17 +216,17 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the u wave (the contact)
    
-             dum    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,1,QU))
-             dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,1,QPRES))
+             dum    = (u_ref    - Im(i,j,kc,1,1,QU))
+             dpm    = (p_ref    - Im(i,j,kc,1,1,QPRES))
    
-             drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,1,2,QRHO))
-             dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,1,2,QV))
-             dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,1,2,QW))
-             dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,2,QPRES))
-             drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,1,2,QREINT))
+             drho  = (rho_ref  - Im(i,j,kc,1,2,QRHO))
+             dv    = (v_ref    - Im(i,j,kc,1,2,QV))
+             dw    = (w_ref    - Im(i,j,kc,1,2,QW))
+             dp    = (p_ref    - Im(i,j,kc,1,2,QPRES))
+             drhoe = (rhoe_ref - Im(i,j,kc,1,2,QREINT))
 
-             dup    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,1,3,QU))
-             dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,1,3,QPRES))
+             dup    = (u_ref    - Im(i,j,kc,1,3,QU))
+             dpp    = (p_ref    - Im(i,j,kc,1,3,QPRES))
 
              ! if we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -301,12 +304,13 @@ contains
 
              xi1 = 1.0d0-flatn(i,j,k3d)
              xi = flatn(i,j,k3d)
-             qxp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
-             qxp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apright - amright)*cc_ev/rho_ev
-             qxp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
-             qxp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1rght
-             qxp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
-             qxp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq_ev
+
+             qxp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
+             qxp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
+             qxp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1rght)
+             qxp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1rght)
+             qxp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
+             qxp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
 
              qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
@@ -352,17 +356,17 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the u wave (the contact)
    
-             dum    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,1,QU))
-             dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,1,QPRES))
+             dum    = (u_ref    - Ip(i,j,kc,1,1,QU))
+             dpm    = (p_ref    - Ip(i,j,kc,1,1,QPRES))
    
-             drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,1,2,QRHO))
-             dv    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,1,2,QV))
-             dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,1,2,QW))
-             dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,2,QPRES))
-             drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,1,2,QREINT))
+             drho  = (rho_ref  - Ip(i,j,kc,1,2,QRHO))
+             dv    = (v_ref    - Ip(i,j,kc,1,2,QV))
+             dw    = (w_ref    - Ip(i,j,kc,1,2,QW))
+             dp    = (p_ref    - Ip(i,j,kc,1,2,QPRES))
+             drhoe = (rhoe_ref - Ip(i,j,kc,1,2,QREINT))
 
-             dup    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,1,3,QU))
-             dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,1,3,QPRES))
+             dup    = (u_ref    - Ip(i,j,kc,1,3,QU))
+             dpp    = (p_ref    - Ip(i,j,kc,1,3,QPRES))
 
              ! if we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -440,12 +444,12 @@ contains
              xi1 = 1.0d0 - flatn(i,j,k3d)
              xi = flatn(i,j,k3d)
 
-             qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qxm(i+1,j,kc,QU    ) = xi1*u    + xi*   u_ref + (apleft - amleft)*cc_ev/rho_ev
-             qxm(i+1,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
-             qxm(i+1,j,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
-             qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-             qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
+             qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
+             qxm(i+1,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
+             qxm(i+1,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1left)
+             qxm(i+1,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1left)
+             qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
+             qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
 
              qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
              qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
@@ -572,17 +576,17 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the v wave (the contact)
 
-             dvm    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,1,QV))
-             dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,1,QPRES))
+             dvm    = (v_ref    - Im(i,j,kc,2,1,QV))
+             dpm    = (p_ref    - Im(i,j,kc,2,1,QPRES))
    
-             drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,2,2,QRHO))
-             du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,2,2,QU))
-             dw    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,2,2,QW))
-             dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,2,QPRES))
-             drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,2,2,QREINT))
+             drho  = (rho_ref  - Im(i,j,kc,2,2,QRHO))
+             du    = (u_ref    - Im(i,j,kc,2,2,QU))
+             dw    = (w_ref    - Im(i,j,kc,2,2,QW))
+             dp    = (p_ref    - Im(i,j,kc,2,2,QPRES))
+             drhoe = (rhoe_ref - Im(i,j,kc,2,2,QREINT))
 
-             dvp    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,2,3,QV))
-             dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,2,3,QPRES))
+             dvp    = (v_ref    - Im(i,j,kc,2,3,QV))
+             dpp    = (p_ref    - Im(i,j,kc,2,3,QPRES))
 
              ! if we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -659,12 +663,12 @@ contains
              xi1 = 1.0d0 - flatn(i,j,k3d)
              xi = flatn(i,j,k3d)
 
-             qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*rho_ref + apright + amright + azrright
-             qyp(i,j,kc,QV    ) = xi1*v    + xi*  v_ref + (apright - amright)*cc_ev/rho_ev
-             qyp(i,j,kc,QU    ) = xi1*u    + xi*  u_ref + azu1rght
-             qyp(i,j,kc,QW    ) = xi1*w    + xi*  w_ref + azw1rght
-             qyp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
-             qyp(i,j,kc,QPRES ) = xi1*p    + xi*  p_ref + (apright + amright)*csq_ev
+             qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
+             qyp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
+             qyp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1rght)
+             qyp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1rght)
+             qyp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
+             qyp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
 
              qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
@@ -711,17 +715,17 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the v wave (the contact)
 
-             dvm    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,1,QV))
-             dpm    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,1,QPRES))
+             dvm    = (v_ref    - Ip(i,j,kc,2,1,QV))
+             dpm    = (p_ref    - Ip(i,j,kc,2,1,QPRES))
    
-             drho  = flatn(i,j,k3d)*(rho_ref  - Ip(i,j,kc,2,2,QRHO))
-             du    = flatn(i,j,k3d)*(u_ref    - Ip(i,j,kc,2,2,QU))
-             dw    = flatn(i,j,k3d)*(w_ref    - Ip(i,j,kc,2,2,QW))
-             dp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,2,QPRES))
-             drhoe = flatn(i,j,k3d)*(rhoe_ref - Ip(i,j,kc,2,2,QREINT))
+             drho  = (rho_ref  - Ip(i,j,kc,2,2,QRHO))
+             du    = (u_ref    - Ip(i,j,kc,2,2,QU))
+             dw    = (w_ref    - Ip(i,j,kc,2,2,QW))
+             dp    = (p_ref    - Ip(i,j,kc,2,2,QPRES))
+             drhoe = (rhoe_ref - Ip(i,j,kc,2,2,QREINT))
 
-             dvp    = flatn(i,j,k3d)*(v_ref    - Ip(i,j,kc,2,3,QV))
-             dpp    = flatn(i,j,k3d)*(p_ref    - Ip(i,j,kc,2,3,QPRES))
+             dvp    = (v_ref    - Ip(i,j,kc,2,3,QV))
+             dpp    = (p_ref    - Ip(i,j,kc,2,3,QPRES))
 
              ! if we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -798,12 +802,12 @@ contains
              xi1 = 1.0d0 - flatn(i,j,k3d)
              xi = flatn(i,j,k3d)
 
-             qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-             qym(i,j+1,kc,QV    ) = xi1*v    + xi*   v_ref + (apleft - amleft)*cc_ev/rho_ev
-             qym(i,j+1,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
-             qym(i,j+1,kc,QW    ) = xi1*w    + xi*   w_ref + azw1left
-             qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-             qym(i,j+1,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
+             qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
+             qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
+             qym(i,j+1,kc,QU    ) = xi1*u    + xi*(u_ref + azu1left)
+             qym(i,j+1,kc,QW    ) = xi1*w    + xi*(w_ref + azw1left)
+             qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
+             qym(i,j+1,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
 
              qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
@@ -1034,17 +1038,17 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,1,QW))
-          dpm    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,1,QPRES))
+          dwm    = (w_ref    - Im(i,j,kc,3,1,QW))
+          dpm    = (p_ref    - Im(i,j,kc,3,1,QPRES))
 
-          drho  = flatn(i,j,k3d)*(rho_ref  - Im(i,j,kc,3,2,QRHO))
-          du    = flatn(i,j,k3d)*(u_ref    - Im(i,j,kc,3,2,QU))
-          dv    = flatn(i,j,k3d)*(v_ref    - Im(i,j,kc,3,2,QV))
-          dp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,2,QPRES))
-          drhoe = flatn(i,j,k3d)*(rhoe_ref - Im(i,j,kc,3,2,QREINT))
+          drho  = (rho_ref  - Im(i,j,kc,3,2,QRHO))
+          du    = (u_ref    - Im(i,j,kc,3,2,QU))
+          dv    = (v_ref    - Im(i,j,kc,3,2,QV))
+          dp    = (p_ref    - Im(i,j,kc,3,2,QPRES))
+          drhoe = (rhoe_ref - Im(i,j,kc,3,2,QREINT))
 
-          dwp    = flatn(i,j,k3d)*(w_ref    - Im(i,j,kc,3,3,QW))
-          dpp    = flatn(i,j,k3d)*(p_ref    - Im(i,j,kc,3,3,QPRES))
+          dwp    = (w_ref    - Im(i,j,kc,3,3,QW))
+          dpp    = (p_ref    - Im(i,j,kc,3,3,QPRES))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -1117,12 +1121,12 @@ contains
           xi1 = 1.0d0 - flatn(i,j,k3d)
           xi = flatn(i,j,k3d)
 
-          qzp(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apright + amright + azrright
-          qzp(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apright - amright)*cc_ev/rho_ev
-          qzp(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1rght
-          qzp(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1rght
-          qzp(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
-          qzp(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apright + amright)*csq_ev
+          qzp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
+          qzp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apright - amright)*cc_ev/rho_ev)
+          qzp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1rght)
+          qzp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1rght)
+          qzp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
+          qzp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
 
           qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
@@ -1187,17 +1191,17 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,1,QW))
-          dpm    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,1,QPRES))
+          dwm    = (w_ref    - Ip(i,j,km,3,1,QW))
+          dpm    = (p_ref    - Ip(i,j,km,3,1,QPRES))
 
-          drho  = flatn(i,j,k3d-1)*(rho_ref  - Ip(i,j,km,3,2,QRHO))
-          du    = flatn(i,j,k3d-1)*(u_ref    - Ip(i,j,km,3,2,QU))
-          dv    = flatn(i,j,k3d-1)*(v_ref    - Ip(i,j,km,3,2,QV))
-          dp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,2,QPRES))
-          drhoe = flatn(i,j,k3d-1)*(rhoe_ref - Ip(i,j,km,3,2,QREINT))
+          drho  = (rho_ref  - Ip(i,j,km,3,2,QRHO))
+          du    = (u_ref    - Ip(i,j,km,3,2,QU))
+          dv    = (v_ref    - Ip(i,j,km,3,2,QV))
+          dp    = (p_ref    - Ip(i,j,km,3,2,QPRES))
+          drhoe = (rhoe_ref - Ip(i,j,km,3,2,QREINT))
 
-          dwp    = flatn(i,j,k3d-1)*(w_ref    - Ip(i,j,km,3,3,QW))
-          dpp    = flatn(i,j,k3d-1)*(p_ref    - Ip(i,j,km,3,3,QPRES))
+          dwp    = (w_ref    - Ip(i,j,km,3,3,QW))
+          dpp    = (p_ref    - Ip(i,j,km,3,3,QPRES))
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -1270,12 +1274,12 @@ contains
           xi1 = 1.0d0 - flatn(i,j,k3d-1)
           xi = flatn(i,j,k3d-1)
 
-          qzm(i,j,kc,QRHO  ) = xi1*rho  + xi* rho_ref + apleft + amleft + azrleft
-          qzm(i,j,kc,QW    ) = xi1*w    + xi*   w_ref + (apleft - amleft)*cc_ev/rho_ev
-          qzm(i,j,kc,QU    ) = xi1*u    + xi*   u_ref + azu1left
-          qzm(i,j,kc,QV    ) = xi1*v    + xi*   v_ref + azv1left
-          qzm(i,j,kc,QREINT) = xi1*rhoe + xi*rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-          qzm(i,j,kc,QPRES ) = xi1*p    + xi*   p_ref + (apleft + amleft)*csq_ev
+          qzm(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
+          qzm(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apleft - amleft)*cc_ev/rho_ev)
+          qzm(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1left)
+          qzm(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1left)
+          qzm(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
+          qzm(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
 
           qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
