@@ -188,7 +188,7 @@ contains
 
     endif
 
-    ! get an edge-based gam1 here if we didn't get it from the
+    ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
           call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
