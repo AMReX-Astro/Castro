@@ -1247,7 +1247,7 @@ contains
              w_ref    = w
              p_ref    = p
              rhoe_ref = rhoe
-             tau_ref  = 1.d0/tau
+             tau_ref  = 1.d0/rho
              gam_ref  = gam
           else
              ! This will be the fastest moving state to the right
