@@ -150,7 +150,7 @@ contains
     !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,azv1left,azw1left,xi,xi1) &
     !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
     !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
-    !$OMP PRIVATE(gam)
+    !$OMP PRIVATE(gam, tau_ref, dtau)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -224,6 +224,7 @@ contains
              dw    = (w_ref    - Im(i,j,kc,1,2,QW))
              dp    = (p_ref    - Im(i,j,kc,1,2,QPRES))
              drhoe = (rhoe_ref - Im(i,j,kc,1,2,QREINT))
+             dtau  = (tau_ref  - 1.d0/Im(i,j,kc,1,2,QRHO))
 
              dup    = (u_ref    - Im(i,j,kc,1,3,QU))
              dpp    = (p_ref    - Im(i,j,kc,1,3,QPRES))
@@ -332,6 +333,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                tau_ref  = 1.d0/rho
                 gam_ref  = gam
              else
                 ! This will be the fastest moving state to the right
@@ -341,6 +343,7 @@ contains
                 w_ref    = Ip(i,j,kc,1,3,QW)
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,1,3,QREINT)
+                tau_ref  = 1.d0/Ip(i,j,kc,1,3,QRHO)
                 gam_ref  = Ip_gc(i,j,kc,1,3,1)
              endif
    
@@ -364,6 +367,7 @@ contains
              dw    = (w_ref    - Ip(i,j,kc,1,2,QW))
              dp    = (p_ref    - Ip(i,j,kc,1,2,QPRES))
              drhoe = (rhoe_ref - Ip(i,j,kc,1,2,QREINT))
+             dtau  = (tau_ref  - 1.d0/Ip(i,j,kc,1,2,QRHO))
 
              dup    = (u_ref    - Ip(i,j,kc,1,3,QU))
              dpp    = (p_ref    - Ip(i,j,kc,1,3,QPRES))
@@ -514,7 +518,7 @@ contains
     !$OMP PRIVATE(apleft,azrleft,azeleft,azu1left,azw1left,xi,xi1) &
     !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
     !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
-    !$OMP PRIVATE(gam)
+    !$OMP PRIVATE(gam, dtau, tau_ref)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -552,6 +556,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                tau_ref  = 1.d0/rho
                 gam_ref  = gam
              else
                 ! This will be the fastest moving state to the left
@@ -561,6 +566,7 @@ contains
                 w_ref    = Im(i,j,kc,2,1,QW)
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
+                tau_ref  = 1.d0/Im(i,j,kc,2,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,2,1,1)
              endif
    
@@ -584,6 +590,7 @@ contains
              dw    = (w_ref    - Im(i,j,kc,2,2,QW))
              dp    = (p_ref    - Im(i,j,kc,2,2,QPRES))
              drhoe = (rhoe_ref - Im(i,j,kc,2,2,QREINT))
+             dtau  = (tau_ref  - 1.d0/Im(i,j,kc,2,2,QRHO))
 
              dvp    = (v_ref    - Im(i,j,kc,2,3,QV))
              dpp    = (p_ref    - Im(i,j,kc,2,3,QPRES))
@@ -691,6 +698,7 @@ contains
                 w_ref    = w
                 p_ref    = p
                 rhoe_ref = rhoe
+                tau_ref  = 1.d0/rho
                 gam_ref  = gam
              else
                 ! This will be the fastest moving state to the right
@@ -700,6 +708,7 @@ contains
                 w_ref    = Ip(i,j,kc,2,3,QW)
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
+                tau_ref  = 1.d0/Ip(i,j,kc,2,3,QRHO)
                 gam_ref  = Ip_gc(i,j,kc,2,3,1)
              endif
 
@@ -723,6 +732,7 @@ contains
              dw    = (w_ref    - Ip(i,j,kc,2,2,QW))
              dp    = (p_ref    - Ip(i,j,kc,2,2,QPRES))
              drhoe = (rhoe_ref - Ip(i,j,kc,2,2,QREINT))
+             dtau  = (tau_ref  - 1.d0/Ip(i,j,kc,2,2,QRHO))
 
              dvp    = (v_ref    - Ip(i,j,kc,2,3,QV))
              dpp    = (p_ref    - Ip(i,j,kc,2,3,QPRES))
@@ -914,11 +924,11 @@ contains
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
-    double precision drho, du, dv, dp, drhoe
+    double precision drho, du, dv, dp, drhoe, dtau
     double precision dwp, dpp
     double precision dwm, dpm
 
-    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
+    double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref, tau_ref
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev
@@ -979,7 +989,7 @@ contains
     !$OMP PRIVATE(azrleft,azeleft,azu1left,azv1left,xi,xi1) &
     !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
     !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, enth_ev) &
-    !$OMP PRIVATE(gam)
+    !$OMP PRIVATE(gam, dtau, tau_ref)
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
@@ -1014,6 +1024,7 @@ contains
              w_ref    = w
              p_ref    = p
              rhoe_ref = rhoe
+             tau_ref  = 1.d0/rho
              gam_ref  = gam
           else
              ! This will be the fastest moving state to the left
@@ -1023,6 +1034,7 @@ contains
              w_ref    = Im(i,j,kc,3,1,QW)
              p_ref    = Im(i,j,kc,3,1,QPRES)
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
+             tau_ref  = 1.d0/Im(i,j,kc,3,1,QRHO)
              gam_ref  = Im_gc(i,j,kc,3,1,1)
           endif
 
@@ -1046,6 +1058,7 @@ contains
           dv    = (v_ref    - Im(i,j,kc,3,2,QV))
           dp    = (p_ref    - Im(i,j,kc,3,2,QPRES))
           drhoe = (rhoe_ref - Im(i,j,kc,3,2,QREINT))
+          dtau  = (tau_ref  - 1.d0/Im(i,j,kc,3,2,QRHO))
 
           dwp    = (w_ref    - Im(i,j,kc,3,3,QW))
           dpp    = (p_ref    - Im(i,j,kc,3,3,QPRES))
@@ -1167,6 +1180,7 @@ contains
              w_ref    = w
              p_ref    = p
              rhoe_ref = rhoe
+             tau_ref  = 1.d0/tau
              gam_ref  = gam
           else
              ! This will be the fastest moving state to the right
@@ -1176,6 +1190,7 @@ contains
              w_ref    = Ip(i,j,km,3,3,QW)
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
+             tau_ref  = 1.d0/Ip(i,j,km,3,3,QRHO)
              gam_ref  = Ip_gc(i,j,km,3,3,1)
           endif
 
@@ -1199,6 +1214,7 @@ contains
           dv    = (v_ref    - Ip(i,j,km,3,2,QV))
           dp    = (p_ref    - Ip(i,j,km,3,2,QPRES))
           drhoe = (rhoe_ref - Ip(i,j,km,3,2,QREINT))
+          dtau  = (tau_ref  - 1.d0/Ip(i,j,km,3,2,QRHO))
 
           dwp    = (w_ref    - Ip(i,j,km,3,3,QW))
           dpp    = (p_ref    - Ip(i,j,km,3,3,QPRES))
