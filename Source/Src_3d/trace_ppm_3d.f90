@@ -1111,7 +1111,7 @@ contains
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi/tau_s
 
-                qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag_ev**2)
+                qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag_ev)
                 qym(i,j+1,kc,QU    ) = xi1*u    + xi*(u_ref + azu1left)
                 qym(i,j+1,kc,QW    ) = xi1*w    + xi*(w_ref + azw1left)
 
