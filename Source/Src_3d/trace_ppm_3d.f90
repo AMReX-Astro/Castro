@@ -984,12 +984,14 @@ contains
                 csq_ev  = csq
                 Clag_ev = Clag
                 enth_ev = enth
+                p_ev    = p
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
                 csq_ev  = csq_ref
                 Clag_ev = Clag_ref
                 enth_ev = enth_ref
+                p_ev    = p_ref
              endif
 
 
@@ -1384,12 +1386,14 @@ contains
              csq_ev  = csq
              Clag_ev = Clag
              enth_ev = enth
+             p_ev    = p
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
              enth_ev = enth_ref
+             p_ev    = p_ref
           endif
 
           if (ppm_tau_in_tracing == 0) then
@@ -1611,12 +1615,14 @@ contains
              csq_ev  = csq
              Clag_ev = Clag
              enth_ev = enth
+             p_ev    = p
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
              enth_ev = enth_ref
+             p_ev    = p_ref
           endif
 
           if (ppm_tau_in_tracing == 0) then
