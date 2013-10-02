@@ -1,0 +1,30 @@
+
+PRECISION  = DOUBLE
+PROFILE    = FALSE
+
+DEBUG      = TRUE
+
+
+#DIM        = 1
+DIM        = 2
+
+COMP	   = gcc
+FCOMP	   = gfortran
+
+USE_MPI    = FALSE
+USE_OMP    = FALSE
+
+
+# This sets the EOS directory in Castro/EOS
+EOS_dir     := helmeos
+#EOS_dir     := gamma_law_general
+
+# This sets the network directory in Castro/Networks
+Network_dir := general_null
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
+#GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
+
+Bpack   := ./Make.package $(CASTRO_DIR)/Util/exact_riemann/Make.package
+Blocs   := . $(CASTRO_DIR)/Util/exact_riemann/
+
+include $(CASTRO_DIR)/Exec/Make.Castro
