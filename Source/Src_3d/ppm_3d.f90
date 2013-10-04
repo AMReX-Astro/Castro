@@ -156,33 +156,82 @@ contains
           sm(i,j) = sedge(i  ,j)
 
           ! modify using quadratic limiters -- note this version of the limiting comes
-          ! from Colella and Sekora (2008), not the original PPM paper.  
+          ! from Colella and Sekora (2008), not the original PPM paper.
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
+
           else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
              sp(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sm(i,j)
+
           else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
           end if
 
           ! compute x-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+
+          ! Ip/m is the integral under the parabola for the extent
+          ! that a wave can travel over a timestep
+          !
+          ! Ip integrates to the right edge of a cell
+          ! Im integrates to the left edge of a cell
+
+          ! u-c wave
           sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dt/dx
-          Ip(i,j,kc,1,1) = sp(i,j) - &
+
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,1,1) = sp(i,j)
+          else
+             Ip(i,j,kc,1,1) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,1) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,1,1) = sm(i,j) 
+          else
+             Im(i,j,kc,1,1) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! u wave
           sigma = abs(u(i,j,k3d,1))*dt/dx
-          Ip(i,j,kc,1,2) = sp(i,j) - &
+
+          if (u(i,j,k3d,1) <= 0.0d0) then
+             Ip(i,j,kc,1,2) = sp(i,j) 
+          else
+             Ip(i,j,kc,1,2) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,2) = sm(i,j) + &
+          endif
+             
+          if (u(i,j,k3d,1) >= 0.0d0) then
+             Im(i,j,kc,1,2) = sm(i,j) 
+          else
+             Im(i,j,kc,1,2) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! u+c wave
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dt/dx
-          Ip(i,j,kc,1,3) = sp(i,j) - &
+
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,1,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,1,3) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,3) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,1,3) = sm(i,j) 
+          else
+             Im(i,j,kc,1,3) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
        end do
     end do
     !$OMP END PARALLEL DO
@@ -236,29 +285,72 @@ contains
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
+
           else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
              sp(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sm(i,j)
+
           else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
           end if
 
           ! compute y-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+
+          ! v-c wave
           sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dt/dy
-          Ip(i,j,kc,2,1) = sp(i,j) - &
+
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,2,1) = sp(i,j)
+          else
+             Ip(i,j,kc,2,1) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,1) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,2,1) = sm(i,j) 
+          else
+             Im(i,j,kc,2,1) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! v wave
           sigma = abs(u(i,j,k3d,2))*dt/dy
-          Ip(i,j,kc,2,2) = sp(i,j) - &
+
+          if (u(i,j,k3d,2) <= 0.0d0) then
+             Ip(i,j,kc,2,2) = sp(i,j) 
+          else
+             Ip(i,j,kc,2,2) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,2) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,2) >= 0.0d0) then
+             Im(i,j,kc,2,2) = sm(i,j) 
+          else
+             Im(i,j,kc,2,2) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! v+c wave
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dt/dy
-          Ip(i,j,kc,2,3) = sp(i,j) - &
+
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,2,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,2,3) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,3) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,2,3) = sm(i,j) 
+          else
+             Im(i,j,kc,2,3) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
        end do
     end do
     !$OMP END PARALLEL DO
@@ -329,29 +421,72 @@ contains
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.0d0) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
+
           else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.0d0*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
              sp(i,j) = 3.0d0*s(i,j,k3d) - 2.0d0*sm(i,j)
+
           else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.0d0*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.0d0*s(i,j,k3d) - 2.0d0*sp(i,j)
           end if
 
           ! compute z-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+
+          ! w-c wave
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dt/dz
-          Ip(i,j,kc,3,1) = sp(i,j) - &
+
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,3,1) = sp(i,j) 
+          else
+             Ip(i,j,kc,3,1) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,1) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,3,1) = sm(i,j) 
+          else
+             Im(i,j,kc,3,1) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! w wave
           sigma = abs(u(i,j,k3d,3))*dt/dz
-          Ip(i,j,kc,3,2) = sp(i,j) - &
+
+          if (u(i,j,k3d,3) <= 0.0d0) then
+             Ip(i,j,kc,3,2) = sp(i,j) 
+          else
+             Ip(i,j,kc,3,2) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,2) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,3) >= 0.0d0) then
+             Im(i,j,kc,3,2) = sm(i,j) 
+          else
+             Im(i,j,kc,3,2) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! w+c wave
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dt/dz
-          Ip(i,j,kc,3,3) = sp(i,j) - &
+
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) <= 0.0d0) then
+             Ip(i,j,kc,3,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,3,3) = sp(i,j) - &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,3) = sm(i,j) + &
+          endif
+
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) >= 0.0d0) then
+             Im(i,j,kc,3,3) = sm(i,j) 
+          else
+             Im(i,j,kc,3,3) = sm(i,j) + &
                (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
        end do
     end do
     !$OMP END PARALLEL DO
