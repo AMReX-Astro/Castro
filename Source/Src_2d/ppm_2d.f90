@@ -216,22 +216,64 @@ contains
        ! compute x-component of Ip and Im
         do j=ilo2-1,ihi2+1
            do i=ilo1-1,ihi1+1
+              ! Ip/m is the integral under the parabola for the extent
+              ! that a wave can travel over a timestep
+              !
+              ! Ip integrates to the right edge of a cell
+              ! Im integrates to the left edge of a cell
+
               s6 = 6.0d0*s(i,j) - 3.0d0*(sm(i,j)+sp(i,j))
+
+              ! u-c wave
               sigma = abs(u(i,j,1)-cspd(i,j))*dt/dx
-              Ip(i,j,1,1) = sp(i,j) - &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,1,1) = sm(i,j) + &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+              if (u(i,j,1)-cspd(i,j) <= 0.0d0) then
+                 Ip(i,j,1,1) = sp(i,j)
+              else
+                 Ip(i,j,1,1) = sp(i,j) - &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              if (u(i,j,1)-cspd(i,j) >= 0.0d0) then
+                 Im(i,j,1,1) = sm(i,j)
+              else
+                 Im(i,j,1,1) = sm(i,j) + &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              ! u wave
               sigma = abs(u(i,j,1))*dt/dx
-              Ip(i,j,1,2) = sp(i,j) - &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,1,2) = sm(i,j) + &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+              if (u(i,j,1) <= 0.0d0) then
+                 Ip(i,j,1,2) = sp(i,j)
+              else
+                 Ip(i,j,1,2) = sp(i,j) - &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              if (u(i,j,1) >= 0.0d0) then
+                 Im(i,j,1,2) = sm(i,j)
+              else
+                 Im(i,j,1,2) = sm(i,j) + &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              ! u + c wave
               sigma = abs(u(i,j,1)+cspd(i,j))*dt/dx
-              Ip(i,j,1,3) = sp(i,j) - &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,1,3) = sm(i,j) + &
-                   (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+              if (u(i,j,1) + cspd(i,j) <= 0.0d0) then
+                 Ip(i,j,1,3) = sp(i,j)
+              else
+                 Ip(i,j,1,3) = sp(i,j) - &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              if (u(i,j,1) + cspd(i,j) >= 0.0d0) then
+                 Im(i,j,1,3) = sm(i,j)
+              else
+                 Im(i,j,1,3) = sm(i,j) + &
+                      (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
            end do
         end do
 
@@ -398,22 +440,60 @@ contains
         ! compute y-component of Ip and Im
         do j=ilo2-1,ihi2+1
            do i=ilo1-1,ihi1+1
+
               s6 = 6.0d0*s(i,j) - 3.0d0*(sm(i,j)+sp(i,j))
+
+              ! v-c wave
               sigma = abs(u(i,j,2)-cspd(i,j))*dt/dy
-              Ip(i,j,2,1) = sp(i,j) - &
+
+              if (u(i,j,2)-cspd(i,j) <= 0.0d0) then
+                 Ip(i,j,2,1) = sp(i,j)
+              else
+                 Ip(i,j,2,1) = sp(i,j) - &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,2,1) = sm(i,j) + &
+              endif
+
+              if (u(i,j,2)-cspd(i,j) >= 0.0d0) then
+                 Im(i,j,2,1) = sm(i,j) 
+              else
+                 Im(i,j,2,1) = sm(i,j) + &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              ! v wave
               sigma = abs(u(i,j,2))*dt/dy
-              Ip(i,j,2,2) = sp(i,j) - &
+
+              if (u(i,j,2) <= 0.0d0) then
+                 Ip(i,j,2,2) = sp(i,j) 
+              else
+                 Ip(i,j,2,2) = sp(i,j) - &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,2,2) = sm(i,j) + &
+              endif
+
+              if (u(i,j,2) >= 0.0d0) then
+                 Im(i,j,2,2) = sm(i,j) 
+              else
+                 Im(i,j,2,2) = sm(i,j) + &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
+              ! v+c wave
               sigma = abs(u(i,j,2)+cspd(i,j))*dt/dy
-              Ip(i,j,2,3) = sp(i,j) - &
+
+              if (u(i,j,2)+cspd(i,j) <= 0.0d0) then
+                 Ip(i,j,2,3) = sp(i,j) 
+              else
+                 Ip(i,j,2,3) = sp(i,j) - &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-              Im(i,j,2,3) = sm(i,j) + &
+              endif
+
+              if (u(i,j,2)+cspd(i,j) >= 0.0d0) then
+                 Im(i,j,2,3) = sm(i,j) 
+              else
+                 Im(i,j,2,3) = sm(i,j) + &
                    (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+              endif
+
            end do
         end do
 
