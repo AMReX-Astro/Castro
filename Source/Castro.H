@@ -577,6 +577,7 @@ protected:
     static int       ppm_trace_grav;
     static int       ppm_temp_fix;
     static int       ppm_tau_in_tracing;
+    static int       ppm_reference_edge_limit;
     static int       ppm_reference_eigenvectors;
     static int       use_colglaz;
     static int       cg_maxiter;

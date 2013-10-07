@@ -35,6 +35,7 @@ module meth_params_module
   integer         , save :: ppm_trace_grav
   integer         , save :: ppm_temp_fix
   integer         , save :: ppm_tau_in_tracing
+  integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_reference_eigenvectors
   integer         , save :: use_colglaz
   integer         , save :: cg_maxiter

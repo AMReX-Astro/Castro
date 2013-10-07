@@ -143,6 +143,7 @@ int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
+int          Castro::ppm_reference_edge_limit = 0;
 int          Castro::ppm_reference_eigenvectors = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
@@ -367,6 +368,7 @@ Castro::read_params ()
     pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
+    pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
     pp.query("use_colglaz",use_colglaz);
     pp.query("cg_maxiter",cg_maxiter);
