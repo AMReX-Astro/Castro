@@ -20,7 +20,8 @@ contains
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
+         ppm_reference_edge_limit
 
     implicit none
 
@@ -180,7 +181,8 @@ contains
 
              ! Set the reference state 
              if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. u - cc >= 0.0d0) ) then
+                  (ppm_reference == 1 .and. u - cc >= 0.0d0 .and. &
+                   ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 u_ref    = u
@@ -402,7 +404,8 @@ contains
 
              ! Set the reference state 
              if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. u + cc <= 0.0d0) ) then
+                  (ppm_reference == 1 .and. u + cc <= 0.0d0 .and. &
+                   ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc values
                 rho_ref  = rho
                 u_ref    = u
@@ -701,7 +704,8 @@ contains
 
              ! Set the reference state 
              if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. v - cc >= 0.0d0) ) then
+                  (ppm_reference == 1 .and. v - cc >= 0.0d0 .and. &
+                   ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 u_ref    = u
@@ -919,7 +923,8 @@ contains
 
              ! Set the reference state 
              if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. v + cc <= 0.0d0) ) then
+                  (ppm_reference == 1 .and. v + cc <= 0.0d0 .and. &
+                   ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 u_ref    = u
@@ -1189,7 +1194,8 @@ contains
          QREINT, QESGS, QPRES, QFA, QFS, nadv, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
+         ppm_reference_edge_limit
 
     implicit none
 
@@ -1321,7 +1327,8 @@ contains
 
           ! Set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. w - cc >= 0.0d0) ) then
+               (ppm_reference == 1 .and. w - cc >= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -1551,7 +1558,8 @@ contains
 
           ! Set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. w + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. w + cc <= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0) ) then
              rho_ref  = rho
              u_ref    = u
              v_ref    = v
