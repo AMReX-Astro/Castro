@@ -440,16 +440,31 @@ Gravity::solve_for_phi (int               level,
 
     const Real strt = ParallelDescriptor::second();
 
+    const Geometry& geom = parent->Geom(level);
+
+    // This is a sanity check on whether we are trying to use multipole boundary conditiosn
+    //  but the grids at this level > 0 touch the domain boundary -- this case is not currently
+    //  supported.  Here we shrink the domain at this level by 1 in all directions, then ask
+    //  if the grids at this level are contained in the shrunken domain.  If not, then grids
+    //  at this level touch the domain boundary and we must abort.
+    if (level > 0  && !Geometry::isAllPeriodic()) 
+    {
+      Box shrunk_domain(geom.Domain());
+      shrunk_domain.grow(-1);
+      BoxArray shrunk_domain_ba(shrunk_domain);
+      if (!shrunk_domain_ba.contains(phi.boxArray()))
+         BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
+    }
+      
     if (level == 0  && !Geometry::isAllPeriodic()) {
       if (verbose && ParallelDescriptor::IOProcessor()) 
          std::cout << " ... Making bc's for phi at level 0 and time "  << time << std::endl;
-      
+
       // Fill the ghost cells using a multipole approximation. By default, lnum = 0
       // and a monopole approximation is used. Do this only if we are in 3D; otherwise,
       // default to the make_radial_phi approach, that integrates spherical shells of mass.
       // We can also do a brute force sum that explicitly calculates the potential
       // at each ghost zone by summing over all the cells in the domain.
-
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
         fill_direct_sum_BCs(level,Rhs,phi);
@@ -463,7 +478,6 @@ Gravity::solve_for_phi (int               level,
 
     Rhs.mult(Ggravity);
 
-    const Geometry& geom = parent->Geom(level);
     MacBndry bndry(grids[level],1,geom);
 
     IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
