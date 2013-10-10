@@ -442,15 +442,24 @@ Gravity::solve_for_phi (int               level,
 
     const Geometry& geom = parent->Geom(level);
 
-    // This is a sanity check on whether we are trying to use multipole boundary conditiosn
-    //  but the grids at this level > 0 touch the domain boundary -- this case is not currently
-    //  supported.  Here we shrink the domain at this level by 1 in all directions, then ask
-    //  if the grids at this level are contained in the shrunken domain.  If not, then grids
+    // This is a sanity check on whether we are trying to fill multipole boundary conditiosn
+    //  for grids at this level > 0 -- this case is not currently supported. 
+    //  Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, 
+    //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
     //  at this level touch the domain boundary and we must abort.
     if (level > 0  && !Geometry::isAllPeriodic()) 
     {
       Box shrunk_domain(geom.Domain());
-      shrunk_domain.grow(-1);
+      for (int dir = 0; dir < BL_SPACEDIM; dir++)
+      {
+          if (!Geometry::isPeriodic(dir)) 
+          {
+              if (phys_bc->lo(dir) != Symmetry) 
+                  shrunk_domain.growLo(dir,-1);
+              if (phys_bc->hi(dir) != Symmetry) 
+                  shrunk_domain.growHi(dir,-1);
+          }
+      }
       BoxArray shrunk_domain_ba(shrunk_domain);
       if (!shrunk_domain_ba.contains(phi.boxArray()))
          BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
