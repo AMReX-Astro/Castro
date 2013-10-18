@@ -4,7 +4,7 @@ u_l   = 0.0d0
 T_l   = 1.e7
 
 
-rho_r = 1.0d-2
+rho_r = 1.0d-4
 u_r   = 0.0d0
 T_r   = 1.e7
 
