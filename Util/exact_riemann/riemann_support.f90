@@ -131,7 +131,7 @@ contains
 
           if (abs(dW) < tol*W_s) converged = .true.
           
-          W_s = min(1.2d0*W_s, max(0.8d0*W_s,W_s + dW))
+          W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
 
           ! store some history
           rhostar_hist(iter) = rhostar_s
@@ -155,7 +155,7 @@ contains
           call eos(eos_input_rp, eos_state, .false.)
 
           ! give ourselves a little wiggle room
-          W1 = 0.1d0*sqrt(eos_state%gam1*p_s*rho_s)
+          W1 = 0.01d0*sqrt(eos_state%gam1*p_s*rho_s)
 
           ! make sure it's ok
           taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
@@ -184,6 +184,30 @@ contains
              iter = iter + 1
           enddo
        
+          if (.not. found) then
+             iter = 1
+             do while (iter < max_iters .and. .not. found)
+
+                print *, iter, W1
+                ! adjust the lower limit
+                W1 = 0.9*W1
+
+                ! make sure it's ok
+                taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
+                
+                if (taustar_s < ZERO) then
+                   rhostar_s = 1.0000001d0*rho_s
+                   W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
+                endif
+
+                call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
+                
+                if (f2*f1 < 0.0d0) found = .true.
+                
+                iter = iter + 1
+             enddo
+          endif
+
           if (found) then
 
              iter = 1
@@ -294,7 +318,7 @@ contains
     real (kind=dp_t) :: dtaudp1, dtaudp2, dtaudp3, dtaudp4
     real (kind=dp_t) :: dudp1, dudp2, dudp3, dudp4
 
-    integer, parameter :: npts = 200
+    integer, parameter :: npts = 1000
 
     type (eos_t) :: eos_state
 
@@ -377,7 +401,7 @@ contains
 
     logical :: finished 
 
-    integer, parameter :: npts = 200
+    integer, parameter :: npts = 1000
 
     type (eos_t) :: eos_state
 

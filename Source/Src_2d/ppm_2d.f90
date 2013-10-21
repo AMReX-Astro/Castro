@@ -72,7 +72,8 @@ contains
         ! compute s at x-edges
         if (ppm_type .eq. 1) then
 
-           ! compute van Leer slopes in x-direction
+           ! compute van Leer slopes in x-direction (CW Eq. 1.7, 1.8
+           ! w/ zone widths (dxi) all equal)
            dsvl = 0.d0
            do j=ilo2-1,ihi2+1
               do i=ilo1-2,ihi1+2
@@ -84,11 +85,15 @@ contains
               end do
            end do
 
-           ! interpolate s to x-edges
+           ! interpolate s to x-edges (CW 1.6)
            do j=ilo2-1,ihi2+1
               do i=ilo1-1,ihi1+2
                  sedge(i,j) = 0.5d0*(s(i,j)+s(i-1,j)) - (1.d0/6.d0)*(dsvl(i,j)-dsvl(i-1,j))
-                 ! make sure sedge lies in between adjacent cell-centered values
+                 ! make sure sedge lies in between adjacent
+                 ! cell-centered values -- this is not part of the
+                 ! original CW algorithm, but Colella & Sekora say it
+                 ! is automatically imposed by the van Leer limiting
+                 ! above
                  sedge(i,j) = max(sedge(i,j),min(s(i,j),s(i-1,j)))
                  sedge(i,j) = min(sedge(i,j),max(s(i,j),s(i-1,j)))
               end do
@@ -102,7 +107,9 @@ contains
               end do
            end do
 
-           ! modify using quadratic limiters
+           ! modify using quadratic limiters (CW 1.10) -- with a
+           ! slightly different form from Colella & Sekora (Eqs. 14,
+           ! 15)
            do j=ilo2-1,ihi2+1
               do i=ilo1-1,ihi1+1
                  if ((sp(i,j)-s(i,j))*(s(i,j)-sm(i,j)) .le. 0.d0) then
