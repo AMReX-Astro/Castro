@@ -24,7 +24,7 @@ module eos_module
 
   use bl_types
   use bl_space
-  use bl_constants_module, only: M_PI, ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX
+  use bl_constants_module, only: M_PI, ZERO, ONE, FOUR3RD, FIVE3RD
   use network, only: nspec, aion, zion
   use eos_type_module
 
@@ -77,7 +77,7 @@ module eos_module
   real(kind=dp_t), save, private :: smallt
   real(kind=dp_t), save, private :: smalld
   real(kind=dp_t), save, public  :: gamma_const, K_const
-  integer        , save, public  :: polytrope_type
+  integer        , save, public  :: polytrope
 
   logical, save, private :: initialized = .false.
 
@@ -95,41 +95,34 @@ module eos_module
 contains
 
   ! EOS initialization routine -- this is used by both MAESTRO and Castro
-  subroutine eos_init(small_temp, small_dens, gamma_in, K_in, polytrope_type_in)
+  subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module
+    use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type
 
     implicit none
  
     real(kind=dp_t), intent(in), optional :: small_temp
     real(kind=dp_t), intent(in), optional :: small_dens
-    real(kind=dp_t), intent(in), optional :: gamma_in, K_in
-    integer        , intent(in), optional :: polytrope_type_in
 
     ! Available pre-defined polytrope options:
 
     ! 1: Non-relativistic, fully degenerate electron gas
     ! 2: Relativistic, fully degenerate electron gas 
 
-    if (present(polytrope_type_in) .and. (present(gamma_in) .or. present(K_in))) then
-      call bl_error('EOS: Cannot select both polytrope type and also define gamma or K')
-    endif
-
-    if (present(polytrope_type_in)) then
-      polytrope_type = polytrope_type_in
-
-      if (polytrope_type .eq. 1) then
-        gamma_const = FIVE / THREE
+    if (polytrope_type > 0) then
+      polytrope = polytrope_type
+      if (polytrope .eq. 1) then
+        gamma_const = FIVE3RD
         K_const     = 9.9154d12 ! (3 / pi)^(2/3) * h^2 / (20 * m_e * m_p^(5/3))
-      elseif (polytrope_type .eq. 2) then
-        gamma_const = FOUR / THREE
+      elseif (polytrope .eq. 2) then
+        gamma_const = FOUR3RD
         K_const     = 1.2316d15 ! (3 / pi)^(1/3) * h c / (8 * m_p^(4/3))
       else
         call bl_error('EOS: Polytrope type currently not defined')
       endif
-    elseif (present(gamma_in) .and. present(K_in)) then
-      gamma_const = gamma_in
-      K_const     = K_in
+    elseif (polytrope_gamma .gt. 0.d0 .and. polytrope_K .gt. 0.d0) then
+      gamma_const = polytrope_gamma
+      K_const     = polytrope_K
     else
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
@@ -484,7 +477,6 @@ contains
 
     use bl_error_module
     use fundamental_constants_module, only: k_B, n_A, hbar
-    use extern_probin_module, only: eos_assume_neutral
 
 ! dens     -- mass density (g/cc)
 ! temp     -- temperature (K) -- not well-defined for a polytropic fluid
@@ -556,58 +548,45 @@ contains
     ! general sanity checks
     if (.not. initialized) call bl_error('EOS: not initialized')
       
-
     !-------------------------------------------------------------------------
     ! compute mu -- the mean molecular weight
     !-------------------------------------------------------------------------
-    if (eos_assume_neutral) then
-       
-       call bl_error('EOS: Polytrope only works with completely ionized fluids.')
 
-    else
-       ! assume completely ionized species
+    ! Assume completely ionized species.
 
-       sum_y  = ZERO
+    sum_y  = ZERO
           
-       do n = 1, nspec
-          ymass(n) = xmass(n)*(1.d0 + zion(n))/aion(n)
-          sum_y = sum_y + ymass(n)
-       enddo
+    do n = 1, nspec
+       ymass(n) = xmass(n)*(1.d0 + zion(n))/aion(n)
+       sum_y = sum_y + ymass(n)
+    enddo
           
-       mu = ONE/sum_y
-
-    endif
+    mu = ONE/sum_y
 
     !-------------------------------------------------------------------------
     ! compute 1 / mu_e -- the mean number of electrons per nucleon
     !-------------------------------------------------------------------------
-    if (eos_assume_neutral) then
-       
-       call bl_error('EOS: Polytrope only works with completely ionized fluids.')
 
-    else
-       ! assume completely ionized species
+    ! Assume completely ionized species.
 
-       sum_y  = ZERO
+    sum_y  = ZERO
           
-       do n = 1, nspec
-          ymass(n) = xmass(n)*zion(n)/aion(n)
-          sum_y = sum_y + ymass(n)
-       enddo
+    do n = 1, nspec
+       ymass(n) = xmass(n)*zion(n)/aion(n)
+       sum_y = sum_y + ymass(n)
+    enddo
           
-       mu_e = ONE/sum_y
-
-    endif
+    mu_e = ONE/sum_y
 
     ! If we are using the fully degenerate EOS, scale K_const appropriately.
 
-    if (polytrope_type .eq. 1) then ! Non-relativistic, degenerate electrons
+    if (polytrope .eq. 1) then ! Non-relativistic, degenerate electrons
 
-      K_const = K_const / mu_e**(FIVE / THREE)
+      K_const = K_const / mu_e**FIVE3RD
 
-    elseif (polytrope_type .eq. 2) then ! Relativistic, degenerate electrons
+    elseif (polytrope .eq. 2) then ! Relativistic, degenerate electrons
 
-      K_const = K_const / mu_e**(FOUR / THREE) 
+      K_const = K_const / mu_e**FOUR3RD
 
     endif
 
@@ -629,7 +608,7 @@ contains
        eint = enthalpy / gamma_const
 
 
-    else if (input .EQ. eos_input_tp ) then
+    else if (input .EQ. eos_input_tp) then
 
        ! temp, pres, and xmass are inputs
           
@@ -639,7 +618,7 @@ contains
        eint = enthalpy / gamma_const
 
 
-    else if (input .EQ. eos_input_rp ) then
+    else if (input .EQ. eos_input_rp) then
 
        ! dens, pres, and xmass are inputs
 
@@ -700,11 +679,7 @@ contains
        ! (omegadot) and sum{omegadot} = 0, this term has no effect.
        ! If is added simply for completeness.
 
-       if (eos_assume_neutral) then
-          call bl_error('EOS: Polytrope only works with completely ionized fluids')
-       else
-          dmudX =  (mu/aion(n))*(aion(n) - mu*(ONE + zion(n)))
-       endif
+       dmudX =  (mu/aion(n))*(aion(n) - mu*(ONE + zion(n)))
 
        dPdX(n) = -(pres/mu)*dmudX
        dedX(n) = -(eint/mu)*dmudX

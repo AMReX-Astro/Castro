@@ -1,4 +1,6 @@
-eos_assume_neutral   logical  .false.
+polytrope_type       integer  0
+polytrope_gamma      real     0.0d0
+polytrope_K          real     0.0d0
 
 
 
