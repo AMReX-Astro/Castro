@@ -24,3 +24,9 @@
   max_velgrad_lev = 5
 /
 
+&extern
+
+  eos_gamma = 1.4
+
+/
+

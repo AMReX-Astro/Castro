@@ -38,7 +38,6 @@ gravity.drdxfac      = 4
 # RELEVANT FOR EOS 
 castro.small_temp    = 1.e-3
 castro.small_dens    = 1.e-6
-castro.gamma         = 1.66666
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system

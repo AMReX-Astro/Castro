@@ -590,7 +590,6 @@ protected:
     static Real      small_dens;
     static Real      small_temp;
     static Real      small_pres;
-    static Real      gamma;
 
     static std::string      job_name;
 

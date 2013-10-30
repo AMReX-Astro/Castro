@@ -12,3 +12,9 @@
   center_y = 0.d0
   center_z = 0.d0
 /
+
+&extern
+
+  eos_gamma = 1.66666
+
+/

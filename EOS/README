@@ -8,7 +8,7 @@ released with CASTRO:
    in the network module.  
 
    NOTE: the entropy is currently only correct for a monatomic gas
-   (gamma = 5/3).  A more general expression (than the Sactur-Tetrode
+   (gamma = 5/3).  A more general expression (than the Sackur-Tetrode
    equation) is needed for an arbitrary constant-gamma gas.
 
 2) helmeos:
@@ -18,3 +18,9 @@ released with CASTRO:
    affect the results).  The major changes are related to
    thread-safety.  The common blocks no longer pass the state to/from
    the EOS, instead we use the argument list.
+
+3) polytrope:
+
+   The EOS for a polytropic fluid. The proportionality constant and
+   gamma exponent can either be specified by the user in the extern
+   namelist, or select one of the predefined types.

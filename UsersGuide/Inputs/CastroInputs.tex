@@ -812,7 +812,6 @@ Parameter & Definition & Acceptable Values &Default\\
 {\bf castro.use\_colglaz} & Use the Colella/Glaz Riemann solver (2- and 3-d) or the original C-G algorithm (1-d)? & 0 or 1 & 0 \\
 {\bf castro.cg\_maxiter} & Number of iterations for C/G algorithm & Integer & 12 \\
 {\bf castro.cg\_tol} & Tolerance for C/G solver & Real & 1.0d-5 \\
-{\bf castro.gamma} & Sets the value of $\gamma$ & Real & 0.0 \\
 {\bf castro.spherical\_star} & & 0 or 1 & 0 \\
 {\bf castro.show\_center\_of\_mass} & & 0 or 1 & 0 \\
 {\bf castro.small\_dens} & & Real & -1.e20 \\
@@ -829,7 +828,6 @@ Parameter & Definition & Acceptable Values &Default\\
 
 \begin{itemize}
 \item You must have USE\_POINTMASS  = TRUE in the GNUmakefile for {\bf castro.point\_mass} to be relevant.
-\item {\bf castro.gamma} is only relevant for a gamma law gas.
 \item {\bf castro.use\_colglaz}  = 1 is only implemented in 1D
 \end{itemize}
 

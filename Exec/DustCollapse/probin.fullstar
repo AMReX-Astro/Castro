@@ -12,3 +12,9 @@
   center_y = 7.5d8
   center_z = 7.5d8
 /
+
+&extern
+
+  eos_gamma = 1.66666
+
+/

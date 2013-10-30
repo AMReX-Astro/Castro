@@ -267,7 +267,7 @@
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
                                    grav_source_type_in, &
-                                   do_sponge_in,gamma_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
+                                   do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    rot_period_in, const_grav_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -293,7 +293,6 @@
         integer, intent(in) :: do_sponge_in
         double precision, intent(in) :: difmag_in
         double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in
-        double precision, intent(in) :: gamma_in
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
@@ -406,11 +405,7 @@
           small_pres = 1.d-8
         end if
 
-        if (gamma_in .gt. 0.d0) then
-           call eos_init(small_dens=small_dens_in, small_temp=small_temp_in, gamma_in=gamma_in)
-        else
-           call eos_init(small_dens=small_dens_in, small_temp=small_temp_in)
-        end if
+        call eos_init(small_dens=small_dens_in, small_temp=small_temp_in)
 
         call eos_get_small_dens(small_dens)
         call eos_get_small_temp(small_temp)

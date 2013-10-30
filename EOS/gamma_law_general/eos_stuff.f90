@@ -79,6 +79,7 @@ module eos_module
   real(kind=dp_t), save, private :: smallt
   real(kind=dp_t), save, private :: smalld
   real(kind=dp_t), save, public  :: gamma_const
+  logical        , save, public  :: assume_neutral
 
   logical, save, private :: initialized = .false.
 
@@ -96,19 +97,18 @@ module eos_module
 contains
 
   ! EOS initialization routine -- this is used by both MAESTRO and Castro
-  subroutine eos_init(small_temp, small_dens, gamma_in)
+  subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module
+    use extern_probin_module, only: eos_gamma, eos_assume_neutral
 
     implicit none
  
     real(kind=dp_t), intent(in), optional :: small_temp
     real(kind=dp_t), intent(in), optional :: small_dens
-    real(kind=dp_t), intent(in), optional :: gamma_in
  
     ! constant ratio of specific heats
-    if (present(gamma_in)) then
-       gamma_const = gamma_in
+    if (eos_gamma .gt. 0.d0) then
+       gamma_const = eos_gamma
     else
        gamma_const = 5.d0/3.d0
     end if
@@ -125,6 +125,8 @@ contains
     else
        smalld = 0.d0
     endif
+
+    assume_neutral = eos_assume_neutral
 
     initialized = .true.
  
@@ -463,7 +465,6 @@ contains
 
     use bl_error_module
     use fundamental_constants_module, only: k_B, n_A, hbar
-    use extern_probin_module, only: eos_assume_neutral
 
 ! dens     -- mass density (g/cc)
 ! temp     -- temperature (K)
@@ -543,7 +544,7 @@ contains
     !-------------------------------------------------------------------------
     ! compute mu -- the mean molecular weight
     !-------------------------------------------------------------------------
-    if (eos_assume_neutral) then
+    if (assume_neutral) then
        ! assume completely neutral atoms
 
        sum_y  = 0.d0
@@ -672,7 +673,7 @@ contains
        ! (omegadot) and sum{omegadot} = 0, this term has no effect.
        ! If is added simply for completeness.
 
-       if (eos_assume_neutral) then
+       if (assume_neutral) then
           dmudX =  (mu/aion(n))*(aion(n) - mu)
        else
           dmudX =  (mu/aion(n))*(aion(n) - mu*(1.0_dp_t + zion(n)))

@@ -21,3 +21,9 @@
   max_pressgrad_lev = 3
 /
 
+&extern
+
+  eos_gamma = 1.4
+
+/
+

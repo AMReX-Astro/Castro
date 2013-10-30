@@ -52,7 +52,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& use_colglaz, 
      const int& cg_maxiter, const Real& cg_tol,
      const int& use_pslope, const int& grav_source_type,
-     const int& do_sponge, const Real& gamma_in,
+     const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
      const Real& rotational_period, const Real& const_grav);
