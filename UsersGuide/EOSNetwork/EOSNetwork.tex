@@ -6,7 +6,16 @@ that come with the CASTRO distribution.
 
 EOS routines that come with CASTRO are (listed by directory name):
 \begin{itemize}
-\item {\bf GammaLawEOS} directory represents a gamma law gas.
+\item {\bf Gamma\_Law\_General} directory represents a gamma law gas, with equation of state:
+\begin{equation}
+  P = (\gamma - 1) \rho e.
+\end{equation}
+The gas is currently assumed to be monatomic and ideal. The entropy comes from the Sackur-Tetrode equation.
+\item {\bf Polytrope} directory represents a polytropic fluid, with equation of state:
+\begin{equation}
+  P = K \rho^\gamma.
+\end{equation}
+The gas is also assumed to obey the above gamma law equation of state connecting the pressure and internal energy. Therefore $\rho$ is the only independent variable. The gas is isentropic.
 \item {\bf HelmEOS} directory contains a general, publicly available
 stellar equation of state based on the Helmholtz free energy,
 with contributions from ions, radiation, and electron degeneracy, as
@@ -22,7 +31,7 @@ the rest of the CASTRO code.  The first,
 \[
 {\bf \rm EosGivenRTX}(e^\outp, p^\outp, \rho^\inp, T^\inp, X^\inp, n_{\rm spec}, Y^\inp, n_{\rm aux})
 \]
-is a direct interface to the EOS, in which density, species and auxiliary variables,
+for non-analytic equations of state is a direct interface, in which density, species and auxiliary variables,
 and temperature are specified, and the necessary thermodynamical variables such as 
 internal energy, pressure, gamma, and sound speed are returned.
 
@@ -30,7 +39,7 @@ The second routine,
 \[
 {\bf \rm EosGivenReX}(\Gamma^\outp, p^\outp, c^\outp, T^\outp, \rho^\inp, e^\inp, X^\inp, n_{\rm spec}, Y^\inp, n_{\rm aux})
 \]
-uses a Newton iteration to find the temperature given
+for non-analytic equations of state uses a Newton iteration to find the temperature given
 the internal energy, density, and species and auxiliary variables.  
 \section{Burning Network}
 Burning network routines that come with CASTRO are (listed by directory name):
