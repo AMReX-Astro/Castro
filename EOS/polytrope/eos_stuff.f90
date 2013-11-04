@@ -19,6 +19,7 @@
 !
 !   1/mu_e = sum_k { X_k Z_k / A_k }
 !
+! This is assumed to be constant for the degenerate gases.
 
 module eos_module
 
@@ -76,15 +77,16 @@ module eos_module
 
   real(kind=dp_t), save, private :: smallt
   real(kind=dp_t), save, private :: smalld
-  real(kind=dp_t), save, public  :: gamma_const, K_const
-  integer        , save, public  :: polytrope
+  real(kind=dp_t), save, private :: gamma_const, K_const
+  real(kind=dp_t), save, private :: mu_e
+  integer        , save, private :: polytrope
 
   logical, save, private :: initialized = .false.
 
   private nspec, aion, zion
 
-  public eos_init, eos_get_small_temp, eos_get_small_dens, eos_given_ReX, &
-       eos_e_given_RPX, eos_S_given_ReX, eos_given_RTX, eos_dpdr_given_RTX, &
+  public eos_init, eos_get_small_temp, eos_get_small_dens, eos_get_polytrope_parameters, &
+       eos_given_ReX, eos_e_given_RPX, eos_S_given_ReX, eos_given_RTX, eos_dpdr_given_RTX, &
        eos_given_TPX, eos_given_PSX, eos_get_cv, eos
 
   interface eos
@@ -97,7 +99,8 @@ contains
   ! EOS initialization routine -- this is used by both MAESTRO and Castro
   subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type
+    use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type, polytrope_mu_e
+    use bl_error_module
 
     implicit none
  
@@ -110,19 +113,24 @@ contains
     ! 2: Relativistic, fully degenerate electron gas 
 
     if (polytrope_type > 0) then
+      mu_e = polytrope_mu_e
+
       polytrope = polytrope_type
       if (polytrope .eq. 1) then
         gamma_const = FIVE3RD
         K_const     = 9.9154d12 ! (3 / pi)^(2/3) * h^2 / (20 * m_e * m_p^(5/3))
+        K_const     = K_const / mu_e**gamma_const
       elseif (polytrope .eq. 2) then
         gamma_const = FOUR3RD
         K_const     = 1.2316d15 ! (3 / pi)^(1/3) * h c / (8 * m_p^(4/3))
+        K_const     = K_const / mu_e**gamma_const
       else
         call bl_error('EOS: Polytrope type currently not defined')
       endif
     elseif (polytrope_gamma .gt. 0.d0 .and. polytrope_K .gt. 0.d0) then
       gamma_const = polytrope_gamma
       K_const     = polytrope_K
+      mu_e        = 0.5d0 ! This will not be used
     else
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
@@ -163,6 +171,17 @@ contains
     small_dens_out = smalld
  
   end subroutine eos_get_small_dens
+
+  subroutine eos_get_polytrope_parameters(polytrope_out,gamma_out,K_out,mu_e_out)
+
+    real(kind=dp_t), intent(out) :: polytrope_out, gamma_out, K_out, mu_e_out
+
+    polytrope_out = polytrope
+    gamma_out     = gamma_const
+    K_out         = K_const
+    mu_e_out      = mu_e
+
+  end subroutine eos_get_polytrope_parameters
 
   subroutine eos_given_ReX(G, P, C, T, dpdr_e, dpde, R, e, X, pt_index)
 
@@ -537,7 +556,7 @@ contains
 
     ! local variables
     real(kind=dp_t) :: ymass(nspec)    
-    real(kind=dp_t) :: mu, mu_e
+    real(kind=dp_t) :: mu
     real(kind=dp_t) :: dmudX, sum_y
 
     ! get the mass of a nucleon from Avogadro's number.
@@ -563,30 +582,23 @@ contains
           
     mu = ONE/sum_y
 
-    !-------------------------------------------------------------------------
-    ! compute 1 / mu_e -- the mean number of electrons per nucleon
-    !-------------------------------------------------------------------------
+    ! Sanity check: make sure that the mu_e calculated from the species
+    ! is equal to the input parameter. This only matters for the polytropic gases
+    ! where we used mu_e to calculate K_const.
 
-    ! Assume completely ionized species.
+    if (polytrope .eq. 1 .or. polytrope .eq. 2) then
 
-    sum_y  = ZERO
+      sum_y  = ZERO
           
-    do n = 1, nspec
-       ymass(n) = xmass(n)*zion(n)/aion(n)
-       sum_y = sum_y + ymass(n)
-    enddo
-          
-    mu_e = ONE/sum_y
-
-    ! If we are using the fully degenerate EOS, scale K_const appropriately.
-
-    if (polytrope .eq. 1) then ! Non-relativistic, degenerate electrons
-
-      K_const = K_const / mu_e**FIVE3RD
-
-    elseif (polytrope .eq. 2) then ! Relativistic, degenerate electrons
-
-      K_const = K_const / mu_e**FOUR3RD
+      do n = 1, nspec
+         ymass(n) = xmass(n)*zion(n)/aion(n)
+         sum_y = sum_y + ymass(n)
+      enddo
+    
+      if (abs(mu_e - sum_y) .gt. 1.d-8) then
+        print *, mu_e, sum_y
+        call bl_error("Calculated mu_e is not equal to the input parameter.")
+      endif
 
     endif
 
@@ -605,6 +617,16 @@ contains
 
        ! Solve for the pressure and energy:
        pres = (enthalpy * dens) * (gamma_const - ONE) / gamma_const
+       eint = enthalpy / gamma_const
+
+
+    else if (input .EQ. eos_input_rt) then
+
+       ! dens, temp, and xmass are inputs
+          
+       ! Solve for the pressure, energy and enthalpy:
+       pres = K_const * dens**gamma_const
+       enthalpy = pres / dens * gamma_const / (gamma_const - ONE)
        eint = enthalpy / gamma_const
 
 
