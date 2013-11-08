@@ -11,6 +11,8 @@
  zero_vels = F
  interp_BC = F
 
+ gravity = -1.5e10
+
 /
 
 &extern
