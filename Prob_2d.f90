@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use parallel
   use probdata_module
   use model_parser_module
   implicit none
@@ -55,11 +56,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Read initial model
   call read_model_file(model_name)
 
-  
-  do i = 1, npts_model
-     print *, i, model_r(i), model_state(i,idens_model)
-  enddo
-  
+
+  if (parallel_IOProcessor()) then
+     do i = 1, npts_model
+        print *, i, model_r(i), model_state(i,idens_model)
+     enddo
+  endif
+
   ! set local variable defaults
   center(1) = 0.5*(problo(1)+probhi(1))
   center(2) = 0.5*(problo(2)+probhi(2))
