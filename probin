@@ -12,3 +12,7 @@
  interp_BC = F
 
 /
+
+&extern
+ use_eos_coulomb = F
+/
