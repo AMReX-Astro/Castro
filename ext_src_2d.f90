@@ -21,7 +21,8 @@ subroutine ca_ext_src(lo,hi, &
   integer          :: i,j
   double precision :: x,y
 
-  real(kind=dp_t) :: rho, H, ey, y_layer, H_0, L_x, pi
+  real(kind=dp_t) :: H, ey, y_layer, H_0, L_x, pi
+  real(kind=dp_t) :: H_max
 
   integer, save :: ic12, im24, io16
 
@@ -35,6 +36,7 @@ subroutine ca_ext_src(lo,hi, &
   endif
 
   src = 0.d0
+  H_max = 0.d0
 
   y_layer = 1.25d8
   L_x = 2.5d8
@@ -53,8 +55,10 @@ subroutine ca_ext_src(lo,hi, &
               + .01250_dp_t * sin((8*pi*x/L_x) + pi/5.d0))
 
         ! Source terms
-        src(i,j,UEDEN) = rho*H*2.5d16
+        src(i,j,UEDEN) = new_state(i,j,URHO) * H * 2.5d16
         src(i,j,UEINT) = src(i,j,UEDEN)
+
+        ! H_max = max(H_max, src(i,j,UEDEN))
 
       end do
   end do
