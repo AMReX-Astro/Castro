@@ -502,7 +502,7 @@ protected:
 
     Real sumDerive (const std::string& name, Real time);
 
-    virtual void sum_integrated_quantities ();
+    void sum_integrated_quantities ();
 
     void write_info ();
 
