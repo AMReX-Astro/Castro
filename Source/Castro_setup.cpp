@@ -481,13 +481,13 @@ Castro::variableSetUp ()
     if (!Radiation::do_multigroup) {
       desc_lst
         .setComponent(Rad_Type, Rad, "rad", bc,
-                      BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+                      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
       if (Radiation::H_time_derivative) {
 	for (int i = 0; i < BL_SPACEDIM; i++) {
 	  sprintf(rad_name, "radflux%d", i);
           desc_lst
             .setComponent(Rad_Type, i+1, rad_name, bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+                          BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
         }
       }
     }
@@ -498,7 +498,7 @@ Castro::variableSetUp ()
 	  sprintf(rad_name, "rad%d", i);
 	  desc_lst
             .setComponent(Rad_Type, i, rad_name, bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+                          BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
 	}
       }
       else {
@@ -508,7 +508,7 @@ Castro::variableSetUp ()
 	    sprintf(rad_name, "rads%dg%d", j, i);
 	    desc_lst
               .setComponent(Rad_Type, indx, rad_name, bc,
-                            BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+                            BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
 	    indx++;
 	  }
 	}
@@ -559,25 +559,25 @@ Castro::variableSetUp ()
       for (int idim=0; idim<BL_SPACEDIM; idim++) {
 	for (int ispec=0; ispec<nspec; ispec++) {
 	  desc_lst.setComponent(Test_Type, icomp, "F"+dimname[idim]+radname[ispec], bc,
-				BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+				BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
 	  icomp++;
 	}
       }
       if (Radiation::Test_Type_lambda) {
 	desc_lst.setComponent(Test_Type, icomp, "lambda", bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
       }
     }
     else if (Radiation::Test_Type_lambda) {
       desc_lst.setComponent(Test_Type, 0, "lambda", bc,
-			    BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));      
+			    BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));      
     }
     else {
       char test_name[10];
       for (int i = 0; i < ncomp; i++){
 	sprintf(test_name, "test%d", i);
 	desc_lst.setComponent(Test_Type, i, test_name, bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_radfill)));
+			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
       }
     }
 #endif

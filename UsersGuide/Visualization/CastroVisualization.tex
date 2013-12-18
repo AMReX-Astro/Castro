@@ -1,43 +1,143 @@
-\section{2D and 3D}
-\subsection{amrvis}
-Our favorite visualization tool is amrvis. We heartily encourage you to build the amrvis2d and amrvis3d executables, and to try using them to visualize your data. A very useful feature is View/Dataset, which allows you to actually view the numbers -- this can be handy for debugging. You can modify how many levels of data you want to see, whether you want to see the grid boxes or not, what palette you use, etc.
+There are a large number of tools that can be used to read in \castro\
+or \boxlib\ data and make plots.  Here we give a brief overview of some
+of the tools as well as some examples.
 
-If you like to have amrvis display a certain variable, at a certain scale, when you first bring up each plotfile (you can always change it once the amrvis window is open), you can modify the amrvis.defaults file in your directory to have amrvis default to these settings every time you run it. The directories CoreCollapse, HSE\_test, Sod and Sedov have amrvis.defaults files in them. If you are working in a new run directory, simply copy one of these and modify it.
-\subsection{VisIt}
-VisIt is also a great visualization tool, and it directly handles our plotfile format (which it calls Boxlib).  For more information check out visit.llnl.gov.
+\section{Controlling What's in the PlotFile}
 
-[Useful tip:] To use the Boxlib3D plugin, select it from File $\rightarrow$ Open file $\rightarrow$ Open file as type Boxlib, and then the key is to read the Header file, plt00000/Header, for example, rather than telling to to read plt00000.
+There are a few options that can be set at runtime to control what
+variables appear in the plotfile.
 
-\subsection{yt}
-yt is a free and open-source software that provides data analysis and publication-level visualization tools for astrophysical simulation results such as those CASTRO produces. As yt is script-based, it's not as easy to use as VisIt, and certainly not as easy as amrvis, but the images can be worth it! Here we do not flesh out yt, but give an overview intended to get a person started. Full documentation and explanations from which this section was adapted can be found at http://yt-project.org/doc/index.html.
+{\bf amr.plot\_vars} = \\
 
-yt can be installed by the following commands:
+\noindent and  \\
+
+\noindent {\bf amr.derive\_plot\_vars} = \\
+
+\noindent are used to control which variables are included in the plotfiles.  The default for {\bf amr.plot\_vars}
+is all of the state variables.  The default for {\bf amr.derive\_plot\_vars} is none of
+the derived variables.  So if you include neither of these lines then the plotfile
+will contain all of the state variables and none of the derived variables. \\
+
+\noindent If you want all of the state variables plus entropy and pressure, for example, then set \\
+
+\noindent {\bf amr.derive\_plot\_vars} = entropy pressure \\
+
+\noindent If you just want density and pressure, for example, then set \\
+
+\noindent {\bf amr.plot\_vars} =  density \\
+
+\noindent {\bf amr.derive\_plot\_vars} = pressure \\
+
+
+
+\section{amrvis}
+Our favorite visualization tool is amrvis. We heartily encourage you
+to build the amrvis2d and amrvis3d executables, and to try using them
+to visualize your data. A very useful feature is View/Dataset, which
+allows you to actually view the numbers -- this can be handy for
+debugging. You can modify how many levels of data you want to see,
+whether you want to see the grid boxes or not, what palette you use,
+etc.
+
+If you like to have amrvis display a certain variable, at a certain
+scale, when you first bring up each plotfile (you can always change it
+once the amrvis window is open), you can modify the amrvis.defaults
+file in your directory to have amrvis default to these settings every
+time you run it. The directories CoreCollapse, HSE\_test, Sod and
+Sedov have amrvis.defaults files in them. If you are working in a new
+run directory, simply copy one of these and modify it.
+
+
+\section{VisIt}
+VisIt is also a great visualization tool, and it directly handles our
+plotfile format (which it calls Boxlib).  For more information check
+out visit.llnl.gov.
+
+[Useful tip:] To use the Boxlib3D plugin, select it from File
+$\rightarrow$ Open file $\rightarrow$ Open file as type Boxlib, and
+then the key is to read the Header file, plt00000/Header, for example,
+rather than telling to to read plt00000.
+
+\section{\yt}
+\yt\ is a free and open-source software that provides data analysis and
+publication-level visualization tools for astrophysical simulation
+results such as those CASTRO produces. As \yt\ is script-based, it's not
+as easy to use as VisIt, and certainly not as easy as amrvis, but the
+images can be worth it! Here we do not flesh out \yt, but give an
+overview intended to get a person started. Full documentation and
+explanations from which this section was adapted can be found at
+http://yt-project.org/doc/index.html.
+
+\yt\ can be installed by the following commands:
 
 \$ wget http://hg.yt-project.org/yt/raw/stable/doc/install\_script.sh
 
 \$ bash install\_script.sh
 
-This installs yt in your current directory. To update yt in the future, simply do
+This installs \yt\ in your current directory. To update \yt in the
+future, simply do
 
 \$ yt update
 
 in your ``yt-hg'' folder.
 
-\subsubsection{Castro-Specific Data}
+\subsection{Castro-Specific Data}
 
-yt was originally created for simple analysis and visualization of data from the Enzo code. Since, it has grown to include support for a variety of codes, including Castro. However, yt will still sometimes make assumptions, especially about data field names, that favor Enzo and cause errors with Castro data. These problems can usually be avoided by taking care to specify the data fields desired in visualization. For example, Enzo's density field is called ``Density,'' and is the default for many plotting mechanisms when the user does not specify the field. However, Castro does not have a field called ``Density''; instead, the density field is called ``density.'' If a user does not specify a field while plotting with Castro data, chances are that yt will try (and fail) to find ``Density'' and return an error. As you will see in the examples, however, there is a way to create your own fields from existing ones. You can use these derived fields as you would use any other field.
+\yt\ was originally created for simple analysis and visualization of
+data from the Enzo code. Since, it has grown to include support for a
+variety of codes, including Castro. However, \yt will still sometimes
+make assumptions, especially about data field names, that favor Enzo
+and cause errors with Castro data. These problems can usually be
+avoided by taking care to specify the data fields desired in
+visualization. For example, Enzo's density field is called
+``Density,'' and is the default for many plotting mechanisms when the
+user does not specify the field. However, Castro does not have a field
+called ``Density''; instead, the density field is called ``density.''
+If a user does not specify a field while plotting with Castro data,
+chances are that \yt\ will try (and fail) to find ``Density'' and return
+an error. As you will see in the examples, however, there is a way to
+create your own fields from existing ones. You can use these derived
+fields as you would use any other field.
 
-There are also a few imperatives when it comes to reading in your Castro simulation data and associated information. First and foremost is that the inputs file for the simulation {\bf must} exist in the same directory as where the plotfile directory is located, and it {\bf must} be named ``{\bf inputs}.'' yt reads information from the inputs file such as the number of levels in the simulation run, the number of cells, the domain dimensions, and the simulation time. yt will also optionally parse the probin file for pertinent information if it is similarly included with the name ``{\bf probin}'' in the same directory as the plotfile of interest. When specifying a plotfile as the data source for plots, you may simply call it by its directory name, rather than using the Header file as in VisIt. As a final caveat, the existence of the job\_info file within the plotfile directory is what currently distinguishes Castro data from MAESTRO data in yt; unless you like surprises, we suggest you ensure your plotfile has one.
+There are also a few imperatives when it comes to reading in your
+Castro simulation data and associated information. First and foremost
+is that the inputs file for the simulation {\bf must} exist in the
+same directory as where the plotfile directory is located, and it {\bf
+  must} be named ``{\bf inputs}.'' \yt\ reads information from the
+inputs file such as the number of levels in the simulation run, the
+number of cells, the domain dimensions, and the simulation time. \yt\
+will also optionally parse the probin file for pertinent information
+if it is similarly included with the name ``{\bf probin}'' in the same
+directory as the plotfile of interest. When specifying a plotfile as
+the data source for plots, you may simply call it by its directory
+name, rather than using the Header file as in VisIt. As a final
+caveat, the existence of the job\_info file within the plotfile
+directory is what currently distinguishes Castro data from MAESTRO
+data in \yt; unless you like surprises, we suggest you ensure your
+plotfile has one.
 
-\subsubsection{Interacting with yt: Command Line and Scripting}
+\subsection{Interacting with \yt: Command Line and Scripting}
 
-yt is written completely in python (if you don't have python, yt will install it for you)  and there are a number of different ways to interact with it, including a web-based gui. Here we will cover command-line yt and scripts/the python interactive prompt, but other methods are outlined on the yt webpage at yt-project.org/doc/interacting/index.html.
+\yt is written completely in python (if you don't have python, \yt\ will
+install it for you) and there are a number of different ways to
+interact with it, including a web-based gui. Here we will cover
+command-line \yt\ and scripts/the python interactive prompt, but other
+methods are outlined on the \yt\ webpage at
+http://yt-project.org/doc/interacting/index.html.
 
-The first step in starting up yt is to activate the yt environment:
+The first step in starting up \yt\ is to activate the \yt\ environment:
 
 \$ source \$YT\_DEST/bin/activate
 
-From the command line you can create simple plots, perform simple volume renderings, print the statistics of a field for your data set, and do a few other things. Try {\$ \it yt}  to see a list of commands, and {\$ \it yt {\footnotesize$<$}command{\footnotesize$>$} -{}-help}  to see the details of a command. The command line is the easiest way to get quick, preliminary plots -- but the simplicity comes at a price, as yt will make certain assumptions for you. We could plot a projection of density along the x-axis for the plotfile (yt calls it a parameter file) plt\_def\_00020 by doing the following:
+From the command line you can create simple plots, perform simple
+volume renderings, print the statistics of a field for your data set,
+and do a few other things. Try {\$ \tt yt} to see a list of commands,
+and {\$ \tt yt {\footnotesize$<$}command{\footnotesize$>$} -{}-help}
+to see the details of a command. The command line is the easiest way
+to get quick, preliminary plots -- but the simplicity comes at a
+price, as \yt\ will make certain assumptions for you. We could plot a
+projection of density along the x-axis for the plotfile (\yt\ calls it a
+parameter file) plt\_def\_00020 by doing the following:
 
 \$ yt plot -p -a 0 -f density plt\_def\_00020
 
@@ -45,15 +145,27 @@ Or a temperature-based volume rendering with 14 contours:
 
 \$ yt render -f Temp -{}-contours 14 plt\_def\_00020
 
-Any plots created from the command line will be saved into a subdirectory called ``frames.'' The command line is nice for fast visualization without immersing yourself too much in the data, but usually you'll want to specify and control more details about your plots. This can be done either through scripts or the python interactive prompt. You can combine the two by running scripts within the interactive prompt by the command
+Any plots created from the command line will be saved into a
+subdirectory called ``frames.'' The command line is nice for fast
+visualization without immersing yourself too much in the data, but
+usually you'll want to specify and control more details about your
+plots. This can be done either through scripts or the python
+interactive prompt. You can combine the two by running scripts within
+the interactive prompt by the command
 
 {\scriptsize$>>>$} execfile(`script.py')
 
-which will leave you in the interactive prompt, allowing you to explore the data objects you've created in your script and debug errors you may encounter. While in the yt environment, you can access the interactive prompt by {\$ \it python} or the shortcut
+which will leave you in the interactive prompt, allowing you to
+explore the data objects you've created in your script and debug
+errors you may encounter. While in the \yt\ environment, you can access
+the interactive prompt by {\$ \it python} or the shortcut
 
 \$ pyyt
 
-Once you're in the yt environment and in a .py script or the interactive prompt, there are a couple of points to know about the general layout of yt scripting. Usually there are five sections to a yt script:
+Once you're in the yt environment and in a .py script or the
+interactive prompt, there are a couple of points to know about the
+general layout of yt scripting. Usually there are five sections to a
+yt script:
 \begin{enumerate}
 \item
 \indent Import modules
@@ -62,60 +174,98 @@ Once you're in the yt environment and in a .py script or the interactive prompt,
 \item
 \indent Define variables
 \item
-\indent Create and modify data objects, image arrays, plots, etc. $\rightarrow$ this is the meat of the script
+\indent Create and modify data objects, image arrays, plots,
+etc. $\rightarrow$ this is the meat of the script
 \item
 \indent Save images and objects
 \end{enumerate}
 
-Note that neither saving nor loading objects is necessary, but can be useful when the creation of these objects is time-consuming, which is often the case during identification of clumps or contours.
+Note that neither saving nor loading objects is necessary, but can be
+useful when the creation of these objects is time-consuming, which is
+often the case during identification of clumps or contours.
 
-\subsubsection{yt Basics}
+\subsection{\yt\ Basics}
 
-The first thing you will always want to do is to import yt:
+The first thing you will always want to do is to import \yt:
 
 {{\scriptsize$>>>$}} from yt.mods import *
 
-Under certain circumstances you will be required to import more, as we will see in some of the examples, but this covers most of it, including all of the primary functions and data objects provided by yt. Next, you'll need yt to access the plotfile you're interested in analyzing. Remember, you must have the ``inputs'' file in the same directory:
+Under certain circumstances you will be required to import more, as we
+will see in some of the examples, but this covers most of it,
+including all of the primary functions and data objects provided by
+\yt. Next, you'll need \yt\ to access the plotfile you're interested in
+analyzing. Remember, you must have the ``inputs'' file in the same
+directory:
 
 {\scriptsize$>>>$} pf = load(`plt\_def\_00020')
 
-When this line is executed, it will print out some key parameters from the simulation. However, in order to access information about all of the fluid quantities in the simulation, we must use the ``heirarchy'' object. It contains the geometry of the grid zones, their parentage relationships, and the fluid states within each one. It is easily created:
+When this line is executed, it will print out some key parameters from
+the simulation. However, in order to access information about all of
+the fluid quantities in the simulation, we must use the ``heirarchy''
+object. It contains the geometry of the grid zones, their parentage
+relationships, and the fluid states within each one. It is easily
+created:
 
 {\scriptsize$>>>$} pf.h
 
-Upon execution, yt may print out a number of lines saying it's adding unknown fields to the list of fields. This is because Castro has different names for fields than what yt expects. We can see what fields exist through the commands
+Upon execution, \yt\ may print out a number of lines saying it's adding
+unknown fields to the list of fields. This is because Castro has
+different names for fields than what \yt\ expects. We can see what
+fields exist through the commands
 
 {\scriptsize$>>>$} print pf.h.field\_list
 
 {\scriptsize$>>>$} print pf.h.derived\_field\_list
 
-There may not be any derived fields for Castro data. We can find out the number of grids and cells at each level, the simulation time, and information about the finest resolution cells:
+There may not be any derived fields for Castro data. We can find out
+the number of grids and cells at each level, the simulation time, and
+information about the finest resolution cells:
 
 {\scriptsize$>>>$} pf.h.print\_stats()
 
-You can also find the value and location of the maximum  of a field in the domain:
+You can also find the value and location of the maximum of a field in
+the domain:
 
 {\scriptsize$>>>$} value, location = pf.h.find\_max(`density')
 
-The list goes on. A full list of methods and attributes associated with the heirarchy object (and most any yt object or function) can be accessed by the help function:
+The list goes on. A full list of methods and attributes associated
+with the heirarchy object (and most any \yt\ object or function) can be
+accessed by the help function:
 
 {\scriptsize$>>>$} help(pf.h)
 
-You can also use {\scriptsize$>>>$} {\it dir()} on an object or function to find out which names it defines. Don't be shy about searching the yt documentation for help. Note that creating the heirarchy object in its own line is not always needed before calling functions like find\_max; yt will construct it automatically if it does not already exist.
+You can also use {\scriptsize$>>>$} {\it dir()} on an object or
+function to find out which names it defines. Don't be shy about
+searching the \yt\ documentation for help. Note that creating the
+heirarchy object in its own line is not always needed before calling
+functions like find\_max; \yt\ will construct it automatically if it
+does not already exist.
 
-\subsubsection{Data Containers and Selection}
+\subsection{Data Containers and Selection}
 
-Sometimes, you'll want to select, analyze, or plot only portions of your simulation data. To that end, yt includes a way to create data ``containers'' that select data based on geometric bounds or fluid quantity values. There are many, including rays, cylinders, and clumps (some in the examples, all described in the documentation), but the easiest to create is a sphere, centered on the location of the maximum density cell we found above:
+Sometimes, you'll want to select, analyze, or plot only portions of
+your simulation data. To that end, \yt\ includes a way to create data
+``containers'' that select data based on geometric bounds or fluid
+quantity values. There are many, including rays, cylinders, and clumps
+(some in the examples, all described in the documentation), but the
+easiest to create is a sphere, centered on the location of the maximum
+density cell we found above:
 
 {\scriptsize$>>>$} my\_data\_container = pf.h.sphere(location, 5.0e4/pf[`km'])
 
-Here, we put the radius in units of kilometers using a conversion. When specifying distances in yt, the default is to use the simulation-native unit named ``1'', which is probably identical to one of the other units, like ``cm''. The pf.h.print\_stats() command lists available units. We can access the data within the container:
+Here, we put the radius in units of kilometers using a
+conversion. When specifying distances in \yt, the default is to use the
+simulation-native unit named ``1'', which is probably identical to one
+of the other units, like ``cm''. The pf.h.print\_stats() command lists
+available units. We can access the data within the container:
 
 {\scriptsize$>>>$} print my\_data\_container[`density']
 
 {\scriptsize$>>>$} print my\_data\_container.quantities[`Extrema']([`density', `pressure'])
 
-When the creation of objects is time-consuming, it can be convenient to save objects so they can be used in another session. To save an object as part of the .yt file affiliated with the heirarchy:
+When the creation of objects is time-consuming, it can be convenient
+to save objects so they can be used in another session. To save an
+object as part of the {\tt .yt} file affiliated with the heirarchy:
 
 {\scriptsize$>>>$} pf.h.save\_object(my\_data\_container, `sphere\_to\_analyze\_later')
 
@@ -123,15 +273,20 @@ Once it has been saved, it can be easily loaded later:
 
 {\scriptsize$>>>$} sphere\_to\_analyze = pf.h.load\_object(`sphere\_to\_analyze\_later')
 
-\subsubsection{Grid Inspection}
+\subsection{Grid Inspection}
 
-yt also allows for detailed grid inspection. The heirarchy object possesses an array of grids, from which we can select and examine specific ones:
+\yt\ also allows for detailed grid inspection. The heirarchy object
+possesses an array of grids, from which we can select and examine
+specific ones:
 
 {\scriptsize$>>>$} print pf.h.grids
 
 {\scriptsize$>>>$} my\_grid = pf.h.grids[4]
 
-Each grid is a data object that carries information about its location, parentage relationships (grids within which it resides, and grids that reside within it, at least in part), fluid quantities, and more. Here are some of the commands:
+Each grid is a data object that carries information about its
+location, parentage relationships (grids within which it resides, and
+grids that reside within it, at least in part), fluid quantities, and
+more. Here are some of the commands:
 
 {\scriptsize$>>>$} print my\_grid.Level
 
@@ -151,15 +306,21 @@ Each grid is a data object that carries information about its location, parentag
 
 {\scriptsize$>>>$} print my\_grid[`Density']
 
-You can examine which cells within the grid have been refined with the child\_mask attribute, a representative array set to zero everywhere there is finer resolution.To find the fraction of your grid that isn't further refined:
+You can examine which cells within the grid have been refined with the
+child\_mask attribute, a representative array set to zero everywhere
+there is finer resolution.To find the fraction of your grid that isn't
+further refined:
 
 {\scriptsize$>>>$}print my\_grid.child\_mask.sum()/float(my\_grid.ActiveDimensions.prod())
 
-Rather than go into detail about the many possibilities for plotting in yt, we'll provide some examples.
+Rather than go into detail about the many possibilities for plotting
+in \yt, we'll provide some examples.
 
-\subsubsection{Example Scripts}
+\subsection{Example Scripts}
 
-In these examples, we investigate 3-D simulation data of two stars orbiting in the center of the domain, which is a box of sides $10^{10}\:cm$.
+In these examples, we investigate 3-D simulation data of two stars
+orbiting in the center of the domain, which is a box of sides
+$10^{10}\:cm$.
 
 
 {\it\# Pressure Contours}
@@ -174,7 +335,9 @@ field = `pressure'
 
 pf.h
 
-{\it\# Most Castro fields have no inherent units, so we add them in, in the form of a raw string}
+{\it\# Most Castro fields have no inherent units, so we add them in,
+  in the form of a raw string} 
+
 {\setlength{\parskip}{0pt}
 
 {\it\# with some LaTeX-style formatting.}
@@ -507,7 +670,7 @@ pf.field\_info[`magvel'].\_units = r`\textbackslash rm\{cm\}/\textbackslash rm\{
 
 pf.field\_info[`kineng'].\_units = r`\textbackslash rm\{ergs\}'
 
-{\it\# We can create new fields from existing ones. yt assumes all units are in cgs, and}
+{\it\# We can create new fields from existing ones. \yt assumes all units are in cgs, and}
 {\setlength{\parskip}{0pt}
 
 {\it\# does not do any unit conversions on its own (but we can make it). Creating new fields}
@@ -533,7 +696,7 @@ def \_newDen(field, data):
 
 add\_field(`Density', function=\_newDen, units=r`\textbackslash rm\{g\}/\textbackslash rm\{cm\}\^{}\{3\}')
 
-{\it\# PlotCollections are one of the most commonly used tools in yt, alongside SlicePlots and}
+{\it\# PlotCollections are one of the most commonly used tools in \yt, alongside SlicePlots and}
 {\setlength{\parskip}{0pt}
 
 {\it\# ProjectionPlots. They are useful when we want to create multiple plots from the same}
@@ -680,35 +843,13 @@ plot.save(`off\_axis\_density')
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Controlling What's in the PlotFile}
-
-{\bf amr.plot\_vars} = \\
-
-\noindent and  \\
-
-\noindent {\bf amr.derive\_plot\_vars} = \\
-
-\noindent are used to control which variables are included in the plotfiles.  The default for {\bf amr.plot\_vars}
-is all of the state variables.  The default for {\bf amr.derive\_plot\_vars} is none of
-the derived variables.  So if you include neither of these lines then the plotfile
-will contain all of the state variables and none of the derived variables. \\
-
-\noindent If you want all of the state variables plus entropy and pressure, for example, then set \\
-
-\noindent {\bf amr.derive\_plot\_vars} = entropy pressure \\
-
-\noindent If you just want density and pressure, for example, then set \\
-
-\noindent {\bf amr.plot\_vars} =  density \\
-
-\noindent {\bf amr.derive\_plot\_vars} = pressure \\
-
-
-\#------------------------
 
 \section{1D}
-amrvis doesn't like 1-d plotfiles, and for those we use a 1-d plotting capability installed by Mike Singer 
-Castro/Util/plot1d.  If you want to make xmgrace-compatible files, for example, add the following to your inputs file:\\
+
+amrvis doesn't like 1-d plotfiles, and for those we use a 1-d plotting
+capability installed by Mike Singer Castro/Util/plot1d.  If you want
+to make xmgrace-compatible files, for example, add the following to
+your inputs file:\\
 
 {\bf xgraph.xmgrace\_file} = 1
 
@@ -756,9 +897,3 @@ If you just want density and pressure, for example, then set \\
 
 Feel free to read the routines in Castro/Util/plot1d.
 
-<<<<<<< HEAD
-
-\subsection{yt}
-
-=======
->>>>>>> b350216448f91e6e2e8a8b80386c9837b1a3984c
