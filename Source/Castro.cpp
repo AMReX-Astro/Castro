@@ -431,6 +431,7 @@ Castro::read_params ()
 #ifdef ROTATION
     pp.get("do_rotation",do_rotation);
     if (do_rotation) pp.get("rotational_period",rotational_period);
+    else pp.query("rotational_period",rotational_period);
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
