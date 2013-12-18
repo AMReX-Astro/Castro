@@ -130,7 +130,7 @@ contains
     elseif (polytrope_gamma .gt. 0.d0 .and. polytrope_K .gt. 0.d0) then
       gamma_const = polytrope_gamma
       K_const     = polytrope_K
-      mu_e        = 0.5d0 ! This will not be used
+      mu_e        = 2.0d0 ! This will not be used
     else
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
@@ -219,8 +219,8 @@ contains
     P  =    p_eos
     C  =   cs_eos
     T  = temp_eos
-    dpdr_e = dpdr_eos - dpdt_eos*dedr_eos/dedt_eos
-    dpde = dpdt_eos / dedt_eos
+    dpdr_e = dpdr_eos
+    dpde = dpdr_eos / dedr_eos
 
   end subroutine eos_given_ReX
 
@@ -595,7 +595,7 @@ contains
          sum_y = sum_y + ymass(n)
       enddo
     
-      if (abs(mu_e - sum_y) .gt. 1.d-8) then
+      if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
         print *, mu_e, sum_y
         call bl_error("Calculated mu_e is not equal to the input parameter.")
       endif
@@ -654,8 +654,7 @@ contains
        ! dens, energy, and xmass are inputs
 
        ! Solve for the pressure and enthalpy:
-       pres = K_const * dens**gamma_const
-       enthalpy = eint * gamma_const
+       pres = (gamma_const - one) * dens * eint
 
 
     else if (input .EQ. eos_input_ps) then
