@@ -85,9 +85,10 @@ module eos_module
 
   private nspec, aion, zion
 
-  public eos_init, eos_get_small_temp, eos_get_small_dens, eos_get_polytrope_parameters, &
-       eos_given_ReX, eos_e_given_RPX, eos_S_given_ReX, eos_given_RTX, eos_dpdr_given_RTX, &
-       eos_given_TPX, eos_given_PSX, eos_get_cv, eos
+  public eos_init, eos_get_small_temp, eos_get_small_dens, &
+         eos_get_polytrope_parameters, eos_set_polytrope_parameters, &
+         eos_given_ReX, eos_e_given_RPX, eos_S_given_ReX, eos_given_RTX, eos_dpdr_given_RTX, &
+         eos_given_TPX, eos_given_PSX, eos_get_cv, eos
 
   interface eos
      module procedure eos_old
@@ -174,7 +175,8 @@ contains
 
   subroutine eos_get_polytrope_parameters(polytrope_out,gamma_out,K_out,mu_e_out)
 
-    real(kind=dp_t), intent(out) :: polytrope_out, gamma_out, K_out, mu_e_out
+    integer,         intent(out) :: polytrope_out
+    real(kind=dp_t), intent(out) :: gamma_out, K_out, mu_e_out
 
     polytrope_out = polytrope
     gamma_out     = gamma_const
@@ -182,6 +184,18 @@ contains
     mu_e_out      = mu_e
 
   end subroutine eos_get_polytrope_parameters
+
+  subroutine eos_set_polytrope_parameters(polytrope_in,gamma_in,K_in,mu_e_in)
+
+    integer,         intent(in) :: polytrope_in
+    real(kind=dp_t), intent(in) :: gamma_in, K_in, mu_e_in
+
+    polytrope   = polytrope_in
+    gamma_const = gamma_in
+    K_const     = K_in
+    mu_e        = mu_e_in
+
+  end subroutine eos_set_polytrope_parameters
 
   subroutine eos_given_ReX(G, P, C, T, dpdr_e, dpde, R, e, X, pt_index)
 
@@ -595,10 +609,10 @@ contains
          sum_y = sum_y + ymass(n)
       enddo
     
-      if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
-        print *, mu_e, sum_y
-        call bl_error("Calculated mu_e is not equal to the input parameter.")
-      endif
+      !if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
+      !  print *, mu_e, sum_y
+      !  call bl_error("Calculated mu_e is not equal to the input parameter.")
+      !endif
 
     endif
 
