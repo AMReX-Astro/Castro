@@ -1034,8 +1034,11 @@ contains
              do jj = -1,1
                 do ii = -1,1
                    min_dens = min(min_dens,uin(i+ii,j+jj,URHO))
-                   if (uout(i+ii,j+jj,URHO) > small_dens) &
-                        min_dens = min(min_dens,uout(i+ii,j+jj,URHO))
+                   if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. &
+                       i+ii.le.uout_h1 .and. j+jj.le.uout_h2) then
+                      if (uout(i+ii,j+jj,URHO) > small_dens) &
+                           min_dens = min(min_dens,uout(i+ii,j+jj,URHO))
+                   endif
                 end do
              end do
              

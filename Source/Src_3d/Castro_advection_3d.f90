@@ -1566,9 +1566,11 @@ contains
                    do jj = -1,1
                       do ii = -1,1
                          min_dens = min(min_dens,uin(i+ii,j+jj,k+kk,URHO))
-                         if ((ii.ne.0 .or. jj.ne.0 .or. kk.ne.0) .and. &
-                              uout(i+ii,j+jj,k+kk,URHO).gt.small_dens) &
-                              min_dens = min(min_dens,uout(i+ii,j+jj,k+kk,URHO))
+                         if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. k+kk.ge.uout_l3 .and. &
+                             i+ii.le.uout_h1 .and. j+jj.le.uout_h2 .and. k+kk.le.uout_h3) then
+                              if (uout(i+ii,j+jj,k+kk,URHO).gt.small_dens) &
+                                min_dens = min(min_dens,uout(i+ii,j+jj,k+kk,URHO))
+                         endif
                       end do
                    end do
                 end do
