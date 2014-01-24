@@ -15,7 +15,7 @@ contains
                      Ip,Im, &
                      ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
-        use meth_params_module, only : ppm_type
+        use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
 
         implicit none
 
@@ -109,6 +109,17 @@ contains
               end do
            end do
 
+           if (ppm_flatten_before_integrals == 1) then
+              ! flatten the parabola BEFORE doing the other
+              ! monotonization -- this is the method that Flash does
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
+
            ! modify using quadratic limiters (CW 1.10) -- with a
            ! slightly different form from Colella & Sekora (Eqs. 14,
            ! 15)
@@ -124,6 +135,18 @@ contains
                  end if
               end do
            end do
+
+           if (ppm_flatten_before_integrals == 2) then
+              ! flatten the parabola AFTER doing the monotonization --
+              ! this is the method that Miller & Colella do
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
+
 
         else if (ppm_type .eq. 2) then
 
@@ -335,6 +358,17 @@ contains
               end do
            end do
 
+           if (ppm_flatten_before_integrals == 1) then
+              ! flatten the parabola BEFORE doing the other
+              ! monotonization -- this is the method that Flash does
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
+
            ! modify using quadratic limiters
            do j=ilo2-1,ihi2+1
               do i=ilo1-1,ihi1+1
@@ -348,6 +382,17 @@ contains
                  end if
               end do
            end do
+
+           if (ppm_flatten_before_integrals == 2) then
+              ! flatten the parabola AFTER doing the monotonization --
+              ! this is the method that Miller & Colella do
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
 
         else if (ppm_type .eq. 2) then
 
