@@ -397,6 +397,14 @@ Castro::read_params ()
         std::cerr << "ppm_trace_grav = 1 not implemented for ppm_type = 0 \n";
         BoxLib::Error();
       }
+
+
+    // ppm_flatten_before_integrals is only done for ppm_type == 1
+    if (ppm_type != 1 && ppm_flatten_before_integrals > 0)
+      {
+        std::cerr << "ppm_flatten_before_integral > 0 not implemented for ppm_type != 1 \n";
+        BoxLib::Error();
+      }
 	
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
