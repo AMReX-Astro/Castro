@@ -209,6 +209,7 @@ Castro::variableSetUp ()
          NumAdv, difmag, small_dens, small_temp, small_pres, 
          allow_negative_energy,ppm_type,ppm_reference,
 	 ppm_trace_grav,ppm_temp_fix,ppm_tau_in_tracing,ppm_reference_edge_limit,
+	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
 	 use_colglaz,
          cg_maxiter, cg_tol,

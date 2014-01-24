@@ -48,6 +48,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& ppm_type, const int& ppm_reference, 
      const int& ppm_trace_grav, const int& ppm_temp_fix, 
      const int& ppm_tau_in_tracing, const int& ppm_reference_edge_limit, 
+     const int& ppm_flatten_before_integrals,
      const int& ppm_reference_eigenvectors,
      const int& use_colglaz, 
      const int& cg_maxiter, const Real& cg_tol,
