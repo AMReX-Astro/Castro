@@ -11,6 +11,7 @@ contains
       ! characteristics based on u
       subroutine ppm(s,s_l1,s_l2,s_h1,s_h2, &
                      u,cspd,qd_l1,qd_l2,qd_h1,qd_h2, &
+                     flatn, &
                      Ip,Im, &
                      ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -22,8 +23,9 @@ contains
         integer          qd_l1,qd_l2,qd_h1,qd_h2
         integer          ilo1,ilo2,ihi1,ihi2
         double precision s(s_l1:s_h1,s_l2:s_h2)
-        double precision u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
-        double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2)
+        double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
+        double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2)
+        double precision flatn(s_l1:s_h1,s_l2:s_h2)
         double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
         double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
         double precision dx,dy,dt

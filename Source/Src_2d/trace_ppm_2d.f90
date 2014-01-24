@@ -150,6 +150,7 @@ contains
     do n=1,QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                flatn, &
                 Ip(:,:,:,:,n),Im(:,:,:,:,n), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
@@ -193,6 +194,7 @@ contains
     if (ppm_temp_fix /= 1) then
           call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   flatn, &
                    Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        endif
@@ -203,6 +205,7 @@ contains
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        enddo
