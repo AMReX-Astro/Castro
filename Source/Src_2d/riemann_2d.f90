@@ -60,9 +60,9 @@ contains
     double precision :: rgdnv,vgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, pl, rel
     double precision :: rr, ur, vr, pr, rer
-    double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar
-    double precision :: ro, uo, po, reo, co, gamco, entho
+    double precision :: wl, wr, rhoetot
+    double precision :: rstar, cstar, pstar
+    double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
 
@@ -309,7 +309,7 @@ contains
              uo = ul
              po = pl
              tauo = taul
-             reo = rel
+             !reo = rel
              gamco = gcl
              gameo = gamel
              
@@ -318,7 +318,7 @@ contains
              uo = ur
              po = pr
              tauo = taur
-             reo = rer
+             !reo = rer
              gamco = gcr
              gameo = gamer
           else
@@ -326,7 +326,7 @@ contains
              uo = 0.5d0*(ul+ur)
              po = 0.5d0*(pl+pr)
              tauo = 0.5d0*(taul+taur)
-             reo = 0.5d0*(rel+rer)
+             !reo = 0.5d0*(rel+rer)
              gamco = 0.5d0*(gcl+gcr)
              gameo = 0.5d0*(gamel + gamer)
           endif
@@ -356,8 +356,8 @@ contains
           rstar=ro/rstar
           rstar = max(small_dens,rstar)
 
-          entho = (reo/ro + po/ro)/co**2
-          estar = reo + (pstar - po)*entho
+          !entho = (reo/ro + po/ro)/co**2
+          !estar = reo + (pstar - po)*entho
           
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
@@ -510,7 +510,6 @@ contains
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-    double precision divide,temp
 
     double precision, parameter :: smlp1 = 1.d-10
     double precision, parameter :: small = 1.d-7
