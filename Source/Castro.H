@@ -599,7 +599,7 @@ protected:
     static Real      previousCPUTimeUsed;
     static Real      startCPUTime;
 
-    Real getCPUTime();
+    static Real getCPUTime();
 
 #ifdef POINTMASS
     static Real      point_mass;
