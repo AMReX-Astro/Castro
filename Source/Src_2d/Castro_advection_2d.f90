@@ -124,7 +124,9 @@ contains
     
     ! NOTE: Geometry terms need to be punched through
 
-    ! Trace to edges w/o transverse flux correction terms
+    ! Trace to edges w/o transverse flux correction terms.  Here,
+    !      qxm and qxp will be the states on either side of the x interfaces
+    ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
        call trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
@@ -140,6 +142,8 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
 
+    ! Solve the Riemann problem in the x-direction using these first
+    ! guesses for the x-interface states.  This produces the flux fx
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
@@ -147,6 +151,8 @@ contains
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
+    ! Solve the Riemann problem in the y-direction using these first
+    ! guesses for the y-interface states.  This produces the flux fy
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
@@ -154,6 +160,9 @@ contains
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
+    ! Correct the x-interface states (qxm, qxp) by adding the
+    ! transverse flux difference in the y-direction to the x-interface
+    ! states.  This results in the new x-interface states qm and qp
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
@@ -164,6 +173,9 @@ contains
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
     
+    ! Solve the final Riemann problem across the x-interfaces with the
+    ! full unsplit states.  The resulting flux through the x-interfaces
+    ! is flux1
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
@@ -171,7 +183,10 @@ contains
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
-    call transx(qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+    ! Correct the y-interface states (qym, qyp) by adding the
+    ! transverse flux difference in the x-direction to the y-interface
+    ! states.  This results in the new y-interface states qm and qp
+    call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
@@ -183,6 +198,9 @@ contains
                 vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                 ilo1, ihi1, ilo2-1, ihi2+1)
 
+    ! Solve the final Riemann problem across the y-interfaces with the
+    ! full unsplit states.  The resulting flux through the y-interfaces
+    ! is flux2
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
@@ -191,6 +209,9 @@ contains
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
 
+    ! Construct p div{U} -- this will be used as a source to the internal
+    ! energy update.  Note we construct this using the interface states
+    ! returned from the Riemann solver.
     do j = ilo2,ihi2
        do i = ilo1,ihi1
           pdivu(i,j) = 0.5d0 * &
