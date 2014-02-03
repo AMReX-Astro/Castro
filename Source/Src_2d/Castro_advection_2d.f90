@@ -506,6 +506,7 @@ contains
                 flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                 lo,hi)
 
+    ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
        if ( n.eq.UTEMP) then
           flux1(:,:,n) = 0.d0
@@ -533,6 +534,7 @@ contains
        endif
     enddo
     
+    ! do the conservative updates
     do n = 1, NVAR
        if (n .eq. UTEMP) then
           uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
@@ -571,6 +573,9 @@ contains
        enddo
     enddo
 
+    ! scale the fluxes (and correct the momentum flux with the grad p part)
+    ! so we can use them in the flux correction at coarse-fine interfaces
+    ! later.
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)+1
           flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)

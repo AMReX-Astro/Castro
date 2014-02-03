@@ -121,7 +121,8 @@
                    dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                    domlo, domhi)
 
-!     Compute divergence of velocity field (on surroundingNodes(lo,hi))
+      ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
+      ! this is used for the artifical viscosity
       call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
                 delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
