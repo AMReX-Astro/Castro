@@ -1,0 +1,17 @@
+
+CA_BASE=EXE
+
+COMPLIB_C_SOURCES = CompSolver.cpp CompSolverLevel.cpp EdgeVar.cpp
+
+COMPLIB_C_HEADERS = CompSolver.H CompSolverLevel.H EdgeVar.H
+
+COMPLIB_F_SOURCES = COMPSOLVER_$(DIM)D.F EDGEVAR_$(DIM)D.F
+
+COMPLIB_F_HEADERS = COMPSOLVER_F.H EDGEVAR_F.H
+
+C$(CA_BASE)_sources += $(COMPLIB_C_SOURCES)
+C$(CA_BASE)_headers += $(COMPLIB_H_HEADERS)
+
+F$(CA_BASE)_sources += $(COMPLIB_F_SOURCES)
+F$(CA_BASE)_headers += $(COMPLIB_F_HEADERS)
+

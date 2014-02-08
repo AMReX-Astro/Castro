@@ -1,0 +1,38 @@
+
+CA_BASE=EXE
+
+C$(CA_BASE)_sources += HypreExtMultiABec.cpp HypreMultiABec.cpp HypreABec.cpp \
+                       Radiation.cpp RadSolve.cpp RadBndry.cpp \
+                       RadMultiGroup.cpp MGRadBndry.cpp \
+                       SGRadSolver.cpp SGFLD.cpp \
+                       MGFLD.cpp MGFLDRadSolver.cpp Castro_radiation.cpp \
+                       energy_diagnostics.cpp
+
+C$(CA_BASE)_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
+                       Radiation.H RadSolve.H RadBndry.H \
+		       RadTypes.H LHH.H MGRadBndry.H
+
+ifeq ($(DIM), 1)
+
+  C$(CA_BASE)_sources += DumpModel1d.cpp
+  C$(CA_BASE)_headers += DumpModel1d.H
+
+endif
+
+F$(CA_BASE)_sources += RAD_$(DIM)D.F HABEC_$(DIM)D.F
+
+F$(CA_BASE)_headers += RAD_F.H HABEC_F.H 
+
+f90$(CA_BASE)_sources += rad_params.f90 RadDerive_$(DIM)d.f90 \
+                         RadN_$(DIM)d.f90 SGFLD_$(DIM)d.f90 \
+                         RadHydro_$(DIM)d.f90 blackbody.f90 \
+                         radhydro_params.f90 MGFLD_$(DIM)d.f90 \
+                         RadEOS_$(DIM)d.f90 \
+                         fluxlimiter.f90 RadHydro_nd.f90 filter.f90 \
+                         filt_prim_$(DIM)d.f90 CastroRad_$(DIM)d.f90
+
+ifeq ($(USE_NEUTRINO), TRUE)
+  f90$(CA_BASE)_sources += MGFLDneut_$(DIM)d.f90
+endif
+
+
