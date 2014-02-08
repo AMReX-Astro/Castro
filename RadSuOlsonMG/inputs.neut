@@ -1,0 +1,4 @@
+FILE = inputs.common
+
+radiation.radiation_type = photon
+
