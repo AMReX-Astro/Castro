@@ -31,11 +31,6 @@ DIM        = 1
 #DIM        = 2
 #DIM        = 3
 
-ifeq ($(FCOMP),Intel)
-  FFLAGS += -132 -assume byterecl
-  fFLAGS += -132 -assume byterecl
-endif
-
 EOS_dir     := collapse
 Network_dir := collapse
 Opacity_dir := burrows

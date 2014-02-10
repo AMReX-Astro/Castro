@@ -1,5 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step  = 2000    # maximum timestep
+max_step  = 5
 stop_time = 0.001
 
 geometry.is_periodic = 0 0 0
@@ -29,7 +30,7 @@ amr.derive_plot_vars = ALL
 amr.grid_log        = grdlog  # name of grid logging file
 amr.v = 1
 
-amr.probin_file     = probin.2d
+amr.probin_file     = probin.3d
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry

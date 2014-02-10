@@ -1,8 +1,8 @@
 
 PRECISION  = DOUBLE
 
-#DEBUG      = FALSE
-DEBUG      = TRUE
+DEBUG      = FALSE
+#DEBUG      = TRUE
 
 PROFILE    = FALSE
 
@@ -22,18 +22,9 @@ RAD_INTERP = TRUE
 
 COMP	   = g++
 FCOMP	   = gfortran
-DIM        = 1
-#DIM        = 2
+#DIM        = 1
+DIM        = 2
 #DIM        = 3
-
-#For Franklin
-#COMP      = PGI
-#FCOMP     = PGI
-
-ifeq ($(FCOMP),Intel)
-  FFLAGS += -132 -assume byterecl
-  fFLAGS += -132 -assume byterecl
-endif
 
 EOS_dir     := gamma_law_general
 Network_dir := general_null
