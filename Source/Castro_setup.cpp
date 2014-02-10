@@ -445,10 +445,7 @@ Castro::variableSetUp ()
 
 #ifdef RADIATION
     int ngrow = 1;
-    int ncomp;
-    ncomp = Radiation::nGroups * (Radiation::H_time_derivative ?
-				  BL_SPACEDIM + 1 :
-				  1);
+    int ncomp = Radiation::nGroups;
     desc_lst.addDescriptor(Rad_Type, IndexType::TheCellType(),
                            StateDescriptor::Point, ngrow, ncomp,
                            interp);
@@ -483,14 +480,6 @@ Castro::variableSetUp ()
       desc_lst
         .setComponent(Rad_Type, Rad, "rad", bc,
                       BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-      if (Radiation::H_time_derivative) {
-	for (int i = 0; i < BL_SPACEDIM; i++) {
-	  sprintf(rad_name, "radflux%d", i);
-          desc_lst
-            .setComponent(Rad_Type, i+1, rad_name, bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-        }
-      }
     }
     else {
       if (Radiation::nNeutrinoSpecies == 0 ||
@@ -519,8 +508,7 @@ Castro::variableSetUp ()
     // In the following ncomp == 0 would be fine, except that it
     // violates an assertion in StateDescriptor.cpp.  I think we could
     // run with ncomp == 0 just by taking out that assertion.
-    //ncomp = (RadTests::do_timing) ? 0 : 2;
-    ncomp = (RadTests::do_timing) ? 1 : 2;
+    ncomp = 2;
     ncomp = (Radiation::Test_Type_lambda) ? 1 : ncomp;
     int nspec = (Radiation::nNeutrinoSpecies>0) ? Radiation::nNeutrinoSpecies : 1;
     if (Radiation::Test_Type_Flux) {

@@ -50,14 +50,6 @@ Castro::ErrorSetUp ()
       err_list.add("rad",1,ErrorRec::Special,
                    BL_FORT_PROC_CALL(CA_RADERROR,ca_raderror));
     }
-    if (RadTests::do_thermal_wave) {
-      err_list.add("rho_E",1,ErrorRec::Special,
-                   BL_FORT_PROC_CALL(CA_DENERROR,ca_denerror));
-    }
-    else if (RadTests::do_clouds) {
-      err_list.add("density",1,ErrorRec::Special,
-                   BL_FORT_PROC_CALL(CA_DENERROR,ca_denerror));
-    }
 #endif
 
 #ifdef LEVELSET
