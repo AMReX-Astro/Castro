@@ -57,7 +57,7 @@ program fradsphere
   pltfile  = ''
   groupfile = "group_structure.dat"
 
-  radius = 0.d0
+  radius = 0.06d0
 
   narg = command_argument_count()
 

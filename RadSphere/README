@@ -28,20 +28,20 @@ be computed directly in there from the Planck function (multiplied
 by dnu -- the group-bin weight to get a radiation energy density).
 
 
-Auxillary files: 
+Auxillary files in Tools/: 
 
   analytic.f90: computes the analytic solution, using Eqs. 76 and 77
                 from Swesty and Myra (2009).  Swesty and Myra do not
                 give their coefficient for their opacity.  The value
                 in analytic.f90 comes directly from Eric.
 
-  bc.f90: compute the values for the group-dependent Dirichlet
-          boundary conditions, corresponding to the hot sphere.  This
-          is simply the blackbody (Planck) function evaluated at the
-          group-centers, with the sphere's temperature.  Note, the
-          final numbers are multiplied by the group weights, since
-          Castro stores the energy in each group, not the energy / Hz
-          (or eV).
+  radbc.f90: compute the values for the group-dependent Dirichlet
+             boundary conditions, corresponding to the hot sphere.  This
+             is simply the blackbody (Planck) function evaluated at the
+             group-centers, with the sphere's temperature.  Note, the
+             final numbers are multiplied by the group weights, since
+             Castro stores the energy in each group, not the energy / Hz
+             (or eV).
 
   fradsphere.f90: dumps out the radiation energy density for each
                   group at a specified distance from the origin.
