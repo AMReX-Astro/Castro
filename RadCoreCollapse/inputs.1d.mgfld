@@ -1,0 +1,220 @@
+
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step    = 1000000    # maximum timestep
+stop_time = 0.5
+#max_step = 20
+
+geometry.is_periodic = 0 0 0
+
+geometry.coord_sys = 2  # 0 => cart, 1 => RZ, 2 => Spherical
+
+geometry.prob_lo = 0.0
+geometry.prob_hi = 5.e8
+
+amr.n_cell = 1024
+
+#amr.restart = chk00920
+#max_step = 932
+
+amr.max_level       = 4      # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2 2 # refinement ratio
+amr.regrid_int      = 4       # how often to regrid
+amr.n_error_buf     = 4 4 4 4 4 4 # number of buffer cells in error est
+amr.grid_eff        = 0.7     # what constitutes an efficient grid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.n_proper        = 2
+amr.max_grid_size   = 128
+
+amr.checkpoint_files_output = 1 # don't suppress checkpoints
+amr.check_file      = chk       # root name of checkpoint file
+amr.check_int       = 20        # number of timesteps between checkpoints
+
+amr.plot_files_output       = 1 
+amr.plot_file       = plt
+amr.plot_int        = 20      # number of timesteps between plot files
+
+amr.derive_plot_vars = ALL
+
+amr.grid_log        = grdlog  # name of grid logging file
+
+amr.probin_file     = probin.1d.mgfld
+amr.v = 1
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  3
+castro.hi_bc       =  2
+
+castro.dt_cutoff      = 1.e-22  # level 0 timestep below which we halt
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 1.e-1     # scale back initial timestep
+#castro.fixed_dt       = 2.e-8
+castro.initial_dt     = 1.e-9
+castro.change_max     = 1.1
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.do_reflux      = 1       # 1 => do refluxing
+
+castro.do_hydro       = 1
+castro.do_react       = 0
+castro.do_radiation   = 1
+castro.do_grav        = 1
+gravity.gravity_type  = MonopoleGrav
+
+# ------------------  INPUTS TO RADIATION CLASS  -------------------
+
+##### SolverType #####
+# 0: SingleGroupSolver    2: NeutrinoSolver  
+# 5: SGFLDCombo           6: MGFLDSolver
+radiation.SolverType = 6
+
+# 0: no limiter, 2: app. LP, 12: Bruenn, 22: square root, 32: Minerbo
+radiation.limiter = 2
+
+radiation.filter_lambda = 0
+
+# 0: f = lambda, 1: f = 1/3, 2: f = 1-2*lambda, 3: f = lambda+(lambda*R)^2
+# 4: f = 1/3 + 2/3*(F/cE)^2
+# If limiter = 12 or 22, option 3 will not be a monotonic function of R.
+# So we might want to use option 2 or 4 in these cases.
+radiation.closure = 3
+
+radiation.fspace_advection_type = 2
+
+radiation.do_multigroup = 1
+radiation.do_neutrino_test = 2  
+radiation.nNeutrinoSpecies = 3
+radiation.nNeutrinoGroups  =    30    20    30
+radiation.lowestGroupMeV   =   1.0   1.0   1.0 
+radiation.highestGroupMeV  = 300.0 100.0 300.0 
+
+# To save disk space, set one of the following to zero
+radiation.plot_neutrino_group_energies_per_MeV = 1
+radiation.plot_neutrino_group_energies_total   = 1
+
+radiation.Test_Type_Flux = 1
+
+radiation.use_dkdT = 1
+radiation.update_opacity = 30
+radiation.inner_update_limiter = -1  # stop updating limiter after ? inner iterations
+                                     # 0 means lagging by one outer iteration
+				     # -1 means lagging by one time step
+
+radiation.n_bisect = 20
+radiation.dedT_fac = 1.0
+radiation.dedY_fac = 1.0
+
+# 0: both,  1: rhoe,   2: residue of rhoe equation,  3: T
+radiation.convergence_check_type = 0
+
+radiation.reltol  = 1.e-6  # relative tolerance for implicit update loop
+radiation.abstol  = 1.e-12 # absolute tolerance for T and Ye
+radiation.maxiter = 200    # return after numiter iterations if not converged
+radiation.miniter = 2
+
+# 0: C C ... C,  1: NC NC ... NC C C ... C,  2: NC C NC C ... NC C
+# 3: NC C NC C ... NC C C ... C
+# where C means conservative update and NC non-conservative.
+radiation.matter_update_type = 0
+
+radiation.accelerate = 1   # convergence acceleration for inner update loop
+radiation.relInTol = 1.e-6 # relative tolerance for inner update loop
+radiation.absInTol = 0.0   # absolute tolerance for inner update loop
+radiation.maxInIter = 20   # max iterations for inner update loop
+radiation.minInIter = 2
+
+radiation.delta_Ye_dt_tol = 0.01
+radiation.delta_T_rat_dt_tol  = 0.01
+
+radiation.v                = 2    # verbosity
+
+# We set radiation boundary conditions directly since they do not
+# correspond neatly to the physical boundary conditions used for the fluid.
+# The choices are:
+# 101 = LO_DIRICHLET           103 = LO_REFLECT_ODD
+# 102 = LO_NEUMANN             104 = LO_MARSHAK
+# 105 = LO_SANCHEZ_POMRANING
+radiation.lo_bc     = 102 102 102
+radiation.hi_bc     = 105 102 102
+
+# For each boundary, we can specify either a constant boundary value
+# or use a Fortran function FORT_RADBNDRY to specify values that vary
+# in space and time.
+
+# If bcflag is 0 then bcval is used, otherwise FORT_RADBNDRY used:
+
+radiation.lo_bcflag = 0 0 0
+radiation.hi_bcflag = 0 0 0
+
+# bcval is interpreted differently depending on the boundary condition
+# 101 = LO_DIRICHLET        bcval is Dirichlet value of rad energy density
+# 102 = LO_NEUMANN          bcval is inward flux of rad energy
+# 103 = LO_REFLECT_ODD      bcval is ignored (equivalent to inhom Dirichlet)
+# 104 = LO_MARSHAK          bcval is incident flux
+
+radiation.lo_bcval = 0.0 0.0 0.0
+radiation.hi_bcval = 0.0 0.0 0.0
+
+# ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
+
+# solver flag values <  100 use HypreABec, support symmetric matrices only
+# solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
+#
+# PFMG does not supprt 1D.
+# ParCSR does not work for periodic boundaries.
+# For MGFLDSolver with accelerate = 2, must use >=100.
+#
+# 0     SMG
+# 1     PFMG  (>= 2D only)
+# 2     Jacobi
+# 5     PFMG Hybrid 
+# 100   AMG   using ParCSR interface
+# 102   GMRES using ParCSR interface
+# 103   GMRES using SStruct interface
+# 104   GMRES using AMG as preconditioner
+# 109   GMRES using Struct SMG/PFMG as preconditioner
+# 150   AMG   using ParCSR interface
+# 1002  PCG   using ParCSR interface
+# 1003  PCG   using SStruct interface
+
+radsolve.level_solver_flag            = 104
+hmabec.struct_flag                    = 0 # SMG for 1D
+
+radsolve.maxiter    = 50
+radsolve.reltol     = 1.0e-8
+radsolve.abstol     = 0.0
+
+radsolve.v = 1          # verbosity
+
+habec.verbose = 1            # verbosity for multigrid called by level update
+hmabec.verbose = 2            # verbosity for multigrid called by level update
+hmabec.verbose_threshold = 50
+
+#
+# The default strategy is SFC.
+#
+DistributionMapping.strategy = ROUNDROBIN
+DistributionMapping.strategy = KNAPSACK
+DistributionMapping.strategy = SFC
+
+xgraph.format = gnu
+xgraph.graph = entropy  entropy  	20 -1
+xgraph.graph = den      density  	20 -1
+xgraph.graph = Temp     Temp     	20 -1
+xgraph.graph = Ye       Ye       	20 -1
+xgraph.graph = eint     eint_E   	20 -1
+xgraph.graph = xvel     x_velocity    	20 -1
+xgraph.graph = Er       Ertot    	20 -1
+xgraph.graph = Enue     Enue    	20 -1
+xgraph.graph = Enuae    Enuae    	20 -1
+xgraph.graph = Ynue     Ynue    	20 -1
+xgraph.graph = Ynuae    Ynuae    	20 -1
+xgraph.graph = Fnue     Fxnue           20 -1
+xgraph.graph = Fnuae    Fxnuae          20 -1
+xgraph.graph = Fnumu    Fxnumu          20 -1
+#xgraph.graph = rads0g29  rads0g29 	20 -1
+#xgraph.graph = rads1g29  rads1g29 	20 -1
+#xgraph.graph = rads2g29  rads2g29  	20 -1
+

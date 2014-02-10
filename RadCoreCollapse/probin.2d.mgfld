@@ -1,0 +1,34 @@
+&fortin
+  do_neutrino_test = 1
+
+  npts_model = 2424
+  model_filename = "modelDump0700"
+  model_has_neut_data = 1
+
+  denerr = 7.2e7
+  max_denerr_lev = 1
+
+  masserr = 1.32
+  max_masserr_lev = 1
+
+  yeerr = 0.4
+  max_yeerr_lev = 2
+
+  yegrad = 0.01
+  max_yegrad_lev = 2
+
+  enterr = 5.0
+  max_enterr_lev = 2
+
+  entgrad = 1.0
+  max_entgrad_lev = 2
+
+  dengrad = 1.0
+  max_dengrad_lev = -1
+  raderr = 3.e+20
+  max_raderr_lev = -1
+  presserr = 1
+  max_presserr_lev = -1
+  pressgrad = .1
+  max_pressgrad_lev = -1
+/
