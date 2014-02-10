@@ -39,7 +39,7 @@ xgraph.graph = Er          rad            10 -1
 #xgraph.graph = pres       pressure       1 -1
 
 # PROBIN FILENAME
-amr.probin_file     = probin.SM
+amr.probin_file     = probin
 
 # VERBOSITY
 amr.v = 1
