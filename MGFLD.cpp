@@ -272,6 +272,13 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
 	dedT[i].setVal(const_c_v[0]);
       }
+      else if (const_c_v[0] > 0.0) {
+	  FORT_GCV(dedT[i].dataPtr(), dimlist(reg),
+		   temp_new[i].dataPtr(), dimlist(temp_new[i].box()),
+		   const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		   prop_temp_floor.dataPtr(),
+		   S_new[i].dataPtr(), dimlist(S_new[i].box()));
+      }
       else {
 	BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
       }
