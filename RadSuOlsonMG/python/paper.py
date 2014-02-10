@@ -4,13 +4,13 @@ from pylab import *
 from read_gnu import *
 import cPickle as pickle
 
-Er0_3, x, t_3, = read_gnu_file('../run-paper-neut/Er0_0031.gnu')
-Er1_3, x, t_3, = read_gnu_file('../run-paper-neut/Er1_0031.gnu')
-eint_3, x, t_3, = read_gnu_file('../run-paper-neut/eint_0031.gnu')
+Er0_3, x, t_3, = read_gnu_file('../run-paper/Er0_0031.gnu')
+Er1_3, x, t_3, = read_gnu_file('../run-paper/Er1_0031.gnu')
+eint_3, x, t_3, = read_gnu_file('../run-paper/eint_0031.gnu')
 
-Er0_30, x, t_30, = read_gnu_file('../run-paper-neut/Er0_0301.gnu')
-Er1_30, x, t_30, = read_gnu_file('../run-paper-neut/Er1_0301.gnu')
-eint_30, x, t_30, = read_gnu_file('../run-paper-neut/eint_0301.gnu')
+Er0_30, x, t_30, = read_gnu_file('../run-paper/Er0_0301.gnu')
+Er1_30, x, t_30, = read_gnu_file('../run-paper/Er1_0301.gnu')
+eint_30, x, t_30, = read_gnu_file('../run-paper/eint_0301.gnu')
 
 fid = open('SOunits.p', 'rb')
 units =pickle.load(fid)
