@@ -23,7 +23,8 @@ amr.check_file      = chk      # root name of checkpoint file
 amr.check_int       = 1000    # number of timesteps between checkpoints
 
 amr.plot_file       = plt
-amr.plot_int        = 100     # number of timesteps between plot files
+#amr.plot_int       = 100     # number of timesteps between plot files
+amr.plot_per        = 0.0002
 amr.derive_plot_vars = ALL
 
 amr.grid_log        = grdlog  # name of grid logging file

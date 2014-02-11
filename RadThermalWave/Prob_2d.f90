@@ -122,12 +122,17 @@
       double precision state(state_l1:state_h1,state_l2:state_h2, &
           nscal)
 
-      integer i,j
+      integer i,j, ii,jj
       double precision :: X(nspec)
-      double precision :: rho, cv, T, p, eint, xcell, ycell
+      double precision :: rho, cv, T, p, eint
       double precision :: rhoeexp, Vexp, rhoe0
+      double precision :: xx, xcl, xcr, dx_sub
+      double precision :: yy, ycl, ycr, dy_sub 
+      double precision :: rr2, xcmin, xcmax, ycmin, ycmax, rcmin, rcmax
+      double precision :: vol_pert, vol_ambient, T_zone, rhoe_zone
+      integer, parameter :: nsub = 64
 
-      Vexp = 2.0d0 * Pi * rexp**3
+      Vexp = 4.d0/3.d0*Pi * rexp**3
 
       rhoeexp = Eexp / Vexp
 
@@ -142,25 +147,67 @@
 
       rhoe0 = rho * cv * T0
 
+      dx_sub = delta(1)/dble(nsub)
+      dy_sub = delta(2)/dble(nsub)
+
       do j = lo(2), hi(2)     
-         ycell = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+
+         ycl = xlo(2) + delta(2)*dble(j-lo(2))
+         ycr = ycl + delta(2)
+         ycmin = min(abs(ycl), abs(ycr))
+         ycmax = max(abs(ycl), abs(ycr))
+
          do i = lo(1), hi(1)   
-            xcell = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+
+            xcl = xlo(1) + delta(1)*dble(i-lo(1))
+            xcr = xcl + delta(1)
+            xcmin = min(abs(xcl), abs(xcr))
+            xcmax = max(abs(xcl), abs(xcr))
+
+            rcmin = sqrt(xcmin**2+ycmin**2)
+            rcmax = sqrt(xcmax**2+ycmax**2)
 
             state(i,j,URHO) = rho
             state(i,j,UMX)  = 0.d0
             state(i,j,UMY)  = 0.d0
 
-            if (abs(xcell) .lt. rexp .and. abs(ycell) .lt. rexp) then
-               state(i,j,UTEMP) = T
-               state(i,j,UEDEN) = rhoeexp
-               state(i,j,UEINT) = rhoeexp
-            else
-               state(i,j,UTEMP) = T0
-               state(i,j,UEDEN) = rhoe0
-               state(i,j,UEINT) = rhoe0
-            endif
+            if (rcmin .ge. rexp) then
+               T_zone = T0
+               rhoe_zone = rhoe0
+            else if (rcmax .le. rexp) then
+               T_zone = T
+               rhoe_zone = rhoeexp
+            else 
+
+               vol_pert    = 0.d0
+               vol_ambient = 0.d0
+
+               do jj = 0, nsub-1
+                  yy = ycl + (dble(jj) + 0.5d0) * dy_sub
+                  do ii = 0, nsub-1
+                     xx = xcl + (dble(ii) + 0.5d0) * dx_sub
+                           
+                     rr2 = xx**2 + yy**2
+                           
+                     if (rr2 <= rexp**2) then
+                        vol_pert = vol_pert + xx
+                     else
+                        vol_ambient = vol_ambient + xx
+                     endif
+                  end do
+               end do
+               
+               T_zone = (vol_pert*T + vol_ambient*T0)/(vol_pert+vol_ambient)
+               rhoe_zone = (vol_pert*rhoeexp + vol_ambient*rhoe0)/(vol_pert+vol_ambient)
+
+            end if
+
+            state(i,j,UTEMP) = T_zone
+            state(i,j,UEDEN) = rhoe_zone
+            state(i,j,UEINT) = rhoe_zone
+
             state(i,j,UFS) = state(i,j,URHO)
+
          enddo
       enddo
 
