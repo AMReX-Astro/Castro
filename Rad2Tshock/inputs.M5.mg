@@ -125,8 +125,6 @@ radiation.matter_update_type = 0
 
 # RADIATION VERBOSITY
 radiation.v               = 2    # verbosity
-radiation.do_timing       = 0    # time numerical kernels
-
 
 # We set radiation boundary conditions directly since they do not
 # correspond neatly to the physical boundary conditions used for the fluid.

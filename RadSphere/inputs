@@ -101,7 +101,6 @@ radiation.limiter = 0     # 0 = no limiter
 
 # RADIATION VERBOSITY 
 radiation.v               = 2    # verbosity
-radiation.do_timing       = 0    # time numerical kernels
 
 # We set radiation boundary conditions directly since they do not
 # correspond neatly to the physical boundary conditions used for the fluid.
