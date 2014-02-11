@@ -6,6 +6,8 @@
 
 #include <Using.H>
 
+#include "Radiation.H"  // for access to static physical constants only
+
 #include "LHH.H"
 
 #undef BL_USE_ARLIM
@@ -81,6 +83,8 @@ void MGRadBndry::init(const int _ngroups)
   // for the c in the diffusion coefficient at the boundaries:
 
   ngroups = _ngroups;
+
+  c = Radiation::clight;
 
   ParmParse pp("radiation");
   pp.query("c", c);

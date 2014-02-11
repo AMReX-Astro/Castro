@@ -263,9 +263,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 	pp.query("c", c);
 	pp.query("sigma", sigma);
     }
-
-    RadBndry::setc(c);
-    MGRadBndry::setc(c);
   }
 
   radtoE = 1.0;

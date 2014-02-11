@@ -5,6 +5,8 @@
 
 #include <Using.H>
 
+#include "Radiation.H"  // for access to static physical constants only
+
 #include "LHH.H"
 
 #undef BL_USE_ARLIM
@@ -85,6 +87,8 @@ void RadBndry::init()
   // us to scale incoming fluxes by c here, since the solver classes
   // do not themselves know about c.  This c compensates
   // for the c in the diffusion coefficient at the boundaries:
+
+  c = Radiation::clight;
 
   ParmParse pp("radiation");
   pp.query("c", c);

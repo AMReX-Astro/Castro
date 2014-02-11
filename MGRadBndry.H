@@ -35,8 +35,6 @@ public:
     correction = 0;
   }
 
-  static void setc(Real c_in) {c = c_in;}
-
 protected:
   static void init(const int _ngroups);
   static int ngroups;
