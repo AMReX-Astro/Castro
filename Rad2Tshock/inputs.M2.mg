@@ -86,8 +86,8 @@ castro.v = 1
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
 
 ##### SolverType #####
-# 0: SingleGroupSolver    2: NeutrinoSolver  
-# 5: SGFLDCombo           6: MGFLDSolver
+# 0: single group diffusion w/o coupling to hydro
+# 5: SGFLD       6: MGFLD
 radiation.SolverType = 6
 
 radiation.nGroups = 16
@@ -179,7 +179,7 @@ radiation.const_scattering =  0.84886358672522422
 #
 # PFMG does not supprt 1D.
 # ParCSR does not work for periodic boundaries.
-# For MGFLDSolver with accelerate = 2, must use >=100.
+# For MGFLD with accelerate = 2, must use >=100.
 #
 # 0     SMG
 # 1     PFMG  (>= 2D only)

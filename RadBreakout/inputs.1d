@@ -98,8 +98,8 @@ castro.v = 1
 radiation.do_deferred_sync = 1
 
 ##### SolverType #####
-# 0: SingleGroupSolver    2: NeutrinoSolver  
-# 5: SGFLDCombo           6: MGFLDSolver
+# 0: single group diffusion w/o coupling to hydro
+# 5: SGFLD       6: MGFLD
 radiation.SolverType = 5
 
 radiation.comoving = 1
@@ -176,7 +176,7 @@ radiation.use_opacity_table_module = 1
 #
 # PFMG does not supprt 1D.
 # ParCSR does not work for periodic boundaries.
-# For MGFLDSolver with accelerate = 2, must use >=100.
+# For MGFLD with accelerate = 2, must use >=100.
 #
 # 0     SMG
 # 1     PFMG  (>= 2D only)
