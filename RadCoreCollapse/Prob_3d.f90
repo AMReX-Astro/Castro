@@ -25,11 +25,11 @@
 !     Filename for "modelInput" file
       character model_filename*(maxlen)
 
-      namelist /fortin/ do_neutrino_test, &
+      namelist /fortin/  &
            model_filename, npts_model, model_has_neut_data, model_temp_in_K, &
            denerr,dengrad,max_denerr_lev,max_dengrad_lev, &
            presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, &
-           direction,raderr,radgrad,max_raderr_lev,max_radgrad_lev,&
+           raderr,radgrad,max_raderr_lev,max_radgrad_lev,&
            enterr, entgrad, max_enterr_lev, max_entgrad_lev, &
            yeerr, yegrad, max_yeerr_lev, max_yegrad_lev, &
            masserr, max_masserr_lev

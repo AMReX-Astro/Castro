@@ -35,11 +35,11 @@ EOS_dir     := collapse
 Network_dir := collapse
 Opacity_dir := burrows
 
-ifeq ($(EOS_dir), XXXXXXXX)
+ifeq ($(EOS_dir), cott)
    USE_HDF5 = TRUE
 endif
 
-ifeq ($(Opacity_dir), XXXXXXXX)
+ifeq ($(Opacity_dir), cott)
    USE_HDF5 = TRUE
 endif
 
