@@ -90,7 +90,6 @@ castro.v = 1
 # 5: SGFLDCombo           6: MGFLDSolver
 radiation.SolverType = 6
 
-radiation.do_multigroup = 1
 radiation.nGroups = 16
 radiation.lowestGroupHz = 1.e10
 radiation.highestGroupHz = 2.e14

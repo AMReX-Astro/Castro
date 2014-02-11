@@ -99,7 +99,6 @@ radiation.closure = 1
 
 radiation.fspace_advection_type = 2
 
-radiation.do_multigroup = 1
 radiation.nGroups = 16
 radiation.lowestGroupHz = 1.e10
 radiation.highestGroupHz = 1.e15

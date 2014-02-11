@@ -78,7 +78,6 @@ radiation.SolverType = 6
 
 radiation.accelerate = 0
 
-radiation.do_multigroup = 1
 radiation.nGroups = 60
 
 radiation.integrate_Planck = 0

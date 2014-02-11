@@ -88,7 +88,6 @@ radiation.SolverType = 6
 
 radiation.accelerate = 0
 
-radiation.do_multigroup = 1
 radiation.nGroups = 64
 radiation.lowestGroupHz = 0.0
 radiation.groupGrowFactor = 1.1

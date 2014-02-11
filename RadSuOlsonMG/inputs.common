@@ -88,7 +88,6 @@ radiation.accelerate = 0
 radiation.do_fspace_advection = 0
 radiation.Er_Lorentz_term = 0
 
-radiation.do_multigroup = 1
 radiation.nGroups = 2
 radiation.lowestGroupHz = 1.e14
 radiation.highestGroupHz = 1.e16
