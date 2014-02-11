@@ -51,7 +51,7 @@ castro.sum_interval   = 1       # timesteps between computing mass
 castro.do_reflux      = 1       # 1 => do refluxing
 castro.gravity        = 0
 
-castro.do_hydro       = 1
+castro.do_hydro       = 1   # set to zero for comparison w/ analytic solution
 castro.do_react       = 0
 castro.do_radiation   = 1
 
