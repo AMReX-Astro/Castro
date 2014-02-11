@@ -1,0 +1,15 @@
+&fortin
+  tempgrad = 1.0e3
+  max_tempgrad_lev = 3
+
+  radgrad = 0.0075646
+  max_radgrad_lev = 3
+
+  velerr = 1.0e8
+  max_velerr_lev = 3
+
+  rwind0 = 0.9d14
+  rwind1 = 1.d14
+  rhowind1 = 1.d-14
+/
+
