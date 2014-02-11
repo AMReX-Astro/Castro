@@ -1,5 +1,4 @@
 &fortin
-  do_neutrino_test = 1
 
   denerr = 7.2e7
   max_denerr_lev = 3

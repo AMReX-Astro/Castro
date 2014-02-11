@@ -84,7 +84,6 @@ radiation.closure = 3
 radiation.fspace_advection_type = 2
 
 radiation.do_multigroup = 1
-radiation.do_neutrino_test = 2  
 radiation.nNeutrinoSpecies = 3
 radiation.nNeutrinoGroups  =    30    20    30
 radiation.lowestGroupMeV   =   1.0   1.0   1.0 

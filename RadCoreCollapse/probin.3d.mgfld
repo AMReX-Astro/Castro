@@ -1,5 +1,4 @@
 &fortin
-  do_neutrino_test = 1
 
   npts_model = 1884
   model_filename = "modelDump"
