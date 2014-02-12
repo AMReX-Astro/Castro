@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step  = 500
+max_step  = 100000
 stop_time = 2.e10
 
 geometry.is_periodic = 0 0 0
@@ -125,7 +125,7 @@ radiation.hi_bcflag = 0 0 0
 # 103 = LO_REFLECT_ODD      bcval is ignored (equivalent to inhom Dirichlet)
 # 104 = LO_MARSHAK          bcval is incident flux
 
-radiation.lo_bcval = 1.0 0.0 0.0
+radiation.lo_bcval = 0.5 0.0 0.0
 radiation.hi_bcval = 0.0 0.0 0.0
 
 # Power-law opacities are represented as:
@@ -146,7 +146,7 @@ radiation.kappa_p_exp_m =  0.0
 radiation.kappa_p_exp_n =  0.0
 
 # Rosseland mean opacity 
-radiation.const_kappa_r =  0.9993081933333334e10
+radiation.const_kappa_r =  1.9986163866666668e10
 radiation.kappa_r_exp_m =  0.0
 radiation.kappa_r_exp_n =  0.0
 
@@ -192,6 +192,6 @@ DistributionMapping.strategy = KNAPSACK
 DistributionMapping.strategy = SFC
 
 xgraph.format = gnu
-#xgraph.graph = Temp       Temp     100 -1
-#xgraph.graph = eint       eint_e   100 -1
-xgraph.graph = Er         rad      100 -1
+#xgraph.graph = Temp       Temp     500 -1
+#xgraph.graph = eint       eint_e   500 -1
+xgraph.graph = Er         rad      500 -1
