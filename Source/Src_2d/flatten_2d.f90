@@ -42,14 +42,6 @@ contains
     
     dzcut = 1.d0/(zcut2-zcut1)
 
-    if (iorder .eq. 3) then
-       do j = lo(2),hi(2) 
-          do i = lo(1),hi(1) 
-             flatn(i,j) = 1.d0
-          enddo
-       enddo
-       return
-    endif
     
     ! x-direction flattening coef
     do j = lo(2),hi(2) 

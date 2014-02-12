@@ -40,16 +40,6 @@ contains
 
     nmax = max(nx,ny,nz)
 
-    if (iorder .eq. 3) then
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2) 
-             do i = lo(1),hi(1) 
-                flatn(i,j,k) = 1.d0
-             enddo
-          enddo
-       enddo
-       return
-    endif
 
     ! x-direction flattening coef
     allocate(dp (0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
