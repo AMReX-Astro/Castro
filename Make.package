@@ -29,7 +29,8 @@ f90$(CA_BASE)_sources += rad_params.f90 RadDerive_$(DIM)d.f90 \
                          radhydro_params.f90 MGFLD_$(DIM)d.f90 \
                          RadEOS_$(DIM)d.f90 Rad_nd.f90 \
                          fluxlimiter.f90 RadHydro_nd.f90 filter.f90 \
-                         filt_prim_$(DIM)d.f90 CastroRad_$(DIM)d.f90
+                         filt_prim_$(DIM)d.f90 CastroRad_$(DIM)d.f90 \
+                         RadBndry_$(DIM)d.f90
 
 ifeq ($(USE_NEUTRINO), TRUE)
   f90$(CA_BASE)_sources += MGFLDneut_$(DIM)d.f90

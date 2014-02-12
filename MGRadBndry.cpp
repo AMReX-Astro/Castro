@@ -212,6 +212,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
   int ngrds = grids.size();
   const Real* dx = geom.CellSize();
   const Real* xlo = geom.ProbLo();
+  const Real* xhi = geom.ProbHi();
   const Box& domain = geom.Domain();
 
   // variables for multigroup
@@ -226,6 +227,20 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));
 
+    Real geomfac;
+    if (Geometry::IsCartesian() || dir>0 || p_bc == LO_DIRICHLET) {
+	geomfac = 1.0;
+    }
+    else {
+	Real x_bc = (face.isLow() ?  xlo[dir] :   xhi[dir]);
+	if (Geometry::IsRZ()) {
+	    geomfac = x_bc;
+	}
+	else { // Geometry::IsSPHERICAL() == true
+	    geomfac = x_bc*x_bc;
+	}
+    }
+
     int p_bcflag = (phys_bc_mode == Inhomogeneous_BC && !correction)
       ? bcflag[face] : 0;
     if(phys_bc_mode == Inhomogeneous_BC && !correction) {
@@ -238,10 +253,6 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	value_nu[igroup] = 0.0;
       }
     }
-    /* original (single group) code
-    Real value = (phys_bc_mode == Inhomogeneous_BC && !correction)
-      ? bcval[face] : 0.0;
-    */
 
     for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
       int i = bi.index();
@@ -253,22 +264,16 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
 	    if (p_bcflag == 0) {
 	      for(int igroup = 0; igroup < ngroups; igroup++) {
-		bndry[face][i].setVal(value_nu[igroup], igroup);
+		bndry[face][i].setVal(value_nu[igroup]*geomfac, igroup);
 	      }
-	      //setValue(face, i, value);
 	    }
 	    else {
-	      if(ParallelDescriptor::IOProcessor()) {
-		cout << "MGRadBndry ERROR 1:  feature not implmented" << endl;
-	      }
-	      exit(1);
-
 	      Fab& bnd_fab = bndry[face][i];
 	      const Box& bnd_box = bnd_fab.box();
-#if 0
+	      int iface = face.isLow() ? 0 : 1;
 	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
-			    dimlist(domain), dx, xlo, time);
-#endif
+			    dimlist(domain), dx, xlo, time, dir, iface);
+	      bnd_fab.mult(geomfac);
 	    }
 	  }
 	}

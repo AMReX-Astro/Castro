@@ -924,7 +924,8 @@ extern "C" {
 		   int& nflr, const Real& flr, const int& nvar);
 
   void FORT_RADBNDRY(Real* bf, intS, intS,
-		     const Real* dx, const Real* xlo, const Real& time);
+		     const Real* dx, const Real* xlo, const Real& time,
+                     const int& dir, const int& face);
 
   void FORT_RADBNDRY2(Real* bf, intS, int* tfab, intS,
 		      const Real* dx, const Real* xlo, const Real& time);
