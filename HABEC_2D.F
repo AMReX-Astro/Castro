@@ -82,11 +82,6 @@
       real*8 b(dimv(bbox))
       real*8 h, fac, bfm, bfv
       integer i, j
-c Boundary conditions generalized and condensed for maximum obscurity.
-c Some of the b(i,j) (= c) factors in the Neumann and Marshak boundary
-c conditions are to compensate for the 1/c in bcval.  The -fac term in
-c each matrix boundary condition is the contribution from the interior
-c stencil which should not be included at the boundary.
       if (cdir .eq. 0 .or. cdir .eq. 2) then
          h = dx(1)
       else
@@ -96,12 +91,6 @@ c stencil which should not be included at the boundary.
       if (bct .eq. LO_DIRICHLET) then
          bfv = fac * h / (0.5d0 * h + bcl)
          bfm = bfv - fac
-      else if (bct .eq. LO_NEUMANN) then
-         bfv = beta / h
-         bfm = -fac
-      else if (bct .eq. LO_MARSHAK) then
-         bfv = 2.d0 * beta / h
-         bfm = 0.25d0 * bfv - fac
       else
          print *, "hbmat: unsupported boundary type"
          stop
@@ -320,9 +309,6 @@ c Top face of grid
       real*8 h, bfv
       real*8 h2, th2
       integer i, j
-c Boundary conditions generalized and condensed for maximum obscurity.
-c Some of the b(i,j) (= c) factors in the Neumann and Marshak boundary
-c conditions are to compensate for the 1/c in bcval.
       if (cdir .eq. 0 .or. cdir .eq. 2) then
          h = dx(1)
       else
@@ -336,10 +322,6 @@ c conditions are to compensate for the 1/c in bcval.
          else
             bfv = (beta / h) / (0.5d0 * h + bcl)
          endif
-      else if (bct .eq. LO_NEUMANN) then
-         bfv = beta / h
-      else if (bct .eq. LO_MARSHAK) then
-         bfv = 2.d0 * beta / h
       else
          print *, "hbvec: unsupported boundary type"
          stop
@@ -567,16 +549,6 @@ c Top face of grid
       real*8 h, bfm, bfv
       real*8 bfm2, h2, th2
       integer i, j
-c Boundary conditions generalized and condensed for maximum obscurity.
-c At present this routine is only called for internal coarse-fine
-c Dirichlet conditions, not for physical boundaries.  The support for
-c Neumann and Marshak boundaries is therefore never used, and the
-c implementation here is not correct for the way coefficients are
-c currently handled at the boundaries.  (The b coefficient should not
-c be multiplied by bcval at Neumann and Marshak boundaries.  The
-c implemetation here is left over from a version where b coefficients
-c were modified these boundaries, and cannot be trivially fixed.
-c See hbflx3 for the current correct implementation.)
       if (cdir .eq. 0 .or. cdir .eq. 2) then
          h = dx(1)
       else
@@ -592,24 +564,6 @@ c See hbflx3 for the current correct implementation.)
          else
             bfv = beta / (0.5d0 * h + bcl)
             bfm = bfv
-         endif
-      else if (bct .eq. LO_NEUMANN) then
-         print *, "hbflx: unsupported boundary type"
-         stop
-c Not correct.  See above.
-         bfv = beta
-         bfm = 0.d0
-         bfm2 = 0.d0
-      else if (bct .eq. LO_MARSHAK) then
-         print *, "hbflx: unsupported boundary type"
-         stop
-c Not correct.  See above.
-         bfv = 2.d0 * beta
-         if (bho .ge. 1) then
-            bfm  =  0.75d0 * beta
-            bfm2 = -0.25d0 * beta
-         else
-            bfm = 0.5d0 * beta
          endif
       else
          print *, "hbflx: unsupported boundary type"
@@ -1325,11 +1279,6 @@ c Top face of grid
       real*8 h, fac, bfm, bfv
       real*8 bfm2, h2, th2
       integer i, j
-c Boundary conditions generalized and condensed for maximum obscurity.
-c Some of the b(i,j) (= c) factors in the Neumann and Marshak boundary
-c conditions are to compensate for the 1/c in bcval.  The -fac term in
-c each matrix boundary condition is the contribution from the interior
-c stencil which should not be included at the boundary.
       if (cdir .eq. 0 .or. cdir .eq. 2) then
          h = dx(1)
       else
@@ -1345,17 +1294,6 @@ c stencil which should not be included at the boundary.
          else
             bfv = (beta / h) / (0.5d0 * h + bcl)
             bfm = bfv - fac
-         endif
-      else if (bct .eq. LO_NEUMANN) then
-         bfm = -fac
-         bfm2 = 0.d0
-      else if (bct .eq. LO_MARSHAK) then
-         bfv = 2.d0 * beta / h
-         if (bho .ge. 1) then
-            bfm  =  0.375d0 * bfv - fac
-            bfm2 = -0.125d0 * bfv
-         else
-            bfm = 0.25d0 * bfv - fac
          endif
       else
          print *, "hmmat: unsupported boundary type"
