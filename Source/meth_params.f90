@@ -30,6 +30,7 @@ module meth_params_module
   double precision, save :: small_dens, small_temp, small_pres  
 
   integer         , save :: allow_negative_energy
+
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
   integer         , save :: ppm_trace_grav
@@ -39,6 +40,8 @@ module meth_params_module
   integer         , save :: ppm_flatten_before_integrals
   integer         , save :: ppm_reference_eigenvectors
   integer         , save :: use_colglaz
+  integer         , save :: use_flattening
+
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
   integer         , save :: use_pslope

@@ -572,6 +572,7 @@ protected:
     static int       fix_mass_flux;
     static int       allow_negative_energy;
     static int       do_special_tagging;
+
     static int       ppm_type;
     static int       ppm_reference;
     static int       ppm_trace_grav;
@@ -581,6 +582,8 @@ protected:
     static int       ppm_flatten_before_integrals;
     static int       ppm_reference_eigenvectors;
     static int       use_colglaz;
+    static int       use_flattening;
+
     static int       cg_maxiter;
     static Real      cg_tol;
     static int       use_pslope;

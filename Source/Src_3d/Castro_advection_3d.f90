@@ -594,10 +594,10 @@ contains
   subroutine ctoprim(lo,hi,          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                      q,c,gamc,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
                      src,srcQ,           src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                     courno,dx,dy,dz,dt,ngp,ngf,iflaten)
+                     courno,dx,dy,dz,dt,ngp,ngf)
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
-    !     if iflaten=1.  Declared dimensions of q,c,gamc,csml,flatn are given
+    !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
     !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
     !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
     !     routine that computes flatn).  
@@ -608,7 +608,7 @@ contains
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp
+                                   nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
 
     implicit none
@@ -629,7 +629,6 @@ contains
     double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
     double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision :: dx, dy, dz, dt, courno
-    integer          :: iflaten
 
     double precision, allocatable:: dpdrho(:,:,:)
     double precision, allocatable:: dpde(:,:,:)
@@ -866,7 +865,7 @@ contains
     courno = max( courmx, courmy, courmz )
 
     ! Compute flattening coef for slope calculations
-    if(iflaten.eq.1)then
+    if (use_flattening == 1) then
        do n=1,3
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf

@@ -211,7 +211,7 @@ Castro::variableSetUp ()
 	 ppm_trace_grav,ppm_temp_fix,ppm_tau_in_tracing,ppm_reference_edge_limit,
 	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
-	 use_colglaz,
+	 use_colglaz, use_flattening, 
          cg_maxiter, cg_tol,
          use_pslope, 
 	 grav_source_type, do_sponge,

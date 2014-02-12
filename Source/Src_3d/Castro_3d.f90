@@ -78,7 +78,7 @@
       double precision, allocatable:: srcQ(:,:,:,:)
 
       double precision dx,dy,dz
-      integer ngq,ngf,iflaten
+      integer ngq,ngf
 
       allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QVAR))
       allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
@@ -97,7 +97,6 @@
 
       ngq = NHYP
       ngf = 1
-      iflaten = 1
 
       ! 1) Translate conserved variables (u) to primitive variables (q).
       ! 2) Compute sound speeds (c) and gamma (gamc).
@@ -107,7 +106,7 @@
       call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                    q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                    src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                   courno,dx,dy,dz,dt,ngq,ngf,iflaten)
+                   courno,dx,dy,dz,dt,ngq,ngf)
 
 
       ! Compute hyperbolic fluxes using unsplit Godunov

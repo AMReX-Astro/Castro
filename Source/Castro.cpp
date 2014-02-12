@@ -137,6 +137,7 @@ int          Castro::normalize_species = 0;
 int          Castro::fix_mass_flux = 0;
 int          Castro::allow_negative_energy = 1;
 int          Castro::do_special_tagging = 0;
+
 int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
@@ -146,6 +147,8 @@ int          Castro::ppm_reference_edge_limit = 0;
 int          Castro::ppm_flatten_before_integrals = 0;
 int          Castro::ppm_reference_eigenvectors = 0;
 int          Castro::use_colglaz = 0;
+int          Castro::use_flattening = 1;
+
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
 int          Castro::use_pslope  = 1;
@@ -362,6 +365,7 @@ Castro::read_params ()
     pp.query("fix_mass_flux",fix_mass_flux);
     pp.query("allow_negative_energy",allow_negative_energy);
     pp.query("do_special_tagging",do_special_tagging);
+
     pp.query("ppm_type", ppm_type);
     pp.query("ppm_reference", ppm_reference);
     pp.query("ppm_trace_grav", ppm_trace_grav);
@@ -371,6 +375,8 @@ Castro::read_params ()
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
     pp.query("use_colglaz",use_colglaz);
+    pp.query("use_flattening",use_flattening);
+
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
     pp.query("use_pslope",use_pslope);
@@ -383,7 +389,7 @@ Castro::read_params ()
     pp.query("print_fortran_warnings",print_fortran_warnings);
 
 
-    if (ppm_reference > 1 || ppm_reference < 0)
+    if (ppm_reference > 2 || ppm_reference < 0)
       {
         std::cerr << "invalid ppm_reference\n";
         BoxLib::Error();

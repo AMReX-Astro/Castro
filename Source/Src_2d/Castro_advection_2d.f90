@@ -234,10 +234,10 @@ contains
                      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                      q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                      src,srcQ,src_l1,src_l2,src_h1,src_h2, &
-                     courno,dx,dy,dt,ngp,ngf,iflaten)
+                     courno,dx,dy,dt,ngp,ngf)
     
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-    ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
+    ! lo-ngf:hi+ngf if use_flattening=1.  Declared dimensions of
     ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region
     ! is assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call
     ! assumes ngp>=ngf+3 (ie, primitve data is used by the routine
@@ -249,7 +249,7 @@ contains
                                    UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, &
                                    QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp
+                                   nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
     
     implicit none
@@ -260,7 +260,6 @@ contains
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer q_l1,q_l2,q_h1,q_h2
     integer src_l1,src_l2,src_h1,src_h2
-    integer iflaten
     
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
@@ -447,7 +446,7 @@ contains
     courno = max( courmx, courmy )
       
     ! Compute flattening coef for slope calculations
-    if(iflaten.eq.1)then
+    if (use_flattening == 1) then
        do n=1,2
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf

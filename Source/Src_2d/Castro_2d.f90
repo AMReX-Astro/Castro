@@ -71,7 +71,7 @@
       double precision, allocatable:: srcQ(:,:,:)
       double precision, allocatable:: pdivu(:,:)
 
-      integer ngq,ngf,iflaten
+      integer ngq,ngf
 !     integer i_c,j_c
 
       double precision dx,dy
@@ -94,7 +94,6 @@
 
       ngq = NHYP
       ngf = 1
-      iflaten = 1
 
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
@@ -102,7 +101,7 @@
       call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                    q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
                    src,srcQ,src_l1,src_l2,src_h1,src_h2, &
-                   courno,dx,dy,dt,ngq,ngf,iflaten)
+                   courno,dx,dy,dt,ngq,ngf)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &

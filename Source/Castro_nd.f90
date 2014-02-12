@@ -264,7 +264,7 @@
                                    ppm_tau_in_tracing_in, ppm_reference_edge_limit_in, &
                                    ppm_flatten_before_integrals_in, &
                                    ppm_reference_eigenvectors_in, &
-                                   use_colglaz_in, &
+                                   use_colglaz_in, use_flattening_in, &
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
                                    grav_source_type_in, &
@@ -289,7 +289,8 @@
         integer, intent(in) :: ppm_tau_in_tracing_in, ppm_reference_edge_limit_in
         integer, intent(in) :: ppm_flatten_before_integrals_in
         integer, intent(in) :: ppm_reference_eigenvectors_in
-        integer, intent(in) :: use_colglaz_in, use_pslope_in, grav_source_type_in
+        integer, intent(in) :: use_colglaz_in, use_flattening_in
+        integer, intent(in) :: use_pslope_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
@@ -422,6 +423,8 @@
         ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
         ppm_reference_eigenvectors = ppm_reference_eigenvectors_in
         use_colglaz                = use_colglaz_in
+        use_flattening             = use_flattening_in
+
         cg_tol                     = cg_tol_in
         cg_maxiter                 = cg_maxiter_in
         use_pslope                 = use_pslope_in
