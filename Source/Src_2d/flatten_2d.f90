@@ -15,35 +15,30 @@ contains
     
     implicit none
 
-    integer lo(2),hi(2)
-    integer q_l1,q_l2,q_h1,q_h2
-    double precision p(q_l1:q_h1,q_l2:q_h2)
-    double precision u(q_l1:q_h1,q_l2:q_h2)
-    double precision v(q_l1:q_h1,q_l2:q_h2)
-    double precision flatn(q_l1:q_h1,q_l2:q_h2)
+    integer, intent(in) :: lo(2),hi(2)
+    integer, intent(in) ::  q_l1,q_l2,q_h1,q_h2
+    double precision, intent(in)    ::     p(q_l1:q_h1,q_l2:q_h2)
+    double precision, intent(in)    ::     u(q_l1:q_h1,q_l2:q_h2)
+    double precision, intent(in)    ::     v(q_l1:q_h1,q_l2:q_h2)
+    double precision, intent(inout) :: flatn(q_l1:q_h1,q_l2:q_h2)
     
-    ! Local arrays
     double precision, allocatable :: dp(:), z(:), chi(:)
-    
+
+    ! Local arrays    
     integer i, j, ishft
     double precision dzcut
     double precision denom, zeta, tst, tmp, ftmp
-    integer nx,ny,nmax
     
     ! Knobs for detection of strong shock
     double precision, parameter :: shktst = 0.33d0
     double precision, parameter :: zcut1 = 0.75d0
     double precision, parameter :: zcut2 = 0.85d0
-    
-    nx = hi(1)-lo(1)+3
-    ny = hi(2)-lo(2)+3
-    nmax = max(nx,ny)
 
-    allocate(dp(q_l1:q_h1),z(q_l1:q_h1),chi(q_l1:q_h1))
-    
     dzcut = 1.d0/(zcut2-zcut1)
     
     ! x-direction flattening coef
+    allocate(dp(q_l1:q_h1),z(q_l1:q_h1),chi(q_l1:q_h1))
+    
     do j = lo(2),hi(2) 
        do i = lo(1)-1,hi(1)+1
           dp(i) = p(i+1,j) - p(i-1,j)
@@ -113,6 +108,8 @@ contains
           ftmp = 1.d0 - &
                max(chi(j-ishft)*z(j-ishft),chi(j)*z(j))
 
+          ! merge the x- and y-directions into a single flattening
+          ! coeff for the zone
           flatn(i,j) = min( flatn(i,j), ftmp )
        enddo
     enddo
