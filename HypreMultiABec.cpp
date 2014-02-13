@@ -1530,18 +1530,6 @@ void HypreMultiABec::loadMatrix()
         HYPRE_SStructMatrixSetBoxValues(A, part, loV(reg), hiV(reg), 0,
                                         size, stencil_indices, mat);
       }
-#if 0
-      // with no subgrids, this (also) works correctly
-      Real *mat_tmp = hypre_CTAlloc(double, volume);
-      for (int s = 0; s < size; s++) {
-	for (int k = 0; k < volume; k++) {
-	  mat_tmp[k] = mat[k * size + s];
-	}
-	HYPRE_SStructMatrixSetBoxValues(A, part, loV(reg), hiV(reg), 0,
-					1, &stencil_indices[s], mat_tmp);
-      }
-      hypre_TFree(mat_tmp);
-#endif
 
       hypre_TFree(mat);
     }
