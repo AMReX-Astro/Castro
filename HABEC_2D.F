@@ -414,7 +414,7 @@ c Left face of grid
                   endif
                   bfv = bfv * b(i,j)
                else if (bct .eq. LO_NEUMANN) then
-                  bfv = beta / h
+                  bfv = beta * r0 / h
                else if (bct .eq. LO_MARSHAK .or.
      @                  bct .eq. LO_SANCHEZ_POMRANING) then
                   bfv = 2.d0 * beta * r0 / h
@@ -445,7 +445,7 @@ c Right face of grid
                   endif
                   bfv = bfv * b(i+1,j)
                else if (bct .eq. LO_NEUMANN) then
-                  bfv = beta / h
+                  bfv = beta * r0 / h
                else if (bct .eq. LO_MARSHAK .or.
      @                  bct .eq. LO_SANCHEZ_POMRANING) then
                   bfv = 2.d0 * beta * r0 / h
@@ -476,7 +476,7 @@ c Bottom face of grid
                   endif
                   bfv = bfv * b(i,j)
                else if (bct .eq. LO_NEUMANN) then
-                  bfv = beta / h
+                  bfv = beta * r(i) / h
                else if (bct .eq. LO_MARSHAK .or.
      @                  bct .eq. LO_SANCHEZ_POMRANING) then
                   bfv = 2.d0 * beta * r(i) / h
@@ -507,7 +507,7 @@ c Top face of grid
                   endif
                   bfv = bfv * b(i,j+1)
                else if (bct .eq. LO_NEUMANN) then
-                  bfv = beta / h
+                  bfv = beta * r(i) / h
                else if (bct .eq. LO_MARSHAK .or.
      @                  bct .eq. LO_SANCHEZ_POMRANING) then
                   bfv = 2.d0 * beta * r(i) / h
@@ -682,7 +682,7 @@ c Left face of grid
                      bfm = bfv
                   endif
                else if (bct .eq. LO_NEUMANN) then
-                  bfv  = beta
+                  bfv  = beta * r0
                   bfm  = 0.d0
                   bfm2 = 0.d0
                else if (bct .eq. LO_MARSHAK) then
@@ -736,7 +736,7 @@ c Right face of grid
                      bfm = bfv
                   endif
                else if (bct .eq. LO_NEUMANN) then
-                  bfv  = beta
+                  bfv  = beta * r0
                   bfm  = 0.d0
                   bfm2 = 0.d0
                else if (bct .eq. LO_MARSHAK) then
@@ -790,7 +790,7 @@ c Bottom face of grid
                      bfm = bfv
                   endif
                else if (bct .eq. LO_NEUMANN) then
-                  bfv  = beta
+                  bfv  = beta * r(i)
                   bfm  = 0.d0
                   bfm2 = 0.d0
                else if (bct .eq. LO_MARSHAK) then
@@ -844,7 +844,7 @@ c Top face of grid
                      bfm = bfv
                   endif
                else if (bct .eq. LO_NEUMANN) then
-                  bfv  = beta
+                  bfv  = beta * r(i)
                   bfm  = 0.d0
                   bfm2 = 0.d0
                else if (bct .eq. LO_MARSHAK) then

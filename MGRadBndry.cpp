@@ -6,8 +6,6 @@
 
 #include <Using.H>
 
-#include "Radiation.H"  // for access to static physical constants only
-
 #include "LHH.H"
 
 #undef BL_USE_ARLIM
@@ -19,7 +17,6 @@ int         MGRadBndry::first = 1;
 Array<int>  MGRadBndry::bcflag(2*BL_SPACEDIM);
 Array< Array<Real> > MGRadBndry::bcval(2*BL_SPACEDIM);
 Real        MGRadBndry::time = 0.0;
-Real        MGRadBndry::c = 2.99792458e10;
 int         MGRadBndry::correction = 0;
 
 MGRadBndry::MGRadBndry(const BoxArray& _grids,
@@ -84,10 +81,7 @@ void MGRadBndry::init(const int _ngroups)
 
   ngroups = _ngroups;
 
-  c = Radiation::clight;
-
   ParmParse pp("radiation");
-  pp.query("c", c);
 
   Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
   pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
@@ -212,7 +206,6 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
   int ngrds = grids.size();
   const Real* dx = geom.CellSize();
   const Real* xlo = geom.ProbLo();
-  const Real* xhi = geom.ProbHi();
   const Box& domain = geom.Domain();
 
   // variables for multigroup
@@ -226,20 +219,6 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));
-
-    Real geomfac;
-    if (Geometry::IsCartesian() || dir>0 || p_bc == LO_DIRICHLET) {
-	geomfac = 1.0;
-    }
-    else {
-	Real x_bc = (face.isLow() ?  xlo[dir] :   xhi[dir]);
-	if (Geometry::IsRZ()) {
-	    geomfac = x_bc;
-	}
-	else { // Geometry::IsSPHERICAL() == true
-	    geomfac = x_bc*x_bc;
-	}
-    }
 
     int p_bcflag = (phys_bc_mode == Inhomogeneous_BC && !correction)
       ? bcflag[face] : 0;
@@ -264,7 +243,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
 	    if (p_bcflag == 0) {
 	      for(int igroup = 0; igroup < ngroups; igroup++) {
-		bndry[face][i].setVal(value_nu[igroup]*geomfac, igroup);
+		bndry[face][i].setVal(value_nu[igroup], igroup);
 	      }
 	    }
 	    else {
@@ -273,7 +252,6 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      int iface = face.isLow() ? 0 : 1;
 	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
 			    dimlist(domain), dx, xlo, time, dir, iface);
-	      bnd_fab.mult(geomfac);
 	    }
 	  }
 	}

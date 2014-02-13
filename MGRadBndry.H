@@ -41,10 +41,8 @@ protected:
 
   static int first;            // only set up bcval once
   static Array<int> bcflag;    // 0 = use constant bcval; 1 = use function
-  //  static Array<Real> bcval;    // constant bcval across each face
   static Array< Array<Real> > bcval;
   static Real time;            // time value passed to bc function
-  static Real c;               // speed of light
   static int correction;       // ignore bcval when this is set
 };
 

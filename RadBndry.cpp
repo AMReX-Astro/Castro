@@ -5,8 +5,6 @@
 
 #include <Using.H>
 
-#include "Radiation.H"  // for access to static physical constants only
-
 #include "LHH.H"
 
 #undef BL_USE_ARLIM
@@ -17,7 +15,6 @@ int         RadBndry::first = 1;
 Array<int>  RadBndry::bcflag(2*BL_SPACEDIM);
 Array<Real> RadBndry::bcval(2*BL_SPACEDIM);
 Real        RadBndry::time = 0.0;
-Real        RadBndry::c = 2.99792458e10;
 int         RadBndry::correction = 0;
 
 RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
@@ -88,10 +85,9 @@ void RadBndry::init()
   // do not themselves know about c.  This c compensates
   // for the c in the diffusion coefficient at the boundaries:
 
-  c = Radiation::clight;
+//  c = Radiation::clight;
 
   ParmParse pp("radiation");
-  pp.query("c", c);
 
   Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
   pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
@@ -214,7 +210,6 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
   int ngrds = grids.size();
   const Real* dx = geom.CellSize();
   const Real* xlo = geom.ProbLo();
-  const Real* xhi = geom.ProbHi();
   const Box& domain = geom.Domain();
 
   for (OrientationIter fi; fi; ++fi) {
@@ -224,20 +219,6 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));
-
-    Real geomfac;
-    if (Geometry::IsCartesian() || dir>0 || p_bc == LO_DIRICHLET) {
-	geomfac = 1.0;
-    }
-    else {
-	Real x_bc = (face.isLow() ?  xlo[dir] :   xhi[dir]);
-	if (Geometry::IsRZ()) {
-	    geomfac = x_bc;
-	}
-	else { // Geometry::IsSPHERICAL() == true
-	    geomfac = x_bc*x_bc;
-	}
-    }
 
     int p_bcflag = (phys_bc_mode == Inhomogeneous_BC && !correction)
       ? bcflag[face] : 0;
@@ -252,12 +233,8 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	if (bcflag[face] <= 1) {
 	  if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
 	      p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {	      
-
-	    Real factor = (p_bc == LO_MARSHAK || p_bc == LO_SANCHEZ_POMRANING) 
-		? geomfac*c : geomfac;
-
 	    if (p_bcflag == 0) {
-	      setValue(face, i, value*factor);
+	      setValue(face, i, value);
 	    }
 	    else {
 	      Fab& bnd_fab = bndry[face][i];
@@ -265,7 +242,6 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      int iface = face.isLow() ? 0 : 1;
 	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
 			    dimlist(domain), dx, xlo, time, dir, iface);
-	      bnd_fab.mult(factor);
 	    }
 	  }
 	}
