@@ -36,7 +36,7 @@ subroutine ctoprim_rad(lo,hi, &
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
-  use advection_module, only : uflaten
+  use flatten_module, only : uflaten
   use fluxlimiter_module, only : Edd_factor
 
   implicit none
