@@ -167,18 +167,17 @@ contains
                    eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
 
-                   call eos(eos_input_rt, eos_state, .false.)
+                   call eos(eos_input_rt, eos_state)
 
                    Ip(i,j,idim,iwave,QPRES) = eos_state%p
                    Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO)*eos_state%e
                    Ip_gc(i,j,idim,iwave,1) = eos_state%gam1
 
-
                    eos_state%rho   = Im(i,j,idim,iwave,QRHO)
                    eos_state%T     = Im(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
 
-                   call eos(eos_input_rt, eos_state, .false.)
+                   call eos(eos_input_rt, eos_state)
 
                    Im(i,j,idim,iwave,QPRES) = eos_state%p
                    Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO)*eos_state%e
@@ -235,7 +234,6 @@ contains
           Clag = rho*cc
 
           gam = gamc(i,j)
-
 
           !-------------------------------------------------------------------
           ! plus state on face i

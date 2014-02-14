@@ -1,2 +1,4 @@
 # use the Coulomb corrections
 use_eos_coulomb                     logical            .true.       
+# Force the EOS output quantities to match input
+eos_input_is_constant               logical            .false.

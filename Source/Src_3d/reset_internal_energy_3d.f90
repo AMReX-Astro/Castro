@@ -4,6 +4,7 @@
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
                                      small_temp, allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -14,7 +15,9 @@
       ! Local variables
       integer          :: i,j,k
       integer          :: pt_index(3)
-      double precision :: Up, Vp, Wp, ke, rho_eint, eint_new, x_in(1:nspec+naux), dummy_pres
+      double precision :: Up, Vp, Wp, ke, rho_eint, eint_new
+
+      type (eos_t) :: eos_state
 
       ! Reset internal energy
       if (allow_negative_energy .eq. 0) then
@@ -27,31 +30,34 @@
               Up = u(i,j,k,UMX) / u(i,j,k,URHO)
               Vp = u(i,j,k,UMY) / u(i,j,k,URHO)
               Wp = u(i,j,k,UMZ) / u(i,j,k,URHO)
-              ke = 0.5d0 * (Up**2 + Vp**2 + Wp**2)
+              ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
               rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
               ! Reset (e from e) if it's greater than 0.01% of big E.
-              if (rho_eint .gt. 0.d0 .and. rho_eint / u(i,j,k,UEDEN) .gt. 1.d-4) then
+              if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. 1.d-4) then
 
                   u(i,j,k,UEINT) = rho_eint
 
               ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-              else if (u(i,j,k,UEINT) .gt. 0.d0) then
+              else if (u(i,j,k,UEINT) .gt. ZERO) then
 
                  u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
               ! If not resetting and little e is negative ...
-              else if (u(i,j,k,UEINT) .le. 0.d0) then
+              else if (u(i,j,k,UEINT) .le. ZERO) then
 
-                 x_in(1:nspec) = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
-                 if (naux > 0) &
-                   x_in(nspec+1:nspec+naux)  = u(i,j,k,UFX:UFX+naux -1) / u(i,j,k,URHO)
+
+                 eos_state % rho = u(i,j,k,URHO)
+                 eos_state % T   = small_temp 
+                 eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
 
                  pt_index(1) = i
                  pt_index(2) = j
                  pt_index(3) = k
-                 call eos_given_RTX(eint_new, dummy_pres, u(i,j,k,URHO), small_temp, x_in, pt_index=pt_index)
+                 call eos(eos_input_rt, eos_state, pt_index = pt_index)
+
+                 eint_new = eos_state % e
 
                  if (verbose .gt. 0) then
                     print *,'   '
@@ -81,7 +87,7 @@
               Up = u(i,j,k,UMX) / u(i,j,k,URHO)
               Vp = u(i,j,k,UMY) / u(i,j,k,URHO)
               Wp = u(i,j,k,UMZ) / u(i,j,k,URHO)
-              ke = 0.5d0 * (Up**2 + Vp**2 + Wp**2)
+              ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
               u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 

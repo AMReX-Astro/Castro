@@ -1,14 +1,9 @@
-      subroutine helmeos(do_coulomb, eosfail, &
-                         temp_row, den_row, abar_row, zbar_row, &
-                         etot_row, ptot_row,  &
-                         cv_row, cp_row, xne_row, xnp_row, etaele_row, &
-                         pele_row, ppos_row,  &
-                         dpd_row, dpt_row, dpa_row, dpz_row,  &
-                         ded_row, det_row, dea_row, dez_row,  &
-                         gam1_row, cs_row, stot_row, &
-                         dsd_row, dst_row)
+      subroutine helmeos(do_coulomb, eosfail, state)
 
       use bl_error_module
+      use bl_types
+      use eos_type_module
+
       implicit none
       include 'vector_eos_f90.dek'
 
@@ -38,6 +33,8 @@
 !        allowing for multiple threads to call eos simultaniously
 !..input arguments
       logical do_coulomb, eosfail
+      type (eos_t), intent(inout) :: state
+
       double precision temp_row, den_row, abar_row, &
                        zbar_row, etot_row, ptot_row, &
                        cv_row, cp_row,  &
@@ -52,11 +49,9 @@
 ! these directives are used by f2py to generate a python wrapper around this
 ! fortran code
 !
-!f2py intent(in) :: do_coulomb,temp_row,den_row,abar_row,zbar_row
-!f2py intent(out) :: eosfail,etot_row,ptot_row,cv_row,cp_row,xne_row
-!f2py intent(out) :: xnp_row,etaele_row,pele_row,ppos_row,dpd_row
-!f2py intent(out) :: dpt_row,dpa_row,dpz_row,ded_row,det_row,dea_row
-!f2py intent(out) :: dez_row,stot_row,dsd_row,dst_row,gam1_row,cs_row
+!f2py intent(in)    :: do_coulomb
+!f2py intent(out)   :: eosfail
+!f2py intent(inout) :: state
 
 !..declare some parameters
       double precision pi,amu,kerg,clight,avo,qe,h,ssol,asol
@@ -147,7 +142,6 @@
                         third = 1.0d0/3.0d0, &
                         esqu  = qe * qe)
 
-
 ! ======================================================================
 !..Define Statement Functions
 
@@ -216,6 +210,11 @@
 
 !..start of vectorization loop, normal executaion starts here
       eosfail = .false.
+
+      temp_row = state % T
+      den_row  = state % rho
+      abar_row = state % abar
+      zbar_row = state % zbar
 
       temp  = temp_row
       den   =  den_row
@@ -893,6 +892,40 @@
 !      gam2_row   = gam2
 !      gam3_row   = gam3
        cs_row     = sound
+
+       ! Save the information in the EOS state struct.
+
+       state % p    = ptot_row
+       state % e    = etot_row
+       state % s    = stot_row
+       state % h    = etot_row + ptot_row / den_row
+
+       state % dpdr = dpd_row
+       state % dpdT = dpt_row
+       state % dedr = ded_row
+       state % dedT = det_row
+       state % dsdT = dst_row
+       state % dsdR = dsd_row
+       state % dhdR = ded_row + dpd_row / den_row - ptot_row / den_row**2
+       state % dhdT = det_row + dpt_row / den_row
+       state % dpde = dpt_row / det_row
+       state % dpdr_e = dpd_row - dpt_row * ded_row / det_row
+
+       state % gam1 = gam1_row
+       state % cs   = cs_row
+       state % cv   = cv_row
+       state % cp   = cp_row
+     
+       state % xne  = xne_row
+       state % xnp  = xnp_row
+       state % pele = pele_row
+       state % ppos = ppos_row
+       state % eta  = etaele_row
+       
+       state % dpa  = dpa_row
+       state % dpz  = dpz_row
+       state % dea  = dea_row
+       state % dez  = dez_row
 
       return
       end

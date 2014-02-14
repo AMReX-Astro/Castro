@@ -188,6 +188,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -199,29 +200,28 @@
       double precision dx(1), xlo(1), time, dt
       integer bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc,c, T, Y(nspec+naux)
-      double precision :: rhoInv,dpdr,dpde
-      integer          :: i,n
+      double precision :: rhoInv
+      integer          :: i
+
+      type (eos_t) :: eos_state
 
 !     Compute pressure from the EOS
       do i = lo(1),hi(1)
 
-         rhoInv = 1.d0/u(i,URHO)
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n=1,nspec
-            Y(n) = u(i,UFS+n-1)*rhoInv
-         enddo
-         do n=1,naux
-            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         eos_state % rho = u(i,URHO)
+         eos_state % e   = u(i,UEINT) * rhoInv
+         eos_state % T   = u(i,UTEMP)
+         eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
 
          ! Protect against negative internal energy
-         if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
-            call eos_given_RTX(e, p(i,1), u(i,URHO), T, Y)
+         if (allow_negative_energy .eq. 0 .and. eos_state % e .le. ZERO) then
+            call eos(eos_input_rt, eos_state)
          else
-            call eos_given_ReX(gamc, p(i,1), c, T, dpdr, dpde, u(i,URHO), e, Y)
+            call eos(eos_input_re, eos_state)
          end if
+
+         p(i,1) = eos_state % p
 
       enddo
 
@@ -294,6 +294,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -305,27 +306,31 @@
       double precision dx(1), xlo(1), time, dt
       integer bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, p, T, Y(nspec+naux)
-      double precision :: rhoInv,dpdr,dpde
-      integer          :: i,n
+      double precision :: rhoInv
+      integer          :: i
 
-      c = 0.d0
+      type (eos_t) :: eos_state
+
+      c = ZERO
 
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
 
-         rhoInv = 1.d0/u(i,URHO)
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n=1,nspec
-            Y(n) = u(i,UFS+n-1)*rhoInv
-         enddo
-         do n=1,naux
-            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         eos_state % e = u(i,UEINT) * rhoInv
 
-         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+         ! Protect against negative internal energy
+
+         if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+
+            eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % rho = u(i,URHO)
+            eos_state % T   = u(i,UTEMP)
+
+            call eos(eos_input_re, eos_state)
+ 
+            c(i,1) = eos_state % cs 
+
          end if
 
       enddo
@@ -342,6 +347,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -353,29 +359,28 @@
       double precision :: dx(1), xlo(1), time, dt
       integer          :: bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: c, e, gamc, p, T, dpdr, dpde, Y(nspec+naux)
       double precision :: rhoInv,ux
-      integer          :: i,n
+      integer          :: i
 
-      mach(:,:) = 0.d0
+      type (eos_t) :: eos_state
+
+      mach = ZERO
 
 !     Compute Mach number of the flow
       do i = lo(1),hi(1)
-         rhoInv = 1.d0/u(i,URHO)
-         ux = u(i,UMX  )*rhoInv
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n = 1,nspec
-            Y(n)=u(i,UFS+n-1)*rhoInv
-         enddo
-         do n = 1,naux
-            Y(nspec+n)=u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         eos_state % e = u(i,UEINT) * rhoInv
 
-         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-            call eos_given_ReX(gamc, p, c, T, dpdr, dpde, &
-                               u(i,URHO), e, Y)
-            mach(i,1) = abs(ux) / c
+         if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+ 
+            ux = u(i,UMX) * rhoInv
+            eos_state % rho = u(i,URHO)
+            eos_state % T   = u(i,UTEMP)
+            eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+
+            call eos(eos_input_re, eos_state)
+
+            mach(i,1) = abs(ux) / eos_state % cs
          end if 
 
       enddo
@@ -393,6 +398,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -404,31 +410,30 @@
       double precision dx(1), xlo(1), time, dt
       integer bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, p, T, Y(nspec+naux)
-      double precision :: rhoInv,ux,dpdr,dpde
-      integer          :: i,n
+      double precision :: rhoInv,ux
+      integer          :: i
 
-      c = 0.d0
+      type (eos_t) :: eos_state
+
+      c = ZERO
 
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
 
-         rhoInv = 1.d0/u(i,URHO)
-         ux = u(i,UMX)*rhoInv
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n=1,nspec
-            Y(n) = u(i,UFS+n-1)*rhoInv
-         enddo
-         do n=1,naux
-            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         ux = u(i,UMX) * rhoInv
+         eos_state % e  = u(i,UEINT) * rhoInv
 
-         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+         c(i,1) = ux
+
+         if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+            eos_state % T   = u(i,UTEMP)
+            eos_state % rho = u(i,URHO)
+            eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+
+            call eos(eos_input_re, eos_state)
+            c(i,1) = c(i,1) + eos_state % cs
          end if
-
-         c(i,1) = u(i,UMX)/u(i,URHO) + c(i,1)
 
       enddo
 
@@ -444,6 +449,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -455,30 +461,28 @@
       double precision dx(1), xlo(1), time, dt
       integer bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, p, T, Y(nspec+naux)
-      double precision :: rhoInv,ux,dpdr,dpde
-      integer          :: i,n
+      double precision :: rhoInv,ux
+      integer          :: i
 
-      c = 0.d0
+      c = ZERO
 
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
 
-         rhoInv = 1.d0/u(i,URHO)
-         ux = u(i,UMX)*rhoInv
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n=1,nspec
-            Y(n) = u(i,UFS+n-1)*rhoInv
-         enddo
-         do n=1,naux
-            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         ux = u(i,UMX) * rhoInv
+         eos_state % e  = u(i,UEINT) * rhoInv
 
-         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) &
-            call eos_given_ReX(gamc, p, c(i,1), T, dpdr, dpde, u(i,URHO), e, Y)
+         c(i,1) = ux
 
-         c(i,1) = u(i,UMX)/u(i,URHO) - c(i,1)
+         if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+            eos_state % T   = u(i,UTEMP)
+            eos_state % rho = u(i,URHO)
+            eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+
+            call eos(eos_input_re, eos_state)
+            c(i,1) = c(i,1) - eos_state % cs
+         end if
 
       enddo
 
@@ -494,6 +498,7 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -505,27 +510,24 @@
       double precision dx(1), xlo(1), time, dt
       integer bc(1,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, p, T, Y(nspec+naux)
-      double precision :: rhoInv,dpdr,dpde
-      integer          :: i,n
+      double precision :: rhoInv
+      integer          :: i
 
-      s = 0.d0
+      s = ZERO
 
 !     Compute entropy from the EOS
       do i = lo(1),hi(1)
 
-         rhoInv = 1.d0/u(i,URHO)
-         e  = u(i,UEINT)*rhoInv
-         T  = u(i,UTEMP)
-         do n=1,nspec
-            Y(n) = u(i,UFS+n-1)*rhoInv
-         enddo
-         do n=1,naux
-            Y(nspec+n) = u(i,UFX+n-1)*rhoInv
-         enddo
+         rhoInv = ONE / u(i,URHO)
+         eos_state % e  = u(i,UEINT) * rhoInv
 
-         if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-            call eos_S_given_ReX(s(i,1), u(i,URHO), e, T, Y)
+         if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+            eos_state % rho = u(i,URHO)
+            eos_state % T   = u(i,UTEMP)
+            eos_state % xn  = u(i,j,UFS:UFS+nspec-1) * rhoInv
+
+            call eos(eos_input_re, eos_state)
+            s(i,1) = eos_state % s
          end if
 
       enddo

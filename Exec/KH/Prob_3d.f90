@@ -84,7 +84,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
-       UEINT, UFS, UTEMP
+       UEINT, UFS, UTEMP, small_temp
 
   implicit none
 
@@ -101,6 +101,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision e,rho,u
   double precision pi
   integer i,j,k
+
+  type (eos_t) :: eos_state
 
   rhom = 0.5d0 * (rho1 - rho2) ! McNally+ Eq. 2
   um = 0.5d0 * (u1 - u2)       ! McNally+ Eq. 4
@@ -199,10 +201,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
             ! The rest of the variables
             state(i,j,k,URHO) = rho
 
+            eos_state % rho = rho
+            eos_state % p   = pres
+            eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1)
+            eos_state % T   = small_temp ! Initial guess for the EOS
+
             ! Get the temperature and internal energy assuming fixed pressure
-            call eos_e_given_RPX(e, state(i,j,k,UTEMP), &
-                 rho,pres,state(i,j,k,UFS:))
-            state(i,j,k,UEINT) = e * rho
+            call eos(eos_input_rp, eos_state)
+            state(i,j,k,UEINT) = eos_state % e * rho
+            state(i,j,k,UTEMP) = eos_state % T
                
            !  Total energy
            state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &

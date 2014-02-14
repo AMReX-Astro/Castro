@@ -13,6 +13,8 @@ program testeos
 
   logical :: do_diag
 
+  type (eos_t) :: state
+
   call network_init()
   call eos_init()
 
@@ -30,58 +32,36 @@ program testeos
   Xin(io16) = 0.5_dp_t
   Xin(img24) = 0.0_dp_t
 
-
-  den_eos = dens
-  temp_eos = temp
-  xn_eos(:) = Xin(:)
-
   do_diag = .false.
 
-  call eos(eos_input_rt, den_eos, temp_eos, &
-           xn_eos, &
-           p_eos, h_eos, e_eos, &
-           cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-           dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-           dpdX_eos, dhdX_eos, &
-           gam1_eos, cs_eos, s_eos, &
-           dsdt_eos, dsdr_eos, &
-           do_diag)
+  state % rho = dens
+  state % T   = temp
+  state % xn  = Xin
+
+  call eos(eos_input_rt, state, do_diag)
 
   print *, 'eos_input_rt:'
   print *, 'dens: ', dens, ' temp: ', temp
   print *, 'X: ', Xin
-  print *, 'pres: ', p_eos,  ' ener: ', e_eos
-  print *, 'h:    ', h_eos,  ' entr: ', s_eos
-  print *, 'c_v:  ', cv_eos, ' c_p : ', cp_eos
-  print *, 'dpdT: ', dpdt_eos, ' dpdr: ', dpdr_eos
-  print *, 'dedT: ', dedt_eos, ' dedr: ', dedr_eos
-  print *, 'dpdX: ', dpdX_eos(:)
-  print *, 'dhdX: ', dhdX_eos(:)
+  print *, 'pres: ', state % p,  ' ener: ', state % e
+  print *, 'h:    ', state % h,  ' entr: ', state % s
+  print *, 'c_v:  ', state % cv, ' c_p : ', state % cp
+  print *, 'dpdT: ', state % dpdT, ' dpdr: ', state % dpdr
+  print *, 'dedT: ', state % dedT, ' dedr: ', state % dedr
+  print *, 'dpdX: ', state % dpdX
+  print *, 'dhdX: ', state % dhdX
 
-  p_eos = pres
-  s_eos = entr
-
-  call eos(eos_input_ps, den_eos, temp_eos, &
-           xn_eos, &
-           p_eos, h_eos, e_eos, &
-           cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-           dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-           dpdX_eos, dhdX_eos, &
-           gam1_eos, cs_eos, s_eos, &
-           dsdt_eos, dsdr_eos, &
-           do_diag)
+  call eos(eos_input_ps, state, do_diag)
 
   print *, 'eos_input_ps:'
-  print *, 'dens: ', den_eos, ' temp: ', temp_eos
+  print *, 'dens: ', state % rho, ' temp: ', state % T
   print *, 'X: ', Xin
-  print *, 'pres: ', pres,  ' entr: ', entr
-  print *, 'p_eos: ', p_eos, ' s_eos: ', s_eos
-  print *, 'h:    ', h_eos,  ' ener: ', e_eos
-  print *, 'c_v:  ', cv_eos, ' c_p : ', cp_eos
-  print *, 'dpdT: ', dpdt_eos, ' dpdr: ', dpdr_eos
-  print *, 'dedT: ', dedt_eos, ' dedr: ', dedr_eos
-  print *, 'dpdX: ', dpdX_eos(:)
-  print *, 'dhdX: ', dhdX_eos(:)
-  
+  print *, 'pres: ', state % p,  ' ener: ', state % e
+  print *, 'h:    ', state % h,  ' entr: ', state % s
+  print *, 'c_v:  ', state % cv, ' c_p : ', state % cp
+  print *, 'dpdT: ', state % dpdT, ' dpdr: ', state % dpdr
+  print *, 'dedT: ', state % dedT, ' dedr: ', state % dedr
+  print *, 'dpdX: ', state % dpdX
+  print *, 'dhdX: ', state % dhdX
 
 end program testeos

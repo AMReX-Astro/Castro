@@ -6,15 +6,15 @@ COMP := gfortran
 
 MKVERBOSE := t
 
-FPARALLEL := ../../../..
+FPARALLEL := ../../..
 
 include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
 
 f90sources += testeos.f90
 
-EOS_DIR := extern/EOS/helmeos
+EOS_DIR := EOS/helmeos
 
-NETWORK_DIR := extern/networks/general_null
+NETWORK_DIR := Networks/general_null
 GENERAL_NET_INPUTS := $(FPARALLEL)/$(NETWORK_DIR)/ignition.net
 
 BOXLIB_CORE := Src/F_BaseLib
@@ -26,21 +26,18 @@ ALL: testeos.$(suf).exe
 #   unique files there (as specified in a GPackage.mak).  The problem 
 #   directory is always placed at the start of the vpath by the 
 #   GMakerules.mak.
-Fmdirs := extern/VODE \
-          extern/BLAS \
-          MAESTRO/constants \
-	  $(EOS_DIR) \
+Fmdirs := $(EOS_DIR) \
 	  $(NETWORK_DIR)
 
 # directories containing files that are 'include'-d via Fortran
-Fmincludes := extern/helmeos
+#Fmincludes := extern/helmeos
 
 
 Fmpack := $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir)/GPackage.mak)
 Fmlocs := $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir))
 Fmincs :=
 
-Fmpack += $(foreach dir, $(Fmdirs), $(FPARALLEL)/$(dir)/GPackage.mak)
+Fmpack += $(foreach dir, $(Fmdirs), $(FPARALLEL)/$(dir)/Make.package)
 Fmlocs += $(foreach dir, $(Fmdirs), $(FPARALLEL)/$(dir))
 Fmincs += $(foreach dir, $(Fmincludes), $(FPARALLEL)/$(dir))
 

@@ -377,6 +377,7 @@
       use eos_module
       use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
 
       implicit none
 
@@ -388,34 +389,33 @@
       double precision dx(3), xlo(3), time, dt
       integer bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, c, T, dpdr, dpde, Y(nspec+naux), rhoInv
-      integer          :: i,j,k,n
+      double precision :: rhoInv
+      integer          :: i,j,k
+
+      type (eos_t) :: eos_state
       !
       ! Compute pressure from the EOS
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,e,gamc,c,T,dpdr,dpde,Y,rhoInv)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
-               rhoInv = 1.d0/u(i,j,k,URHO)
-               e  = u(i,j,k,UEINT)*rhoInv
-               T  = u(i,j,k,UTEMP)
-               do n = 1,nspec
-                  Y(n)=u(i,j,k,UFS+n-1)*rhoInv
-               enddo
-               do n = 1,naux
-                  Y(nspec+n)=u(i,j,k,UFX+n-1)*rhoInv
-               enddo
+               rhoInv = ONE / u(i,j,k,URHO)
+
+               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % rho = u(i,j,k,URHO)
+               eos_state % T   = u(i,j,k,UTEMP)
+               eos_state % e   = u(i,j,k,UEINT) * rhoInv
                !
                ! Protect against negative internal energy.
                !
-               if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
-                  call eos_given_RTX(e, p(i,j,k,1), u(i,j,k,URHO), T, Y)
+               if (allow_negative_energy .eq. 0 .and. eos_state % e .le. ZERO) then
+                  call eos(eos_input_rt, eos_state)
                else
-                  call eos_given_ReX(gamc, p(i,j,k,1), c, T, dpdr, dpde, &
-                                     u(i,j,k,URHO), e, Y)
+                  call eos(eos_input_re, eos_state)
                end if
 
+               p(i,j,k,1) = eos_state % p
             enddo
          enddo
       enddo
@@ -506,6 +506,8 @@
       use eos_module
       use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
+
       implicit none
 
       integer c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,ncomp_c
@@ -516,30 +518,33 @@
       double precision dx(3), xlo(3), time, dt
       integer bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, p, T, dpdr, dpde, Y(nspec+naux), rhoInv
-      integer          :: i,j,k,n
+      double precision :: rhoInv
+      integer          :: i,j,k
 
-      c = 0.d0
+      type (eos_t) :: eos_state
+
+      c = ZERO
       !
       ! Compute soundspeed from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,e,gamc,p,T,dpdr,dpde,Y,rhoInv)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
-               rhoInv = 1.d0/u(i,j,k,URHO)
-               e  = u(i,j,k,UEINT)*rhoInv
-               T  = u(i,j,k,UTEMP)
-               do n = 1,nspec
-                  Y(n)=u(i,j,k,UFS+n-1)*rhoInv
-               enddo
-               do n = 1,naux
-                  Y(nspec+n)=u(i,j,k,UFX+n-1)*rhoInv
-               enddo
+               rhoInv = ONE / u(i,j,k,URHO)
+              
+               eos_state % e = u(i,j,k,UEINT) * rhoInv
 
-               if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-                  call eos_given_ReX(gamc, p, c(i,j,k,1), T, dpdr, dpde, &
-                                     u(i,j,k,URHO), e, Y)
+               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+
+                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % rho = u(i,j,k,URHO) 
+                  eos_state % T   = u(i,j,k,UTEMP)
+
+                  call eos(eos_input_re, eos_state, .false.)
+
+                  c(i,j,k,1) = eos_state % cs
+
                end if
 
             enddo
@@ -569,33 +574,33 @@
       double precision :: dx(3), xlo(3), time, dt
       integer          :: bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: c, e, gamc, p, T, dpdr, dpde, Y(nspec+naux), rhoInv,ux,uy,uz
-      integer          :: i,j,k,n
+      double precision :: rhoInv,ux,uy,uz
+      integer          :: i,j,k
 
-      mach = 0.d0
+      type (eos_t) :: eos_state
+
+      mach = ZERO
       !
       ! Compute Mach number of the flow.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,c,e,gamc,p,T,dpdr,dpde,Y,rhoInv,ux,uy,uz)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,n,c,e,T,Y,rhoInv,ux,uy,uz,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
-               rhoInv = 1.d0/u(i,j,k,URHO)
-               ux = u(i,j,k,UMX)*rhoInv
-               uy = u(i,j,k,UMY)*rhoInv
-               uz = u(i,j,k,UMZ)*rhoInv
-               e  = u(i,j,k,UEINT)*rhoInv
-               T  = u(i,j,k,UTEMP)
-               do n = 1,nspec
-                  Y(n)=u(i,j,k,UFS+n-1)*rhoInv
-               enddo
-               do n = 1,naux
-                  Y(nspec+n)=u(i,j,k,UFX+n-1)*rhoInv
-               enddo
+               rhoInv = ONE / u(i,j,k,URHO)
 
-               if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-                  call eos_given_ReX(gamc, p, c, T, dpdr, dpde, u(i,j,k,URHO), e, Y)
-                  mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / c
+               eos_state % e = u(i,j,k,UEINT) * rhoInv
+
+               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+                  ux = u(i,j,k,UMX) * rhoInv
+                  uy = u(i,j,k,UMY) * rhoInv
+                  uz = u(i,j,k,UMZ) * rhoInv
+                  eos_state % rho = u(i,j,k,URHO)
+                  eos_state % T   = u(i,j,k,UTEMP)
+                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+
+                  call eos(eos_input_re, eos_state)
+                  mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
                end if
 
             enddo
@@ -615,6 +620,8 @@
       use eos_module
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
+
       implicit none
 
       integer s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,ncomp_s
@@ -625,32 +632,30 @@
       double precision dx(3), xlo(3), time, dt
       integer bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: e, gamc, T, Y(nspec+naux), rhoInv,ux,uy,uz
-      integer i,j,k,n
+      double precision :: rhoInv
+      integer i,j,k
 
-      s = 0.d0
+      type (eos_t) :: eos_state
+
+      s = ZERO
       !
       ! Compute entropy from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,e,gamc,T,Y,rhoInv,ux,uy,uz)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
-               rhoInv = 1.d0/u(i,j,k,URHO)
-               ux = u(i,j,k,UMX)*rhoInv
-               uy = u(i,j,k,UMY)*rhoInv
-               uz = u(i,j,k,UMZ)*rhoInv
-               e  = u(i,j,k,UEINT)*rhoInv
-               T  = u(i,j,k,UTEMP)
-               do n = 1,nspec
-                  Y(n)=u(i,j,k,UFS+n-1)*rhoInv
-               enddo
-               do n = 1,naux
-                  Y(nspec+n)=u(i,j,k,UFX+n-1)*rhoInv
-               enddo
+               rhoInv = ONE / u(i,j,k,URHO)
 
-               if (allow_negative_energy .eq. 1 .or. e .gt. 0.d0) then
-                  call eos_S_given_ReX(s(i,j,k,1), u(i,j,k,URHO), e, T, Y)
+               eos_state % e  = u(i,j,k,UEINT) * rhoInv
+
+               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+                  eos_state % rho = u(i,j,k,URHO)
+                  eos_state % T   = u(i,j,k,UTEMP)
+                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+
+                  call eos(eos_input_re, eos_state)
+                  s(i,j,k,1) = eos_state % s
                end if
             enddo
          enddo

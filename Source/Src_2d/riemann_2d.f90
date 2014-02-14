@@ -57,7 +57,7 @@ contains
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
-    
+
     if(idir.eq.1) then
        do j = jlo, jhi
           do i = ilo, ihi+1
@@ -77,7 +77,7 @@ contains
           enddo
        enddo
     endif
-    
+
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
        ! all consistent

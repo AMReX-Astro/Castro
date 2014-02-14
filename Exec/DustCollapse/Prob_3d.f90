@@ -3,6 +3,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use eos_module
   use network, only : nspec
+  use meth_params_module, only : small_temp
+
   implicit none 
 
   integer :: init,namlen,untin,i,k
@@ -11,7 +13,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   double precision :: center_x, center_y, center_z
   double precision :: problo(3), probhi(3)
 
-  double precision :: eint
+  type (eos_t) :: eos_state
 
   namelist /fortin/ &
        rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
@@ -85,8 +87,21 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   X_0(1) = 1.0
 
   ! get the ambient temperature and sphere temperature, T_0
-  call eos_e_given_RPX(eint, T_0,       rho_0,       p_0, X_0)
-  call eos_e_given_RPX(eint, T_ambient, rho_ambient, p_0, X_0)
+
+  eos_state % rho = rho_0
+  eos_state % p   = p_0
+  eos_state % xn  = x_0
+  eos_state % T   = small_temp ! Initial guess for the EOS
+
+  call eos(eos_input_rp, eos_state)
+
+  T_0 = eos_state % T
+  
+  eos_state % rho = rho_ambient
+  
+  call eos(eos_input_rp, eos_state)
+
+  T_ambient = eos_state % T
 
 end subroutine PROBINIT
 
@@ -120,7 +135,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only : nspec
   use interpolate_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
 
   implicit none
 
@@ -134,6 +149,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xl,yl,zl,xx,yy,zz,dist,pres,eint,temp,avg_rho,rho_n,volinv
   double precision :: dx_sub,dy_sub,dz_sub
   integer          :: i,j,k,ii,jj,kk,n
+
+  type (eos_t) :: eos_state
 
   integer, parameter :: nsub = 5
 
@@ -178,7 +195,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         state(i,j,k,URHO) = avg_rho * volinv
 
-        call eos_e_given_RPX(eint, temp, state(i,j,k,URHO), p_0, X_0)
+        eos_state % rho = state(i,j,k,URHO)
+        eos_state % p   = p_0
+        eos_state % T   = small_temp ! Initial guess for the EOS
+        eos_state % xn  = X_0
+
+        call eos(eos_input_rp, eos_state)
+
+        temp = eos_state % T
+        eint = eos_state % e
 
         state(i,j,k,UTEMP) = temp
         state(i,j,k,UMX) = 0.d0

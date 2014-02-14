@@ -9,7 +9,7 @@
       use eos_module
       use network                     , only : nspec
       use fundamental_constants_module, only : Gconst
-      use bl_constants_module         , only : M_PI
+      use bl_constants_module         
 
       implicit none
 
@@ -18,17 +18,18 @@
       double precision, intent(  out) :: grav(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
-      integer          :: i,n
+      integer          :: i
       integer          :: pt_index(1)
       double precision :: rc,rlo,mass_encl,halfdx
-      double precision :: R,e,G, P, C, T,dpdr, dpde, X(nspec)
       double precision :: ga, gb, gc
 
-      double precision, parameter ::  fourpi       = 4.d0 * M_PI
-      double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
+      double precision, parameter ::  fourpi       = FOUR * M_PI
+      double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision, parameter ::  sqvc         = 29979245800.d0**2
 
-      halfdx = 0.5d0 * dx
+      type (eos_t) :: eos_state
+
+      halfdx = HALF * dx
 
       do i = 0,r_h1
          rlo = problo(1) + dble(i) * dx
@@ -49,24 +50,22 @@
 
 !!       Tolman-Oppenheimer-Volkoff(TOV) case
 
-         if (R .gt. 0.d0) then
+         if (var(i,URHO) .gt. ZERO) then
 
-            R  =  var(i,URHO)
-            e  =  var(i,UEINT)/R
-            T  =  var(i,UTEMP)
-   
-            do n = 1, nspec
-               X(n)= var(i,UFS+n-1)/R
-            enddo
+            eos_state % rho = var(i,URHO)
+            eos_state % e   = var(i,UEINT) / var(i,URHO)
+            eos_state % T   = var(i,UTEMP)
+            eos_state % xn  = var(i,UFS:UFS+nspec-1) / var(i,URHO)
 
             pt_index(1) = i
-            call eos_given_ReX(G, P, C, T, dpdr, dpde, R, e, X, pt_index=pt_index)
 
-           ga = (1.d0 + P/(R*sqvc))
-           gb = (1.d0 + fourpi * rc**3 * P / (mass_encl*sqvc))
-           gc =  1.d0 / (1.d0 - 2.d0 * Gconst * mass_encl / (rc*sqvc))
+            call eos(eos_input_re, eos_state, pt_index = pt_index)
 
-           grav(i) = grav(i)*ga*gb*gc
+            ga = (ONE + eos_state % p /(eos_state % rho * sqvc))
+            gb = (ONE + fourpi * rc**3 * eos_state % p / (mass_encl*sqvc))
+            gc =  ONE / (ONE - TWO * Gconst * mass_encl / (rc*sqvc))
+
+            grav(i) = grav(i)*ga*gb*gc
 
          end if
 
@@ -76,7 +75,7 @@
 
       enddo
 
-      if (problo(1) .eq. 0.d0) then
+      if (problo(1) .eq. ZERO) then
          do i = r_l1,-1
              grav(i) = -grav(-i-1)
          end do
