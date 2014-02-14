@@ -178,7 +178,6 @@ radiation.hi_bcval = 0.0 0.0 0.0
 # 1003  PCG   using SStruct interface
 
 radsolve.level_solver_flag            = 104
-hmabec.struct_flag                    = 0 # SMG for 1D
 
 radsolve.maxiter    = 50
 radsolve.reltol     = 1.0e-8

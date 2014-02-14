@@ -169,7 +169,6 @@ radiation.delta_temp = 1.e-4
 # 1003  PCG   using SStruct interface
 
 radsolve.level_solver_flag = 109
-hmabec.struct_flag         = 0 #  0 for 1D, 1 for multi-D
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)

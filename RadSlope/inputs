@@ -173,7 +173,6 @@ radiation.kappa_r_floor = 1.e-15
 # 1003  PCG   using SStruct interface
 
 radsolve.level_solver_flag = 0
-hmabec.struct_flag = 0        # 0 for 1D, 1 for multi-D
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
