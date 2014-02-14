@@ -31,52 +31,16 @@ module eos_module
 
   implicit none
 
-  private
-
-  real(kind=dp_t), public :: xn_eos(nspec)
-  real(kind=dp_t), public :: temp_eos
-  real(kind=dp_t), public :: den_eos
-  real(kind=dp_t), public :: abar_eos
-  real(kind=dp_t), public :: zbar_eos
-  real(kind=dp_t), public :: e_eos
-  real(kind=dp_t), public :: p_eos
-  real(kind=dp_t), public :: h_eos
-  real(kind=dp_t), public :: cv_eos
-  real(kind=dp_t), public :: cp_eos
-  real(kind=dp_t), public :: xne_eos
-  real(kind=dp_t), public :: eta_eos
-  real(kind=dp_t), public :: pele_eos
-  real(kind=dp_t), public :: dpdt_eos
-  real(kind=dp_t), public :: dpdr_eos
-  real(kind=dp_t), public :: dedr_eos
-  real(kind=dp_t), public :: dedt_eos
-  real(kind=dp_t), public :: gam1_eos
-  real(kind=dp_t), public ::   cs_eos
-  real(kind=dp_t), public ::    s_eos
-  real(kind=dp_t), public :: dsdt_eos
-  real(kind=dp_t), public :: dsdr_eos
-  real(kind=dp_t), public :: dpdX_eos(nspec)
-  real(kind=dp_t), public :: dhdX_eos(nspec)
-  real(kind=dp_t), public :: conduct_eos
-
-  integer, public         :: pt_index_eos(MAX_SPACEDIM)
-
-  common /eos_common/ xn_eos,temp_eos,den_eos,abar_eos,zbar_eos,e_eos,p_eos,h_eos
-  common /eos_common/ cv_eos,cp_eos,xne_eos,eta_eos,pele_eos,dpdt_eos,dpdr_eos,dedr_eos
-  common /eos_common/ dedt_eos,gam1_eos,cs_eos,s_eos,dsdt_eos,dsdr_eos,dpdX_eos,dhdX_eos
-  common /eos_common/ conduct_eos,pt_index_eos
-  SAVE /eos_common/
-!$omp threadprivate(/eos_common/)
-
   integer, parameter, public :: eos_input_rt = 1   ! density, temperature are inputs
   integer, parameter, public :: eos_input_rh = 2   ! density, enthalpy are inputs
   integer, parameter, public :: eos_input_tp = 3   ! temperature, pressure are inputs
   integer, parameter, public :: eos_input_rp = 4   ! density, pressure are inputs
   integer, parameter, public :: eos_input_re = 5   ! density, internal energy are inputs
   integer, parameter, public :: eos_input_ps = 6   ! pressure, entropy are inputs
+  integer, parameter, public :: eos_input_ph = 7   ! pressure, enthalpy are inputs
+  integer, parameter, public :: eos_input_th = 8   ! temperature, enthalpy are inputs
 
-  real(kind=dp_t), save, private :: smallt
-  real(kind=dp_t), save, private :: smalld
+  real(kind=dp_t), save, private :: smallt, smalld
   real(kind=dp_t), save, private :: gamma_const, K_const
   real(kind=dp_t), save, private :: mu_e
   integer        , save, private :: polytrope
@@ -85,15 +49,7 @@ module eos_module
 
   private nspec, aion, zion
 
-  public eos_init, eos_get_small_temp, eos_get_small_dens, &
-         eos_get_polytrope_parameters, eos_set_polytrope_parameters, &
-         eos_given_ReX, eos_e_given_RPX, eos_S_given_ReX, eos_given_RTX, eos_dpdr_given_RTX, &
-         eos_given_TPX, eos_given_PSX, eos_get_cv, eos
-
-  interface eos
-     module procedure eos_old
-     module procedure eos_new
-  end interface eos
+  public eos_init, eos_get_small_temp, eos_get_small_dens, eos
 
 contains
 
@@ -197,318 +153,13 @@ contains
 
   end subroutine eos_set_polytrope_parameters
 
-  subroutine eos_given_ReX(G, P, C, T, dpdr_e, dpde, R, e, X, pt_index)
-
-    ! note: here, dpdr_e is partial p / partial rho at constant e   
-    !       and   dpde is partial p / partial e   at constant rho 
-
-
-     ! In/out variables
-     real(kind=dp_t), intent(  out) :: G, P, C, dpdr_e, dpde
-     real(kind=dp_t), intent(inout) :: T
-     real(kind=dp_t), intent(in   ) :: R, e, X(:)
-     integer, optional, intent(in   ) :: pt_index(:)
-
-     ! Local variables
-     logical :: do_diag
-
-     do_diag = .false.
-
-     temp_eos = T
-      den_eos = R
-        e_eos = e
-      xn_eos(1:nspec) = X(1:nspec)
-
-     call eos(eos_input_re, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              do_diag)
-
-    G  = gam1_eos
-    P  =    p_eos
-    C  =   cs_eos
-    T  = temp_eos
-    dpdr_e = dpdr_eos
-    dpde = dpdr_eos / dedr_eos
-
-  end subroutine eos_given_ReX
-
-  subroutine eos_e_given_RPX(e, T, R, P, X, pt_index)
-
-     ! In/out variables
-     real(kind=dp_t), intent(  out) :: e
-     real(kind=dp_t), intent(in   ) :: R, p, X(:)
-     real(kind=dp_t), intent(inout) :: T
-     integer, optional, intent(in   ) :: pt_index(:)
-
-     ! Local variables
-     logical :: do_diag
-
-     do_diag = .false.
-
-     temp_eos = T
-      den_eos = R
-        p_eos = P
-      xn_eos(1:nspec) = X(1:nspec)
-
-     call eos(eos_input_rp, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              do_diag)
-
-    e  =    e_eos
-    T  = temp_eos
-
-  end subroutine eos_e_given_RPX
-
-  subroutine eos_S_given_ReX(S, R, e, T, X, pt_index)
-
-     implicit none
-
-     ! In/out variables
-     real(kind=dp_t), intent(  out) :: S
-     real(kind=dp_t), intent(in   ) :: R, e, T, X(:)
-     integer, optional, intent(in   ) :: pt_index(:)
-
-     ! Local variables
-     logical :: do_diag
-
-     do_diag = .false.
-
-     temp_eos = T
-      den_eos = R
-        e_eos = e
-      xn_eos(1:nspec) = X(1:nspec)
-
-     call eos(eos_input_re, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              do_diag)
-
-    S  = s_eos
-
-  end subroutine eos_S_given_ReX
-
-  subroutine eos_given_RTX(e, P, R, T, X, pt_index)
-
-     ! In/out variables
-     real(kind=dp_t), intent(  out) :: e, P
-     real(kind=dp_t), intent(in   ) :: R, T, X(:)
-     integer, optional, intent(in   ) :: pt_index(:)
-
-     ! Local variables
-     logical :: do_diag
-
-     do_diag = .false.
-
-      den_eos = R
-     temp_eos = T
-      xn_eos(1:nspec) = X(1:nspec)
-
-     call eos(eos_input_rt, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              do_diag)
-
-    P  =    p_eos
-    e  =    e_eos
-
-  end subroutine eos_given_RTX
-
-  subroutine eos_dpdr_given_RTX(e, P, R, T, X, dpdr, pt_index)
-
-    ! note: here, dpdr is partial p / partial rho at constant T
-    ! this is different than the dpdr_e that Castro uses for source
-    ! terms in the primitive variable formulation.
-
-    ! In/out variables
-    real(kind=dp_t), intent(  out) :: e, P, dpdr
-    real(kind=dp_t), intent(in   ) :: R, T, X(:)
-    integer, optional, intent(in   ) :: pt_index(:)
-
-    ! Local variables
-    logical :: do_diag
-
-    do_diag = .false.
-
-    den_eos = R
-    temp_eos = T
-    xn_eos(1:nspec) = X(1:nspec)
-
-    call eos(eos_input_rt, den_eos, temp_eos, &
-             xn_eos, &
-             p_eos, h_eos, e_eos, &
-             cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-             dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-             dpdX_eos, dhdX_eos, &
-             gam1_eos, cs_eos, s_eos, &
-             dsdt_eos, dsdr_eos, &
-             do_diag)
-
-    P  =    p_eos
-    e  =    e_eos
-    dpdr =  dpdr_eos
-
-  end subroutine eos_dpdr_given_RTX
-
-  subroutine eos_given_TPX(e, P, R, T, X, pt_index)
-
-     ! In/out variables
-     real(kind=dp_t), intent(inout) :: R
-     real(kind=dp_t), intent(  out) :: e
-     real(kind=dp_t), intent(in   ) :: P, T, X(:)
-     integer, optional, intent(in   ) :: pt_index(:)
-
-     ! Local variables
-     logical :: do_diag
-
-     do_diag = .false.
-
-     ! An initial guess of density needs to be given
-     den_eos = R 
-     p_eos = P
-     temp_eos = T
-     xn_eos(1:nspec) = X(1:nspec)
-
-     call eos(eos_input_tp, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              do_diag)
-
-    R  =    den_eos
-    e  =    e_eos
-
-  end subroutine eos_given_TPX
-
-  subroutine eos_given_PSX(P, S, X, R, T, e, pt_index)
-
-    ! In/out variables
-    real(kind=dp_t), intent(  out) :: e, R, T
-    real(kind=dp_t), intent(in   ) :: P, S, X(:)
-    integer, optional, intent(in   ) :: pt_index(:)
-
-    ! Local variables
-    logical :: do_diag
-
-    do_diag = .false.
-
-    p_eos = P
-    s_eos = S
-    xn_eos(1:nspec) = X(1:nspec)
-
-    call eos(eos_input_ps, den_eos, temp_eos, &
-             xn_eos, &
-             p_eos, h_eos, e_eos, &
-             cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-             dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-             dpdX_eos, dhdX_eos, &
-             gam1_eos, cs_eos, s_eos, &
-             dsdt_eos, dsdr_eos, &
-             do_diag)
-
-    R = den_eos
-    T = temp_eos
-    e = e_eos
-
-  end subroutine eos_given_PSX
-
-
-  subroutine eos_get_cv(cv, R, T, X, pt_index)
-
-! input/output variables
-    real(kind=dp_t), intent(out) :: cv
-    real(kind=dp_t), intent(in)  :: R, T, X(:)
-    integer, optional, intent(in   ) :: pt_index(:)
-
-    ! Local variables
-    logical :: do_diag
-
-    do_diag = .false.
-
-    den_eos = R
-    temp_eos = T
-    xn_eos(1:nspec) = X(1:nspec)
-
-    call eos(eos_input_rt, den_eos, temp_eos, &
-         xn_eos, &
-         p_eos, h_eos, e_eos, &
-         cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-         dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-         dpdX_eos, dhdX_eos, &
-         gam1_eos, cs_eos, s_eos, &
-         dsdt_eos, dsdr_eos, &
-         do_diag)
-    
-    cv = cv_eos
-
-  end subroutine eos_get_cv
-
-
   !---------------------------------------------------------------------------
-  ! new interface
+  ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos_new(input, eos_state, do_eos_diag, pt_index)
-
-    integer,           intent(in   ) :: input
-    type (eos_t),      intent(inout) :: eos_state
-    logical,           intent(in   ) :: do_eos_diag
-    integer, optional, intent(in   ) :: pt_index(:)
-
-    call eos_old(input, eos_state%rho, eos_state%T, &
-                 eos_state%xn, &
-                 eos_state%p, eos_state%h, eos_state%e, &
-                 eos_state%cv, eos_state%cp, eos_state%xne, &
-                 eos_state%eta, eos_state%pele, &
-                 eos_state%dpdT, eos_state%dpdr, &
-                 eos_state%dedT, eos_state%dedr, &
-                 eos_state%dpdX, eos_state%dhdX, &
-                 eos_state%gam1, eos_state%cs, eos_state%s, &
-                 eos_state%dsdT, eos_state%dsdr, &
-                 do_eos_diag, pt_index)
-
-  end subroutine eos_new
-
-
-  !---------------------------------------------------------------------------
-  ! The main interface -- this is used directly by MAESTRO
-  !---------------------------------------------------------------------------
-  subroutine eos_old(input, dens, temp, &
-                     xmass, &
-                     pres, enthalpy, eint, &
-                     c_v, c_p, ne, eta, pele, &
-                     dPdT, dPdR, dEdT, dEdR, &
-                     dPdX, dhdX, &
-                     gam1, cs, entropy, &
-                     dsdT, dsdR, &
-                     do_eos_diag, &
-                     pt_index)
+  subroutine eos(input, state, do_eos_diag_in, pt_index)
 
     use bl_error_module
+    use bl_constants_module
     use fundamental_constants_module, only: k_B, n_A, hbar
 
 ! dens     -- mass density (g/cc)
@@ -555,15 +206,12 @@ contains
     logical do_eos_diag
     integer, intent(in) :: input
 
-    real(kind=dp_t) :: dens, temp
+    real(kind=dp_t) :: dens, temp, enth, pres, eint, entr
     real(kind=dp_t) :: xmass(nspec)
-    real(kind=dp_t) :: pres, enthalpy, eint
     real(kind=dp_t) :: c_v, c_p
     real(kind=dp_t) :: ne, eta, pele
-    real(kind=dp_t) :: dPdT, dPdR, dedT, dedR
-    real(kind=dp_t) :: gam1, entropy, cs
-    real(kind=dp_t) :: dPdX(nspec), dedX(nspec), dhdX(nspec)
-    real(kind=dp_t) :: dsdT, dsdR
+    real(kind=dp_t) :: dPdT, dPdr, dedT, dedr
+    real(kind=dp_t) :: gam1, cs
 
     integer, optional, intent(in   ) :: pt_index(:)
 
@@ -609,12 +257,21 @@ contains
          sum_y = sum_y + ymass(n)
       enddo
     
-      !if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
-      !  print *, mu_e, sum_y
-      !  call bl_error("Calculated mu_e is not equal to the input parameter.")
-      !endif
+      if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
+        print *, mu_e, sum_y
+        call bl_error("Calculated mu_e is not equal to the input parameter.")
+      endif
 
     endif
+
+    dens = state % rho
+    temp = state % T
+    pres = state % pres
+    enth = state % h
+    eint = state % e
+    entr = state % s
+
+    select case (input)
 
     !-------------------------------------------------------------------------
     ! Now do the calculations. In every case,
@@ -625,80 +282,123 @@ contains
     ! rho = (p / K)**(1 / gamma)
     ! e   = h - p / rho = (p / rho) / (gamma - 1)         = h / gamma
     !-------------------------------------------------------------------------
-    if (input .EQ. eos_input_rh) then
+    case (eos_input_rh)
 
        ! dens, enthalpy, and xmass are inputs
 
        ! Solve for the pressure and energy:
-       pres = (enthalpy * dens) * (gamma_const - ONE) / gamma_const
-       eint = enthalpy / gamma_const
+
+       pres = enth * dens * (gamma_const - ONE) / gamma_const
+       eint = enth / gamma_const
 
 
-    else if (input .EQ. eos_input_rt) then
+    case (eos_input_rt)
 
        ! dens, temp, and xmass are inputs
           
        ! Solve for the pressure, energy and enthalpy:
+
        pres = K_const * dens**gamma_const
-       enthalpy = pres / dens * gamma_const / (gamma_const - ONE)
-       eint = enthalpy / gamma_const
+       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       eint = enth / gamma_const
 
 
-    else if (input .EQ. eos_input_tp) then
+    case (eos_input_tp)
 
        ! temp, pres, and xmass are inputs
           
        ! Solve for the density, energy and enthalpy:
+
        dens = (pres / K_const)**(ONE / gamma_const)
-       enthalpy = pres / dens * gamma_const / (gamma_const - ONE)
-       eint = enthalpy / gamma_const
+       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       eint = enth / gamma_const
 
 
-    else if (input .EQ. eos_input_rp) then
+    case (eos_input_rp)
 
        ! dens, pres, and xmass are inputs
 
        ! Solve for the enthalpy and energy:
-       enthalpy = (pres / dens) * gamma_const / (gamma_const - ONE)
-       eint = enthalpy / gamma_const
+
+       enth = (pres / dens) * gamma_const / (gamma_const - ONE)
+       eint = enth / gamma_const
 
 
-    else if (input .EQ. eos_input_re) then
+    case (eos_input_re)
 
        ! dens, energy, and xmass are inputs
 
        ! Solve for the pressure and enthalpy:
+
        pres = (gamma_const - one) * dens * eint
 
 
-    else if (input .EQ. eos_input_ps) then
+    case (eos_input_ps)
        
-       ! pressure and entropy are inputs
+       ! pressure, entropy and xmass are inputs
 
        ! Solve for the density, energy and enthalpy:
+
        dens = (pres / K_const)**(ONE / gamma_const)
-       enthalpy = pres / dens * gamma_const / (gamma_const - ONE)
-       eint = enthalpy / gamma_const
+       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       eint = enth / gamma_const
 
 
-    endif
+
+    case (eos_input_ph)
+
+       ! pressure, enthalpy and xmass are inputs
+
+       ! Solve for the density and energy:
+
+       eint = enth / gamma_const
+       dens = (pres / K_const)**(ONE / gamma_const)
+
+
+
+    case (eos_input_th)
+
+       ! temperature, enthalpy and xmass are inputs
+
+       ! Solve for the density, energy and pressure:
+
+       eint = enth / gamma_const
+       pres = (gamma_const - ONE) * dens * eint
+       dens = (pres / K_const)**(ONE / gamma_const)
+
+
+
+    case default
+
+       call bl_error('EOS: invalid input.')
+
+    end select
 
     !-------------------------------------------------------------------------
-    ! now we have all relevant quantities, regardless of the inputs.
+    ! Now we have all relevant quantities, regardless of the inputs.
     !-------------------------------------------------------------------------
 
-    ! compute the thermodynamic derivatives and specific heats 
-    dPdT = ZERO
-    dPdR = gamma_const * pres / dens
-    dedT = ZERO
-    dedR = pres / (dens * dens)
-    dsdT = ZERO
-    dsdR = ZERO
+    state % T   = temp
+    state % rho = dens
+    state % h   = enth
+    state % s   = entr
+    state % e   = eint
+    state % p   = pres
 
-    c_v = dedT
-    c_p = gamma_const*c_v
+    ! Compute the thermodynamic derivatives and specific heats 
+    state % dPdT = ZERO
+    state % dPdr = gamma_const * pres / dens
+    state % dedT = ZERO
+    state % dedr = pres / (dens * dens)
+    state % dsdT = ZERO
+    state % dsdr = ZERO
+    state % dhdT = ZERO
+    state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
 
-    gam1 = gamma_const
+    state % c_v = state % dedT
+    state % c_p = gamma_const * state % c_v
+ 
+    state % gam1 = gamma_const
 
     do n = 1, nspec
 
@@ -716,21 +416,21 @@ contains
 
        dmudX =  (mu/aion(n))*(aion(n) - mu*(ONE + zion(n)))
 
-       dPdX(n) = -(pres/mu)*dmudX
-       dedX(n) = -(eint/mu)*dmudX
+       state % dPdX(n) = -(pres/mu)*dmudX
+       state % dedX(n) = -(eint/mu)*dmudX
           
        ! dhdX is at constant pressure -- see paper III for details
-       dhdX(n) = dedX(n) + &
+       state % dhdX(n) = dedX(n) + &
             (pres/dens**2 - dedR)*dPdX(n)/dPdr
     enddo
 
     ! electron-specific stuff (really for the degenerate EOS)
-    ne   = ZERO
-    eta  = ZERO
-    pele = ZERO
+    state % ne   = ZERO
+    state % eta  = ZERO
+    state % pele = ZERO
 
     ! sound speed
-    cs = sqrt(gamma_const*pres/dens)
+    state % cs = sqrt(gamma_const*pres/dens)
 
     return
   end subroutine eos_old
