@@ -198,15 +198,14 @@ radiation.const_scattering =  0.84886358672522422
 #
 # 0     SMG
 # 1     PFMG  (>= 2D only)
-# 2     Jacobi
-# 5     PFMG Hybrid 
-# 100   AMG   using ParCSR interface
-# 102   GMRES using ParCSR interface
-# 103   GMRES using SStruct interface
+# 100   AMG   using ParCSR ObjectType
+# 102   GMRES using ParCSR ObjectType
+# 103   GMRES using SStruct ObjectType
 # 104   GMRES using AMG as preconditioner
-# 150   AMG   using ParCSR interface
-# 1002  PCG   using ParCSR interface
-# 1003  PCG   using SStruct interface
+# 109   GMRES using Struct SMG/PFMG as preconditioner
+# 150   AMG   using ParCSR ObjectType
+# 1002  PCG   using ParCSR ObjectType
+# 1003  PCG   using SStruct ObjectType
 
 radsolve.level_solver_flag = 104   # can be any supported hypre solver flag
 
