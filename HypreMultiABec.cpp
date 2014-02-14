@@ -2273,7 +2273,12 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     // split solver
     ParmParse pp("hmabec");
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
@@ -2317,7 +2322,12 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     int kdim = 5; pp.query("kdim", kdim);
     int split_iter  = 1; pp.query("split_iter",  split_iter);
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
@@ -2379,7 +2389,12 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
 
     ParmParse pp("hmabec");
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (struct_flag == 0) {
       if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
@@ -2429,7 +2444,12 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     ParmParse pp("hmabec");
     int kdim = 5; pp.query("kdim", kdim);
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
 
     HYPRE_StructGMRESCreate(MPI_COMM_WORLD, &struct_solver);
     //HYPRE_StructGMRESSetKDim(struct_solver, kdim);
@@ -2631,7 +2651,12 @@ void HypreMultiABec::clearSolver()
   }
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     if (struct_flag == 0) {
       HYPRE_StructSMGDestroy((HYPRE_StructSolver) solver);
     }
@@ -2641,7 +2666,12 @@ void HypreMultiABec::clearSolver()
   }
   else if (solver_flag == 109) {
     ParmParse pp("hmabec");
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     HYPRE_StructGMRESDestroy((HYPRE_StructSolver) solver);
     if (struct_flag == 0) {
       HYPRE_StructSMGDestroy((HYPRE_StructSolver) precond);
@@ -2716,7 +2746,12 @@ void HypreMultiABec::solve()
       }
       else if (solver_flag == 108) {
         ParmParse pp("hmabec");
-        int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+	int struct_flag = 0; 
+#else
+	int struct_flag = 1; 
+#endif
+	pp.query("struct_flag", struct_flag);
         if (struct_flag == 0) {
           HYPRE_StructSMGSetTol((HYPRE_StructSolver) solver, reltol_new);
         }
@@ -2807,7 +2842,12 @@ void HypreMultiABec::solve()
     HYPRE_SStructVectorGetObject(b, (void**) &s_b);
     HYPRE_SStructVectorGetObject(x, (void**) &s_x);
     ParmParse pp("hmabec");
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     if (struct_flag == 0) {
       HYPRE_StructSMGSolve((HYPRE_StructSolver) solver, s_A, s_b, s_x);
     }
@@ -2933,7 +2973,12 @@ void HypreMultiABec::solve()
     }
     else if (solver_flag == 108) {
       ParmParse pp("hmabec");
-      int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+      int struct_flag = 0; 
+#else
+      int struct_flag = 1; 
+#endif
+      pp.query("struct_flag", struct_flag);
       HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
       if (struct_flag == 0) {
         HYPRE_StructSMGGetNumIterations(struct_solver, &num_iterations);
@@ -3042,7 +3087,12 @@ Real HypreMultiABec::getAbsoluteResidual()
   }
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
-    int struct_flag = 1; pp.query("struct_flag", struct_flag);
+#if (BL_SPACEDIM == 1)
+    int struct_flag = 0; 
+#else
+    int struct_flag = 1; 
+#endif
+    pp.query("struct_flag", struct_flag);
     HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
     if (struct_flag == 0) {
       HYPRE_StructSMGGetFinalRelativeResidualNorm(struct_solver, &res);
