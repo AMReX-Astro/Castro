@@ -106,8 +106,8 @@ radiation.v               = 2    # verbosity
 # We set radiation boundary conditions directly since they do not
 # correspond neatly to the physical boundary conditions used for the fluid.
 # The choices are:
-# 101 = LO_DIRICHLET           103 = LO_REFLECT_ODD
-# 102 = LO_NEUMANN             104 = LO_MARSHAK
+# 101 = LO_DIRICHLET           102 = LO_NEUMANN
+# 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
 
 radiation.lo_bc     = 104 102 102
 radiation.hi_bc     = 102 102 102
@@ -122,10 +122,10 @@ radiation.lo_bcflag = 0 0 0
 radiation.hi_bcflag = 0 0 0
 
 # bcval is interpreted differently depending on the boundary condition
-# 101 = LO_DIRICHLET        bcval is Dirichlet value of rad energy density
-# 102 = LO_NEUMANN          bcval is inward flux of rad energy
-# 103 = LO_REFLECT_ODD      bcval is ignored (equivalent to inhom Dirichlet)
-# 104 = LO_MARSHAK          bcval is incident flux
+# 101 = LO_DIRICHLET           bcval is Dirichlet value of rad energy density
+# 102 = LO_NEUMANN             bcval is inward flux of rad energy
+# 104 = LO_MARSHAK             bcval is incident flux
+# 105 = LO_SANCHEZ_POMRANING   bcval is incident flux
 
 radiation.lo_bcval = 1.0 0.0 0.0
 radiation.hi_bcval = 0.0 0.0 0.0
