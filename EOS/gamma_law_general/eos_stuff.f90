@@ -25,42 +25,30 @@ module eos_module
 
   use bl_types
   use bl_space
+  use bl_error_module
   use bl_constants_module
   use network, only: nspec, aion, zion
   use eos_type_module
+  use eos_data_module
 
   implicit none
 
-  integer, parameter, public :: eos_input_rt = 1   ! density, temperature are inputs
-  integer, parameter, public :: eos_input_rh = 2   ! density, enthalpy are inputs
-  integer, parameter, public :: eos_input_tp = 3   ! temperature, pressure are inputs
-  integer, parameter, public :: eos_input_rp = 4   ! density, pressure are inputs
-  integer, parameter, public :: eos_input_re = 5   ! density, internal energy are inputs
-  integer, parameter, public :: eos_input_ps = 6   ! pressure, entropy are inputs
-  integer, parameter, public :: eos_input_ph = 7   ! pressure, enthalpy are inputs
-  integer, parameter, public :: eos_input_th = 8   ! temperature, enthalpy are inputs 
+  double precision, save, public  :: gamma_const
+  logical         , save, public  :: assume_neutral
 
-  real(kind=dp_t), save, private :: smallt, smalld
-  real(kind=dp_t), save, public  :: gamma_const
-  logical        , save, public  :: assume_neutral
-
-  logical, save, private :: initialized = .false.
-
-  private nspec, aion, zion
-
-  public eos_init, eos_get_small_temp, eos_get_small_dens, eos
+  public eos_init, eos
 
 contains
 
-  ! EOS initialization routine -- this is used by both MAESTRO and Castro
+  ! EOS initialization routine
   subroutine eos_init(small_temp, small_dens)
 
     use extern_probin_module, only: eos_gamma, eos_assume_neutral
 
     implicit none
  
-    real(kind=dp_t), intent(in), optional :: small_temp
-    real(kind=dp_t), intent(in), optional :: small_dens
+    double precision, intent(in), optional :: small_temp
+    double precision, intent(in), optional :: small_dens
  
     ! constant ratio of specific heats
     if (eos_gamma .gt. 0.d0) then
@@ -69,18 +57,15 @@ contains
        gamma_const = 5.d0/3.d0
     end if
  
-    ! small temperature and density parameters
-    if (present(small_temp)) then
-       smallt = small_temp
-    else
-       smallt = 0.d0
-    endif
- 
-    if (present(small_dens)) then
-       smalld = small_dens
-    else
-       smalld = 0.d0
-    endif
+    ! Small temperature and density parameters
+
+    smallt = ZERO
+
+    if (present(small_temp)) smallt = small_temp
+
+    smalld = ZERO
+
+    if (present(small_dens)) smalld = small_dens
 
     assume_neutral = eos_assume_neutral
 
@@ -89,76 +74,13 @@ contains
   end subroutine eos_init
 
 
-  !---------------------------------------------------------------------------
-  ! Castro interfaces 
-  !---------------------------------------------------------------------------
-  subroutine eos_get_small_temp(small_temp_out)
- 
-    real(kind=dp_t), intent(out) :: small_temp_out
- 
-    small_temp_out = smallt
- 
-  end subroutine eos_get_small_temp
- 
-  subroutine eos_get_small_dens(small_dens_out)
- 
-    real(kind=dp_t), intent(out) :: small_dens_out
- 
-    small_dens_out = smalld
- 
-  end subroutine eos_get_small_dens
 
   !---------------------------------------------------------------------------
-  ! The main interface -- this is used directly by MAESTRO
+  ! The main interface
   !---------------------------------------------------------------------------
   subroutine eos(input, state, do_eos_diag_in, pt_index)
 
-    use bl_error_module
-    use bl_constants_module
     use fundamental_constants_module, only: k_B, n_A, hbar
-
-! dens     -- mass density (g/cc)
-! temp     -- temperature (K)
-! xmass    -- the mass fractions of the individual isotopes
-! pres     -- the pressure (dyn/cm**2)
-! enthalpy -- the enthalpy (erg/g)
-! eint     -- the internal energy (erg/g)
-! c_v      -- specific heat at constant volume
-! c_p      -- specific heat at constant pressure
-! ne       -- number density of electrons + positrons
-! eta      -- degeneracy parameter
-! pele     -- electron pressure + positron pressure
-! dPdT     -- d pressure/ d temperature
-! dPdR     -- d pressure/ d density
-! dEdT     -- d energy/ d temperature
-! dEdR     -- d energy/ d density
-! dPdX     -- d pressure / d xmass(k)
-! dhdX     -- d enthalpy / d xmass(k)  -- AT CONSTANT PRESSURE!!!
-! gam1     -- first adiabatic index (d log P/ d log rho) |_s
-! cs       -- sound speed -- note that this is the non-relativistic one
-!             (we compute it in this wrapper as sqrt(gam1 p /rho) instead
-!             of taking the relativistic version from helmeos.
-! entropy  -- entropy (erg/g/K)  NOTE: presently the entropy expression is 
-!             valid only for an ideal MONATOMIC gas (gamma = 5/3).
-!
-! input = 1 means dens, temp    , and xmass are inputs, return enthalpy, eint
-!       = 2 means dens, enthalpy, and xmass are inputs, return temp    , eint
-!                (note, temp should be filled with an initial guess)
-!       = 3 means temp, pres    , and xmass are inputs, return dens    , etc
-!       = 4 means dens, pres    , and xmass are inputs, return temp    , etc
-!       = 5 means dens, eint    , and xmass are inputs, return temp    , etc
-!       = 6 means pres, entr    , and xmass are inputs, return temp    , etc
-!
-!
-! derivatives wrt X_k:
-!
-!   For an ideal gas, the thermodynamic quantities only depend on composition
-!   through the mean molecular weight, mu.
-!
-!   Using the chain rule:
-!
-!   dp/dX_k = dp/d(mu) d(mu)/dX_k
-!
 
     implicit none
 
@@ -167,20 +89,23 @@ contains
     logical, optional, intent(in   ) :: do_eos_diag_in
     integer, optional, intent(in   ) :: pt_index(:)
 
-    ! local variables
-    real(kind=dp_t) :: ymass(nspec)
-    real(kind=dp_t) :: mu
-    real(kind=dp_t) :: dmudX, sum_y
-    real(kind=dp_t) :: dens, temp
+    ! Local variables
+    double precision :: ymass(nspec)
+    double precision :: mu
+    double precision :: dmudX, sum_y
+    double precision :: dens, temp
 
     ! get the mass of a nucleon from Avogadro's number.
-    real(kind=dp_t), parameter :: m_nucleon = 1.d0/n_A
+    double precision, parameter :: m_nucleon = 1.d0/n_A
 
     integer :: k, n
 
     ! general sanity checks
     if (.not. initialized) call bl_error('EOS: not initialized')
-      
+
+    do_eos_diag = .false.
+
+    if (present(do_eos_diag_in)) do_eos_diag = do_eos_diag_in
 
     !-------------------------------------------------------------------------
     ! compute mu -- the mean molecular weight
@@ -354,11 +279,6 @@ contains
        state % dhdX(n) = dedX(n) + &
             (pres/dens**2 - dedR)*dPdX(n)/dPdr
     enddo
-
-    ! electron-specific stuff (really for the degenerate EOS)
-    state % ne = 0.d0
-    state % eta = 0.d0
-    state % pele = 0.d0
 
     ! sound speed
     state % cs = sqrt(gamma_const*pres/dens)

@@ -3,8 +3,8 @@
 
       use network, only : nspec, naux
       use eos_module
-      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, &
-                                     UFS, UFX, allow_negative_energy
+      use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
+                                     UFS, UFX, UMX, UMY, UMZ, allow_negative_energy
       use bl_constants_module
 
       implicit none
@@ -74,7 +74,7 @@
          ! Reset energy in case we floored
 
          state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-         state(i,j,k,UEDEN) = state(i,j,UEINT) + HALF &
+         state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF &
                             * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 &
                             +  state(i,j,k,UMY)**2) / state(i,j,k,URHO)
 

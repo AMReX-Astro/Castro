@@ -25,44 +25,31 @@ module eos_module
 
   use bl_types
   use bl_space
+  use bl_error_module
   use bl_constants_module, only: M_PI, ZERO, ONE, FOUR3RD, FIVE3RD
   use network, only: nspec, aion, zion
   use eos_type_module
+  use eos_data_module
 
   implicit none
 
-  integer, parameter, public :: eos_input_rt = 1   ! density, temperature are inputs
-  integer, parameter, public :: eos_input_rh = 2   ! density, enthalpy are inputs
-  integer, parameter, public :: eos_input_tp = 3   ! temperature, pressure are inputs
-  integer, parameter, public :: eos_input_rp = 4   ! density, pressure are inputs
-  integer, parameter, public :: eos_input_re = 5   ! density, internal energy are inputs
-  integer, parameter, public :: eos_input_ps = 6   ! pressure, entropy are inputs
-  integer, parameter, public :: eos_input_ph = 7   ! pressure, enthalpy are inputs
-  integer, parameter, public :: eos_input_th = 8   ! temperature, enthalpy are inputs
+  double precision, save, private :: gamma_const, K_const
+  double precision, save, private :: mu_e
+  integer         , save, private :: polytrope
 
-  real(kind=dp_t), save, private :: smallt, smalld
-  real(kind=dp_t), save, private :: gamma_const, K_const
-  real(kind=dp_t), save, private :: mu_e
-  integer        , save, private :: polytrope
-
-  logical, save, private :: initialized = .false.
-
-  private nspec, aion, zion
-
-  public eos_init, eos_get_small_temp, eos_get_small_dens, eos
+  public eos_init, eos
 
 contains
 
-  ! EOS initialization routine -- this is used by both MAESTRO and Castro
+  ! EOS initialization routine
   subroutine eos_init(small_temp, small_dens)
 
     use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type, polytrope_mu_e
-    use bl_error_module
 
     implicit none
  
-    real(kind=dp_t), intent(in), optional :: small_temp
-    real(kind=dp_t), intent(in), optional :: small_dens
+    double precision, intent(in), optional :: small_temp
+    double precision, intent(in), optional :: small_dens
 
     ! Available pre-defined polytrope options:
 
@@ -92,18 +79,15 @@ contains
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
  
-    ! small temperature and density parameters
-    if (present(small_temp)) then
-       smallt = small_temp
-    else
-       smallt = 0.d0
-    endif
+    ! Small temperature and density parameters
  
-    if (present(small_dens)) then
-       smalld = small_dens
-    else
-       smalld = 0.d0
-    endif
+    smallt = ZERO
+
+    if (present(small_temp)) smallt = small_temp
+
+    smalld = ZERO
+ 
+    if (present(small_dens)) smalld = small_dens
 
     initialized = .true.
  
@@ -113,26 +97,11 @@ contains
   !---------------------------------------------------------------------------
   ! Castro interfaces 
   !---------------------------------------------------------------------------
-  subroutine eos_get_small_temp(small_temp_out)
- 
-    real(kind=dp_t), intent(out) :: small_temp_out
- 
-    small_temp_out = smallt
- 
-  end subroutine eos_get_small_temp
- 
-  subroutine eos_get_small_dens(small_dens_out)
- 
-    real(kind=dp_t), intent(out) :: small_dens_out
- 
-    small_dens_out = smalld
- 
-  end subroutine eos_get_small_dens
 
   subroutine eos_get_polytrope_parameters(polytrope_out,gamma_out,K_out,mu_e_out)
 
-    integer,         intent(out) :: polytrope_out
-    real(kind=dp_t), intent(out) :: gamma_out, K_out, mu_e_out
+    integer,          intent(out) :: polytrope_out
+    double precision, intent(out) :: gamma_out, K_out, mu_e_out
 
     polytrope_out = polytrope
     gamma_out     = gamma_const
@@ -143,8 +112,8 @@ contains
 
   subroutine eos_set_polytrope_parameters(polytrope_in,gamma_in,K_in,mu_e_in)
 
-    integer,         intent(in) :: polytrope_in
-    real(kind=dp_t), intent(in) :: gamma_in, K_in, mu_e_in
+    integer,          intent(in) :: polytrope_in
+    double precision, intent(in) :: gamma_in, K_in, mu_e_in
 
     polytrope   = polytrope_in
     gamma_const = gamma_in
@@ -153,76 +122,29 @@ contains
 
   end subroutine eos_set_polytrope_parameters
 
+
+
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
   subroutine eos(input, state, do_eos_diag_in, pt_index)
 
-    use bl_error_module
-    use bl_constants_module
     use fundamental_constants_module, only: k_B, n_A, hbar
 
-! dens     -- mass density (g/cc)
-! temp     -- temperature (K) -- not well-defined for a polytropic fluid
-! xmass    -- the mass fractions of the individual isotopes
-! pres     -- the pressure (dyn/cm**2)
-! enthalpy -- the enthalpy (erg/g)
-! eint     -- the internal energy (erg/g)
-! c_v      -- specific heat at constant volume
-! c_p      -- specific heat at constant pressure
-! ne       -- number density of electrons + positrons
-! eta      -- degeneracy parameter
-! pele     -- electron pressure + positron pressure
-! dPdT     -- d pressure/ d temperature
-! dPdR     -- d pressure/ d density
-! dEdT     -- d energy/ d temperature
-! dEdR     -- d energy/ d density
-! dPdX     -- d pressure / d xmass(k)
-! dhdX     -- d enthalpy / d xmass(k)  -- AT CONSTANT PRESSURE!!!
-! gam1     -- first adiabatic index (d log P/ d log rho) |_s
-! cs       -- sound speed -- sqrt(gam1 p /rho) 
-! entropy  -- entropy (erg/g/K) -- not well-defined for a polytropic fluid
-!
-! input = 1 means dens, temp    , and xmass are inputs
-!       = 2 means dens, enthalpy, and xmass are inputs
-!       = 3 means temp, pres    , and xmass are inputs
-!       = 4 means dens, pres    , and xmass are inputs
-!       = 5 means dens, eint    , and xmass are inputs
-!       = 6 means pres, entr    , and xmass are inputs
-!
-!
-! derivatives wrt X_k:
-!
-!   For an ideal gas, the thermodynamic quantities only depend on composition
-!   through the mean molecular weight, mu.
-!
-!   Using the chain rule:
-!
-!   dp/dX_k = dp/d(mu) d(mu)/dX_k
-!
-
     implicit none
-
-    logical do_eos_diag
-    integer, intent(in) :: input
-
-    real(kind=dp_t) :: dens, temp, enth, pres, eint, entr
-    real(kind=dp_t) :: xmass(nspec)
-    real(kind=dp_t) :: c_v, c_p
-    real(kind=dp_t) :: ne, eta, pele
-    real(kind=dp_t) :: dPdT, dPdr, dedT, dedr
-    real(kind=dp_t) :: gam1, cs
-
+    integer,           intent(in   ) :: input
+    type (eos_t),      intent(inout) :: state
+    logical, optional, intent(in   ) :: do_eos_diag_in
     integer, optional, intent(in   ) :: pt_index(:)
 
-
-    ! local variables
-    real(kind=dp_t) :: ymass(nspec)    
-    real(kind=dp_t) :: mu
-    real(kind=dp_t) :: dmudX, sum_y
+    ! Local variables
+    double precision :: dens, temp, enth, pres, eint, entr
+    double precision :: ymass(nspec)    
+    double precision :: mu
+    double precision :: dmudX, sum_y
 
     ! get the mass of a nucleon from Avogadro's number.
-    real(kind=dp_t), parameter :: m_nucleon = 1.d0/n_A
+    double precision, parameter :: m_nucleon = 1.d0/n_A
 
     integer :: k, n
 
@@ -424,15 +346,10 @@ contains
             (pres/dens**2 - dedR)*dPdX(n)/dPdr
     enddo
 
-    ! electron-specific stuff (really for the degenerate EOS)
-    state % ne   = ZERO
-    state % eta  = ZERO
-    state % pele = ZERO
-
     ! sound speed
     state % cs = sqrt(gamma_const*pres/dens)
 
     return
-  end subroutine eos_old
+  end subroutine eos
 
 end module eos_module
