@@ -36,6 +36,7 @@ module eos_module
   double precision, save, private :: gamma_const, K_const
   double precision, save, private :: mu_e
   integer         , save, private :: polytrope
+  logical         , save, private :: assume_neutral
 
   public eos_init, eos
 
@@ -44,7 +45,7 @@ contains
   ! EOS initialization routine
   subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type, polytrope_mu_e
+    use extern_probin_module, only: polytrope_gamma, polytrope_K, polytrope_type, polytrope_mu_e, eos_assume_neutral
 
     implicit none
  
@@ -78,7 +79,9 @@ contains
     else
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
- 
+
+    assume_neutral = eos_assume_neutral
+
     ! Small temperature and density parameters
  
     smallt = ZERO
@@ -139,48 +142,26 @@ contains
 
     ! Local variables
     double precision :: dens, temp, enth, pres, eint, entr
-    double precision :: ymass(nspec)    
-    double precision :: mu
-    double precision :: dmudX, sum_y
+    double precision :: dmudX
 
     ! get the mass of a nucleon from Avogadro's number.
-    double precision, parameter :: m_nucleon = 1.d0/n_A
+    double precision, parameter :: m_nucleon = ONE / n_A
 
     integer :: k, n
 
-    ! general sanity checks
+    ! Make sure EOS is initialized before coming here.
     if (.not. initialized) call bl_error('EOS: not initialized')
-      
-    !-------------------------------------------------------------------------
-    ! compute mu -- the mean molecular weight
-    !-------------------------------------------------------------------------
-
-    ! Assume completely ionized species.
-
-    sum_y  = ZERO
-          
-    do n = 1, nspec
-       ymass(n) = xmass(n)*(1.d0 + zion(n))/aion(n)
-       sum_y = sum_y + ymass(n)
-    enddo
-          
-    mu = ONE/sum_y
+    
+    ! Calculate composition information
+    call composition(state, assume_neutral)
 
     ! Sanity check: make sure that the mu_e calculated from the species
     ! is equal to the input parameter. This only matters for the polytropic gases
     ! where we used mu_e to calculate K_const.
 
     if (polytrope .eq. 1 .or. polytrope .eq. 2) then
-
-      sum_y  = ZERO
-          
-      do n = 1, nspec
-         ymass(n) = xmass(n)*zion(n)/aion(n)
-         sum_y = sum_y + ymass(n)
-      enddo
     
-      if (abs(mu_e - one/sum_y) .gt. 1.d-8) then
-        print *, mu_e, sum_y
+      if (abs(state % mu_e - HALF) .gt. 1.d-8) then
         call bl_error("Calculated mu_e is not equal to the input parameter.")
       endif
 
@@ -204,6 +185,7 @@ contains
     ! rho = (p / K)**(1 / gamma)
     ! e   = h - p / rho = (p / rho) / (gamma - 1)         = h / gamma
     !-------------------------------------------------------------------------
+
     case (eos_input_rh)
 
        ! dens, enthalpy, and xmass are inputs
@@ -322,29 +304,8 @@ contains
  
     state % gam1 = gamma_const
 
-    do n = 1, nspec
-
-       ! the species only come into p and e (and therefore h)
-       ! through mu, so first compute dmu/dX
-       !
-       ! NOTE: an extra, constant term appears in dmudx, which
-       ! results from writing mu = sum { X_k} / sum {X_k / A_k}
-       ! (for the neutral, analogous for the ionized).  The
-       ! numerator is simply 1, but we can differentiate
-       ! wrt it, giving the constant mu(k) term in dmudx.  Since
-       ! dPdX only appears in a sum over species creation rate 
-       ! (omegadot) and sum{omegadot} = 0, this term has no effect.
-       ! If is added simply for completeness.
-
-       dmudX =  (mu/aion(n))*(aion(n) - mu*(ONE + zion(n)))
-
-       state % dPdX(n) = -(pres/mu)*dmudX
-       state % dedX(n) = -(eint/mu)*dmudX
-          
-       ! dhdX is at constant pressure -- see paper III for details
-       state % dhdX(n) = dedX(n) + &
-            (pres/dens**2 - dedR)*dPdX(n)/dPdr
-    enddo
+    ! Compute dPdX, dedX, dhdX
+    call composition_derivatives(state, assume_neutral)
 
     ! sound speed
     state % cs = sqrt(gamma_const*pres/dens)

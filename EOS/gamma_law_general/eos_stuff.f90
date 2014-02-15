@@ -95,7 +95,7 @@ contains
     double precision :: dmudX, sum_y
     double precision :: dens, temp
 
-    ! get the mass of a nucleon from Avogadro's number.
+    ! Get the mass of a nucleon from Avogadro's number.
     double precision, parameter :: m_nucleon = ONE / n_A
 
     integer :: k, n
@@ -107,34 +107,9 @@ contains
 
     if (present(do_eos_diag_in)) do_eos_diag = do_eos_diag_in
 
-    !-------------------------------------------------------------------------
-    ! compute mu -- the mean molecular weight
-    !-------------------------------------------------------------------------
-    if (assume_neutral) then
-       ! assume completely neutral atoms
+    ! Get abar, zbar, mu.
 
-       sum_y  = 0.d0
-          
-       do n = 1, nspec
-          ymass(n) = xmass(n)/aion(n)
-          sum_y = sum_y + ymass(n)
-       enddo
-          
-       mu = 1.d0/sum_y
-
-    else
-       ! assume completely ionized species
-
-       sum_y  = 0.d0
-          
-       do n = 1, nspec
-          ymass(n) = xmass(n)*(1.d0 + zion(n))/aion(n)
-          sum_y = sum_y + ymass(n)
-       enddo
-          
-       mu = 1.d0/sum_y
-
-    endif
+    call composition(state, assume_neutral)
 
     !-------------------------------------------------------------------------
     ! For all EOS input modes EXCEPT eos_input_rt, first compute dens
@@ -265,33 +240,9 @@ contains
 
     state % gam1 = gamma_const
 
-    do n = 1, nspec
+    ! Get dpdX, dedX, dhdX.
 
-       ! the species only come into p and e (and therefore h)
-       ! through mu, so first compute dmu/dX
-       !
-       ! NOTE: an extra, constant term appears in dmudx, which
-       ! results from writing mu = sum { X_k} / sum {X_k / A_k}
-       ! (for the neutral, analogous for the ionized).  The
-       ! numerator is simply 1, but we can differentiate
-       ! wrt it, giving the constant mu(k) term in dmudx.  Since
-       ! dPdX only appears in a sum over species creation rate 
-       ! (omegadot) and sum{omegadot} = 0, this term has no effect.
-       ! If is added simply for completeness.
-
-       if (assume_neutral) then
-          dmudX =  (mu/aion(n))*(aion(n) - mu)
-       else
-          dmudX =  (mu/aion(n))*(aion(n) - mu*(1.0_dp_t + zion(n)))
-       endif
-
-       state % dPdX(n) = -(pres/mu)*dmudX
-       state % dedX(n) = -(eint/mu)*dmudX
-          
-       ! dhdX is at constant pressure -- see paper III for details
-       state % dhdX(n) = dedX(n) + &
-            (pres/dens**2 - dedR)*dPdX(n)/dPdr
-    enddo
+    call composition_derivatives(state, assume_neutral)
 
     ! sound speed
     state % cs = sqrt(gamma_const*pres/dens)

@@ -144,17 +144,9 @@ contains
 
     endif
 
-    ysum  = ZERO
-    yzsum = ZERO
+    ! Get abar, zbar, etc.
 
-    do n = 1, nspec
-       ymass(n) = state % xn(n) / aion(n)
-       ysum     = ysum  + ymass(n)
-       yzsum    = yzsum + zion(n) * ymass(n)
-    enddo
-
-    state % abar = ONE / ysum
-    state % zbar = yzsum * state % abar
+    call composition(state, .false.)
 
     eosfail = .false.
 
@@ -376,29 +368,20 @@ contains
 
 
 
-    ! Take care of final housekeeping
+    ! Take care of final housekeeping.
 
-    ! Count the positron contribution in the electron quantities
+    ! Count the positron contribution in the electron quantities.
     state % xne  = state % xne  + state % xnp
     state % pele = state % pele + state % ppos
 
-    ! Use the non-relativistic version of the sound speed, cs = sqrt(gam_1 * P / rho)
+    ! Use the non-relativistic version of the sound speed, cs = sqrt(gam_1 * P / rho).
+    ! This replaces the relativistic version that comes out of helmeos.
 
     state % cs = sqrt(state % gam1 * state % p / state % rho)
 
-    do n = 1, nspec
+    ! Get dpdX, dedX, dhdX.
 
-       state % dpdX(n) = state % dpa * (state % abar/aion(n)) * (aion(n) - state % abar) + &
-                         state % dpz * (state % abar/aion(n)) * (zion(n) - state % zbar)
-
-       state % dEdX(n) = state % dea * (state % abar/aion(n)) * (aion(n) - state % abar) + &
-                         state % dez * (state % abar/aion(n)) * (zion(n) - state % zbar)
-
-       ! Create the enthalpy derivatives w.r.t. average composition -- hold pressure constant.
-       state % dhdX(n) = state % dEdX(n) + &
-                         (state % p / (state % rho)**2 - state % dedr) * state % dpdX(n) / state % dpdr
-
-    enddo
+    call composition_derivatives(state, .false.)
 
 
 
