@@ -54,7 +54,7 @@ contains
     if (eos_gamma .gt. 0.d0) then
        gamma_const = eos_gamma
     else
-       gamma_const = 5.d0/3.d0
+       gamma_const = FIVE3RD
     end if
  
     ! Small temperature and density parameters
@@ -96,7 +96,7 @@ contains
     double precision :: dens, temp
 
     ! get the mass of a nucleon from Avogadro's number.
-    double precision, parameter :: m_nucleon = 1.d0/n_A
+    double precision, parameter :: m_nucleon = ONE / n_A
 
     integer :: k, n
 
@@ -137,13 +137,15 @@ contains
     endif
 
     !-------------------------------------------------------------------------
-    ! for all EOS input modes EXCEPT eos_input_rt, first compute dens
-    ! and temp as needed from the inputs
+    ! For all EOS input modes EXCEPT eos_input_rt, first compute dens
+    ! and temp as needed from the inputs.
     !-------------------------------------------------------------------------
 
     select case (input)
 
     case (eos_input_rt)
+
+       ! dens, temp and xmass are inputs
 
        ! We don't need to do anything here
 
@@ -154,7 +156,7 @@ contains
 
        ! Solve for the temperature:
        ! h = e + p/rho = (p/rho)*[1 + 1/(gamma-1)] = (p/rho)*gamma/(gamma-1)
-       temp = (enthalpy*mu*m_nucleon/k_B)*(gamma_const - 1.0_dp_t)/gamma_const
+       temp = (enthalpy*mu*m_nucleon/k_B)*(gamma_const - ONE)/gamma_const
 
 
     case (eos_input_tp)
@@ -181,35 +183,44 @@ contains
 
        ! Solve for the temperature
        ! e = k T / [(mu m_nucleon)*(gamma-1)]
-       temp = eint*mu*m_nucleon*(gamma_const-1.0_dp_t)/k_B
+       temp = eint*mu*m_nucleon*(gamma_const-ONE)/k_B
 
 
     case (eos_input_ps)
        
-       ! pressure and entropy are inputs
+       ! pressure entropy, and xmass are inputs
 
        ! Solve for the temperature
        ! Invert Sackur-Tetrode eqn (below) using 
        ! rho = p mu m_nucleon / (k T)
-       temp = pres**(2.0_dp_t/5.0_dp_t) * &
-            ( 2.0_dp_t*M_PI*hbar*hbar/(mu*m_nucleon) )**(3.0_dp_t/5.0_dp_t) * &
-            dexp(2.0_dp_t*mu*m_nucleon*entropy/(5.0_dp_t*k_B) - 1.0_dp_t) / &
-            k_B
+       temp = pres**(TWO/FIVE) * &
+            ( TWO*M_PI*hbar*hbar/(mu*m_nucleon) )**(THREE/FIVE) * &
+            dexp(TWO*mu*m_nucleon*entropy/(FIVE*k_B) - ONE) / k_B
 
        ! Solve for the density
        ! rho = p mu m_nucleon / (k T)
        dens = pres*mu*m_nucleon/(k_B*temp)
 
 
+
     case (eos_input_ph)
 
-       call bl_error('EOS: This input is not currently supported in the gamma law EOS.')
+       ! pressure, enthalpy and xmass are inputs
+
+       ! Solve for temperature and density
+       dens = pres / enthalpy * gamma_const / (gamma_const - ONE)
+
+       temp = pres*mu*m_nucleon/(k_B*dens)
 
 
 
     case (eos_input_th)
 
-       call bl_error('EOS: This input is not currently supported in the gamma law EOS.')
+       ! temperature, enthalpy and xmass are inputs
+
+       ! Solve for density
+       dens = pres*mu*m_nucleon/(k_B*temp)
+
 
 
     case default
@@ -219,17 +230,17 @@ contains
     end select
 
     !-------------------------------------------------------------------------
-    ! now we have the density and temperature (and mass fractions /
+    ! Now we have the density and temperature (and mass fractions /
     ! mu), regardless of the inputs.
     !-------------------------------------------------------------------------
 
-    state % T = temp
+    state % T   = temp
     state % rho = dens
 
-    ! compute the pressure simply from the ideal gas law, and the
-    ! specific internal energy using the gamma-law EOS relation
+    ! Compute the pressure simply from the ideal gas law, and the
+    ! specific internal energy using the gamma-law EOS relation.
     state % p = dens*k_B*temp/(mu*m_nucleon)
-    state % e = state % p/(gamma_const - 1.0_dp_t)/dens
+    state % e = state % p/(gamma_const - ONE)/dens
 
     ! enthalpy is h = e + p/rho
     state % h = state % e + state % p / dens
@@ -237,15 +248,17 @@ contains
     ! entropy (per gram) of an ideal monoatomic gas (the Sackur-Tetrode equation)
     ! NOTE: this expression is only valid for gamma = 5/3.
     state % s = (k_B/(mu*m_nucleon))*(2.5_dp_t + &
-         log( ( (mu*m_nucleon)**2.5/dens )*(k_B*temp)**1.5_dp_t / (2.0_dp_t*M_PI*hbar*hbar)**1.5_dp_t ) )
+         log( ( (mu*m_nucleon)**2.5/dens )*(k_B*temp)**1.5_dp_t / (TWO*M_PI*hbar*hbar)**1.5_dp_t ) )
 
-    ! compute the thermodynamic derivatives and specific heats 
+    ! Compute the thermodynamic derivatives and specific heats 
     state % dpdT = state % p / temp
     state % dpdr = state % p / dens
     state % dedT = state % e / temp
     state % dedr = 0.d0
     state % dsdT = 0.d0
     state % dsdr = 0.d0
+    state % dhdT = state % dedT + state % dpdT / dens
+    state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
 
     state % c_v = dedT
     state % c_p = gamma_const * c_v
