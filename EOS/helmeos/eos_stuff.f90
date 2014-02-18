@@ -144,6 +144,12 @@ contains
 
     endif
 
+    ! Check to make sure the composition was set properly.
+
+    do n = 1, nspec
+      if (state % xn(n) .lt. init_test) call bl_error("EOS: species abundances not set.")
+    enddo
+
     ! Get abar, zbar, etc.
 
     call composition(state, .false.)

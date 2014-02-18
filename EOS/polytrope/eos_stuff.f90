@@ -147,10 +147,18 @@ contains
     ! get the mass of a nucleon from Avogadro's number.
     double precision, parameter :: m_nucleon = ONE / n_A
 
+    double precision, parameter :: init_test = -1.0d199
+
     integer :: k, n
 
     ! Make sure EOS is initialized before coming here.
     if (.not. initialized) call bl_error('EOS: not initialized')
+
+    ! Make sure that the composition was set properly.
+
+    do n = 1, nspec
+      if (state % xn(n) .lt. init_test) call bl_error("EOS: species abundances not set.")
+    enddo
     
     ! Calculate composition information
     call composition(state, assume_neutral)
@@ -161,7 +169,7 @@ contains
 
     if (polytrope .eq. 1 .or. polytrope .eq. 2) then
     
-      if (abs(state % mu_e - HALF) .gt. 1.d-8) then
+      if (abs(state % mu_e - TWO) .gt. 1.d-8) then
         call bl_error("Calculated mu_e is not equal to the input parameter.")
       endif
 
@@ -190,6 +198,10 @@ contains
 
        ! dens, enthalpy, and xmass are inputs
 
+       if (state % rho .lt. init_test .or. state % h .lt. init_test) then
+         call bl_error("EOS called with rho and enthalpy as inputs, but these were not initialized.")
+       endif
+
        ! Solve for the pressure and energy:
 
        pres = enth * dens * (gamma_const - ONE) / gamma_const
@@ -199,6 +211,10 @@ contains
     case (eos_input_rt)
 
        ! dens, temp, and xmass are inputs
+
+       if (state % rho .lt. init_test .or. state % T .lt. init_test) then
+         call bl_error("EOS called with rho and T as inputs, but these were not initialized.")
+       endif
           
        ! Solve for the pressure, energy and enthalpy:
 
@@ -210,6 +226,10 @@ contains
     case (eos_input_tp)
 
        ! temp, pres, and xmass are inputs
+
+       if (state % T .lt. init_test .or. state % p .lt. init_test) then
+         call bl_error("EOS called with temp and pressure as inputs, but these were not initialized.")
+       endif
           
        ! Solve for the density, energy and enthalpy:
 
@@ -222,6 +242,10 @@ contains
 
        ! dens, pres, and xmass are inputs
 
+       if (state % rho .lt. init_test .or. state % p .lt. init_test) then
+         call bl_error("EOS called with rho and pressure as inputs, but these were not initialized.")
+       endif
+
        ! Solve for the enthalpy and energy:
 
        enth = (pres / dens) * gamma_const / (gamma_const - ONE)
@@ -232,6 +256,10 @@ contains
 
        ! dens, energy, and xmass are inputs
 
+       if (state % rho .lt. init_test .or. state % e .lt. init_test) then
+         call bl_error('EOS called with rho and e as inputs, but these were not initialized.')
+       endif
+
        ! Solve for the pressure and enthalpy:
 
        pres = (gamma_const - one) * dens * eint
@@ -240,6 +268,10 @@ contains
     case (eos_input_ps)
        
        ! pressure, entropy and xmass are inputs
+
+       if (state % p .lt. init_test .or. state % s .lt. init_test) then
+         call bl_error("EOS called with pressure and entropy as inputs, but these were not initialized.")
+       endif
 
        ! Solve for the density, energy and enthalpy:
 
@@ -253,6 +285,10 @@ contains
 
        ! pressure, enthalpy and xmass are inputs
 
+       if (state % p .lt. init_test .or. state % s .lt. init_test) then
+         call bl_error("EOS called with pressure and enthalpy as inputs, but these were not initialized.")
+       endif
+
        ! Solve for the density and energy:
 
        eint = enth / gamma_const
@@ -263,6 +299,10 @@ contains
     case (eos_input_th)
 
        ! temperature, enthalpy and xmass are inputs
+
+       if (state % t .lt. init_test .or. state % h .lt. init_test) then
+         call bl_error("EOS called with temperature and enthalpy as inputs, but these were not initialized.")
+       endif
 
        ! Solve for the density, energy and pressure:
 
