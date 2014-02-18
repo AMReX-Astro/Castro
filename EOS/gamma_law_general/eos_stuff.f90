@@ -235,8 +235,8 @@ contains
     state % dhdT = state % dedT + state % dpdT / dens
     state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
 
-    state % c_v = dedT
-    state % c_p = gamma_const * c_v
+    state % cv = dedT
+    state % cp = gamma_const * state % cv
 
     state % gam1 = gamma_const
 

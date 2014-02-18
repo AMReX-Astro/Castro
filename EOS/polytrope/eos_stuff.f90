@@ -26,7 +26,7 @@ module eos_module
   use bl_types
   use bl_space
   use bl_error_module
-  use bl_constants_module, only: M_PI, ZERO, ONE, FOUR3RD, FIVE3RD
+  use bl_constants_module
   use network, only: nspec, aion, zion
   use eos_type_module
   use eos_data_module
@@ -169,7 +169,7 @@ contains
 
     dens = state % rho
     temp = state % T
-    pres = state % pres
+    pres = state % p
     enth = state % h
     eint = state % e
     entr = state % s
@@ -299,8 +299,8 @@ contains
     state % dhdT = ZERO
     state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
 
-    state % c_v = state % dedT
-    state % c_p = gamma_const * state % c_v
+    state % cv = state % dedT
+    state % cp = gamma_const * state % cv
  
     state % gam1 = gamma_const
 
