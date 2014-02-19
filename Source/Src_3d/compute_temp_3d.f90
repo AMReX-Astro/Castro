@@ -76,7 +76,7 @@
          state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
          state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF &
                             * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 &
-                            +  state(i,j,k,UMY)**2) / state(i,j,k,URHO)
+                            +  state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
 
       enddo
       enddo

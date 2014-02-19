@@ -741,14 +741,14 @@ contains
 
              eos_state % T   = q(i,j,k,QTEMP)
              eos_state % rho = q(i,j,k,QRHO)
-             eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
              
              ! If necessary, reset the energy using small_temp
-             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. 0)) then
+             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. ZERO)) then
                 q(i,j,k,QTEMP) = small_temp
                 eos_state % T =  q(i,j,k,QTEMP)
 
-                call eos(eos_input_rt, eos_state, .false., pt_index)
+                call eos(eos_input_rt, eos_state, pt_index = pt_index)
                 q(i,j,k,QREINT) = eos_state % e
 
                 if (q(i,j,k,QREINT) .lt. ZERO) then
