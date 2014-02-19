@@ -197,7 +197,7 @@ contains
 
        if (do_eos_diag) print *, 'WANT H ', state % h
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, 'h', 'T', h_want)
+       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ienth, itemp, h_want)
 
 
 
@@ -216,7 +216,7 @@ contains
 
        if (p_want < ZERO) call bl_error(neg_p_err, z_err)
          
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, 'p', 'r', p_want)
+       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ipres, idens, p_want)
 
        if (input_is_constant) state % p = p_want
 
@@ -241,7 +241,7 @@ contains
 
        if (p_want < ZERO) call bl_error(neg_p_err, z_err)
        
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, 'p', 'T', p_want)
+       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ipres, itemp, p_want)
 
        if (input_is_constant) state % p = p_want
 
@@ -266,7 +266,7 @@ contains
 
        if (do_eos_diag) print *, 'WANT e ', e_want
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, 'e', 'T', e_want)
+       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, iener, itemp, e_want)
 
        if (input_is_constant) state % e = e_want
               
@@ -297,7 +297,7 @@ contains
           print *, 'WANT p ', p_want
        endif
 
-       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, 'p', p_want, 's', s_want)
+       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, ipres, p_want, ientr, s_want)
 
        if (input_is_constant) then
           state % s = s_want
@@ -330,7 +330,7 @@ contains
           print *, 'WANT h ', h_want
        endif
 
-       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, 'p', p_want, 'h', h_want)
+       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, ipres, p_want, ienth, h_want)
 
        if (input_is_constant) then
           state % p = p_want
@@ -356,7 +356,7 @@ contains
 
        if (do_eos_diag) print *, 'WANT h ', h_want
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, 'h', 'r', h_want)
+       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ienth, idens, h_want)
 
        if (input_is_constant) state % h = h_want
 
@@ -402,7 +402,7 @@ contains
      implicit none
 
      type (eos_t),       intent(inout) :: state
-     character,          intent(in   ) :: var, dvar
+     integer,            intent(in   ) :: var, dvar
      character (len=64), intent(in   ) :: g_err, i_err, z_err
      double precision,   intent(in   ) :: f_want
      logical,            intent(in   ) :: do_eos_diag
@@ -413,7 +413,7 @@ contains
 
      logical :: converged, eosfail
 
-     if (.not. (dvar .eq. 'T' .or. dvar .eq. 'r') ) then
+     if (.not. (dvar .eq. itemp .or. dvar .eq. idens) ) then
        call bl_error('EOS: Newton iterations can only be done either over T or r.', z_err)
      endif
 
@@ -430,7 +430,7 @@ contains
 
         ! First, figure out what variable we're working with
 
-        if (dvar .eq. 'T') then
+        if (dvar .eq. itemp) then
 
           x = state % T
 
@@ -439,16 +439,16 @@ contains
 
           select case (var)
 
-            case ('p')
+            case (ipres)
               f    = state % p
               dfdx = state % dpdT
-            case ('e')
+            case (iener)
               f    = state % e
               dfdx = state % dedT
-            case ('s')
+            case (ientr)
               f    = state % s
               dfdx = state % dsdT
-            case ('h')
+            case (ienth)
               f    = state % h
               dfdx = state % dhdT
             case default
@@ -456,7 +456,7 @@ contains
 
           end select
 
-        else ! dvar == 'r'
+        else ! dvar == density
 
           x = state % rho
 
@@ -465,16 +465,16 @@ contains
 
           select case (var)
 
-            case ('p')
+            case (ipres)
               f    = state % p
               dfdx = state % dpdr
-            case ('e')
+            case (iener)
               f    = state % e
               dfdx = state % dedr
-            case ('s')
+            case (ientr)
               f    = state % s
               dfdx = state % dsdr
-            case ('h')
+            case (ienth)
               f    = state % h
               dfdx = state % dhdr
             case default
@@ -494,7 +494,7 @@ contains
         xnew = x - (f - f_want) / dfdx
 
         if (do_eos_diag) then
-          print *, dvar // 'NEW FIRST ', x, ' - ', f - f_want, ' / ', dfdx
+          print *, 'XNEW FIRST ', x, ' - ', f - f_want, ' / ', dfdx
         endif
 
         ! Don't let the temperature/density change by more than a factor of two
@@ -504,7 +504,7 @@ contains
         xnew = max(smallx, xnew)
 
         if (do_eos_diag) then
-          print *, var // 'NEW AFTER ', iter, xnew
+          print *, 'XNEW AFTER ', iter, xnew
         endif
 
         ! Compute the error
@@ -518,7 +518,7 @@ contains
         
         ! Store the new temperature/density if we're still iterating
 
-        if (dvar .eq. 'T') then
+        if (dvar .eq. itemp) then
           state % T    = xnew
         else
           state % rho  = xnew
@@ -543,7 +543,7 @@ contains
      implicit none
 
      type (eos_t),       intent(inout) :: state
-     character,          intent(in   ) :: var1, var2
+     integer,            intent(in   ) :: var1, var2
      character (len=64), intent(in   ) :: g_err, i_err, z_err
      double precision,   intent(in   ) :: f_want, g_want
      logical,            intent(in   ) :: do_eos_diag
@@ -577,19 +577,19 @@ contains
 
         select case (var1)
 
-           case ('p')
+           case (ipres)
              f    = state % p
              dfdt = state % dpdT
              dfdr = state % dpdr
-           case ('e')
+           case (iener)
              f    = state % e
              dfdt = state % dedT
              dfdr = state % dedr
-           case ('s')
+           case (ientr)
              f    = state % s
              dfdt = state % dsdT
              dfdr = state % dsdr
-           case ('h')
+           case (ienth)
              f    = state % h
              dfdT = state % dhdT
              dfdr = state % dhdr
@@ -600,19 +600,19 @@ contains
 
          select case (var2)
 
-           case ('p')
+           case (ipres)
              g    = state % p
              dgdt = state % dpdT
              dgdr = state % dpdr
-           case ('e')
+           case (iener)
              g    = state % e
              dgdt = state % dedT
              dgdr = state % dedr
-           case ('s')
+           case (ientr)
              g    = state % s
              dgdt = state % dsdT
              dgdr = state % dsdr
-           case ('h')
+           case (ienth)
              g    = state % h
              dgdt = state % dhdT
              dgdr = state % dhdr

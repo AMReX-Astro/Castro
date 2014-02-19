@@ -13,6 +13,13 @@ module eos_data_module
   integer, parameter :: eos_input_ph = 7  ! p, h are inputs
   integer, parameter :: eos_input_th = 8  ! T, h are inputs
 
+  integer, parameter :: itemp = 1
+  integer, parameter :: idens = 2
+  integer, parameter :: iener = 3
+  integer, parameter :: ienth = 4
+  integer, parameter :: ientr = 5
+  integer, parameter :: ipres = 6
+
   real(kind=dp_t), save :: smallt
   real(kind=dp_t), save :: smalld
 
