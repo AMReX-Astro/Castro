@@ -344,10 +344,13 @@ contains
  
     state % gam1 = gamma_const
 
-    ! Compute dPdX, dedX, dhdX
+    ! Compute dPdX, dedX, dhdX.
 
-    state % dpa = - state % p / state % abar
-    state % dpz =   state % p / (ONE + state % zbar)
+    state % dpdA = - state % p / state % abar
+    state % dpdZ =   state % p / (ONE + state % zbar)
+
+    state % dedA = - state % e / state % abar
+    state % dedZ =   state % e / (ONE + state % zbar)
 
     call composition_derivatives(state, assume_neutral)
 

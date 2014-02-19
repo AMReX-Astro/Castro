@@ -922,10 +922,10 @@
        state % ppos = ppos_row
        state % eta  = etaele_row
        
-       state % dpa  = dpa_row
-       state % dpz  = dpz_row
-       state % dea  = dea_row
-       state % dez  = dez_row
+       state % dpdA  = dpa_row
+       state % dpdZ  = dpz_row
+       state % dedA  = dea_row
+       state % dedZ  = dez_row
 
       return
       end

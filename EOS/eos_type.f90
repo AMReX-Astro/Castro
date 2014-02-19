@@ -38,6 +38,10 @@ module eos_type_module
   ! cs       -- sound speed
   ! abar     -- average atomic number ( sum_k {X_k} ) / ( sum_k {X_k/A_k} )
   ! zbar     -- average proton number ( sum_k {Z_k X_k/ A_k} ) / ( sum_k {X_k/A_k} )
+  ! dpdA     -- d pressure/ d abar
+  ! dpdZ     -- d pressure/ d zbar
+  ! dedA     -- d energy/ d abar
+  ! dedZ     -- d energy/ d zbar
 
   ! Initialize the main quantities to an unphysical number
   ! so that we know if the user forgot to initialize them
@@ -82,10 +86,10 @@ module eos_type_module
 
      double precision :: abar        
      double precision :: zbar        
-     double precision :: dpa          
-     double precision :: dpz         
-     double precision :: dea         
-     double precision :: dez         
+     double precision :: dpdA          
+     double precision :: dpdZ        
+     double precision :: dedA         
+     double precision :: dedZ         
 
   end type eos_t
 
@@ -156,28 +160,16 @@ contains
     double precision :: dmudX
     integer :: n
 
-    ! The species only come into p and e (and therefore h)
-    ! through mu, so first compute dmu/dX.
-    !
-    ! NOTE: an extra, constant term appears in dmudX, which
-    ! results from writing mu = sum {X_k} / sum {X_k / A_k}
-    ! (for the neutral, analogous for the ionized).  The
-    ! numerator is simply 1, but we can differentiate
-    ! wrt it, giving the constant mu(k) term in dmudX.  Since
-    ! dPdX only appears in a sum over species creation rate 
-    ! (omegadot) and sum{omegadot} = 0, this term has no effect.
-    ! It is added simply for completeness.
-
     do n = 1, nspec       
 
-       state % dpdX(n) = state % dpa * (state % abar/aion(n)) &
+       state % dpdX(n) = state % dpdA * (state % abar/aion(n)) &
                        * (aion(n) - state % abar)             &
-                       + state % dpz * (state % abar/aion(n)) &
+                       + state % dpdZ * (state % abar/aion(n)) &
                        * (zion(n) - state % zbar)
 
-       state % dEdX(n) = state % dea * (state % abar/aion(n)) &
+       state % dEdX(n) = state % dedA * (state % abar/aion(n)) &
                        * (aion(n) - state % abar)             &
-                       + state % dez * (state % abar/aion(n)) &
+                       + state % dedZ * (state % abar/aion(n)) &
                        * (zion(n) - state % zbar)
 
        ! dhdX is at constant pressure -- see paper III for details.

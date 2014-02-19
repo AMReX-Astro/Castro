@@ -242,8 +242,16 @@ contains
 
     ! Get dpdX, dedX, dhdX.
 
-    state % dpa = - state % p / state % abar
-    state % dpz =   state % p / (ONE + state % zbar)
+    state % dpdA = - state % p / state % abar
+    state % dedA = - state % e / state % abar
+
+    if (assume_neutral) then
+      state % dpdZ = ZERO
+      state % dedZ = ZERO
+    else
+      state % dpdZ = state % p / (ONE + state % zbar)
+      state % dedZ = state % e / (ONE + state % zbar)
+    endif
 
     call composition_derivatives(state, assume_neutral)
 
