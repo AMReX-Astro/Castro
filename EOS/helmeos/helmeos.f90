@@ -814,21 +814,21 @@
       dsp = -dentrdd*x/dpresdt - 1.0d0
 
       !...comment out storage to *_row arrays we dont use 
-      ptot_row   = pres
-       dpt_row   = dpresdt
-       dpd_row   = dpresdd
-       dpa_row   = dpresda   
-       dpz_row   = dpresdz
+      state % p    = pres
+      state % dpdT = dpresdt
+      state % dpdr = dpresdd
+      state % dpdA = dpresda   
+      state % dpdZ = dpresdz
 
-       etot_row   = ener
-       det_row    = denerdt
-       ded_row    = denerdd
-       dea_row    = denerda   
-       dez_row    = denerdz
+      state % e    = ener
+      state % dedT = denerdt
+      state % dedr = denerdd
+      state % dedA = denerda   
+      state % dedZ = denerdz
 
-       stot_row   = entr 
-       dst_row    = dentrdt
-       dsd_row    = dentrdd
+      state % s    = entr 
+      state % dsdT = dentrdt
+      state % dsdr = dentrdd
 !      dsa_row    = dentrda        
 !      dsz_row    = dentrdz
 
@@ -841,8 +841,8 @@
 !      sion_row   = sion 
 !      xni_row    = xni
 
-       pele_row   = pele
-       ppos_row   = 0.0d0
+       state % pele = pele
+       state % ppos = 0.0d0
 !      dpept_row  = dpepdt
 !      dpepd_row  = dpepdd
 !      dpepa_row  = dpepda  
@@ -863,14 +863,14 @@
 !      dsepz_row  = dsepdz
 
 !      xnem_row   = xnem
-       xne_row    = xnefer
+       state % xne = xnefer
 !      dxnet_row  = dxnedt
 !      dxned_row  = dxnedd
 !      dxnea_row  = dxneda
 !      dxnez_row  = dxnedz
-       xnp_row    = 0.0d0
+       state % xnp = 0.0d0
 
-       etaele_row = etaele
+       state % eta = etaele
 !      detat_row  = detadt
 !      detad_row  = detadd
 !      detaa_row  = detada
@@ -886,47 +886,22 @@
 !      dpe_row    = dpe
 !      dsp_row    = dsp
 
-       cv_row     = cv
-       cp_row     = cp
-       gam1_row   = gam1
+       state % cv   = cv
+       state % cp   = cp
+       state % gam1 = gam1
 !      gam2_row   = gam2
 !      gam3_row   = gam3
-       cs_row     = sound
+       state % cs   = sound
 
-       ! Save the information in the EOS state struct.
+       ! Save other information in the EOS state struct.
 
-       state % p    = ptot_row
-       state % e    = etot_row
-       state % s    = stot_row
-       state % h    = etot_row + ptot_row / den_row
+       state % h    = ener + pres / den
 
-       state % dpdr = dpd_row
-       state % dpdT = dpt_row
-       state % dedr = ded_row
-       state % dedT = det_row
-       state % dsdT = dst_row
-       state % dsdR = dsd_row
-       state % dhdR = ded_row + dpd_row / den_row - ptot_row / den_row**2
-       state % dhdT = det_row + dpt_row / den_row
-       state % dpde = dpt_row / det_row
-       state % dpdr_e = dpd_row - dpt_row * ded_row / det_row
-
-       state % gam1 = gam1_row
-       state % cs   = cs_row
-       state % cv   = cv_row
-       state % cp   = cp_row
-     
-       state % xne  = xne_row
-       state % xnp  = xnp_row
-       state % pele = pele_row
-       state % ppos = ppos_row
-       state % eta  = etaele_row
+       state % dhdR = denerdd + dpresdd / den - pres / den**2
+       state % dhdT = denerdt + dpresdt / den
+       state % dpde = dpresdt / denerdt
+       state % dpdr_e = dpresdd - dpresdt * denerdd / denerdt
        
-       state % dpdA  = dpa_row
-       state % dpdZ  = dpz_row
-       state % dedA  = dea_row
-       state % dedZ  = dez_row
-
       return
       end
 
