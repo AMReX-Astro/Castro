@@ -170,11 +170,16 @@ contains
 
     do n = 1, nspec       
 
-       dmudX =  (state % mu/aion(n))*(aion(n) - state % mu*(ONE + zion(n)))
+       state % dpdX(n) = state % dpa * (state % abar/aion(n)) &
+                       * (aion(n) - state % abar)             &
+                       + state % dpz * (state % abar/aion(n)) &
+                       * (zion(n) - state % zbar)
 
-       state % dPdX(n) = -(state % p / state % mu) * dmudX
-       state % dedX(n) = -(state % e / state % mu) * dmudX
-          
+       state % dEdX(n) = state % dea * (state % abar/aion(n)) &
+                       * (aion(n) - state % abar)             &
+                       + state % dez * (state % abar/aion(n)) &
+                       * (zion(n) - state % zbar)
+
        ! dhdX is at constant pressure -- see paper III for details.
        state % dhdX(n) = state % dedX(n) + (state % p / state % rho**2 - state % dedr) &
                                          *  state % dPdX(n) / state % dPdr

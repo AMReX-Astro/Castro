@@ -345,6 +345,10 @@ contains
     state % gam1 = gamma_const
 
     ! Compute dPdX, dedX, dhdX
+
+    state % dpa = - state % p / state % abar
+    state % dpz =   state % p / (ONE + state % zbar)
+
     call composition_derivatives(state, assume_neutral)
 
     ! sound speed
