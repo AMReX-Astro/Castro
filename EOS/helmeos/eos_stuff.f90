@@ -68,7 +68,7 @@ contains
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos(input, state, do_eos_diag_in, pt_index)
+  subroutine eos(input, state, do_eos_diag, pt_index)
 
     ! A generic wrapper for the Helmholtz electron/positron degenerate EOS.  
 
@@ -78,7 +78,7 @@ contains
 
     integer,           intent(in   ) :: input
     type (eos_t),      intent(inout) :: state 
-    logical, optional, intent(in   ) :: do_eos_diag_in
+    logical, optional, intent(in   ) :: do_eos_diag
     integer, optional, intent(in   ) :: pt_index(:)
 
     ! Local variables and arrays
@@ -86,68 +86,22 @@ contains
     double precision :: ymass(nspec), ysum, yzsum
     double precision :: e_want, p_want, s_want, h_want
 
-    double precision, parameter :: init_test = -1.0d199
+    logical eosfail, eos_diag
 
-    logical eosfail, do_eos_diag
+    integer :: n, ierr
 
-    integer :: n, dim_ptindex
-
-    ! z_err is used to convert the pt_index information into a string
-
-    character (len=64) :: z_err  
-
-    ! Error messages in case of EOS failure
-
-    character (len=64) :: g_err, n_err, i_err
-    character (len=64) :: neg_e_err, neg_p_err, neg_s_err, neg_h_err
-    character (len=64) :: eos_input_str
 
 
     if (.not. initialized) call bl_error('EOS: not initialized')
 
-    do_eos_diag = .false.
+    eos_diag = .false.
 
-    if (present(do_eos_diag_in)) do_eos_diag = do_eos_diag_in
-
-    write(eos_input_str, '(A13, I1)') ' EOS input = ', input
-
-    g_err = 'EOS: error in the EOS.' // eos_input_str
-    n_err = 'EOS: invalid input.' // eos_input_str
-    i_err = 'EOS: Newton-Raphson iterations failed to converge.' // eos_input_str
-
-    neg_e_err = 'EOS: energy < 0 in the EOS.' // eos_input_str
-    neg_s_err = 'EOS: entropy < 0 in the EOS.' // eos_input_str
-    neg_p_err = 'EOS: pressure < 0 in the EOS.' // eos_input_str
-    neg_h_err = 'EOS: enthalpy < 0 in the EOS.' // eos_input_str
-
-    ! this format statement is for writing into z_err -- make sure that
-    ! the len of z_err can accomodate this format specifier
-1001 format(1x,"zone index info: i = ", i5)
-1002 format(1x,"zone index info: i = ", i5, '  j = ', i5)
-1003 format(1x,"zone index info: i = ", i5, '  j = ', i5, '  k = ', i5)
-
-    if (present(pt_index)) then
- 
-       dim_ptindex = size(pt_index,dim=1)
-
-       if (dim_ptindex .eq. 1) then 
-          write (z_err,1001) pt_index(1)
-       else if (dim_ptindex .eq. 2) then 
-          write (z_err,1002) pt_index(1), pt_index(2)
-       else if (dim_ptindex .eq. 3) then 
-          write (z_err,1003) pt_index(1), pt_index(2), pt_index(3)
-       end if
-
-    else
-
-      z_err = ''
-
-    endif
+    if (present(do_eos_diag)) eos_diag = do_eos_diag
 
     ! Check to make sure the composition was set properly.
 
     do n = 1, nspec
-      if (state % xn(n) .lt. init_test) call bl_error("EOS: species abundances not set.")
+      if (state % xn(n) .lt. init_test) call eos_error(ierr_init_xn, input, pt_index)
     enddo
 
     ! Get abar, zbar, etc.
@@ -155,6 +109,8 @@ contains
     call composition(state, .false.)
 
     eosfail = .false.
+
+    ierr = 0
 
     select case (input)
 
@@ -164,17 +120,14 @@ contains
 
     case (eos_input_rt)
 
-       ! Check to ensure that rho and T were initialized.
-
-       if (state % rho .lt. init_test .or. state % T .lt. init_test) then
-         call bl_error("EOS called with rho and T as inputs, but these were not initialized.")
-       endif
+       if (state % rho .lt. init_test .or. state % T .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
        ! Call the EOS.
 
        call helmeos(do_coulomb, eosfail, state)
 
-       if (eosfail) call bl_error(g_err, z_err)
+       if (eosfail) call eos_error(ierr_general, input, pt_index)
+
 
 
 !---------------------------------------------------------------------------
@@ -183,21 +136,23 @@ contains
 
     case (eos_input_rh)
 
-       ! Check to ensure that rho and h were initialized.
+       if (state % rho .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (state % rho .lt. init_test .or. state % h .lt. init_test) then
-         call bl_error("EOS called with rho and h as inputs, but these were not initialized.")
-       endif
-
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy.
 
        h_want = state % h
 
-       if (do_eos_diag) print *, 'WANT H ', state % h
+       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ienth, itemp, h_want)
+       if (eos_diag) print *, 'WANT h ', h_want
+
+       call newton_iter(state, eos_diag, ierr, ienth, itemp, h_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
+
+       if (input_is_constant) state % h = h_want
 
 
 
@@ -207,16 +162,20 @@ contains
 
     case (eos_input_tp)
 
-       if (state % T .lt. init_test .or. state % p .lt. init_test) then
-         call bl_error("EOS called with temp and pressure as inputs, but these were not initialized.")
-       endif
+       if (state % T .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
+
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given pressure
        p_want = state % p
 
-       if (p_want < ZERO) call bl_error(neg_p_err, z_err)
-         
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ipres, idens, p_want)
+       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+
+       if (eos_diag) print *, 'WANT p ', p_want       
+
+       call newton_iter(state, eos_diag, ierr, ipres, idens, p_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) state % p = p_want
 
@@ -228,20 +187,20 @@ contains
 
     case (eos_input_rp)
 
-       if (state % rho .lt. init_test .or. state % p .lt. init_test) then
-         call bl_error("EOS called with rho and pressure as inputs, but these were not initialized.")
-       endif
+       if (state % rho .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given pressure
        p_want = state % p
 
-       if (do_eos_diag) print *, 'P WANT ', p_want
+       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
 
-       if (p_want < ZERO) call bl_error(neg_p_err, z_err)
-       
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ipres, itemp, p_want)
+       if (eos_diag) print *, 'WANT p ', p_want       
+
+       call newton_iter(state, eos_diag, ierr, ipres, itemp, p_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) state % p = p_want
 
@@ -253,20 +212,20 @@ contains
 
     case (eos_input_re)
 
-       if (state % rho .lt. init_test .or. state % e .lt. init_test) then
-         call bl_error('EOS called with rho and e as inputs, but these were not initialized.')
-       endif
+       if (state % rho .lt. init_test .or. state % e .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given energy
        e_want = state % e
 
-       if (e_want < ZERO) call bl_error(neg_e_err, z_err)
+       if (e_want < ZERO) call eos_error(ierr_neg_e, input, pt_index)
 
-       if (do_eos_diag) print *, 'WANT e ', e_want
+       if (eos_diag) print *, 'WANT e ', e_want
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, iener, itemp, e_want)
+       call newton_iter(state, eos_diag, ierr, iener, itemp, e_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) state % e = e_want
               
@@ -278,26 +237,25 @@ contains
 
     case (eos_input_ps)
 
-       if (state % p .lt. init_test .or. state % s .lt. init_test) then
-         call bl_error("EOS called with pressure and entropy as inputs, but these were not initialized.")
-       endif
+       if (state % p .lt. init_test .or. state % s .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given entropy and pressure
        s_want = state % s
        p_want = state % p
 
-       if (s_want < ZERO) call bl_error(neg_s_err, z_err)
+       if (s_want < ZERO) call eos_error(ierr_neg_s, input, pt_index)
+       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
 
-       if (p_want < ZERO) call bl_error(neg_p_err, z_err)
-
-       if (do_eos_diag) then
+       if (eos_diag) then
           print *, 'WANT s ', s_want
           print *, 'WANT p ', p_want
        endif
 
-       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, ipres, p_want, ientr, s_want)
+       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ientr, s_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) then
           state % s = s_want
@@ -309,28 +267,28 @@ contains
 !---------------------------------------------------------------------------
 ! pres, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
+
     case (eos_input_ph)
 
-       if (state % p .lt. init_test .or. state % h .lt. init_test) then
-         call bl_error("EOS called with pressure and enthalpy as inputs, but these were not initialized.")
-       endif
+       if (state % p .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy and pressure
        s_want = state % s
        h_want = state % h
 
-       if (p_want < ZERO) call bl_error(neg_p_err, z_err)
+       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       if (h_want < ZERO) call bl_error(neg_h_err, z_err)
-
-       if (do_eos_diag) then
+       if (eos_diag) then
           print *, 'WANT p ', p_want
           print *, 'WANT h ', h_want
        endif
 
-       call newton_iter2(state, do_eos_diag, g_err, i_err, z_err, ipres, p_want, ienth, h_want)
+       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ienth, h_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) then
           state % p = p_want
@@ -338,25 +296,27 @@ contains
        endif
 
 
+
 !---------------------------------------------------------------------------
 ! temp, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
+
     case (eos_input_th)
 
-       if (state % t .lt. init_test .or. state % h .lt. init_test) then
-         call bl_error("EOS called with temperature and enthalpy as inputs, but these were not initialized.")
-       endif
+       if (state % t .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (do_eos_diag) print *, 'T/D INIT ', state % T, state % rho
+       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy
        h_want = state % h
 
-       if (h_want < ZERO) call bl_error(neg_h_err, z_err)
+       if (eos_diag) print *, 'WANT h ', h_want
 
-       if (do_eos_diag) print *, 'WANT h ', h_want
+       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       call newton_iter(state, do_eos_diag, g_err, i_err, z_err, ienth, idens, h_want)
+       call newton_iter(state, eos_diag, ierr, ienth, idens, h_want)
+
+       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
        if (input_is_constant) state % h = h_want
 
@@ -368,7 +328,7 @@ contains
 
     case default 
 
-       call bl_error(n_err, z_err)
+       call eos_error(ierr_input, input, pt_index)
 
     end select
 
@@ -389,23 +349,19 @@ contains
 
     call composition_derivatives(state, .false.)
 
-
-
-    return
-
   end subroutine eos
 
 
 
-  subroutine newton_iter(state, do_eos_diag, g_err, i_err, z_err, var, dvar, f_want)
+  subroutine newton_iter(state, eos_diag, ierr, var, dvar, f_want)
 
      implicit none
 
      type (eos_t),       intent(inout) :: state
      integer,            intent(in   ) :: var, dvar
-     character (len=64), intent(in   ) :: g_err, i_err, z_err
      double precision,   intent(in   ) :: f_want
-     logical,            intent(in   ) :: do_eos_diag
+     logical,            intent(in   ) :: eos_diag
+     integer,            intent(inout) :: ierr
 
      integer          :: iter
      double precision :: smallx, error, xnew, xtol
@@ -414,7 +370,8 @@ contains
      logical :: converged, eosfail
 
      if (.not. (dvar .eq. itemp .or. dvar .eq. idens) ) then
-       call bl_error('EOS: Newton iterations can only be done either over T or r.', z_err)
+       ierr = ierr_iter_var
+       return
      endif
 
      converged = .false.
@@ -422,7 +379,10 @@ contains
      ! First pass
      call helmeos(do_coulomb, eosfail, state)
 
-     if (eosfail) call bl_error(g_err, z_err)
+     if (eosfail) then
+       ierr = ierr_general
+       return
+     endif
 
      xnew = ZERO
 
@@ -452,7 +412,8 @@ contains
               f    = state % h
               dfdx = state % dhdT
             case default
-              call bl_error('EOS: Newton iterations called with an unrecognized variable.', z_err)
+              ierr = ierr_iter_var
+              return
 
           end select
 
@@ -478,22 +439,23 @@ contains
               f    = state % h
               dfdx = state % dhdr
             case default
-              call bl_error('EOS: Newton iterations called with an unrecognized variable.', z_err)
+              ierr = ierr_iter_var
+              return
  
           end select
 
         endif
 
         ! Now do the calculation for the next guess for T/rho
-
-        if (do_eos_diag) then
+ 
+        if (eos_diag) then
           print *, 'VAR  = ', var , iter, ' f    = ', f
           print *, 'DVAR = ', dvar, iter, ' dfdx = ', dfdx
         endif
 
         xnew = x - (f - f_want) / dfdx
 
-        if (do_eos_diag) then
+        if (eos_diag) then
           print *, 'XNEW FIRST ', x, ' - ', f - f_want, ' / ', dfdx
         endif
 
@@ -503,7 +465,7 @@ contains
         ! Don't let us freeze/evacuate
         xnew = max(smallx, xnew)
 
-        if (do_eos_diag) then
+        if (eos_diag) then
           print *, 'XNEW AFTER ', iter, xnew
         endif
 
@@ -513,7 +475,7 @@ contains
 
         if (error .lt. xtol) then
           converged = .true.
-          exit
+          return
         endif
         
         ! Store the new temperature/density if we're still iterating
@@ -526,27 +488,30 @@ contains
 
         call helmeos(do_coulomb, eosfail, state)
 
-        if (eosfail) call bl_error(g_err, z_err)
+        if (eosfail) then
+          ierr = ierr_general
+          return
+        endif
         
      enddo
 
      ! Call error if too many iterations are needed
 
-     if (.not. converged) call bl_error(i_err, z_err)
+     if (.not. converged) ierr = ierr_iter_conv
 
   end subroutine newton_iter
 
 
 
-  subroutine newton_iter2(state, do_eos_diag, g_err, i_err, z_err, var1, f_want, var2, g_want)
+  subroutine newton_iter2(state, eos_diag, ierr, var1, f_want, var2, g_want)
 
      implicit none
 
      type (eos_t),       intent(inout) :: state
      integer,            intent(in   ) :: var1, var2
-     character (len=64), intent(in   ) :: g_err, i_err, z_err
      double precision,   intent(in   ) :: f_want, g_want
-     logical,            intent(in   ) :: do_eos_diag
+     logical,            intent(in   ) :: eos_diag
+     integer,            intent(inout) :: ierr
 
      integer          :: iter
      double precision :: error1, error2, fi, gi, rnew, tnew, delr
@@ -556,14 +521,15 @@ contains
 
      logical :: converged, eosfail
 
-     ! Set the appropriate pointers for the variables
-
      converged = .false.     
 
      ! First pass
      call helmeos(do_coulomb, eosfail, state)
 
-     if (eosfail) call bl_error(g_err, z_err)
+     if (eosfail) then
+       ierr = ierr_general
+       return
+     endif
 
      rnew = ZERO
      tnew = ZERO
@@ -594,7 +560,8 @@ contains
              dfdT = state % dhdT
              dfdr = state % dhdr
            case default
-             call bl_error('EOS: Newton iterations called with an unrecognized variable.', z_err)
+             ierr = ierr_iter_var
+             return
 
          end select
 
@@ -617,11 +584,12 @@ contains
              dgdt = state % dhdT
              dgdr = state % dhdr
            case default
-             call bl_error('EOS: Newton iterations called with an unrecognized variable.', z_err)
+             ierr = ierr_iter_var
+             return
 
          end select
 
-         if (do_eos_diag) then
+         if (eos_diag) then
            print *, 'VAR1 ', var1, iter, f
            print *, 'VAR2 ', var2, iter, g
          end if
@@ -641,7 +609,7 @@ contains
 
         tnew = temp - (fi + dfdr*delr) / dfdt
 
-        if (do_eos_diag) then
+        if (eos_diag) then
            print *, 'RNEW FIRST ', dens, ' + ', &
                 fi*dgdt - gi*dfdt, ' / ', dgdr*dfdt - dgdt*dfdr
            print *, 'TNEW FIRST ', temp, ' - ', &
@@ -657,7 +625,7 @@ contains
         tnew = max(smallt, tnew)
         rnew = max(smalld, rnew)
 
-        if (do_eos_diag) then
+        if (eos_diag) then
            print *, 'RNEW AFTER ', iter, rnew
            print *, 'TNEW AFTER ', iter, tnew
         endif
@@ -677,14 +645,112 @@ contains
         
         call helmeos(do_coulomb, eosfail, state)
 
-        if (eosfail) call bl_error(g_err, z_err)
+        if (eosfail) then
+          ierr = ierr_general
+          return
+        endif
         
      enddo
 
      ! Call error if too many iterations are needed
 
-     if (.not. converged) call bl_error(i_err, z_err)
+     if (.not. converged) ierr = ierr_iter_conv
 
   end subroutine newton_iter2
+
+
+
+  subroutine eos_error(err, input, pt_index)
+
+    implicit none
+
+    integer,           intent(in) :: err
+    integer,           intent(in) :: input
+    integer, optional, intent(in) :: pt_index(:)
+
+    integer :: dim_ptindex
+
+    character (len=64) :: err_string, zone_string, eos_input_str
+
+    write(eos_input_str, '(A13, I1)') ' EOS input = ', input
+
+    select case (err)
+
+      case (ierr_general)
+
+        err_string = 'EOS: error in the EOS.'
+
+      case (ierr_input)
+
+        err_string = 'EOS: invalid input.'
+
+      case (ierr_iter_conv)
+
+        err_string = 'EOS: Newton-Raphson iterations failed to converge.'
+
+      case (ierr_neg_e)
+
+        err_string = 'EOS: energy < 0 in the EOS.'
+
+      case (ierr_neg_p)
+
+        err_string = 'EOS: pressure < 0 in the EOS.'
+
+      case (ierr_neg_h)
+
+        err_string = 'EOS: enthalpy < 0 in the EOS.'
+
+      case (ierr_neg_s)
+
+        err_string = 'EOS: entropy < 0 in the EOS.'
+
+      case (ierr_init)
+ 
+        err_string = 'EOS: the input variables were not initialized.'
+
+      case (ierr_init_xn)
+
+        err_string = 'EOS: the species abundances were not initialized.'
+
+      case (ierr_iter_var)
+
+        err_string = 'EOS: the variable you are iterating over was not recognized.'
+
+      case default
+
+        err_string = 'EOS: invalid input to error handler.'
+
+    end select
+
+    err_string = err_string // eos_input_str
+
+    ! this format statement is for writing into zone_string -- make sure that
+    ! the len of z_err can accomodate this format specifier
+1001 format(1x,"zone index info: i = ", i5)
+1002 format(1x,"zone index info: i = ", i5, '  j = ', i5)
+1003 format(1x,"zone index info: i = ", i5, '  j = ', i5, '  k = ', i5)
+
+    if (present(pt_index)) then
+ 
+       dim_ptindex = size(pt_index,dim=1)
+
+       if (dim_ptindex .eq. 1) then 
+          write (zone_string,1001) pt_index(1)
+       else if (dim_ptindex .eq. 2) then 
+          write (zone_string,1002) pt_index(1), pt_index(2)
+       else if (dim_ptindex .eq. 3) then 
+          write (zone_string,1003) pt_index(1), pt_index(2), pt_index(3)
+       end if
+
+    else
+
+      zone_string = ''
+
+    endif
+
+    call bl_error(err_string, zone_string)
+
+  end subroutine eos_error
+
 
 end module eos_module

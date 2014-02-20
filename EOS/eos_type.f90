@@ -47,7 +47,8 @@ module eos_type_module
   ! so that we know if the user forgot to initialize them
   ! when calling the EOS in a particular mode.
 
-  real (kind=dp_t), parameter :: init_num = -1.0d200
+  real (kind=dp_t), parameter :: init_num  = -1.0d200
+  real (kind=dp_t), parameter :: init_test = -1.0d199
 
   type eos_t
 
