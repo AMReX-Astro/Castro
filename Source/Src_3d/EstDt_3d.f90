@@ -2,6 +2,7 @@
 
      use network, only : nspec, naux
      use eos_module
+     use eos_type_module
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, &
                                     allow_negative_energy
      use bl_constants_module
@@ -50,7 +51,7 @@
                   pt_index(2) = j
                   pt_index(3) = k
  
-                  call eos(eos_input_re, eos_state, pt_index = pt_index)
+                  call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
 
                   c = eos_state % cs
                else

@@ -1,6 +1,7 @@
       subroutine reset_internal_e(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi,verbose)
 
-      use eos_module
+      use eos_module 
+      use eos_type_module
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
                                      small_temp, allow_negative_energy
@@ -55,7 +56,7 @@
                  pt_index(1) = i
                  pt_index(2) = j
                  pt_index(3) = k
-                 call eos(eos_input_rt, eos_state, pt_index = pt_index)
+                 call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
 
                  eint_new = eos_state % e
 

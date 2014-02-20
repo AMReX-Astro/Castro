@@ -375,6 +375,7 @@
 
       use network, only : nspec, naux
       use eos_module
+      use eos_type_module
       use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
       use bl_constants_module
@@ -410,9 +411,9 @@
                ! Protect against negative internal energy.
                !
                if (allow_negative_energy .eq. 0 .and. eos_state % e .le. ZERO) then
-                  call eos(eos_input_rt, eos_state)
+                  call eos(eos_input_rt, eos_state, .false.)
                else
-                  call eos(eos_input_re, eos_state)
+                  call eos(eos_input_re, eos_state, .false.)
                end if
 
                p(i,j,k,1) = eos_state % p
@@ -504,6 +505,7 @@
 
       use network, only : nspec, naux
       use eos_module
+      use eos_type_module
       use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
       use bl_constants_module
@@ -562,8 +564,11 @@
 
       use network, only : nspec, naux
       use eos_module
+      use eos_type_module
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
+      use bl_constants_module
+
       implicit none
 
       integer          :: mach_l1,mach_l2,mach_l3,mach_h1,mach_h2,mach_h3,ncomp_mach
@@ -599,7 +604,7 @@
                   eos_state % T   = u(i,j,k,UTEMP)
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
 
-                  call eos(eos_input_re, eos_state)
+                  call eos(eos_input_re, eos_state, .false.)
                   mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
                end if
 
@@ -618,6 +623,7 @@
 
       use network, only : nspec, naux
       use eos_module
+      use eos_type_module
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
                                      allow_negative_energy
       use bl_constants_module
@@ -654,7 +660,7 @@
                   eos_state % T   = u(i,j,k,UTEMP)
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
 
-                  call eos(eos_input_re, eos_state)
+                  call eos(eos_input_re, eos_state, .false.)
                   s(i,j,k,1) = eos_state % s
                end if
             enddo

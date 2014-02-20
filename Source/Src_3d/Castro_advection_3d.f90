@@ -55,6 +55,7 @@ contains
     use slope_module, only : uslope, pslope
     use network
     use eos_module
+    use eos_type_module
     use riemann_module, only: cmpflx
 
     implicit none
@@ -603,6 +604,7 @@ contains
     !
     use network, only : nspec, naux
     use eos_module
+    use eos_type_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
@@ -748,7 +750,7 @@ contains
                 q(i,j,k,QTEMP) = small_temp
                 eos_state % T =  q(i,j,k,QTEMP)
 
-                call eos(eos_input_rt, eos_state, pt_index = pt_index)
+                call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
                 q(i,j,k,QREINT) = eos_state % e
 
                 if (q(i,j,k,QREINT) .lt. ZERO) then
@@ -763,7 +765,7 @@ contains
 
              eos_state % e = q(i,j,k,QREINT)
 
-             call eos(eos_input_re, eos_state, pt_index = pt_index)
+             call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
 
              q(i,j,k,QTEMP)  = eos_state % T
              q(i,j,k,QREINT) = eos_state % e
