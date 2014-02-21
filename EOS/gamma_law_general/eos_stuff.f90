@@ -78,7 +78,7 @@ contains
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos(input, state, do_eos_diag_in, pt_index)
+  subroutine eos(input, state, do_eos_diag, pt_index)
 
     use fundamental_constants_module, only: k_B, n_A, hbar
 
@@ -86,7 +86,7 @@ contains
 
     integer,           intent(in   ) :: input
     type (eos_t),      intent(inout) :: state
-    logical, optional, intent(in   ) :: do_eos_diag_in
+    logical, optional, intent(in   ) :: do_eos_diag
     integer, optional, intent(in   ) :: pt_index(:)
 
     ! Local variables
@@ -94,6 +94,8 @@ contains
     double precision :: mu
     double precision :: dmudX, sum_y
     double precision :: dens, temp
+
+    logical :: eos_diag
 
     ! Get the mass of a nucleon from Avogadro's number.
     double precision, parameter :: m_nucleon = ONE / n_A
@@ -103,9 +105,9 @@ contains
     ! general sanity checks
     if (.not. initialized) call bl_error('EOS: not initialized')
 
-    do_eos_diag = .false.
+    eos_diag = .false.
 
-    if (present(do_eos_diag_in)) do_eos_diag = do_eos_diag_in
+    if (present(do_eos_diag)) eos_diag = do_eos_diag
 
     ! Get abar, zbar, mu.
 
@@ -131,7 +133,7 @@ contains
 
        ! Solve for the temperature:
        ! h = e + p/rho = (p/rho)*[1 + 1/(gamma-1)] = (p/rho)*gamma/(gamma-1)
-       temp = (enthalpy*mu*m_nucleon/k_B)*(gamma_const - ONE)/gamma_const
+       temp = (state % h * state % mu * m_nucleon / k_B)*(gamma_const - ONE)/gamma_const
 
 
     case (eos_input_tp)
@@ -140,7 +142,7 @@ contains
           
        ! Solve for the density:
        ! p = rho k T / (mu m_nucleon)
-       dens = pres*mu*m_nucleon/(k_B*temp)
+       dens = state % p * state % mu * m_nucleon / (k_B * state % T)
 
 
     case (eos_input_rp)
@@ -149,7 +151,7 @@ contains
 
        ! Solve for the temperature:
        ! p = rho k T / (mu m_nucleon)
-       temp = pres*mu*m_nucleon/(k_B*dens)
+       temp = state % p * state % mu * m_nucleon / (k_B * state % rho)
 
 
     case (eos_input_re)
@@ -158,7 +160,7 @@ contains
 
        ! Solve for the temperature
        ! e = k T / [(mu m_nucleon)*(gamma-1)]
-       temp = eint*mu*m_nucleon*(gamma_const-ONE)/k_B
+       temp = state % e * state % mu * m_nucleon * (gamma_const-ONE) / k_B
 
 
     case (eos_input_ps)
@@ -168,13 +170,13 @@ contains
        ! Solve for the temperature
        ! Invert Sackur-Tetrode eqn (below) using 
        ! rho = p mu m_nucleon / (k T)
-       temp = pres**(TWO/FIVE) * &
-            ( TWO*M_PI*hbar*hbar/(mu*m_nucleon) )**(THREE/FIVE) * &
-            dexp(TWO*mu*m_nucleon*entropy/(FIVE*k_B) - ONE) / k_B
+       temp = state % p**(TWO/FIVE) * &
+            ( TWO*M_PI*hbar*hbar/(state % mu*m_nucleon) )**(THREE/FIVE) * &
+            dexp(TWO*state % mu*m_nucleon*state % s/(FIVE*k_B) - ONE) / k_B
 
        ! Solve for the density
        ! rho = p mu m_nucleon / (k T)
-       dens = pres*mu*m_nucleon/(k_B*temp)
+       dens = state % p * state % mu * m_nucleon / (k_B * state % T)
 
 
 
@@ -183,9 +185,9 @@ contains
        ! pressure, enthalpy and xmass are inputs
 
        ! Solve for temperature and density
-       dens = pres / enthalpy * gamma_const / (gamma_const - ONE)
+       dens = state % p / state % h * gamma_const / (gamma_const - ONE)
 
-       temp = pres*mu*m_nucleon/(k_B*dens)
+       temp = state % p * state % mu * m_nucleon / (k_B * dens)
 
 
 
@@ -194,7 +196,7 @@ contains
        ! temperature, enthalpy and xmass are inputs
 
        ! Solve for density
-       dens = pres*mu*m_nucleon/(k_B*temp)
+       dens = state % p * state % mu * m_nucleon / (k_B * state % T)
 
 
 
@@ -229,13 +231,13 @@ contains
     state % dpdT = state % p / temp
     state % dpdr = state % p / dens
     state % dedT = state % e / temp
-    state % dedr = 0.d0
-    state % dsdT = 0.d0
-    state % dsdr = 0.d0
+    state % dedr = ZERO
+    state % dsdT = ZERO
+    state % dsdr = ZERO
     state % dhdT = state % dedT + state % dpdT / dens
-    state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
+    state % dhdr = state % dedr + (gamma_const - ONE) * state % p / dens**2
 
-    state % cv = dedT
+    state % cv = state % dedT
     state % cp = gamma_const * state % cv
 
     state % gam1 = gamma_const
@@ -256,7 +258,7 @@ contains
     call composition_derivatives(state, assume_neutral)
 
     ! sound speed
-    state % cs = sqrt(gamma_const*pres/dens)
+    state % cs = sqrt(gamma_const * state % p / dens)
 
     return
   end subroutine eos
