@@ -464,6 +464,8 @@
       double precision :: rhoInv,ux
       integer          :: i
 
+      type (eos_t) :: eos_state
+
       c = ZERO
 
 !     Compute soundspeed from the EOS
@@ -512,6 +514,8 @@
 
       double precision :: rhoInv
       integer          :: i
+
+      type (eos_t) :: eos_state
 
       s = ZERO
 
