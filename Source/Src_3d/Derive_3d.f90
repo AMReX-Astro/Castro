@@ -588,7 +588,7 @@
       !
       ! Compute Mach number of the flow.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,c,e,T,Y,rhoInv,ux,uy,uz,eos_state)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)

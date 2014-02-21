@@ -23,7 +23,7 @@
       ! Reset internal energy
       if (allow_negative_energy .eq. 0) then
 
-         !$OMP PARALLEL DO PRIVATE(i,j,k,pt_index,Up,Vp,Wp,ke,rho_eint,x_in,dummy_pres,eint_new)
+         !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,Up,Vp,Wp,ke,rho_eint,x_in,eint_new)
          do k = lo(3),hi(3)
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)

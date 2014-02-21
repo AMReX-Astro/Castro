@@ -30,7 +30,7 @@
 
       type (eos_t) :: eos_state
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,pt_index,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
       do k = lo(3), hi(3)
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
