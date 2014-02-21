@@ -39,8 +39,8 @@
 
       do i = lo(1),hi(1)
 
-         eos_state % rho = state(i,j,URHO)
-         eos_state % e   = state(i,j,UEINT) / state(i,URHO)
+         eos_state % rho = state(i,URHO)
+         eos_state % e   = state(i,UEINT) / state(i,URHO)
          eos_state % xn  = state(i,UFS:UFS+nspec-1) / state(i,URHO)
 
          pt_index(1) = i
@@ -51,8 +51,8 @@
 
          ! Reset energy in case we floored
 
-         state(i,UEINT) = state(i,j,URHO) * eos_state % e
-         state(i,UEDEN) = state(i,j,UEINT) + HALF * (state(i,UMX)**2) / state(i,URHO)
+         state(i,UEINT) = state(i,URHO) * eos_state % e
+         state(i,UEDEN) = state(i,UEINT) + HALF * (state(i,UMX)**2) / state(i,URHO)
 
       enddo
 
