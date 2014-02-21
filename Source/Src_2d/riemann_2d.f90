@@ -690,7 +690,7 @@ contains
     alpha = pstar-(gstar-1.0d0)*p/(gam-1.0d0)
     if (alpha == 0.0d0) alpha = smlp1*(pstar + p)
 
-    beta = pstar + 0.5d0*(gstar-1.0)*(pstar+p)
+    beta = pstar + 0.5d0*(gstar-1.0d0)*(pstar+p)
 
     wsq = (pstar-p)*beta/(v*alpha)
 
