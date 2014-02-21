@@ -307,8 +307,8 @@ contains
        ! Solve for the density, energy and pressure:
 
        eint = enth / gamma_const
+       dens = ((gamma_const - ONE) * enth / K_const)**(ONE / (gamma_const - ONE))
        pres = (gamma_const - ONE) * dens * eint
-       dens = (pres / K_const)**(ONE / gamma_const)
 
 
 
