@@ -33,7 +33,7 @@ module eos_module
 
   implicit none
 
-  double precision, save, private :: gamma_const, K_const
+  double precision, save, private :: gamma_const, gm1, K_const
   double precision, save, private :: mu_e
   integer         , save, private :: polytrope
   logical         , save, private :: assume_neutral
@@ -72,13 +72,15 @@ contains
       else
         call bl_error('EOS: Polytrope type currently not defined')
       endif
-    elseif (polytrope_gamma .gt. 0.d0 .and. polytrope_K .gt. 0.d0) then
+    elseif (polytrope_gamma .gt. ZERO .and. polytrope_K .gt. ZERO) then
       gamma_const = polytrope_gamma
       K_const     = polytrope_K
-      mu_e        = 2.0d0 ! This will not be used
+      mu_e        = TWO ! This will not be used
     else
       call bl_error('EOS: Neither polytrope type nor both gamma and K are defined')
     endif
+
+    gm1 = gamma_const - ONE
 
     assume_neutral = eos_assume_neutral
 
@@ -132,8 +134,6 @@ contains
   !---------------------------------------------------------------------------
   subroutine eos(input, state, do_eos_diag_in, pt_index)
 
-    use fundamental_constants_module, only: k_B, n_A, hbar
-
     implicit none
     integer,           intent(in   ) :: input
     type (eos_t),      intent(inout) :: state
@@ -142,14 +142,8 @@ contains
 
     ! Local variables
     double precision :: dens, temp, enth, pres, eint, entr
-    double precision :: dmudX
 
-    ! get the mass of a nucleon from Avogadro's number.
-    double precision, parameter :: m_nucleon = ONE / n_A
-
-    double precision, parameter :: init_test = -1.0d199
-
-    integer :: k, n
+    integer :: n
 
     ! Make sure EOS is initialized before coming here.
     if (.not. initialized) call bl_error('EOS: not initialized')
@@ -204,7 +198,7 @@ contains
 
        ! Solve for the pressure and energy:
 
-       pres = enth * dens * (gamma_const - ONE) / gamma_const
+       pres = enth * dens * gm1 / gamma_const
        eint = enth / gamma_const
 
 
@@ -219,7 +213,7 @@ contains
        ! Solve for the pressure, energy and enthalpy:
 
        pres = K_const * dens**gamma_const
-       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       enth = pres / dens * gamma_const / gm1
        eint = enth / gamma_const
 
 
@@ -234,7 +228,7 @@ contains
        ! Solve for the density, energy and enthalpy:
 
        dens = (pres / K_const)**(ONE / gamma_const)
-       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       enth = pres / dens * gamma_const / gm1
        eint = enth / gamma_const
 
 
@@ -248,7 +242,7 @@ contains
 
        ! Solve for the enthalpy and energy:
 
-       enth = (pres / dens) * gamma_const / (gamma_const - ONE)
+       enth = (pres / dens) * gamma_const / gm1
        eint = enth / gamma_const
 
 
@@ -262,7 +256,7 @@ contains
 
        ! Solve for the pressure and enthalpy:
 
-       pres = (gamma_const - one) * dens * eint
+       pres = gm1 * dens * eint
 
 
     case (eos_input_ps)
@@ -276,7 +270,7 @@ contains
        ! Solve for the density, energy and enthalpy:
 
        dens = (pres / K_const)**(ONE / gamma_const)
-       enth = pres / dens * gamma_const / (gamma_const - ONE)
+       enth = pres / dens * gamma_const / gm1
        eint = enth / gamma_const
 
 
@@ -300,15 +294,15 @@ contains
 
        ! temperature, enthalpy and xmass are inputs
 
-       if (state % t .lt. init_test .or. state % h .lt. init_test) then
+       if (state % T .lt. init_test .or. state % h .lt. init_test) then
          call bl_error("EOS called with temperature and enthalpy as inputs, but these were not initialized.")
        endif
 
        ! Solve for the density, energy and pressure:
 
        eint = enth / gamma_const
-       dens = ((gamma_const - ONE) * enth / K_const)**(ONE / (gamma_const - ONE))
-       pres = (gamma_const - ONE) * dens * eint
+       dens = (gm1 / gamma_const * enth / K_const)**(ONE / gm1)
+       pres = gm1 * dens * eint
 
 
 
@@ -337,7 +331,7 @@ contains
     state % dsdT = ZERO
     state % dsdr = ZERO
     state % dhdT = ZERO
-    state % dhdr = state % dedr + (gamma_const - ONE) * pres / dens**2
+    state % dhdr = state % dedr + gm1 * pres / dens**2
 
     state % cv = state % dedT
     state % cp = gamma_const * state % cv
