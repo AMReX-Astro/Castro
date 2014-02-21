@@ -375,11 +375,10 @@ contains
      endif
 
      converged = .false.
-     xnew = ZERO
 
      do iter = 1, max_newton
 
-        ! For each iteration, start by filling the state with the EOS
+        ! Fill the state with the EOS
 
         call helmeos(do_coulomb, eosfail, state)
 
@@ -388,7 +387,11 @@ contains
           return
         endif
 
-        ! First, figure out what variable we're working with
+        ! IF we're converged, exit the loop
+
+        if (converged) return
+
+        ! Figure out what variable we're working with
 
         if (dvar .eq. itemp) then
 
@@ -469,26 +472,23 @@ contains
           print *, 'XNEW AFTER ', iter, xnew
         endif
 
-        ! Compute the error
-
-        error = abs( (xnew - x) / x )
-
-        if (error .lt. xtol) then
-          converged = .true.
-          return
-        endif
-
-        ! Store the new temperature/density if we're still iterating
+        ! Store the new temperature/density
 
         if (dvar .eq. itemp) then
           state % T    = xnew
         else
           state % rho  = xnew
         endif
+
+        ! Compute the error from the last iteration
+
+        error = abs( (xnew - x) / x )
+
+        if (error .lt. xtol) converged = .true.
                
      enddo
 
-     ! Call error if too many iterations are needed
+     ! Call error if too many iterations were needed
 
      if (.not. converged) ierr = ierr_iter_conv
 
@@ -516,14 +516,9 @@ contains
 
      converged = .false.     
 
-     ! First pass
-
-     rnew = ZERO
-     tnew = ZERO
-
      do iter = 1, max_newton
 
-        ! Start each iteration by filling the state with the EOS
+        ! Fill the state with the EOS
 
         call helmeos(do_coulomb, eosfail, state)
 
@@ -532,7 +527,11 @@ contains
           return
         endif
 
-        ! First, figure out which variables we're using
+        ! If we're converged, exit the loop
+
+        if (converged) return
+        
+        ! Figure out which variables we're using
  
         temp = state % T
         dens = state % rho
@@ -626,18 +625,15 @@ contains
            print *, 'TNEW AFTER ', iter, tnew
         endif
 
+        ! Store the new temperature and density
+        state % rho = rnew
+        state % T   = tnew
+
         ! Compute the errors
         error1 = abs( (rnew - dens) / dens )
         error2 = abs( (tnew - temp) / temp )
 
-        if (error1 .LT. dtol .and. error2 .LT. ttol) then
-          converged = .true.
-          exit
-        endif
-     
-        ! Store the new temperature and density if we're still iterating
-        state % rho = rnew
-        state % T   = tnew
+        if (error1 .LT. dtol .and. error2 .LT. ttol) converged = .true.
                 
      enddo
 
