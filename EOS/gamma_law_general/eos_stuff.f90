@@ -248,6 +248,10 @@ contains
 
     state % gam1 = gamma_const
 
+    state % dpdr_e = state % dpdr - state % dpdT * state % dedr / state % dedT
+    state % dpde   = state % dpdT / state % dedT
+
+ 
     ! Get dpdX, dedX, dhdX.
 
     state % dpdA = - state % p / state % abar
