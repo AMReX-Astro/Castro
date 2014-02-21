@@ -9,6 +9,7 @@ CEXE_sources += main.cpp
 
 CEXE_headers += Castro.H
 CEXE_headers += Problem.H
+CEXE_headers += Problem_Derives.H
 
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp

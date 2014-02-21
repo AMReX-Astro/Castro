@@ -880,6 +880,11 @@ Castro::variableSetUp ()
 
 #endif
 
+
+    // 
+    // Problem-specific adds
+#include <Problem_Derives.H>
+
     //
     // DEFINE ERROR ESTIMATION QUANTITIES
     //
