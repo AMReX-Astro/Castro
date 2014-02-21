@@ -5,7 +5,7 @@
 #include <ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
-#include "Derive_F.H"
+#include <Derive_F.H>
 #ifdef RADIATION
 # include "Radiation.H"
 # include "RAD_F.H"
