@@ -375,18 +375,18 @@ contains
      endif
 
      converged = .false.
-
-     ! First pass
-     call helmeos(do_coulomb, eosfail, state)
-
-     if (eosfail) then
-       ierr = ierr_general
-       return
-     endif
-
      xnew = ZERO
 
      do iter = 1, max_newton
+
+        ! For each iteration, start by filling the state with the EOS
+
+        call helmeos(do_coulomb, eosfail, state)
+
+        if (eosfail) then
+          ierr = ierr_general
+          return
+        endif
 
         ! First, figure out what variable we're working with
 
@@ -477,7 +477,7 @@ contains
           converged = .true.
           return
         endif
-        
+
         ! Store the new temperature/density if we're still iterating
 
         if (dvar .eq. itemp) then
@@ -485,14 +485,7 @@ contains
         else
           state % rho  = xnew
         endif
-
-        call helmeos(do_coulomb, eosfail, state)
-
-        if (eosfail) then
-          ierr = ierr_general
-          return
-        endif
-        
+               
      enddo
 
      ! Call error if too many iterations are needed
@@ -524,17 +517,20 @@ contains
      converged = .false.     
 
      ! First pass
-     call helmeos(do_coulomb, eosfail, state)
-
-     if (eosfail) then
-       ierr = ierr_general
-       return
-     endif
 
      rnew = ZERO
      tnew = ZERO
 
      do iter = 1, max_newton
+
+        ! Start each iteration by filling the state with the EOS
+
+        call helmeos(do_coulomb, eosfail, state)
+
+        if (eosfail) then
+          ierr = ierr_general
+          return
+        endif
 
         ! First, figure out which variables we're using
  
@@ -639,17 +635,10 @@ contains
           exit
         endif
      
-        ! Store the new temperature and density
+        ! Store the new temperature and density if we're still iterating
         state % rho = rnew
         state % T   = tnew
-        
-        call helmeos(do_coulomb, eosfail, state)
-
-        if (eosfail) then
-          ierr = ierr_general
-          return
-        endif
-        
+                
      enddo
 
      ! Call error if too many iterations are needed
