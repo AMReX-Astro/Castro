@@ -197,8 +197,8 @@ contains
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar
-    double precision :: ro, uo, po, reo, co, gamco, entho
+    double precision :: rstar, cstar, pstar
+    double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
@@ -238,8 +238,8 @@ contains
     !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
     !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
     !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
-    !$OMP PRIVATE(ro,uo,po,tauo,reo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
-    !$OMP PRIVATE(rstar,entho,estar,cstar,spout,spin,ushock,scr,frac) &
+    !$OMP PRIVATE(ro,uo,po,tauo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
+    !$OMP PRIVATE(rstar,cstar,spout,spin,ushock,scr,frac) &
     !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
     !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
     !$OMP PRIVATE(pstar_hist) &
@@ -307,7 +307,7 @@ contains
           rer = qr(i,j,kc,QREINT)
           gcr = gamcr(i,j)
 
-          if (rer <= 0.0d0 .or. pr < small_pres) then
+          if (rer <= 0.0d0 .or. pr <= small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
              eos_state%T = small_temp
              eos_state%rho = rr
@@ -329,7 +329,6 @@ contains
           clsql = gcl*pl*rl
           clsqr = gcr*pr*rr
           
-          ! gamma_e = p/(rho e) + 1
 
           ! Note: in the original Colella & Glaz paper, they predicted
           ! gamma_e to the interfaces using a special (non-hyperbolic)
@@ -341,8 +340,8 @@ contains
           
           ! these should consider a wider average of the cell-centered
           ! gammas
-          gmin = min(gamel, gamer, 4.d0/3.d0)
-          gmax = max(gamel, gamer, 5.d0/3.d0)
+          gmin = min(gamel, gamer, 1.0, 4.d0/3.d0)
+          gmax = max(gamel, gamer, 2.0, 5.d0/3.d0)
           
           game_bar = 0.5d0*(gamel + gamer)
           gamc_bar = 0.5d0*(gcl + gcr)
@@ -356,7 +355,8 @@ contains
           
           ! make an initial guess for pstar -- this is a two-shock 
           ! approximation
-          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
           pstar = max(pstar,small_pres)
 
           ! get the shock speeds -- this computes W_s from CG Eq. 34
@@ -377,13 +377,14 @@ contains
           ustarm = ur + (pstar-pr)/wr
 
           ! revise our pstar guess
-          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
           pstar = max(pstar,small_pres)
 
           ! sectant iteration
           converged = .false.
           iter = 1
-          do while (iter <= iter_max .and. .not. converged)
+          do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
                
              call wsqge(pl,taul,gamel,gdot,  &
                         gamstar,pstar,wlsq,clsql,gmin,gmax)
@@ -441,7 +442,10 @@ contains
           
           
           ! we converged!  construct the single ustar for the region
-          ! between the left and right waves
+          ! between the left and right waves, using the updated wave speeds
+          ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
+          ustarp = ul+(pl-pstar)*wl            
+
           ustar = 0.5d0* ( ustarp + ustarm )
 
           
@@ -453,7 +457,6 @@ contains
              uo = ul
              po = pl
              tauo = taul
-             reo = rel
              gamco = gcl
              gameo = gamel
              
@@ -462,20 +465,20 @@ contains
              uo = ur
              po = pr
              tauo = taur
-             reo = rer
              gamco = gcr
              gameo = gamer
           else
              ro = 0.5d0*(rl+rr)
              uo = 0.5d0*(ul+ur)
              po = 0.5d0*(pl+pr)
-             tauo = 1.d0/ro
-             reo = 0.5d0*(rel+rer)
+             tauo = 0.5d0*(taul+taur)
              gamco = 0.5d0*(gcl+gcr)
              gameo = 0.5d0*(gamel + gamer)
           endif
 
-          ro = max(small_dens,ro)
+          ! use tau = 1/rho as the independent variable here
+          ro = max(small_dens,1.0d0/tauo)
+          tauo = 1.0d0/ro
          
           co = sqrt(abs(gamco*po/ro))
           co = max(csmall,co)
@@ -493,13 +496,11 @@ contains
           dpjmp = pstar - po
 
           ! is this max really necessary?
-          rstar=max(1.d0-ro*dpjmp/wosq, (gameo-1.)/(gameo+1.))
+          !rstar=max(1.d0-ro*dpjmp/wosq, (gameo-1.d0)/(gameo+1.d0))
+          rstar=1.d0-ro*dpjmp/wosq
           rstar=ro/rstar
           rstar = max(small_dens,rstar)
 
-          entho = (reo/ro + po/ro)/co**2
-          estar = reo + (pstar - po)*entho
-          
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
           
@@ -507,19 +508,22 @@ contains
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
           
-          ushock = 0.5d0*(spin + spout)
+          !ushock = 0.5d0*(spin + spout)
+          ushock = wo/ro - sgnm*uo
           
           if (pstar-po .ge. 0.d0) then
              spin = ushock
              spout = ushock
           endif
-          if (spout-spin .eq. 0.d0) then
-             scr = small*cav(i,j)
-          else
-             scr = spout-spin
-          endif
-          frac = (1.d0 + (spout + spin)/scr)*0.5d0
-          frac = max(0.d0,min(1.d0,frac))
+          !if (spout-spin .eq. 0.d0) then
+          !   scr = small*cav(i,j)
+          !else
+          !   scr = spout-spin
+          !endif
+          !frac = (1.d0 + (spout + spin)/scr)*0.5d0
+          !frac = max(0.d0,min(1.d0,frac))
+
+          frac = 0.5d0*(1.0d0 + (spin + spout)/max(spout-spin,spin+spout, small*cav(i,j)))
 
           ! the transverse velocity states only depend on the
           ! direction that the contact moves
@@ -539,7 +543,6 @@ contains
           rgdnv = frac*rstar + (1.d0 - frac)*ro          
           ugdnv(i,j,kc) = frac*ustar + (1.d0 - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (1.d0 - frac)*po
-          !regdnv = frac*estar + (1.d0 - frac)*reo
           gamgdnv =  frac*gamstar + (1.d0-frac)*gameo          
 
           ! now handle the cases where instead we are fully in the
@@ -548,14 +551,12 @@ contains
              rgdnv = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
-             !regdnv = reo
              gamgdnv = gameo
           endif
           if (spin .ge. 0.d0) then
              rgdnv = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
-             !regdnv = estar
              gamgdnv = gamstar
           endif
           
@@ -609,10 +610,6 @@ contains
              uflx(i,j,kflux,UMY) = uflx(i,j,kflux,URHO)*v2gdnv
              uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
           endif
-
-          ! this is an alternate way to deal with the energy, but it ignores the gamstar stuff
-          !rhoetot = regdnv + 0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
-          !uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
           rhoetot = pgdnv(i,j,kc)/(gamgdnv - 1.0d0) + &
@@ -697,17 +694,14 @@ contains
 
   end subroutine riemanncg
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-    double precision divide,temp
 
     double precision, parameter :: smlp1 = 1.d-10
     double precision, parameter :: small = 1.d-7
+
+    double precision :: alpha, beta
 
     ! First predict a value of game across the shock
 
@@ -719,19 +713,25 @@ contains
     ! to compute the wave speed.
 
     ! CG Eq. 34
-    wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
-    temp = ((gstar-gam)/(gam-1.0d0))
+    ! wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
+    ! temp = ((gstar-gam)/(gam-1.0d0))
 
-    if (pstar-p == 0.0d0) then
-       divide=small
-    else
-       divide=pstar-p
-    endif
+    ! if (pstar-p == 0.0d0) then
+    !    divide=small
+    ! else
+    !    divide=pstar-p
+    ! endif
     
-    temp=temp/divide
-    wsq = wsq/(v - temp*p*v)
+    ! temp=temp/divide
+    ! wsq = wsq/(v - temp*p*v)
 
-    !if (abs(pstar/p-1.d0)-smlp1 .lt. 0.0d0 ) then
+    alpha = pstar-(gstar-1.0d0)*p/(gam-1.0d0)
+    if (alpha == 0.0d0) alpha = smlp1*(pstar + p)
+
+    beta = pstar + 0.5d0*(gstar-1.0d0)*(pstar+p)
+
+    wsq = (pstar-p)*beta/(v*alpha)
+
     if (abs(pstar - p) < smlp1*(pstar + p)) then
        wsq = csq
     endif
