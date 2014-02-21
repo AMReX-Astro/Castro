@@ -1,14 +1,9 @@
-      subroutine helmeos(do_coulomb, eosfail, &
-                         temp_row, den_row, abar_row, zbar_row, &
-                         etot_row, ptot_row,  &
-                         cv_row, cp_row, xne_row, xnp_row, etaele_row, &
-                         pele_row, ppos_row,  &
-                         dpd_row, dpt_row, dpa_row, dpz_row,  &
-                         ded_row, det_row, dea_row, dez_row,  &
-                         gam1_row, cs_row, stot_row, &
-                         dsd_row, dst_row)
+      subroutine helmeos(do_coulomb, eosfail, state)
 
       use bl_error_module
+      use bl_types
+      use eos_type_module
+
       implicit none
       include 'vector_eos_f90.dek'
 
@@ -38,6 +33,8 @@
 !        allowing for multiple threads to call eos simultaniously
 !..input arguments
       logical do_coulomb, eosfail
+      type (eos_t), intent(inout) :: state
+
       double precision temp_row, den_row, abar_row, &
                        zbar_row, etot_row, ptot_row, &
                        cv_row, cp_row,  &
@@ -52,11 +49,9 @@
 ! these directives are used by f2py to generate a python wrapper around this
 ! fortran code
 !
-!f2py intent(in) :: do_coulomb,temp_row,den_row,abar_row,zbar_row
-!f2py intent(out) :: eosfail,etot_row,ptot_row,cv_row,cp_row,xne_row
-!f2py intent(out) :: xnp_row,etaele_row,pele_row,ppos_row,dpd_row
-!f2py intent(out) :: dpt_row,dpa_row,dpz_row,ded_row,det_row,dea_row
-!f2py intent(out) :: dez_row,stot_row,dsd_row,dst_row,gam1_row,cs_row
+!f2py intent(in)    :: do_coulomb
+!f2py intent(out)   :: eosfail
+!f2py intent(inout) :: state
 
 !..declare some parameters
       double precision pi,amu,kerg,clight,avo,qe,h,ssol,asol
@@ -147,7 +142,6 @@
                         third = 1.0d0/3.0d0, &
                         esqu  = qe * qe)
 
-
 ! ======================================================================
 !..Define Statement Functions
 
@@ -216,6 +210,11 @@
 
 !..start of vectorization loop, normal executaion starts here
       eosfail = .false.
+
+      temp_row = state % T
+      den_row  = state % rho
+      abar_row = state % abar
+      zbar_row = state % zbar
 
       temp  = temp_row
       den   =  den_row
@@ -815,21 +814,21 @@
       dsp = -dentrdd*x/dpresdt - 1.0d0
 
       !...comment out storage to *_row arrays we dont use 
-      ptot_row   = pres
-       dpt_row   = dpresdt
-       dpd_row   = dpresdd
-       dpa_row   = dpresda   
-       dpz_row   = dpresdz
+      state % p    = pres
+      state % dpdT = dpresdt
+      state % dpdr = dpresdd
+      state % dpdA = dpresda   
+      state % dpdZ = dpresdz
 
-       etot_row   = ener
-       det_row    = denerdt
-       ded_row    = denerdd
-       dea_row    = denerda   
-       dez_row    = denerdz
+      state % e    = ener
+      state % dedT = denerdt
+      state % dedr = denerdd
+      state % dedA = denerda   
+      state % dedZ = denerdz
 
-       stot_row   = entr 
-       dst_row    = dentrdt
-       dsd_row    = dentrdd
+      state % s    = entr 
+      state % dsdT = dentrdt
+      state % dsdr = dentrdd
 !      dsa_row    = dentrda        
 !      dsz_row    = dentrdz
 
@@ -842,8 +841,8 @@
 !      sion_row   = sion 
 !      xni_row    = xni
 
-       pele_row   = pele
-       ppos_row   = 0.0d0
+       state % pele = pele
+       state % ppos = 0.0d0
 !      dpept_row  = dpepdt
 !      dpepd_row  = dpepdd
 !      dpepa_row  = dpepda  
@@ -864,14 +863,14 @@
 !      dsepz_row  = dsepdz
 
 !      xnem_row   = xnem
-       xne_row    = xnefer
+       state % xne = xnefer
 !      dxnet_row  = dxnedt
 !      dxned_row  = dxnedd
 !      dxnea_row  = dxneda
 !      dxnez_row  = dxnedz
-       xnp_row    = 0.0d0
+       state % xnp = 0.0d0
 
-       etaele_row = etaele
+       state % eta = etaele
 !      detat_row  = detadt
 !      detad_row  = detadd
 !      detaa_row  = detada
@@ -887,13 +886,22 @@
 !      dpe_row    = dpe
 !      dsp_row    = dsp
 
-       cv_row     = cv
-       cp_row     = cp
-       gam1_row   = gam1
+       state % cv   = cv
+       state % cp   = cp
+       state % gam1 = gam1
 !      gam2_row   = gam2
 !      gam3_row   = gam3
-       cs_row     = sound
+       state % cs   = sound
 
+       ! Save other information in the EOS state struct.
+
+       state % h    = ener + pres / den
+
+       state % dhdR = denerdd + dpresdd / den - pres / den**2
+       state % dhdT = denerdt + dpresdt / den
+       state % dpde = dpresdt / denerdt
+       state % dpdr_e = dpresdd - dpresdt * denerdd / denerdt
+       
       return
       end
 

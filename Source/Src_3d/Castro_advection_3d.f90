@@ -54,8 +54,8 @@ contains
     use ppm_module, only : ppm
     use slope_module, only : uslope, pslope
     use network
-    use eos_type_module
     use eos_module
+    use eos_type_module
     use riemann_module, only: cmpflx
 
     implicit none
@@ -604,12 +604,14 @@ contains
     !
     use network, only : nspec, naux
     use eos_module
+    use eos_type_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QFA, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
+    use bl_constants_module
 
     implicit none
 
@@ -641,6 +643,8 @@ contains
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
 
+    type (eos_t) :: eos_state
+
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
     allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
@@ -658,7 +662,7 @@ contains
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
              
-             if (uin(i,j,k,URHO) .le. 0.d0) then
+             if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
                 print *,'>>> ... negative density ',uin(i,j,k,URHO)
@@ -728,7 +732,7 @@ contains
     !$OMP END PARALLEL DO
 
     ! Get gamc, p, T, c, csml using q state
-    !$OMP PARALLEL DO PRIVATE(i,j,k,pt_index)
+    !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index)
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
@@ -736,28 +740,42 @@ contains
              pt_index(1) = i
              pt_index(2) = j
              pt_index(3) = k
+
+             eos_state % T   = q(i,j,k,QTEMP)
+             eos_state % rho = q(i,j,k,QRHO)
+             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
              
              ! If necessary, reset the energy using small_temp
-             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. 0)) then
+             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. ZERO)) then
                 q(i,j,k,QTEMP) = small_temp
-                call eos_given_RTX(q(i,j,k,QREINT),q(i,j,k,QPRES),q(i,j,k,QRHO), &
-                                   q(i,j,k,QTEMP),q(i,j,k,QFS:),pt_index=pt_index)
+                eos_state % T =  q(i,j,k,QTEMP)
 
-                if (q(i,j,k,QREINT) .lt. 0.d0) then
+                call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
+                q(i,j,k,QREINT) = eos_state % e
+
+                if (q(i,j,k,QREINT) .lt. ZERO) then
                    print *,'   '
                    print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
-                   print *,'>>> ... new e from eos_given_RTX call is negative ' &
+                   print *,'>>> ... new e from eos (input_rt) call is negative ' &
                         ,q(i,j,k,QREINT)
                    print *,'    '
                    call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
                 end if
              end if
 
-             call eos_given_ReX(gamc(i,j,k), q(i,j,k,QPRES), c(i,j,k), q(i,j,k,QTEMP), &
-                                dpdrho(i,j,k), dpde(i,j,k), &
-                                q(i,j,k,QRHO), q(i,j,k,QREINT), q(i,j,k,QFS:), &
-                                pt_index=pt_index)!, &
-             !                                  dpdX_er=dpdX_er(i,j,k,:))
+             eos_state % e = q(i,j,k,QREINT)
+
+             call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
+
+             q(i,j,k,QTEMP)  = eos_state % T
+             q(i,j,k,QREINT) = eos_state % e
+             q(i,j,k,QPRES)  = eos_state % p
+
+             dpdrho(i,j,k) = eos_state % dpdr_e
+             dpde(i,j,k)   = eos_state % dpde
+             c(i,j,k)      = eos_state % cs
+             gamc(i,j,k)   = eos_state % gam1
+
              csml(i,j,k) = max(small, small * c(i,j,k))
 
              ! convert "e" back to "rho e"
@@ -781,7 +799,7 @@ contains
              srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) &
                                                    - q(i,j,k,QV)*src(i,j,k,UMY) &
                                                    - q(i,j,k,QW)*src(i,j,k,UMZ) &
-                                    + 0.5d0 * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
+                                    + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
 
              srcQ(i,j,k,QPRES ) = dpde(i,j,k)*(srcQ(i,j,k,QREINT) - &
                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)/q(i,j,k,QRHO)) /q(i,j,k,QRHO) + &
@@ -830,7 +848,7 @@ contains
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
              
-             if (courx .gt. 1.d0) then
+             if (courx .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -839,7 +857,7 @@ contains
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
              
-             if (coury .gt. 1.d0) then
+             if (coury .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
@@ -848,7 +866,7 @@ contains
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
              
-             if (courz .gt. 1.d0) then
+             if (courz .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
@@ -877,7 +895,7 @@ contains
                     q(q_l1,q_l2,q_l3,QW), &
                     flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
     else
-       flatn = 1.d0
+       flatn = ONE
     endif
 
     deallocate(dpdrho,dpde)

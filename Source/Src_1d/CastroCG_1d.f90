@@ -96,6 +96,7 @@ contains
                                      QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
                                      QGAMC,QGAME, nadv, small_temp, allow_negative_energy
       use advection_module, only : uflaten
+      use bl_constants_module
 
       implicit none
 
@@ -131,6 +132,8 @@ contains
 
       double precision, allocatable :: dpdrho(:), dpde(:)
 
+      type (eos_t) :: eos_state
+
       loq(1) = lo(1)-ngp
       hiq(1) = hi(1)+ngp
 
@@ -141,7 +144,7 @@ contains
       do i = loq(1),hiq(1)
          q(i,QRHO) = uin(i,URHO)
          q(i,QU) = uin(i,UMX)/uin(i,URHO)
-         eken = 0.5d0*q(i,QU)**2
+         eken = HALF*q(i,QU)**2
 !        q(i,QREINT) = uin(i,UEDEN)/q(i,QRHO) - eken
          q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
          q(i,QTEMP  ) = uin(i,UTEMP)
@@ -170,21 +173,37 @@ contains
 
 !     Get gamc, p, c, csml using q state
       do i = loq(1), hiq(1)
+         
+         eos_state % T   = q(i,QTEMP)
+         eos_state % rho = q(i,QRHO)
+         eos_state % xn  = q(i,QFS:QFS+nspec-1)
 
          ! If necessary, reset the energy using small_temp
-         if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. 0.d0) then
+         if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. ZERO) then
             q(i,QTEMP) = small_temp
-            call eos_given_RTX(q(i,QREINT),q(i,QPRES),q(i,QRHO),q(i,QTEMP),q(i,QFS:))
-            if (q(i,QREINT) .lt. 0.d0) then
+            eos_state % T = q(i,QTEMP)
+            
+            call eos(eos_input_rt, eos_state)
+            q(i,QREINT) = eos_state % e
+
+            if (q(i,QREINT) .lt. ZERO) then
                print *,'NEW E NEGATIVE IN CTOPRIM ',i,q(i,QREINT)
                call bl_error("Error:: CastroCG_1d.f90 :: ctoprimcg")
             end if
          end if
 
-         call eos_given_ReX(gamc(i), q(i,QPRES), c(i), q(i,QTEMP), dpdrho(i), dpde(i), &
-                            q(i,QRHO), q(i,QREINT), q(i,QFS:))
-         q(i,QGAMC) = gamc(i)
-         q(i,QGAME) = 1.d0+ q(i,QPRES) / (q(i,QRHO)*Q(i,QREINT))
+         eos_state % e = q(i,QREINT)
+
+         call eos(eos_input_re, eos_state)
+
+         q(i,QTEMP)  = eos_state % T
+         q(i,QREINT) = eos_state % e
+         q(i,QPRES)  = eos_state % p
+
+         gamc(i)     = eos_state % gam1
+         q(i,QGAMC)  = eos_state % gam1
+         q(i,QGAME)  = ONE + q(i,QPRES) / (q(i,QRHO)*Q(i,QREINT))
+
          csml(i) = max(small, small * c(i))
       end do
 
@@ -196,8 +215,8 @@ contains
          srcQ(i,QPRES  ) =    dpde(i)   * (src(i,UEDEN) - q(i,QU)*src(i,UMX)) / q(i,QRHO) &
                            +dpdrho(i) *  src(i,URHO)
 
-         srcQ(i,QFS:QFS+nspec-1) = 0.d0
-         srcQ(i,QFX:QFX+naux -1) = 0.d0
+         srcQ(i,QFS:QFS+nspec-1) = ZERO
+         srcQ(i,QFX:QFX+naux -1) = ZERO
 
       end do
 

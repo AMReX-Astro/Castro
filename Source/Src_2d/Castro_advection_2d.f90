@@ -251,7 +251,8 @@ contains
                                    QFA, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
-    
+    use bl_constants_module
+
     implicit none
     
     double precision, parameter:: small = 1.d-8
@@ -280,6 +281,8 @@ contains
     integer          :: ngp, ngf, loq(2), hiq(2)
     integer          :: iadv, ispec, iaux, n, nq
     double precision :: courx, coury, courmx, courmy
+
+    type (eos_t) :: eos_state
     
     allocate(     dpdrho(q_l1:q_h1,q_l2:q_h2))
     allocate(     dpde(q_l1:q_h1,q_l2:q_h2))
@@ -296,7 +299,7 @@ contains
     do j = loq(2),hiq(2)
        do i = loq(1),hiq(1)
 
-          if (uin(i,j,URHO) .le. 0.d0) then
+          if (uin(i,j,URHO) .le. ZERO) then
              print *,'   '
              print *,'>>> Error: Castro_2d::ctoprim ',i,j
              print *,'>>> ... negative density ',uin(i,j,URHO)
@@ -349,27 +352,43 @@ contains
     do j = loq(2), hiq(2)
        do i = loq(1), hiq(1)
 
+          pt_index(1) = i
+          pt_index(2) = j
+
+          eos_state % T   = q(i,j,QTEMP)
+          eos_state % rho = q(i,j,QRHO)
+          eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
+
           ! If necessary, reset the energy using small_temp
-          if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. 0)) then
+          if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then
              q(i,j,QTEMP) = small_temp
-             call eos_given_RTX(q(i,j,QREINT),q(i,j,QPRES),q(i,j,QRHO), &
-                                q(i,j,QTEMP),q(i,j,QFS:))
-             if (q(i,j,QREINT) .lt. 0.d0) then
+             eos_state % T = q(i,j,QTEMP)
+
+             call eos(eos_input_rt, eos_state, pt_index = pt_index)
+             q(i,j,QREINT) = eos_state % e
+
+             if (q(i,j,QREINT) .lt. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_2d::ctoprim ',i,j
-                print *,'>>> ... new e from eos_given_RTX call is negative ',q(i,j,QREINT)
+                print *,'>>> ... new e from eos (input_rt) call is negative ',q(i,j,QREINT)
                 print *,'    '
                 call bl_error("Error:: Castro_2d.f90 :: ctoprim")
              end if
           end if
-          
-          pt_index(1) = i
-          pt_index(2) = j
-          call eos_given_ReX(gamc(i,j), q(i,j,QPRES), c(i,j), q(i,j,QTEMP), &
-                             dpdrho(i,j), dpde(i,j), &
-                             q(i,j,QRHO), q(i,j,QREINT), q(i,j,QFS:), &
-                             pt_index=pt_index)!, &
-          !                              dpdX_er=dpdX_er(i,j,:))
+
+          eos_state % e = q(i,j,QREINT)
+
+          call eos(eos_input_re, eos_state, pt_index = pt_index)
+
+          q(i,j,QTEMP)  = eos_state % T
+          q(i,j,QREINT) = eos_state % e
+          q(i,j,QPRES)  = eos_state % p
+
+          dpdrho(i,j) = eos_state % dpdr_e
+          dpde(i,j)   = eos_state % dpde
+          c(i,j)      = eos_state % cs
+          gamc(i,j)   = eos_state % gam1
+
           csml(i,j) = max(small, small * c(i,j))
        end do
     end do
@@ -391,7 +410,7 @@ contains
           ! S_rhoe = S_rhoE - u . (S_rhoU - 0.5 u S_rho)
           srcQ(i,j,QREINT) = src(i,j,UEDEN) - q(i,j,QU) *src(i,j,UMX)   &
                                             - q(i,j,QV) *src(i,j,UMY) + &
-               0.5d0 * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
+               HALF * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
           srcQ(i,j,QPRES ) = dpde(i,j) * &
                (srcQ(i,j,QREINT) - q(i,j,QREINT)*srcQ(i,j,QRHO)/q(i,j,QRHO))/q(i,j,QRHO) + &
                dpdrho(i,j) * srcQ(i,j,QRHO)! + &
@@ -423,7 +442,7 @@ contains
           courmx = max( courmx, courx )
           courmy = max( courmy, coury )
           
-          if (courx .gt. 1.d0) then
+          if (courx .gt. ONE) then
              print *,'   '
              call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
              print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -432,7 +451,7 @@ contains
              print *,'>>> ... density             ',q(i,j,QRHO)
           end if
           
-          if (coury .gt. 1.d0) then
+          if (coury .gt. ONE) then
              print *,'   '
              call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
              print *,'>>> ... (v+c) * dt / dx > 1 ', coury
@@ -457,7 +476,7 @@ contains
             q(q_l1,q_l2,QV), &
             flatn,q_l1,q_l2,q_h1,q_h2)
     else
-       flatn = 1.d0
+       flatn = ONE
     endif
     
     deallocate(dpdrho,dpde)

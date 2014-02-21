@@ -29,7 +29,8 @@
       double precision :: xc,yc,zc,r
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
       double precision :: lo_i,lo_j,lo_k
-      double precision :: rho, e, G, P, C, T, dpdr, dpde, X(nspec)
+
+      type (eos_t) :: eos_state
 
       fac     = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -61,18 +62,16 @@
 
                else
 
-                  rho =  var(i,j,k,URHO)
-                  e   =  var(i,j,k,UEINT) / rho
-                  T   =  var(i,j,k,UTEMP)
-                  do n = 1, nspec
-                     X(n)= var(i,j,k,UFS+n-1)/rho
-                  enddo
+                  eos_state % rho = var(i,j,k,URHO)
+                  eos_state % e   = var(i,j,k,UEINT) / rho
+                  eos_state % T   = var(i,j,k,UTEMP)
+                  eos_state % xn  = var(i,j,k,UFS:UFS+nspec-1) / rho
    
                   ! Compute pressure from the EOS
                   pt_index(1) = i
                   pt_index(2) = j
                   pt_index(3) = k
-                  call eos_given_ReX(G, P, C, T, dpdr, dpde, rho, e, X, pt_index=pt_index)
+                  call eos(eos_input_re, eos_state, pt_index = pt_index)
 
                   lo_i =  problo(1) + dble(i)*dx(1) - center(1)
                   lo_j =  problo(2) + dble(j)*dx(2) - center(2)
@@ -89,7 +88,7 @@
                            index = int(r/dr)
 
                            if (index .le. n1d-1) then
-                              radial_pres(index) = radial_pres(index) + P
+                              radial_pres(index) = radial_pres(index) + eos_state % P
                            end if
 
                         end do

@@ -83,7 +83,7 @@
                             delta,xlo,xhi)
      use probdata_module
      use eos_module
-     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, small_temp
 
      implicit none
 
@@ -98,6 +98,8 @@
      double precision e,rho,u
      double precision pi
      integer i,j
+
+     type (eos_t) :: eos_state
 
      rhom = 0.5d0 * (rho1 - rho2)   ! McNally+ Eq. 2
      um = 0.5d0 * (u1 - u2)         ! McNally+ Eq. 4
@@ -165,10 +167,15 @@
 
             state(i,j,URHO) = rho
 
+            eos_state % rho = rho
+            eos_state % p   = pres
+            eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
+            eos_state % T   = small_temp ! Initial guess for EOS
+
             ! Get the temperature and internal energy assuming fixed pressure
-            call eos_e_given_RPX(e, state(i,j,UTEMP), &
-                 rho,pres,state(i,j,UFS:))
-            state(i,j,UEINT) = e * rho
+            call eos(eos_input_rp, eos_state)
+            state(i,j,UEINT) = eos_state % e * rho
+            state(i,j,UTEMP) = eos_state % T
                
             ! Total energy
             state(i,j,UEDEN) = state(i,j,UEINT) + 0.5d0 * &

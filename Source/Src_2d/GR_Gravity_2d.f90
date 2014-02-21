@@ -29,7 +29,8 @@
       double precision :: xc,yc,r
       double precision :: fac,xx,yy,dx_frac,dy_frac,vol_frac
       double precision :: lo_i,lo_j,rlo,rhi
-      double precision :: rho, e, G, P, C, T, dpdr, dpde, X(nspec)
+
+      type (eos_t) :: eos_state
 
       fac  = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -57,17 +58,15 @@
 
             else
 
-               rho =  var(i,j,URHO)
-               e   =  var(i,j,UEINT) / rho
-               T   =  var(i,j,UTEMP)
-               do n = 1, nspec
-                  X(n)= var(i,j,UFS+n-1)/rho
-               enddo
+               eos_state % rho = var(i,j,URHO)
+               eos_state % e   = var(i,j,UEINT) / rho
+               eos_state % T   = var(i,j,UTEMP)
+               eos_state % xn  = var(i,j,UFS:UFS+nspec-1) / rho 
 
                ! Compute pressure from the EOS
                pt_index(1) = i
                pt_index(2) = j
-               call eos_given_ReX(G, P, C, T, dpdr, dpde, rho, e, X, pt_index=pt_index)
+               call eos(eos_input_re, eos_state, pt_index = pt_index)
 
                ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be 
                !      doing monopole gravity
@@ -84,7 +83,7 @@
                      index = int(r/dr)
 
                      if (index .le. n1d-1) then
-                        radial_pres(index) = radial_pres(index) + vol_frac * P
+                        radial_pres(index) = radial_pres(index) + vol_frac * eos_state % P
                      end if
 
                   end do

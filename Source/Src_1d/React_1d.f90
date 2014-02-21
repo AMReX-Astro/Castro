@@ -7,6 +7,7 @@
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS, UFX, &
                                      small_temp, small_dens, allow_negative_energy
       use castro_burner_module
+      use bl_constants_module
 
       implicit none
 
@@ -19,11 +20,12 @@
       double precision reaction_terms(r_l1:r_h1,nspec+2)
       double precision time,dt_react
 
-      integer :: i,n
+      integer :: i
       integer :: pt_index(1)
-      double precision rho, rhoInv, u, ke, e_in, e_out, T_in, T_out
+      double precision rho, rhoInv, u, ke, e_in, e_out, T
       double precision x_in(nspec+naux), x_out(nspec+naux)
-      double precision dummy_gam, dummy_pres, dummy_c, dummy_dpdr, dummy_dpde
+
+      type (eos_t) :: eos_state
     
       do i = lo(1), hi(1)
 
@@ -31,40 +33,49 @@
 
            ! Define T from e 
            rho             = s_in(i,URHO)
-           rhoInv          = 1.d0 / rho
+           rhoInv          = ONE / rho
            u               = s_in(i,UMX)*rhoInv
-           ke              = 0.5d0 * u**2
+           ke              = HALF * u**2
            T_in            = s_in(i,UTEMP)
            x_in(1:nspec)   = s_in(i,UFS:UFS+nspec-1) * rhoInv
            if (naux > 0) &
              x_in(nspec+1:nspec+naux)   = s_in(i,UFX:UFX+naux-1) * rhoInv
    
-           ! NEW -- Define e from (rho e) *NOT* from (rho E)
            e_in            = s_in(i,UEINT) * rhoInv
 
            pt_index(1) = i
 
-           if (allow_negative_energy.eq.0 .and. e_in .le. 0.d0) then
-              print *,'... e negative in react_state: ',i,e_in
-              T_in = max(T_in, small_temp)
-              call eos_given_RTX(e_in, dummy_pres , rho, T_in, x_in, pt_index=pt_index)
-              if (e_in .lt. 0.d0) then
-                 print *,'... call to eos_given_RTX with small_temp still gives negative e ',e_in
+           eos_state % T   = T
+           eos_state % rho = rho
+           eos_state % e   = e_in
+           eos_state % xn  = x_in(1:nspec)
+
+           if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
+              print *, '... e negative in react_state: ', i, e_in
+              T = max(T, small_temp)
+              eos_state % T = T
+              call eos(eos_input_rt, eos_state, pt_index = pt_index)
+              e_in = eos_state % e
+              if (e_in .lt. ZERO) then
+                 print *, '... call to eos (input_rt) with small_temp still gives negative e ', e_in
                  call bl_error("Error:: React_1d.f90 :: ca_react_state")
               else
-                 print *,'... able to re-set using eos_given_RTX with small_temp ',e_in
+                 print *, '... able to re-set using eos (input_rt) with small_temp ', e_in
               end if
            end if
 
-           ! Use this call to define T_in
-           call eos_given_ReX(dummy_gam, dummy_pres , dummy_c, T_in, &
-                              dummy_dpdr, dummy_dpde, rho, e_in, x_in, pt_index=pt_index)
+           ! Use this call to define T
 
-           call burner(rho, T_in, x_in, e_in, dt_react, time, x_out, e_out)
+           call eos(eos_input_re, eos_state, pt_index = pt_index)
+
+           T = eos_state % T
+           e = eos_state % e
+
+           call burner(rho, T, x_in, e_in, dt_react, time, x_out, e_out)
 
            ! Make sure that species emerge in the proper range: [0,1]
            do n = 1, nspec
-             x_out(n) = max(min(x_out(n),1.d0),0.d0)
+             x_out(n) = max(min(x_out(n),ONE),ZERO)
            end do
 
            s_out(i,URHO)            = rho
@@ -82,13 +93,12 @@
                    rho*(e_out - e_in)
            end if
 
-           ! Use this call to define T_out
-           ! We initialize T_out = T_in so the eos will have an initial gues
-           T_out = T_in
-           call eos_given_ReX(dummy_gam, dummy_pres , dummy_c, T_out, &
-                              dummy_dpdr, dummy_dpde, rho, e_out, x_out, pt_index=pt_index)
+           ! Now update the temperature to match the new internal energy
+           
+           eos_state % e = e_out
+           call eos(eos_input_re, eos_state, pt_index = pt_index)
    
-           s_out(i,UTEMP)           = T_out
+           s_out(i,UTEMP)           = eos_state % T
 
         else
 

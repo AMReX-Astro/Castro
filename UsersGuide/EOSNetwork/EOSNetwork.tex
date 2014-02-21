@@ -26,21 +26,23 @@ documentation is available through that web site.  We use this EOS
 in the 1D core collapse supernova example in a later section.
 \end{itemize}
 
-Each EOS directory contains two subroutines by which it interfaces to
-the rest of the CASTRO code.  The first, 
+Each EOS should have two main routines by which it interfaces to the rest of CASTRO.
+At the beginning of the simulation, {\bf \rm eos\_init} will perform any initialization steps and save EOS variables (mainly \texttt{smallt}, the temperature floor, and \texttt{smalld}, the density floor). Then, whenever you want to call the EOS, use
 \[
-{\bf \rm EosGivenRTX}(e^\outp, p^\outp, \rho^\inp, T^\inp, X^\inp, n_{\rm spec}, Y^\inp, n_{\rm aux})
+{\bf \rm eos}(\texttt{eos\_input, eos\_state, do\_eos\_diag, pt\_index}).
 \]
-for non-analytic equations of state is a direct interface, in which density, species and auxiliary variables,
-and temperature are specified, and the necessary thermodynamical variables such as 
-internal energy, pressure, gamma, and sound speed are returned.
+The first argument specifies the inputs to the EOS, which will be held constant. The options that are currently available are stored in \texttt{EOS/eos\_data.F90}, and are always a combination of two thermodynamic quantities. For real (non-analytic) equations of state in which $\rho$, $T$ and species are the independent variables, such as the Helmholtz EOS, \texttt{eos\_input\_rt} directly calls the EOS and obtains the other thermodynamic variables (internal energy, pressure, $\gamma$, sound speed, etc.). For other inputs, e.g. \texttt{eos\_input\_re}, a Newton-Raphson iteration is performed to find the density or temperature that corresponds to the given input.
 
-The second routine, 
-\[
-{\bf \rm EosGivenReX}(\Gamma^\outp, p^\outp, c^\outp, T^\outp, \rho^\inp, e^\inp, X^\inp, n_{\rm spec}, Y^\inp, n_{\rm aux})
-\]
-for non-analytic equations of state uses a Newton iteration to find the temperature given
-the internal energy, density, and species and auxiliary variables.  
+The \texttt{eos\_state} variable is a Fortran derived type (similar to a C++ struct). It stores a complete set of thermodynamic variables. When calling the EOS, you should first fill the variables that are the inputs, for example with
+\begin{align*}
+  &\texttt{eos\_state } \% \texttt{ rho = state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ e   = state(i,j,k,UEINT) / state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)}.
+\end{align*}
+Whenever the \texttt{eos\_state} type is initialized, the thermodynamic state variables are filled with unphysical numbers. If you do not input the correct arguments to match your input quantities, the EOS will call an error. However, this means that it is good practice to fill the quantities that will be iterated over with an initial guess. The values they are initialized with will likely not converge. Usually a prior value of the temperature or density suffices if it's available, but if not then use \texttt{small\_temp} or \texttt{small\_dens}.
+
+The last two arguments are optional quantities: set \texttt{do\_eos\_diag} to \texttt{.true.} if you want diagnostic output as the iterations occur, and set \texttt{pt\_index} to be equal to the indices of the current zone if you want the zone information to be displayed on any error messages.
+
 \section{Burning Network}
 Burning network routines that come with CASTRO are (listed by directory name):
 \begin{itemize}

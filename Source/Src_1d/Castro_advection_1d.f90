@@ -114,6 +114,8 @@ contains
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
                                      QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
                                      nadv, small_temp, allow_negative_energy
+      use bl_constants_module
+
       implicit none
 
       double precision, parameter:: small = 1.d-8
@@ -148,6 +150,8 @@ contains
 
       double precision, allocatable :: dpdrho(:), dpde(:) !, dpdX_er(:,:)
 
+      type (eos_t) :: eos_state
+
       loq(1) = lo(1)-ngp
       hiq(1) = hi(1)+ngp
 
@@ -159,7 +163,7 @@ contains
 !     The temperature is used as an initial guess for the eos call and will be overwritten
       do i = loq(1),hiq(1)
 
-         if (uin(i,URHO) .le. 0.d0) then
+         if (uin(i,URHO) .le. ZERO) then
             print *,'   '
             print *,'>>> Error: Castro_1d::ctoprim ',i
             print *,'>>> ... negative density ',uin(i,URHO)
@@ -199,23 +203,43 @@ contains
 !     Get gamc, p, T, c, csml using q state
       do i = loq(1), hiq(1)
 
+         pt_index(1) = i
+
+         eos_state % T   = q(i,QTEMP)
+         eos_state % rho = q(i,QRHO)
+         eos_state % xn  = q(i,QFS:QFS+nspec-1)
+
          ! If necessary, reset the energy using small_temp
-         if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. 0.d0) then
+         if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. ZERO) then
+
             q(i,QTEMP) = small_temp
-            call eos_given_RTX(q(i,QREINT),q(i,QPRES),q(i,QRHO),q(i,QTEMP), q(i,QFS:))
-            if (q(i,QREINT) .lt. 0.d0) then
+            eos_state % T = q(i,QTEMP)
+
+            call eos(eos_input_rt, eos_state, pt_index = pt_index)
+            q(i,QREINT) = eos_state % e
+
+            if (q(i,QREINT) .lt. ZERO) then
                print *,'   '
                print *,'>>> Error: Castro_1d::ctoprim ',i
-               print *,'>>> ... new e from eos_given_RTX call is negative ',q(i,QREINT)
+               print *,'>>> ... new e from eos (input_rt) call is negative ',q(i,QREINT)
                print *,'    '
                call bl_error("Error:: Castro_1d.f90 :: ctoprim")
             end if
          end if
 
-         pt_index(1) = i
-         call eos_given_ReX(gamc(i), q(i,QPRES), c(i), q(i,QTEMP), dpdrho(i), dpde(i), &
-                            q(i,QRHO), q(i,QREINT), q(i,QFS:), pt_index=pt_index)!, &
-!                            dpdX_er=dpdX_er(i,:))
+         eos_state % e = q(i,QREINT)
+
+         call eos(eos_input_re, eos_state, pt_index = pt_index)
+
+         q(i,QTEMP)  = eos_state % T
+         q(i,QREINT) = eos_state % e
+         q(i,QPRES)  = eos_state % p
+
+         dpdrho(i) = eos_state % dpdr_e
+         dpde(i)   = eos_state % dpde
+         c(i)      = eos_state % cs
+         gamc(i)   = eos_state % gam1
+
          csml(i) = max(small, small * c(i))
       end do
 
@@ -254,7 +278,7 @@ contains
          courx  = ( c(i)+abs(q(i,QU)) ) * dt/dx
          courmx = max( courmx, courx )
 
-         if (courx .gt. 1.d0) then
+         if (courx .gt. ONE) then
             print *,'   '
             call bl_warning("Warning:: Castro_1d.f90 :: CFL violation in ctoprim")
             print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -274,7 +298,7 @@ contains
                       q(q_l1,QU), &
                       flatn,q_l1,q_h1)
       else
-         flatn = 1.d0
+         flatn = ONE
       endif
 
       deallocate(dpdrho,dpde)

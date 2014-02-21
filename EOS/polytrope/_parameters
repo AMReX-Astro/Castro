@@ -2,3 +2,4 @@ polytrope_type       integer  0
 polytrope_gamma      real     0.0d0
 polytrope_K          real     0.0d0
 polytrope_mu_e       real     2.0d0
+eos_assume_neutral   logical  .false.

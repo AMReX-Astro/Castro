@@ -1,4 +1,5 @@
 This is the general stellar equation of state developed by Frank
 Timmes (ASU).  This version was downloaded from his website and the
-interface was modified slightly for threadsafeness.  We thank Frank
-for making this EOS available.
+interface was modified both for thread safety and to use a derived
+type construct for passing thermodynamic quantities.  
+We thank Frank for making this EOS available.

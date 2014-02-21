@@ -2,8 +2,10 @@
 
      use network, only : nspec, naux
      use eos_module
+     use eos_type_module
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, &
-                                    UFX, allow_negative_energy
+                                    allow_negative_energy
+     use bl_constants_module
 
      implicit none
 
@@ -12,48 +14,48 @@
      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
      double precision :: dx(3), dt
 
-     double precision :: p, e, gamc, c, T, dpdr, dpde, xn(nspec+naux)
-     double precision :: rhoInv,ux,uy,uz,dt1,dt2,dt3
+     double precision :: rhoInv,ux,uy,uz,c,dt1,dt2,dt3
      double precision :: sqrtK,grid_scl,dt4
      integer          :: i,j,k
      integer          :: pt_index(3)
 
-     double precision, parameter :: onethird = 1.d0/3.d0
+     type (eos_t) :: eos_state
 
-     grid_scl = (dx(1)*dx(2)*dx(3))**onethird
+     grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
      ! Translate to primitive variables, compute sound speed (call eos)
-     !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,e,T,sqrtK,xn,pt_index,gamc,p,c,dpdr,dpde,dt1,dt2,dt3) REDUCTION(min:dt)
+     !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,sqrtK,eos_state,pt_index,dt1,dt2,dt3) REDUCTION(min:dt)
      do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
 
-               rhoInv = 1.d0/u(i,j,k,URHO)
+               rhoInv = ONE / u(i,j,k,URHO)
 
-               ux = u(i,j,k,UMX)*rhoInv
-               uy = u(i,j,k,UMY)*rhoInv
-               uz = u(i,j,k,UMZ)*rhoInv
-               T  = u(i,j,k,UTEMP)
+               ux = u(i,j,k,UMX) * rhoInv
+               uy = u(i,j,k,UMY) * rhoInv
+               uz = u(i,j,k,UMZ) * rhoInv
 
                ! Use internal energy for calculating dt 
-               e  = u(i,j,k,UEINT)*rhoInv
+               eos_state % e  = u(i,j,k,UEINT)*rhoInv
 
                if (UESGS .gt. -1) &
                   sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 
-               xn(1:nspec)=u(i,j,k,UFS:UFS+nspec-1)*rhoInv
-
-               if (naux > 0) &
-                  xn(nspec+1:nspec+naux)=u(i,j,k,UFX:UFX+naux-1)*rhoInv
-
                ! Protect against negative e
-               if (e .gt. 0.d0 .or. allow_negative_energy.eq.1) then
+               if (eos_state % e .gt. ZERO .or. allow_negative_energy .eq. 1) then
+                  eos_state % rho = u(i,j,k,URHO)
+                  eos_state % T   = u(i,j,k,UTEMP)
+                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+
                   pt_index(1) = i
                   pt_index(2) = j
                   pt_index(3) = k
-                  call eos_given_ReX(gamc,p,c,T,dpdr,dpde,u(i,j,k,URHO),e,xn,pt_index=pt_index)
+ 
+                  call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
+
+                  c = eos_state % cs
                else
-                  c = 0.d0
+                  c = ZERO
                end if
 
                dt1 = dx(1)/(c + abs(ux))

@@ -37,16 +37,20 @@
 
       do i = lo(1),hi(1)
 
-         xn(1:nspec)  = state(i,UFS:UFS+nspec-1) / state(i,URHO)
-         if (naux > 0) &
-           xn(nspec+1:nspec+naux) = state(i,UFX:UFX+naux-1) / state(i,URHO)
-
-         eint = state(i,UEINT) / state(i,URHO)
+         eos_state % rho = state(i,j,URHO)
+         eos_state % e   = state(i,j,UEINT) / state(i,URHO)
+         eos_state % xn  = state(i,UFS:UFS+nspec-1) / state(i,URHO)
 
          pt_index(1) = i
 
-         call eos_given_ReX(dummy_gam, dummy_pres , dummy_c, state(i,UTEMP), &
-                            dummy_dpdr, dummy_dpde, state(i,URHO), eint, xn, pt_index=pt_index)
+         call eos(eos_input_re, eos_state, pt_index = pt_index)
+
+         state(i,j,UTEMP) = eos_state % T
+
+         ! Reset energy in case we floored
+
+         state(i,j,UEINT) = state(i,j,URHO) * eos_state % e
+         state(i,j,UEDEN) = state(i,j,UEINT) + HALF * (state(i,UMX)**2) / state(i,URHO)
 
       enddo
 
