@@ -125,6 +125,8 @@ contains
        ! dens, temp and xmass are inputs
 
        ! We don't need to do anything here
+       temp = state % T
+       dens = state % rho
 
 
     case (eos_input_rh)
@@ -133,6 +135,7 @@ contains
 
        ! Solve for the temperature:
        ! h = e + p/rho = (p/rho)*[1 + 1/(gamma-1)] = (p/rho)*gamma/(gamma-1)
+       dens = state % rho
        temp = (state % h * state % mu * m_nucleon / k_B)*(gamma_const - ONE)/gamma_const
 
 
@@ -143,6 +146,7 @@ contains
        ! Solve for the density:
        ! p = rho k T / (mu m_nucleon)
        dens = state % p * state % mu * m_nucleon / (k_B * state % T)
+       temp = state % T
 
 
     case (eos_input_rp)
@@ -151,6 +155,7 @@ contains
 
        ! Solve for the temperature:
        ! p = rho k T / (mu m_nucleon)
+       dens = state % rho
        temp = state % p * state % mu * m_nucleon / (k_B * state % rho)
 
 
@@ -160,6 +165,7 @@ contains
 
        ! Solve for the temperature
        ! e = k T / [(mu m_nucleon)*(gamma-1)]
+       dens = state % rho
        temp = state % e * state % mu * m_nucleon * (gamma_const-ONE) / k_B
 
 
@@ -186,7 +192,6 @@ contains
 
        ! Solve for temperature and density
        dens = state % p / state % h * gamma_const / (gamma_const - ONE)
-
        temp = state % p * state % mu * m_nucleon / (k_B * dens)
 
 
@@ -197,6 +202,7 @@ contains
 
        ! Solve for density
        dens = state % p * state % mu * m_nucleon / (k_B * state % T)
+       temp = state % T
 
 
 
@@ -216,7 +222,7 @@ contains
 
     ! Compute the pressure simply from the ideal gas law, and the
     ! specific internal energy using the gamma-law EOS relation.
-    state % p = dens*k_B*temp/(mu*m_nucleon)
+    state % p = dens*k_B*temp/(state % mu*m_nucleon)
     state % e = state % p/(gamma_const - ONE)/dens
 
     ! enthalpy is h = e + p/rho
@@ -224,8 +230,8 @@ contains
 
     ! entropy (per gram) of an ideal monoatomic gas (the Sackur-Tetrode equation)
     ! NOTE: this expression is only valid for gamma = 5/3.
-    state % s = (k_B/(mu*m_nucleon))*(2.5_dp_t + &
-         log( ( (mu*m_nucleon)**2.5/dens )*(k_B*temp)**1.5_dp_t / (TWO*M_PI*hbar*hbar)**1.5_dp_t ) )
+    state % s = (k_B/(state % mu*m_nucleon))*(2.5_dp_t + &
+         log( ( (state % mu*m_nucleon)**2.5/dens )*(k_B*temp)**1.5_dp_t / (TWO*M_PI*hbar*hbar)**1.5_dp_t ) )
 
     ! Compute the thermodynamic derivatives and specific heats 
     state % dpdT = state % p / temp
