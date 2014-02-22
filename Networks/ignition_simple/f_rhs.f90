@@ -3,7 +3,6 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   use bl_types
   use bl_constants_module
   use network
-  use eos_module
   
   ! we get the thermodynamic state through the burner_aux module -- we freeze
   ! these to the values are the top of the timestep to avoid costly
