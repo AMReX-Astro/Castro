@@ -70,6 +70,7 @@ module eos_type_module
      double precision :: dpdr_e      
 
      double precision :: xn(nspec)   = init_num
+     double precision :: aux(naux)
      double precision :: cv          
      double precision :: cp          
      double precision :: xne         

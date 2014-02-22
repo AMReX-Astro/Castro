@@ -21,7 +21,7 @@ contains
 
     use eos_type_module
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QPRES, QREINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix
 
     implicit none
@@ -106,10 +106,11 @@ contains
              eos_state%T = 10000.0d0   
              
              ! minus state
-             eos_state%rho = qm(i,j,QRHO)
-             eos_state%p   = qm(i,j,QPRES)
-             eos_state%e   = qm(i,j,QREINT)/qm(i,j,QRHO)
-             eos_state%xn  = qm(i,j,QFS:QFS-1+nspec)
+             eos_state % rho = qm(i,j,QRHO)
+             eos_state % p   = qm(i,j,QPRES)
+             eos_state % e   = qm(i,j,QREINT)/qm(i,j,QRHO)
+             eos_state % xn  = qm(i,j,QFS:QFS-1+nspec)
+             eos_state % aux = qm(i,j,QFX:QFX-1+naux)
 
              call eos(eos_input_re, eos_state, .false.)
 
@@ -119,10 +120,11 @@ contains
 
 
              ! plus state
-             eos_state%rho = qp(i,j,QRHO)
-             eos_state%p   = qp(i,j,QPRES)
-             eos_state%e   = qp(i,j,QREINT)/qp(i,j,QRHO)
-             eos_state%xn  = qp(i,j,QFS:QFS-1+nspec)
+             eos_state % rho = qp(i,j,QRHO)
+             eos_state % p   = qp(i,j,QPRES)
+             eos_state % e   = qp(i,j,QREINT)/qp(i,j,QRHO)
+             eos_state % xn  = qp(i,j,QFS:QFS-1+nspec)
+             eos_state % aux = qp(i,j,QFX:QFX-1+naux)
 
              call eos(eos_input_re, eos_state, .false.)
 
@@ -280,16 +282,17 @@ contains
           ! sometimes we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
           ! consistent
-          if (rel <= 0.0d0 .or. pl <= small_pres) then
+          if (rel <= ZERO .or. pl <= small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
-             eos_state%T = small_temp
-             eos_state%rho = rl
-             eos_state%xn(:) = ql(i,j,QFS:QFS-1+nspec)
+             eos_state % T   = small_temp
+             eos_state % rho = rl
+             eos_state % xn  = ql(i,j,QFS:QFS-1+nspec)
+             eos_state % aux = ql(i,j,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
              rel = rl*eos_state%e
-             pl = eos_state%p
+             pl  = eos_state%p
              gcl = eos_state%gam1
           endif
 
@@ -309,16 +312,17 @@ contains
           rer = qr(i,j,QREINT)
           gcr = gamcr(i,j)
 
-          if (rer <= 0.0d0 .or. pr <= small_pres) then
+          if (rer <= ZERO .or. pr <= small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
-             eos_state%T = small_temp
-             eos_state%rho = rr
-             eos_state%xn(:) = qr(i,j,QFS:QFS-1+nspec)
+             eos_state % T   = small_temp
+             eos_state % rho = rr
+             eos_state % xn  = qr(i,j,QFS:QFS-1+nspec)
+             eos_state % aux = qr(i,j,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
              rer = rr*eos_state%e
-             pr = eos_state%p
+             pr  = eos_state%p
              gcr = eos_state%gam1
           endif
             

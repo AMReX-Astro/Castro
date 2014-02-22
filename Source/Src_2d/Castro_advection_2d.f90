@@ -358,6 +358,7 @@ contains
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
+          eos_state % aux = q(i,j,QFX:QFX+naux-1)
 
           ! If necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then

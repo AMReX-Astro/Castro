@@ -35,7 +35,8 @@
 
             eos_state % rho = u(i,URHO)
             eos_state % T   = u(i,UTEMP)
-            eos_state % xn = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
             pt_index(1) = i
 

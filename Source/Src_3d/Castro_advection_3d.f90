@@ -47,7 +47,7 @@ contains
                      ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                      pdivu, domlo, domhi)
 
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_temp_fix
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
@@ -282,10 +282,11 @@ contains
                 do i = ilo1-1, ihi1+1
                    do idim = 1, 3
                       do iwave = 1, 3
-                         eos_state%rho   = Ip(i,j,kc,idim,iwave,QRHO)
-                         eos_state%T     = Ip(i,j,kc,idim,iwave,QTEMP)
-                         eos_state%xn(:) = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
-                         
+                         eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
+                         eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
+                         eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
+                         eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX-1+naux)
+
                          call eos(eos_input_rt, eos_state, .false.)
                          
                          Ip(i,j,kc,idim,iwave,QPRES) = eos_state%p
@@ -293,9 +294,10 @@ contains
                          Ip_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
 
                          
-                         eos_state%rho   = Im(i,j,kc,idim,iwave,QRHO)
-                         eos_state%T     = Im(i,j,kc,idim,iwave,QTEMP)
-                         eos_state%xn(:) = Im(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
+                         eos_state % rho = Im(i,j,kc,idim,iwave,QRHO)
+                         eos_state % T   = Im(i,j,kc,idim,iwave,QTEMP)
+                         eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
+                         eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX-1+naux)
                          
                          call eos(eos_input_rt, eos_state, .false.)
                          
@@ -744,7 +746,8 @@ contains
              eos_state % T   = q(i,j,k,QTEMP)
              eos_state % rho = q(i,j,k,QRHO)
              eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-             
+             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)             
+
              ! If necessary, reset the energy using small_temp
              if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. ZERO)) then
                 q(i,j,k,QTEMP) = small_temp

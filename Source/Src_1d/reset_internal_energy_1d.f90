@@ -47,6 +47,7 @@
                eos_state % rho = u(i,URHO)
                eos_state % T   = small_temp
                eos_state % xn  = u(i,UFS:UFS+nspec-1) / u(i,URHO)   
+               eos_state % aux = u(i,UFX:UFX+naux-1) / u(i,URHO)
    
                pt_index(1) = i
 

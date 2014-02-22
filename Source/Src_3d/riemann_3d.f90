@@ -20,7 +20,7 @@ contains
 
     use eos_type_module
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QPRES, QREINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix
 
     implicit none
@@ -100,6 +100,7 @@ contains
              eos_state%p   = qm(i,j,kc,QPRES)
              eos_state%e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
              eos_state%xn  = qm(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%aux = qm(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_re, eos_state, .false.)
 
@@ -113,6 +114,7 @@ contains
              eos_state%p   = qp(i,j,kc,QPRES)
              eos_state%e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
              eos_state%xn  = qp(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%aux = qp(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_re, eos_state, .false.)
 
@@ -272,16 +274,17 @@ contains
           ! sometime we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
           ! consistent
-          if (rel <= 0.0d0 .or. pl <= small_pres) then
+          if (rel <= ZERO .or. pl <= small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
-             eos_state%T = small_temp
+             eos_state%T   = small_temp
              eos_state%rho = rl
-             eos_state%xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%xn  = ql(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%aux = ql(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
              rel = rl*eos_state%e
-             pl = eos_state%p
+             pl  = eos_state%p
              gcl = eos_state%gam1
           endif
 
@@ -307,16 +310,17 @@ contains
           rer = qr(i,j,kc,QREINT)
           gcr = gamcr(i,j)
 
-          if (rer <= 0.0d0 .or. pr <= small_pres) then
+          if (rer <= ZERO .or. pr <= small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
-             eos_state%T = small_temp
-             eos_state%rho = rr
-             eos_state%xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % T   = small_temp
+             eos_state % rho = rr
+             eos_state % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % aux = qr(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
              rer = rr*eos_state%e
-             pr = eos_state%p
+             pr  = eos_state%p
              gcr = eos_state%gam1
           endif
 

@@ -3,7 +3,7 @@
      use network, only : nspec, naux
      use eos_module
      use eos_type_module
-     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, &
+     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
                                     allow_negative_energy
      use bl_constants_module
 
@@ -46,6 +46,7 @@
                   eos_state % rho = u(i,j,k,URHO)
                   eos_state % T   = u(i,j,k,UTEMP)
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
                   pt_index(1) = i
                   pt_index(2) = j

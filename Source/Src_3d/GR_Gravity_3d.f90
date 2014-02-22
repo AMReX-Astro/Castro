@@ -7,9 +7,9 @@
                                     radial_pres,problo,&
                                     n1d,drdxfac,level)
       use probdata_module
-      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS
+      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
-      use network, only : nspec
+      use network, only : nspec, naux
 
       implicit none
 
@@ -66,6 +66,7 @@
                   eos_state % e   = var(i,j,k,UEINT) / rho
                   eos_state % T   = var(i,j,k,UTEMP)
                   eos_state % xn  = var(i,j,k,UFS:UFS+nspec-1) / rho
+                  eos_state % aux = var(i,j,k,UFX:UFX+naux-1) / rho
    
                   ! Compute pressure from the EOS
                   pt_index(1) = i

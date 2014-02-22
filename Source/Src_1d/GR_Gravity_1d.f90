@@ -5,9 +5,9 @@
       subroutine ca_compute_1d_gr_grav(var, r_l1, r_h1, grav, dx, problo)
 
       use probdata_module
-      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS
+      use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
-      use network                     , only : nspec
+      use network                     , only : nspec, naux
       use fundamental_constants_module, only : Gconst
       use bl_constants_module         
 
@@ -56,6 +56,7 @@
             eos_state % e   = var(i,UEINT) / var(i,URHO)
             eos_state % T   = var(i,UTEMP)
             eos_state % xn  = var(i,UFS:UFS+nspec-1) / var(i,URHO)
+            eos_state % aux = var(i,UFX:UFX+naux-1) / var(i,URHO)
 
             pt_index(1) = i
 

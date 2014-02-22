@@ -404,6 +404,7 @@
                rhoInv = ONE / u(i,j,k,URHO)
 
                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
                eos_state % rho = u(i,j,k,URHO)
                eos_state % T   = u(i,j,k,UTEMP)
                eos_state % e   = u(i,j,k,UEINT) * rhoInv
@@ -540,6 +541,7 @@
                if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
 
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
                   eos_state % rho = u(i,j,k,URHO) 
                   eos_state % T   = u(i,j,k,UTEMP)
 
@@ -603,6 +605,7 @@
                   eos_state % rho = u(i,j,k,URHO)
                   eos_state % T   = u(i,j,k,UTEMP)
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
                   call eos(eos_input_re, eos_state, .false.)
                   mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
@@ -659,6 +662,7 @@
                   eos_state % rho = u(i,j,k,URHO)
                   eos_state % T   = u(i,j,k,UTEMP)
                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
                   call eos(eos_input_re, eos_state, .false.)
                   s(i,j,k,1) = eos_state % s

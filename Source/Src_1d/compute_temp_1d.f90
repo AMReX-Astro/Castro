@@ -42,6 +42,7 @@
          eos_state % rho = state(i,URHO)
          eos_state % e   = state(i,UEINT) / state(i,URHO)
          eos_state % xn  = state(i,UFS:UFS+nspec-1) / state(i,URHO)
+         eos_state % aux = state(i,UFX:UFX+naux-1) / state(i,URHO)
 
          ! initial guess for iterations
          eos_state % T = state(i,UTEMP) 

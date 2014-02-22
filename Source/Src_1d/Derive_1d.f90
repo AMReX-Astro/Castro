@@ -213,6 +213,7 @@
          eos_state % e   = u(i,UEINT) * rhoInv
          eos_state % T   = u(i,UTEMP)
          eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+         eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
          ! Protect against negative internal energy
          if (allow_negative_energy .eq. 0 .and. eos_state % e .le. ZERO) then
@@ -324,6 +325,7 @@
          if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
 
             eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
             eos_state % rho = u(i,URHO)
             eos_state % T   = u(i,UTEMP)
 
@@ -377,6 +379,7 @@
             eos_state % rho = u(i,URHO)
             eos_state % T   = u(i,UTEMP)
             eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
             call eos(eos_input_re, eos_state)
 
@@ -430,6 +433,7 @@
             eos_state % T   = u(i,UTEMP)
             eos_state % rho = u(i,URHO)
             eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
             call eos(eos_input_re, eos_state)
             c(i,1) = c(i,1) + eos_state % cs
@@ -481,6 +485,7 @@
             eos_state % T   = u(i,UTEMP)
             eos_state % rho = u(i,URHO)
             eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
             call eos(eos_input_re, eos_state)
             c(i,1) = c(i,1) - eos_state % cs
@@ -529,6 +534,7 @@
             eos_state % rho = u(i,URHO)
             eos_state % T   = u(i,UTEMP)
             eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
             call eos(eos_input_re, eos_state)
             s(i,1) = eos_state % s

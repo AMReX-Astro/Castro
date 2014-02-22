@@ -55,6 +55,7 @@
            eos_state % rho = rho
            eos_state % e   = e_in
            eos_state % xn  = x_in(1:nspec)
+           eos_state % aux = x_in(nspec+1:nspec+naux)
 
            if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
               print *, '... e negative in react_state: ', i, j, e_in
@@ -106,7 +107,11 @@
 
            ! Now update the temperature to match the new internal energy
 
-           eos_state % e = e_out
+           eos_state % rho = rho 
+           eos_state % e   = e_out
+           eos_state % xn  = x_out(1:nspec)
+           eos_state % aux = x_out(nspec+1:nspec+naux)
+
            call eos(eos_input_re, eos_state, pt_index = pt_index)
 
            s_out(i,j,UTEMP)           = eos_state % T

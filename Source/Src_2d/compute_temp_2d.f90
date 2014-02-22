@@ -49,6 +49,7 @@
             eos_state % rho = state(i,j,URHO)
             eos_state % e   = state(i,j,UEINT) * rhoInv
             eos_state % xn  = state(i,j,UFS:UFS+nspec-1) * rhoInv
+            eos_state % aux = state(i,j,UFX:UFX+naux-1) * rhoInv
 
             eos_state % T   = state(i,j,UTEMP) ! Initial guess for EOS
    
