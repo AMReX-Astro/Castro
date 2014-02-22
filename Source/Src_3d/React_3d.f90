@@ -77,7 +77,7 @@
 
            ! Use this call to define T
 
-           call eos_eos_input_re, eos_state, pt_index = pt_index)
+           call eos(eos_input_re, eos_state, pt_index = pt_index)
 
            T = eos_state % T
            e = eos_state % e
