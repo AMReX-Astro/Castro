@@ -97,8 +97,7 @@ module eos_type_module
 
 contains
 
-
-
+  
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
@@ -126,7 +125,6 @@ contains
 
     do n = 1, nspec
        ymass = state % xn(n) / aion(n)
-       ysumi = ysumi + (ONE + zion(n)) * ymass
        ysum  = ysum  + ymass
        yzsum = yzsum + zion(n) * ymass
     enddo
@@ -137,17 +135,19 @@ contains
 
     if (assume_neutral) then
 
-      state % mu = state % abar
+       state % mu = state % abar
 
     else
 
-      state % mu = ONE / ysumi
+       do n = 1, nspec
+          ysumi = ysumi + (ONE + zion(n)) * ymass
+       enddo
 
-    endif       
+       state % mu = ONE / ysumi
 
+    endif
 
   end subroutine composition      
-
 
 
   subroutine composition_derivatives(state, assume_neutral)
