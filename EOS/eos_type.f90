@@ -140,6 +140,7 @@ contains
     else
 
        do n = 1, nspec
+          ymass = state % xn(n) / aion(n)
           ysumi = ysumi + (ONE + zion(n)) * ymass
        enddo
 
