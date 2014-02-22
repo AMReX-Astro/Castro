@@ -202,7 +202,7 @@ contains
 
          gamc(i)     = eos_state % gam1
          c(i)        = eos_state % cs
-         dpdrho(i)   = eos_state % dpdr
+         dpdrho(i)   = eos_state % dpdr_e
          dpde(i)     = eos_state % dpde
 
          q(i,QGAMC)  = eos_state % gam1
