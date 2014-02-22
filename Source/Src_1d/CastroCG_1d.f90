@@ -201,6 +201,10 @@ contains
          q(i,QPRES)  = eos_state % p
 
          gamc(i)     = eos_state % gam1
+         c(i)        = eos_state % cs
+         dpdrho(i)   = eos_state % dpdr
+         dpde(i)     = eos_state % dpde
+
          q(i,QGAMC)  = eos_state % gam1
          q(i,QGAME)  = ONE + q(i,QPRES) / (q(i,QRHO)*Q(i,QREINT))
 
