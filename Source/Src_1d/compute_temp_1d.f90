@@ -43,6 +43,9 @@
          eos_state % e   = state(i,UEINT) / state(i,URHO)
          eos_state % xn  = state(i,UFS:UFS+nspec-1) / state(i,URHO)
 
+         ! initial guess for iterations
+         eos_state % T = state(i,UTEMP) 
+
          pt_index(1) = i
 
          call eos(eos_input_re, eos_state, pt_index = pt_index)
