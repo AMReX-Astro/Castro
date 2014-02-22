@@ -116,6 +116,7 @@ contains
 
     ysum = ZERO
     yzsum = ZERO
+    ysumi = ZERO
 
     ! Calculate abar, the mean nucleon number,
     ! zbar, the mean proton number,
