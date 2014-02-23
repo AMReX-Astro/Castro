@@ -3,15 +3,17 @@ program testburn
   use bl_constants_module
   use bl_error_module
   use network
-  use eos_module, only : eos_init
-  use burner_module
+  use eos_module
+  use castro_burner_module
 
   implicit none
 
-  real(kind=dp_t) :: dens, temp, dt, rho_Hnuc
-  real(kind=dp_t), dimension(nspec) :: Xin, Xout, rho_omegadot
+  real(kind=dp_t) :: dens, temp, t, dt, ein, eout
+  real(kind=dp_t), dimension(nspec) :: Xin, Xout
   
   integer :: ic12, io16, img24
+
+  type (eos_t) :: eos_state
 
   call network_init()
   call eos_init()
@@ -31,17 +33,26 @@ program testburn
   Xin(io16) = 0.5_dp_t
   Xin(img24) = 0.0_dp_t
 
+  t = 0.0_dp_t
   dt = 0.06_dp_t
+
+  eos_state%rho = dens
+  eos_state%T = temp
+  eos_state%xn(:) = Xin(:)
+
+  call eos(eos_input_rt, eos_state)
+
+  ein = eos_state%e
 
   print *, 'calling the burner...'
 
 
-  call burner(dens, temp, Xin, dt, Xout, rho_omegadot, rho_Hnuc)
+  call burner(dens, temp, Xin, ein, dt, t, Xout, eout)
 
   print *, 'done!'
 
   print *, 'Xin:  ', Xin
   print *, 'Xout: ', Xout
-  print *, 'Hnuc (erg/g/s): ', rho_Hnuc/dens
+  print *, 'Hnuc (erg/g/s): ', eout-ein
 
 end program testburn

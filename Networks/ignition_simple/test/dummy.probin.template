@@ -1,0 +1,95 @@
+! This module stores the runtime parameters.  The probin_init() routine is
+! used to initialize the runtime parameters
+
+! this version is a stub -- useful for when we only need a container for 
+! parameters, but not for MAESTRO use.
+
+module probin_module
+
+  use bl_types
+
+  implicit none
+
+  private
+
+  @@declarationsA@@
+
+
+end module probin_module
+
+
+module extern_probin_module
+
+  use bl_types
+
+  implicit none
+
+  private
+
+  @@declarationsB@@
+
+end module extern_probin_module
+
+
+module runtime_init_module
+
+  use bl_error_module
+  use bl_types
+  use probin_module
+  use extern_probin_module
+
+  implicit none
+
+  @@namelist@@
+
+  private
+
+  public :: probin
+
+  public :: runtime_init, runtime_close
+
+contains
+
+  subroutine runtime_init()
+
+      use f2kcli
+      use bl_IO_module
+
+      character(len=128) :: fname
+      integer :: narg, farg
+
+      integer :: un
+      logical :: lexist
+
+      narg = command_argument_count()
+
+      farg = 1
+      if ( narg >= 1 ) then
+         call get_command_argument(farg, value = fname)
+         inquire(file = fname, exist = lexist )
+         if ( lexist ) then
+            farg = farg + 1
+            un = unit_new()
+            open(unit=un, file = fname, status = 'old', action = 'read')    
+            read(unit=un, nml = probin)                                     
+            close(unit=un)                                                  
+         else
+            call bl_error("ERROR: inputs file does not exist")              
+         endif                                                              
+      else                                                                  
+         call bl_error("ERROR: no inputs file specified")                   
+      endif                                                                 
+    
+  end subroutine runtime_init
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine runtime_close()
+
+    use probin_module
+
+  end subroutine runtime_close
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+end module runtime_init_module
