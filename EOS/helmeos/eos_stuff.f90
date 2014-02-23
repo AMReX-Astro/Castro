@@ -598,11 +598,12 @@ contains
         ! 0 = g + dgdr * delr + dgdt * delt
         !
 
-        delr = (fi*dgdt - gi*dfdt) / (dgdr*dfdt - dgdt*dfdr)
+        ! note that dfi/dT = - df/dT
+        delr = (-fi*dgdt + gi*dfdt) / (dgdr*dfdt - dgdt*dfdr)
 
         rnew = dens + delr
 
-        tnew = temp - (fi + dfdr*delr) / dfdt
+        tnew = temp + (fi - dfdr*delr) / dfdt
 
         if (eos_diag) then
            print *, 'RNEW FIRST ', dens, ' + ', &
