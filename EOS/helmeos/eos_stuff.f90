@@ -275,7 +275,7 @@ contains
        if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy and pressure
-       s_want = state % s
+       p_want = state % p
        h_want = state % h
 
        if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
