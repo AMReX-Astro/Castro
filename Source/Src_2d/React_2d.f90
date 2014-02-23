@@ -23,7 +23,7 @@
       double precision reaction_terms(r_l1:r_h1,r_l2:r_h2,nspec+2)
       double precision time,dt_react
 
-      integer          :: i,j
+      integer          :: i,j,n
       integer          :: pt_index(2)
       double precision :: rho, rhoInv, u, v, ke, e_in, e_out, T
       double precision :: x_in(nspec+naux), x_out(nspec+naux)
@@ -76,7 +76,7 @@
            call eos(eos_input_re, eos_state, pt_index = pt_index)
 
            T = eos_state % T
-           e = eos_state % e
+           e_in = eos_state % e
 
            call burner(rho, T, x_in, e_in, dt_react, time, x_out, e_out)
 
