@@ -182,7 +182,7 @@ contains
 
        ! Solve for the density
        ! rho = p mu m_nucleon / (k T)
-       dens = state % p * state % mu * m_nucleon / (k_B * state % T)
+       dens = state % p * state % mu * m_nucleon / (k_B * temp)
 
 
 
