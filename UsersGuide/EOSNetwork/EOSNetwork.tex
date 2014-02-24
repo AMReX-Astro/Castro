@@ -49,14 +49,8 @@ Please note that there is an important difference with how the Helmholtz EOS is 
 \section{Burning Network}
 Burning network routines that come with CASTRO are (listed by directory name):
 \begin{itemize}
-\item {\bf networks/null} directory describes a non-reacting white dwarf,
-with only hydrogen, helium and carbon12.   There are
-no auxiliary variables, and no reactions are allowed.
-\item {\bf networks/collapse} directory describes a pre-supernova neutron
-star with hydrogen, helium, oxygen and iron, There is one auxiliary
-variable, Ye, the electron fraction.  Again no reactions are
-allowed.
-\item {\bf networks/ignition} directory contains a single-step
+\item {\bf networks/general\_null} directory is a bare interface for a nuclear reaction network, but no reactions are enabled, and no auxiliary variables are accepted. It contains several sets of isotopes; for example, Networks/general\_null/triple\_alpha\_plus\_o.net would describe the triple-$\alpha$ reaction converting helium into carbon, as well as oxygen and iron.
+\item {\bf networks/ignition\_simple} directory contains a single-step
 $^{12}\mathrm{C}(^{12}\mathrm{C},\gamma)^{24}\mathrm{Mg}$ reaction.
 The carbon mass fraction equation appears as
 \begin{equation}
