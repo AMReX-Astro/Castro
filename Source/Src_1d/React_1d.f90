@@ -20,7 +20,7 @@
       double precision reaction_terms(r_l1:r_h1,nspec+2)
       double precision time,dt_react
 
-      integer :: i
+      integer :: i, n
       integer :: pt_index(1)
       double precision rho, rhoInv, u, ke, e_in, e_out, T
       double precision x_in(nspec+naux), x_out(nspec+naux)
@@ -36,7 +36,7 @@
            rhoInv          = ONE / rho
            u               = s_in(i,UMX)*rhoInv
            ke              = HALF * u**2
-           T_in            = s_in(i,UTEMP)
+           T               = s_in(i,UTEMP)
            x_in(1:nspec)   = s_in(i,UFS:UFS+nspec-1) * rhoInv
            if (naux > 0) &
              x_in(nspec+1:nspec+naux)   = s_in(i,UFX:UFX+naux-1) * rhoInv
@@ -70,7 +70,7 @@
            call eos(eos_input_re, eos_state, pt_index = pt_index)
 
            T = eos_state % T
-           e = eos_state % e
+           e_in = eos_state % e
 
            call burner(rho, T, x_in, e_in, dt_react, time, x_out, e_out)
 
