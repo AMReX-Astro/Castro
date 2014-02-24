@@ -2,6 +2,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
   use network   , only : network_species_index, nspec
+  use bl_error_module
   implicit none
 
   integer init, namlen
@@ -18,20 +19,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
 !     
-  integer maxlen
-  parameter (maxlen=256)
+  integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
-  end if
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
          
-! set namelist defaults
+  ! set namelist defaults
   
   T_l = 1.d9
   T_r = 5.d7
@@ -70,15 +67,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   io16 = network_species_index("oxygen-16")
 
   if (ic12 < 0 .or. io16 < 0) then
-     print *, "ERROR: species indices not found"
-     stop
+     call bl_error("ERROR: species indices not found")
   endif
 
 
   ! make sure that the carbon fraction falls between 0 and 1
   if (cfrac > 1.d0 .or. cfrac < 0.d0) then
-     print *, "ERROR: cfrac must fall between 0 and 1"
-     stop
+     call bl_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
   ! set the default mass fractions
@@ -88,7 +83,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xn(ic12) = cfrac
   xn(io16) = 1.d0 - cfrac
   
-
 end subroutine PROBINIT
 
 
@@ -133,6 +127,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision p_temp, eint_temp
   integer i
 
+  type (eos_t) :: eos_state
+
   do i = lo(1), hi(1)
      xcen = xmin + delta(1)*(dble(i) + 0.5d0)
 
@@ -146,11 +142,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      state(i,UFS:UFS-1+nspec) = state(i,URHO)*xn(1:nspec)
 
-     call eos_given_RTX(eint_temp, p_temp, state(i,URHO), state(i,UTEMP), xn)
+     eos_state%rho = state(i,URHO)
+     eos_state%T = state(i,UTEMP)
+     eos_state%xn(:) = xn
 
+     call eos(eos_input_rt, eos_state)
+    
      state(i,UMX  ) = 0.d0
-     state(i,UEDEN) = state(i,URHO)*eint_temp   ! if vel /= 0, then KE needs to be added
-     state(i,UEINT) = state(i,URHO)*eint_temp
+     state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added
+     state(i,UEINT) = state(i,URHO)*eos_state%e
             
   enddo
 
