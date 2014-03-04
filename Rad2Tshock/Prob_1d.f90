@@ -122,8 +122,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(1), xhi(1)
   
   integer :: i
-  double precision :: X(nspec)
-  double precision :: p, eint, xcell
+  double precision :: xcell, rhoInv
+  type(eos_t) :: eos_state
 
   do i = lo(1), hi(1)
   
@@ -153,12 +153,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UFX) = state(i,URHO)        
      end if
 
-     ! set the internal energy via the EOS
-     X(:) = state(i,UFS:UFS-1+nspec)/state(i,URHO)
-     call eos_given_RTX(eint, p, state(i,URHO), state(i,UTEMP), X)
+     eos_state % rho = state(i,URHO)
+     eos_state % T   = state(i,UTEMP)
+
+     rhoInv = 1.d0 / state(i,URHO)
+     eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
+     eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
+
+     call eos(eos_input_rt, eos_state)
      
-     state(i,UEINT) = state(i,URHO)*eint
-     state(i,UEDEN) = state(i,URHO)*eint + &
+     state(i,UEINT) = state(i,URHO) * eos_state % e
+     state(i,UEDEN) = state(i,UEINT) + &
           0.5*(state(i,UMX)**2)/state(i,URHO)                
   enddo
   
@@ -233,20 +238,28 @@ subroutine ca_hypfill(adv,adv_l1,adv_h1, &
   
   integer i, n
   
-  double precision :: X(nspec), eint, p
+  type(eos_t) :: eos_state
   double precision, save :: eint0, etot0, eint1, etot1
   logical, save :: first_call = .true.
   
   if (first_call) then
      first_call = .false.
      
-     x(:) = 1.d0
-     call eos_given_RTX(eint, p, rho0, T0, X)
-     eint0 = rho0 * eint
+     eos_state % rho = rho0
+     eos_state % T   =   T0
+     eos_state % xn  = 1.d0
+
+     call eos(eos_input_rt, eos_state)
+
+     eint0 = rho0 * eos_state % e
      etot0 = eint0 + 0.5*rho0*v0**2
-     
-     call eos_given_RTX(eint, p, rho1, T1, X)
-     eint1 = rho1 * eint
+
+     eos_state % rho = rho1
+     eos_state % T   =   T1
+
+     call eos(eos_input_rt, eos_state)
+
+     eint1 = rho1 * eos_state % e
      etot1 = eint1 + 0.5*rho1*v1**2         
   end if
   
