@@ -34,7 +34,7 @@ program riemann_exact
 
   ! microphysics
   call network_init()
-  call eos_init(gamma_in=1.4d0)
+  call eos_init()  !gamma_in=1.4d0)
 
   ! we need a composition to interface with our EOS, but we are not
   ! exploring composition jumps here.  We'll take a constant
