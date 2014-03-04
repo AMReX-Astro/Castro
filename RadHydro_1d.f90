@@ -60,7 +60,6 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   integer iflaten
 
   integer          :: i, g
-  integer          :: pt_index(1)
   integer          :: ngp, ngf, loq(1), hiq(1)
   integer          :: n, nq
   integer          :: iadv, ispec, iaux
@@ -69,6 +68,8 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   double precision, allocatable :: dpdrho(:), dpde(:), flatg(:)
 
   double precision :: csrad2, prad, Eddf, gamr
+
+  type(eos_t) :: eos_state
 
   loq(1) = lo(1)-ngp
   hiq(1) = hi(1)+ngp
@@ -119,9 +120,21 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
 !     Get gamc, p, T, c, csml using q state
   do i = loq(1), hiq(1)
-     pt_index(1) = i
-     call eos_given_ReX(gamcg(i), q(i,QPRES), cg(i), q(i,QTEMP), &
-          dpdrho(i), dpde(i), q(i,QRHO), q(i,QREINT), q(i,QFS:QVAR), pt_index)
+
+     eos_state % rho = q(i,QRHO)
+     eos_state % T   = q(i,QTEMP)
+     eos_state % e   = q(i,QREINT)
+     eos_state % xn  = q(i,QFS:QFS+nspec-1)
+     eos_state % aux = q(i,QFX:QFX+naux-1)
+
+     call eos(eos_input_re, eos_state)
+
+     q(i,QTEMP) = eos_state % T
+     q(i,QPRES) = eos_state % p
+     dpdrho(i)  = eos_state % dpdr
+     dpde(i)    = eos_state % dpde
+     gamcg(i)   = eos_state % gam1
+     cg(i)      = eos_state % cs
 
      csrad2 = 0.d0
      prad = 0.d0
@@ -1156,7 +1169,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      nstep_fsp)
 
   use network, only : nspec, naux
-  use eos_module
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
        normalize_species, small_pres, QRHO,QU, QPRES
   use rad_params_module, only : ngroups, nugroup, dlognu
