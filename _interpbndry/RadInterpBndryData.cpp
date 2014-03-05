@@ -136,7 +136,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
         const int* cbhi = crse_bx.hiVect();
         int mxlen = crse_bx.longside() + 2;
         if (pow(mxlen,(float)BL_SPACEDIM-1) > tmplen) {
-            delete derives;
+            delete [] derives;
 #if (BL_SPACEDIM == 1)
             derives = new Real[1];
 #else
@@ -150,9 +150,6 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
 	const int* lo = fine_bx.loVect();
 	const int* hi = fine_bx.hiVect();
 	const FArrayBox& fine_grd = fine[grd];
-        const int* finelo = fine_grd.loVect();
-        const int* finehi = fine_grd.hiVect();
-        const Real* finedat = fine_grd.dataPtr(f_start);
 
 	for (OrientationIter fi; fi; ++fi) {
 	    Orientation face(fi());
