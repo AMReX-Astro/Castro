@@ -1682,23 +1682,22 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
   if(Radiation::nGroups == 0) kappa_r.setVal(0.);
 
-  const BoxArray& grids = kappa_r.boxArray();
-  int nstate = castro->get_new_data(State_Type).nComp();
-  MultiFab state(grids, nstate, 1);
   Real time = castro->get_state_data(State_Type).curTime();
+  MultiFab& S_new = castro->get_new_data(State_Type);
+  int nstate = S_new.nComp();
 
-  FillPatchIterator fpi(*castro, state, 1, time, State_Type, 0, nstate);
+  FillPatchIterator fpi(*castro, S_new, 1, time, State_Type, 0, nstate);
   for( ; fpi.isValid(); ++fpi) {
     int i = fpi.index();
 
-    state[i].copy(fpi());
+    FArrayBox &state = fpi();
 
     const Box& reg = kappa_r[i].box();
 
     Fab temp(reg);
-    get_frhoe(temp, state[i], reg);
+    get_frhoe(temp, state, reg);
 
-    get_rosseland_and_temp(kappa_r[i], temp, state[i], reg, igroup);
+    get_rosseland_and_temp(kappa_r[i], temp, state, reg, igroup);
   }
 }
 
@@ -2484,7 +2483,6 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
   const BoxArray& grids = kappa_r.boxArray();
   int nstate = castro->get_new_data(State_Type).nComp();
-  MultiFab state(grids, nstate, 1);
   Real time = castro->get_state_data(State_Type).curTime();
 
   MultiFab Er(grids, 1, 1); 
@@ -2494,7 +2492,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     Er[fpi].copy(fpi());
   }
 
-  for(FillPatchIterator fpi(*castro, state, 1, time, State_Type, 0, nstate); 
+  for(FillPatchIterator fpi(*castro, Er, 1, time, State_Type, 0, nstate); 
       fpi.isValid(); ++fpi) {
 
     int i = fpi.index();
@@ -2743,14 +2741,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
 
   int ngrow = filter_prim_T;
   int ncomp = State.nComp();
-  MultiFab Sborder(grids,ncomp,ngrow);
-  
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  for (FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,
-			     0,ncomp); fpi.isValid(); ++fpi) {
-    Sborder[fpi].copy(fpi());
-  }
 
   MultiFab mask(grids,1,ngrow);
   mask.setVal(-1.0,ngrow);
@@ -2766,9 +2757,13 @@ void Radiation::filter_prim(int level, MultiFab& State)
     baf.coarsen(parent->refRatio(level));
   }
 
-  for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
-    const int i  = mfi.index();
-    const Box bx = mfi.validbox();
+  for (FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,
+			     0,ncomp); fpi.isValid(); ++fpi) {
+
+    const int i  = fpi.index();
+    const Box bx = fpi.validbox();
+
+    FArrayBox &Sborder = fpi();
 
     //    RealBox gridloc = RealBox(bx,geom.CellSize(),geom.ProbLo());
     RealBox gridloc = RealBox(bx, dx, prob_lo);
@@ -2787,7 +2782,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
 
     BL_FORT_PROC_CALL(CA_FILT_PRIM, ca_filt_prim)
       (bx.loVect(), bx.hiVect(), 
-       BL_TO_FORTRAN(Sborder[i]),
+       BL_TO_FORTRAN(Sborder),
        BL_TO_FORTRAN(State[i]),
        BL_TO_FORTRAN(mask_fab),
        &filter_prim_T, &filter_prim_S,
