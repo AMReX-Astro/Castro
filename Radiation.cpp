@@ -521,7 +521,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   // This call stores the value of surface_average in the kavg
   // routine.  The first three arguments are irrelevant here.
-  Real foo;
+  Real foo=0.0;
   FORT_KAVG(foo, foo, foo, surface_average);
 
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
@@ -818,9 +818,6 @@ void Radiation::checkPoint(int level,
   if (do_deferred_sync == 0) {
     return;
   }
-
-  Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
 
   char buf[64];
 
@@ -1909,7 +1906,6 @@ void Radiation::sync_solve(int crse_level)
 	//Er_new[i].plus(Ecorr[i]);
 	Er_new[i].plus(Ecorr[i],0,igroup,1);
 
-	const Box& sbox = S_new[i].box();
 	const Box& reg  = grids[i];
 
 	int indx1 = igroup -1;
@@ -1948,18 +1944,13 @@ void Radiation::sync_solve(int crse_level)
   int finalIndex = Radiation::nGroups - 1;
   for(level = crse_level; level <= fine_level; level++) {
     Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-    const BoxArray& grids = castro->boxArray();
 
     MultiFab& S_new = castro->get_new_data(State_Type);
 
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      const Box& sbox = S_new[i].box();
-      const Box& reg = grids[i];
-
       S_new[i].plus((ptemp[finalIndex][level])[i],0,Eden,1);
       S_new[i].plus((ptemp[finalIndex][level])[i],0,Eint,1);
-
     }
 
   }
@@ -2616,12 +2607,11 @@ void Radiation::EstTimeStep(Real & estdt, int level)
 {
   Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
   const Geometry& geom = parent->Geom(level);
-  const BoxArray& grids = castro->boxArray();
   Real time = castro->get_state_data(Rad_Type).curTime();
 
   if (nNeutrinoSpecies > 0 &&
       nNeutrinoGroups[0] > 0) {
-    Real derat = deltaEnergyRatMax(level);
+//    Real derat = deltaEnergyRatMax(level);
     Real dTrat = deltaTRatMax(level);
     Real dye   = deltaYeMax(level);
 
