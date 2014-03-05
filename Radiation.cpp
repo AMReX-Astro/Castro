@@ -1549,6 +1549,8 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
     BoxLib::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
   }
 
+  state.copy(temp,0,Temp,1);
+
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
       (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
@@ -1611,6 +1613,8 @@ void Radiation::get_rosseland_from_temp(Fab& kappa_r,
 
   const Box& kbox = kappa_r.box();
   const Box& sbox = state.box();
+
+  state.copy(temp,0,Temp,1);
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
@@ -2516,6 +2520,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     Fab c_v(reg);
     // 3rd arg is a dummy for Ye
     get_c_v(c_v, temp, temp, state, reg);
+
+    state.copy(temp,0,Temp,1);
 
     // compute rosseland
     if (use_opacity_table_module) {
