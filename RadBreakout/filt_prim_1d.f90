@@ -7,7 +7,7 @@ subroutine ca_filt_prim(lo, hi, &
 
   use probdata_module, only : filter_rhomax, filter_timemax
   use network, only : naux, nspec
-  use eos_module, only : eos_given_RTX
+  use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
        small_temp, small_dens, nadv
   use filter_module
@@ -31,7 +31,8 @@ subroutine ca_filt_prim(lo, hi, &
   !       It can appear in either valid cells or ghost cells. 
 
   integer :: i
-  double precision :: rhotmpinv, p, e, X(nspec+naux)
+  double precision :: rhotmpinv
+  type(eos_t) :: eos_state
   logical, allocatable :: filtered(:)
 
   allocate(filtered(lo(1):hi(1)))
@@ -120,24 +121,24 @@ subroutine ca_filt_prim(lo, hi, &
         Snew(i,URHO ) = max(Snew(i,URHO ), small_dens)
         Snew(i,UTEMP) = max(Snew(i,UTEMP), small_temp)
         
-        rhotmpinv = 1.d0 / Stmp(i,URHO)
-        
-        X(1:nspec) = Stmp(i,UFS:UFS-1+nspec) * rhotmpinv
-        
-        if (naux > 0) &
-             X(nspec+1:nspec+naux)  = Stmp(i,UFX:UFX+naux-1) * rhotmpinv
-        
-        call eos_given_RTX(e,p,Snew(i,URHO),Snew(i,UTEMP),X)
-        
-        Snew(i,UEINT) = Snew(i,URHO) * e
+        eos_state % rho = Snew(i,URHO)
+        eos_state % T = Snew(i,UTEMP)
+
+        rhotmpInv = 1.d0 / Stmp(i,URHO)
+        eos_state % xn  = Stmp(i,UFS:UFS+nspec-1) * rhotmpInv
+        eos_state % aux = Stmp(i,UFX:UFX+naux-1) * rhotmpInv
+
+        call eos(eos_input_rt, eos_state)
+     
+        Snew(i,UEINT) = Snew(i,URHO) * eos_state % e
         Snew(i,UEDEN) = Snew(i,UEINT) + &
              0.5*(Snew(i,UMX)**2)/Snew(i,URHO) 
         if (nadv > 0) then
            Snew(i,UFA:UFA-1+nadv) = Stmp(i,UFA:UFA-1+nadv) * rhotmpinv * Snew(i,URHO)
         end if
-        Snew(i,UFS:UFS-1+nspec) = X(1:nspec) * Snew(i,URHO)
+        Snew(i,UFS:UFS-1+nspec) = eos_state % xn * Snew(i,URHO)
         if (naux > 0) then
-           Snew(i,UFX:UFX-1+naux) = X(nspec+1:) * Snew(i,URHO)
+           Snew(i,UFX:UFX-1+naux) = eos_state % aux * Snew(i,URHO)
         end if
         
      end if

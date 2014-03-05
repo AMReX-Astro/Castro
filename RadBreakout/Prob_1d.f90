@@ -127,7 +127,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
-  use eos_module, only : eos_given_RTX
+  use eos_module
   use interpolate_module
   use fundamental_constants_module, only: k_B, n_A
   
@@ -141,13 +141,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(1), xhi(1)
   
   integer :: i, ii
-  double precision :: X(nspec+naux)
-  double precision :: p, eint, xcl, xx, vtot, vsub, rho, T, u, rhosub, Tsub, usub, dx_sub
+  double precision :: rhoInv, xcl, xx, vtot, vsub, rho, T, u, rhosub, Tsub, usub, dx_sub
   double precision :: rhowind0, rlast, rholast, Twind0, Tlast
   integer, parameter :: nsub = 16
   double precision :: rho_tmp, rbase, T_tmp
   double precision :: Ye, Abar, invmu
   double precision, parameter :: Tindex=0.5
+  type(eos_t) :: eos_state
 
   if (naux .ne. 2) then
      write(6,*) 'naux in network is not equal to 2'
@@ -236,12 +236,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      state(i,UFX+1) = invmu*rho
 
      ! set the internal energy via the EOS
-     X(1:nspec) = state(i,UFS:UFS-1+nspec)/state(i,URHO)
-     X(nspec+1:nspec+naux)  = state(i,UFX:UFX+naux-1)/state(i,URHO)
+     rhoInv = 1.d0 / state(i,URHO)
+     eos_state % rho = state(i,URHO)
+     eos_state % T   = state(i,UTEMP)
+     eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
+     eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
+
+     call eos(eos_input_rt, eos_state)
      
-     call eos_given_RTX(eint, p, state(i,URHO), state(i, UTEMP), X)
-     
-     state(i,UEINT) = state(i,URHO)*eint
+     state(i,UEINT) = state(i,URHO) * eos_state % e
      state(i,UEDEN) = state(i,UEINT) + & 
           0.5*(state(i,UMX)**2)/state(i,URHO)                
   enddo
