@@ -984,7 +984,7 @@ subroutine ca_opacs( lo, hi,  &
 end subroutine ca_opacs
 
 
-subroutine ca_compute_rosseland(  &
+subroutine ca_compute_rosseland( lo, hi, &
      kpr , kpr_l1, kpr_l2, kpr_h1, kpr_h2, &
      stat,stat_l1,stat_l2,stat_h1,stat_h2 )
 
@@ -995,6 +995,7 @@ subroutine ca_compute_rosseland(  &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) ::  kpr_l1, kpr_l2, kpr_h1, kpr_h2
   integer, intent(in) :: stat_l1,stat_l2,stat_h1,stat_h2
   double precision, intent(out) :: kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2,0:ngroups-1)
@@ -1009,8 +1010,8 @@ subroutine ca_compute_rosseland(  &
 
      nu = nugroup(g)
 
-     do j = kpr_l2, kpr_h2
-     do i = kpr_l1, kpr_h1
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,URHO)
         temp = stat(i,j,UTEMP)
@@ -1031,7 +1032,7 @@ subroutine ca_compute_rosseland(  &
 end subroutine ca_compute_rosseland
 
 
-subroutine ca_compute_planck(  &
+subroutine ca_compute_planck( lo, hi,  &
      kpp , kpp_l1, kpp_l2, kpp_h1, kpp_h2, &
      stat,stat_l1,stat_l2,stat_h1,stat_h2 )
 
@@ -1042,6 +1043,7 @@ subroutine ca_compute_planck(  &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) ::  kpp_l1, kpp_l2, kpp_h1, kpp_h2
   integer, intent(in) :: stat_l1,stat_l2,stat_h1,stat_h2
   double precision, intent(out) :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2,0:ngroups-1)
@@ -1056,8 +1058,8 @@ subroutine ca_compute_planck(  &
 
      nu = nugroup(g)
 
-     do j = kpp_l2, kpp_h2
-     do i = kpp_l1, kpp_h1
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,URHO)
         temp = stat(i,j,UTEMP)
@@ -1183,7 +1185,7 @@ end subroutine ca_rhstoer
 ! =======================================================================
 ! used by the hyperbolic solver
 
-subroutine ca_compute_powerlaw_kappa_s( &
+subroutine ca_compute_powerlaw_kappa_s( lo, hi, &
      & kappa, k_l1, k_l2, k_h1, k_h2, &
      &     u, u_l1, u_l2, u_h1, u_h2, &
      & kappa0, m, n, p, s0, sm, sn, sp, &
@@ -1194,6 +1196,7 @@ subroutine ca_compute_powerlaw_kappa_s( &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: k_l1, k_l2, k_h1, k_h2, &
                          u_l1, u_l2, u_h1, u_h2
   double precision, intent(out) :: kappa(k_l1:k_h1, k_l2:k_h2, 0:ngroups-1) 
@@ -1212,8 +1215,8 @@ subroutine ca_compute_powerlaw_kappa_s( &
      do g = 0, ngroups-1
         nup = nugroup(g)**p
         nusp = nugroup(g)**sp
-        do j = k_l2, k_h2
-           do i = k_l1, k_h1
+        do j    = lo(2), hi(2)
+           do i = lo(1), hi(1)
               Teff = max(u(i,j,UTEMP), tiny)
               Teff = Teff + Tfloor * exp(-Teff / (Tfloor + tiny))
               kf = kappa0 * (u(i,j,URHO) ** m) * (Teff ** (-n)) * nup
@@ -1227,15 +1230,17 @@ subroutine ca_compute_powerlaw_kappa_s( &
 end subroutine ca_compute_powerlaw_kappa_s
    
 
-subroutine ca_compute_powerlaw_kappa(kappa, k_l1, k_l2, k_h1, k_h2, &
-                                         u, u_l1, u_l2, u_h1, u_h2, &
-                                         kappa0, m, n, p, Tfloor, kfloor)
+subroutine ca_compute_powerlaw_kappa( lo, hi,  &
+     kappa, k_l1, k_l2, k_h1, k_h2, &
+     u    , u_l1, u_l2, u_h1, u_h2, &
+     kappa0, m, n, p, Tfloor, kfloor)
 
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: k_l1, k_l2, k_h1, k_h2, &
                          u_l1, u_l2, u_h1, u_h2
   double precision, intent(out) :: kappa(k_l1:k_h1, k_l2:k_h2, 0:ngroups-1)
@@ -1252,8 +1257,8 @@ subroutine ca_compute_powerlaw_kappa(kappa, k_l1, k_l2, k_h1, k_h2, &
      do g = 0, ngroups-1
         nup = nugroup(g)**p
 
-        do j = k_l2, k_h2
-        do i = k_l1, k_h1
+        do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
            Teff = max(u(i,j,UTEMP), tiny)
            Teff = Teff + Tfloor * exp(-Teff / (Tfloor + tiny))
            kf = kappa0 * (u(i,j,URHO) ** m) * (Teff ** (-n)) * nup

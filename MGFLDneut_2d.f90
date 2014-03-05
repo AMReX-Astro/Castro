@@ -1168,7 +1168,7 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
 end subroutine ca_ncupdate_matter_neut
 
 
-subroutine ca_compute_rosseland_neut(  &
+subroutine ca_compute_rosseland_neut( lo, hi,  &
      kpr , kpr_l1, kpr_l2, kpr_h1, kpr_h2, &
      stat,stat_l1,stat_l2,stat_h1,stat_h2 )
 
@@ -1178,6 +1178,7 @@ subroutine ca_compute_rosseland_neut(  &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) ::  kpr_l1,  kpr_h1,  kpr_l2,  kpr_h2
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2 
   double precision, intent(out) :: kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2,0:ngroups-1)
@@ -1197,8 +1198,8 @@ subroutine ca_compute_rosseland_neut(  &
 
      call prep_opacity(g, inu, er, der)
 
-     do j = kpr_l2, kpr_h2
-     do i = kpr_l1, kpr_h1
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,URHO)
         temp = stat(i,j,UTEMP)
@@ -1217,7 +1218,7 @@ subroutine ca_compute_rosseland_neut(  &
 end subroutine ca_compute_rosseland_neut
 
 
-subroutine ca_compute_planck_neut(  &
+subroutine ca_compute_planck_neut( lo, hi,  &
      kpp , kpp_l1, kpp_l2, kpp_h1, kpp_h2, &
      stat,stat_l1,stat_l2,stat_h1,stat_h2 )
 
@@ -1227,6 +1228,7 @@ subroutine ca_compute_planck_neut(  &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) ::  kpp_l1,  kpp_h1,  kpp_l2,  kpp_h2
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2 
   double precision, intent(out) :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2,0:ngroups-1)
@@ -1246,8 +1248,8 @@ subroutine ca_compute_planck_neut(  &
 
      call prep_opacity(g, inu, er, der)
 
-     do j = kpp_l2, kpp_h2
-     do i = kpp_l1, kpp_h1
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,URHO)
         temp = stat(i,j,UTEMP)

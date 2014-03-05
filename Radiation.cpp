@@ -1503,7 +1503,7 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-      (BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
   }
   else {
     FORT_FKPN(fkp.dataPtr(), dimlist(reg),
@@ -1551,7 +1551,7 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-      (BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering[0] > 0.0) {
     FORT_ROSSE1S(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
@@ -1588,7 +1588,7 @@ void Radiation::get_planck_from_temp(Fab& fkp, Fab& temp,
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-      (BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
   }
   else {
     FORT_FKPN(fkp.dataPtr(), dimlist(reg),
@@ -1614,7 +1614,7 @@ void Radiation::get_rosseland_from_temp(Fab& kappa_r,
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	(BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering[0] > 0.0) {
     FORT_ROSSE1S(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
@@ -1710,8 +1710,6 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
 
   BL_ASSERT(kappa_r.nGrow() == 1);
   BL_ASSERT(temp.nGrow()    == 0);
-
-  //  kappa_r.setVal(0.);
 
   const BoxArray& grids = kappa_r.boxArray();
   for (MFIter si(state); si.isValid(); ++si) {
@@ -2522,7 +2520,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     // compute rosseland
     if (use_opacity_table_module) {
       BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	(BL_TO_FORTRAN(kappa_r[i]), BL_TO_FORTRAN(state));
+	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[i]), BL_TO_FORTRAN(state));
     }
     else if (const_scattering[0] > 0.0) {
       FORT_ROSSE1S(kappa_r[i].dataPtr(igroup), dimlist(reg), dimlist(reg),

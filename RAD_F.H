@@ -196,12 +196,14 @@ BL_FORT_PROC_DECL(CA_DERYNUAE,ca_derynuae)
 #endif
 
 BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-     (BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
+     (const int lo[], const int hi[],
+      BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
       const Real* kappa0, const Real* m, const Real* n,  const Real* p, 
       const Real* Tfloor, const Real* kfloor);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
-     (BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
+     (const int lo[], const int hi[],
+      BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
       const Real* kappa0, const Real* m, const Real* n, const Real* p, 
       const Real* s0, const Real* sm, const Real* sn, const Real* sp, 
       const Real* Tfloor, const Real* kfloor);
@@ -419,10 +421,12 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
     const Real* r,
     const Real* dt, const int* igroup, const Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
-   (BL_FORT_FAB_ARG(kpr),
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
 BL_FORT_PROC_DECL(CA_COMPUTE_PLANCK_NEUT, ca_compute_planck_neut)
-   (BL_FORT_FAB_ARG(kpp),
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(kpp),
     const BL_FORT_FAB_ARG(state));
 BL_FORT_PROC_DECL(CA_LOCAL_ACCEL_NEUT, ca_local_accel_neut)
    (const int lo[], const int hi[],
@@ -615,10 +619,12 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
 #endif
 
 BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-   (BL_FORT_FAB_ARG(kpr),
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
 BL_FORT_PROC_DECL(CA_COMPUTE_PLANCK, ca_compute_planck)
-   (BL_FORT_FAB_ARG(kpp),
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(kpp),
     const BL_FORT_FAB_ARG(state));
 
 BL_FORT_PROC_DECL(CA_FILT_PRIM, ca_filt_prim)

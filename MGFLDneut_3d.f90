@@ -1279,7 +1279,7 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
 end subroutine ca_ncupdate_matter_neut
 
 
-subroutine ca_compute_rosseland_neut(  &
+subroutine ca_compute_rosseland_neut( lo, hi, &
      kpr , kpr_l1, kpr_l2, kpr_l3, kpr_h1, kpr_h2, kpr_h3, &
      stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 )
 
@@ -1289,6 +1289,7 @@ subroutine ca_compute_rosseland_neut(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) ::  kpr_l1,  kpr_h1,  kpr_l2,  kpr_h2,  kpr_l3,  kpr_h3
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2, stat_l3, stat_h3 
   double precision,intent(out)::kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,&
@@ -1309,9 +1310,9 @@ subroutine ca_compute_rosseland_neut(  &
 
      call prep_opacity(g, inu, er, der)
 
-     do k = kpr_l3, kpr_h3
-     do j = kpr_l2, kpr_h2
-     do i = kpr_l1, kpr_h1
+     do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,k,URHO)
         temp = stat(i,j,k,UTEMP)
@@ -1331,7 +1332,7 @@ subroutine ca_compute_rosseland_neut(  &
 end subroutine ca_compute_rosseland_neut
 
 
-subroutine ca_compute_planck_neut(  &
+subroutine ca_compute_planck_neut( lo, hi,  &
      kpp , kpp_l1, kpp_l2, kpp_l3, kpp_h1, kpp_h2, kpp_h3, &
      stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 )
 
@@ -1341,6 +1342,7 @@ subroutine ca_compute_planck_neut(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) ::  kpp_l1,  kpp_h1,  kpp_l2,  kpp_h2,  kpp_l3,  kpp_h3
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2, stat_l3, stat_h3 
   double precision, intent(out) :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,&
@@ -1361,9 +1363,9 @@ subroutine ca_compute_planck_neut(  &
 
      call prep_opacity(g, inu, er, der)
 
-     do k = kpp_l3, kpp_h3
-     do j = kpp_l2, kpp_h2
-     do i = kpp_l1, kpp_h1
+     do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
         rho = stat(i,j,k,URHO)
         temp = stat(i,j,k,UTEMP)
