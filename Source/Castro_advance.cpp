@@ -171,10 +171,16 @@ Castro::advance_hydro (Real time,
     // make sure these are filled to avoid check/plot file errors:
     get_old_data(Test_Type).setVal(0.0);
     get_new_data(Test_Type).setVal(0.0);
-    if (!do_radiation) {
+    if (do_radiation) {
+      get_old_data(Rad_Type).setBndry(0.0);
+      get_new_data(Rad_Type).setBndry(0.0);      
+    }
+    else {
       get_old_data(Rad_Type).setVal(0.0);
       get_new_data(Rad_Type).setVal(0.0);
     }
+    S_old.setBndry(0.0);
+    S_new.setBndry(0.0);
 #endif
 
 #if (BL_SPACEDIM > 1)
@@ -1019,10 +1025,16 @@ Castro::advance_no_hydro (Real time,
     // Make sure these are filled to avoid check/plot file errors:
     get_old_data(Test_Type).setVal(0.0);
     get_new_data(Test_Type).setVal(0.0);
-    if (!do_radiation) {
+    if (do_radiation) {
+      get_old_data(Rad_Type).setBndry(0.0);
+      get_new_data(Rad_Type).setBndry(0.0);      
+    }
+    else {
       get_old_data(Rad_Type).setVal(0.0);
       get_new_data(Rad_Type).setVal(0.0);
     }
+    S_old.setBndry(0.0);
+    S_new.setBndry(0.0);
 #endif
 
 #if (BL_SPACEDIM > 1)

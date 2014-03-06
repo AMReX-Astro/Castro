@@ -476,34 +476,6 @@ BL_FORT_PROC_DECL(CA_AUXUPDATE,ca_auxupdate)
      const Real * dt);
 #endif
 
-BL_FORT_PROC_DECL(CA_COMPUTE_C_V,ca_compute_c_v)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(cv),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(state));
-
-BL_FORT_PROC_DECL(CA_GET_RHOE,ca_get_rhoe)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(rhoe),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(state));
-
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_FOR_RAD,ca_compute_temp_for_rad)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(tempGuess),
-   const BL_FORT_FAB_ARG(state));
-
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
-  (const int lo[], const int hi[],
-   BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(rhoe),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(state));
-
 #if (BL_SPACEDIM > 1)
 BL_FORT_PROC_DECL(CA_COMPUTE_AVGSTATE,ca_compute_avgstate)
     (const int lo[], const int hi[], 

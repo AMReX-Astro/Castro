@@ -274,7 +274,7 @@ contains
           ! sometime we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
           ! consistent
-          if (rel <= ZERO .or. pl <= small_pres) then
+          if (rel <= 0.d0 .or. pl <= small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
              eos_state%T   = small_temp
              eos_state%rho = rl
@@ -310,7 +310,7 @@ contains
           rer = qr(i,j,kc,QREINT)
           gcr = gamcr(i,j)
 
-          if (rer <= ZERO .or. pr <= small_pres) then
+          if (rer <= 0.d0 .or. pr <= small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
              eos_state % T   = small_temp
              eos_state % rho = rr
