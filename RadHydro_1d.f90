@@ -131,7 +131,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
      q(i,QTEMP) = eos_state % T
      q(i,QPRES) = eos_state % p
-     dpdrho(i)  = eos_state % dpdr
+     dpdrho(i)  = eos_state % dpdr_e
      dpde(i)    = eos_state % dpde
      gamcg(i)   = eos_state % gam1
      cg(i)      = eos_state % cs
