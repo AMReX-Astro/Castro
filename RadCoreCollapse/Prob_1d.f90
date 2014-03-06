@@ -196,10 +196,10 @@
       double precision state(state_l1:state_h1,nscal)
 
       integer i,n
-      double precision :: u, pres, dist
+      double precision :: u, dist
       double precision :: x1, x2, y1, y2
       double precision :: a, c, a_vel, b_vel
-      double precision :: x_in(nspec+naux)
+      type(eos_t) :: eos_state
 
       double precision, dimension(lo(1)-4:hi(1)+4) :: t_rho, t_temp, t_ye, t_mx
       integer, parameter :: S=3
@@ -286,15 +286,20 @@
          ! Set default species concentration to 1.
          state(i,UFS) = 1.d0
 
-         call eos_given_RTX(state(i,UEDEN),pres,state(i,URHO),state(i,UTEMP),state(i,UFS:))
+         eos_state % rho = state(i,URHO)
+         eos_state % T   = state(i,UTEMP)
+         eos_state % xn  = state(i,UFS:UFS+nspec-1)
+         eos_state % aux = state(i,UFX:UFX+naux-1)
+
+         call eos(eos_input_rt, eos_state)
 
          u = state(i,UMX) / state(i,URHO)
 
          ! Convert e to rho*e
-         state(i,UEINT) = state(i,URHO) * state(i,UEDEN)
+         state(i,UEINT) = state(i,URHO) * eos_state % e
 
          ! Convert e to rho*E = rho*(e + 1/2 u^2)
-         state(i,UEDEN) = state(i,URHO) * (state(i,UEDEN) + 0.5d0*(u**2))
+         state(i,UEDEN) = state(i,URHO) * (eos_state % e + 0.5d0*(u**2))
 
          ! Convert Y to (rho*Y)
          do n = 1,nspec
