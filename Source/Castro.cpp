@@ -389,7 +389,7 @@ Castro::read_params ()
     pp.query("print_fortran_warnings",print_fortran_warnings);
 
 
-    if (ppm_reference > 2 || ppm_reference < 0)
+    if (ppm_reference > 1 || ppm_reference < 0)
       {
         std::cerr << "invalid ppm_reference\n";
         BoxLib::Error();
