@@ -1,7 +1,6 @@
 
 #include <ParmParse.H>
 #include <AmrLevel.H>
-#include <LO_BCTYPES.H>
 
 #include <LO_BCTYPES.H>
 #include <CompSolver.H>
