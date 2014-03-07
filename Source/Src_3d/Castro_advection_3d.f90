@@ -255,6 +255,7 @@ contains
           do n=1,QVAR
              call ppm(q(:,:,:,n  ),  qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           end do
@@ -263,6 +264,7 @@ contains
              do n=1,3
                 call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
              enddo
@@ -272,6 +274,7 @@ contains
           if (ppm_temp_fix /= 1) then
              call ppm(gamc(:,:,:),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           endif
