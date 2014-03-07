@@ -5,4 +5,10 @@ HYPRE_DIR ?= /path/to/Hypre
 
 RADIATION_DIR = ../../../CastroRadiation
 
+
+USE_MPI    = TRUE
+USE_HYPRE  = TRUE
+USE_RAD    = TRUE
+RAD_INTERP = TRUE
+
 include $(CASTRO_DIR)/Exec/Make.Castro
