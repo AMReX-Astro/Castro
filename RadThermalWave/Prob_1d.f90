@@ -118,7 +118,7 @@
       double precision state(state_l1:state_h1, nscal)
 
       integer i
-      double precision :: X(nspec)
+      type(eos_t) :: eos_state
       double precision :: rho, cv, T, p, eint, xcell
       double precision :: rhoeexp, Vexp, rhoe0
 
@@ -128,8 +128,16 @@
 
       rho = 1.0d0
       T = 1.0d0
-      X = 1.0d0
-      call eos_get_cv(cv, rho, T, X) 
+
+      eos_state % rho = rho
+      eos_state % T   = T
+      eos_state % xn  = 0.d0
+      eos_state % xn(1)  = 1.d0
+
+      call eos(eos_input_rt, eos_state)
+
+      cv = eos_state % cv
+
       rho = rhocv / cv
 
       eint = rhoeexp / rho

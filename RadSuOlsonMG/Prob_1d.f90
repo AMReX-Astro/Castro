@@ -3,7 +3,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
   use network, only : network_init
-!  use eos_module
   use fundamental_constants_module, only : c_light, a_rad
   implicit none
 
@@ -117,8 +116,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
-  use eos_module, only : eos_given_RTX
-  use fundamental_constants_module, only : k_B, a_rad
   
   implicit none
   
@@ -162,7 +159,6 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
      delta,xlo,xhi)
 
   use probdata_module
-  use fundamental_constants_module, only: a_rad
   
   implicit none
   integer :: level, nrad

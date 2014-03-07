@@ -106,8 +106,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use network, only : nspec
-  use eos_module, only : eos_given_RTX
-  use fundamental_constants_module, only : k_B, a_rad
   
   implicit none
   
@@ -148,7 +146,6 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
      delta,xlo,xhi)
 
   use probdata_module
-  use fundamental_constants_module, only: a_rad
   
   implicit none
   integer :: level, nrad
@@ -158,7 +155,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   double precision ::  rad_state(rad_state_l1:rad_state_h1, nrad)
 
   ! local variables
-  integer :: i,j
+  integer :: i
              
   do i = lo(1), hi(1)
      rad_state(i,:) = 0.0

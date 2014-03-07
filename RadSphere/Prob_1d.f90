@@ -11,7 +11,7 @@
       integer :: name(namlen)
       double precision :: problo(1), probhi(1)
 
-      double precision :: X_in(nspec), e_0, P_0
+      type(eos_t) :: eos_state
 
       integer :: untin,i
 
@@ -54,12 +54,14 @@
       read(untin,fortin)
       close(unit=untin)
 
-      X_in(:) = 0.0
-      X_in(1) = 1.d0
-      ! set the internal energy via the EOS
-      call eos_given_RTX(e_0, P_0, rho_0, T_0, X_in)
-      
-      rhoe_0 = rho_0*e_eos
+      eos_state % rho = rho_0
+      eos_state % T   = T_0
+      eos_state % xn  = 0.d0
+      eos_state % xn(1) = 1.d0
+
+      call eos(eos_input_rt, eos_state)
+
+      rhoe_0 = rho_0 * eos_state % e
 
 !     set local variable defaults
 
@@ -100,7 +102,6 @@
      use probdata_module
      use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
      use network, only : nspec, naux
-     use eos_module
 
      implicit none
 
