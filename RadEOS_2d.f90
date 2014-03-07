@@ -26,7 +26,7 @@ subroutine ca_compute_c_v(lo, hi, &
 
         rhoInv = 1.d0 / state(i,j,URHO)
         eos_state % rho = state(i,j,URHO)
-        eos_state % T = temp(i,j)
+        eos_state % T   =  temp(i,j)
         eos_state % xn  = state(i,j,UFS:UFS+nspec-1) * rhoInv
         eos_state % aux = state(i,j,UFX:UFX+naux -1) * rhoInv
 
@@ -68,7 +68,7 @@ subroutine ca_get_rhoe(lo, hi, &
 
         rhoInv = 1.d0 / state(i,j,URHO)
         eos_state % rho = state(i,j,URHO)
-        eos_state % T   = temp(i,j)
+        eos_state % T   =  temp(i,j)
         eos_state % xn  = state(i,j,UFS:UFS+nspec-1) * rhoInv
         eos_state % aux = state(i,j,UFX:UFX+naux -1) * rhoInv
 
@@ -106,7 +106,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
         rhoInv = 1.d0 / state(i,j,URHO)
         eos_state % rho = state(i,j,URHO)
         eos_state % T   = state(i,j,UTEMP)
-        eos_state % e   = temp(i,j)*rhoInv 
+        eos_state % e   =  temp(i,j)*rhoInv 
         eos_state % xn  = state(i,j,UFS:UFS+nspec-1) * rhoInv
         eos_state % aux = state(i,j,UFX:UFX+naux -1) * rhoInv
 
@@ -335,7 +335,7 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
 
         rhoInv = 1.d0 / state(i,j,URHO)
         eos_state % rho = state(i,j,URHO)
-        eos_state % T = temp(i,j)
+        eos_state % T   =  temp(i,j)
         eos_state % xn  = state(i,j,UFS:UFS+nspec-1) * rhoInv
 
         if (naux > 0) then

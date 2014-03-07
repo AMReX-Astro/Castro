@@ -154,6 +154,7 @@ subroutine ctoprim_rad(lo,hi, &
            q(i,j,QTEMP) = small_temp
            eos_state % T = q(i,j,QTEMP)
            call eos(eos_input_rt, eos_state)
+           q(i,j,QPRES ) = eos_state % p
            q(i,j,QREINT) = eos_state % e
            if (q(i,j,QREINT) .lt. 0.d0) then
               print *,'   '
