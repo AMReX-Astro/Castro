@@ -8,6 +8,8 @@ DEBUG      = FALSE
 
 PROFILE    = FALSE
 
+USE_GRAV   = TRUE
+
 USE_NEUTRINO = FALSE
 
 EOS_dir     = breakout
