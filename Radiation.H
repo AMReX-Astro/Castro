@@ -236,7 +236,7 @@ protected:
 
   void get_frhoe(Fab& rhoe, Fab& state, const Box& reg);
 
-  void get_c_v(Fab& c_v, Fab& temp, Fab& Ye, Fab& state, const Box& reg);
+  void get_c_v(Fab& c_v, Fab& temp, Fab& state, const Box& reg);
 
   // temp contains frhoe on input:
 

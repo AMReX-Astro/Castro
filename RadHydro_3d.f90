@@ -72,13 +72,14 @@ subroutine ctoprim_rad(lo,hi, &
   double precision, allocatable:: flatg(:,:,:)
 
   integer          :: i, j, k, g
-  integer          :: pt_index(3)
   integer          :: loq(3), hiq(3)
   integer          :: n, nq
   integer          :: iadv, ispec, iaux
   double precision :: courx, coury, courz, courmx, courmy, courmz
 
   double precision :: csrad2, prad, Eddf, gamr
+
+  type(eos_t) :: eos_state
   
   allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
   allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
@@ -89,7 +90,7 @@ subroutine ctoprim_rad(lo,hi, &
      hiq(i) = hi(i)+ngp
   enddo
 
-  !$omp parallel private(i,j,k,g,pt_index,n,nq,iadv,ispec,iaux) &
+  !$omp parallel private(i,j,k,g,n,nq,iadv,ispec,iaux,eos_state) &
   !$omp private(courx,coury,courz,courmx,courmy,courmz,csrad2,prad,Eddf,gamr) &
   !$omp reduction(max:courno)
 
@@ -174,29 +175,37 @@ subroutine ctoprim_rad(lo,hi, &
      do j = loq(2), hiq(2)
         do i = loq(1), hiq(1)
  
-           pt_index(1) = i
-           pt_index(2) = j
-           pt_index(3) = k
+           eos_state % rho = q(i,j,k,QRHO)
+           eos_state % T   = q(i,j,k,QTEMP)
+           eos_state % e   = q(i,j,k,QREINT)
+           eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
+           eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
 
            ! If necessary, reset the energy using small_temp
            if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. 0)) then
               q(i,j,k,QTEMP) = small_temp
-              call eos_given_RTX(q(i,j,k,QREINT),q(i,j,k,QPRES),q(i,j,k,QRHO), &
-                   q(i,j,k,QTEMP),q(i,j,k,QFS:),pt_index)
+              eos_state % T = q(i,j,k,QTEMP)
+              call eos(eos_input_rt, eos_state)
+              q(i,j,k,QREINT) = eos_state % e
               if (q(i,j,k,QREINT) .lt. 0.d0) then
                  print *,'   '
-                 print *,'>>> Error: Castro_3d::ctoprim ',i,j,k
-                 print *,'>>> ... new e from eos_given_RTX call is negative ' &
+                 print *,'>>> Error: ctoprim ',i,j,k
+                 print *,'>>> ... new e from eos call is negative ' &
                       ,q(i,j,k,QREINT)
                  print *,'    '
-                 call bl_error("Error:: Castro_3d.f90 :: ctoprim")
+                 call bl_error("Error:: ctoprim")
               end if
            end if
-           
-           call eos_given_ReX(gamcg(i,j,k), q(i,j,k,QPRES), cg(i,j,k), q(i,j,k,QTEMP), &
-                dpdrho(i,j,k), dpde(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), q(i,j,k,QFS:), &
-                pt_index)
 
+           call eos(eos_input_re, eos_state)
+
+           q(i,j,k,QTEMP) = eos_state % T
+           q(i,j,k,QPRES) = eos_state % p
+           dpdrho(i,j,k)  = eos_state % dpdr_e
+           dpde(i,j,k)    = eos_state % dpde
+           gamcg(i,j,k)   = eos_state % gam1
+           cg(i,j,k)      = eos_state % cs
+           
            csrad2 = 0.d0
            prad = 0.d0
            do g=0, ngroups-1
@@ -5208,10 +5217,8 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      div,pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, &
      lo,hi,dx,dy,dz,dt, nstep_fsp)
 
-  use network, only : nspec, naux
-  use eos_module
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-       UEDEN, UEINT, UTEMP, UFS, UFX, normalize_species, small_pres
+       UEDEN, UEINT, UTEMP, normalize_species
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace

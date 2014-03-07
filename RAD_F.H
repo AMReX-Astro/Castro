@@ -208,27 +208,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
       const Real* s0, const Real* sm, const Real* sn, const Real* sp, 
       const Real* Tfloor, const Real* kfloor);
  
-BL_FORT_PROC_DECL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
-  (const int lo[], const int hi[],
-   BL_FORT_FAB_ARG(rhoe),
-   BL_FORT_FAB_ARG(rhoYe),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(state));
-
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_RHOE,ca_compute_temp_given_rhoe)
-     (const int lo[], const int hi[],
-     BL_FORT_FAB_ARG(temp),
-     const BL_FORT_FAB_ARG(state));
-
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_CV,ca_compute_temp_given_cv)
-     (const int lo[], const int hi[],
-      BL_FORT_FAB_ARG(temp), 
-      const BL_FORT_FAB_ARG(state),
-      const Real* const_c_v,
-      const Real* c_v_exp_m,
-      const Real* c_v_exp_n);
-
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 
@@ -753,6 +732,49 @@ BL_FORT_PROC_DECL(CA_DERENUAE,ca_derenuae)
      const Real* time, const Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 // </ MGFLD>
+
+// RadEOS
+BL_FORT_PROC_DECL(CA_COMPUTE_C_V,ca_compute_c_v)
+  (const int lo[], const int hi[],
+   const BL_FORT_FAB_ARG(cv),
+   const BL_FORT_FAB_ARG(temp),
+   const BL_FORT_FAB_ARG(state));
+
+BL_FORT_PROC_DECL(CA_GET_RHOE,ca_get_rhoe)
+  (const int lo[], const int hi[],
+   const BL_FORT_FAB_ARG(rhoe),
+   const BL_FORT_FAB_ARG(temp),
+   const BL_FORT_FAB_ARG(state));
+
+BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_RHOE,ca_compute_temp_given_rhoe)
+     (const int lo[], const int hi[],
+     BL_FORT_FAB_ARG(temp),
+     const BL_FORT_FAB_ARG(state));
+
+BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_CV,ca_compute_temp_given_cv)
+     (const int lo[], const int hi[],
+      BL_FORT_FAB_ARG(temp), 
+      const BL_FORT_FAB_ARG(state),
+      const Real* const_c_v,
+      const Real* c_v_exp_m,
+      const Real* c_v_exp_n);
+
+#ifdef NEUTRINO
+BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
+  (const int lo[], const int hi[],
+   BL_FORT_FAB_ARG(temp),
+   const BL_FORT_FAB_ARG(rhoe),
+   const BL_FORT_FAB_ARG(ye),
+   const BL_FORT_FAB_ARG(state));
+
+BL_FORT_PROC_DECL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
+  (const int lo[], const int hi[],
+   BL_FORT_FAB_ARG(rhoe),
+   BL_FORT_FAB_ARG(rhoYe),
+   const BL_FORT_FAB_ARG(temp),
+   const BL_FORT_FAB_ARG(ye),
+   const BL_FORT_FAB_ARG(state));
+#endif
 
 extern "C" {
   void FORT_SETLAYOUT(int& Density, int& Xmom, int& Eden, int& Eint, int& Temp, 

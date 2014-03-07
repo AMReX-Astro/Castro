@@ -224,10 +224,6 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 				       MultiFab& dedT, MultiFab& dedY, 
 				       int level, const BoxArray& grids, int it, int ngrow)
 {
-  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  bool have_Ye = (castro->NumAux > 0);
-  const MultiFab& Ye_foo = (have_Ye) ? Ye_new : temp_new;
-
   int star_is_valid = 1 - ngrow;
 
   int lag_opac;
@@ -264,10 +260,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       if (do_real_eos == 1) {
 	BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
 	  (reg.loVect(), reg.hiVect(),
-	   BL_TO_FORTRAN(dedT[i]), 
-	   BL_TO_FORTRAN(Ye_foo[i]),
-	   BL_TO_FORTRAN(temp_new[i]), 
-	   BL_TO_FORTRAN(S_new[i]));
+	   BL_TO_FORTRAN(dedT[i]), BL_TO_FORTRAN(temp_new[i]), BL_TO_FORTRAN(S_new[i]));
       }
       else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
 	dedT[i].setVal(const_c_v[0]);
@@ -710,12 +703,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 			      int level, const BoxArray& grids, Real delta_t, Real ptc_tau,
 			      int it, bool conservative_update)
 {
-#ifndef NEUTRINO
-  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  bool have_Ye = (castro->NumAux > 0);
-  const MultiFab& Ye_foo = (have_Ye) ? Ye_new : temp_new;
-#endif
-
   for (MFIter mfi(rhoe_new); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box& bx = grids[i]; 
@@ -853,7 +840,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
       	(bx.loVect(), bx.hiVect(),
       	 BL_TO_FORTRAN(rhoe_new[i]),
       	 BL_TO_FORTRAN(temp_new[i]), 
-      	 BL_TO_FORTRAN(Ye_foo[i]), 
       	 BL_TO_FORTRAN(S_new[i]));
     }
 #endif
@@ -1041,12 +1027,6 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 			      const MultiFab& rhoYe_star, const MultiFab& Ye_star, 
 			      const MultiFab& S_new, const BoxArray& grids, int level)
 {
-#ifndef NEUTRINO
-  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  bool have_Ye = (castro->NumAux > 0);
-  const MultiFab& Ye_foo = (have_Ye) ? Ye_new : temp_new;
-#endif
-
   temp_new.plus(temp_star, 0, 1, 0);
   temp_new.mult(0.5, 0);
 #ifdef NEUTRINO
@@ -1072,7 +1052,6 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
       	(bx.loVect(), bx.hiVect(),
       	 BL_TO_FORTRAN(rhoe_new[i]),
       	 BL_TO_FORTRAN(temp_new[i]), 
-      	 BL_TO_FORTRAN(Ye_foo[i]), 
       	 BL_TO_FORTRAN(S_new[i]));
     }
     else {

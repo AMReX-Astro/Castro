@@ -67,12 +67,13 @@ subroutine ctoprim_rad(lo,hi, &
   double precision, allocatable :: flatg(:,:)
 
   integer          :: i, j, g
-  integer          :: pt_index(2)
   integer          :: ngp, ngf, loq(2), hiq(2)
   integer          :: iadv, ispec, iaux, n, nq
   double precision :: courx, coury, courmx, courmy
 
   double precision :: csrad2, prad, Eddf, gamr
+
+  type(eos_t) :: eos_state
 
   allocate(dpdrho(q_l1:q_h1,q_l2:q_h2))
   allocate(dpde  (q_l1:q_h1,q_l2:q_h2))
@@ -142,24 +143,35 @@ subroutine ctoprim_rad(lo,hi, &
   do j = loq(2), hiq(2)
      do i = loq(1), hiq(1)
 
+        eos_state % rho = q(i,j,QRHO)
+        eos_state % T   = q(i,j,QTEMP)
+        eos_state % e   = q(i,j,QREINT)
+        eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
+        eos_state % aux = q(i,j,QFX:QFX+naux-1)
+
         ! If necessary, reset the energy using small_temp
         if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. 0)) then
            q(i,j,QTEMP) = small_temp
-           call eos_given_RTX(q(i,j,QREINT),q(i,j,QPRES),q(i,j,QRHO), &
-                q(i,j,QTEMP),q(i,j,QFS:))
+           eos_state % T = q(i,j,QTEMP)
+           call eos(eos_input_rt, eos_state)
+           q(i,j,QREINT) = eos_state % e
            if (q(i,j,QREINT) .lt. 0.d0) then
               print *,'   '
-              print *,'>>> Error: Castro_2d::ctoprim ',i,j
-              print *,'>>> ... new e from eos_given_RTX call is negative ',q(i,j,QREINT)
+              print *,'>>> Error: ctoprim ',i,j
+              print *,'>>> ... new e from eos call is negative ',q(i,j,QREINT)
               print *,'    '
-              call bl_error("Error:: Castro_2d.f90 :: ctoprim")
+              call bl_error("Error:: ctoprim")
            end if
         end if
 
-        pt_index(1) = i
-        pt_index(2) = j
-        call eos_given_ReX(gamcg(i,j), q(i,j,QPRES), cg(i,j), q(i,j,QTEMP), &
-             dpdrho(i,j), dpde(i,j), q(i,j,QRHO), q(i,j,QREINT), q(i,j,QFS:), pt_index)
+        call eos(eos_input_re, eos_state)
+        
+        q(i,j,QTEMP) = eos_state % T
+        q(i,j,QPRES) = eos_state % p
+        dpdrho(i,j)  = eos_state % dpdr_e
+        dpde(i,j)    = eos_state % dpde
+        gamcg(i,j)   = eos_state % gam1
+        cg(i,j)      = eos_state % cs
 
         csrad2 = 0.d0
         prad = 0.d0
@@ -2221,10 +2233,8 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      div,pdivu, uy_xfc, ux_yfc, &
      lo,hi,dx,dy,dt, nstep_fsp)
 
-  use eos_module
-  use network, only : nspec, naux
-  use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, &
-       UFX, normalize_species, small_pres
+  use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
+       normalize_species
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace

@@ -459,7 +459,7 @@ subroutine ca_compute_dedx(  &
      dedY,dedY_l1,dedY_l2,dedY_l3,dedY_h1,dedY_h2,dedY_h3, &
      validStar)
 
-  use eos_module, only : eos_given_RTX, Tmin=>table_Tmin, Ymin=>table_Yemin
+  use eos_module, only : eos, eos_t, eos_input_rt, Tmin=>table_Tmin, Ymin=>table_Yemin
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS
 
@@ -482,19 +482,20 @@ subroutine ca_compute_dedx(  &
   integer, intent(in) :: validStar
 
   integer :: i, j, k
-  double precision :: rho, e1, e2, dummy_pres
-  double precision :: xn(nspec+naux)
+  double precision :: rhoinv, e1, e2
+  type(eos_t) :: eos_state
   double precision :: dT, dYe, T1, T2, Ye1, Ye2
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rho,xn,dT,dYe,T1,T2,Ye1,Ye2,e1,e2,dummy_pres)
+  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoinv,eos_state,dT,dYe,T1,T2,Ye1,Ye2,e1,e2)
   do k=dedT_l3, dedT_h3
   do j=dedT_l2, dedT_h2
   do i=dedT_l1, dedT_h1
 
-     rho = S(i,j,k,URHO)
-     xn(1:nspec) = S(i,j,k,UFS:UFS+nspec-1) / rho
-     xn(nspec+1:nspec+naux)  = ye(i,j,k)
+     rhoinv = 1.d0/S(i,j,k,URHO)
+     eos_state % rho = S(i,j,k,URHO)
+     eos_state % xn  = S(i,j,k,UFS:UFS+nspec-1) * rhoinv
+     eos_state % aux = ye(i,j,k)
 
      if (validStar > 0) then
         dT = fac*abs(Ts(i,j,k) - T(i,j,k))
@@ -518,14 +519,26 @@ subroutine ca_compute_dedx(  &
      end if
      Ye2 = Ye(i,j,k) + dYe
 
-     call eos_given_RTX(e1, dummy_pres, rho, T1, xn)
-     call eos_given_RTX(e2, dummy_pres, rho, T2, xn)
+     eos_state % T = T1
+     call eos(eos_input_rt, eos_state)
+     e1 = eos_state % e
+
+     eos_state % T = T2
+     call eos(eos_input_rt, eos_state)
+     e2 = eos_state % e
+
      dedT(i,j,k) = (e2-e1)/(T2-T1)
 
-     xn(nspec+1:nspec+naux)  = Ye1
-     call eos_given_RTX(e1, dummy_pres, rho, T(i,j,k), xn)
-     xn(nspec+1:nspec+naux)  = Ye2
-     call eos_given_RTX(e2, dummy_pres, rho, T(i,j,k), xn)
+     eos_state % T = T(i,j,k)
+
+     eos_state % aux = Ye1
+     call eos(eos_input_rt, eos_state)
+     e1 = eos_state % e
+
+     eos_state % aux = Ye2
+     call eos(eos_input_rt, eos_state)
+     e2 = eos_state % e
+
      dedY(i,j,k) = (e2-e1)/(Ye2-Ye1)
 
   end do

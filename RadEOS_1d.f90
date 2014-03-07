@@ -1,10 +1,6 @@
-! :::
-! ::: ------------------------------------------------------------------
-! :::
 
 subroutine ca_compute_c_v(lo, hi, &
      cv, cv_l1, cv_h1, &
-     ye, ye_l1, ye_h1, &
      temp, temp_l1, temp_h1, &
      state, state_l1, state_h1)
   
@@ -15,11 +11,9 @@ subroutine ca_compute_c_v(lo, hi, &
   implicit none
   integer, intent(in)           :: lo(1), hi(1)
   integer, intent(in)           :: cv_l1, cv_h1
-  integer, intent(in)           :: ye_l1, ye_h1
   integer, intent(in)           :: temp_l1, temp_h1
   integer, intent(in)           :: state_l1, state_h1
   double precision, intent(out) :: cv(cv_l1:cv_h1)
-  double precision, intent(in)  :: ye(ye_l1:ye_h1)
   double precision, intent(in)  :: temp(temp_l1:temp_h1)
   double precision, intent(in)  :: state(state_l1:state_h1,NVAR)
   
@@ -29,11 +23,11 @@ subroutine ca_compute_c_v(lo, hi, &
   
   do i = lo(1), hi(1)
      
+     rhoInv = 1.d0 / state(i,URHO)
      eos_state % rho = state(i,URHO)
-     rhoInv = 1.d0 / eos_state % rho
      eos_state % T = temp(i)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-     eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
+     eos_state % aux = state(i,UFX:UFX+naux -1) * rhoInv
 
      call eos(eos_input_rt, eos_state)
 
@@ -43,14 +37,10 @@ subroutine ca_compute_c_v(lo, hi, &
   
 end subroutine ca_compute_c_v
 
-! :::
-! ::: ------------------------------------------------------------------
-! :::
 
 subroutine ca_get_rhoe(lo, hi, &
      rhoe, rhoe_l1, rhoe_h1, &
      temp, temp_l1, temp_h1, &
-     ye, ye_l1, ye_h1, &
      state, state_l1, state_h1)
   
   use eos_module
@@ -61,10 +51,8 @@ subroutine ca_get_rhoe(lo, hi, &
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: rhoe_l1, rhoe_h1
   integer         , intent(in) :: temp_l1, temp_h1
-  integer         , intent(in) :: ye_l1, ye_h1
   integer         , intent(in) :: state_l1, state_h1
   double precision, intent(in) :: temp(temp_l1:temp_h1)
-  double precision, intent(in) :: ye(ye_l1:ye_h1)
   double precision, intent(in) :: state(state_l1:state_h1,NVAR)
   double precision, intent(inout) :: rhoe(rhoe_l1:rhoe_h1)
   
@@ -74,11 +62,11 @@ subroutine ca_get_rhoe(lo, hi, &
 
   do i = lo(1), hi(1)
 
+     rhoInv = 1.d0 / state(i,URHO)
      eos_state % rho = state(i,URHO)
-     rhoInv = 1.d0 / eos_state % rho
-     eos_state % T = temp(i)
+     eos_state % T   = temp(i)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-     eos_state % aux = state(i,UFX:UFX+naux-1)*rhoInv
+     eos_state % aux = state(i,UFX:UFX+naux -1) * rhoInv
 
      call eos(eos_input_rt, eos_state)
 
@@ -86,178 +74,6 @@ subroutine ca_get_rhoe(lo, hi, &
           
   enddo
 end subroutine ca_get_rhoe
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-! temp enters as rhoe
-subroutine ca_compute_temp_for_rad(lo, hi, &
-     temp, temp_l1, temp_h1, &
-     ye, ye_l1, ye_h1, &
-     tempGuess, tg_l1, tg_h1, &
-     state, state_l1, state_h1)
-  
-  use network, only: nspec, naux
-  use eos_module
-  use meth_params_module, only : NVAR, URHO, UFS, UFX, &
-       small_temp, allow_negative_energy
-  
-  implicit none
-  integer         , intent(in   ) :: lo(1), hi(1)
-  integer         , intent(in   ) :: temp_l1, temp_h1
-  integer         , intent(in   ) :: ye_l1, ye_h1
-  integer         , intent(in   ) :: tg_l1, tg_h1
-  integer         , intent(in   ) :: state_l1, state_h1
-  double precision, intent(in   ) :: state(state_l1:state_h1,NVAR)
-  double precision, intent(in   ) :: ye(ye_l1:ye_h1)
-  double precision, intent(in   ) :: tempGuess(tg_l1:tg_h1)
-  double precision, intent(inout) :: temp(temp_l1:temp_h1)
-  
-  integer          :: i
-  double precision :: rhoInv
-  type (eos_t) :: eos_state
-
-  do i = lo(1), hi(1)
-
-     if(allow_negative_energy.eq.0 .and. temp(i).le.0.d0) then
-        temp(i) = small_temp
-     else
-
-        eos_state % rho = state(i,URHO)
-        rhoInv = 1.d0 / eos_state % rho
-
-        eos_state % e = temp(i)*rhoInv 
-        
-        eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-        if (naux > 0) then
-           eos_state % aux = ye(i)
-        end if
-
-        ! set initial guess of temperature
-        eos_state % T = tempGuess(i)
-        
-        call eos(eos_input_re, eos_state)
-
-        temp(i) = eos_state % T
-
-        if(temp(i).lt.0.d0) then
-           print*,'negative temp in compute_temp_for_rad ', temp(i)
-           call bl_error("Error:: ca_compute_temp_for_rad")
-        endif
-        
-     endif
-          
-  enddo
-end subroutine ca_compute_temp_for_rad
-
-
-subroutine ca_compute_temp_given_reye(lo, hi, &
-     temp, temp_l1, temp_h1, &
-     rhoe, re_l1, re_h1, &
-     ye, ye_l1, ye_h1, &
-     state, state_l1, state_h1)
-  
-  use network, only: nspec, naux
-  use eos_module
-  use meth_params_module, only : NVAR, URHO, UFS, UFX, &
-       small_temp, allow_negative_energy
-  
-  implicit none
-  integer         , intent(in   ) :: lo(1), hi(1)
-  integer         , intent(in   ) :: temp_l1, temp_h1
-  integer         , intent(in   ) :: re_l1, re_h1
-  integer         , intent(in   ) :: ye_l1, ye_h1
-  integer         , intent(in   ) :: state_l1, state_h1
-  double precision, intent(in   ) :: state(state_l1:state_h1,NVAR)
-  double precision, intent(in   ) :: rhoe(re_l1:re_h1)
-  double precision, intent(in   ) :: ye(ye_l1:ye_h1)
-  double precision, intent(inout) :: temp(temp_l1:temp_h1)
-
-  integer          :: i
-  double precision :: rhoInv
-  type (eos_t) :: eos_state
-  
-  do i = lo(1), hi(1)
-
-     if(allow_negative_energy.eq.0 .and. rhoe(i).le.0.d0) then
-        temp(i) = small_temp
-     else
-
-        eos_state % rho = state(i,URHO)
-        rhoInv = 1.d0 / eos_state % rho
-
-        eos_state % e = rhoe(i)*rhoInv 
-        
-        eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-        if (naux > 0) then
-           eos_state % aux = ye(i)
-        end if
-
-        ! set initial guess of temperature
-        eos_state % T = temp(i)
-
-        call eos(eos_input_re, eos_state)
-
-        temp(i) = eos_state % T
-
-        if(temp(i).lt.0.d0) then
-           print*,'negative temp in compute_temp_given_reye ', temp(i)
-           call bl_error("Error:: ca_compute_temp_given_reye")
-        endif
-     
-     end if
-
-  enddo
-end subroutine ca_compute_temp_given_reye
-
-
-subroutine ca_compute_reye_given_ty(lo, hi, &
-     rhoe, re_l1, re_h1, &
-     rhoY, rY_l1, rY_h1, &
-     temp, temp_l1, temp_h1, &
-     ye, ye_l1, ye_h1, &
-     state, state_l1, state_h1)
-  
-  use network, only: nspec, naux
-  use eos_module
-  use meth_params_module, only : NVAR, URHO, UFS, UFX
-
-  implicit none
-  integer         , intent(in   ) :: lo(1), hi(1)
-  integer         , intent(in   ) :: re_l1, re_h1
-  integer         , intent(in   ) :: rY_l1, rY_h1
-  integer         , intent(in   ) :: temp_l1, temp_h1
-  integer         , intent(in   ) :: ye_l1, ye_h1
-  integer         , intent(in   ) :: state_l1, state_h1
-  double precision, intent(in   ) :: state(state_l1:state_h1,NVAR)
-  double precision, intent(out  ) :: rhoe(re_l1:re_h1)
-  double precision, intent(inout) :: rhoY(rY_l1:rY_h1)
-  double precision, intent(in   ) :: ye(ye_l1:ye_h1)
-  double precision, intent(in   ) :: temp(temp_l1:temp_h1)
-  
-  integer          :: i
-  double precision :: rhoInv
-  type (eos_t) :: eos_state
-
-  do i = lo(1), hi(1)
-
-     eos_state % rho = state(i,URHO)
-     rhoInv = 1.d0 / eos_state % rho
-     eos_state % T = temp(i)
-     eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-
-     if (naux > 0) then
-        eos_state % aux = ye(i)
-        rhoY(i) = state(i,URHO)*ye(i)        
-     end if
-
-     call eos(eos_input_rt, eos_state)
-
-     rhoe(i) = eos_state % rho * eos_state % e
-
-  enddo
-end subroutine ca_compute_reye_given_ty
 
 
 subroutine ca_compute_temp_given_rhoe(lo,hi,  &
@@ -280,14 +96,12 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
 
   do i = lo(1),hi(1)
 
+     rhoInv = 1.d0 / state(i,URHO)
      eos_state % rho = state(i,URHO)
-     rhoInv = 1.d0 / eos_state % rho
-     
-     eos_state % e = temp(i)*rhoInv 
+     eos_state % T   = state(i,UTEMP)
+     eos_state % e   = temp(i)*rhoInv 
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
      eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
-
-     eos_state % T = state(i,UTEMP)
 
      call eos(eos_input_re, eos_state)
 
@@ -296,6 +110,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   enddo
 
 end subroutine ca_compute_temp_given_rhoe
+
 
 subroutine ca_compute_temp_given_cv(lo,hi,  &
      temp,  temp_l1, temp_h1, &
@@ -355,11 +170,10 @@ subroutine reset_eint_compute_temp( lo, hi, &
 
   do i = lo(1), hi(1)
 
+     rhoInv = 1.d0 / state(i,URHO)
      eos_state % rho = state(i,URHO)
-     rhoInv = 1.d0 / eos_state % rho
-
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-     eos_state % aux = state(i,UFX:UFX+naux-1)*rhoInv
+     eos_state % aux = state(i,UFX:UFX+naux -1) * rhoInv
      
      ek = 0.5d0 * state(i,UMX)**2 * rhoInv
 
@@ -408,4 +222,113 @@ subroutine reset_eint_compute_temp( lo, hi, &
   end do
 
 end subroutine reset_eint_compute_temp
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! The following routined are used by NEUTRINO only.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine ca_compute_temp_given_reye(lo, hi, &
+     temp, temp_l1, temp_h1, &
+     rhoe, re_l1, re_h1, &
+     ye, ye_l1, ye_h1, &
+     state, state_l1, state_h1)
+  
+  use network, only: nspec, naux
+  use eos_module
+  use meth_params_module, only : NVAR, URHO, UFS, UFX, &
+       small_temp, allow_negative_energy
+  
+  implicit none
+  integer         , intent(in   ) :: lo(1), hi(1)
+  integer         , intent(in   ) :: temp_l1, temp_h1
+  integer         , intent(in   ) :: re_l1, re_h1
+  integer         , intent(in   ) :: ye_l1, ye_h1
+  integer         , intent(in   ) :: state_l1, state_h1
+  double precision, intent(in   ) :: state(state_l1:state_h1,NVAR)
+  double precision, intent(in   ) :: rhoe(re_l1:re_h1)
+  double precision, intent(in   ) :: ye(ye_l1:ye_h1)
+  double precision, intent(inout) :: temp(temp_l1:temp_h1)
+
+  integer          :: i
+  double precision :: rhoInv
+  type (eos_t) :: eos_state
+  
+  do i = lo(1), hi(1)
+
+     if(allow_negative_energy.eq.0 .and. rhoe(i).le.0.d0) then
+        temp(i) = small_temp
+     else
+
+        rhoInv = 1.d0 / state(i,URHO)
+        eos_state % rho = state(i,URHO)
+        ! set initial guess of temperature
+        eos_state % T = temp(i)
+        eos_state % e = rhoe(i)*rhoInv 
+        eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
+        if (naux > 0) then
+           eos_state % aux = ye(i)
+        end if
+
+        call eos(eos_input_re, eos_state)
+
+        temp(i) = eos_state % T
+
+        if(temp(i).lt.0.d0) then
+           print*,'negative temp in compute_temp_given_reye ', temp(i)
+           call bl_error("Error:: ca_compute_temp_given_reye")
+        endif
+     
+     end if
+
+  enddo
+end subroutine ca_compute_temp_given_reye
+
+
+subroutine ca_compute_reye_given_ty(lo, hi, &
+     rhoe, re_l1, re_h1, &
+     rhoY, rY_l1, rY_h1, &
+     temp, temp_l1, temp_h1, &
+     ye, ye_l1, ye_h1, &
+     state, state_l1, state_h1)
+  
+  use network, only: nspec, naux
+  use eos_module
+  use meth_params_module, only : NVAR, URHO, UFS, UFX
+
+  implicit none
+  integer         , intent(in   ) :: lo(1), hi(1)
+  integer         , intent(in   ) :: re_l1, re_h1
+  integer         , intent(in   ) :: rY_l1, rY_h1
+  integer         , intent(in   ) :: temp_l1, temp_h1
+  integer         , intent(in   ) :: ye_l1, ye_h1
+  integer         , intent(in   ) :: state_l1, state_h1
+  double precision, intent(in   ) :: state(state_l1:state_h1,NVAR)
+  double precision, intent(out  ) :: rhoe(re_l1:re_h1)
+  double precision, intent(inout) :: rhoY(rY_l1:rY_h1)
+  double precision, intent(in   ) :: ye(ye_l1:ye_h1)
+  double precision, intent(in   ) :: temp(temp_l1:temp_h1)
+  
+  integer          :: i
+  double precision :: rhoInv
+  type (eos_t) :: eos_state
+
+  do i = lo(1), hi(1)
+
+     rhoInv = 1.d0 / state(i,URHO)
+     eos_state % rho = state(i,URHO)
+     eos_state % T = temp(i)
+     eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
+
+     if (naux > 0) then
+        eos_state % aux = ye(i)
+        rhoY(i) = state(i,URHO)*ye(i)        
+     end if
+
+     call eos(eos_input_rt, eos_state)
+
+     rhoe(i) = eos_state % rho * eos_state % e
+
+  enddo
+end subroutine ca_compute_reye_given_ty
 

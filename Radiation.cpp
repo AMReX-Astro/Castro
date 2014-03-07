@@ -1109,8 +1109,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
     // This is the only case in the radiation algorithm (outside of
     // Jeff's branch) where we need to return c_v.
     Fab c_v(reg);
-    // 3rd arg is a dummy for Ye
-    get_c_v(c_v, temp[i], temp[i], state[i], reg);
+    get_c_v(c_v, temp[i], state[i], reg);
 
     const Box& sbox = state[i].box();
     const Box& ebox = Er[i].box();
@@ -1210,8 +1209,7 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
     const Box &reg = grids[i];
 
     Fab c_v(reg);
-    // 3rd arg is a dummy for Ye
-    get_c_v(c_v, temp[i], temp[i], state[i], reg);
+    get_c_v(c_v, temp[i], state[i], reg);
 
     const Box& sbox = state[i].box();
     const Box& ebox = Er_new[i].box();
@@ -1446,7 +1444,7 @@ void Radiation::get_frhoe(Fab& frhoe,
   FORT_CFRHOE(frhoe.dataPtr(), dimlist(reg), state.dataPtr(), dimlist(sbox));
 }
 
-void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& Ye, Fab& state,
+void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
                         const Box& reg)
 {
   const Box& tbox = temp.box();
@@ -1454,8 +1452,7 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& Ye, Fab& state,
   if (do_real_eos == 1) {
     BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
       (reg.loVect(), reg.hiVect(),
-       BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(Ye),
-       BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+       BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
   }
   else if (do_real_eos == 0) {
     if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
@@ -2516,8 +2513,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     }
 
     Fab c_v(reg);
-    // 3rd arg is a dummy for Ye
-    get_c_v(c_v, temp, temp, state, reg);
+    get_c_v(c_v, temp, state, reg);
 
     state.copy(temp,0,Temp,1);
 

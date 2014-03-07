@@ -1168,9 +1168,8 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      div,pdivu,lo,hi,dx,dt, &
      nstep_fsp)
 
-  use network, only : nspec, naux
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-       normalize_species, small_pres, QRHO,QU, QPRES
+       normalize_species
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving, QRADVAR, QPTOT
   use radhydro_nd_module, only : advect_in_fspace
