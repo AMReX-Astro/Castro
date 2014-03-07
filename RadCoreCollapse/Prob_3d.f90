@@ -223,10 +223,10 @@
       double precision state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,nscal)
 
       integer i,j,k,n
-      double precision :: u, v, w, pres, dist
+      double precision :: u, v, w, dist
       double precision :: x1, x2, y1, y2, x, y, z
       double precision :: a, c, vel, a_vel, b_vel
-      double precision :: x_in(nspec+naux)
+      type(eos_t) :: eos_state
 
       ! Compute formula for interpolating velocity near the origin
       x1 = model_rad(1)
@@ -299,24 +299,23 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               call eos_given_RTX(state(i,j,k,UEDEN),pres,state(i,j,k,URHO),state(i,j,k,UTEMP),state(i,j,k,UFS:))
-            end do
-         end do
-      end do
 
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
+               eos_state % rho = state(i,j,k,URHO)
+               eos_state % T   = state(i,j,k,UTEMP)
+               eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1)
+               eos_state % aux = state(i,j,k,UFX:UFX+naux-1)
+
+               call eos(eos_input_rt, eos_state)
 
                u = state(i,j,k,UMX) / state(i,j,k,URHO)
                v = state(i,j,k,UMY) / state(i,j,k,URHO)
                w = state(i,j,k,UMZ) / state(i,j,k,URHO)
 
                ! Convert e to rho*e
-               state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEDEN)
+               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
 
                ! Convert e to rho*E = rho*(e + 1/2 (u^2 + v^2) )
-               state(i,j,k,UEDEN) = state(i,j,k,URHO) * (state(i,j,k,UEDEN) &
+               state(i,j,k,UEDEN) = state(i,j,k,URHO) * (eos_state % e  &
                     + 0.5d0*(u**2 + v**2 + w**2)  )
 
                ! Convert Y to (rho*Y)

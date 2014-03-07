@@ -20,9 +20,9 @@
       double precision :: x,y,r
       double precision :: alpha,omalpha,dt,eps
       double precision :: dr,cen,xi,ghi,gmd,glo,den,maxvar,minvar
-      double precision :: pres
       double precision, allocatable :: radial(:,:)
       double precision staten(NVAR)
+      type(eos_t) :: eos_state
  
       eps = 1.d-10
 
@@ -103,10 +103,15 @@
       ! Use Ye from initial model
       staten(UFX  ) = Ye_bndry
 
-      call eos_given_RTX(staten(UEINT),pres,staten(URHO),staten(UTEMP),staten(UFS:))
+      eos_state % rho = staten(URHO)
+      eos_state % T   = staten(UTEMP)
+      eos_state % xn  = staten(UFS)
+      eos_state % aux = staten(UFX)
+
+      call eos(eos_input_rt, eos_state)
 
       ! Convert e to rho*e
-      staten(UEINT) = staten(URHO) * staten(UEINT)
+      staten(UEINT) = staten(URHO) * eos_state % e
 
       ! Convert e to rho*E = rho*(e + 1/2 u^2)
       staten(UEDEN) = staten(UEINT) + 0.5d0*staten(URHO)*(v_bndry**2)
