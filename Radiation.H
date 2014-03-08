@@ -1,6 +1,6 @@
 #ifndef _Radiation_H_
 #define _Radiation_H_
- 
+
 #include <AmrLevel.H>
 
 #include "LHH.H"
