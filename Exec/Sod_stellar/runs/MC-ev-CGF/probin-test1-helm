@@ -1,11 +1,13 @@
 &fortin
-  p_l = 1.0d0
+  T_l = 1.d8
   u_l = 0.0d0
-  rho_l = 1.0d0
+  rho_l = 1.0d7
 
-  p_r = 0.1d0
+  T_r = 1.d6
   u_r = 0.0d0
-  rho_r = 0.125d0
+  rho_r = 1.d6
+
+  use_Tinit = T
 
   idir = 1
   frac = 0.5d0
@@ -21,3 +23,7 @@
   max_pressgrad_lev = 3
 /
 
+
+&extern
+  !use_eos_coulomb = F
+/

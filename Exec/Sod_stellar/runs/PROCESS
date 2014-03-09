@@ -1,0 +1,17 @@
+do the runs:
+
+for i in CW CW-ev MC MC-ev MC-ev-dt MC-ev-CGF MC-ppmT-I-ev MC-ppmT-II-ev MC-ppmT-III-ev
+do 
+  cp -f ../Castro2d.Linux.gcc.gfortran.DEBUG.ex $i
+  cd $i
+  ./Castro2d.Linux.gcc.gfortran.DEBUG.ex inputs-test1-helm
+  ./Castro2d.Linux.gcc.gfortran.DEBUG.ex inputs-test2-helm
+  ./Castro2d.Linux.gcc.gfortran.DEBUG.ex inputs-test3-helm
+  cd ..
+done
+
+
+make the slice files:
+
+find . -name "*plt?????" -exec fextract.Linux.gfortran.exe {} \;
+

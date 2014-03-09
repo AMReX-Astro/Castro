@@ -1,0 +1,66 @@
+#	Runtime parameters for the test 1 problem.
+
+#	Parameters for initial model
+
+#		Density, pressure, and velocity on either side of interface
+
+sim_rhoLeft	= 1.0e7
+sim_rhoRight	= 1.0e6
+sim_TLeft	= 1.0e8
+sim_TRight	= 1.0e6
+sim_uLeft	= 0.
+sim_uRight	= 0.
+
+#	Computational volume parameters
+
+#		Grid dimensionality and geometry
+
+geometry = cartesian
+
+#		Size of computational volume
+
+xmin		= 0.
+xmax		= 1.0e6
+
+#		Boundary conditions
+
+xl_boundary_type = "outflow"
+xr_boundary_type = "outflow"
+
+#	Simulation (grid, time, I/O) parameters
+
+cfl		= 0.8
+basenm          = "flash_test1_helm_"
+restart         = .false.
+
+#	checkpoint file output parameters
+checkpointFileIntervalTime = 8.e-4
+checkpointFileIntervalStep = 0
+checkpointFileNumber = 0
+
+#	plotfile output parameters
+plotfileIntervalTime = 8.e-4
+plotfileIntervalStep = 0
+plotfileNumber = 0
+
+nend            = 1000
+tmax            = 8.e-4
+dtmax           = 8.e-4
+dtinit          = 8.e-4
+tstep_change_factor = 1.1e0
+
+run_comment     = "PPM temp paper, test 1 (Sod-like)"
+log_file        = "flash_test1_helm.log"
+
+plot_var_1 = "dens"
+plot_var_2 = "pres"
+plot_var_3 = "temp"
+plot_var_4 = "velx"
+
+#    AMR refinement parameters  
+lrefine_min     = 4
+lrefine_max     = 4
+refine_var_1    = "dens"
+
+smallt = 1.e4
+use_steepening = F

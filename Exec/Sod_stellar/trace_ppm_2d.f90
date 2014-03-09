@@ -25,7 +25,8 @@ contains
          QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
          nadv, small_dens, small_pres, small_temp,  &
          ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
+         ppm_flatten_before_integrals
     use ppm_module, only : ppm
 
     implicit none
@@ -176,6 +177,7 @@ contains
     do n=1,QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                flatn, &
                 Ip(:,:,:,:,n),Im(:,:,:,:,n), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end do
@@ -219,6 +221,7 @@ contains
     if (ppm_temp_fix /= 1) then
        call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
                 q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                flatn, &
                 Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     endif
@@ -227,6 +230,7 @@ contains
     if (ppm_temp_fix == 3) then
        call ppm(tau(:,:),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                flatn, &
                 Ip_tau(:,:,:,:,1),Im_tau(:,:,:,:,1), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     endif
@@ -237,6 +241,7 @@ contains
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        enddo
@@ -274,7 +279,8 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u - cc >= 0.0d0)) then
+               (ppm_reference == 1 .and. u - cc >= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0)) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -441,8 +447,13 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
                 if (i .ge. ilo1) then
                 
-                   xi1 = 1.0d0-flatn(i,j)
-                   xi = flatn(i,j)
+                   if (ppm_flatten_before_integrals == 0) then
+                      xi1 = 1.0d0-flatn(i,j)
+                      xi = flatn(i,j)
+                   else
+                      xi1 = 0.0d0
+                      xi = 1.0d0
+                   endif
 
                    qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
 
@@ -506,8 +517,13 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
                 if (i .ge. ilo1) then
 
-                   xi1 = 1.0d0-flatn(i,j)
-                   xi = flatn(i,j)
+                   if (ppm_flatten_before_integrals == 0) then
+                      xi1 = 1.0d0-flatn(i,j)
+                      xi = flatn(i,j)
+                   else
+                      xi1 = 0.0d0
+                      xi = 1.0d0
+                   endif
 
                    tau_s = tau_ref + apright + amright + azrright
                    qxp(i,j,QRHO)   = xi1*rho + xi/tau_s
@@ -584,9 +600,14 @@ contains
                 ! limited to only include those moving toward the
                 ! interface
 
-                xi1 = 1.0d0-flatn(i,j)
-                xi = flatn(i,j)
-                
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0-flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
+
                 ! tau (and density) state
                 tau_s = tau_ref
                 do iwave = 1, 3
@@ -630,7 +651,8 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. u + cc <= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc values
              rho_ref  = rho
              u_ref    = u
@@ -794,9 +816,15 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
                 if (i .le. ihi1) then
-                   xi1 = 1.0d0 - flatn(i,j)
-                   xi = flatn(i,j)
-                   
+
+                   if (ppm_flatten_before_integrals == 0) then
+                      xi1 = 1.0d0 - flatn(i,j)
+                      xi = flatn(i,j)
+                   else
+                      xi1 = 0.0d0
+                      xi = 1.0d0
+                   endif
+
                    qxm(i+1,j,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                    qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
                    qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
@@ -857,8 +885,13 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
                 if (i .le. ihi1) then
                    
-                   xi1 = 1.0d0 - flatn(i,j)
-                   xi = flatn(i,j)
+                   if (ppm_flatten_before_integrals == 0) then
+                      xi1 = 1.0d0 - flatn(i,j)
+                      xi = flatn(i,j)
+                   else
+                      xi1 = 0.0d0
+                      xi = 1.0d0
+                   endif
                 
                    tau_s = tau_ref + (apleft + amleft + azrleft)
                    qxm(i+1,j,QRHO)   = xi1*rho  + xi/tau_s
@@ -935,8 +968,13 @@ contains
                 ! limited to only include those moving toward the
                 ! interface
                 
-                xi1 = 1.0d0-flatn(i,j)
-                xi = flatn(i,j)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
 
                 ! tau (and density) state
                 tau_s = tau_ref 
@@ -1020,28 +1058,38 @@ contains
           ! plus state on face i
           do i = ilo1, ihi1+1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
                 qxp(i,j,n) = q(i,j,n)
              else if (u .lt. 0.d0) then
-                qxp(i,j,n) = q(i,j,n) &
-                     + flatn(i,j)*(Im(i,j,1,2,n) - q(i,j,n))
+                qxp(i,j,n) = q(i,j,n) + xi*(Im(i,j,1,2,n) - q(i,j,n))
              else
-                qxp(i,j,n) = q(i,j,n) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,1,2,n) - q(i,j,n))
+                qxp(i,j,n) = q(i,j,n) + 0.5d0*xi*(Im(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
           
           ! minus state on face i+1
           do i = ilo1-1, ihi1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
-                qxm(i+1,j,n) = q(i,j,n) &
-                     + flatn(i,j)*(Ip(i,j,1,2,n) - q(i,j,n))
+                qxm(i+1,j,n) = q(i,j,n) + xi*(Ip(i,j,1,2,n) - q(i,j,n))
              else if (u .lt. 0.d0) then
                 qxm(i+1,j,n) = q(i,j,n)
              else
-                qxm(i+1,j,n) = q(i,j,n) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,1,2,n) - q(i,j,n))
+                qxm(i+1,j,n) = q(i,j,n) + 0.5d0*xi*(Ip(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -1058,28 +1106,38 @@ contains
           ! plus state on face i
           do i = ilo1, ihi1+1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
                 qxp(i,j,ns) = q(i,j,ns)
              else if (u .lt. 0.d0) then
-                qxp(i,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              else
-                qxp(i,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
           ! minus state on face i+1
           do i = ilo1-1, ihi1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
-                qxm(i+1,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              else if (u .lt. 0.d0) then
                 qxm(i+1,j,ns) = q(i,j,ns)
              else
-                qxm(i+1,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1095,28 +1153,38 @@ contains
           ! plus state on face i
           do i = ilo1, ihi1+1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
                 qxp(i,j,ns) = q(i,j,ns)
              else if (u .lt. 0.d0) then
-                qxp(i,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              else
-                qxp(i,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
 
           ! minus state on face i+1
           do i = ilo1-1, ihi1
              u = q(i,j,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
-                qxm(i+1,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              else if (u .lt. 0.d0) then
                 qxm(i+1,j,ns) = q(i,j,ns)
              else
-                qxm(i+1,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1197,7 +1265,8 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v - cc >= 0.0d0)) then
+               (ppm_reference == 1 .and. v - cc >= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0)) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -1323,8 +1392,14 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              if (j .ge. ilo2) then
-                xi1 = 1.0d0 - flatn(i,j)
-                xi = flatn(i,j)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 qyp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
                 qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
@@ -1386,8 +1461,13 @@ contains
              ! q_s = q_ref - sum (l . dq) r          
              if (j .ge. ilo2) then
 
-                xi1 = 1.0d0 - flatn(i,j)
-                xi = flatn(i,j)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 tau_s = tau_ref + apright + amright + azrright
                 qyp(i,j,QRHO)   = xi1*rho  + xi/tau_s
@@ -1413,7 +1493,8 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v + cc <= 0.0d0) ) then
+               (ppm_reference == 1 .and. v + cc <= 0.0d0 .and. &
+                ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
@@ -1538,8 +1619,14 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              if (j .le. ihi2) then
-                xi1 = 1.0d0 - flatn(i,j)
-                xi = flatn(i,j)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 qym(i,j+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                 qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
@@ -1601,8 +1688,13 @@ contains
              ! q_s = q_ref - sum (l . dq) r          
              if (j .le. ihi2) then
 
-                xi1 = 1.0d0 - flatn(i,j)
-                xi = flatn(i,j)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j)
+                   xi = flatn(i,j)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,QRHO)   = xi1*rho  + xi/tau_s
@@ -1637,28 +1729,38 @@ contains
           ! plus state on face j
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
                 qyp(i,j,n) = q(i,j,n)
              else if (v .lt. 0.d0) then
-                qyp(i,j,n) = q(i,j,n) &
-                     + flatn(i,j)*(Im(i,j,2,2,n) - q(i,j,n))
+                qyp(i,j,n) = q(i,j,n) + xi*(Im(i,j,2,2,n) - q(i,j,n))
              else
-                qyp(i,j,n) = q(i,j,n) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,2,2,n) - q(i,j,n))
+                qyp(i,j,n) = q(i,j,n) + 0.5d0*xi*(Im(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
           
           ! minus state on face j+1
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
-                qym(i,j+1,n) = q(i,j,n) &
-                     + flatn(i,j)*(Ip(i,j,2,2,n) - q(i,j,n))
+                qym(i,j+1,n) = q(i,j,n) + xi*(Ip(i,j,2,2,n) - q(i,j,n))
              else if (v .lt. 0.d0) then
                 qym(i,j+1,n) = q(i,j,n)
              else
-                qym(i,j+1,n) = q(i,j,n) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,2,2,n) - q(i,j,n))
+                qym(i,j+1,n) = q(i,j,n) + 0.5d0*xi*(Ip(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -1675,28 +1777,38 @@ contains
           ! plus state on face j
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
                 qyp(i,j,ns) = q(i,j,ns)
              else if (v .lt. 0.d0) then
-                qyp(i,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              else
-                qyp(i,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
           ! minus state on face j+1
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
-                qym(i,j+1,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              else if (v .lt. 0.d0) then
                 qym(i,j+1,ns) = q(i,j,ns)
              else
-                qym(i,j+1,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1713,28 +1825,38 @@ contains
           ! plus state on face j
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
                 qyp(i,j,ns) = q(i,j,ns)
              else if (v .lt. 0.d0) then
-                qyp(i,j,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              else
-                qyp(i,j,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
           ! minus state on face j+1
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
-                qym(i,j+1,ns) = q(i,j,ns) &
-                     + flatn(i,j)*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              else if (v .lt. 0.d0) then
                 qym(i,j+1,ns) = q(i,j,ns)
              else
-                qym(i,j+1,ns) = q(i,j,ns) &
-                     + 0.5d0*flatn(i,j)*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           

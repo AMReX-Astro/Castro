@@ -26,14 +26,15 @@ class dataObj:
 
 def model():
 
-    problems = ['test1', 'test2', 'test3']
+    problems = ['test1', 'test2', 'test3', 'test4']
 
-    runs = ['exact', 'MC', 'CW', 'ppmT-I', 'ppmT-II', 'ppmT-III']
+    runs = ['exact', 'MC-ev', 'MC-ev-dt']
 
     markers = ["o", "x", "+", "*", "D", "h"]
     colors = ["r", "b", "c", "g", "m", "0.5"]
+    symsize = [12, 12, 25, 15, 10, 10]
 
-    xmax = {"test1":1.e6, "test2":1.e5, "test3":2.e5}
+    xmax = {"test1":1.e6, "test2":1.e5, "test3":2.e5, "test4":1.e5}
 
     for p in problems:
 
@@ -57,6 +58,21 @@ def model():
                 vars.T = modelData[:,5]
 
                 data[r] = vars
+
+            elif r == "flash":
+
+                modelData = dataRead.getData("flash/%s/flash.par.%s.data" % (p, p))
+
+                vars = dataObj()
+
+                vars.x = modelData[:,0]
+                vars.rho = modelData[:,1]
+                vars.T = modelData[:,3]
+                vars.u = modelData[:,4]
+                vars.p = modelData[:,2]
+
+                data[r] = vars
+                
 
             else:
 
@@ -95,9 +111,9 @@ def model():
 
         pylab.clf()
 
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # density plot
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         
         pylab.subplot(221)
 
@@ -106,6 +122,7 @@ def model():
             if (r == "exact"):
                 pylab.plot(data[r].x, data[r].rho, label=r, c="k")
             else:
+                pylab.plot(data[r].x, data[r].rho, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                 pylab.scatter(data[r].x, data[r].rho, label=r, 
                               marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                 isym += 1
@@ -124,9 +141,9 @@ def model():
         ax.yaxis.set_major_formatter(fmt)
 
 
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # velocity plot
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         pylab.subplot(222)
 
@@ -135,6 +152,7 @@ def model():
             if (r == "exact"):
                 pylab.plot(data[r].x, data[r].u, label=r, c="k")
             else:
+                pylab.plot(data[r].x, data[r].u, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                 pylab.scatter(data[r].x, data[r].u, label=r,
                               marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                 isym += 1
@@ -152,9 +170,9 @@ def model():
         ax.yaxis.set_major_formatter(fmt)
             
                 
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # pressure plot
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         
         pylab.subplot(223)
             
@@ -163,6 +181,7 @@ def model():
             if (r == "exact"):
                 pylab.plot(data[r].x, data[r].p, label=r, c="k")
             else:
+                pylab.plot(data[r].x, data[r].p, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                 pylab.scatter(data[r].x, data[r].p, label=r,
                               marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                 isym += 1
@@ -180,9 +199,9 @@ def model():
         ax.yaxis.set_major_formatter(fmt)
 
 
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # temperature plot
-        #-------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         pylab.subplot(224)
         
@@ -191,6 +210,7 @@ def model():
             if (r == "exact"):
                 pylab.plot(data[r].x, data[r].T, label=r, c="k")
             else:
+                pylab.plot(data[r].x, data[r].T, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                 pylab.scatter(data[r].x, data[r].T, label=r,
                               marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                 isym += 1
@@ -216,9 +236,9 @@ def model():
 
         pylab.tight_layout()
 
-        print "saving figure: %s.png" % (p)
-        pylab.savefig("%s.png" % (p))
-        pylab.savefig("%s.eps" % (p))
+        print "saving figure: %s-MC-dt.png" % (p)
+        pylab.savefig("%s-MC-dt.png" % (p))
+        pylab.savefig("%s-MC-dt.eps" % (p))
         
 
 
