@@ -16,7 +16,7 @@ contains
                  Ip,Im, &
                  ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-    use meth_params_module, only : ppm_type
+    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
 
     implicit none
 
@@ -39,12 +39,14 @@ contains
 
         call ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     else if (ppm_type .eq. 2) then
 
         call ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     end if
@@ -57,19 +59,22 @@ contains
   
   subroutine ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-    use meth_params_module, only : ppm_type
+    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
 
     implicit none
 
     integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
     integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
+    integer           f_l1, f_l2, f_l3, f_h1, f_h2, f_h3
     integer          ilo1,ilo2,ihi1,ihi2
 
-    double precision    s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
-    double precision    u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
-    double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision     s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
+    double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
+    double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision flatn( f_l1: f_h1, f_l2: f_h2, f_l3: f_h3)
 
     double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
@@ -158,6 +163,13 @@ contains
           sp(i,j) = sedge(i+1,j)
           sm(i,j) = sedge(i  ,j)
 
+          if (ppm_flatten_before_integrals == 1) then
+             ! flatten the parabola BEFORE doing the other                     
+             ! monotonization -- this is the method that Flash does       
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
           ! modify using quadratic limiters -- note this version of the limiting comes
           ! from Colella and Sekora (2008), not the original PPM paper.
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
@@ -174,6 +186,13 @@ contains
           !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
           end if
+
+          if (ppm_flatten_before_integrals == 2) then
+             ! flatten the parabola AFTER doing the monotonization --
+             ! this is the method that Miller & Colella do
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
 
           ! compute x-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
@@ -284,6 +303,13 @@ contains
           sp(i,j) = sedge(i,j+1)
           sm(i,j) = sedge(i,j  )
 
+          if (ppm_flatten_before_integrals == 1) then
+             ! flatten the parabola BEFORE doing the other                     
+             ! monotonization -- this is the method that Flash does       
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
           ! modify using quadratic limiters
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
              sp(i,j) = s(i,j,k3d)
@@ -299,6 +325,13 @@ contains
           !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
           end if
+
+          if (ppm_flatten_before_integrals == 2) then
+             ! flatten the parabola AFTER doing the monotonization --
+             ! this is the method that Miller & Colella do
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
 
           ! compute y-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
@@ -416,9 +449,18 @@ contains
           ! interpolate to hi face
           k = k3d+1
           sp(i,j) = 0.5d0*(s(i,j,k)+s(i,j,k-1)) - (1.0d0/6.0d0)*(dsvlp(i,j)-dsvl(i,j))
+
           ! make sure sedge lies in between adjacent cell-centered values
           sp(i,j) = max(sp(i,j),min(s(i,j,k),s(i,j,k-1)))
           sp(i,j) = min(sp(i,j),max(s(i,j,k),s(i,j,k-1)))
+
+          if (ppm_flatten_before_integrals == 1) then
+             ! flatten the parabola BEFORE doing the other                     
+             ! monotonization -- this is the method that Flash does       
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
 
           ! modify using quadratic limiters
           if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.0d0) then
@@ -435,6 +477,13 @@ contains
           !     (sp(i,j) - sm(i,j))**2/6.0d0) then
              sm(i,j) = 3.0d0*s(i,j,k3d) - 2.0d0*sp(i,j)
           end if
+
+          if (ppm_flatten_before_integrals == 2) then
+             ! flatten the parabola AFTER doing the monotonization --
+             ! this is the method that Miller & Colella do
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
 
           ! compute z-component of Ip and Im
           s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
@@ -504,6 +553,7 @@ contains
 
   subroutine ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type
@@ -512,10 +562,12 @@ contains
 
     integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
     integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
+    integer           f_l1, f_l2, f_l3, f_h1, f_h2, f_h3
     integer          ilo1,ilo2,ihi1,ihi2
     double precision s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
     double precision u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,1:3)
     double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision flatn(f_l1:f_h1,f_l2:f_h2,f_l3:f_h3)
     double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision dx,dy,dz,dt
