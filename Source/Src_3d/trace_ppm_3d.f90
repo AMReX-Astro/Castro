@@ -188,10 +188,15 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
+
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
@@ -200,9 +205,12 @@ contains
                 u_ref    = Im(i,j,kc,1,1,QU)
                 v_ref    = Im(i,j,kc,1,1,QV)
                 w_ref    = Im(i,j,kc,1,1,QW)
+
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
+
                 tau_ref  = 1.d0/Im(i,j,kc,1,1,QRHO)
+
                 gam_ref  = Im_gc(i,j,kc,1,1,1)
              endif
    
@@ -236,8 +244,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dum = dum - halfdt*Im_g(i,j,kc,1,1,igx)
+
                 dv  = dv  - halfdt*Im_g(i,j,kc,1,2,igy)
                 dw  = dw  - halfdt*Im_g(i,j,kc,1,2,igz)
+
                 dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
              endif
    
@@ -421,19 +431,26 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
                 u_ref    = Ip(i,j,kc,1,3,QU)
                 v_ref    = Ip(i,j,kc,1,3,QV)
                 w_ref    = Ip(i,j,kc,1,3,QW)
+
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,1,3,QREINT)
+
                 tau_ref  = 1.d0/Ip(i,j,kc,1,3,QRHO)
+
                 gam_ref  = Ip_gc(i,j,kc,1,3,1)
              endif
    
@@ -467,8 +484,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dum = dum - halfdt*Ip_g(i,j,kc,1,1,igx)
+
                 dv  = dv  - halfdt*Ip_g(i,j,kc,1,2,igy)
                 dw  = dw  - halfdt*Ip_g(i,j,kc,1,2,igz)
+
                 dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
              endif
 
@@ -761,18 +780,24 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
                 u_ref    = Im(i,j,kc,2,1,QU)
                 v_ref    = Im(i,j,kc,2,1,QV)
                 w_ref    = Im(i,j,kc,2,1,QW)
+
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
+
                 tau_ref  = 1.d0/Im(i,j,kc,2,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,2,1,1)
              endif
@@ -991,19 +1016,26 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
                 u_ref    = Ip(i,j,kc,2,3,QU)
                 v_ref    = Ip(i,j,kc,2,3,QV)
                 w_ref    = Ip(i,j,kc,2,3,QW)
+
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
+
                 tau_ref  = 1.d0/Ip(i,j,kc,2,3,QRHO)
+
                 gam_ref  = Ip_gc(i,j,kc,2,3,1)
              endif
 
@@ -1037,8 +1069,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dvm = dvm - halfdt*Ip_g(i,j,kc,2,1,igy)
+
                 du  = du  - halfdt*Ip_g(i,j,kc,2,2,igx)
                 dw  = dw  - halfdt*Ip_g(i,j,kc,2,2,igz)
+
                 dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
              endif
 
@@ -1417,18 +1451,24 @@ contains
              u_ref    = u
              v_ref    = v
              w_ref    = w
+
              p_ref    = p
              rhoe_ref = rhoe
+
              tau_ref  = 1.d0/rho
+
              gam_ref  = gam
+
           else
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
              u_ref    = Im(i,j,kc,3,1,QU)
              v_ref    = Im(i,j,kc,3,1,QV)
              w_ref    = Im(i,j,kc,3,1,QW)
+
              p_ref    = Im(i,j,kc,3,1,QPRES)
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
+
              tau_ref  = 1.d0/Im(i,j,kc,3,1,QRHO)
              gam_ref  = Im_gc(i,j,kc,3,1,1)
           endif
@@ -1463,8 +1503,10 @@ contains
           ! trans_X routines
           if (ppm_trace_grav .eq. 1) then
              dwm = dwm - halfdt*Im_g(i,j,kc,3,1,igz)
+
              du  = du  - halfdt*Im_g(i,j,kc,3,2,igx)
              dv  = dv  - halfdt*Im_g(i,j,kc,3,2,igy)
+
              dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
           endif
 
@@ -1659,19 +1701,26 @@ contains
              u_ref    = u
              v_ref    = v
              w_ref    = w
+
              p_ref    = p
              rhoe_ref = rhoe
+
              tau_ref  = 1.d0/rho
+
              gam_ref  = gam
+
           else
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
              u_ref    = Ip(i,j,km,3,3,QU)
              v_ref    = Ip(i,j,km,3,3,QV)
              w_ref    = Ip(i,j,km,3,3,QW)
+
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
+
              tau_ref  = 1.d0/Ip(i,j,km,3,3,QRHO)
+
              gam_ref  = Ip_gc(i,j,km,3,3,1)
           endif
 
@@ -1705,8 +1754,10 @@ contains
           ! trans_X routines
           if (ppm_trace_grav .eq. 1) then
              dwm = dwm - halfdt*Ip_g(i,j,km,3,1,igz)
+
              du  = du  - halfdt*Ip_g(i,j,km,3,2,igx)
              dv  = dv  - halfdt*Ip_g(i,j,km,3,2,igy)
+
              dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
           endif
 
