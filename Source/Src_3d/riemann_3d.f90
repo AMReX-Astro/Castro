@@ -375,8 +375,10 @@ contains
           wl = sqrt(wlsq)
           wr = sqrt(wrsq)
 
-          ! R-H jump conditions give ustar across each wave -- these should
-          ! be equal when we are done iterating
+          ! R-H jump conditions give ustar across each wave -- these
+          ! should be equal when we are done iterating.  Our notation
+          ! here is a little funny, comparing to CG, ustarp = u*_L and
+          ! ustarm = u*_R.
           ustarp = ul - (pstar-pl)/wl
           ustarm = ur + (pstar-pr)/wr
 
@@ -396,6 +398,7 @@ contains
              call wsqge(pr,taur,gamer,gdot,  &
                         gamstar,pstar,wrsq,clsqr,gmin,gmax)
 
+             ! NOTE: these are really the inverses of the wave speeds!
              wl = 1.d0 / sqrt(wlsq)
              wr = 1.d0 / sqrt(wrsq)
              
@@ -407,6 +410,10 @@ contains
              
              dpditer=abs(pstnm1-pstar)
              
+             ! Here we are going to do the Secant iteration version in
+             ! CG.  Note that what we call zp and zm here are not
+             ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
+             ! simply |du*_p| (or something that looks like dp/Z!).
              zp=abs(ustarp-ustnp1)
              if(zp-weakwv*cav(i,j) <= 0.d0)then
                 zp = dpditer*wl
