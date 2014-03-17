@@ -806,6 +806,7 @@
         double precision :: x,y,z,r,cosTheta,phiAngle
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+        double precision :: r_to_mlm1
 
         dV = dx(1) * dx(2) * dx(3)
 
@@ -819,7 +820,7 @@
 
         rmax = rmax * sqrt(THREE) / TWO
         
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr)
+        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr,r_to_mlm1)
         do k = p_l3,p_h3
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )     ) * dx(3) - center(3)
@@ -886,13 +887,15 @@
                    ! Now compute the potentials on the ghost cells.
 
                    do l = 0, lnum
+
+                     r_to_mlm1 = r**(-l-1)
  
-                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) * r**(-l-1)
+                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) * r_to_mlm1
 
                      do m = 1, l
        
                        phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle)) * &
-                                                 assocLegPolyArr(l,m) * r**(-l-1)
+                                                 assocLegPolyArr(l,m) * r_to_mlm1
 
                      enddo
 
@@ -941,12 +944,14 @@
 
         double precision :: factorial
 
-        double precision :: x,y,z,r,cosTheta,phiAngle,dV
+        double precision :: x,y,z,r,cosTheta,phiAngle
 
         double precision :: volumeFactor, parityFactor
         double precision :: edgeTolerance = 1.0d-2
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+        double precision :: rho_r_to_l
+        double precision :: parity_q0(0:lnum), parity_qC_qS(0:lnum,0:lnum)
 
         logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
         logical          :: doReflectionLo(3), doReflectionHi(3)
@@ -996,9 +1001,41 @@
         ! Compute pre-factors now to save computation time, for qC and qS
 
         do l = 0, lnum
+
+          ! The odd l Legendre polynomials are odd in their argument, so
+          ! a symmetric reflection about the z axis leads to a total cancellation.
+
+          parity_q0(l) = ONE
+
+          if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+            parity_q0(l) = ZERO
+          endif
+
           do m = 1, l
+
+            ! The parity properties of the associated Legendre polynomials are:
+            ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
+            ! Therefore, a complete cancellation occurs if l+m is odd and
+            ! we are reflecting about the z axis.
+
+            ! Additionally, the cosine and sine terms flip sign when reflected
+            ! about the x or y axis, so if we have a reflection about x or y
+            ! then the terms have a complete cancellation.
+
+            parity_qC_qS(l,m) = ONE
+
+            if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+              parity_qC_qS(l,m) = ZERO
+            endif
+
+            if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
+              parity_qC_qS(l,m) = ZERO
+            endif
+
             factArray(l,m) = TWO * factorial(l-m) / factorial(l+m) * volumeFactor
+
           enddo
+
         enddo
 
 
@@ -1070,7 +1107,7 @@
         endif
 
         !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,legPolyArr,assocLegPolyArr) &
-        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor) &
+        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor,rho_r_to_l) &
         !$OMP REDUCTION(+:q0,qC,qS)
         do k = klo, khi
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
@@ -1090,47 +1127,25 @@
 
                  call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
+                 ! Absorb the factorial terms into the Legendre polynomials to save on multiplications later.
+
+                 assocLegPolyArr = assocLegPolyArr * factArray
+
                  ! Now, compute the multipole moments using the tabulated polynomials.
 
                  do l = 0, lnum 
+                 
+                   rho_r_to_l = rho(i,j,k) * (r**dble(l))
 
-                   ! The odd l Legendre polynomials are odd in their argument, so
-                   ! a symmetric reflection about the z axis leads to a total cancellation.
-
-                   parityFactor = ONE
-
-                   if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-                     parityFactor = ZERO
-                   endif
-
-                   q0(l) = q0(l) + legPolyArr(l) * (r ** dble(l)) * rho(i,j,k) * volumeFactor * parityFactor
+                   q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l * volumeFactor * parity_q0(l)
 
                    do m = 1, l
 
-                     ! The parity properties of the associated Legendre polynomials are:
-                     ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
-                     ! Therefore, a complete cancellation occurs if l+m is odd and
-                     ! we are reflecting about the z axis.
+                     qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
+                                         rho_r_to_l * parity_qC_qS(l,m)
 
-                     ! Additionally, the cosine and sine terms flip sign when reflected
-                     ! about the x or y axis, so if we have a reflection about x or y
-                     ! then the terms have a complete cancellation.
-
-                     parityFactor = ONE
-
-                     if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-                       parityFactor = ZERO
-                     endif
-
-                     if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
-                       parityFactor = ZERO
-                     endif
-
-                     qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * cos(m * phiAngle) * &
-                                                          (r ** dble(l)) * rho(i,j,k) * parityFactor
-
-                     qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * sin(m * phiAngle) * &
-                                                          (r ** dble(l)) * rho(i,j,k) * parityFactor
+                     qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
+                                         rho_r_to_l * parity_qC_qS(l,m)
 
                    enddo
 
@@ -1387,16 +1402,24 @@
 
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
+        double precision :: rho_r_to_l
+
         call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
+
+        ! Absorb factorial terms into associated Legendre polynomials
+
+        assocLegPolyArr = assocLegPolyArr * factArray
 
         do l = 0, lnum
 
-          q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho
+          rho_r_to_l = rho * (r ** l)
+
+          q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l
 
           do m = 1, l
             
-            qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * cos(m * phiAngle) * (r ** l) * rho
-            qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * sin(m * phiAngle) * (r ** l) * rho
+            qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_to_l
+            qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_to_l
 
           enddo
 
