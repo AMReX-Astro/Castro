@@ -56,11 +56,11 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = slowshock_x_chk  # root name of checkpoint file
-amr.check_int       = 10         # number of timesteps between checkpoints
+amr.check_int       = 100         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = slowshock_x_plt  # root name of plotfile
-amr.plot_int        = 4          # number of timesteps between plotfiles
+amr.plot_int        = 100          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
 #PROBIN FILENAME
