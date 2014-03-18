@@ -138,7 +138,7 @@ contains
           
           ! Add transverse predictor
           rrnewry = rrry - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-          runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
+          runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))          
           rvnewry = rvry - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
           rwnewry = rwry - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
@@ -148,7 +148,10 @@ contains
           rvnewly = rvly - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
           rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
-          
+
+          ! we need to augment our conserved system with a p equation to
+          ! be able to deal with the general EOS -- add the transverse term
+          ! to the p evolution eq here
           dup = pgp*ugp - pgm*ugm
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
@@ -156,14 +159,17 @@ contains
           pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
           pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           if (j.ge.jlo+1) then
              qypo(i,j,kc,QRHO) = rrnewry
              qypo(i,j,kc,QU) = runewry/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QV) = rvnewry/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QW) = rwnewry/qypo(i,j,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
+
              qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
           end if
           
@@ -172,8 +178,11 @@ contains
              qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QV) = rvnewly/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QW) = rwnewly/qymo(i,j+1,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
+
              qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
           end if
           
@@ -318,14 +327,18 @@ contains
           
           pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
+
+          ! note: we run the risk of (rho e) being negative here
           rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
+
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+
           
           pgp = pgdnvx(i+1,j,km)
           pgm = pgdnvx(i,j,km)
@@ -356,8 +369,11 @@ contains
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
+
+          ! note: we run the risk of (rho e) being negative here
           rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
+
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
           
        enddo
@@ -511,12 +527,14 @@ contains
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              qxpo(i,j,kc,QRHO) = rrnewrx
              qxpo(i,j,kc,QU) = runewrx/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QV) = rvnewrx/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QW) = rwnewrx/qxpo(i,j,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QREINT)= renewrx - rhoekenrx
              
@@ -529,6 +547,8 @@ contains
              qxmo(i+1,j,kc,QU) = runewlx/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QV) = rvnewlx/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QW) = rwnewlx/qxmo(i+1,j,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QREINT)= renewlx - rhoekenlx
              
@@ -677,15 +697,19 @@ contains
           
           pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
+
+          ! note: we run the risk of (rho e) being negative here
           rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT)= renewrz - rhoekenrz
+
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
           
+
           pgp = pgdnvy(i,j+1,km)
           pgm = pgdnvy(i,j,km)
           ugp = ugdnvy(i,j+1,km)
@@ -716,8 +740,11 @@ contains
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
+
+          ! note: we run the risk of (rho e) being negative here
           rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT)= renewlz - rhoekenlz
+
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
           
        enddo
@@ -916,12 +943,14 @@ contains
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              qxpo(i,j,km,QRHO) = rrnewrx
              qxpo(i,j,km,QU) = runewrx/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QV) = rvnewrx/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QW) = rwnewrx/qxpo(i,j,km,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT)= renewrx - rhoekenrx
              
@@ -934,6 +963,8 @@ contains
              qypo(i,j,km,QU) = runewry/qypo(i,j,km,QRHO)
              qypo(i,j,km,QV) = rvnewry/qypo(i,j,km,QRHO)
              qypo(i,j,km,QW) = rwnewry/qypo(i,j,km,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT)= renewry - rhoekenry
              
@@ -946,6 +977,8 @@ contains
              qxmo(i+1,j,km,QU) = runewlx/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QV) = rvnewlx/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QW) = rwnewlx/qxmo(i+1,j,km,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT)= renewlx - rhoekenlx
              
@@ -958,6 +991,8 @@ contains
              qymo(i,j+1,km,QU) = runewly/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QV) = rvnewly/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QW) = rwnewly/qymo(i,j+1,km,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
              rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT)= renewly - rhoekenly
              
@@ -1180,11 +1215,13 @@ contains
           pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
           pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
           qpo(i,j,kc,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU) 
           qpo(i,j,kc,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV) 
           qpo(i,j,kc,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW) 
+
+          ! note: we run the risk of (rho e) being negative here
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
           
           qpo(i,j,kc,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1194,6 +1231,8 @@ contains
           qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU)
           qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV)
           qmo(i,j,kc,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QW)
+
+          ! note: we run the risk of (rho e) being negative here
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
           
           qmo(i,j,kc,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d-1,QPRES)
@@ -1406,12 +1445,14 @@ contains
           pnewr = qp(i,j,km,QPRES) - pxnew - pznew
           pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
           
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           if (j.ge.jlo+1) then
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
              qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
              qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
+
+             ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
              
              qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1423,7 +1464,10 @@ contains
              qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
              qmo(i,j+1,km,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
              qmo(i,j+1,km,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
+
+             ! note: we run the risk of (rho e) being negative here
              qmo(i,j+1,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
+
              qmo(i,j+1,km,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
              qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
           end if
@@ -1636,12 +1680,14 @@ contains
           pnewr = qp(i,j,km,QPRES) - pynew - pznew
           pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
 
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
              qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
              qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
+
+             ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
              
              qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
@@ -1654,6 +1700,8 @@ contains
              qmo(i+1,j,km,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
              qmo(i+1,j,km,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
              qmo(i+1,j,km,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
+
+             ! note: we run the risk of (rho e) being negative here
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
              
              qmo(i+1,j,km,QPRES  ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
