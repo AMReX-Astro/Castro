@@ -36,6 +36,7 @@ contains
                      dloga,dloga_l1,dloga_h1)
 
     use meth_params_module, only : QVAR, NVAR, ppm_type
+    use riemann_module
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
 
@@ -427,64 +428,6 @@ contains
     
   end subroutine consup
   
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-  subroutine cmpflx(lo,hi,domlo,domhi, &
-                    qm,qp,qpd_l1,qpd_h1, &
-                    flx,flx_l1,flx_h1, &
-                    pgdnv,pg_l1,pg_h1, &
-                    ugdnv,ug_l1,ug_h1, &
-                    gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
-    
-    use meth_params_module, only : QVAR, NVAR
-    use riemann_module, only : riemannus
-    
-    implicit none
-    integer lo(1),hi(1)
-    integer domlo(1),domhi(1)
-    integer ilo,ihi
-    integer qpd_l1,qpd_h1
-    integer flx_l1, flx_h1
-    integer  pg_l1, pg_h1
-    integer  ug_l1, ug_h1
-    integer  qd_l1,  qd_h1
-    double precision    qm(qpd_l1:qpd_h1, QVAR)
-    double precision    qp(qpd_l1:qpd_h1, QVAR)
-    double precision   flx(flx_l1:flx_h1, NVAR)
-    double precision pgdnv( pg_l1: pg_h1)
-    double precision ugdnv( ug_l1: ug_h1)
-    double precision  gamc( qd_l1: qd_h1)
-    double precision     c( qd_l1: qd_h1)
-    double precision  csml( qd_l1: qd_h1)
-    
-    ! Local variables
-    integer i
-    double precision, allocatable :: smallc(:),cavg(:),gamcp(:), gamcm(:)
-    
-    allocate ( smallc(ilo:ihi+1) )
-    allocate ( cavg(ilo:ihi+1) )
-    allocate ( gamcp(ilo:ihi+1) )
-    allocate ( gamcm(ilo:ihi+1) )
-    
-    do i = ilo, ihi+1 
-       smallc(i) = max( csml(i), csml(i-1) )
-       cavg(i) = 0.5d0*( c(i) + c(i-1) )
-       gamcm(i) = gamc(i-1)
-       gamcp(i) = gamc(i)
-    enddo
-    
-    ! Solve Riemann problem (gdnv state passed back, but only (u,p) saved)
-    call riemannus(qm, qp,qpd_l1,qpd_h1, smallc, cavg, &
-                   gamcm, gamcp, flx, flx_l1, flx_h1, &
-                   pgdnv, pg_l1, pg_h1, &
-                   ugdnv, ug_l1, ug_h1, ilo, ihi, domlo, domhi )
-    
-    deallocate (smallc,cavg,gamcp,gamcm)
-    
-  end subroutine cmpflx
-
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::
