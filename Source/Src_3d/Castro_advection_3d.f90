@@ -51,6 +51,7 @@ contains
                                    use_pslope, ppm_trace_grav, ppm_temp_fix
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
+    use transverse_module
     use ppm_module, only : ppm
     use slope_module, only : uslope, pslope
     use network

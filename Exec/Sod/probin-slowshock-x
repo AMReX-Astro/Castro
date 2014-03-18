@@ -1,0 +1,27 @@
+&fortin
+  p_l = 100.0d0
+  u_l = -1.4701d0
+  rho_l = 5.6698d0
+
+  p_r = 1.0d0
+  u_r = -10.5d0
+  rho_r = 1.0d0
+
+  idir = 1
+  frac = 0.5d0
+
+  denerr = 3
+  dengrad = 0.01
+  max_denerr_lev = 3
+  max_dengrad_lev = 3
+
+  presserr = 3
+  pressgrad = 0.01
+  max_presserr_lev = 3
+  max_pressgrad_lev = 3
+/
+
+&extern
+  eos_gamma = 1.4
+/
+

@@ -21,7 +21,7 @@ contains
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
-         ppm_reference_edge_limit
+         ppm_reference_edge_limit, ppm_flatten_before_integrals
 
     implicit none
 
@@ -188,10 +188,15 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
+
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
@@ -200,9 +205,12 @@ contains
                 u_ref    = Im(i,j,kc,1,1,QU)
                 v_ref    = Im(i,j,kc,1,1,QV)
                 w_ref    = Im(i,j,kc,1,1,QW)
+
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
+
                 tau_ref  = 1.d0/Im(i,j,kc,1,1,QRHO)
+
                 gam_ref  = Im_gc(i,j,kc,1,1,1)
              endif
    
@@ -236,8 +244,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dum = dum - halfdt*Im_g(i,j,kc,1,1,igx)
+
                 dv  = dv  - halfdt*Im_g(i,j,kc,1,2,igy)
                 dw  = dw  - halfdt*Im_g(i,j,kc,1,2,igz)
+
                 dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
              endif
    
@@ -309,8 +319,13 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
 
-                xi1 = 1.0d0-flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0-flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
 
                 qxp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
                 qxp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
@@ -373,8 +388,13 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
 
-                xi1 = 1.0d0-flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0-flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
 
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,kc,QRHO  ) = xi1*rho + xi/tau_s
@@ -411,19 +431,26 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
                 u_ref    = Ip(i,j,kc,1,3,QU)
                 v_ref    = Ip(i,j,kc,1,3,QV)
                 w_ref    = Ip(i,j,kc,1,3,QW)
+
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,1,3,QREINT)
+
                 tau_ref  = 1.d0/Ip(i,j,kc,1,3,QRHO)
+
                 gam_ref  = Ip_gc(i,j,kc,1,3,1)
              endif
    
@@ -457,8 +484,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dum = dum - halfdt*Ip_g(i,j,kc,1,1,igx)
+
                 dv  = dv  - halfdt*Ip_g(i,j,kc,1,2,igy)
                 dw  = dw  - halfdt*Ip_g(i,j,kc,1,2,igz)
+
                 dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
              endif
 
@@ -528,8 +557,14 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                 qxm(i+1,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
@@ -591,8 +626,14 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,kc,QRHO  ) = xi1*rho + xi/tau_s
@@ -625,7 +666,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(ipassive,i,j,u,n) IF(npassive .gt. 1)
+    !$OMP parallel do private(ipassive,i,j,u,n,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -633,28 +674,56 @@ contains
           ! Plus state on face i
           do i = ilo1, ihi1+1
              u = q(i,j,k3d,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d)
+             else
+                xi = 1.0d0
+             endif
+
+             ! the flattening here is a little confusing.  What we              
+             ! want to do is:                                                   
+             !                                                                  
+             ! q_l*  (1-xi)*q_i + xi*q_l                                        
+             !                                                                  
+             ! where                                                            
+             !                                                                  
+             ! q_l = q_ref - Proj{(q_ref - I)}                                  
+             !                                                                  
+             ! and Proj{} represents the characteristic projection.             
+             ! But for these, there is only 1-wave that matters, the u          
+             ! wave, so no projection is needed.  Since we are not              
+             ! projecting, the reference state doesn't matter, so we            
+             ! take it to be q_i, therefore, we reduce to                       
+             !                                                                  
+             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]                         
+             !      = q_i + xi*(I - q_i)       
+
              if (u .gt. 0.d0) then
                 qxp(i,j,kc,n) = q(i,j,k3d,n)
              else if (u .lt. 0.d0) then
-                qxp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
+                qxp(i,j,kc,n) = q(i,j,k3d,n) + xi*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
              else
-                qxp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
+                qxp(i,j,kc,n) = q(i,j,k3d,n) + 0.5d0*xi*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
              endif
           enddo
 
           ! Minus state on face i+1
           do i = ilo1-1, ihi1
              u = q(i,j,k3d,QU)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d)
+             else
+                xi = 1.0d0
+             endif
+
              if (u .gt. 0.d0) then
-                qxm(i+1,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
+                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + xi*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
              else if (u .lt. 0.d0) then
                 qxm(i+1,j,kc,n) = q(i,j,k3d,n)
              else
-                qxm(i+1,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
+                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + 0.5d0*xi*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
              endif
           enddo
        enddo
@@ -711,18 +780,24 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
                 u_ref    = Im(i,j,kc,2,1,QU)
                 v_ref    = Im(i,j,kc,2,1,QV)
                 w_ref    = Im(i,j,kc,2,1,QW)
+
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
+
                 tau_ref  = 1.d0/Im(i,j,kc,2,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,2,1,1)
              endif
@@ -829,8 +904,13 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
                 qyp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
@@ -892,8 +972,14 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 tau_s = tau_ref + apright + amright + azrright                
                 qyp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
@@ -930,19 +1016,26 @@ contains
                 u_ref    = u
                 v_ref    = v
                 w_ref    = w
+
                 p_ref    = p
                 rhoe_ref = rhoe
+
                 tau_ref  = 1.d0/rho
+
                 gam_ref  = gam
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
                 u_ref    = Ip(i,j,kc,2,3,QU)
                 v_ref    = Ip(i,j,kc,2,3,QV)
                 w_ref    = Ip(i,j,kc,2,3,QW)
+
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
+
                 tau_ref  = 1.d0/Ip(i,j,kc,2,3,QRHO)
+
                 gam_ref  = Ip_gc(i,j,kc,2,3,1)
              endif
 
@@ -976,8 +1069,10 @@ contains
              ! in the trans_X routines
              if (ppm_trace_grav .eq. 1) then
                 dvm = dvm - halfdt*Ip_g(i,j,kc,2,1,igy)
+
                 du  = du  - halfdt*Ip_g(i,j,kc,2,2,igx)
                 dw  = dw  - halfdt*Ip_g(i,j,kc,2,2,igz)
+
                 dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
              endif
 
@@ -1047,8 +1142,14 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
                 
                 qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                 qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
@@ -1110,9 +1211,15 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                xi1 = 1.0d0 - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-                
+
+                if (ppm_flatten_before_integrals == 0) then
+                   xi1 = 1.0d0 - flatn(i,j,k3d)
+                   xi = flatn(i,j,k3d)
+                else
+                   xi1 = 0.0d0
+                   xi = 1.0d0
+                endif
+
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi/tau_s
 
@@ -1141,7 +1248,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(n,i,j,v,ipassive) IF(npassive .gt. 1)
+    !$OMP parallel do private(n,i,j,v,ipassive,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do i = ilo1-1, ihi1+1
@@ -1149,28 +1256,38 @@ contains
           ! Plus state on face j
           do j = ilo2, ihi2+1
              v = q(i,j,k3d,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
                 qyp(i,j,kc,n) = q(i,j,k3d,n)
              else if (v .lt. 0.d0) then
-                qyp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
+                qyp(i,j,kc,n) = q(i,j,k3d,n) + xi*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
              else
-                qyp(i,j,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
+                qyp(i,j,kc,n) = q(i,j,k3d,n) + 0.5d0*xi*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
              endif
           enddo
           
           ! Minus state on face j+1
           do j = ilo2-1, ihi2
              v = q(i,j,k3d,QV)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d)
+             else
+                xi = 1.0d0
+             endif
+
              if (v .gt. 0.d0) then
-                qym(i,j+1,kc,n) = q(i,j,k3d,n) &
-                     + flatn(i,j,k3d)*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
+                qym(i,j+1,kc,n) = q(i,j,k3d,n) + xi*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
              else if (v .lt. 0.d0) then
                 qym(i,j+1,kc,n) = q(i,j,k3d,n)
              else
-                qym(i,j+1,kc,n) = q(i,j,k3d,n) &
-                     + 0.5d0*flatn(i,j,k3d)*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
+                qym(i,j+1,kc,n) = q(i,j,k3d,n) + 0.5d0*xi*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
              endif
           enddo
           
@@ -1195,7 +1312,7 @@ contains
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
-         ppm_reference_edge_limit
+         ppm_reference_edge_limit, ppm_flatten_before_integrals
 
     implicit none
 
@@ -1334,18 +1451,24 @@ contains
              u_ref    = u
              v_ref    = v
              w_ref    = w
+
              p_ref    = p
              rhoe_ref = rhoe
+
              tau_ref  = 1.d0/rho
+
              gam_ref  = gam
+
           else
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
              u_ref    = Im(i,j,kc,3,1,QU)
              v_ref    = Im(i,j,kc,3,1,QV)
              w_ref    = Im(i,j,kc,3,1,QW)
+
              p_ref    = Im(i,j,kc,3,1,QPRES)
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
+
              tau_ref  = 1.d0/Im(i,j,kc,3,1,QRHO)
              gam_ref  = Im_gc(i,j,kc,3,1,1)
           endif
@@ -1380,8 +1503,10 @@ contains
           ! trans_X routines
           if (ppm_trace_grav .eq. 1) then
              dwm = dwm - halfdt*Im_g(i,j,kc,3,1,igz)
+
              du  = du  - halfdt*Im_g(i,j,kc,3,2,igx)
              dv  = dv  - halfdt*Im_g(i,j,kc,3,2,igy)
+
              dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
           endif
 
@@ -1447,8 +1572,14 @@ contains
 
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-             xi1 = 1.0d0 - flatn(i,j,k3d)
-             xi = flatn(i,j,k3d)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = 1.0d0 - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = 0.0d0
+                xi = 1.0d0
+             endif
              
              qzp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
              qzp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apright - amright)*cc_ev/rho_ev)
@@ -1510,8 +1641,14 @@ contains
 
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-             xi1 = 1.0d0 - flatn(i,j,k3d)
-             xi = flatn(i,j,k3d)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = 1.0d0 - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = 0.0d0
+                xi = 1.0d0
+             endif
 
              tau_s = tau_ref + apright + amright + azrright
              qzp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
@@ -1564,19 +1701,26 @@ contains
              u_ref    = u
              v_ref    = v
              w_ref    = w
+
              p_ref    = p
              rhoe_ref = rhoe
+
              tau_ref  = 1.d0/rho
+
              gam_ref  = gam
+
           else
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
              u_ref    = Ip(i,j,km,3,3,QU)
              v_ref    = Ip(i,j,km,3,3,QV)
              w_ref    = Ip(i,j,km,3,3,QW)
+
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
+
              tau_ref  = 1.d0/Ip(i,j,km,3,3,QRHO)
+
              gam_ref  = Ip_gc(i,j,km,3,3,1)
           endif
 
@@ -1610,8 +1754,10 @@ contains
           ! trans_X routines
           if (ppm_trace_grav .eq. 1) then
              dwm = dwm - halfdt*Ip_g(i,j,km,3,1,igz)
+
              du  = du  - halfdt*Ip_g(i,j,km,3,2,igx)
              dv  = dv  - halfdt*Ip_g(i,j,km,3,2,igy)
+
              dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
           endif
 
@@ -1677,8 +1823,14 @@ contains
              
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-             xi1 = 1.0d0 - flatn(i,j,k3d-1)
-             xi = flatn(i,j,k3d-1)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = 1.0d0 - flatn(i,j,k3d-1)
+                xi = flatn(i,j,k3d-1)
+             else
+                xi1 = 0.0d0
+                xi = 1.0d0
+             endif
 
              qzm(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
              qzm(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apleft - amleft)*cc_ev/rho_ev)
@@ -1738,8 +1890,14 @@ contains
              
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-             xi1 = 1.0d0 - flatn(i,j,k3d-1)
-             xi = flatn(i,j,k3d-1)
+
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = 1.0d0 - flatn(i,j,k3d-1)
+                xi = flatn(i,j,k3d-1)
+             else
+                xi1 = 0.0d0
+                xi = 1.0d0
+             endif
 
              tau_s = tau_ref + apleft + amleft + azrleft
              qzm(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
@@ -1767,7 +1925,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(n,w,i,j,ipassive) IF(npassive .gt. 1)
+    !$OMP parallel do private(n,w,i,j,ipassive,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
          n = qpass_map(ipassive)
          do j = ilo2-1, ihi2+1
@@ -1775,26 +1933,36 @@ contains
 
                   ! Plus state on face kc
                   w = q(i,j,k3d,QW)
+
+                  if (ppm_flatten_before_integrals == 0) then
+                     xi = flatn(i,j,k3d)
+                  else
+                     xi = 1.0d0
+                  endif
+
                   if (w .gt. 0.d0) then
                      qzp(i,j,kc,n) = q(i,j,k3d,n)
                   else if (w .lt. 0.d0) then
-                     qzp(i,j,kc,n) = q(i,j,k3d,n) &
-                          + flatn(i,j,k3d)*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
+                     qzp(i,j,kc,n) = q(i,j,k3d,n) + xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
                   else
-                     qzp(i,j,kc,n) = q(i,j,k3d,n) &
-                          + 0.5d0*flatn(i,j,k3d)*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
+                     qzp(i,j,kc,n) = q(i,j,k3d,n) + 0.5d0*xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
                   endif
 
                   ! Minus state on face k
                   w = q(i,j,k3d-1,QW)
+                  
+                  if (ppm_flatten_before_integrals == 0) then
+                     xi = flatn(i,j,k3d-1)
+                  else
+                     xi = 1.0d0
+                  endif
+
                   if (w .gt. 0.d0) then
-                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) &
-                          + flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
+                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) + xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
                   else if (w .lt. 0.d0) then
                      qzm(i,j,kc,n) = q(i,j,k3d-1,n)
                   else
-                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) &
-                          + 0.5d0*flatn(i,j,k3d-1)*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
+                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) + 0.5d0*xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
                   endif
 
                enddo

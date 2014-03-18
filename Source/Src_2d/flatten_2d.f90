@@ -11,7 +11,7 @@ contains
   subroutine uflaten(lo,hi,p,u,v,flatn, &
                      q_l1,q_l2,q_h1,q_h2)
 
-    use meth_params_module, only : iorder, small_pres
+    use meth_params_module, only : small_pres
     
     implicit none
 

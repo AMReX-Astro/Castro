@@ -95,7 +95,7 @@ contains
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
                                      QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
                                      QGAMC,QGAME, nadv, small_temp, allow_negative_energy
-      use advection_module, only : uflaten
+      use flatten_module, only : uflaten
       use bl_constants_module
 
       implicit none

@@ -4,61 +4,66 @@ module ppm_module
 
 contains
 
-     ! characteristics based on u
-     subroutine ppm(s,qd_l1,qd_h1,u,cspd,Ip,Im,ilo,ihi,dx,dt)
+  ! characteristics based on u
+  subroutine ppm(s,qd_l1,qd_h1, &
+                 u,cspd, &
+                 flatn, &
+                 Ip,Im,ilo,ihi,dx,dt)
        
-       use meth_params_module, only : ppm_type
+    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
 
-       implicit none
+    implicit none
        
-       integer          qd_l1,qd_h1
-       integer          ilo,ihi
-       double precision s(qd_l1:qd_h1)
-       double precision u(qd_l1:qd_h1)
-       double precision cspd(qd_l1:qd_h1)
-       double precision Ip(ilo-1:ihi+1,1:3)
-       double precision Im(ilo-1:ihi+1,1:3)
-       double precision dx,dt
+    integer          qd_l1,qd_h1
+    integer          ilo,ihi
+    double precision s(qd_l1:qd_h1)
+    double precision u(qd_l1:qd_h1)
+    double precision cspd(qd_l1:qd_h1)
+    double precision flatn(qd_l1:qd_h1)
+    double precision Ip(ilo-1:ihi+1,1:3)
+    double precision Im(ilo-1:ihi+1,1:3)
+    double precision dx,dt
 
-       ! local
-       integer i
-       logical extremum, bigp, bigm
+    ! local
+    integer i
+    logical extremum, bigp, bigm
 
-       double precision dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
-       double precision sgn, sigma, s6, w0cc, amax, delam, delap
-       double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
+    double precision dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
+    double precision sgn, sigma, s6, amax, delam, delap
+    double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
 
-       ! s_{\ib,+}, s_{\ib,-}
-       double precision, allocatable :: sp(:)
-       double precision, allocatable :: sm(:)
+    ! s_{\ib,+}, s_{\ib,-}
+    double precision, allocatable :: sp(:)
+    double precision, allocatable :: sm(:)
+    
+    ! \delta s_{\ib}^{vL}
+    double precision, allocatable :: dsvl(:)
+    
+    ! s_{i+\half}^{H.O.}
+    double precision, allocatable :: sedge(:)
 
-       ! \delta s_{\ib}^{vL}
-       double precision, allocatable :: dsvl(:)
+    ! cell-centered indexing
+    allocate(sp(ilo-1:ihi+1))
+    allocate(sm(ilo-1:ihi+1))
+    
+    ! constant used in Colella 2008
+    C = 1.25d0
+    
+    ! cell-centered indexing w/extra x-ghost cell
+    allocate(dsvl(ilo-2:ihi+2))
 
-       ! s_{i+\half}^{H.O.}
-       double precision, allocatable :: sedge(:)
-
-       ! cell-centered indexing
-       allocate(sp(ilo-1:ihi+1))
-       allocate(sm(ilo-1:ihi+1))
-
-       ! constant used in Colella 2008
-       C = 1.25d0
-
-       ! cell-centered indexing w/extra x-ghost cell
-       allocate(dsvl(ilo-2:ihi+2))
-
-       ! edge-centered indexing for x-faces
-       if (ppm_type .eq. 1) then
-          allocate(sedge(ilo-1:ihi+2))
-       else
-          allocate(sedge(ilo-2:ihi+3))
-       end if
-
+    ! edge-centered indexing for x-faces
+    if (ppm_type .eq. 1) then
+       allocate(sedge(ilo-1:ihi+2))
+    else
+       allocate(sedge(ilo-2:ihi+3))
+    end if
+    
     ! compute s at x-edges
     if (ppm_type .eq. 1) then
 
-       ! compute van Leer slopes in x-direction
+       ! compute van Leer slopes in x-direction (CW Eq. 1.7, 1.8 
+       ! w/ zone widths (dxi) all equal)
        dsvl = 0.d0
        do i=ilo-2,ihi+2
           dsc = 0.5d0 * (s(i+1) - s(i-1))
@@ -67,7 +72,7 @@ contains
           if (dsl*dsr .gt. 0.d0) dsvl(i) = sign(1.d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
        end do
        
-       ! interpolate s to x-edges
+       ! interpolate s to x-edges (CW 1.6)
        do i=ilo-1,ihi+2
           sedge(i) = 0.5d0*(s(i)+s(i-1)) - (1.d0/6.d0)*(dsvl(i)-dsvl(i-1))
           ! make sure sedge lies in between adjacent cell-centered values
@@ -81,7 +86,17 @@ contains
           sm(i) = sedge(i  )
        end do
 
-       ! modify using quadratic limiters
+       if (ppm_flatten_before_integrals == 1) then
+          ! flatten the parabola BEFORE doing the other
+          ! monotonozation -- this is the method that Flash does
+          do i=ilo-1,ihi+1
+             sm(i) = flatn(i)*sm(i) + (1.d0-flatn(i))*s(i)
+             sp(i) = flatn(i)*sp(i) + (1.d0-flatn(i))*s(i)
+          enddo
+       endif
+
+       ! modify using quadratic limiters (CW 1.10) -- with a slightly
+       ! different form from Colella & Sekora (Eqs. 14, 15)
        do i=ilo-1,ihi+1
           if ((sp(i)-s(i))*(s(i)-sm(i)) .le. 0.d0) then
              sp(i) = s(i)
@@ -92,6 +107,16 @@ contains
              sm(i) = 3.d0*s(i) - 2.d0*sp(i)
           end if
        end do
+
+       if (ppm_flatten_before_integrals == 2) then
+          ! flatten the parabola AFTER doing the monotonization --
+          ! this is the method that Miller & Colella do
+          do i=ilo-1,ihi+1
+             sm(i) = flatn(i)*sm(i) + (1.d0-flatn(i))*s(i)
+             sp(i) = flatn(i)*sp(i) + (1.d0-flatn(i))*s(i)
+          enddo
+       endif
+
 
     else if (ppm_type .eq. 2) then
        
@@ -188,22 +213,65 @@ contains
 
         ! compute x-component of Ip and Im
        do i=ilo-1,ihi+1
+
+          ! Ip/m is the integral under the parabola for the extent
+          ! that a wave can travel over a timestep
+          !                                              
+          ! Ip integrates to the right edge of a cell   
+          ! Im integrates to the left edge of a cell
+        
           s6 = 6.0d0*s(i) - 3.0d0*(sm(i)+sp(i))
+
+          ! u-c wave
           sigma = abs(u(i)-cspd(i))*dt/dx
-          Ip(i,1) = sp(i) - &
-               (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,1) = sm(i) + &
-               (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i)-cspd(i) <= 0.0d0) then
+             Ip(i,1) = sp(i)
+          else
+             Ip(i,1) = sp(i) - &
+                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          if (u(i)-cspd(i) >= 0.0d0) then
+             Im(i,1) = sm(i)
+          else
+             Im(i,1) = sm(i) + &
+                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! u wave
           sigma = abs(u(i))*dt/dx
-          Ip(i,2) = sp(i) - &
-               (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,2) = sm(i) + &
-               (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i) <= 0.0d0) then
+             Ip(i,2) = sp(i)
+          else
+             Ip(i,2) = sp(i) - &
+                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          if (u(i) >= 0.0d0) then
+             Im(i,2) = sm(i)
+          else
+             Im(i,2) = sm(i) + &
+                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          ! u+c wave
           sigma = abs(u(i)+cspd(i))*dt/dx
-          Ip(i,3) = sp(i) - &
-               (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,3) = sm(i) + &
-               (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i) + cspd(i) <= 0.0d0) then
+             Ip(i,3) = sp(i)
+          else
+             Ip(i,3) = sp(i) - &
+                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
+
+          if (u(i) + cspd(i) >= 0.0d0) then
+             Im(i,3) = sm(i)
+          else
+             Im(i,3) = sm(i) + &
+                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          endif
        end do
        
        deallocate(sedge,dsvl,sp,sm)

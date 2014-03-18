@@ -5,5 +5,7 @@ generate exact solutions to the Riemann problem for comparison with
 Castro shocktube output.  Several inputs files for helmeos-based
 shocktubes are provided.
 
-This solver is used in Zingale & Katz (2013), and more details are
+This solver is used in Zingale & Katz (2014), and more details are
 given there.
+
+To build the solver, simply type 'make' in this directory.
