@@ -17,8 +17,9 @@
                           mass_added,eint_added,eden_added,&
                           E_added_flux, E_added_grav)
 
-      use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
-                                     normalize_species
+      use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
+                                     use_colglaz, do_sponge, &
+                                     normalize_species, use_flattening
       use advection_module, only : umeth1d, ctoprim, consup, enforce_minimum_density, &
            normalize_new_species
       use CastroCG_module, only : ctoprimcg, umeth1dcg
@@ -62,7 +63,7 @@
 
       double precision :: dx,E_added_flux,E_added_grav
       double precision :: mass_added, eint_added, eden_added
-      integer i,ngf,iflaten
+      integer i,ngf
 
       allocate(     q(uin_l1:uin_h1,QVAR))
       allocate(     c(uin_l1:uin_h1))
@@ -79,7 +80,6 @@
       dx = delta(1)
 
       ngf = 1
-      iflaten = 1
 
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
@@ -90,7 +90,7 @@
          call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                    src,srcQ,src_l1,src_h1, &
-                   courno,dx,dt,NHYP,ngf,iflaten)
+                   courno,dx,dt,NHYP,ngf)
 
          call umeth1d(lo,hi,domlo,domhi, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
@@ -107,7 +107,7 @@
           call ctoprimcg(lo,hi,uin,uin_l1,uin_h1, &
                     q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                     src,srcQ,src_l1,src_h1, &
-                    courno,dx,dt,NHYP,ngf,iflaten)
+                    courno,dx,dt,NHYP,ngf,use_flattening)
 
           call umeth1dcg(q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                     srcQ, src_l1, src_h1, &
