@@ -50,6 +50,7 @@ contains
     use meth_params_module, only : QVAR, NVAR, ppm_type
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
+    use transverse_module
     use riemann_module, only: cmpflx
 
     implicit none
