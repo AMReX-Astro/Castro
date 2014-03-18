@@ -786,6 +786,7 @@
                                       problo,probhi,lnum,q0,qC,qS)
         use probdata_module
         use fundamental_constants_module, only: Gconst
+        use bl_constants_module
 
         implicit none
 
@@ -805,6 +806,7 @@
         double precision :: x,y,z,r,cosTheta,phiAngle
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+        double precision :: r_to_mlm1
 
         dV = dx(1) * dx(2) * dx(3)
 
@@ -816,38 +818,38 @@
           rmax = probhi(3)
         endif
 
-        rmax = rmax * sqrt(3.0d0) / 2.0d0
+        rmax = rmax * sqrt(THREE) / TWO
         
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr)
+        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr,r_to_mlm1)
         do k = p_l3,p_h3
            if (k .gt. domhi(3)) then
-              z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
+              z = problo(3) + (dble(k  )     ) * dx(3) - center(3)
            else if (k .lt. domlo(3)) then
-              z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
+              z = problo(3) + (dble(k+1)     ) * dx(3) - center(3)
            else 
-              z = problo(3) + (dble(k  )+0.50d0) * dx(3) - center(3)
+              z = problo(3) + (dble(k  )+HALF) * dx(3) - center(3)
            end if
 
            z = z / rmax
 
            do j = p_l2,p_h2
               if (j .gt. domhi(2)) then
-                 y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
+                 y = problo(2) + (dble(j  )     ) * dx(2) - center(2)
               else if (j .lt. domlo(2)) then
-                 y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
+                 y = problo(2) + (dble(j+1)     ) * dx(2) - center(2)
               else 
-                 y = problo(2) + (dble(j  )+0.50d0) * dx(2) - center(2)
+                 y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
               end if
 
               y = y / rmax
 
               do i = p_l1,p_h1
                  if (i .gt. domhi(1)) then
-                    x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
+                    x = problo(1) + (dble(i  )     ) * dx(1) - center(1)
                  else if (i .lt. domlo(1)) then
-                    x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
+                    x = problo(1) + (dble(i+1)     ) * dx(1) - center(1)
                  else 
-                    x = problo(1) + (dble(i  )+0.50d0) * dx(1) - center(1)
+                    x = problo(1) + (dble(i  )+HALF) * dx(1) - center(1)
                  end if
 
                  x = x / rmax
@@ -866,32 +868,34 @@
                    r = sqrt( x**2 + y**2 + z**2 )
 
                    if ( r < 1.0d-12 ) then
-                     phi(i,j,k) = 0.0d0
+                     phi(i,j,k) = ZERO
                      cycle
                    endif
 
                    cosTheta = z / r
                    phiAngle = atan2(y,x)
 
-                   phi(i,j,k) = 0.0d0
+                   phi(i,j,k) = ZERO
 
                    ! First, calculate the Legendre polynomials.
 
-                   legPolyArr(:) = 0.0d0
-                   assocLegPolyArr(:,:) = 0.0d0
+                   legPolyArr(:) = ZERO
+                   assocLegPolyArr(:,:) = ZERO
 
                    call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
                    ! Now compute the potentials on the ghost cells.
 
                    do l = 0, lnum
+
+                     r_to_mlm1 = r**(-l-1)
  
-                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) * r**(-l-1)
+                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) * r_to_mlm1
 
                      do m = 1, l
        
                        phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle)) * &
-                                                 assocLegPolyArr(l,m) * r**(-l-1)
+                                                 assocLegPolyArr(l,m) * r_to_mlm1
 
                      enddo
 
@@ -916,6 +920,7 @@
                                                dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
                                                problo,probhi,lnum,q0,qC,qS)
         use probdata_module
+        use bl_constants_module
 
         implicit none
 
@@ -939,12 +944,14 @@
 
         double precision :: factorial
 
-        double precision :: x,y,z,r,cosTheta,phiAngle,dV
+        double precision :: x,y,z,r,cosTheta,phiAngle
 
         double precision :: volumeFactor, parityFactor
         double precision :: edgeTolerance = 1.0d-2
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+        double precision :: rho_r_to_l
+        double precision :: parity_q0(0:lnum), parity_qC_qS(0:lnum,0:lnum)
 
         logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
         logical          :: doReflectionLo(3), doReflectionHi(3)
@@ -955,8 +962,8 @@
         ! Otherwise, we need to do a more general solve. We include a logical that is set to true
         ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
 
-        volumeFactor = 1.0d0
-        parityFactor = 1.0d0
+        volumeFactor = ONE
+        parityFactor = ONE
 
         doSymmetricAddLo(:) = .false.
         doSymmetricAddHi(:) = .false.
@@ -970,7 +977,7 @@
 
           if ( (lo_bc(b) .eq. symmetry_type) ) then
             if ( abs(center(b) - problo(b)) < edgeTolerance ) then
-              volumeFactor = volumeFactor * 2.0d0
+              volumeFactor = volumeFactor * TWO
               doReflectionLo(b) = .true.
             else
               doSymmetricAddLo(b) = .true.
@@ -980,7 +987,7 @@
 
           if ( (hi_bc(b) .eq. symmetry_type) ) then
             if ( abs(center(b) - probhi(b)) < edgeTolerance ) then
-              volumeFactor = volumeFactor * 2.0d0
+              volumeFactor = volumeFactor * TWO
               doReflectionHi(b) = .true.
             else
               doSymmetricAddHi(b) = .true.
@@ -994,9 +1001,41 @@
         ! Compute pre-factors now to save computation time, for qC and qS
 
         do l = 0, lnum
+
+          ! The odd l Legendre polynomials are odd in their argument, so
+          ! a symmetric reflection about the z axis leads to a total cancellation.
+
+          parity_q0(l) = ONE
+
+          if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+            parity_q0(l) = ZERO
+          endif
+
           do m = 1, l
-            factArray(l,m) = 2.0 * factorial(l-m) / factorial(l+m) * volumeFactor
+
+            ! The parity properties of the associated Legendre polynomials are:
+            ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
+            ! Therefore, a complete cancellation occurs if l+m is odd and
+            ! we are reflecting about the z axis.
+
+            ! Additionally, the cosine and sine terms flip sign when reflected
+            ! about the x or y axis, so if we have a reflection about x or y
+            ! then the terms have a complete cancellation.
+
+            parity_qC_qS(l,m) = ONE
+
+            if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+              parity_qC_qS(l,m) = ZERO
+            endif
+
+            if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
+              parity_qC_qS(l,m) = ZERO
+            endif
+
+            factArray(l,m) = TWO * factorial(l-m) / factorial(l+m) * volumeFactor
+
           enddo
+
         enddo
 
 
@@ -1059,7 +1098,7 @@
           rmax = probhi(3)
         endif
 
-        rmax = rmax * sqrt(3.0d0) / 2.0d0 ! This is the distance from the center to the corner of a cube. 
+        rmax = rmax * sqrt(THREE) / TWO ! This is the distance from the center to the corner of a cube. 
 
         if ( lnum > 50 ) then
           print *, ">>> CA_COMPUTE_MULTIPOLE_MOMENTS: The value of l you have chosen is too large."
@@ -1068,16 +1107,16 @@
         endif
 
         !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,legPolyArr,assocLegPolyArr) &
-        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor) &
+        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor,rho_r_to_l) &
         !$OMP REDUCTION(+:q0,qC,qS)
         do k = klo, khi
-           z = ( problo(3) + (dble(k)+0.50d0) * dx(3) - center(3) ) / rmax
+           z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
            do j = jlo, jhi
-              y = ( problo(2) + (dble(j)+0.50d0) * dx(2) - center(2) ) / rmax
+              y = ( problo(2) + (dble(j)+HALF) * dx(2) - center(2) ) / rmax
  
               do i = ilo, ihi
-                 x = ( problo(1) + (dble(i)+0.50d0) * dx(1) - center(1) ) / rmax
+                 x = ( problo(1) + (dble(i)+HALF) * dx(1) - center(1) ) / rmax
 
                  r = sqrt( x**2 + y**2 + z**2 )
                  cosTheta = z / r
@@ -1088,47 +1127,25 @@
 
                  call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
+                 ! Absorb the factorial terms into the Legendre polynomials to save on multiplications later.
+
+                 assocLegPolyArr = assocLegPolyArr * factArray
+
                  ! Now, compute the multipole moments using the tabulated polynomials.
 
                  do l = 0, lnum 
+                 
+                   rho_r_to_l = rho(i,j,k) * (r**dble(l))
 
-                   ! The odd l Legendre polynomials are odd in their argument, so
-                   ! a symmetric reflection about the z axis leads to a total cancellation.
-
-                   parityFactor = 1.0d0
-
-                   if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-                     parityFactor = 0.0d0
-                   endif
-
-                   q0(l) = q0(l) + legPolyArr(l) * (r ** dble(l)) * rho(i,j,k) * volumeFactor * parityFactor
+                   q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l * volumeFactor * parity_q0(l)
 
                    do m = 1, l
 
-                     ! The parity properties of the associated Legendre polynomials are:
-                     ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
-                     ! Therefore, a complete cancellation occurs if l+m is odd and
-                     ! we are reflecting about the z axis.
+                     qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
+                                         rho_r_to_l * parity_qC_qS(l,m)
 
-                     ! Additionally, the cosine and sine terms flip sign when reflected
-                     ! about the x or y axis, so if we have a reflection about x or y
-                     ! then the terms have a complete cancellation.
-
-                     parityFactor = 1.0d0
-
-                     if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-                       parityFactor = 0.0d0
-                     endif
-
-                     if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
-                       parityFactor = 0.0d0
-                     endif
-
-                     qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * cos(m * phiAngle) * &
-                                                          (r ** dble(l)) * rho(i,j,k) * parityFactor
-
-                     qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * sin(m * phiAngle) * &
-                                                          (r ** dble(l)) * rho(i,j,k) * parityFactor
+                     qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
+                                         rho_r_to_l * parity_qC_qS(l,m)
 
                    enddo
 
@@ -1158,12 +1175,14 @@
 ! ::
 
       double precision function factorial(n)
-      
+
+        use bl_constants_module      
+
         implicit none
 
         integer :: n, i
 
-        factorial = 1.0d0
+        factorial = ONE
  
         do i = 2, n
           factorial = factorial * dble(i)
@@ -1176,6 +1195,8 @@
 ! ::
 
       subroutine fill_legendre_arrays(legPolyArr, assocLegPolyArr, x, lnum)
+
+        use bl_constants_module
       
         implicit none
 
@@ -1184,8 +1205,8 @@
         double precision :: x
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
-        legPolyArr(:)        = 0.0d0
-        assocLegPolyArr(:,:) = 0.0d0
+        legPolyArr(:)        = ZERO
+        assocLegPolyArr(:,:) = ZERO
 
         ! First we'll do the associated Legendre polynomials. There are a number of
         ! recurrence relations, but many are unstable. We'll use one that is known
@@ -1199,7 +1220,7 @@
 
           ! P_m^m
 
-          assocLegPolyArr(m,m) = (-1)**m * ( (1.0d0 - x) * (1.0d0 + x) )**(dble(m)/2.0d0)
+          assocLegPolyArr(m,m) = (-1)**m * ( (ONE - x) * (ONE + x) )**(dble(m)/TWO)
 
           ! Multiply by the double factorial term
 
@@ -1239,7 +1260,7 @@
 
           if ( l == 0 ) then
 
-            legPolyArr(0) = 1.0d0
+            legPolyArr(0) = ONE
 
           elseif ( l == 1 ) then
 
@@ -1265,6 +1286,9 @@
                       q0, qC, qS, lnum)
 
         use probdata_module
+        use bl_constants_module
+
+        implicit none
 
         integer,          intent(in) :: lnum
         double precision, intent(in) :: factArray(0:lnum,0:lnum)
@@ -1280,14 +1304,14 @@
         double precision :: cosTheta, phiAngle, r
         double precision :: xLo, yLo, zLo, xHi, yHi, zHi
 
-        xLo = ( 2.0d0 * (problo(1) - center(1)) ) / rmax - x
-        xHi = ( 2.0d0 * (probhi(1) - center(1)) ) / rmax - x
+        xLo = ( TWO * (problo(1) - center(1)) ) / rmax - x
+        xHi = ( TWO * (probhi(1) - center(1)) ) / rmax - x
 
-        yLo = ( 2.0d0 * (problo(2) - center(2)) ) / rmax - y
-        yHi = ( 2.0d0 * (probhi(2) - center(2)) ) / rmax - y
+        yLo = ( TWO * (problo(2) - center(2)) ) / rmax - y
+        yHi = ( TWO * (probhi(2) - center(2)) ) / rmax - y
 
-        zLo = ( 2.0d0 * (problo(3) - center(3)) ) / rmax - z
-        zHi = ( 2.0d0 * (probhi(3) - center(3)) ) / rmax - z
+        zLo = ( TWO * (problo(3) - center(3)) ) / rmax - z
+        zHi = ( TWO * (probhi(3) - center(3)) ) / rmax - z
 
         if ( doSymmetricAddLo(1) ) then
 
@@ -1367,6 +1391,8 @@
 
       subroutine multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
 
+        implicit none
+
         integer,          intent(in) :: lnum
         double precision, intent(in) :: cosTheta, phiAngle, r, rho, factArray(0:lnum,0:lnum)
 
@@ -1376,16 +1402,24 @@
 
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
+        double precision :: rho_r_to_l
+
         call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
+
+        ! Absorb factorial terms into associated Legendre polynomials
+
+        assocLegPolyArr = assocLegPolyArr * factArray
 
         do l = 0, lnum
 
-          q0(l) = q0(l) + legPolyArr(l) * (r ** l) * rho
+          rho_r_to_l = rho * (r ** l)
+
+          q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l
 
           do m = 1, l
             
-            qC(l,m) = qC(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * cos(m * phiAngle) * (r ** l) * rho
-            qS(l,m) = qS(l,m) + factArray(l,m) * assocLegPolyArr(l,m) * sin(m * phiAngle) * (r ** l) * rho
+            qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_to_l
+            qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_to_l
 
           enddo
 
@@ -1404,6 +1438,7 @@
                                            bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
         use probdata_module
         use fundamental_constants_module, only: Gconst
+        use bl_constants_module
 
         implicit none
 
@@ -1495,23 +1530,23 @@
         !$OMP PARALLEL DO PRIVATE(i,j,k,loc,locb,dx2,dy2,dz2,r,l,m,n) &
         !$OMP REDUCTION(+:bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
         do k = klo, khi
-           loc(3) = problo(3) + (dble(k)+0.50d0) * dx(3)
+           loc(3) = problo(3) + (dble(k)+HALF) * dx(3)
 
            do j = jlo, jhi
-              loc(2) = problo(2) + (dble(j)+0.50d0) * dx(2)
+              loc(2) = problo(2) + (dble(j)+HALF) * dx(2)
 
               do i = ilo, ihi
-                 loc(1) = problo(1) + (dble(i)+0.50d0) * dx(1)
+                 loc(1) = problo(1) + (dble(i)+HALF) * dx(1)
         
                    ! Do xy interfaces first.
                
                    do l = domlo(1) - 1, domhi(1) + 1
                       if     ( l .lt. domlo(1) ) then
-                        locb(1) = problo(1) + (dble(l+1)       ) * dx(1)
+                        locb(1) = problo(1) + (dble(l+1)     ) * dx(1)
                       elseif ( l .gt. domhi(1) ) then
-                        locb(1) = problo(1) + (dble(l  )       ) * dx(1)
+                        locb(1) = problo(1) + (dble(l  )     ) * dx(1)
                       else
-                        locb(1) = problo(1) + (dble(l  )+0.50d0) * dx(1)
+                        locb(1) = problo(1) + (dble(l  )+HALF) * dx(1)
                       endif
 
                       dx2 = (loc(1) - locb(1))**2
@@ -1521,14 +1556,14 @@
 
                       do m = domlo(2) - 1, domhi(2) + 1
                          if     ( m .lt. domlo(1) ) then
-                           locb(2) = problo(2) + (dble(m+1)       ) * dx(2)
+                           locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
                          elseif ( m .gt. domhi(1) ) then
-                           locb(2) = problo(2) + (dble(m  )       ) * dx(2)
+                           locb(2) = problo(2) + (dble(m  )     ) * dx(2)
                          else
-                           locb(2) = problo(2) + (dble(m  )+0.50d0) * dx(2)
+                           locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
                          endif
 
-                         r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**0.5d0
+                         r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
 
                          bcXYLo(l,m) = bcXYLo(l,m) + Gconst * rho(i,j,k) * dV / r
 
@@ -1552,14 +1587,14 @@
 
                       do m = domlo(2) - 1, domhi(2) + 1
                          if     ( m .lt. domlo(1) ) then
-                           locb(2) = problo(2) + (dble(m+1)       ) * dx(2)
+                           locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
                          elseif ( m .gt. domhi(1) ) then
-                           locb(2) = problo(2) + (dble(m  )       ) * dx(2)
+                           locb(2) = problo(2) + (dble(m  )     ) * dx(2)
                          else
-                           locb(2) = problo(2) + (dble(m  )+0.50d0) * dx(2)
+                           locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
                          endif
 
-                         r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**0.5d0
+                         r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
 
                          bcXYHi(l,m) = bcXYHi(l,m) + Gconst * rho(i,j,k) * dV / r
 
@@ -1582,14 +1617,14 @@
 
                       do n = domlo(3) - 1, domhi(3) + 1
                          if     ( n .lt. domlo(3) ) then
-                           locb(3) = problo(3) + (dble(n+1)       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
                          elseif ( n .gt. domhi(3) ) then
-                           locb(3) = problo(3) + (dble(n  )       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )     ) * dx(3)
                          else
-                           locb(3) = problo(3) + (dble(n  )+0.50d0) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
                          endif
  
-                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**0.5d0
+                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
                          bcXZLo(l,n) = bcXZLo(l,n) + Gconst * rho(i,j,k) * dV / r
 
@@ -1608,14 +1643,14 @@
 
                       do n = domlo(3) - 1, domhi(3) + 1
                          if     ( n .lt. domlo(3) ) then
-                           locb(3) = problo(3) + (dble(n+1)       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
                          elseif ( n .gt. domhi(3) ) then
-                           locb(3) = problo(3) + (dble(n  )       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )     ) * dx(3)
                          else
-                           locb(3) = problo(3) + (dble(n  )+0.50d0) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
                          endif
  
-                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**0.5d0
+                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
                          bcXZHi(l,n) = bcXZHi(l,n) + Gconst * rho(i,j,k) * dV / r
 
@@ -1635,11 +1670,11 @@
 
                    do m = domlo(2) - 1, domhi(2) + 1
                       if     ( m .lt. domlo(2) ) then
-                        locb(2) = problo(2) + (dble(m+1)       ) * dx(2)
+                        locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
                       elseif ( m .gt. domhi(2) ) then
-                        locb(2) = problo(2) + (dble(m  )       ) * dx(2)
+                        locb(2) = problo(2) + (dble(m  )     ) * dx(2)
                       else
-                        locb(2) = problo(2) + (dble(m  )+0.50d0) * dx(2)
+                        locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
                       endif
 
                       dy2 = (loc(2) - locb(2))**2
@@ -1649,14 +1684,14 @@
 
                       do n = domlo(3) - 1, domhi(3) + 1
                          if     ( n .lt. domlo(3) ) then
-                           locb(3) = problo(3) + (dble(n+1)       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
                          elseif ( n .gt. domhi(3) ) then
-                           locb(3) = problo(3) + (dble(n  )       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )     ) * dx(3)
                          else
-                           locb(3) = problo(3) + (dble(n  )+0.50d0) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
                          endif
 
-                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**0.5d0
+                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
                          bcYZLo(m,n) = bcYZLo(m,n) + Gconst * rho(i,j,k) * dV / r
 
@@ -1674,14 +1709,14 @@
 
                       do n = domlo(3) - 1, domhi(3) + 1
                          if     ( n .lt. domlo(3) ) then
-                           locb(3) = problo(3) + (dble(n+1)       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
                          elseif ( n .gt. domhi(3) ) then
-                           locb(3) = problo(3) + (dble(n  )       ) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )     ) * dx(3)
                          else
-                           locb(3) = problo(3) + (dble(n  )+0.50d0) * dx(3)
+                           locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
                          endif
 
-                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**0.5d0
+                         r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
                          bcYZHi(m,n) = bcYZHi(m,n) + Gconst * rho(i,j,k) * dV / r
 
@@ -1779,6 +1814,7 @@
 
         use probdata_module
         use fundamental_constants_module, only: Gconst
+        use bl_constants_module
 
         implicit none
 
@@ -1791,25 +1827,25 @@
 
         ! Add contributions from any symmetric boundaries.
 
-        bcTerm = 0.0d0
+        bcTerm = ZERO
 
         if ( doSymmetricAddLo(1) ) then
 
-          x = 2.0d0 * problo(1) - loc(1)
+          x = TWO * problo(1) - loc(1)
           y = loc(2)
           z = loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
           if ( doSymmetricAddLo(2) ) then
 
-            x = 2.0d0 * problo(1) - loc(1)
-            y = 2.0d0 * problo(2) - loc(2)
+            x = TWO * problo(1) - loc(1)
+            y = TWO * problo(2) - loc(2)
             z = loc(3)
           
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1817,11 +1853,11 @@
 
           if ( doSymmetricAddLo(3) ) then
 
-            x = 2.0d0 * problo(1) - loc(1)
+            x = TWO * problo(1) - loc(1)
             y = loc(2)
-            z = 2.0d0 * problo(3) - loc(3)
+            z = TWO * problo(3) - loc(3)
 
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1829,11 +1865,11 @@
 
           if ( doSymmetricAddLo(2) .and. doSymmetricAddLo(3) ) then
 
-            x = 2.0d0 * problo(1) - loc(1)
-            y = 2.0d0 * problo(2) - loc(2)
-            z = 2.0d0 * problo(3) - loc(3)
+            x = TWO * problo(1) - loc(1)
+            y = TWO * problo(2) - loc(2)
+            z = TWO * problo(3) - loc(3)
 
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1844,20 +1880,20 @@
         if ( doSymmetricAddLo(2) ) then
  
           x = loc(1)
-          y = 2.0d0 * problo(2) - loc(2)
+          y = TWO * problo(2) - loc(2)
           z = loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
           if ( doSymmetricAddLo(3) ) then
 
             x = loc(1)
-            y = 2.0d0 * problo(2) - loc(2)
-            z = 2.0d0 * problo(3) - loc(3)
+            y = TWO * problo(2) - loc(2)
+            z = TWO * problo(3) - loc(3)
           
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1869,9 +1905,9 @@
  
           x = loc(1)
           y = loc(2)
-          z = 2.0d0 * problo(3) - loc(3)
+          z = TWO * problo(3) - loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1881,21 +1917,21 @@
  
         if ( doSymmetricAddHi(1) ) then
 
-          x = 2.0d0 * probhi(1) - loc(1)
+          x = TWO * probhi(1) - loc(1)
           y = loc(2)
           z = loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
           if ( doSymmetricAddHi(2) ) then
 
-            x = 2.0d0 * probhi(1) - loc(1)
-            y = 2.0d0 * probhi(2) - loc(2)
+            x = TWO * probhi(1) - loc(1)
+            y = TWO * probhi(2) - loc(2)
             z = loc(3)
           
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1903,11 +1939,11 @@
 
           if ( doSymmetricAddHi(3) ) then
 
-            x = 2.0d0 * probhi(1) - loc(1)
+            x = TWO * probhi(1) - loc(1)
             y = loc(2)
-            z = 2.0d0 * probhi(3) - loc(3)
+            z = TWO * probhi(3) - loc(3)
 
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1915,11 +1951,11 @@
 
           if ( doSymmetricAddHi(2) .and. doSymmetricAddHi(3) ) then
 
-            x = 2.0d0 * probhi(1) - loc(1)
-            y = 2.0d0 * probhi(2) - loc(2)
-            z = 2.0d0 * probhi(3) - loc(3)
+            x = TWO * probhi(1) - loc(1)
+            y = TWO * probhi(2) - loc(2)
+            z = TWO * probhi(3) - loc(3)
 
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1930,20 +1966,20 @@
         if ( doSymmetricAddHi(2) ) then
  
           x = loc(1)
-          y = 2.0d0 * probhi(2) - loc(2)
+          y = TWO * probhi(2) - loc(2)
           z = loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
           if ( doSymmetricAddHi(3) ) then
 
             x = loc(1)
-            y = 2.0d0 * probhi(2) - loc(2)
-            z = 2.0d0 * probhi(3) - loc(3)
+            y = TWO * probhi(2) - loc(2)
+            z = TWO * probhi(3) - loc(3)
           
-            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+            r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
             bcTerm = bcTerm + Gconst * rho * dV / r
 
@@ -1955,9 +1991,9 @@
  
           x = loc(1)
           y = loc(2)
-          z = 2.0d0 * probhi(3) - loc(3)
+          z = TWO * probhi(3) - loc(3)
 
-          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**0.5d0
+          r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
           bcTerm = bcTerm + Gconst * rho * dV / r
 
