@@ -18,11 +18,10 @@
                           E_added_flux, E_added_grav)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
-                                     use_colglaz, do_sponge, &
+                                     do_sponge, &
                                      normalize_species, use_flattening
       use advection_module, only : umeth1d, ctoprim, consup, enforce_minimum_density, &
            normalize_new_species
-      use CastroCG_module, only : ctoprimcg, umeth1dcg
       use sponge_module, only : sponge
 
       implicit none
@@ -85,14 +84,12 @@
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
 !       and set to correspond to coordinates of (lo:hi)
    
-      if (use_colglaz.eq.0) then
-
-         call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
+      call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                    src,srcQ,src_l1,src_h1, &
                    courno,dx,dt,NHYP,ngf)
 
-         call umeth1d(lo,hi,domlo,domhi, &
+      call umeth1d(lo,hi,domlo,domhi, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                    srcQ, src_l1, src_h1, &
                    grav, gv_l1, gv_h1, &
@@ -101,23 +98,6 @@
                    pgdnv,lo(1),hi(1)+1, &
                    ugdnv,ugdnv_l1,ugdnv_h1, &
                    dloga,dloga_l1,dloga_h1)
-
-      else
-
-          call ctoprimcg(lo,hi,uin,uin_l1,uin_h1, &
-                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                    src,srcQ,src_l1,src_h1, &
-                    courno,dx,dt,NHYP,ngf,use_flattening)
-
-          call umeth1dcg(q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                    srcQ, src_l1, src_h1, &
-                    grav, gv_l1, gv_h1, &
-                    lo(1),hi(1),dx,dt, &
-                    flux,flux_l1,flux_h1, & 
-                    pgdnv,lo(1),hi(1)+1, &
-                    dloga,dloga_l1,dloga_h1)
-
-      endif
 
       ! Define p*divu
       do i = lo(1), hi(1)

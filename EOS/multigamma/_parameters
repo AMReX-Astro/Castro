@@ -1,0 +1,13 @@
+eos_gamma_default       real          1.4
+
+species_a_name          character     ""
+species_a_gamma         real          1.4
+
+species_b_name          character     ""
+species_b_gamma         real          1.4
+
+species_c_name          character     ""
+species_c_gamma         real          1.4
+
+
+
