@@ -143,14 +143,16 @@ int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
-int          Castro::ppm_reference_edge_limit = 0;
-int          Castro::ppm_flatten_before_integrals = 0;
-int          Castro::ppm_reference_eigenvectors = 0;
-int          Castro::use_colglaz = 0;
-int          Castro::use_flattening = 1;
+int          Castro::ppm_reference_edge_limit = 1;
+int          Castro::ppm_reference_eigenvectors = 1;
 
+int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
+
+int          Castro::use_flattening = 1;
+int          Castro::ppm_flatten_before_integrals = 0;
+
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
