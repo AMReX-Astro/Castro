@@ -3,6 +3,7 @@ program testeos
   use bl_types
   use network
   use eos_module
+  use runtime_init_module
 
   implicit none
 
@@ -16,6 +17,10 @@ program testeos
   real(kind=dp_t) :: err1, err2
 
   type (eos_t) :: state
+
+  integer :: n
+
+  call runtime_init()
 
   call network_init()
   call eos_init()
@@ -32,6 +37,11 @@ program testeos
   Xin(img24) = 0.0_dp_t
 
   do_diag = .false.
+
+  print *, "gammas: "
+  do n = 1, nspec
+     print *, n, spec_names(n), gammas(n)
+  enddo
 
   !---------------------------------------------------------------------------
   ! get the initial state -- this will be considered the "right" answer --

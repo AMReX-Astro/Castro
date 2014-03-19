@@ -41,6 +41,11 @@ contains
     ! that can override the default gammas for a few named species
     gammas(:) = eos_gamma_default
 
+    print *, "in eos_init, species, gamma: "
+    print *, trim(species_a_name), species_a_gamma
+    print *, trim(species_b_name), species_b_gamma
+    print *, trim(species_c_name), species_c_gamma
+
     idx = network_species_index(species_a_name)
     if (idx > 0) gammas(idx) = species_a_gamma
 
@@ -182,7 +187,6 @@ contains
        ! Solve for temperature and density
        dens = state % p * state % abar / state % h * sumYg_gm1
        temp = state % p * state % abar * m_nucleon / (k_B * dens)
-
 
 
     case (eos_input_th)
