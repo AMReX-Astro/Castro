@@ -137,7 +137,7 @@ contains
          
     endif
 
-    ! Solve Riemann problem (godunov state passed back, but only (u,p) saved
+    ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (use_colglaz == 0) then
        call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
                       gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
@@ -386,7 +386,7 @@ contains
           pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
           pstar = max(pstar,small_pres)
 
-          ! sectant iteration
+          ! secant iteration
           converged = .false.
           iter = 1
           do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
