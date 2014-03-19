@@ -413,6 +413,19 @@ Castro::read_params ()
       }
 	
 
+    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
+      {
+        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
+        BoxLib::Error();
+      }
+
+    if (ppm_tau_in_tracing == 1 && BL_SPACEDIM == 1)
+      {
+        std::cerr << "ppm_tau_in_tracing == 1 not implemented in 1-d \n";
+        BoxLib::Error();
+      }
+
+
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
 
