@@ -208,7 +208,7 @@ contains
     ! Compute the pressure simply from the ideal gas law, and the
     ! specific internal energy using the gamma-law EOS relation.
     state % p = dens*k_B*temp/(state % abar*m_nucleon)
-    state % e = k_B*temp*sumY_gm1/(state % abar*m_nucleon)
+    state % e = k_B*temp*sumY_gm1/m_nucleon
 
     ! enthalpy is h = e + p/rho
     state % h = state % e + state % p / dens

@@ -134,35 +134,35 @@ program testeos
   !---------------------------------------------------------------------------
   ! temp, enthalpy
   !---------------------------------------------------------------------------
-  state%rho = dens_good
-  state%h = enth_good
+  ! state%rho = dens_good
+  ! state%h = enth_good
 
-  state%rho = 0.1*dens_good
+  ! state%rho = 0.1*dens_good
 
-  call eos(eos_input_th, state, do_diag)
+  ! call eos(eos_input_th, state, do_diag)
 
-  ! compute the error in rho
-  err1 = abs(dens_good - state%rho)/dens_good
-  print *, " "
-  print *, "eos_input_th, err: ", err1
+  ! ! compute the error in rho
+  ! err1 = abs(dens_good - state%rho)/dens_good
+  ! print *, " "
+  ! print *, "eos_input_th, err: ", err1
 
 
   !---------------------------------------------------------------------------
   ! pres, entropy
   !---------------------------------------------------------------------------
-  state%p = pres_good
-  state%s = entr_good
+  ! state%p = pres_good
+  ! state%s = entr_good
 
-  state%T = 0.1*temp_good
-  state%rho = 0.1*dens_good
+  ! state%T = 0.1*temp_good
+  ! state%rho = 0.1*dens_good
 
-  call eos(eos_input_ps, state, do_diag)
+  ! call eos(eos_input_ps, state, do_diag)
 
-  ! compute the error in T and rho
-  err1 = abs(temp_good - state%T)/temp_good
-  err2 = abs(dens_good - state%rho)/dens_good
-  print *, " "
-  print *, "eos_input_ps, err: ", err1, err2
+  ! ! compute the error in T and rho
+  ! err1 = abs(temp_good - state%T)/temp_good
+  ! err2 = abs(dens_good - state%rho)/dens_good
+  ! print *, " "
+  ! print *, "eos_input_ps, err: ", err1, err2
 
 
   !---------------------------------------------------------------------------
