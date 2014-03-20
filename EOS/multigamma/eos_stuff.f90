@@ -42,9 +42,9 @@ contains
     gammas(:) = eos_gamma_default
 
     print *, "in eos_init, species, gamma: "
-    print *, trim(species_a_name), species_a_gamma
-    print *, trim(species_b_name), species_b_gamma
-    print *, trim(species_c_name), species_c_gamma
+    print *, "species a: ", trim(species_a_name), species_a_gamma
+    print *, "species b: ", trim(species_b_name), species_b_gamma
+    print *, "species c: ", trim(species_c_name), species_c_gamma
 
     idx = network_species_index(species_a_name)
     if (idx > 0) gammas(idx) = species_a_gamma
