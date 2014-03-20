@@ -1,0 +1,8 @@
+# The simple network is used for 3-fluid problems.  Fluids 'A', 'B', and 'C'
+# have the same properties, but are named differently so we can keep
+# track of them independently.
+
+# name   short name    aion     zion
+   A        A           1.0      1.0
+   B        B           1.0      1.0
+   C        C           1.0      1.0
