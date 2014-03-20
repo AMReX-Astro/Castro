@@ -442,7 +442,7 @@
                  if (x .lt. -1.d-2) then
                     print *,'At cell (i,j) = ',i,j
                     print *,'... Fixing negative species ',n-UFS+1           ,' with X = ',x
-                    print *,'...   from dominant species ',int_dom_spec,' with X = ',&
+                    print *,'...   from dominant species ',int_dom_spec-UFS+1,' with X = ',&
                              uout(i,j,int_dom_spec) / uout(i,j,URHO)
                  end if
 
@@ -451,7 +451,7 @@
    
                  ! Test that we didn't make the dominant species negative
                  if (uout(i,j,int_dom_spec) .lt. 0.d0) then 
-                    print *,'Just made dominant species negative ',int_dom_spec,' at ',i,j
+                    print *,'Just made dominant species negative ',int_dom_spec-UFS+1,' at ',i,j
                     print *,'... We were fixing species ',n-UFS+1,' which had value ',x
                     print *,'... Dominant species became ',uout(i,j,int_dom_spec) / uout(i,j,URHO)
                     call bl_error("Error:: Castro_2d.f90 :: ca_enforce_nonnegative_species")
