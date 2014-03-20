@@ -17,28 +17,58 @@ The gas is currently assumed to be monatomic and ideal. The entropy comes from t
 \begin{equation}
   P = K \rho^\gamma.
 \end{equation}
-The gas is also assumed to obey the above gamma law equation of state connecting the pressure and internal energy. Therefore $\rho$ is the only independent variable; there is no temperature dependence. The user either selects from a set of predefined options reflecting physical polytropes (e.g. a non-relativistic, fully degenerate electron gas) or inputs their own values for $K$ and $\gamma$.
+The gas is also assumed to obey the above gamma law equation of state
+connecting the pressure and internal energy. Therefore $\rho$ is the
+only independent variable; there is no temperature dependence. The
+user either selects from a set of predefined options reflecting
+physical polytropes (e.g. a non-relativistic, fully degenerate
+electron gas) or inputs their own values for $K$ and $\gamma$.
 
-\item {\tt multigamma} is an ideal gas equation of state where each species can have
-a different value of $\gamma$.  This mainly affects how the internal energy is constructed
-as each species, represented with a mass fraction $X_k$ will have its contribution to the total
-specific internal energy take the form of $e = p/\rho/(\gamma_k - 1)$.  
-The main thermodynamic quantities take the form:
+\item {\tt multigamma} is an ideal gas equation of state where each
+  species can have a different value of $\gamma$.  This mainly affects
+  how the internal energy is constructed as each species, represented
+  with a mass fraction $X_k$ will have its contribution to the total
+  specific internal energy take the form of $e = p/\rho/(\gamma_k -
+  1)$.  The main thermodynamic quantities take the form:
 \begin{align}
 p &= \frac{\rho k T}{m_u} \sum_k \frac{X_k}{A_k} \\
 e &= \frac{k T}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
 h &= \frac{k T}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k}
 \end{align}
-We recognize that the usual astrophysical $\bar{A}^{-1} = \sum_k X_k/A_k$, but
-now we have two other sums that involve different $\gamma_k$ weightings.
+We recognize that the usual astrophysical $\bar{A}^{-1} = \sum_k
+X_k/A_k$, but now we have two other sums that involve different
+$\gamma_k$ weightings.
 
-The specific heats are constructed as usual, and it can be shown that
+The specific heats are constructed as usual, 
+\begin{align}
+c_v &= \left . \frac{\partial e}{\partial T} \right |_\rho = 
+    \frac{k}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
+c_p &= \left . \frac{\partial h}{\partial T} \right |_p = 
+    \frac{k}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} 
+\end{align}
+and it can be seen that the specific gas constant, $R \equiv c_p - c_v$ is
+independent of the $\gamma_i$, and is simply $R = k/m_u\bar{A}$ giving the
+usual relation that $p = R\rho T$.  Furthermore, we can show
 \begin{equation}
-\Gamma_1 = \frac{c_p}{c_v} = \gamma_\mathrm{effective} =
+\Gamma_1 \equiv \left . \frac{\partial \log p}{\partial \log \rho} \right |_s =  
    \left ( \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} \right ) \bigg /
-   \left ( \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \right )
+   \left ( \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \right ) =
+\frac{c_p}{c_v} \equiv \gamma_\mathrm{effective} 
 \end{equation}
 and $p = \rho e (\gamma_\mathrm{effective} - 1)$.
+
+This equation of state takes several runtime parameters that can set the
+$\gamma_i$ for a specific species.  These are set in the {\tt \&extern}
+namelist in the {\tt probin} file.  The parameters are:
+\begin{itemize}
+\item {\tt eos\_gamma\_default}: the default $\gamma$ to apply for
+  all species
+\item {\tt species\_X\_name} and {\tt species\_X\_gamma}: set the $\gamma_i$
+  for the species whose name is given as {\tt species\_X\_name} to the
+  value provided by {\tt species\_X\_gamma}.  Here, {\tt X} can be one
+  of the letters: {\tt a}, {\tt b}, or {\tt c}, allowing us to specify
+  custom $\gamma_i$ for up to three different species.
+\end{itemize}
 
 \item {\tt helmeos} contains a general, publicly available
 stellar equation of state based on the Helmholtz free energy,
