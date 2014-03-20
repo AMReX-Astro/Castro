@@ -27,7 +27,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
-  use advection_module, only : uflaten
+  use flatten_module, only : uflaten
   use fluxlimiter_module, only : Edd_factor
 
   implicit none
@@ -433,7 +433,8 @@ subroutine trace_ppm_rad(lam, lam_l1, lam_h1, &
 
   ! Compute Ip and Im
   do n=1,QRADVAR
-     call ppm(q(:,n),qd_l1,qd_h1,q(:,QU),c,Ip(:,:,n),Im(:,:,n),ilo,ihi,dx,dt)
+     call ppm(q(:,n),qd_l1,qd_h1,q(:,QU),c, flatn, &
+          Ip(:,:,n),Im(:,:,n),ilo,ihi,dx,dt)
   end do
 
   ! Trace to left and right edges using upwind PPM
