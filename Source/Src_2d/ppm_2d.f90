@@ -243,6 +243,17 @@ contains
               end do
            end do
 
+           if (ppm_flatten_before_integrals > 0) then
+              ! flatten the parabola AFTER doing the monotonization --
+              ! (ppm_type = 2 is here)
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
+
         end if
 
        ! compute x-component of Ip and Im
@@ -488,6 +499,17 @@ contains
 
               end do
            end do
+
+           if (ppm_flatten_before_integrals > 0) then
+              ! flatten the parabola AFTER doing the monotonization --
+              ! (ppm_type = 2 is here)
+              do j=ilo2-1,ihi2+1
+                 do i=ilo1-1,ihi1+1
+                    sm(i,j) = flatn(i,j)*sm(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                    sp(i,j) = flatn(i,j)*sp(i,j) + (1.d0-flatn(i,j))*s(i,j)
+                 enddo
+              enddo
+           endif
 
         end if
 
