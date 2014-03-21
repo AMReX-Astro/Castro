@@ -556,7 +556,7 @@ contains
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-    use meth_params_module, only : ppm_type
+    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
 
     implicit none
 
@@ -728,6 +728,14 @@ contains
 
           sm(i,j) = s(i,j,k3d) + alpham
           sp(i,j) = s(i,j,k3d) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization 
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
+
           !
           ! Compute x-component of Ip and Im.
           !
@@ -899,6 +907,14 @@ contains
 
           sm(i,j) = s(i,j,k3d) + alpham
           sp(i,j) = s(i,j,k3d) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization 
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
+
           !
           ! Compute y-component of Ip and Im.
           !
@@ -1076,6 +1092,13 @@ contains
 
           sm(i,j) = s(i,j,k) + alpham
           sp(i,j) = s(i,j,k) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
           !
           ! Compute z-component of Ip and Im.
           !
