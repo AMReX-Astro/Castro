@@ -499,22 +499,22 @@ contains
           ! Optionally, use the EOS to calculate the pressure.
 
           if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qmo(i,j+1,QRHO)
-             eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
+             eos_state % rho = qmo(i+1,j,QRHO)
+             eos_state % e   = qmo(i+1,j,QREINT) / qmo(i+1,j,QRHO)
              eos_state % T   = small_temp
-             eos_state % xn  = qmo(i,j+1,QFS:QFS+nspec-1)
+             eos_state % xn  = qmo(i+1,j,QFS:QFS+nspec-1)
 
              call eos(eos_input_re, eos_state)
 
              pnewr = eos_state % p
-             qmo(i,j+1,QPRES ) = pnewr
-             qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
+             qmo(i+1,j,QPRES ) = pnewr
+             qmo(i+1,j,QREINT) = eos_state % e * eos_state % rho
           else           
              pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
-             qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+             qmo(i+1,j,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
           endif
           
-          qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
+          qmo(i+1,j,QPRES) = max(qmo(i+1,j,QPRES),small_pres)
           
           ! if ppm_trace_grav == 1, then we already added the
           ! piecewise parabolic traced gravity to the normal edge
