@@ -47,7 +47,7 @@ subroutine ca_ext_src(lo,hi,&
                                         src_l3:src_h3,NVAR)
   double precision,intent(in   ) :: problo(3),dx(3),time,dt
   
-  src = 0.d0
+  src = ZERO
  
 end subroutine ca_ext_src
 

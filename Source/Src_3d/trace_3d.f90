@@ -17,6 +17,7 @@ contains
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
                                      ppm_type
+      use bl_constants_module
       implicit none
 
       integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -91,35 +92,35 @@ contains
             dp = dqx(i,j,kc,QPRES)
             drhoe = dqx(i,j,kc,QREINT)
 
-            alpham = 0.5d0*(dp/(rho*cc) - du)*rho/cc
-            alphap = 0.5d0*(dp/(rho*cc) + du)*rho/cc
+            alpham = HALF*(dp/(rho*cc) - du)*rho/cc
+            alphap = HALF*(dp/(rho*cc) + du)*rho/cc
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0v = dv
             alpha0w = dw
 
-            if (u-cc .gt. 0.d0) then
-               spminus = -1.d0
+            if (u-cc .gt. ZERO) then
+               spminus = -ONE
             else
                spminus = (u-cc)*dtdx
             endif
-            if (u+cc .gt. 0.d0) then
-               spplus = -1.d0
+            if (u+cc .gt. ZERO) then
+               spplus = -ONE
             else
                spplus = (u+cc)*dtdx
             endif
-            if (u .gt. 0.d0) then
-               spzero = -1.d0
+            if (u .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = u*dtdx
             endif
 
-            apright = 0.5d0*(-1.d0 - spplus )*alphap
-            amright = 0.5d0*(-1.d0 - spminus)*alpham
-            azrright = 0.5d0*(-1.d0 - spzero )*alpha0r
-            azeright = 0.5d0*(-1.d0 - spzero )*alpha0e
-            azv1rght = 0.5d0*(-1.d0 - spzero )*alpha0v
-            azw1rght = 0.5d0*(-1.d0 - spzero )*alpha0w
+            apright = HALF*(-ONE - spplus )*alphap
+            amright = HALF*(-ONE - spminus)*alpham
+            azrright = HALF*(-ONE - spzero )*alpha0r
+            azeright = HALF*(-ONE - spzero )*alpha0e
+            azv1rght = HALF*(-ONE - spzero )*alpha0v
+            azw1rght = HALF*(-ONE - spzero )*alpha0w
 
             if (i .ge. ilo1) then
                qxp(i,j,kc,QRHO) = rho + apright + amright + azrright
@@ -131,28 +132,28 @@ contains
                qxp(i,j,kc,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
             end if
 
-            if (u-cc .ge. 0.d0) then
+            if (u-cc .ge. ZERO) then
                spminus = (u-cc)*dtdx
             else
-               spminus = 1.d0
+               spminus = ONE
             endif
-            if (u+cc .ge. 0.d0) then
+            if (u+cc .ge. ZERO) then
                spplus = (u+cc)*dtdx
             else
-               spplus = 1.d0
+               spplus = ONE
             endif
-            if (u .ge. 0.d0) then
+            if (u .ge. ZERO) then
                spzero = u*dtdx
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
 
-            apleft = 0.5d0*(1.d0 - spplus )*alphap
-            amleft = 0.5d0*(1.d0 - spminus)*alpham
-            azrleft = 0.5d0*(1.d0 - spzero )*alpha0r
-            azeleft = 0.5d0*(1.d0 - spzero )*alpha0e
-            azv1left = 0.5d0*(1.d0 - spzero )*alpha0v
-            azw1left = 0.5d0*(1.d0 - spzero )*alpha0w
+            apleft = HALF*(ONE - spplus )*alphap
+            amleft = HALF*(ONE - spminus)*alpham
+            azrleft = HALF*(ONE - spzero )*alpha0r
+            azeleft = HALF*(ONE - spzero )*alpha0e
+            azv1left = HALF*(ONE - spzero )*alpha0v
+            azw1left = HALF*(ONE - spzero )*alpha0w
 
             if (i .le. ihi1) then
                qxm(i+1,j,kc,QRHO) = rho + apleft + amleft + azrleft
@@ -175,24 +176,24 @@ contains
             ! Right state
             do i = ilo1, ihi1+1
                u = q(i,j,k3d,QU)
-               if (u .gt. 0.d0) then
-                  spzero = -1.d0
+               if (u .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = u*dtdx
                endif
-               acmprght = 0.5d0*(-1.d0 - spzero )*dqx(i,j,kc,n)
+               acmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
                qxp(i,j,kc,n) = q(i,j,k3d,n) + acmprght
             enddo
  
             ! Left state
             do i = ilo1-1, ihi1
                u = q(i,j,k3d,QU)
-               if (u .ge. 0.d0) then
+               if (u .ge. ZERO) then
                   spzero = u*dtdx
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpleft = 0.5d0*(1.d0 - spzero )*dqx(i,j,kc,n)
+               acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
             enddo
          enddo
@@ -207,24 +208,24 @@ contains
             ! Right state
             do i = ilo1, ihi1+1
                u = q(i,j,k3d,QU)
-               if (u .gt. 0.d0) then
-                  spzero = -1.d0
+               if (u .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = u*dtdx
                endif
-               acmprght = 0.5d0*(-1.d0 - spzero )*dqx(i,j,kc,n)
+               acmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
                qxp(i,j,kc,n) = q(i,j,k3d,n) + acmprght
             enddo
 
             ! Left state
             do i = ilo1-1, ihi1
                u = q(i,j,k3d,QU)
-               if (u .ge. 0.d0) then
+               if (u .ge. ZERO) then
                   spzero = u*dtdx
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpleft = 0.5d0*(1.d0 - spzero )*dqx(i,j,kc,n)
+               acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
             enddo
 
@@ -241,24 +242,24 @@ contains
             ! Right state
             do i = ilo1, ihi1+1
                u = q(i,j,k3d,QU)
-               if (u .gt. 0.d0) then
-                  spzero = -1.d0
+               if (u .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = u*dtdx
                endif
-               ascmprght = 0.5d0*(-1.d0 - spzero )*dqx(i,j,kc,n)
+               ascmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
                qxp(i,j,kc,n) = q(i,j,k3d,n) + ascmprght
             enddo
 
             ! Left state
             do i = ilo1-1, ihi1
                u = q(i,j,k3d,QU)
-               if (u .ge. 0.d0) then
+               if (u .ge. ZERO) then
                   spzero = u*dtdx
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpleft = 0.5d0*(1.d0 - spzero )*dqx(i,j,kc,n)
+               ascmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + ascmpleft
             enddo
 
@@ -275,24 +276,24 @@ contains
             ! Right state
             do i = ilo1, ihi1+1
                u = q(i,j,k3d,QU)
-               if (u .gt. 0.d0) then
-                  spzero = -1.d0
+               if (u .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = u*dtdx
                endif
-               ascmprght = 0.5d0*(-1.d0 - spzero )*dqx(i,j,kc,n)
+               ascmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
                qxp(i,j,kc,n) = q(i,j,k3d,n) + ascmprght
             enddo
 
             ! Left state
             do i = ilo1-1, ihi1
                u = q(i,j,k3d,QU)
-               if (u .ge. 0.d0) then
+               if (u .ge. ZERO) then
                   spzero = u*dtdx
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpleft = 0.5d0*(1.d0 - spzero )*dqx(i,j,kc,n)
+               ascmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + ascmpleft
             enddo
 
@@ -324,35 +325,35 @@ contains
             dp = dqy(i,j,kc,QPRES)
             drhoe = dqy(i,j,kc,QREINT)
 
-            alpham = 0.5d0*(dp/(rho*cc) - dv)*rho/cc
-            alphap = 0.5d0*(dp/(rho*cc) + dv)*rho/cc
+            alpham = HALF*(dp/(rho*cc) - dv)*rho/cc
+            alphap = HALF*(dp/(rho*cc) + dv)*rho/cc
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
             alpha0w = dw
 
-            if (v-cc .gt. 0.d0) then
-               spminus = -1.d0
+            if (v-cc .gt. ZERO) then
+               spminus = -ONE
             else
                spminus = (v-cc)*dtdy
             endif
-            if (v+cc .gt. 0.d0) then
-               spplus = -1.d0
+            if (v+cc .gt. ZERO) then
+               spplus = -ONE
             else
                spplus = (v+cc)*dtdy
             endif
-            if (v .gt. 0.d0) then
-               spzero = -1.d0
+            if (v .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = v*dtdy
             endif
 
-            apright = 0.5d0*(-1.d0 - spplus )*alphap
-            amright = 0.5d0*(-1.d0 - spminus)*alpham
-            azrright = 0.5d0*(-1.d0 - spzero )*alpha0r
-            azeright = 0.5d0*(-1.d0 - spzero )*alpha0e
-            azu1rght = 0.5d0*(-1.d0 - spzero )*alpha0u
-            azw1rght = 0.5d0*(-1.d0 - spzero )*alpha0w
+            apright = HALF*(-ONE - spplus )*alphap
+            amright = HALF*(-ONE - spminus)*alpham
+            azrright = HALF*(-ONE - spzero )*alpha0r
+            azeright = HALF*(-ONE - spzero )*alpha0e
+            azu1rght = HALF*(-ONE - spzero )*alpha0u
+            azw1rght = HALF*(-ONE - spzero )*alpha0w
 
             if (j .ge. ilo2) then
                qyp(i,j,kc,QRHO) = rho + apright + amright + azrright
@@ -364,28 +365,28 @@ contains
                qyp(i,j,kc,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
             end if
 
-            if (v-cc .ge. 0.d0) then
+            if (v-cc .ge. ZERO) then
                spminus = (v-cc)*dtdy
             else
-               spminus = 1.d0
+               spminus = ONE
             endif
-            if (v+cc .ge. 0.d0) then
+            if (v+cc .ge. ZERO) then
                spplus = (v+cc)*dtdy
             else
-               spplus = 1.d0
+               spplus = ONE
             endif
-            if (v .ge. 0.d0) then
+            if (v .ge. ZERO) then
                spzero = v*dtdy
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
 
-            apleft = 0.5d0*(1.d0 - spplus )*alphap
-            amleft = 0.5d0*(1.d0 - spminus)*alpham
-            azrleft = 0.5d0*(1.d0 - spzero )*alpha0r
-            azeleft = 0.5d0*(1.d0 - spzero )*alpha0e
-            azu1left = 0.5d0*(1.d0 - spzero )*alpha0u
-            azw1left = 0.5d0*(1.d0 - spzero )*alpha0w
+            apleft = HALF*(ONE - spplus )*alphap
+            amleft = HALF*(ONE - spminus)*alpham
+            azrleft = HALF*(ONE - spzero )*alpha0r
+            azeleft = HALF*(ONE - spzero )*alpha0e
+            azu1left = HALF*(ONE - spzero )*alpha0u
+            azw1left = HALF*(ONE - spzero )*alpha0w
 
             if (j .le. ihi2) then
                qym(i,j+1,kc,QRHO) = rho + apleft + amleft + azrleft
@@ -409,24 +410,24 @@ contains
             ! Top state
             do j = ilo2, ihi2+1
                v = q(i,j,k3d,QV)
-               if (v .gt. 0.d0) then
-                  spzero = -1.d0
+               if (v .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = v*dtdy
                endif
-               acmptop = 0.5d0*(-1.d0 - spzero )*dqy(i,j,kc,n)
+               acmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
                qyp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
             enddo
  
             ! Bottom state
             do j = ilo2-1, ihi2
                v = q(i,j,k3d,QV)
-               if (v .ge. 0.d0) then
+               if (v .ge. ZERO) then
                   spzero = v*dtdy
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpbot = 0.5d0*(1.d0 - spzero )*dqy(i,j,kc,n)
+               acmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
                qym(i,j+1,kc,n) = q(i,j,k3d,n) + acmpbot
             enddo
          enddo
@@ -441,24 +442,24 @@ contains
             ! Top state
             do j = ilo2, ihi2+1
                v = q(i,j,k3d,QV)
-               if (v .gt. 0.d0) then
-                  spzero = -1.d0
+               if (v .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = v*dtdy
                endif
-               acmptop = 0.5d0*(-1.d0 - spzero )*dqy(i,j,kc,n)
+               acmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
                qyp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
             enddo
 
             ! Bottom state
             do j = ilo2-1, ihi2
                v = q(i,j,k3d,QV)
-               if (v .ge. 0.d0) then
+               if (v .ge. ZERO) then
                   spzero = v*dtdy
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpbot = 0.5d0*(1.d0 - spzero )*dqy(i,j,kc,n)
+               acmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
                qym(i,j+1,kc,n) = q(i,j,k3d,n) + acmpbot
             enddo
 
@@ -475,24 +476,24 @@ contains
             ! Top state
             do j = ilo2, ihi2+1
                v = q(i,j,k3d,QV)
-               if (v .gt. 0.d0) then
-                  spzero = -1.d0
+               if (v .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = v*dtdy
                endif
-               ascmptop = 0.5d0*(-1.d0 - spzero )*dqy(i,j,kc,n)
+               ascmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
                qyp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
             enddo
 
             ! Bottom state
             do j = ilo2-1, ihi2
                v = q(i,j,k3d,QV)
-               if (v .ge. 0.d0) then
+               if (v .ge. ZERO) then
                   spzero = v*dtdy
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpbot = 0.5d0*(1.d0 - spzero )*dqy(i,j,kc,n)
+               ascmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
                qym(i,j+1,kc,n) = q(i,j,k3d,n) + ascmpbot
             enddo
          enddo
@@ -508,24 +509,24 @@ contains
             ! Top state
             do j = ilo2, ihi2+1
                v = q(i,j,k3d,QV)
-               if (v .gt. 0.d0) then
-                  spzero = -1.d0
+               if (v .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = v*dtdy
                endif
-               ascmptop = 0.5d0*(-1.d0 - spzero )*dqy(i,j,kc,n)
+               ascmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
                qyp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
             enddo
 
             ! Bottom state
             do j = ilo2-1, ihi2
                v = q(i,j,k3d,QV)
-               if (v .ge. 0.d0) then
+               if (v .ge. ZERO) then
                   spzero = v*dtdy
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpbot = 0.5d0*(1.d0 - spzero )*dqy(i,j,kc,n)
+               ascmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
                qym(i,j+1,kc,n) = q(i,j,k3d,n) + ascmpbot
             enddo
 
@@ -548,6 +549,7 @@ contains
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
                                      ppm_type
+      use bl_constants_module
 
       implicit none
 
@@ -618,35 +620,35 @@ contains
             dp = dqz(i,j,kc,QPRES)
             drhoe = dqz(i,j,kc,QREINT)
 
-            alpham = 0.5d0*(dp/(rho*cc) - dw)*rho/cc
-            alphap = 0.5d0*(dp/(rho*cc) + dw)*rho/cc
+            alpham = HALF*(dp/(rho*cc) - dw)*rho/cc
+            alphap = HALF*(dp/(rho*cc) + dw)*rho/cc
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
             alpha0v = dv
 
-            if (w-cc .gt. 0.d0) then
-               spminus = -1.d0
+            if (w-cc .gt. ZERO) then
+               spminus = -ONE
             else
                spminus = (w-cc)*dtdz
             endif
-            if (w+cc .gt. 0.d0) then
-               spplus = -1.d0
+            if (w+cc .gt. ZERO) then
+               spplus = -ONE
             else
                spplus = (w+cc)*dtdz
             endif
-            if (w .gt. 0.d0) then
-               spzero = -1.d0
+            if (w .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = w*dtdz
             endif
 
-            apright = 0.5d0*(-1.d0 - spplus )*alphap
-            amright = 0.5d0*(-1.d0 - spminus)*alpham
-            azrright = 0.5d0*(-1.d0 - spzero )*alpha0r
-            azeright = 0.5d0*(-1.d0 - spzero )*alpha0e
-            azu1rght = 0.5d0*(-1.d0 - spzero )*alpha0u
-            azv1rght = 0.5d0*(-1.d0 - spzero )*alpha0v
+            apright = HALF*(-ONE - spplus )*alphap
+            amright = HALF*(-ONE - spminus)*alpham
+            azrright = HALF*(-ONE - spzero )*alpha0r
+            azeright = HALF*(-ONE - spzero )*alpha0e
+            azu1rght = HALF*(-ONE - spzero )*alpha0u
+            azv1rght = HALF*(-ONE - spzero )*alpha0v
 
             qzp(i,j,kc,QRHO) = rho + apright + amright + azrright
             qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
@@ -674,35 +676,35 @@ contains
             dp = dqz(i,j,km,QPRES)
             drhoe = dqz(i,j,km,QREINT)
 
-            alpham = 0.5d0*(dp/(rho*cc) - dw)*rho/cc
-            alphap = 0.5d0*(dp/(rho*cc) + dw)*rho/cc
+            alpham = HALF*(dp/(rho*cc) - dw)*rho/cc
+            alphap = HALF*(dp/(rho*cc) + dw)*rho/cc
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
             alpha0v = dv
 
-            if (w-cc .ge. 0.d0) then
+            if (w-cc .ge. ZERO) then
                spminus = (w-cc)*dtdz
             else
-               spminus = 1.d0
+               spminus = ONE
             endif
-            if (w+cc .ge. 0.d0) then
+            if (w+cc .ge. ZERO) then
                spplus = (w+cc)*dtdz
             else
-               spplus = 1.d0
+               spplus = ONE
             endif
-            if (w .ge. 0.d0) then
+            if (w .ge. ZERO) then
                spzero = w*dtdz
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
 
-            apleft = 0.5d0*(1.d0 - spplus )*alphap
-            amleft = 0.5d0*(1.d0 - spminus)*alpham
-            azrleft = 0.5d0*(1.d0 - spzero )*alpha0r
-            azeleft = 0.5d0*(1.d0 - spzero )*alpha0e
-            azu1left = 0.5d0*(1.d0 - spzero )*alpha0u
-            azv1left = 0.5d0*(1.d0 - spzero )*alpha0v
+            apleft = HALF*(ONE - spplus )*alphap
+            amleft = HALF*(ONE - spminus)*alpham
+            azrleft = HALF*(ONE - spzero )*alpha0r
+            azeleft = HALF*(ONE - spzero )*alpha0e
+            azu1left = HALF*(ONE - spzero )*alpha0u
+            azv1left = HALF*(ONE - spzero )*alpha0v
 
             qzm(i,j,kc,QRHO) = rho + apleft + amleft + azrleft
             qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))
@@ -724,22 +726,22 @@ contains
  
                ! Top state
                w = q(i,j,k3d,QW)
-               if (w .gt. 0.d0) then
-                  spzero = -1.d0
+               if (w .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = w*dtdz
                endif
-               acmptop = 0.5d0*(-1.d0 - spzero )*dqz(i,j,kc,n)
+               acmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
                qzp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
  
                ! Bottom state
                w = q(i,j,k3d-1,QW)
-               if (w .ge. 0.d0) then
+               if (w .ge. ZERO) then
                   spzero = w*dtdz
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpbot = 0.5d0*(1.d0 - spzero )*dqz(i,j,km,n)
+               acmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + acmpbot
  
             enddo
@@ -755,22 +757,22 @@ contains
 
                ! Top state
                w = q(i,j,k3d,QW)
-               if (w .gt. 0.d0) then
-                  spzero = -1.d0
+               if (w .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = w*dtdz
                endif
-               acmptop = 0.5d0*(-1.d0 - spzero )*dqz(i,j,kc,n)
+               acmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
                qzp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
 
                ! Bottom state
                w = q(i,j,k3d-1,QW)
-               if (w .ge. 0.d0) then
+               if (w .ge. ZERO) then
                   spzero = w*dtdz
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               acmpbot = 0.5d0*(1.d0 - spzero )*dqz(i,j,km,n)
+               acmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + acmpbot
             enddo
          enddo
@@ -786,22 +788,22 @@ contains
 
                ! Top state
                w = q(i,j,k3d,QW)
-               if (w .gt. 0.d0) then
-                  spzero = -1.d0
+               if (w .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = w*dtdz
                endif
-               ascmptop = 0.5d0*(-1.d0 - spzero )*dqz(i,j,kc,n)
+               ascmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
                qzp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
 
                ! Bottom state
                w = q(i,j,k3d-1,QW)
-               if (w .ge. 0.d0) then
+               if (w .ge. ZERO) then
                   spzero = w*dtdz
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpbot = 0.5d0*(1.d0 - spzero )*dqz(i,j,km,n)
+               ascmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + ascmpbot
             enddo
          enddo
@@ -817,22 +819,22 @@ contains
 
                ! Top state
                w = q(i,j,k3d,QW)
-               if (w .gt. 0.d0) then
-                  spzero = -1.d0
+               if (w .gt. ZERO) then
+                  spzero = -ONE
                else
                   spzero = w*dtdz
                endif
-               ascmptop = 0.5d0*(-1.d0 - spzero )*dqz(i,j,kc,n)
+               ascmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
                qzp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
 
                ! Bottom state
                w = q(i,j,k3d-1,QW)
-               if (w .ge. 0.d0) then
+               if (w .ge. ZERO) then
                   spzero = w*dtdz
                else
-                  spzero = 1.d0
+                  spzero = ONE
                endif
-               ascmpbot = 0.5d0*(1.d0 - spzero )*dqz(i,j,km,n)
+               ascmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + ascmpbot
             enddo
          enddo

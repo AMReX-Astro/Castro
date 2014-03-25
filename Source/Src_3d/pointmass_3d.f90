@@ -20,11 +20,11 @@
 
 !      This computes radial gravity due to a point mass at center().
        do k = grav_l3, grav_h3
-          z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+          z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
           do j = grav_l2, grav_h2
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do i = grav_l1, grav_h1
-                x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+                x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
 
                 rsq = x*x + y*y + z*z
                 radial_force = -Gconst * point_mass / rsq
@@ -101,7 +101,7 @@
       end do
       end do
 
-      delta_mass = max(0.d0, delta_mass)
+      delta_mass = max(ZERO, delta_mass)
 
       end subroutine pm_compute_delta_mass
 

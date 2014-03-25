@@ -185,6 +185,7 @@ subroutine ca_check_initial_species(lo,hi,&
 
   use network           , only : nspec
   use meth_params_module, only : NVAR, URHO, UFS
+  use bl_constants_module
 
   implicit none
 
@@ -200,7 +201,7 @@ subroutine ca_check_initial_species(lo,hi,&
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
            
-           sum = 0.d0
+           sum = ZERO
            do n = 1, nspec
               sum = sum + state(i,j,k,UFS+n-1)
            end do
@@ -236,8 +237,11 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
                       cv,cv_l1,cv_l2,cv_l3,cv_h1,cv_h2,cv_h3, &
                       fine,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                       fv,fv_l1,fv_l2,fv_l3,fv_h1,fv_h2,fv_h3,lo,hi,lrat)
+
+  use bl_constants_module
   
   implicit none
+
   integer c_l1,c_l2,c_l3,c_h1,c_h2,c_h3
   integer cv_l1,cv_l2,cv_l3,cv_h1,cv_h2,cv_h3
   integer f_l1,f_l2,f_l3,f_h1,f_h2,f_h3
@@ -256,7 +260,7 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
   lratx   = lrat(1)
   lraty   = lrat(2)
   lratz   = lrat(3)
-  volfrac = 1.d0/float(lrat(1)*lrat(2)*lrat(3))
+  volfrac = ONE/float(lrat(1)*lrat(2)*lrat(3))
   
   do n = 1, nvar
      !
@@ -265,7 +269,7 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      do kc = lo(3), hi(3)
         do jc = lo(2), hi(2)
            do ic = lo(1), hi(1)
-              crse(ic,jc,kc,n) = 0.d0
+              crse(ic,jc,kc,n) = ZERO
            enddo
         enddo
      enddo
@@ -318,6 +322,8 @@ subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
   
   use meth_params_module, only : URHO, UMX, UMY, UMZ
   use probdata_module
+  use bl_constants_module
+
   implicit none
   
   integer          :: lo(3),hi(3),nc
@@ -340,11 +346,11 @@ subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
   ! Do not OMP this.
   !
   do k = lo(3), hi(3)
-     z = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+     z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+        y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+           x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
            r = sqrt(x**2 + y**2 + z**2)
            index = int(r/dr)
            if (index .gt. numpts_1d-1) then
@@ -386,6 +392,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
 
   use network, only : nspec
   use meth_params_module, only : NVAR, URHO, UFS
+  use bl_constants_module
   
   implicit none
 
@@ -411,10 +418,10 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
            ! First deal with tiny undershoots by just setting them to zero.
            !
            do n = UFS, UFS+nspec-1
-              if (uout(i,j,k,n) .lt. 0.d0) then
+              if (uout(i,j,k,n) .lt. ZERO) then
                  x = uout(i,j,k,n)/uout(i,j,k,URHO)
                  if (x .gt. eps) then
-                    uout(i,j,k,n) = 0.d0
+                    uout(i,j,k,n) = ZERO
                  else
                     any_negative = .true.
                  end if
@@ -441,7 +448,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
               !
               do n = UFS, UFS+nspec-1
                  
-                 if (uout(i,j,k,n) .lt. 0.d0) then
+                 if (uout(i,j,k,n) .lt. ZERO) then
                     
                     x = uout(i,j,k,n)/uout(i,j,k,URHO)
                     !
@@ -463,7 +470,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                     !
                     ! Test that we didn't make the dominant species negative.
                     !
-                    if (uout(i,j,k,int_dom_spec) .lt. 0.d0) then 
+                    if (uout(i,j,k,int_dom_spec) .lt. ZERO) then 
                        print *,' Just made nth dominant species negative ',int_dom_spec-UFS+1,' at ',i,j,k 
                        print *,'We were fixing species ',n-UFS+1,' which had value ',x
                        print *,'Dominant species became ',uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
@@ -472,7 +479,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                     !
                     ! Now set the negative species to zero.
                     !
-                    uout(i,j,k,n) = 0.d0
+                    uout(i,j,k,n) = ZERO
                     
                  end if
                  
@@ -522,7 +529,9 @@ end subroutine set_center
 ! :::
 
 subroutine find_center(data,new_center,icen,dx,problo)
-  
+
+  use bl_constants_module  
+
   implicit none
   
   double precision :: data(-1:1,-1:1,-1:1)
@@ -543,9 +552,9 @@ subroutine find_center(data,new_center,icen,dx,problo)
   end do
   
   !       This puts the "center" at the cell center
-  new_center(1) = problo(1) +  (icen(1)+0.5d0) * dx(1)
-  new_center(2) = problo(2) +  (icen(2)+0.5d0) * dx(2)
-  new_center(3) = problo(3) +  (icen(3)+0.5d0) * dx(3)
+  new_center(1) = problo(1) +  (icen(1)+HALF) * dx(1)
+  new_center(2) = problo(2) +  (icen(2)+HALF) * dx(2)
+  new_center(3) = problo(3) +  (icen(3)+HALF) * dx(3)
   
   ! Fit parabola y = a x^2  + b x + c through three points
   ! a = 1/2 ( y_1 + y_-1)
@@ -553,21 +562,21 @@ subroutine find_center(data,new_center,icen,dx,problo)
   ! x_vertex = -b / 2a
   
   ! ... in x-direction
-  a = 0.5d0 * (data(1,0,0) + data(-1,0,0)) - data(0,0,0)
-  b = 0.5d0 * (data(1,0,0) - data(-1,0,0)) - data(0,0,0)
-  x = -b / (2.d0*a)
+  a = HALF * (data(1,0,0) + data(-1,0,0)) - data(0,0,0)
+  b = HALF * (data(1,0,0) - data(-1,0,0)) - data(0,0,0)
+  x = -b / (TWO*a)
   new_center(1) = new_center(1) +  x*dx(1)
   
   ! ... in y-direction
-  a = 0.5d0 * (data(0,1,0) + data(0,-1,0)) - data(0,0,0)
-  b = 0.5d0 * (data(0,1,0) - data(0,-1,0)) - data(0,0,0)
-  y = -b / (2.d0*a)
+  a = HALF * (data(0,1,0) + data(0,-1,0)) - data(0,0,0)
+  b = HALF * (data(0,1,0) - data(0,-1,0)) - data(0,0,0)
+  y = -b / (TWO*a)
   new_center(2) = new_center(2) +  y*dx(2)
   
   ! ... in z-direction
-  a = 0.5d0 * (data(0,0,1) + data(0,0,-1)) - data(0,0,0)
-  b = 0.5d0 * (data(0,0,1) - data(0,0,-1)) - data(0,0,0)
-  z = -b / (2.d0*a)
+  a = HALF * (data(0,0,1) + data(0,0,-1)) - data(0,0,0)
+  b = HALF * (data(0,0,1) - data(0,0,-1)) - data(0,0,0)
+  z = -b / (TWO*a)
   new_center(3) = new_center(3) +  z*dx(3)
   
 end subroutine find_center
