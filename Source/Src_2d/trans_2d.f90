@@ -173,13 +173,13 @@ contains
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
-          ekinr = 0.5d0*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
+          ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
           rer = qp(i,j,QREINT) + ekinr
           
           rrl = qm(i,j+1,QRHO)
           rul = rrl*qm(i,j+1,QU)
           rvl = rrl*qm(i,j+1,QV)
-          ekinl = 0.5d0*rrl*(qm(i,j+1,QU)**2 + qm(i,j+1,QV)**2)
+          ekinl = HALF*rrl*(qm(i,j+1,QU)**2 + qm(i,j+1,QV)**2)
           rel = qm(i,j+1,QREINT) + ekinl
           
           ! Add transverse predictor
@@ -204,7 +204,7 @@ contains
                               area1(i,j)*fx(i,j,UEDEN))/vol(i,j) 
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
         
           ! Convert back to non-conservation form
@@ -212,7 +212,7 @@ contains
           qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
           qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU)  
           qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  
-          rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
+          rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
           qpo(i,j,QREINT)= renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -229,7 +229,7 @@ contains
              qpo(i,j,QPRES ) = pnewr
              qpo(i,j,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewr = qp(i,j,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
+             pnewr = qp(i,j,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-ONE))
              qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
           endif
           
@@ -240,7 +240,7 @@ contains
           qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
           qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
           qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
-          rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
+          rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
           qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -257,7 +257,7 @@ contains
              qmo(i,j+1,QPRES ) = pnewr
              qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewl = qm(i,j+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
+             pnewl = qm(i,j+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-ONE))
              qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
           endif
           
@@ -433,13 +433,13 @@ contains
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
-          ekinr = 0.5d0*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
+          ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
           rer = qp(i,j,QREINT) + ekinr
           
           rrl = qm(i+1,j,QRHO)
           rul = rrl*qm(i+1,j,QU)
           rvl = rrl*qm(i+1,j,QV)
-          ekinl = 0.5d0*rrl*(qm(i+1,j,QU)**2 + qm(i+1,j,QV)**2)
+          ekinl = HALF*rrl*(qm(i+1,j,QU)**2 + qm(i+1,j,QV)**2)
           rel = qm(i+1,j,QREINT) + ekinl
           
           ! Add transverse predictor
@@ -457,7 +457,7 @@ contains
           renewl = rel - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN)) 
 
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
 
           ! convert back to non-conservation form
@@ -465,7 +465,7 @@ contains
           qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
           qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) 
           qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
-          rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
+          rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
           qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -482,7 +482,7 @@ contains
              qpo(i,j,QPRES ) = pnewr
              qpo(i,j,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
+             pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
              qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
           endif
           
@@ -493,7 +493,7 @@ contains
           qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
           qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) 
           qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
-          rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
+          rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
           qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -510,7 +510,7 @@ contains
              qmo(i,j+1,QPRES ) = pnewr
              qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
+             pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
              qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
           endif
           

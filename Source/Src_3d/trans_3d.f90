@@ -127,7 +127,7 @@ contains
           rury = rrry*qyp(i,j,kc,QU)
           rvry = rrry*qyp(i,j,kc,QV)
           rwry = rrry*qyp(i,j,kc,QW)
-          ekenry = 0.5d0*rrry* &
+          ekenry = HALF*rrry* &
                (qyp(i,j,kc,QU)**2 + qyp(i,j,kc,QV)**2 + qyp(i,j,kc,QW)**2)
           rery = qyp(i,j,kc,QREINT) + ekenry
           
@@ -135,7 +135,7 @@ contains
           ruly = rrly*qym(i,j+1,kc,QU)
           rvly = rrly*qym(i,j+1,kc,QV)
           rwly = rrly*qym(i,j+1,kc,QW)
-          ekenly = 0.5d0*rrly* &
+          ekenly = HALF*rrly* &
                (qym(i,j+1,kc,QU)**2 + qym(i,j+1,kc,QV)**2 + qym(i,j+1,kc,QW)**2)
           rely = qym(i,j+1,kc,QREINT) + ekenly
           
@@ -156,7 +156,7 @@ contains
           ! be able to deal with the general EOS -- add the transverse term
           ! to the p evolution eq here
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
                     
           ! Convert back to primitive form
@@ -167,7 +167,7 @@ contains
              qypo(i,j,kc,QW) = rwnewry/qypo(i,j,kc,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
              ! Optionally, use the EOS to calculate the pressure.
@@ -183,7 +183,7 @@ contains
                 pnewry = eos_state % p
                 qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
              endif
 
              qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
@@ -196,7 +196,7 @@ contains
              qymo(i,j+1,kc,QW) = rwnewly/qymo(i,j+1,kc,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
 
              ! Optionally, use the EOS to calculate the pressure.
@@ -212,7 +212,7 @@ contains
                 pnewly = eos_state % p
                 qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
              endif
 
              qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
@@ -342,7 +342,7 @@ contains
           ugm = ugdnvx(i,j,kc)
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
           ! Convert to conservation form
@@ -350,7 +350,7 @@ contains
           rurz = rrrz*qzp(i,j,kc,QU)
           rvrz = rrrz*qzp(i,j,kc,QV)
           rwrz = rrrz*qzp(i,j,kc,QW)
-          ekenrz = 0.5d0*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 + qzp(i,j,kc,QW)**2)
+          ekenrz = HALF*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 + qzp(i,j,kc,QW)**2)
           rerz = qzp(i,j,kc,QREINT) + ekenrz
           
           ! Add transverse predictor
@@ -367,7 +367,7 @@ contains
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -383,7 +383,7 @@ contains
              pnewrz = eos_state % p
              qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
           else
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
           endif
 
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
@@ -395,14 +395,14 @@ contains
           ugm = ugdnvx(i,j,km)
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
           rwlz = rrlz*qzm(i,j,kc,QW)
-          ekenlz = 0.5d0*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 + qzm(i,j,kc,QW)**2)
+          ekenlz = HALF*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
           
           ! Add transverse predictor
@@ -418,7 +418,7 @@ contains
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -434,7 +434,7 @@ contains
              pnewlz = eos_state % p
              qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
           else
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-1.d0))
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
           endif
 
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
@@ -565,7 +565,7 @@ contains
           rurx = rrrx*qxp(i,j,kc,QU)
           rvrx = rrrx*qxp(i,j,kc,QV)
           rwrx = rrrx*qxp(i,j,kc,QW)
-          ekenrx = 0.5d0*rrrx*(qxp(i,j,kc,QU)**2 + qxp(i,j,kc,QV)**2 &
+          ekenrx = HALF*rrrx*(qxp(i,j,kc,QU)**2 + qxp(i,j,kc,QV)**2 &
                + qxp(i,j,kc,QW)**2)
           rerx = qxp(i,j,kc,QREINT) + ekenrx
           
@@ -573,7 +573,7 @@ contains
           rulx = rrlx*qxm(i+1,j,kc,QU)
           rvlx = rrlx*qxm(i+1,j,kc,QV)
           rwlx = rrlx*qxm(i+1,j,kc,QW)
-          ekenlx = 0.5d0*rrlx*(qxm(i+1,j,kc,QU)**2 + qxm(i+1,j,kc,QV)**2 &
+          ekenlx = HALF*rrlx*(qxm(i+1,j,kc,QU)**2 + qxm(i+1,j,kc,QV)**2 &
                + qxm(i+1,j,kc,QW)**2)
           relx = qxm(i+1,j,kc,QREINT) + ekenlx
           
@@ -591,7 +591,7 @@ contains
           renewlx = relx - cdtdy*(fy(i,j+1,kc,UEDEN)- fy(i,j,kc,UEDEN))
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
           ! Convert back to primitive form
@@ -602,7 +602,7 @@ contains
              qxpo(i,j,kc,QW) = rwnewrx/qxpo(i,j,kc,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QREINT)= renewrx - rhoekenrx
 
              ! Optionally, use the EOS to calculate the pressure.             
@@ -618,7 +618,7 @@ contains
                 pnewrx = eos_state % p
                 qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
              endif
 
              qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
@@ -631,7 +631,7 @@ contains
              qxmo(i+1,j,kc,QW) = rwnewlx/qxmo(i+1,j,kc,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QREINT)= renewlx - rhoekenlx
 
              ! Optionally, use the EOS to calculate the pressure.             
@@ -647,7 +647,7 @@ contains
                 pnewlx = eos_state % p
                 qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
              endif
 
              qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
@@ -781,7 +781,7 @@ contains
           rurz = rrrz*qzp(i,j,kc,QU)
           rvrz = rrrz*qzp(i,j,kc,QV)
           rwrz = rrrz*qzp(i,j,kc,QW)
-          ekenrz = 0.5d0*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 &
+          ekenrz = HALF*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 &
                + qzp(i,j,kc,QW)**2)
           rerz = qzp(i,j,kc,QREINT) + ekenrz
           
@@ -793,7 +793,7 @@ contains
           renewrz = rerz - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
           
@@ -804,7 +804,7 @@ contains
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT)= renewrz - rhoekenrz
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -820,7 +820,7 @@ contains
              pnewrz = eos_state % p
              qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
           else
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
           endif
 
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
@@ -835,7 +835,7 @@ contains
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
           rwlz = rrlz*qzm(i,j,kc,QW)
-          ekenlz = 0.5d0*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 &
+          ekenlz = HALF*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 &
                + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
           
@@ -847,7 +847,7 @@ contains
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
                     
           qzmo(i,j,kc,QRHO) = rrnewlz
@@ -856,7 +856,7 @@ contains
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT)= renewlz - rhoekenlz
 
           ! Optionally, use the EOS to calculate the pressure.
@@ -872,7 +872,7 @@ contains
              pnewlz = eos_state % p
              qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
           else
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
           endif
 
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
@@ -1021,7 +1021,7 @@ contains
           rurx = rrrx*qxp(i,j,km,QU)
           rvrx = rrrx*qxp(i,j,km,QV)
           rwrx = rrrx*qxp(i,j,km,QW)
-          ekenrx = 0.5d0*rrrx*(qxp(i,j,km,QU)**2 + qxp(i,j,km,QV)**2 &
+          ekenrx = HALF*rrrx*(qxp(i,j,km,QU)**2 + qxp(i,j,km,QV)**2 &
                + qxp(i,j,km,QW)**2)
           rerx = qxp(i,j,km,QREINT) + ekenrx
           
@@ -1029,7 +1029,7 @@ contains
           rury = rrry*qyp(i,j,km,QU)
           rvry = rrry*qyp(i,j,km,QV)
           rwry = rrry*qyp(i,j,km,QW)
-          ekenry = 0.5d0*rrry*(qyp(i,j,km,QU)**2 + qyp(i,j,km,QV)**2 &
+          ekenry = HALF*rrry*(qyp(i,j,km,QU)**2 + qyp(i,j,km,QV)**2 &
                + qyp(i,j,km,QW)**2)
           rery = qyp(i,j,km,QREINT) + ekenry
           
@@ -1037,7 +1037,7 @@ contains
           rulx = rrlx*qxm(i+1,j,km,QU)
           rvlx = rrlx*qxm(i+1,j,km,QV)
           rwlx = rrlx*qxm(i+1,j,km,QW)
-          ekenlx = 0.5d0*rrlx*(qxm(i+1,j,km,QU)**2 + qxm(i+1,j,km,QV)**2 &
+          ekenlx = HALF*rrlx*(qxm(i+1,j,km,QU)**2 + qxm(i+1,j,km,QV)**2 &
                + qxm(i+1,j,km,QW)**2)
           relx = qxm(i+1,j,km,QREINT) + ekenlx
           
@@ -1045,7 +1045,7 @@ contains
           ruly = rrly*qym(i,j+1,km,QU)
           rvly = rrly*qym(i,j+1,km,QV)
           rwly = rrly*qym(i,j+1,km,QW)
-          ekenly = 0.5d0*rrly*(qym(i,j+1,km,QU)**2 + qym(i,j+1,km,QV)**2 &
+          ekenly = HALF*rrly*(qym(i,j+1,km,QU)**2 + qym(i,j+1,km,QV)**2 &
                + qym(i,j+1,km,QW)**2)
           rely = qym(i,j+1,km,QREINT) + ekenly
           
@@ -1075,7 +1075,7 @@ contains
           renewly = rely - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
           
           dup = pgp*ugp - pgm*ugm
-          pav = 0.5d0*(pgp+pgm)
+          pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
           ! Convert back to primitive form
@@ -1086,7 +1086,7 @@ contains
              qxpo(i,j,km,QW) = rwnewrx/qxpo(i,j,km,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT)= renewrx - rhoekenrx
 
              ! Optionally, use the EOS to calculate the pressure.
@@ -1102,7 +1102,7 @@ contains
                 pnewrx = eos_state % p
                 qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
              endif
 
              qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
@@ -1115,7 +1115,7 @@ contains
              qypo(i,j,km,QW) = rwnewry/qypo(i,j,km,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT)= renewry - rhoekenry
 
              ! Optionally, use the EOS to calculate the pressure.
@@ -1131,7 +1131,7 @@ contains
                 pnewry = eos_state % p
                 qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
              endif
 
              qypo(i,j,km,QPRES) = max(pnewry,small_pres)
@@ -1144,7 +1144,7 @@ contains
              qxmo(i+1,j,km,QW) = rwnewlx/qxmo(i+1,j,km,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT)= renewlx - rhoekenlx
 
              ! Optionally, use the EOS to calculate the pressure.
@@ -1160,7 +1160,7 @@ contains
                 pnewlx = eos_state % p
                 qymo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
              endif
 
              qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
@@ -1173,7 +1173,7 @@ contains
              qymo(i,j+1,km,QW) = rwnewly/qymo(i,j+1,km,QRHO)
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT)= renewly - rhoekenly
 
              ! Optionally, use the EOS to calculate the pressure.             
@@ -1189,7 +1189,7 @@ contains
                 pnewly = eos_state % p
                 qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
              else
-                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
              endif
 
              qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
@@ -1353,7 +1353,7 @@ contains
           rur = rrr*qp(i,j,kc,QU)
           rvr = rrr*qp(i,j,kc,QV)
           rwr = rrr*qp(i,j,kc,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,kc,QU)**2 + qp(i,j,kc,QV)**2 + &
+          ekenr = HALF*rrr*(qp(i,j,kc,QU)**2 + qp(i,j,kc,QV)**2 + &
                qp(i,j,kc,QW)**2)
           rer = qp(i,j,kc,QREINT) + ekenr
           
@@ -1361,7 +1361,7 @@ contains
           rul = rrl*qm(i,j,kc,QU)
           rvl = rrl*qm(i,j,kc,QV)
           rwl = rrl*qm(i,j,kc,QW)
-          ekenl = 0.5d0*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
+          ekenl = HALF*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
                qm(i,j,kc,QW)**2)
           rel = qm(i,j,kc,QREINT) + ekenl
           
@@ -1377,7 +1377,7 @@ contains
           renewr = rer - cdtdx*(fxy(i+1,j,kc,UEDEN) - fxy(i,j,kc,UEDEN)) &
                        - cdtdy*(fyx(i,j+1,kc,UEDEN) - fyx(i,j,kc,UEDEN))
 
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
 
           rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
                        - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
@@ -1390,27 +1390,27 @@ contains
           renewl = rel - cdtdx*(fxy(i+1,j,km,UEDEN) - fxy(i,j,km,UEDEN)) &
                        - cdtdy*(fyx(i,j+1,km,UEDEN) - fyx(i,j,km,UEDEN))
 
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = 0.5d0*(pgxp+pgxm)
+          pxav = HALF*(pgxp+pgxm)
           dux = ugxp-ugxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-1.d0))
+          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
 
           duxpm = pgxpm*ugxpm - pgxmm*ugxmm
-          pxavm = 0.5d0*(pgxpm+pgxmm)
+          pxavm = HALF*(pgxpm+pgxmm)
           duxm = ugxpm-ugxmm
-          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-1.d0))
+          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
           
           duyp = pgyp*ugyp - pgym*ugym
-          pyav = 0.5d0*(pgyp+pgym)
+          pyav = HALF*(pgyp+pgym)
           duy = ugyp-ugym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-1.d0))
+          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
 
           duypm = pgypm*ugypm - pgymm*ugymm
-          pyavm = 0.5d0*(pgypm+pgymm)
+          pyavm = HALF*(pgypm+pgymm)
           duym = ugypm-ugymm
-          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-1.d0))
+          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
           
           ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1631,14 +1631,14 @@ contains
           rur = rrr*qp(i,j,km,QU)
           rvr = rrr*qp(i,j,km,QV)
           rwr = rrr*qp(i,j,km,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
+          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
           rer = qp(i,j,km,QREINT) + ekenr
           
           rrl = qm(i,j+1,km,QRHO)
           rul = rrl*qm(i,j+1,km,QU)
           rvl = rrl*qm(i,j+1,km,QV)
           rwl = rrl*qm(i,j+1,km,QW)
-          ekenl = 0.5d0*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
+          ekenl = HALF*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
           rel = qm(i,j+1,km,QREINT) + ekenl
           
           ! Add transverse predictor
@@ -1653,7 +1653,7 @@ contains
           renewr = rer - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
                        - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
 
           rrnewl = rrl - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
                        - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
@@ -1666,17 +1666,17 @@ contains
           renewl = rel - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
                        - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = 0.5d0*(pgxp+pgxm)
+          pxav = HALF*(pgxp+pgxm)
           dux = ugxp-ugxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-1.d0))
+          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
           
           duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = 0.5d0*(pgzp+pgzm)
+          pzav = HALF*(pgzp+pgzm)
           duz = ugzp-ugzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
+          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
                     
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
@@ -1901,7 +1901,7 @@ contains
           rur = rrr*qp(i,j,km,QU)
           rvr = rrr*qp(i,j,km,QV)
           rwr = rrr*qp(i,j,km,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
+          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
                qp(i,j,km,QW)**2)
           rer = qp(i,j,km,QREINT) + ekenr
           
@@ -1909,7 +1909,7 @@ contains
           rul = rrl*qm(i+1,j,km,QU)
           rvl = rrl*qm(i+1,j,km,QV)
           rwl = rrl*qm(i+1,j,km,QW)
-          ekenl = 0.5d0*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
+          ekenl = HALF*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
                qm(i+1,j,km,QW)**2)
           rel = qm(i+1,j,km,QREINT) + ekenl
           
@@ -1925,7 +1925,7 @@ contains
           renewr = rer - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
                        - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
 
           rrnewl = rrl - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
                        - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
@@ -1938,17 +1938,17 @@ contains
           renewl = rel - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
                        - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duyp = pgyp*ugyp - pgym*ugym
-          pyav = 0.5d0*(pgyp+pgym)
+          pyav = HALF*(pgyp+pgym)
           duy = ugyp-ugym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-1.d0))
+          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
           
           duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = 0.5d0*(pgzp+pgzm)
+          pzav = HALF*(pgzp+pgzm)
           duz = ugzp-ugzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
+          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
           
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
