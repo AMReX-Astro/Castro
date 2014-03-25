@@ -21,7 +21,10 @@ contains
                                    QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
-                                   nadv, ppm_type, ppm_trace_grav
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, ppm_type, ppm_trace_grav
+    use eos_module
+
     implicit none
 
     integer qd_l1, qd_l2, qd_h1, qd_h2
@@ -60,6 +63,8 @@ contains
     double precision rrnewl, runewl, rvnewl, renewl
     double precision pgp, pgm, ugp, ugm, dup, pav, du, pnewl,pnewr
     double precision rhotmp
+
+    type (eos_t) :: eos_state
     
     ! NOTE: it is better *not* to protect against small density in this routine
 
@@ -202,8 +207,6 @@ contains
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
         
-          pnewr = qp(i,j,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
-
           ! Convert back to non-conservation form
           rhotmp = rrnewr
           qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
@@ -211,9 +214,26 @@ contains
           qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  
           rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
           qpo(i,j,QREINT)= renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
-          qpo(i,j,QPRES) =  pnewr            + hdt*srcQ(i,j,QPRES)
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qpo(i,j,QRHO)
+             eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewr = eos_state % p
+             qpo(i,j,QPRES ) = pnewr
+             qpo(i,j,QREINT) = eos_state % e * eos_state % rho
+          else           
+             pnewr = qp(i,j,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
+             qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+          endif
           
-          pnewl = qm(i,j+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
+          qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
 
           ! Convert back to non-conservation form
           rhotmp = rrnewl
@@ -222,7 +242,26 @@ contains
           qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
           rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
           qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
-          qmo(i,j+1,QPRES) = pnewl +hdt*srcQ(i,j,QPRES)
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qmo(i,j+1,QRHO)
+             eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qmo(i,j+1,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewr = eos_state % p
+             qmo(i,j+1,QPRES ) = pnewr
+             qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
+          else           
+             pnewl = qm(i,j+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-1.d0))
+             qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+          endif
+          
+          qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
         
           ! if ppm_trace_grav == 1, then we already added the
           ! piecewise parabolic traced gravity to the normal edge
@@ -258,7 +297,10 @@ contains
                                    QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
-                                   nadv, ppm_type, ppm_trace_grav
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, ppm_type, ppm_trace_grav
+    use eos_module
+
     implicit none
 
     integer qd_l1, qd_l2, qd_h1, qd_h2
@@ -293,6 +335,8 @@ contains
     double precision rrnewl, runewl, rvnewl, renewl
     double precision rhotmp
     double precision compo, compn
+
+    type (eos_t) :: eos_state
     
     ! NOTE: it is better *not* to protect against small density in this routine
 
@@ -415,8 +459,6 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
-          pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
-          pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
 
           ! convert back to non-conservation form
           rhotmp =  rrnewr
@@ -425,7 +467,27 @@ contains
           qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
           rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
           qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
-          qpo(i,j,QPRES ) =  pnewr            + hdt*srcQ(i,j,QPRES)
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qpo(i,j,QRHO)
+             eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewr = eos_state % p
+             qpo(i,j,QPRES ) = pnewr
+             qpo(i,j,QREINT) = eos_state % e * eos_state % rho
+          else           
+             pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
+             qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+          endif
+          
+          qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
+
           
           rhotmp =  rrnewl
           qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
@@ -433,7 +495,26 @@ contains
           qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
           rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
           qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
-          qmo(i+1,j,QPRES ) = pnewl             + hdt*srcQ(i,j,QPRES)
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qmo(i,j+1,QRHO)
+             eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qmo(i,j+1,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewr = eos_state % p
+             qmo(i,j+1,QPRES ) = pnewr
+             qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
+          else           
+             pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-1.d0))
+             qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+          endif
+          
+          qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
           
           ! if ppm_trace_grav == 1, then we already added the
           ! piecewise parabolic traced gravity to the normal edge
