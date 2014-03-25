@@ -19,7 +19,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres
+                                   nadv, small_pres, small_temp, transverse_use_eos
+    use eos_module
     
     implicit none
 
@@ -61,6 +62,8 @@ contains
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
 
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -110,7 +113,7 @@ contains
 
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
     !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly,dup,pav,du,pnewry) &
-    !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly)
+    !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -155,10 +158,7 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
-          
-          pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
-          pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
-          
+                    
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
              qypo(i,j,kc,QRHO) = rrnewry
@@ -169,6 +169,22 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qypo(i,j,kc,QRHO)
+                eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewry = eos_state % p
+                qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+             endif
 
              qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
           end if
@@ -182,6 +198,22 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qymo(i,j+1,kc,QRHO)
+                eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+  
+                pnewly = eos_state % p
+                qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+             endif
 
              qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
           end if
@@ -206,7 +238,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres
+                                   nadv, small_pres, small_temp, transverse_use_eos
+    use eos_module
 
     implicit none
 
@@ -248,6 +281,8 @@ contains
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
 
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -297,7 +332,7 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
     !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav) &
-    !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz)
+    !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -324,9 +359,7 @@ contains
           rvnewrz = rvrz - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
           rwnewrz = rwrz - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           renewrz = rerz - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
-          
-          pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
-          
+                    
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -336,6 +369,22 @@ contains
           ! note: we run the risk of (rho e) being negative here
           rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qzpo(i,j,kc,QRHO)
+             eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewrz = eos_state % p
+             qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+          else
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+          endif
 
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
 
@@ -362,9 +411,7 @@ contains
           rvnewlz = rvlz - cdtdx*(fx(i+1,j,km,UMY) - fx(i,j,km,UMY))
           rwnewlz = rwlz - cdtdx*(fx(i+1,j,km,UMZ) - fx(i,j,km,UMZ))
           renewlz = relz - cdtdx*(fx(i+1,j,km,UEDEN) - fx(i,j,km,UEDEN))
-          
-          pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-1.d0))
-          
+                    
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -373,6 +420,22 @@ contains
           ! note: we run the risk of (rho e) being negative here
           rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qzmo(i,j,kc,QRHO)
+             eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewlz = eos_state % p
+             qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+          else
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-1.d0))
+          endif
 
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
           
@@ -396,7 +459,9 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres
+                                   nadv, small_pres, small_temp, transverse_use_eos
+    use eos_module
+
     implicit none
       
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -437,6 +502,8 @@ contains
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
     
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -484,7 +551,7 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
     !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,dup,pav,du,pnewrx) &
-    !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx)
+    !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
           
@@ -537,8 +604,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QREINT)= renewrx - rhoekenrx
-             
-             pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.             
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qxpo(i,j,kc,QRHO)
+                eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewrx = eos_state % p
+                qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+             endif
+
              qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
           end if
           
@@ -551,8 +633,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QREINT)= renewlx - rhoekenlx
-             
-             pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.             
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qxmo(i+1,j,kc,QRHO)
+                eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewlx = eos_state % p
+                qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+             endif
+
              qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
           end if
           
@@ -576,7 +673,9 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres
+                                   nadv, small_pres, small_temp, transverse_use_eos
+    use eos_module
+
     implicit none
     
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -617,6 +716,8 @@ contains
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
 
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -666,7 +767,7 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
     !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav,du,pnewrz) &
-    !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz)
+    !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
           
@@ -695,7 +796,6 @@ contains
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
           
-          pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
           
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
@@ -706,6 +806,22 @@ contains
           ! note: we run the risk of (rho e) being negative here
           rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT)= renewrz - rhoekenrz
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qzpo(i,j,kc,QRHO)
+             eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewrz = eos_state % p
+             qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+          else
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+          endif
 
           qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
           
@@ -733,9 +849,7 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = 0.5d0*(pgp+pgm)
           du = ugp-ugm
-          
-          pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
-          
+                    
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -744,6 +858,22 @@ contains
           ! note: we run the risk of (rho e) being negative here
           rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT)= renewlz - rhoekenlz
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qzmo(i,j,kc,QRHO)
+             eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+  
+             pnewlz = eos_state % p
+             qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+          else
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+          endif
 
           qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
           
@@ -768,7 +898,9 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres
+                                   nadv, small_pres, small_temp, transverse_use_eos
+    use eos_module
+
     implicit none
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -813,6 +945,8 @@ contains
     double precision pgp, pgm, ugp, ugm, dup, pav, du
 
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
     
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -872,7 +1006,8 @@ contains
     !$OMP PRIVATE(rvry,rwry,ekenry,rery,rrlx,rulx,rvlx,rwlx,ekenlx,relx,rrly,ruly,rvly,rwly,ekenly)&
     !$OMP PRIVATE(rely,rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewry,runewry,rvnewry,rwnewry)&
     !$OMP PRIVATE(renewry,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,rrnewly,runewly,rvnewly,rwnewly)&
-    !$OMP PRIVATE(renewly,dup,pav,du,pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)
+    !$OMP PRIVATE(renewly,dup,pav,du,pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)&
+    !$OMP PRIVATE(eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -953,8 +1088,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT)= renewrx - rhoekenrx
-             
-             pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_EOS .eq. 1) then
+                eos_state % rho = qxpo(i,j,km,QRHO)
+                eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewrx = eos_state % p
+                qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+             endif
+
              qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
           end if
           
@@ -967,8 +1117,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT)= renewry - rhoekenry
-             
-             pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qypo(i,j,km,QRHO)
+                eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewry = eos_state % p
+                qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+             endif
+
              qypo(i,j,km,QPRES) = max(pnewry,small_pres)
           end if
           
@@ -981,8 +1146,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT)= renewlx - rhoekenlx
-             
-             pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qxmo(i+1,j,km,QRHO)
+                eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewlx = eos_state % p
+                qymo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+             endif
+
              qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
           end if
           
@@ -995,8 +1175,23 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT)= renewly - rhoekenly
-             
-             pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+
+             ! Optionally, use the EOS to calculate the pressure.             
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qymo(i,j+1,km,QRHO)
+                eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewly = eos_state % p
+                qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+             endif
+
              qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
           end if
           
@@ -1024,7 +1219,10 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, ppm_type, ppm_trace_grav
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, ppm_type, ppm_trace_grav
+    use eos_module
+
     implicit none
     
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1068,6 +1266,8 @@ contains
     double precision compr, compl, compnr, compnl
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
     
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -1124,7 +1324,7 @@ contains
     !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
     !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
     !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
-    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl)
+    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -1211,9 +1411,6 @@ contains
           pyavm = 0.5d0*(pgypm+pgymm)
           duym = ugypm-ugymm
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-1.d0))
-
-          pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-          pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
           
           ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1223,8 +1420,25 @@ contains
 
           ! note: we run the risk of (rho e) being negative here
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
-          
-          qpo(i,j,kc,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
+
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qpo(i,j,kc,QRHO)
+             eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewr = eos_state % p
+             qpo(i,j,kc,QPRES ) = pnewr
+             qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
+          else
+             pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
+             qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+          endif
+
           qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
           
           qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
@@ -1235,7 +1449,24 @@ contains
           ! note: we run the risk of (rho e) being negative here
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
           
-          qmo(i,j,kc,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d-1,QPRES)
+          ! Optionally, use the EOS to calculate the pressure.
+
+          if (transverse_use_eos .eq. 1) then
+             eos_state % rho = qmo(i,j,kc,QRHO)
+             eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+
+             call eos(eos_input_re, eos_state)
+
+             pnewl = eos_state % p
+             qmo(i,j,kc,QPRES ) = pnewl
+             qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+          else
+             pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
+             qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+          endif
+
           qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
           
        enddo
@@ -1279,7 +1510,10 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, ppm_type, ppm_trace_grav
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, ppm_type, ppm_trace_grav
+    use eos_module
+
     implicit none      
     
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1321,6 +1555,8 @@ contains
     double precision compr, compl, compnr, compnl
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
     
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -1376,7 +1612,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgzp,pgzm,ugzp,ugzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(rhoekenr,rhoekenl)
+    !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
             
@@ -1441,10 +1677,7 @@ contains
           pzav = 0.5d0*(pgzp+pgzm)
           duz = ugzp-ugzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
-          
-          pnewr = qp(i,j,km,QPRES) - pxnew - pznew
-          pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
-          
+                    
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1455,7 +1688,25 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
              
-             qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+
+                eos_state % rho = qpo(i,j,km,QRHO)
+                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewr = eos_state % p
+                qpo(i,j,km,QPRES ) = pnewr
+                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewr = qp(i,j,km,QPRES) - pxnew - pznew
+                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+             endif
+
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
           end if
           
@@ -1468,7 +1719,24 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qmo(i,j+1,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             qmo(i,j+1,km,QPRES ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qmo(i,j+1,km,QRHO)
+                eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewl = eos_state % p
+                qmo(i,j+1,km,QPRES ) = pnewl
+                qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
+                qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+             endif
+
              qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
           end if
           
@@ -1512,7 +1780,10 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, ppm_type, ppm_trace_grav
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, ppm_type, ppm_trace_grav
+    use eos_module
+
     implicit none
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
@@ -1554,6 +1825,8 @@ contains
     double precision compr, compl, compnr, compnl
     
     integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+
+    type (eos_t) :: eos_state
 
     npassive = 0
     ! Treat K as a passively advected quantity
@@ -1609,7 +1882,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(rhoekenr,rhoekenl)
+    !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -1677,9 +1950,6 @@ contains
           duz = ugzp-ugzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
           
-          pnewr = qp(i,j,km,QPRES) - pynew - pznew
-          pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
-
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1689,8 +1959,25 @@ contains
 
              ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
-             
-             qpo(i,j,km,QPRES ) = pnewr         + hdt*srcQ(i,j,k3d,QPRES)
+
+             ! Optionally, use the EOS to calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qpo(i,j,km,QRHO)
+                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewr = eos_state % p
+                qpo(i,j,km,QPRES ) = pnewr
+                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewr = qp(i,j,km,QPRES) - pynew - pznew
+                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+             endif
+
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
              
           end if
@@ -1703,8 +1990,25 @@ contains
 
              ! note: we run the risk of (rho e) being negative here
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
-             
-             qmo(i+1,j,km,QPRES  ) = pnewl         + hdt*srcQ(i,j,k3d,QPRES)
+
+             ! Optionally, use the EOS To calculate the pressure.
+
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qmo(i+1,j,km,QRHO)
+                eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+
+                pnewl = eos_state % p
+                qmo(i+1,j,km,QPRES ) = pnewl
+                qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
+                qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+             endif
+
              qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
           end if
           

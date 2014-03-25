@@ -583,6 +583,7 @@ protected:
     static int       ppm_reference_eigenvectors;
     static int       use_colglaz;
     static int       use_flattening;
+    static int       transverse_use_eos;
 
     static int       cg_maxiter;
     static Real      cg_tol;

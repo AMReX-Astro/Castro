@@ -212,6 +212,7 @@ Castro::variableSetUp ()
 	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
 	 use_colglaz, use_flattening, 
+         transverse_use_eos,
          cg_maxiter, cg_tol,
          use_pslope, 
 	 grav_source_type, do_sponge,

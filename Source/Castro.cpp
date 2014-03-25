@@ -153,6 +153,8 @@ Real         Castro::cg_tol      = 1.0e-5;
 int          Castro::use_flattening = 1;
 int          Castro::ppm_flatten_before_integrals = 0;
 
+int          Castro::transverse_use_eos = 0;
+
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
@@ -378,6 +380,7 @@ Castro::read_params ()
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
+    pp.query("transverse_use_eos",transverse_use_eos);
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
