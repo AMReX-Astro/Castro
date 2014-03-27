@@ -9,7 +9,11 @@ module riemann_support
 
   implicit none
 
-  real (kind=dp_t), parameter :: smallrho = 100.d0
+  real (kind=dp_t), parameter :: smallrho = 1.d-5
+  integer, parameter :: max_iters = 100
+  real (kind=dp_t) :: tol = 1.e-6_dp_t
+
+  private tol, max_iters, smallrho
 
 contains
 
@@ -42,10 +46,8 @@ contains
     real (kind=dp_t), parameter :: tol_p = 1.e-6_dp_t
     
     integer :: iter, i
-    integer, parameter :: max_iters = 100
-    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
-    real (kind=dp_t) :: tol = 1.e-6_dp_t
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
     logical :: converged
 
@@ -116,13 +118,17 @@ contains
     W_s_guess = W_s
 
     ! newton
-    call newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+    call newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, &
+                      rhostar_hist, Ws_hist, &
+                      eos_state, converged)
 
-
-    if (.not. converged) then
-       W_s = W_s_guess
-       call bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
-    endif
+    !if (.not. converged) then
+    ! try bisection instead
+    !   W_s = W_s_guess
+    !   call bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, &
+    !                     rhostar_hist, Ws_hist, &
+    !                     eos_state, converged)
+    !endif
 
     ! now did we converge?
     if (.not. converged) then
@@ -134,7 +140,6 @@ contains
        call bl_error("ERROR: shock did not converge")
     endif
     
-
 
     ! now that we have W_s, we can get rhostar from the R-H conditions
     ! (C&G Eq. 12)
@@ -161,19 +166,21 @@ contains
   end subroutine shock
 
 
-  subroutine newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+  subroutine newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, &
+                          rhostar_hist, Ws_hist, &
+                          eos_state, converged)
 
     use eos_type_module
 
-    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec), tol
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
     logical,          intent(out) :: converged
     real (kind=dp_t), intent(inout) :: W_s
     type (eos_t),     intent(inout) :: eos_state
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
+
     integer :: iter
-    integer, parameter :: max_iters = 50
 
     real (kind=dp_t) :: rhostar_s, dW, f, fprime
-
 
 
     ! Newton iterations -- we are zeroing the energy R-H jump condition
@@ -187,7 +194,8 @@ contains
     iter = 1
     do while (.not. converged .and. iter < max_iters)
        
-       call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
+       call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                      f, fprime)
        dW = -f/fprime
        
        if (abs(dW) < tol*W_s) converged = .true.
@@ -195,8 +203,8 @@ contains
        W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
 
        ! store some history
-       !rhostar_hist(iter) = rhostar_s
-       !Ws_hist(iter) = W_s
+       rhostar_hist(iter) = rhostar_s
+       Ws_hist(iter) = W_s
        
        iter = iter + 1
 
@@ -205,22 +213,28 @@ contains
   end subroutine newton_shock
 
 
-  subroutine bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+  subroutine bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, &
+                          rhostar_hist, Ws_hist, &
+                          eos_state, converged)
 
     use eos_type_module
 
-    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec), tol
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
     logical,          intent(out) :: converged
     real (kind=dp_t), intent(inout) :: W_s
     type (eos_t),     intent(inout) :: eos_state
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
+
     integer :: iter
-    integer, parameter :: max_iters = 50
 
     real (kind=dp_t) :: f1, f2, fprime, fm, fp
-    real (kind=dp_t) :: W1, W2, dW, Wm
-    logical :: found
+    real (kind=dp_t) :: W1, W2, dW, Wm, W1_try
+    logical :: contained
     real (kind=dp_t) :: rhostar_s, taustar_s
 
+    real (kind=dp_t), parameter :: eps = 1.d-8
+
+    
     ! try some bisection -- sometimes we hit a Newton cycle
     ! first we need to find a range that potentially contains
     ! the root the lower limit on W_s should be around the
@@ -232,61 +246,65 @@ contains
 
     call eos(eos_input_rp, eos_state, .false.)
 
-    ! give ourselves a little wiggle room
-    W1 = 0.01d0*sqrt(eos_state%gam1*p_s*rho_s)
+    ! we need to find the range of W that brackets the root
+    contained = .false.
+
+    W1 = 0.5_dp_t*W_s
 
     ! make sure it's ok
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
 
     if (taustar_s < ZERO) then
-       rhostar_s = 1.0000001d0*rho_s
-       W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
+       W1 = sqrt((pstar - p_s)/eps)
     endif
 
-    call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
+    call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                   f1, fprime)
 
-    dW = abs(2*W_s - W_s)
+    W2 = 4.0_dp_t*W1
 
-    found = .false.
+    call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                   f2, fprime)
+
     iter = 1
-    do while (iter < max_iters .and. .not. found)
+    do while (.not. contained .and. iter < max_iters)
 
-       ! guess at the upper limit of the range
-       W2 = W_s + dW
-       call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f2, fprime)
-       
-       if (f2*f1 < 0.0d0) found = .true.
+       print *, W1, W2, W_s
 
-       dW = 2.0d0*dW
+       if (f2*f1 < 0.0_dp_t) then
+          contained = .true.       
+       else
+          ! adjust upper limit
+          W2 = 1.2_dp_t*W2
+
+          call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                         f2, fprime)
+
+          if (f2*f1 < 0.0_dp_t) then
+             contained = .true.
+          else
+             ! adjust lower limit
+             W1_try = 0.8_dp_t*W1
+
+             ! make sure it's ok
+             taustar_s = (ONE/rho_s) - (pstar - p_s)/W1_try**2
+
+             if (taustar_s > 0.0_dp_t) then
+                W1 = W1_try
+             endif
+
+             call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                            f1, fprime)
+             
+             if (f2*f1 < 0.0_dp_t) contained = .true.
+
+          endif
+       endif
 
        iter = iter + 1
     enddo
-       
-    if (.not. found) then
-       iter = 1
-       do while (iter < max_iters .and. .not. found)
 
-          print *, iter, W1
-          ! adjust the lower limit
-          W1 = 0.9*W1
-          
-          ! make sure it's ok
-          taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
-          
-          if (taustar_s < ZERO) then
-             rhostar_s = 1.0000001d0*rho_s
-             W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
-          endif
-          
-          call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
-          
-          if (f2*f1 < 0.0d0) found = .true.
-          
-          iter = iter + 1
-       enddo
-    endif
-    
-    if (found) then
+    if (contained) then
        
        iter = 1
        converged = .false.
@@ -296,7 +314,8 @@ contains
           
           ! bisect
           Wm = 0.5d0*(W1 + W2)
-          call W_s_shock(Wm, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, fm, fprime)
+          call W_s_shock(Wm, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
+                         fm, fprime)
           
           if (fm*f1 >= 0.0d0) then
              ! root is in the right half
@@ -313,9 +332,14 @@ contains
           iter = iter + 1
        enddo
        
+    else
+       call bl_error('unable to bracket the root')
     endif
+
+    if (converged) W_s = 0.5_dp_t*(W1 + W2)
     
   end subroutine bisect_shock
+
 
   subroutine W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
 
@@ -447,8 +471,6 @@ contains
     integer, parameter :: npts = 1000
 
     type (eos_t) :: eos_state
-
-    real (kind=dp_t) :: tol = 1.e-8
 
     integer :: i
 
