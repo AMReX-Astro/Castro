@@ -9,6 +9,7 @@
            unew,unew_l1,unew_h1,dt)
 
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN
+      use bl_constants_module
 
       implicit none
 
@@ -42,7 +43,7 @@
          SrU_new = rhon * gnew(i)
          
          ! Define corrections to source terms
-         SrUcorr = 0.5d0*(SrU_new - SrU_old)
+         SrUcorr = HALF*(SrU_new - SrU_old)
 
          unew(i,UMX) = unew(i,UMX) + dt*SrUcorr
 
@@ -50,7 +51,7 @@
          ! SrEcorr = SrUcorr*(Upn + SrUcorr*dt/(2*rhon))
 
          ! This works
-         SrEcorr = 0.5d0*(SrU_new * Upn - SrU_old * Upo)
+         SrEcorr = HALF*(SrU_new * Upn - SrU_old * Upo)
 
          unew(i,UEDEN) = unew(i,UEDEN) + SrEcorr*dt
 
@@ -70,6 +71,7 @@
            sync_src,src_l1,src_h1,dt)
 
       use meth_params_module, only : NVAR, URHO, UMX
+      use bl_constants_module
 
       implicit none
 
@@ -103,7 +105,7 @@
 
          SrU = dstate(i,1)*gx + rho_pre*dgx
 
-         SrE = SrU * (rhoU_pre + 0.5*SrU*dt)/rho_pre
+         SrE = SrU * (rhoU_pre + HALF*SrU*dt)/rho_pre
          
          sync_src(i,1) = SrU
          sync_src(i,2) = SrE
