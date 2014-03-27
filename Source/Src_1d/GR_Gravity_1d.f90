@@ -8,7 +8,7 @@
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
       use network                     , only : nspec, naux
-      use fundamental_constants_module, only : Gconst
+      use fundamental_constants_module, only : Gconst, c_light
       use bl_constants_module         
 
       implicit none
@@ -25,7 +25,7 @@
 
       double precision, parameter ::  fourpi       = FOUR * M_PI
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
-      double precision, parameter ::  sqvc         = 29979245800.d0**2
+      double precision, parameter ::  sqvc         = c_light**2
 
       type (eos_t) :: eos_state
 
