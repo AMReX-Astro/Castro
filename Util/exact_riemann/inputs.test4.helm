@@ -16,7 +16,7 @@ xjump = 0.5d5
 
 t     = 3.d-4
 
-npts  = 512
+npts  = 128
 
 use_eos_coulomb = F
 /

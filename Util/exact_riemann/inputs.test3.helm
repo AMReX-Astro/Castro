@@ -16,5 +16,5 @@ xjump = 0.1d6
 
 t     = 2.d-4
 
-npts  = 512
+npts  = 128
 /
