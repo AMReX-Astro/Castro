@@ -1,6 +1,7 @@
    subroutine ca_enforce_consistent_e(lo,hi,state,state_l1,state_l2,state_h1,state_h2)
 
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT
+     use bl_constants_module
 
      implicit none
 
@@ -22,7 +23,7 @@
            v = state(i,j,UMY) / state(i,j,URHO)
 
            state(i,j,UEDEN) = state(i,j,UEINT) + &
-               0.5d0 * state(i,j,URHO) * (u*u + v*v)
+               HALF * state(i,j,URHO) * (u*u + v*v)
 
         end do
      end do

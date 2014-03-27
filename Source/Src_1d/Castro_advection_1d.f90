@@ -178,7 +178,7 @@ contains
        
        q(i,QRHO) = uin(i,URHO)
        q(i,QU) = uin(i,UMX)/uin(i,URHO)
-       !        eken = 0.5d0*q(i,QU)**2
+       !        eken = HALF*q(i,QU)**2
        !        q(i,QREINT) = uin(i,UEDEN)/q(i,QRHO) - eken
        q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
        q(i,QTEMP ) = uin(i,UTEMP)
@@ -258,7 +258,7 @@ contains
     do i = lo(1)-1, hi(1)+1
        srcQ(i,QRHO   ) = src(i,URHO)
        srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
-       srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + 0.5d0 * q(i,QU)**2 * srcQ(i,QRHO)
+       srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + HALF * q(i,QU)**2 * srcQ(i,QRHO)
        srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
             dpdrho(i) * srcQ(i,QRHO)! - &
        !              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
@@ -331,6 +331,7 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    UFS, UFX, &
                                    normalize_species
+    use bl_constants_module
 
     implicit none
     integer lo(1), hi(1)
@@ -364,10 +365,10 @@ contains
     
     do n = 1, NVAR
        if ( n.eq.UTEMP ) then
-          flux(:,n) = 0.d0
+          flux(:,n) = ZERO
        else
           do i = lo(1),hi(1)+1
-             div1 = difmag*min(0.d0,div(i))
+             div1 = difmag*min(ZERO,div(i))
              flux(i,n) = flux(i,n) &
                   + dx*div1*(uin(i,n) - uin(i-1,n))
              flux(i,n) = area(i) * flux(i,n) * dt
@@ -392,7 +393,7 @@ contains
     ! Add gradp term to momentum equation
     do i = lo(1),hi(1)
        
-       !        dpdx = 0.5d0 * (area(i)+area(i+1)) * (pgdnv(i+1)-pgdnv(i)) / vol(i)
+       !        dpdx = HALF * (area(i)+area(i+1)) * (pgdnv(i+1)-pgdnv(i)) / vol(i)
        dpdx = ( pgdnv(i+1)-pgdnv(i) ) / dx
        uout(i,UMX)   = uout(i,UMX) - dt * dpdx
        
@@ -410,7 +411,7 @@ contains
        SrU = uin(i,URHO) * grav(i)
        
        ! This doesn't work
-       ! SrE = SrU*(Up + SrU*dt/(2.d0*rho))
+       ! SrE = SrU*(Up + SrU*dt/(TWO*rho))
        
        ! This works 
        ! SrE = SrU*Up 
@@ -436,6 +437,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
 
     implicit none
     
@@ -448,14 +450,14 @@ contains
     double precision :: sum,fac
     
     do i = lo(1),hi(1)+1
-       sum = 0.d0
+       sum = ZERO
        do n = UFS, UFS+nspec-1
           sum = sum + flux(i,n)
        end do
-       if (sum .ne. 0.d0) then
+       if (sum .ne. ZERO) then
           fac = flux(i,URHO) / sum
        else
-          fac = 1.d0
+          fac = ONE
        end if
        do n = UFS, UFS+nspec-1
           flux(i,n) = flux(i,n) * fac
@@ -474,6 +476,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, &
                                    UFS, UFX, UFA, small_dens, nadv
+    use bl_constants_module
 
     implicit none
     
@@ -494,14 +497,14 @@ contains
     
     allocate(fac(lo(1):hi(1)))
     
-    initial_mass = 0.d0
-    final_mass = 0.d0
+    initial_mass = ZERO
+    final_mass = ZERO
     
-    initial_eint = 0.d0
-    final_eint = 0.d0
+    initial_eint = ZERO
+    final_eint = ZERO
     
-    initial_eden = 0.d0
-    final_eden = 0.d0
+    initial_eden = ZERO
+    final_eden = ZERO
     
     do i = lo(1),hi(1)
        
@@ -509,7 +512,7 @@ contains
        initial_eint = initial_eint + uout(i,UEINT)
        initial_eden = initial_eden + uout(i,UEDEN)
        
-       if (uout(i,URHO) .eq. 0.d0) then
+       if (uout(i,URHO) .eq. ZERO) then
           
           print *,'   '
           print *,'>>> Error: Castro_1d::enforce_minimum_density ',i
@@ -527,7 +530,7 @@ contains
           end do
           
           if (verbose .gt. 0) then
-             if (uout(i,URHO) < 0.d0) then
+             if (uout(i,URHO) < ZERO) then
                 print *,'   '
                 print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
                 print *,'>>> ... resetting negative density '
@@ -591,7 +594,8 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
-    
+    use bl_constants_module    
+
     implicit none
 
     integer          :: lo(1), hi(1)
@@ -603,14 +607,14 @@ contains
     double precision :: fac,sum
     
     do i = lo(1),hi(1)
-       sum = 0.d0
+       sum = ZERO
        do n = UFS, UFS+nspec-1
           sum = sum + u(i,n)
        end do
-       if (sum .ne. 0.d0) then
+       if (sum .ne. ZERO) then
           fac = u(i,URHO) / sum
        else
-          fac = 1.d0
+          fac = ONE
        end if
        do n = UFS, UFS+nspec-1
           u(i,n) = u(i,n) * fac

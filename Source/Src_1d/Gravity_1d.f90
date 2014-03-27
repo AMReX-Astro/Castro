@@ -20,7 +20,11 @@
       subroutine ca_avgdown_phi (crse,c_l1,c_h1, &
                                  fine,f_l1,f_h1, &
                                  lo,hi,lrat)
+
+      use bl_constants_module
+
       implicit none
+
       integer c_l1,c_h1
       integer f_l1,f_h1
       integer lo(1), hi(1)
@@ -33,12 +37,12 @@
       double precision volfrac
 
       lratx = lrat(1)
-      volfrac = 1.d0/float(lrat(1))
+      volfrac = ONE/float(lrat(1))
 !
 !     ::::: set coarse grid to zero on overlap
 !
       do ic = lo(1), hi(1)
-         crse(ic) = 0.d0
+         crse(ic) = ZERO
       enddo
 !
 !         ::::: sum fine data
@@ -120,6 +124,8 @@
                                  cc, ccl1, cch1, ecx, ecxl1, ecxh1, &
                                  dx, problo, coord_type) 
 
+      use bl_constants_module
+
       implicit none
 
       integer          :: lo(1),hi(1)
@@ -140,7 +146,7 @@
       if (coord_type .eq. 0) then
 
          do i=lo(1),hi(1)
-            cc(i) = 0.5d0 * ( ecx(i+1) + ecx(i) )
+            cc(i) = HALF * ( ecx(i+1) + ecx(i) )
          enddo
 
       ! R-Z
@@ -149,8 +155,8 @@
          do i=lo(1),hi(1)
             rlo = problo(1) + (dble(i)  )*dx(1)
             rhi = problo(1) + (dble(i)+1)*dx(1)
-            rcen = 0.5d0 * (rlo + rhi)
-            cc(i) = 0.5d0 * ( rhi*ecx(i+1) + rlo*ecx(i) ) / rcen
+            rcen = HALF * (rlo + rhi)
+            cc(i) = HALF * ( rhi*ecx(i+1) + rlo*ecx(i) ) / rcen
          enddo
 
       ! Spherical
@@ -159,8 +165,8 @@
          do i=lo(1),hi(1)
             rlo = problo(1) + (dble(i)  )*dx(1)
             rhi = problo(1) + (dble(i)+1)*dx(1)
-            rcen = 0.5d0 * (rlo + rhi)
-            cc(i) = 0.5d0 * ( rhi**2 * ecx(i+1) + rlo**2 * ecx(i) ) / rcen**2
+            rcen = HALF * (rlo + rhi)
+            cc(i) = HALF * ( rhi**2 * ecx(i+1) + rlo**2 * ecx(i) ) / rcen**2
          enddo
 
       else 
@@ -188,7 +194,10 @@
            ecx, ecxl1, ecxh1, &
            dx, problo, coord_type)
 
+      use bl_constants_module
+
       implicit none
+
       integer          :: lo(1),hi(1)
       integer          :: rhl1, rhh1
       integer          :: ecxl1, ecxh1
@@ -215,7 +224,7 @@
          do i=lo(1),hi(1)
             rlo  = problo(1) + dble(i)*dx(1)
             rhi  = rlo + dx(1)
-            rcen = 0.5d0 * (rlo+rhi)
+            rcen = HALF * (rlo+rhi)
             lapphi = (rhi*ecx(i+1)-rlo*ecx(i)) / (rcen*dx(1))
             rhs(i) = rhs(i) - lapphi
          enddo
@@ -226,7 +235,7 @@
          do i=lo(1),hi(1)
             rlo  = problo(1) + dble(i)*dx(1)
             rhi  = rlo + dx(1)
-            rcen = 0.5d0 * (rlo+rhi)
+            rcen = HALF * (rlo+rhi)
             lapphi = (rhi**2 * ecx(i+1)-rlo**2 * ecx(i)) / (rcen**2 * dx(1))
             rhs(i) = rhs(i) - lapphi
          enddo
@@ -272,7 +281,7 @@
 
       use probdata_module
       use fundamental_constants_module, only : Gconst
-      use bl_constants_module, only : M_PI
+      use bl_constants_module
 
       implicit none
 
@@ -281,11 +290,11 @@
       double precision, intent(  out) :: grav(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
-      double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
+      double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision :: rc,rlo,mass_encl,halfdx
       integer          :: i,n
 
-      halfdx = 0.5d0 * dx
+      halfdx = HALF * dx
 
       do i = 0,r_h1
          rlo = problo(1) + dble(i) * dx
@@ -299,7 +308,7 @@
          grav(i) = -Gconst * mass_encl / rc**2
       enddo
 
-      if (problo(1) .eq. 0.d0) then
+      if (problo(1) .eq. ZERO) then
          do i = r_l1,-1
              grav(i) = -grav(-i-1)
          end do

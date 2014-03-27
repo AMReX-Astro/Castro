@@ -17,7 +17,7 @@
 
       use fundamental_constants_module, only : Gconst
       use probdata_module
-      use bl_constants_module, only : M_PI
+      use bl_constants_module
 
       implicit none
       integer          :: g_l1,g_l2,g_h1,g_h2
@@ -34,10 +34,10 @@
 
 !     This is an example of how to use the radial profile above
 !     do j = lo(2), hi(2)
-!        y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+!        y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
 !        do i = lo(1), hi(1)
-!           x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+!           x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
 
 !           r = sqrt(x**2+y**2)
 
@@ -49,7 +49,7 @@
 !        enddo
 !     enddo
 
-      grav = 0.d0
+      grav = ZERO
 
       end subroutine ca_prescribe_grav
 

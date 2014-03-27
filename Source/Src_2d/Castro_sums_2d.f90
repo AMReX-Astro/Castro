@@ -19,7 +19,7 @@
                              dx,mass,r,irlo,irhi)
 
        use prob_params_module, only : coord_type
-       use bl_constants_module, only : M_PI
+       use bl_constants_module
   
        implicit none
        integer irlo, irhi
@@ -36,11 +36,11 @@
        if (coord_type .eq. 0) then
           vol = dx(1) * dx(2)
        else
-          vol = 2.d0 * M_PI * dx(1) * dx(2)
+          vol = TWO * M_PI * dx(1) * dx(2)
        endif
 
        do j = lo(2),hi(2)
-          tmp(j) = 0.d0
+          tmp(j) = ZERO
        enddo
 
        do i = lo(1), hi(1)
@@ -49,7 +49,7 @@
           enddo
        enddo
 
-       mass = 0.d0
+       mass = ZERO
        do j = lo(2), hi(2)
           mass = mass + tmp(j)
        enddo
@@ -76,7 +76,7 @@
                                 dx,mass,r,irlo,irhi)
 
        use prob_params_module, only : coord_type
-       use bl_constants_module, only : M_PI
+       use bl_constants_module
   
        implicit none
        integer irlo, irhi
@@ -93,11 +93,11 @@
        if (coord_type .eq. 0) then
           vol = dx(1) * dx(2)
        else
-          vol = 2.d0 * M_PI * dx(1) * dx(2)
+          vol = TWO * M_PI * dx(1) * dx(2)
        endif
 
        do j = lo(2),hi(2)
-          tmp(j) = 0.d0
+          tmp(j) = ZERO
        enddo
 
        do i = lo(1), hi(1)
@@ -106,7 +106,7 @@
           enddo
        enddo
 
-       mass = 0.d0
+       mass = ZERO
        do j = lo(2), hi(2)
           mass = mass + tmp(j)
        enddo
@@ -134,7 +134,7 @@
 
        use prob_params_module, only : coord_type
        use probdata_module, only : center
-       use bl_constants_module, only : M_PI
+       use bl_constants_module
 
        implicit none
 
@@ -151,20 +151,20 @@
        if (coord_type .eq. 0) then
           vol_weighting = dx(1) * dx(2)
        else
-          vol_weighting = 2.d0 * M_PI * dx(1) * dx(2)
+          vol_weighting = TWO * M_PI * dx(1) * dx(2)
        endif
 
-       mass = 0.d0
+       mass = ZERO
        if (idir .eq. 0) then
           do i = lo(1), hi(1)
-             x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do j = lo(2), hi(2)
                 mass = mass + (vol_weighting * r(i)) * rho(i,j) * x
              enddo
           enddo
        else if (idir .eq. 1) then
           do j = lo(2), hi(2)
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do i = lo(1), hi(1)
                 mass = mass + (vol_weighting * r(i)) * rho(i,j) * y
              enddo
@@ -194,7 +194,7 @@
 
        use prob_params_module, only : coord_type
        use probdata_module, only : center
-       use bl_constants_module, only : M_PI
+       use bl_constants_module
 
        implicit none
 
@@ -211,30 +211,30 @@
        if (coord_type .eq. 0) then
           vol_weighting = dx(1) * dx(2)
        else
-          vol_weighting = 2.d0 * M_PI * dx(1) * dx(2)
+          vol_weighting = TWO * M_PI * dx(1) * dx(2)
        endif
 
-       mass = 0.d0
+       mass = ZERO
        if (idir1 .eq. 0) then
           do i = lo(1), hi(1)
-             x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              if (idir2 .eq. 0) then
                do j = lo(2), hi(2)
                   mass = mass + (vol_weighting * r(i)) * rho(i,j) * x * x
                enddo
              else
                do j = lo(2), hi(2)
-                  y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+                  y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
                   mass = mass + (vol_weighting * r(i)) * rho(i,j) * x * y
                enddo
              endif
           enddo
        else 
           do j = lo(2), hi(2)
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              if (idir2 .eq. 0 ) then
                do i = lo(1), hi(1)
-                  x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+                  x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                   mass = mass + (vol_weighting * r(i)) * rho(i,j) * y * x
                enddo
              else
@@ -267,7 +267,7 @@
 
        use prob_params_module, only : coord_type
        use probdata_module, only : center
-       use bl_constants_module, only : M_PI
+       use bl_constants_module
 
        implicit none
 
@@ -281,12 +281,12 @@
 
        integer          :: i,j
 
-       product = 0.d0
+       product = ZERO
 
        if (coord_type .eq. 0) then
           vol = dx(1) * dx(2)
        else
-          vol = 2.d0 * M_PI * dx(1) * dx(2)
+          vol = TWO * M_PI * dx(1) * dx(2)
        endif
  
        !$OMP PARALLEL DO PRIVATE(i,j) REDUCTION(+:product)

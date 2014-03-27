@@ -52,6 +52,7 @@ contains
     use trace_ppm_module, only : trace_ppm
     use transverse_module
     use riemann_module, only: cmpflx
+    use bl_constants_module
 
     implicit none
 
@@ -119,9 +120,9 @@ contains
 
     ! Local constants
     dtdx = dt/dx
-    hdtdx = 0.5d0*dtdx
-    hdtdy = 0.5d0*dt/dy
-    hdt = 0.5d0*dt
+    hdtdx = HALF*dtdx
+    hdtdy = HALF*dt/dy
+    hdt = HALF*dt
     
     ! NOTE: Geometry terms need to be punched through
 
@@ -215,7 +216,7 @@ contains
     ! returned from the Riemann solver.
     do j = ilo2,ihi2
        do i = ilo1,ihi1
-          pdivu(i,j) = 0.5d0 * &
+          pdivu(i,j) = HALF * &
                ((pgdx(i+1,j)+pgdx(i,j))*(ugdx(i+1,j)*area1(i+1,j)-ugdx(i,j)*area1(i,j)) &
                +(pgdy(i,j+1)+pgdy(i,j))*(ugdy(i,j+1)*area2(i,j+1)-ugdy(i,j)*area2(i,j)) ) / vol(i,j)
        end do
@@ -506,6 +507,7 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
+    use bl_constants_module
 
     implicit none
 
@@ -551,13 +553,13 @@ contains
     ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
        if ( n.eq.UTEMP) then
-          flux1(:,:,n) = 0.d0
-          flux2(:,:,n) = 0.d0
+          flux1(:,:,n) = ZERO
+          flux2(:,:,n) = ZERO
        else 
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)+1
-                div1 = .5d0*(div(i,j) + div(i,j+1))
-                div1 = difmag*min(0.d0,div1)
+                div1 = HALF*(div(i,j) + div(i,j+1))
+                div1 = difmag*min(ZERO,div1)
                 flux1(i,j,n) = flux1(i,j,n) &
                      + dx*div1*(uin(i,j,n) - uin(i-1,j,n))
                 flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
@@ -566,8 +568,8 @@ contains
           
           do j = lo(2),hi(2)+1
              do i = lo(1),hi(1)
-                div1 = .5d0*(div(i,j) + div(i+1,j))
-                div1 = difmag*min(0.d0,div1)
+                div1 = HALF*(div(i,j) + div(i+1,j))
+                div1 = difmag*min(ZERO,div1)
                 flux2(i,j,n) = flux2(i,j,n) &
                      + dy*div1*(uin(i,j,n) - uin(i,j-1,n))
                 flux2(i,j,n) = area2(i,j)*flux2(i,j,n)
@@ -605,9 +607,9 @@ contains
     ! Add gradp term to momentum equation
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
-!         uout(i,j,UMX) = uout(i,j,UMX)+ 0.5d0*(area1(i,j)+area1(i+1,j))* &
+!         uout(i,j,UMX) = uout(i,j,UMX)+ HALF*(area1(i,j)+area1(i+1,j))* &
 !            dt * ( pgdx(i,j)-pgdx(i+1,j) )/vol(i,j)
-!         uout(i,j,UMY) = uout(i,j,UMY)+ 0.5d0*(area2(i,j)+area2(i,j+1))* &
+!         uout(i,j,UMY) = uout(i,j,UMY)+ HALF*(area2(i,j)+area2(i,j+1))* &
 !            dt * ( pgdy(i,j)-pgdy(i,j+1) )/vol(i,j)
 
           uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
@@ -643,6 +645,7 @@ contains
 
     use prob_params_module, only : coord_type
     use meth_params_module, only : QU, QV
+    use bl_constants_module
     
     implicit none
     
@@ -661,8 +664,8 @@ contains
     if (coord_type .eq. 0) then
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
-             ux = 0.5d0*(q(i,j,QU)-q(i-1,j,QU)+q(i,j-1,QU)-q(i-1,j-1,QU))/dx(1)
-             vy = 0.5d0*(q(i,j,QV)-q(i,j-1,QV)+q(i-1,j,QV)-q(i-1,j-1,QV))/dx(2)
+             ux = HALF*(q(i,j,QU)-q(i-1,j,QU)+q(i,j-1,QU)-q(i-1,j-1,QU))/dx(1)
+             vy = HALF*(q(i,j,QV)-q(i,j-1,QV)+q(i-1,j,QV)-q(i-1,j-1,QV))/dx(2)
              div(i,j) = ux + vy
           enddo
        enddo
@@ -671,25 +674,25 @@ contains
           
           if (i.eq.0) then
              
-             div(i,lo(2):hi(2)+1) = 0.d0
+             div(i,lo(2):hi(2)+1) = ZERO
              
           else 
 
-             rl = (dble(i)-0.5d0) * dx(1)
-             rr = (dble(i)+0.5d0) * dx(1)
-             rc = (dble(i)      ) * dx(1)
+             rl = (dble(i)-HALF) * dx(1)
+             rr = (dble(i)+HALF) * dx(1)
+             rc = (dble(i)     ) * dx(1)
              
              do j=lo(2),hi(2)+1
                 ! These are transverse averages in the y-direction
-                ul = 0.5d0 * (q(i-1,j,QU)+q(i-1,j-1,QU))
-                ur = 0.5d0 * (q(i  ,j,QU)+q(i  ,j-1,QU))
+                ul = HALF * (q(i-1,j,QU)+q(i-1,j-1,QU))
+                ur = HALF * (q(i  ,j,QU)+q(i  ,j-1,QU))
                 
                 ! Take 1/r d/dr(r*u)
                 div(i,j) = (rr*ur - rl*ul) / dx(1) / rc
                 
                 ! These are transverse averages in the x-direction
-                vb = 0.5d0 * (q(i,j-1,QV)+q(i-1,j-1,QV))
-                vt = 0.5d0 * (q(i,j  ,QV)+q(i-1,j  ,QV))
+                vb = HALF * (q(i,j-1,QV)+q(i-1,j-1,QV))
+                vt = HALF * (q(i,j  ,QV)+q(i-1,j  ,QV))
                 
                 div(i,j) = div(i,j) + (vt - vb) / dx(2)
              enddo
@@ -711,6 +714,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
     
     implicit none
 
@@ -726,14 +730,14 @@ contains
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)+1
-          sum = 0.d0
+          sum = ZERO
           do n = UFS, UFS+nspec-1
              sum = sum + flux1(i,j,n)
           end do
-          if (sum .ne. 0.d0) then
+          if (sum .ne. ZERO) then
              fac = flux1(i,j,URHO) / sum
           else
-             fac = 1.d0
+             fac = ONE
           end if
           do n = UFS, UFS+nspec-1
              flux1(i,j,n) = flux1(i,j,n) * fac
@@ -742,14 +746,14 @@ contains
     end do
     do j = lo(2),hi(2)+1
        do i = lo(1),hi(1)
-          sum = 0.d0
+          sum = ZERO
           do n = UFS, UFS+nspec-1
              sum = sum + flux2(i,j,n)
           end do
-          if (sum .ne. 0.d0) then
+          if (sum .ne. ZERO) then
              fac = flux2(i,j,URHO) / sum
           else
-             fac = 1.d0
+             fac = ONE
           end if
           do n = UFS, UFS+nspec-1
              flux2(i,j,n) = flux2(i,j,n) * fac
@@ -769,6 +773,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, &
                                    UFS, UFX, UFA, small_dens, nadv
+    use bl_constants_module
 
     implicit none
 
@@ -789,12 +794,12 @@ contains
     
     allocate(fac(lo(1):hi(1),lo(2):hi(2)))
     
-    initial_mass = 0.d0
-    final_mass = 0.d0
-    initial_eint = 0.d0
-    final_eint = 0.d0
-    initial_eden = 0.d0
-    final_eden = 0.d0
+    initial_mass = ZERO
+    final_mass = ZERO
+    initial_eint = ZERO
+    final_eint = ZERO
+    initial_eden = ZERO
+    final_eden = ZERO
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
@@ -803,7 +808,7 @@ contains
           initial_eint = initial_eint + uout(i,j,UEINT)
           initial_eden = initial_eden + uout(i,j,UEDEN)
           
-          if (uout(i,j,URHO) .eq. 0.d0) then
+          if (uout(i,j,URHO) .eq. ZERO) then
              
              print *,'   '
              print *,'>>> Error: Castro_2d::enforce_minimum_density ',i,j
@@ -826,7 +831,7 @@ contains
              end do
              
              if (verbose .gt. 0) then
-                if (uout(i,j,URHO) < 0.d0) then
+                if (uout(i,j,URHO) < ZERO) then
                    print *,'   '
                    print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                    print *,'>>> ... resetting negative density '
@@ -892,6 +897,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
     
     implicit none
 
@@ -905,14 +911,14 @@ contains
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
-          sum = 0.d0
+          sum = ZERO
           do n = UFS, UFS+nspec-1
              sum = sum + u(i,j,n)
           end do
-          if (sum .ne. 0.d0) then
+          if (sum .ne. ZERO) then
              fac = u(i,j,URHO) / sum
           else
-             fac = 1.d0
+             fac = ONE
           end if
           do n = UFS, UFS+nspec-1
              u(i,j,n) = u(i,j,n) * fac

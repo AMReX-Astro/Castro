@@ -195,6 +195,7 @@
 !     This routine will derive the radial velocity.
 !
       use probdata_module, only : center
+      use bl_constants_module
 
       implicit none 
 
@@ -212,9 +213,9 @@
       double precision :: x,y,r
 
       do j = lo(2), hi(2)
-         y = xlo(2) + (dble(j-lo(2))+0.5d0) * delta(2) - center(2)
+         y = xlo(2) + (dble(j-lo(2))+HALF) * delta(2) - center(2)
          do i = lo(1), hi(1)
-            x = xlo(1) + (dble(i-lo(1))+0.5d0) * delta(1) - center(1)
+            x = xlo(1) + (dble(i-lo(1))+HALF) * delta(1) - center(1)
             r = sqrt(x*x+y*y)
             radvel(i,j,1) = dat(i,j,2)/dat(i,j,1) * (x/r) + dat(i,j,3)/dat(i,j,1) * (y/r)
          end do
@@ -310,6 +311,7 @@
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
       use meth_params_module, only : URHO, UMX, UMY, UEDEN 
+      use bl_constants_module
 
       implicit none
 
@@ -327,10 +329,10 @@
 !     Compute internal energy from (rho E)
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
-            rhoInv = 1.d0/u(i,j,URHO)
+            rhoInv = ONE/u(i,j,URHO)
             ux = u(i,j,UMX)*rhoInv
             uy = u(i,j,UMY)*rhoInv
-            e(i,j,1) = u(i,j,UEDEN)*rhoInv-0.5d0*(ux**2+uy**2)
+            e(i,j,1) = u(i,j,UEDEN)*rhoInv-HALF*(ux**2+uy**2)
          enddo
       enddo
 
@@ -621,6 +623,9 @@
 !
 !     This routine will calculate vorticity
 !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(2), hi(2)
@@ -647,8 +652,8 @@
       ! Calculate vorticity
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
-         vx = 0.5d0 * (dat(i+1,j,3) - dat(i-1,j,3)) / delta(1) 
-         uy = 0.5d0 * (dat(i,j+1,2) - dat(i,j-1,2)) / delta(2) 
+         vx = HALF * (dat(i+1,j,3) - dat(i-1,j,3)) / delta(1) 
+         uy = HALF * (dat(i,j+1,2) - dat(i,j-1,2)) / delta(2) 
          vort(i,j,1) = abs(vx - uy)
       end do
       end do
@@ -671,6 +676,9 @@
 !
 !     This routine will divergence of velocity.
 !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(2), hi(2)
@@ -692,7 +700,7 @@
          ulo = dat(i-1,j,2) / dat(i-1,j,1)
          vhi = dat(i,j+1,3) / dat(i,j+1,1)
          vlo = dat(i,j-1,3) / dat(i,j-1,1)
-         divu(i,j,1) = 0.5d0 * ((uhi-ulo)/delta(1) + (vhi-vlo)/delta(2))
+         divu(i,j,1) = HALF * ((uhi-ulo)/delta(1) + (vhi-vlo)/delta(2))
       end do
       end do
 
@@ -706,6 +714,9 @@
 !
 !     This routine will derive kinetic energy = 1/2 rho (u^2 + v^2)
 !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(2), hi(2)
@@ -722,7 +733,7 @@
 
       do j = lo(2), hi(2)
          do i = lo(1), hi(1)
-            kineng(i,j,1) = 0.5d0 / dat(i,j,1) * (dat(i,j,2)**2 + dat(i,j,3)**2)
+            kineng(i,j,1) = HALF / dat(i,j,1) * (dat(i,j,2)**2 + dat(i,j,3)**2)
          end do
       end do
 
