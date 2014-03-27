@@ -84,13 +84,15 @@ contains
 
     !gammaE_star = min(FIVE3RD, max(FOUR3RD, gammaE_star))
 
-    ! in the limit that pstar - p_s is small, drop down to the
-    ! Lagrangian sound speed
     if (verbose) then
        print *, 'pstar, ps = ', pstar, p_s, gammaE_s, gammaE_star
        print *, (pstar/rho_s - (gammaE_star - ONE)/(gammaE_s - ONE)*p_s/rho_s)
        print *, (pstar + HALF*(gammaE_star - ONE)*(pstar + p_s))
     endif
+
+    ! there is a pathalogical case that if p_s - pstar ~ 0, the root finding
+    ! just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
+    ! take W = sqrt(gamma p rho)
 
     if (pstar - p_s < tol_p*p_s) then
        W_s = sqrt(eos_state%gam1*p_s*rho_s)
@@ -101,14 +103,6 @@ contains
     endif
 
 
-    ! Newton iterations -- we are zeroing the energy R-H jump condition
-    ! W^2 [e] = 1/2 [p^2]
-    !
-    ! we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
-    !
-    ! and then compute f'
-
-
     ! we need rhostar -- get it from the R-H conditions
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
 
@@ -117,29 +111,10 @@ contains
        W_s = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
     endif
 
-    ! there is a pathalogical case that if p_s - pstar ~ 0, the root finding
-    ! just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
-    ! take W = sqrt(gamma p rho)
 
-       ! do the root finding
-       converged = .false.
-       iter = 1
-       do while (.not. converged .and. iter < max_iters)
+    ! newton
+    call newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
 
-          call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
-          dW = -f/fprime
-
-          if (abs(dW) < tol*W_s) converged = .true.
-          
-          W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
-
-          ! store some history
-          rhostar_hist(iter) = rhostar_s
-          Ws_hist(iter) = W_s
-
-          iter = iter + 1
-
-       enddo
 
        if (.not. converged) then
 
@@ -273,6 +248,50 @@ contains
     Z_s = W_s**2/(W_s - dWdpstar*(pstar - p_s))
 
   end subroutine shock
+
+
+  subroutine newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+
+    use eos_type_module
+
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec), tol
+    logical,          intent(out) :: converged
+    real (kind=dp_t), intent(inout) :: W_s
+    type (eos_t),     intent(inout) :: eos_state
+    integer :: iter
+    integer, parameter :: max_iters = 50
+
+    real (kind=dp_t) :: rhostar_s, dW, f, fprime
+
+
+
+    ! Newton iterations -- we are zeroing the energy R-H jump condition
+    ! W^2 [e] = 1/2 [p^2]
+    !
+    ! we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
+    !
+    ! and then compute f'
+
+    converged = .false.
+    iter = 1
+    do while (.not. converged .and. iter < max_iters)
+       
+       call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
+       dW = -f/fprime
+       
+       if (abs(dW) < tol*W_s) converged = .true.
+          
+       W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
+
+       ! store some history
+       !rhostar_hist(iter) = rhostar_s
+       !Ws_hist(iter) = W_s
+       
+       iter = iter + 1
+
+    enddo
+
+  end subroutine newton_shock
 
   subroutine W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
 
