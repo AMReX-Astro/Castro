@@ -77,6 +77,9 @@ contains
 
     double precision, allocatable :: Ip(:,:,:)
     double precision, allocatable :: Im(:,:,:)
+
+    double precision, allocatable :: Ip_gc(:,:,:)
+    double precision, allocatable :: Im_gc(:,:,:)
     
     fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
          .and. (ilo .eq. domlo(1))
@@ -93,6 +96,9 @@ contains
 
     allocate(Ip(ilo-1:ihi+1,3,QVAR))
     allocate(Im(ilo-1:ihi+1,3,QVAR))
+
+    allocate(Ip_gc(ilo-1:ihi+1,3,1))
+    allocate(Im_gc(ilo-1:ihi+1,3,1))
 
     !=========================================================================
     ! PPM CODE
@@ -130,6 +136,13 @@ contains
                 flatn, &
                 Ip(:,:,n),Im(:,:,n),ilo,ihi,dx,dt)
     end do
+
+    ! get an edge-based gam1 here
+    call ppm(gamc(:),qd_l1,qd_h1, &
+             q(:,QU),c, &
+             flatn, &
+             Ip_gc(:,:,1),Im_gc(:,:,1),ilo,ihi,dx,dt)
+
 
     ! Trace to left and right edges using upwind PPM
     do i = ilo-1, ihi+1
@@ -175,7 +188,7 @@ contains
           p_ref    = Im(i,1,QPRES)
           rhoe_ref = Im(i,1,QREINT)
 
-          gam_ref = gamc(i)
+          gam_ref = Im_gc(i,1,1)
        endif
 
        ! for tracing (optionally)
@@ -312,7 +325,7 @@ contains
           p_ref    = Ip(i,3,QPRES)
           rhoe_ref = Ip(i,3,QREINT)
 
-          gam_ref  = gamc(i)
+          gam_ref  = Ip_gc(i,3,1)
        endif
 
        ! for tracing (optionally)
