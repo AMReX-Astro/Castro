@@ -32,6 +32,8 @@ contains
     real (kind=dp_t) :: f, fprime, dW
 
     real (kind=dp_t) :: W1, W2, Wm, f1, f2, fm
+    real (kind=dp_t) :: W_s_guess
+
     logical :: found
     
     real (kind=dp_t) :: p_e, p_rho, p_tau
@@ -84,13 +86,15 @@ contains
 
     !gammaE_star = min(FIVE3RD, max(FOUR3RD, gammaE_star))
 
-    ! in the limit that pstar - p_s is small, drop down to the
-    ! Lagrangian sound speed
     if (verbose) then
        print *, 'pstar, ps = ', pstar, p_s, gammaE_s, gammaE_star
        print *, (pstar/rho_s - (gammaE_star - ONE)/(gammaE_s - ONE)*p_s/rho_s)
        print *, (pstar + HALF*(gammaE_star - ONE)*(pstar + p_s))
     endif
+
+    ! there is a pathalogical case that if p_s - pstar ~ 0, the root finding
+    ! just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
+    ! take W = sqrt(gamma p rho)
 
     if (pstar - p_s < tol_p*p_s) then
        W_s = sqrt(eos_state%gam1*p_s*rho_s)
@@ -101,14 +105,6 @@ contains
     endif
 
 
-    ! Newton iterations -- we are zeroing the energy R-H jump condition
-    ! W^2 [e] = 1/2 [p^2]
-    !
-    ! we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
-    !
-    ! and then compute f'
-
-
     ! we need rhostar -- get it from the R-H conditions
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
 
@@ -117,137 +113,27 @@ contains
        W_s = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
     endif
 
-    ! there is a pathalogical case that if p_s - pstar ~ 0, the root finding
-    ! just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
-    ! take W = sqrt(gamma p rho)
+    W_s_guess = W_s
 
-       ! do the root finding
-       converged = .false.
-       iter = 1
-       do while (.not. converged .and. iter < max_iters)
+    ! newton
+    call newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
 
-          call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
-          dW = -f/fprime
 
-          if (abs(dW) < tol*W_s) converged = .true.
-          
-          W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
+    if (.not. converged) then
+       W_s = W_s_guess
+       call bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+    endif
 
-          ! store some history
-          rhostar_hist(iter) = rhostar_s
-          Ws_hist(iter) = W_s
-
-          iter = iter + 1
-
+    ! now did we converge?
+    if (.not. converged) then
+       do i = 1, max_iters-1
+          print *, i, rhostar_hist(i), Ws_hist(i)
        enddo
-
-       if (.not. converged) then
-
-          ! try some bisection -- sometimes we hit a Newton cycle
-          ! first we need to find a range that potentially contains
-          ! the root the lower limit on W_s should be around the
-          ! Lagrangian sound speed
-          eos_state%rho = rho_s
-          eos_state%p = p_s
-          eos_state%xn(:) = xn(:)
-          eos_state%T = 100000.0   ! we need an initial guess
-
-          call eos(eos_input_rp, eos_state, .false.)
-
-          ! give ourselves a little wiggle room
-          W1 = 0.01d0*sqrt(eos_state%gam1*p_s*rho_s)
-
-          ! make sure it's ok
-          taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
-
-          if (taustar_s < ZERO) then
-             rhostar_s = 1.0000001d0*rho_s
-             W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
-          endif
-
-          call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
-
-          dW = abs(2*W_s - W_s)
-
-          found = .false.
-          iter = 1
-          do while (iter < max_iters .and. .not. found)
-
-             ! guess at the upper limit of the range
-             W2 = W_s + dW
-             call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f2, fprime)
-
-             if (f2*f1 < 0.0d0) found = .true.
-
-             dW = 2.0d0*dW
-
-             iter = iter + 1
-          enddo
        
-          if (.not. found) then
-             iter = 1
-             do while (iter < max_iters .and. .not. found)
-
-                print *, iter, W1
-                ! adjust the lower limit
-                W1 = 0.9*W1
-
-                ! make sure it's ok
-                taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
-                
-                if (taustar_s < ZERO) then
-                   rhostar_s = 1.0000001d0*rho_s
-                   W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
-                endif
-
-                call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
-                
-                if (f2*f1 < 0.0d0) found = .true.
-                
-                iter = iter + 1
-             enddo
-          endif
-
-          if (found) then
-
-             iter = 1
-             converged = .false.
-             do while (.not. converged .and. iter < max_iters)
-                
-                if (verbose) print *, 'trying to bisect: ', abs(W2 - W1)/(W1 + W2)
-                
-                ! bisect
-                Wm = 0.5d0*(W1 + W2)
-                call W_s_shock(Wm, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, fm, fprime)
-                
-                if (fm*f1 >= 0.0d0) then
-                   ! root is in the right half
-                   W1 = Wm
-                   f1 = fm
-                else
-                   ! root is in the left half
-                   W2 = Wm
-                   f2 = fm                
-                endif
-                
-                if (abs(W2 - W1) < tol*0.5d0*(W1 + W2)) converged = .true.
-                
-                iter = iter + 1
-             enddo
-             
-          endif
-          
-          ! now did we converge?
-          if (.not. converged) then
-             do i = 1, max_iters-1
-                print *, i, rhostar_hist(i), Ws_hist(i)
-             enddo
-             
-             print *, 'did we try to bisect? ', found
-             call bl_error("ERROR: shock did not converge")
-          endif
-          
-       endif
+       !print *, 'did we try to bisect? ', found
+       call bl_error("ERROR: shock did not converge")
+    endif
+    
 
 
     ! now that we have W_s, we can get rhostar from the R-H conditions
@@ -273,6 +159,163 @@ contains
     Z_s = W_s**2/(W_s - dWdpstar*(pstar - p_s))
 
   end subroutine shock
+
+
+  subroutine newton_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+
+    use eos_type_module
+
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec), tol
+    logical,          intent(out) :: converged
+    real (kind=dp_t), intent(inout) :: W_s
+    type (eos_t),     intent(inout) :: eos_state
+    integer :: iter
+    integer, parameter :: max_iters = 50
+
+    real (kind=dp_t) :: rhostar_s, dW, f, fprime
+
+
+
+    ! Newton iterations -- we are zeroing the energy R-H jump condition
+    ! W^2 [e] = 1/2 [p^2]
+    !
+    ! we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
+    !
+    ! and then compute f'
+
+    converged = .false.
+    iter = 1
+    do while (.not. converged .and. iter < max_iters)
+       
+       call W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
+       dW = -f/fprime
+       
+       if (abs(dW) < tol*W_s) converged = .true.
+          
+       W_s = min(2.d0*W_s, max(0.5d0*W_s,W_s + dW))
+
+       ! store some history
+       !rhostar_hist(iter) = rhostar_s
+       !Ws_hist(iter) = W_s
+       
+       iter = iter + 1
+
+    enddo
+
+  end subroutine newton_shock
+
+
+  subroutine bisect_shock(W_s, pstar, rho_s, p_s, e_s, xn, tol, eos_state, converged)
+
+    use eos_type_module
+
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec), tol
+    logical,          intent(out) :: converged
+    real (kind=dp_t), intent(inout) :: W_s
+    type (eos_t),     intent(inout) :: eos_state
+    integer :: iter
+    integer, parameter :: max_iters = 50
+
+    real (kind=dp_t) :: f1, f2, fprime, fm, fp
+    real (kind=dp_t) :: W1, W2, dW, Wm
+    logical :: found
+    real (kind=dp_t) :: rhostar_s, taustar_s
+
+    ! try some bisection -- sometimes we hit a Newton cycle
+    ! first we need to find a range that potentially contains
+    ! the root the lower limit on W_s should be around the
+    ! Lagrangian sound speed
+    eos_state%rho = rho_s
+    eos_state%p = p_s
+    eos_state%xn(:) = xn(:)
+    eos_state%T = 100000.0   ! we need an initial guess
+
+    call eos(eos_input_rp, eos_state, .false.)
+
+    ! give ourselves a little wiggle room
+    W1 = 0.01d0*sqrt(eos_state%gam1*p_s*rho_s)
+
+    ! make sure it's ok
+    taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
+
+    if (taustar_s < ZERO) then
+       rhostar_s = 1.0000001d0*rho_s
+       W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
+    endif
+
+    call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
+
+    dW = abs(2*W_s - W_s)
+
+    found = .false.
+    iter = 1
+    do while (iter < max_iters .and. .not. found)
+
+       ! guess at the upper limit of the range
+       W2 = W_s + dW
+       call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f2, fprime)
+       
+       if (f2*f1 < 0.0d0) found = .true.
+
+       dW = 2.0d0*dW
+
+       iter = iter + 1
+    enddo
+       
+    if (.not. found) then
+       iter = 1
+       do while (iter < max_iters .and. .not. found)
+
+          print *, iter, W1
+          ! adjust the lower limit
+          W1 = 0.9*W1
+          
+          ! make sure it's ok
+          taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
+          
+          if (taustar_s < ZERO) then
+             rhostar_s = 1.0000001d0*rho_s
+             W1 = sqrt((pstar - p_s)/(ONE/rho_s - ONE/rhostar_s))
+          endif
+          
+          call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f1, fprime)
+          
+          if (f2*f1 < 0.0d0) found = .true.
+          
+          iter = iter + 1
+       enddo
+    endif
+    
+    if (found) then
+       
+       iter = 1
+       converged = .false.
+       do while (.not. converged .and. iter < max_iters)
+          
+          !if (verbose) print *, 'trying to bisect: ', abs(W2 - W1)/(W1 + W2)
+          
+          ! bisect
+          Wm = 0.5d0*(W1 + W2)
+          call W_s_shock(Wm, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, fm, fprime)
+          
+          if (fm*f1 >= 0.0d0) then
+             ! root is in the right half
+             W1 = Wm
+             f1 = fm
+          else
+             ! root is in the left half
+             W2 = Wm
+             f2 = fm                
+          endif
+          
+          if (abs(W2 - W1) < tol*0.5d0*(W1 + W2)) converged = .true.
+          
+          iter = iter + 1
+       enddo
+       
+    endif
+    
+  end subroutine bisect_shock
 
   subroutine W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
 
