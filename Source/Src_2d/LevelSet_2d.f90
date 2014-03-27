@@ -7,6 +7,7 @@
            type,type_l1,type_l2,type_h1,type_h2)
         
         use LS_probdata_module, only: LSorder, kapa, kapb, nbandwidth, mineloc, LARGEINT
+        use bl_constants_module
         
         implicit none
         
@@ -114,9 +115,9 @@
                  Cd = Dym + .5*SWITCH(Dymm,Dypm)
                  Dd = Dyp + .5*SWITCH(Dypp,Dypm)
 
-                 Delp = (max(Ad,0.d0)**2 + min(Bd,0.d0)**2 + max(Cd,0.d0)**2 + min(Dd,0.d0)**2)**(.5)
+                 Delp = (max(Ad,ZERO)**2 + min(Bd,ZERO)**2 + max(Cd,ZERO)**2 + min(Dd,ZERO)**2)**(.5)
 
-                 Delm = (max(Bd,0.d0)**2 + min(Ad,0.d0)**2 + max(Dd,0.d0)**2 + min(Cd,0.d0)**2)**(.5)
+                 Delm = (max(Bd,ZERO)**2 + min(Ad,ZERO)**2 + max(Dd,ZERO)**2 + min(Cd,ZERO)**2)**(.5)
 
               endif
 
@@ -125,11 +126,11 @@
               if (LSorder .eq. 1) then
 
                  if (Fo .gt. 0) then
-                    Fo = Fo*( ( max(Dxm,0.d0) + min(Dxp,0.d0) )**2  &
-                         + ( max(Dym,0.d0) + min(Dyp,0.d0) )**2  )**(1./2.) 
+                    Fo = Fo*( ( max(Dxm,ZERO) + min(Dxp,ZERO) )**2  &
+                         + ( max(Dym,ZERO) + min(Dyp,ZERO) )**2  )**(1./2.) 
                  else
-                    Fo = Fo*( ( min(Dxm,0.d0) + max(Dxp,0.d0) )**2  &
-                         + ( min(Dym,0.d0) + max(Dyp,0.d0) )**2  )**(1./2.) 
+                    Fo = Fo*( ( min(Dxm,ZERO) + max(Dxp,ZERO) )**2  &
+                         + ( min(Dym,ZERO) + max(Dyp,ZERO) )**2  )**(1./2.) 
                  endif
 
               else if (LSorder .eq. 2) then
@@ -177,7 +178,7 @@
            j = mine(p,2)
            p = p + 1
 
-           if (sign(1.d0,phi(i,j))*sign(1.d0,phin(i,j)) .le. 0) then
+           if (sign(ONE,phi(i,j))*sign(ONE,phin(i,j)) .le. 0) then
               flag = 1
               exit
            endif
@@ -211,6 +212,7 @@
                         type,type_l1,type_l2,type_h1,type_h2)
 
       use LS_probdata_module, only: kapa, kapb, nbandwidth, LARGEINT
+      use bl_constants_module
 
       implicit none
 
@@ -255,10 +257,10 @@
             if (phix**2 + phiy**2 .gt. 0 ) then
                kappa = (phixx*phiy**2 - 2*phiy*phix*phixy + phiyy*phix**2)/((phix**2+phiy**2)**(3./2.))
             else
-               kappa = 0.d0
+               kappa = ZERO
             endif
             
-            speed = ( (.5*( uadv(i,j) + uadv(i+1,j) ) )**2 + ( .5*( vadv(i,j) +vadv(i,j+1) ) )**2)**.5 &
+            speed = ( (HALF*( uadv(i,j) + uadv(i+1,j) ) )**2 + ( HALF*( vadv(i,j) +vadv(i,j+1) ) )**2)**.5 &
                  + abs(kapa-kapb*kappa)
              
             phidt = min( phit, &
@@ -430,7 +432,7 @@
                   iii = i + ii
                   jjj = j + jj
                   
-                  distance = FINDDIST(grad,B,sign(1.d0,phi(iii,jjj)),ii*dx(1),jj*dx(2),dx)              
+                  distance = FINDDIST(grad,B,sign(ONE,phi(iii,jjj)),ii*dx(1),jj*dx(2),dx)              
                   
                   if (type(iii,jjj) .NE. 0 .and. phi(iii,jjj) .ge. 0 .and. distance .ge. 0 &
                        .and. iii .ge. lo(1) .and. iii .le. hi(1) &
@@ -453,7 +455,7 @@
                   
                   if (distance .ge. 0) then
                      type(iii,jjj) = 0
-                     phin(iii,jjj) = min(abs(phin(iii,jjj)),distance)*sign(1.d0,phi(iii,jjj))
+                     phin(iii,jjj) = min(abs(phin(iii,jjj)),distance)*sign(ONE,phi(iii,jjj))
                   endif
                   
                enddo
@@ -497,7 +499,7 @@
       delta2(1) = BOGUS
       delta2(2) = BOGUS
       
-      do while  ( (delta1(1)**2 + delta1(2)**2 + delta2(1)**2 + delta2(2)**2)**(.5) &
+      do while  ( (delta1(1)**2 + delta1(2)**2 + delta2(1)**2 + delta2(2)**2)**(0.5) &
            .GT. 10.0**(-6.0)*dx(1)*dx(2) .AND. i .LT. ITERMAX)
         
         CALL GRADPVAL(B,grad,x,y)
@@ -521,7 +523,7 @@
       	
       else
       
-      	FINDDIST = ( (x - x0)**2 + (y-y0)**2 )**(.5)
+      	FINDDIST = ( (x - x0)**2 + (y-y0)**2 )**(0.5)
       
       endif
       
@@ -532,7 +534,7 @@
       double precision B(16)
       double precision x,y
       integer c,d,n  
-      POLYVAL=0.d0
+      POLYVAL=ZERO
       do n=0,15
         c = n/4
         d = n-4*(n/4)
@@ -859,6 +861,8 @@
       
       subroutine EVAL(phi,i,j,phi_l1,phi_l2,phi_h1,phi_h2, &
                       type_l1,type_l2,type_h1,type_h2,lo,hi,type,sgn,dx)
+
+      use bl_constants_module
       
       implicit none
       integer i,j     
@@ -876,8 +880,8 @@
       integer  left,right,up,down
       LOGICAL  lok, rok, uok, dok
       
-      a = 0.d0
-      b = 0.d0
+      a = ZERO
+      b = ZERO
       c = -dx(1)*dx(2)
       
       left  = i - 1
@@ -1251,6 +1255,7 @@
                          type_l1,type_l2,type_h1,type_h2,nbandsize, lo, hi, dx, heaploc)      
 
       use LS_probdata_module, only: BOGUS
+      use bl_constants_module
 
       implicit none
 
@@ -1282,7 +1287,7 @@
         if (ii .ge. lo(1) .and. ii .le. hi(1) &
              .and. jj .ge. lo(2) .and. jj .le. hi(2)) then
         
-           if (sgn*sign(1.d0,phi(ii,jj)) .ge. 0 .and. abs(phi(ii,jj)) .gt. abs(phi(i,j))  &
+           if (sgn*sign(ONE,phi(ii,jj)) .ge. 0 .and. abs(phi(ii,jj)) .gt. abs(phi(i,j))  &
                 .and. (abs(phi(ii,jj)) .ge. BOGUS .OR. .NOT.(sgn*phi(ii+1,jj) .le. 0   &
                 .OR. sgn*phi(ii-1,jj) .le. 0 .OR. sgn*phi(ii,jj+1) .le. 0 .OR. sgn*phi(ii,jj-1) .le. 0) )) then
 !                .OR. sgn*phi(ii+1,jj+1) .le. 0 .OR. sgn*phi(ii-1,jj-1) .le. 0 .OR. sgn*phi(ii+1,jj-1) .le. 0  &
@@ -1317,6 +1322,9 @@
       LOGICAL function EVAL2(phi,i,j,phi_l1,phi_l2,phi_h1,phi_h2, &
                              type_l1,type_l2,type_h1,type_h2, &
                              lo,hi, type,sgn,dx,phisrc)      
+
+      use bl_constants_module
+
       implicit none
 
       integer  phi_l1,phi_l2,phi_h1,phi_h2
@@ -1333,8 +1341,8 @@
       integer  left,right,up,down
       double precision phisrc
       
-      a = 0.0d0
-      b = 0.0d0
+      a = ZERO
+      b = ZERO
       c = -dx(1)*dx(2)
       
       left  = i - 1
@@ -1389,7 +1397,7 @@
       endif
       
       b = -2*b
-      if (a .eq. 0.d0) then
+      if (a .eq. ZERO) then
 
         EVAL2 = .FALSE.
         return
@@ -1398,7 +1406,7 @@
       
       EVAL2 = .FALSE.
       
-      if (b**2 - 4*a*c .lt. 0.d0) then
+      if (b**2 - 4*a*c .lt. ZERO) then
          if (ABS(phi(i,j)) .gt. (-b)/(2*a) + 1.d-10) then
             phi(i,j) = sgn*(-b)/(2*a)
             EVAL2 = .TRUE.
