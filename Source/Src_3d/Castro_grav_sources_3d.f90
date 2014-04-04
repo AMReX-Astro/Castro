@@ -18,6 +18,7 @@ contains
                                lo,hi,dt,E_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
+      use bl_constants_module
 
       implicit none
 
@@ -54,13 +55,13 @@ contains
 
                ! **** Start Diagnostics ****
                old_re = uout(i,j,k,UEDEN)
-               old_ke = 0.5d0 * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+               old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                  uout(i,j,k,URHO) 
                old_rhoeint = uout(i,j,k,UEDEN) - old_ke
                ! ****   End Diagnostics ****
 
                rho    = uin(i,j,k,URHO)
-               rhoInv = 1.0d0 / rho
+               rhoInv = ONE / rho
 
                SrU = rho * grav(i,j,k,1)
                SrV = rho * grav(i,j,k,2)
@@ -80,7 +81,7 @@ contains
 
                else if (grav_source_type .eq. 3) then
 
-                   new_ke = 0.5d0 * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+                   new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                      uout(i,j,k,URHO) 
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
 
@@ -89,7 +90,7 @@ contains
                end if
 
                ! **** Start Diagnostics ****
-               new_ke = 0.5d0 * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+               new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                  uout(i,j,k,URHO) 
 
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
@@ -119,6 +120,7 @@ end module grav_sources_module
                              dt,E_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
+      use bl_constants_module
 
       implicit none
 
@@ -161,13 +163,13 @@ end module grav_sources_module
 
                ! **** Start Diagnostics ****
                old_re = unew(i,j,k,UEDEN)
-               old_ke = 0.5d0 * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+               old_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                old_rhoeint = unew(i,j,k,UEDEN) - old_ke
                ! ****   End Diagnostics ****
 
                rhoo    = uold(i,j,k,URHO)
-               rhooinv = 1.0d0 / uold(i,j,k,URHO)
+               rhooinv = ONE / uold(i,j,k,URHO)
                Upo     = uold(i,j,k,UMX) * rhooinv
                Vpo     = uold(i,j,k,UMY) * rhooinv
                Wpo     = uold(i,j,k,UMZ) * rhooinv
@@ -178,7 +180,7 @@ end module grav_sources_module
                SrW_old = rhoo * gold(i,j,k,3)
 
                rhon    = unew(i,j,k,URHO)
-               rhoninv = 1.0d0 / unew(i,j,k,URHO)
+               rhoninv = ONE / unew(i,j,k,URHO)
                Upn     = unew(i,j,k,UMX) * rhoninv
                Vpn     = unew(i,j,k,UMY) * rhoninv
                Wpn     = unew(i,j,k,UMZ) * rhoninv
@@ -189,12 +191,12 @@ end module grav_sources_module
                SrW_new = rhon * gnew(i,j,k,3)
 
                ! Define corrections to source terms
-               SrUcorr = 0.5d0*(SrU_new - SrU_old)
-               SrVcorr = 0.5d0*(SrV_new - SrV_old)
-               SrWcorr = 0.5d0*(SrW_new - SrW_old)
+               SrUcorr = HALF*(SrU_new - SrU_old)
+               SrVcorr = HALF*(SrV_new - SrV_old)
+               SrWcorr = HALF*(SrW_new - SrW_old)
 
                if (grav_source_type .eq. 1) then
-                   SrEcorr =  0.5d0 * ( (SrU_new * Upn - SrU_old * Upo) + &
+                   SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
                                         (SrV_new * Vpn - SrV_old * Vpo) + &
                                         (SrW_new * Wpn - SrW_old * Wpo) )
                end if
@@ -214,12 +216,12 @@ end module grav_sources_module
                    Upn     = unew(i,j,k,UMX) * rhoninv
                    Vpn     = unew(i,j,k,UMY) * rhoninv
                    Wpn     = unew(i,j,k,UMZ) * rhoninv
-                   SrEcorr =  0.5d0 * ( (SrU_new * Upn - SrU_old * Upo) + &
+                   SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
                                         (SrV_new * Vpn - SrV_old * Vpo) + &
                                         (SrW_new * Wpn - SrW_old * Wpo) )
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
                else if (grav_source_type .eq. 3) then
-                   new_ke = 0.5d0 * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+                   new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                      unew(i,j,k,URHO) 
                    unew(i,j,k,UEDEN) = old_rhoeint + new_ke
                else 
@@ -228,7 +230,7 @@ end module grav_sources_module
 
                ! **** Start Diagnostics ****
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
-               new_ke = 0.5d0 * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+               new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                new_rhoeint = unew(i,j,k,UEDEN) - new_ke
  
@@ -254,6 +256,7 @@ end module grav_sources_module
                             sync_src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,dt)
 
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
+     use bl_constants_module
 
      implicit none
 
@@ -299,9 +302,9 @@ end module grav_sources_module
                SrV = dstate(i,j,k,1)*gy + rho_pre*dgy
                SrW = dstate(i,j,k,1)*gz + rho_pre*dgz
 
-               SrE = ( SrU * (rhoU_pre + (0.5d0*dt)*SrU) + &
-                       SrV * (rhoV_pre + (0.5d0*dt)*SrV) + &
-                       SrW * (rhoW_pre + (0.5d0*dt)*SrW) ) / rho_pre
+               SrE = ( SrU * (rhoU_pre + (HALF*dt)*SrU) + &
+                       SrV * (rhoV_pre + (HALF*dt)*SrV) + &
+                       SrW * (rhoW_pre + (HALF*dt)*SrW) ) / rho_pre
 
                sync_src(i,j,k,1) = SrU
                sync_src(i,j,k,2) = SrV

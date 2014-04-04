@@ -24,6 +24,7 @@ subroutine ca_ext_src(lo,hi, &
                       src,src_l1,src_l2,src_h1,src_h2,problo,dx,time,dt)
 
   use meth_params_module, only : NVAR
+  use bl_constants_module
 
   implicit none
   integer         , intent(in   ) :: lo(2),hi(2)
@@ -37,6 +38,6 @@ subroutine ca_ext_src(lo,hi, &
   
   integer          :: i,j
   
-  src = 0.d0
+  src = ZERO
   
 end subroutine ca_ext_src

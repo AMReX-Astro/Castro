@@ -18,7 +18,7 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-
+    use bl_constants_module
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
          nadv, small_dens, small_pres, &
@@ -115,7 +115,7 @@ contains
     allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
-    halfdt = 0.5d0 * dt
+    halfdt = HALF * dt
 
 
     !=========================================================================
@@ -241,7 +241,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u - cc >= 0.0d0 .and. &
+               (ppm_reference == 1 .and. u - cc >= ZERO .and. &
                 ppm_reference_edge_limit == 0)) then
              ! original Castro way -- cc value
              rho_ref  = rho
@@ -251,7 +251,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref  = 1.d0/rho
+             tau_ref  = ONE/rho
 
              gam_ref = gamc(i,j)
 
@@ -266,7 +266,7 @@ contains
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
 
-             tau_ref  = 1.0d0/Im(i,j,1,1,QRHO)
+             tau_ref  = ONE/Im(i,j,1,1,QRHO)
 
              gam_ref  = Im_gc(i,j,1,1,1)
           endif
@@ -290,7 +290,7 @@ contains
           dv    = (v_ref    - Im(i,j,1,2,QV))
           dp    = (p_ref    - Im(i,j,1,2,QPRES))
           drhoe = (rhoe_ref - Im(i,j,1,2,QREINT))
-          dtau  = (tau_ref  - 1.0d0/Im(i,j,1,2,QRHO))
+          dtau  = (tau_ref  - ONE/Im(i,j,1,2,QRHO))
 
           dup    = (u_ref    - Im(i,j,1,3,QU))
           !dvp    = (v_ref    - Im(i,j,1,3,QV))
@@ -333,40 +333,40 @@ contains
              ! PPM paper (except we work with rho instead of tau).  
              ! This is simply (l . dq), where dq = qref - I(q)
 
-             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
              alpha0v = dv
 
-             if (u-cc .gt. 0.d0) then
-                amright = 0.d0
-             else if (u-cc .lt. 0.d0) then
+             if (u-cc .gt. ZERO) then
+                amright = ZERO
+             else if (u-cc .lt. ZERO) then
                 amright = -alpham
              else
-                amright = -0.5d0*alpham
+                amright = -HALF*alpham
              endif
              
-             if (u+cc .gt. 0.d0) then
-                apright = 0.d0
-             else if (u+cc .lt. 0.d0) then
+             if (u+cc .gt. ZERO) then
+                apright = ZERO
+             else if (u+cc .lt. ZERO) then
                 apright = -alphap
              else
-                apright = -0.5d0*alphap
+                apright = -HALF*alphap
              endif
              
-             if (u .gt. 0.d0) then
-                azrright = 0.d0
-                azeright = 0.d0
-                azv1rght = 0.d0
-             else if (u .lt. 0.d0) then
+             if (u .gt. ZERO) then
+                azrright = ZERO
+                azeright = ZERO
+                azv1rght = ZERO
+             else if (u .lt. ZERO) then
                 azrright = -alpha0r
                 azeright = -alpha0e
                 azv1rght = -alpha0v
              else
-                azrright = -0.5d0*alpha0r
-                azeright = -0.5d0*alpha0e
-                azv1rght = -0.5d0*alpha0v
+                azrright = -HALF*alpha0r
+                azeright = -HALF*alpha0e
+                azv1rght = -HALF*alpha0v
              endif
 
              ! the final interface states are just
@@ -374,11 +374,11 @@ contains
              if (i .ge. ilo1) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
 
                 qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
@@ -403,40 +403,40 @@ contains
              ! we are dealing with e
              de = (rhoe_ref/rho_ref - Im(i,j,1,2,QREINT)/Im(i,j,1,2,QRHO))
 
-             alpham = 0.5d0*( dum - dpm/Clag_ev)/Clag_ev
-             alphap = 0.5d0*(-dup - dpp/Clag_ev)/Clag_ev
+             alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
+             alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0v = dv
 
-             if (u-cc .gt. 0.d0) then
-                amright = 0.d0
-             else if (u-cc .lt. 0.d0) then
+             if (u-cc .gt. ZERO) then
+                amright = ZERO
+             else if (u-cc .lt. ZERO) then
                 amright = -alpham
              else
-                amright = -0.5d0*alpham
+                amright = -HALF*alpham
              endif
              
-             if (u+cc .gt. 0.d0) then
-                apright = 0.d0
-             else if (u+cc .lt. 0.d0) then
+             if (u+cc .gt. ZERO) then
+                apright = ZERO
+             else if (u+cc .lt. ZERO) then
                 apright = -alphap
              else
-                apright = -0.5d0*alphap
+                apright = -HALF*alphap
              endif
              
-             if (u .gt. 0.d0) then
-                azrright = 0.d0
-                azeright = 0.d0
-                azv1rght = 0.d0
-             else if (u .lt. 0.d0) then
+             if (u .gt. ZERO) then
+                azrright = ZERO
+                azeright = ZERO
+                azv1rght = ZERO
+             else if (u .lt. ZERO) then
                 azrright = -alpha0r
                 azeright = -alpha0e
                 azv1rght = -alpha0v
              else
-                azrright = -0.5d0*alpha0r
-                azeright = -0.5d0*alpha0e
-                azv1rght = -0.5d0*alpha0v
+                azrright = -HALF*alpha0r
+                azeright = -HALF*alpha0e
+                azv1rght = -HALF*alpha0v
              endif
 
              ! the final interface states are just
@@ -444,11 +444,11 @@ contains
              if (i .ge. ilo1) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
 
                 tau_s = tau_ref + apright + amright + azrright
@@ -474,7 +474,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u + cc <= 0.0d0 .and. &
+               (ppm_reference == 1 .and. u + cc <= ZERO .and. &
                 ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc values
              rho_ref  = rho
@@ -484,7 +484,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref = 1.d0/rho
+             tau_ref = ONE/rho
 
              gam_ref = gamc(i,j)
 
@@ -497,7 +497,7 @@ contains
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
 
-             tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
+             tau_ref  = ONE/Ip(i,j,1,3,QRHO)
 
              gam_ref    = Ip_gc(i,j,1,3,1)
           endif
@@ -521,7 +521,7 @@ contains
           dv    = (v_ref    - Ip(i,j,1,2,QV))
           dp    = (p_ref    - Ip(i,j,1,2,QPRES))
           drhoe = (rhoe_ref - Ip(i,j,1,2,QREINT))
-          dtau  = (tau_ref  - 1.0d0/Ip(i,j,1,2,QRHO))
+          dtau  = (tau_ref  - ONE/Ip(i,j,1,2,QRHO))
           
           dup    = (u_ref    - Ip(i,j,1,3,QU))
           !dvp    = (v_ref    - Ip(i,j,1,3,QV))
@@ -562,40 +562,40 @@ contains
              ! these are analogous to the beta's from the original 
              ! PPM paper (except we work with rho instead of tau).
              ! This is simply (l . dq), where dq = qref - I(q)          
-             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+             alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+             alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! enth has a 1/c**2 in it
              alpha0v = dv
              
-             if (u-cc .gt. 0.d0) then
+             if (u-cc .gt. ZERO) then
                 amleft = -alpham
-             else if (u-cc .lt. 0.d0) then
-                amleft = 0.d0
+             else if (u-cc .lt. ZERO) then
+                amleft = ZERO
              else
-                amleft = -0.5d0*alpham
+                amleft = -HALF*alpham
              endif
              
-             if (u+cc .gt. 0.d0) then
+             if (u+cc .gt. ZERO) then
                 apleft = -alphap
-             else if (u+cc .lt. 0.d0) then
-                apleft = 0.d0
+             else if (u+cc .lt. ZERO) then
+                apleft = ZERO
              else
-                apleft = -0.5d0*alphap
+                apleft = -HALF*alphap
              endif
              
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
                 azv1left = -alpha0v
-             else if (u .lt. 0.d0) then
-                azrleft = 0.d0
-                azeleft = 0.d0
-                azv1left = 0.d0
+             else if (u .lt. ZERO) then
+                azrleft = ZERO
+                azeleft = ZERO
+                azv1left = ZERO
              else
-                azrleft = -0.5d0*alpha0r
-                azeleft = -0.5d0*alpha0e
-                azv1left = -0.5d0*alpha0v
+                azrleft = -HALF*alpha0r
+                azeleft = -HALF*alpha0e
+                azv1left = -HALF*alpha0v
              endif
              
              ! the final interface states are just
@@ -603,11 +603,11 @@ contains
              if (i .le. ihi1) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 qxm(i+1,j,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
@@ -630,40 +630,40 @@ contains
 
              de = (rhoe_ref/rho_ref - Ip(i,j,1,2,QREINT)/Ip(i,j,1,2,QRHO))
 
-             alpham = 0.5d0*( dum - dpm/Clag_ev)/Clag_ev
-             alphap = 0.5d0*(-dup - dpp/Clag_ev)/Clag_ev
+             alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
+             alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0v = dv
 
-             if (u-cc .gt. 0.d0) then
+             if (u-cc .gt. ZERO) then
                 amleft = -alpham
-             else if (u-cc .lt. 0.d0) then
-                amleft = 0.d0
+             else if (u-cc .lt. ZERO) then
+                amleft = ZERO
              else
-                amleft = -0.5d0*alpham
+                amleft = -HALF*alpham
              endif
              
-             if (u+cc .gt. 0.d0) then
+             if (u+cc .gt. ZERO) then
                 apleft = -alphap
-             else if (u+cc .lt. 0.d0) then
-                apleft = 0.d0
+             else if (u+cc .lt. ZERO) then
+                apleft = ZERO
              else
-                apleft = -0.5d0*alphap
+                apleft = -HALF*alphap
              endif
              
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
                 azv1left = -alpha0v
-             else if (u .lt. 0.d0) then
-                azrleft = 0.d0
-                azeleft = 0.d0
-                azv1left = 0.d0
+             else if (u .lt. ZERO) then
+                azrleft = ZERO
+                azeleft = ZERO
+                azv1left = ZERO
              else
-                azrleft = -0.5d0*alpha0r
-                azeleft = -0.5d0*alpha0e
-                azv1left = -0.5d0*alpha0v
+                azrleft = -HALF*alpha0r
+                azeleft = -HALF*alpha0e
+                azv1left = -HALF*alpha0v
              endif
              
              ! the final interface states are just
@@ -671,11 +671,11 @@ contains
              if (i .le. ihi1) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 tau_s = tau_ref + (apleft + amleft + azrleft)
@@ -702,9 +702,9 @@ contains
 
           if(dloga(i,j).ne.0)then
              courn = dtdx*(cc+abs(u))
-             eta = (1.d0-courn)/(cc*dt*abs(dloga(i,j)))
-             dlogatmp = min(eta,1.d0)*dloga(i,j)
-             sourcr = -0.5d0*dt*rho*dlogatmp*u
+             eta = (ONE-courn)/(cc*dt*abs(dloga(i,j)))
+             dlogatmp = min(eta,ONE)*dloga(i,j)
+             sourcr = -HALF*dt*rho*dlogatmp*u
              sourcp = sourcr*csq
              source = sourcp*enth
 
@@ -743,7 +743,7 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
              ! the flattening here is a little confusing.  What we
@@ -764,13 +764,13 @@ contains
              ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
              !      = q_i + xi*(I - q_i)
              
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxp(i,j,n) = q(i,j,n)    ! we might want to change this to 
                                          ! the limit of the parabola
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxp(i,j,n) = q(i,j,n) + xi*(Im(i,j,1,2,n) - q(i,j,n))
              else
-                qxp(i,j,n) = q(i,j,n) + 0.5d0*xi*(Im(i,j,1,2,n) - q(i,j,n))
+                qxp(i,j,n) = q(i,j,n) + HALF*xi*(Im(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -781,15 +781,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxm(i+1,j,n) = q(i,j,n) + xi*(Ip(i,j,1,2,n) - q(i,j,n))
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxm(i+1,j,n) = q(i,j,n)
              else
-                qxm(i+1,j,n) = q(i,j,n) + 0.5d0*xi*(Ip(i,j,1,2,n) - q(i,j,n))
+                qxm(i+1,j,n) = q(i,j,n) + HALF*xi*(Ip(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -810,15 +810,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxp(i,j,ns) = q(i,j,ns)
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              else
-                qxp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -829,15 +829,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxm(i+1,j,ns) = q(i,j,ns)
              else
-                qxm(i+1,j,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -857,15 +857,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxp(i,j,ns) = q(i,j,ns)
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              else
-                qxp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
+                qxp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
 
@@ -876,15 +876,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (u .gt. 0.d0) then
+             if (u .gt. ZERO) then
                 qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
-             else if (u .lt. 0.d0) then
+             else if (u .lt. ZERO) then
                 qxm(i+1,j,ns) = q(i,j,ns)
              else
-                qxm(i+1,j,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
+                qxm(i+1,j,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -921,7 +921,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v - cc >= 0.0d0 .and. &
+               (ppm_reference == 1 .and. v - cc >= ZERO .and. &
                 ppm_reference_edge_limit == 0)) then
              ! original Castro way -- cc value
              rho_ref  = rho
@@ -931,7 +931,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref  = 1.0d0/rho
+             tau_ref  = ONE/rho
 
              gam_ref = gamc(i,j)
           else
@@ -943,7 +943,7 @@ contains
              p_ref    = Im(i,j,2,1,QPRES)
              rhoe_ref = Im(i,j,2,1,QREINT)
 
-             tau_ref  = 1.0d0/Im(i,j,2,1,QRHO)
+             tau_ref  = ONE/Im(i,j,2,1,QRHO)
 
              gam_ref    = Im_gc(i,j,2,1,1)
           endif
@@ -967,7 +967,7 @@ contains
           !dv    = (v_ref    - Im(i,j,2,2,QV))
           dp    = (p_ref    - Im(i,j,2,2,QPRES))
           drhoe = (rhoe_ref - Im(i,j,2,2,QREINT))
-          dtau  = (tau_ref  - 1.0d0/Im(i,j,2,2,QRHO))
+          dtau  = (tau_ref  - ONE/Im(i,j,2,2,QRHO))
 
           !dup    = (u_ref    - Im(i,j,2,3,QU))
           dvp    = (v_ref    - Im(i,j,2,3,QV))
@@ -1007,40 +1007,40 @@ contains
              ! these are analogous to the beta's from the original PPM 
              ! paper (except we work with rho instead of tau).  This 
              ! is simply (l . dq), where dq = qref - I(q)
-             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
-             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpham = HALF*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = HALF*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! enth has 1/c**2 in it
              alpha0u = du
           
-             if (v-cc .gt. 0.d0) then
-                amright = 0.d0
-             else if (v-cc .lt. 0.d0) then
+             if (v-cc .gt. ZERO) then
+                amright = ZERO
+             else if (v-cc .lt. ZERO) then
                 amright = -alpham
              else
-                amright = -0.5d0*alpham
+                amright = -HALF*alpham
              endif
 
-             if (v+cc .gt. 0.d0) then
-                apright = 0.d0
-             else if (v+cc .lt. 0.d0) then
+             if (v+cc .gt. ZERO) then
+                apright = ZERO
+             else if (v+cc .lt. ZERO) then
                 apright = -alphap
              else
-                apright = -0.5d0*alphap
+                apright = -HALF*alphap
              endif
 
-             if (v .gt. 0.d0) then
-                azrright = 0.d0
-                azeright = 0.d0
-                azu1rght = 0.d0
-             else if (v .lt. 0.d0) then
+             if (v .gt. ZERO) then
+                azrright = ZERO
+                azeright = ZERO
+                azu1rght = ZERO
+             else if (v .lt. ZERO) then
                 azrright = -alpha0r
                 azeright = -alpha0e
                 azu1rght = -alpha0u
              else
-                azrright = -0.5d0*alpha0r
-                azeright = -0.5d0*alpha0e
-                azu1rght = -0.5d0*alpha0u
+                azrright = -HALF*alpha0r
+                azeright = -HALF*alpha0e
+                azu1rght = -HALF*alpha0u
              endif
 
              ! the final interface states are just
@@ -1048,11 +1048,11 @@ contains
              if (j .ge. ilo2) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 qyp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
@@ -1075,40 +1075,40 @@ contains
 
              de = (rhoe_ref/rho_ref - Im(i,j,2,2,QREINT)/Im(i,j,2,2,QRHO))
 
-             alpham = 0.5d0*( dvm - dpm/Clag_ev)/Clag_ev
-             alphap = 0.5d0*(-dvp - dpp/Clag_ev)/Clag_ev
+             alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
+             alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0u = du
           
-             if (v-cc .gt. 0.d0) then
-                amright = 0.d0
-             else if (v-cc .lt. 0.d0) then
+             if (v-cc .gt. ZERO) then
+                amright = ZERO
+             else if (v-cc .lt. ZERO) then
                 amright = -alpham
              else
-                amright = -0.5d0*alpham
+                amright = -HALF*alpham
              endif
 
-             if (v+cc .gt. 0.d0) then
-                apright = 0.d0
-             else if (v+cc .lt. 0.d0) then
+             if (v+cc .gt. ZERO) then
+                apright = ZERO
+             else if (v+cc .lt. ZERO) then
                 apright = -alphap
              else
-                apright = -0.5d0*alphap
+                apright = -HALF*alphap
              endif
 
-             if (v .gt. 0.d0) then
-                azrright = 0.d0
-                azeright = 0.d0
-                azu1rght = 0.d0
-             else if (v .lt. 0.d0) then
+             if (v .gt. ZERO) then
+                azrright = ZERO
+                azeright = ZERO
+                azu1rght = ZERO
+             else if (v .lt. ZERO) then
                 azrright = -alpha0r
                 azeright = -alpha0e
                 azu1rght = -alpha0u
              else
-                azrright = -0.5d0*alpha0r
-                azeright = -0.5d0*alpha0e
-                azu1rght = -0.5d0*alpha0u
+                azrright = -HALF*alpha0r
+                azeright = -HALF*alpha0e
+                azu1rght = -HALF*alpha0u
              endif
 
              ! the final interface states are just
@@ -1116,11 +1116,11 @@ contains
              if (j .ge. ilo2) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 tau_s = tau_ref + apright + amright + azrright
@@ -1147,7 +1147,7 @@ contains
 
           ! set the reference state
           if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v + cc <= 0.0d0 .and. &
+               (ppm_reference == 1 .and. v + cc <= ZERO .and. &
                 ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
@@ -1157,7 +1157,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             tau_ref  = 1.0d0/rho
+             tau_ref  = ONE/rho
 
              gam_ref = gamc(i,j)
 
@@ -1170,7 +1170,7 @@ contains
              p_ref    = Ip(i,j,2,3,QPRES)
              rhoe_ref = Ip(i,j,2,3,QREINT)
 
-             tau_ref  = 1.0d0/Ip(i,j,2,3,QRHO)
+             tau_ref  = ONE/Ip(i,j,2,3,QRHO)
 
              gam_ref    = Ip_gc(i,j,2,3,1)
           endif
@@ -1194,7 +1194,7 @@ contains
           !dv    = (v_ref    - Ip(i,j,2,2,QV))
           dp    = (p_ref    - Ip(i,j,2,2,QPRES))
           drhoe = (rhoe_ref - Ip(i,j,2,2,QREINT))
-          dtau  = (tau_ref  - 1.0d0/Ip(i,j,2,2,QRHO))
+          dtau  = (tau_ref  - ONE/Ip(i,j,2,2,QRHO))
           
           !dup    = (u_ref    - Ip(i,j,2,3,QU))
           dvp    = (v_ref    - Ip(i,j,2,3,QV))
@@ -1232,40 +1232,40 @@ contains
 
              ! these are analogous to the beta's from the original PPM 
              ! paper.  This is simply (l . dq), where dq = qref - I(q)
-             alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
-             alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+             alpham = HALF*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
+             alphap = HALF*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev
              alpha0u = du
              
-             if (v-cc .gt. 0.d0) then
+             if (v-cc .gt. ZERO) then
                 amleft = -alpham
-             else if (v-cc .lt. 0.d0) then
-                amleft = 0.d0
+             else if (v-cc .lt. ZERO) then
+                amleft = ZERO
              else
-                amleft = -0.5d0*alpham
+                amleft = -HALF*alpham
              endif
              
-             if (v+cc .gt. 0.d0) then
+             if (v+cc .gt. ZERO) then
                 apleft = -alphap
-             else if (v+cc .lt. 0.d0) then
-                apleft = 0.d0
+             else if (v+cc .lt. ZERO) then
+                apleft = ZERO
              else
-                apleft = -0.5d0*alphap
+                apleft = -HALF*alphap
              endif
              
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
                 azu1left = -alpha0u
-             else if (v .lt. 0.d0) then
-                azrleft = 0.d0
-                azeleft = 0.d0
-                azu1left = 0.d0
+             else if (v .lt. ZERO) then
+                azrleft = ZERO
+                azeleft = ZERO
+                azu1left = ZERO
              else
-                azrleft = -0.5d0*alpha0r
-                azeleft = -0.5d0*alpha0e
-                azu1left = -0.5d0*alpha0u
+                azrleft = -HALF*alpha0r
+                azeleft = -HALF*alpha0e
+                azu1left = -HALF*alpha0u
              endif
              
              ! the final interface states are just
@@ -1273,11 +1273,11 @@ contains
              if (j .le. ihi2) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 qym(i,j+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
@@ -1300,40 +1300,40 @@ contains
 
              de = (rhoe_ref/rho_ref - Ip(i,j,2,2,QREINT)/Ip(i,j,2,2,QRHO))
 
-             alpham = 0.5d0*( dvm - dpm/Clag_ev)/Clag_ev
-             alphap = 0.5d0*(-dvp - dpp/Clag_ev)/Clag_ev
+             alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
+             alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
              alpha0u = du
              
-             if (v-cc .gt. 0.d0) then
+             if (v-cc .gt. ZERO) then
                 amleft = -alpham
-             else if (v-cc .lt. 0.d0) then
-                amleft = 0.d0
+             else if (v-cc .lt. ZERO) then
+                amleft = ZERO
              else
-                amleft = -0.5d0*alpham
+                amleft = -HALF*alpham
              endif
              
-             if (v+cc .gt. 0.d0) then
+             if (v+cc .gt. ZERO) then
                 apleft = -alphap
-             else if (v+cc .lt. 0.d0) then
-                apleft = 0.d0
+             else if (v+cc .lt. ZERO) then
+                apleft = ZERO
              else
-                apleft = -0.5d0*alphap
+                apleft = -HALF*alphap
              endif
              
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
                 azu1left = -alpha0u
-             else if (v .lt. 0.d0) then
-                azrleft = 0.d0
-                azeleft = 0.d0
-                azu1left = 0.d0
+             else if (v .lt. ZERO) then
+                azrleft = ZERO
+                azeleft = ZERO
+                azu1left = ZERO
              else
-                azrleft = -0.5d0*alpha0r
-                azeleft = -0.5d0*alpha0e
-                azu1left = -0.5d0*alpha0u
+                azrleft = -HALF*alpha0r
+                azeleft = -HALF*alpha0e
+                azu1left = -HALF*alpha0u
              endif
              
              ! the final interface states are just
@@ -1341,11 +1341,11 @@ contains
              if (j .le. ihi2) then
 
                 if (ppm_flatten_before_integrals == 0) then
-                   xi1 = 1.0d0-flatn(i,j)
+                   xi1 = ONE-flatn(i,j)
                    xi = flatn(i,j)
                 else
-                   xi1 = 0.0d0
-                   xi = 1.0d0
+                   xi1 = ZERO
+                   xi = ONE
                 endif
                 
                 tau_s = tau_ref + apleft + amleft + azrleft
@@ -1385,15 +1385,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qyp(i,j,n) = q(i,j,n)
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qyp(i,j,n) = q(i,j,n) + xi*(Im(i,j,2,2,n) - q(i,j,n))
              else
-                qyp(i,j,n) = q(i,j,n) + 0.5d0*xi*(Im(i,j,2,2,n) - q(i,j,n))
+                qyp(i,j,n) = q(i,j,n) + HALF*xi*(Im(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -1404,15 +1404,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qym(i,j+1,n) = q(i,j,n) + xi*(Ip(i,j,2,2,n) - q(i,j,n))
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qym(i,j+1,n) = q(i,j,n)
              else
-                qym(i,j+1,n) = q(i,j,n) + 0.5d0*xi*(Ip(i,j,2,2,n) - q(i,j,n))
+                qym(i,j+1,n) = q(i,j,n) + HALF*xi*(Ip(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
           
@@ -1433,15 +1433,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qyp(i,j,ns) = q(i,j,ns)
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              else
-                qyp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1452,15 +1452,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qym(i,j+1,ns) = q(i,j,ns)
              else
-                qym(i,j+1,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1481,15 +1481,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qyp(i,j,ns) = q(i,j,ns)
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              else
-                qyp(i,j,ns) = q(i,j,ns) + 0.5d0*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
+                qyp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1500,15 +1500,15 @@ contains
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j)
              else
-                xi = 1.0d0
+                xi = ONE
              endif
 
-             if (v .gt. 0.d0) then
+             if (v .gt. ZERO) then
                 qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             else if (v .lt. 0.d0) then
+             else if (v .lt. ZERO) then
                 qym(i,j+1,ns) = q(i,j,ns)
              else
-                qym(i,j+1,ns) = q(i,j,ns) + 0.5d0*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
+                qym(i,j+1,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
              endif
           enddo
           

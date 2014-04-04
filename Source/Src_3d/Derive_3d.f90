@@ -298,6 +298,7 @@
       !
       ! This routine will derive the radial velocity.
       !
+      use bl_constants_module
       use probdata_module, only : center
 
       implicit none
@@ -317,11 +318,11 @@
 
       !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r)
       do k = lo(3), hi(3)
-         z = xlo(3) + (dble(k-lo(3))+0.5d0) * delta(3) - center(3)
+         z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
          do j = lo(2), hi(2)
-            y = xlo(2) + (dble(j-lo(2))+0.5d0) * delta(2) - center(2)
+            y = xlo(2) + (dble(j-lo(2))+HALF) * delta(2) - center(2)
             do i = lo(1), hi(1)
-               x = xlo(1) + (dble(i-lo(1))+0.5d0) * delta(1) - center(1)
+               x = xlo(1) + (dble(i-lo(1))+HALF) * delta(1) - center(1)
                r = sqrt(x*x+y*y+z*z)
                radvel(i,j,k,1) = ( dat(i,j,k,2)*x + &
                                    dat(i,j,k,3)*y + &
@@ -431,6 +432,7 @@
            u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
+      use bl_constants_module
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN 
 
       implicit none
@@ -452,11 +454,11 @@
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
-               rhoInv = 1.d0/u(i,j,k,URHO)
+               rhoInv = ONE/u(i,j,k,URHO)
                ux = u(i,j,k,UMX)*rhoInv
                uy = u(i,j,k,UMY)*rhoInv
                uz = u(i,j,k,UMZ)*rhoInv
-               e(i,j,k,1) = u(i,j,k,UEDEN)*rhoInv-0.5d0*(ux**2+uy**2+uz**2)
+               e(i,j,k,1) = u(i,j,k,UEDEN)*rhoInv-HALF*(ux**2+uy**2+uz**2)
             enddo
          enddo
       enddo
@@ -746,6 +748,9 @@
       !
       ! This routine will calculate vorticity
       !     
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(3), hi(3)
@@ -780,12 +785,12 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               uy = 0.5d0 * (dat(i,j+1,k,2) - dat(i,j-1,k,2)) / delta(2)
-               uz = 0.5d0 * (dat(i,j,k+1,2) - dat(i,j,k-1,2)) / delta(3)
-               vx = 0.5d0 * (dat(i+1,j,k,3) - dat(i-1,j,k,3)) / delta(1)
-               vz = 0.5d0 * (dat(i,j,k+1,3) - dat(i,j,k-1,3)) / delta(3)
-               wx = 0.5d0 * (dat(i+1,j,k,4) - dat(i-1,j,k,4)) / delta(1)
-               wy = 0.5d0 * (dat(i,j+1,k,4) - dat(i,j-1,k,4)) / delta(2)
+               uy = HALF * (dat(i,j+1,k,2) - dat(i,j-1,k,2)) / delta(2)
+               uz = HALF * (dat(i,j,k+1,2) - dat(i,j,k-1,2)) / delta(3)
+               vx = HALF * (dat(i+1,j,k,3) - dat(i-1,j,k,3)) / delta(1)
+               vz = HALF * (dat(i,j,k+1,3) - dat(i,j,k-1,3)) / delta(3)
+               wx = HALF * (dat(i+1,j,k,4) - dat(i-1,j,k,4)) / delta(1)
+               wy = HALF * (dat(i,j+1,k,4) - dat(i,j-1,k,4)) / delta(2)
                v1 = wy - vz
                v2 = uz - wx
                v3 = vx - uy
@@ -819,6 +824,9 @@
       !
       ! This routine will divergence of velocity.
       !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(3), hi(3)
@@ -844,7 +852,7 @@
                vlo = dat(i,j-1,k,3) / dat(i,j-1,k,1)
                whi = dat(i,j,k+1,4) / dat(i,j,k+1,1)
                wlo = dat(i,j,k-1,4) / dat(i,j,k-1,1)
-               divu(i,j,k,1) = 0.5d0 * ( (uhi-ulo) / delta(1) + &
+               divu(i,j,k,1) = HALF * ( (uhi-ulo) / delta(1) + &
                                          (vhi-vlo) / delta(2) + &
                                          (whi-wlo) / delta(3) )
             end do
@@ -860,8 +868,11 @@
                               dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
                               lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
-      ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2)
+      ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
       !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(3), hi(3)
@@ -880,7 +891,7 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               kineng(i,j,k,1) = 0.5d0 / dat(i,j,k,1) * ( dat(i,j,k,2)**2 + &
+               kineng(i,j,k,1) = HALF / dat(i,j,k,1) * ( dat(i,j,k,2)**2 + &
                                                           dat(i,j,k,3)**2 + &
                                                           dat(i,j,k,4)**2 )
             end do

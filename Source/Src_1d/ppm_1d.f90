@@ -11,6 +11,7 @@ contains
                  Ip,Im,ilo,ihi,dx,dt)
        
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use bl_constants_module
 
     implicit none
        
@@ -64,17 +65,17 @@ contains
 
        ! compute van Leer slopes in x-direction (CW Eq. 1.7, 1.8 
        ! w/ zone widths (dxi) all equal)
-       dsvl = 0.d0
+       dsvl = ZERO
        do i=ilo-2,ihi+2
-          dsc = 0.5d0 * (s(i+1) - s(i-1))
-          dsl = 2.d0  * (s(i  ) - s(i-1))
-          dsr = 2.d0  * (s(i+1) - s(i  ))
-          if (dsl*dsr .gt. 0.d0) dsvl(i) = sign(1.d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i+1) - s(i-1))
+          dsl = TWO  * (s(i  ) - s(i-1))
+          dsr = TWO  * (s(i+1) - s(i  ))
+          if (dsl*dsr .gt. ZERO) dsvl(i) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
        end do
        
        ! interpolate s to x-edges (CW 1.6)
        do i=ilo-1,ihi+2
-          sedge(i) = 0.5d0*(s(i)+s(i-1)) - (1.d0/6.d0)*(dsvl(i)-dsvl(i-1))
+          sedge(i) = HALF*(s(i)+s(i-1)) - SIXTH*(dsvl(i)-dsvl(i-1))
           ! make sure sedge lies in between adjacent cell-centered values
           sedge(i) = max(sedge(i),min(s(i),s(i-1)))
           sedge(i) = min(sedge(i),max(s(i),s(i-1)))
@@ -90,21 +91,21 @@ contains
           ! flatten the parabola BEFORE doing the other
           ! monotonozation -- this is the method that Flash does
           do i=ilo-1,ihi+1
-             sm(i) = flatn(i)*sm(i) + (1.d0-flatn(i))*s(i)
-             sp(i) = flatn(i)*sp(i) + (1.d0-flatn(i))*s(i)
+             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
+             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
           enddo
        endif
 
        ! modify using quadratic limiters (CW 1.10) -- with a slightly
        ! different form from Colella & Sekora (Eqs. 14, 15)
        do i=ilo-1,ihi+1
-          if ((sp(i)-s(i))*(s(i)-sm(i)) .le. 0.d0) then
+          if ((sp(i)-s(i))*(s(i)-sm(i)) .le. ZERO) then
              sp(i) = s(i)
              sm(i) = s(i)
-          else if (abs(sp(i)-s(i)) .ge. 2.d0*abs(sm(i)-s(i))) then
-             sp(i) = 3.d0*s(i) - 2.d0*sm(i)
-          else if (abs(sm(i)-s(i)) .ge. 2.d0*abs(sp(i)-s(i))) then
-             sm(i) = 3.d0*s(i) - 2.d0*sp(i)
+          else if (abs(sp(i)-s(i)) .ge. TWO*abs(sm(i)-s(i))) then
+             sp(i) = THREE*s(i) - TWO*sm(i)
+          else if (abs(sm(i)-s(i)) .ge. TWO*abs(sp(i)-s(i))) then
+             sm(i) = THREE*s(i) - TWO*sp(i)
           end if
        end do
 
@@ -112,8 +113,8 @@ contains
           ! flatten the parabola AFTER doing the monotonization --
           ! this is the method that Miller & Colella do
           do i=ilo-1,ihi+1
-             sm(i) = flatn(i)*sm(i) + (1.d0-flatn(i))*s(i)
-             sp(i) = flatn(i)*sp(i) + (1.d0-flatn(i))*s(i)
+             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
+             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
           enddo
        endif
 
@@ -122,15 +123,15 @@ contains
        
        ! interpolate s to x-edges
        do i=ilo-2,ihi+3
-          sedge(i) = (7.d0/12.d0)*(s(i-1)+s(i)) - (1.d0/12.d0)*(s(i-2)+s(i+1))
+          sedge(i) = SEVEN12TH*(s(i-1)+s(i)) - TWELFTH*(s(i-2)+s(i+1))
           ! limit sedge
-          if ((sedge(i)-s(i-1))*(s(i)-sedge(i)) .lt. 0.d0) then
-             D2  = 3.d0*(s(i-1)-2.d0*sedge(i)+s(i))
-             D2L = s(i-2)-2.d0*s(i-1)+s(i)
-             D2R = s(i-1)-2.d0*s(i)+s(i+1)
-             sgn = sign(1.d0,D2)
-             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),0.d0)
-             sedge(i) = 0.5d0*(s(i-1)+s(i)) - (1.d0/6.d0)*D2LIM
+          if ((sedge(i)-s(i-1))*(s(i)-sedge(i)) .lt. ZERO) then
+             D2  = THREE*(s(i-1)-TWO*sedge(i)+s(i))
+             D2L = s(i-2)-TWO*s(i-1)+s(i)
+             D2R = s(i-1)-TWO*s(i)+s(i+1)
+             sgn = sign(ONE,D2)
+             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),ZERO)
+             sedge(i) = HALF*(s(i-1)+s(i)) - SIXTH*D2LIM
           end if
        end do
 
@@ -141,11 +142,11 @@ contains
 
           alphap = sedge(i+1)-s(i)
           alpham = sedge(i  )-s(i)
-          bigp = abs(alphap).gt.2.d0*abs(alpham)
-          bigm = abs(alpham).gt.2.d0*abs(alphap)
+          bigp = abs(alphap).gt.TWO*abs(alpham)
+          bigm = abs(alpham).gt.TWO*abs(alphap)
           extremum = .false.
 
-          if (alpham*alphap .ge. 0.d0) then
+          if (alpham*alphap .ge. ZERO) then
              extremum = .true.
           else if (bigp .or. bigm) then
              ! Possible extremum. We look at cell centered values and face
@@ -165,40 +166,40 @@ contains
                 dachkm = dabarm
                 dachkp = dabarp
              endif
-             extremum = (dachkm*dachkp .le. 0.d0)
+             extremum = (dachkm*dachkp .le. ZERO)
           end if
 
           if (extremum) then
-             D2  = 6.d0*(alpham + alphap)
-             D2L = s(i-2)-2.d0*s(i-1)+s(i)
-             D2R = s(i)-2.d0*s(i+1)+s(i+2)
-             D2C = s(i-1)-2.d0*s(i)+s(i+1)
-             sgn = sign(1.d0,D2)
-             D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),0.d0)
+             D2  = SIX*(alpham + alphap)
+             D2L = s(i-2)-TWO*s(i-1)+s(i)
+             D2R = s(i)-TWO*s(i+1)+s(i+2)
+             D2C = s(i-1)-TWO*s(i)+s(i+1)
+             sgn = sign(ONE,D2)
+             D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
              alpham = alpham*D2LIM/max(abs(D2),1.d-10)
              alphap = alphap*D2LIM/max(abs(D2),1.d-10)
           else
              if (bigp) then
-                sgn = sign(1.d0,alpham)
+                sgn = sign(ONE,alpham)
                 amax = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1) - s(i)
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
-                      alphap = (-2.d0*delam - 2.d0*sgn*sqrt(delam**2 - delam*alpham))
+                      alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
-                      alphap = -2.d0*alpham
+                      alphap = -TWO*alpham
                    endif
                 endif
              end if
              if (bigm) then
-                sgn = sign(1.d0,alphap)
+                sgn = sign(ONE,alphap)
                 amax = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1) - s(i)
                if (sgn*amax .ge. sgn*delap) then
                   if (sgn*(delap - alphap).ge.1.d-10) then
-                     alpham = (-2.d0*delap - 2.d0*sgn*sqrt(delap**2 - delap*alphap))
+                     alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                   else
-                     alpham = -2.d0*alphap
+                     alpham = -TWO*alphap
                   endif
                endif
              end if
@@ -220,57 +221,57 @@ contains
           ! Ip integrates to the right edge of a cell   
           ! Im integrates to the left edge of a cell
         
-          s6 = 6.0d0*s(i) - 3.0d0*(sm(i)+sp(i))
+          s6 = SIX*s(i) - THREE*(sm(i)+sp(i))
 
           ! u-c wave
           sigma = abs(u(i)-cspd(i))*dt/dx
 
-          if (u(i)-cspd(i) <= 0.0d0) then
+          if (u(i)-cspd(i) <= ZERO) then
              Ip(i,1) = sp(i)
           else
              Ip(i,1) = sp(i) - &
-                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i)-cspd(i) >= 0.0d0) then
+          if (u(i)-cspd(i) >= ZERO) then
              Im(i,1) = sm(i)
           else
              Im(i,1) = sm(i) + &
-                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u wave
           sigma = abs(u(i))*dt/dx
 
-          if (u(i) <= 0.0d0) then
+          if (u(i) <= ZERO) then
              Ip(i,2) = sp(i)
           else
              Ip(i,2) = sp(i) - &
-                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i) >= 0.0d0) then
+          if (u(i) >= ZERO) then
              Im(i,2) = sm(i)
           else
              Im(i,2) = sm(i) + &
-                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u+c wave
           sigma = abs(u(i)+cspd(i))*dt/dx
 
-          if (u(i) + cspd(i) <= 0.0d0) then
+          if (u(i) + cspd(i) <= ZERO) then
              Ip(i,3) = sp(i)
           else
              Ip(i,3) = sp(i) - &
-                  (sigma/2.0d0)*(sp(i)-sm(i)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i) + cspd(i) >= 0.0d0) then
+          if (u(i) + cspd(i) >= ZERO) then
              Im(i,3) = sm(i)
           else
              Im(i,3) = sm(i) + &
-                  (sigma/2.0d0)*(sp(i)-sm(i)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
           endif
        end do
        

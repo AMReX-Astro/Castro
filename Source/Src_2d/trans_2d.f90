@@ -24,6 +24,7 @@ contains
                                    nadv, small_pres, small_temp, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav
     use eos_module
+    use bl_constants_module
 
     implicit none
 
@@ -187,7 +188,7 @@ contains
                               area1(i,j)*fx(i,j,URHO))/vol(i,j) 
           runewr = rur - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                               area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                              -0.5*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
+                              -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
           rvnewr = rvr - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                               area1(i,j)*fx(i,j,UMY))/vol(i,j) 
           renewr = rer - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
@@ -197,7 +198,7 @@ contains
                               area1(i,j)*fx(i,j,URHO))/vol(i,j) 
           runewl = rul - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                               area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                              -0.5*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
+                              -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
           rvnewl = rvl - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                               area1(i,j)*fx(i,j,UMY))/vol(i,j) 
           renewl = rel - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &

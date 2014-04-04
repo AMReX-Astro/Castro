@@ -5,8 +5,10 @@
 
        use fundamental_constants_module, only : Gconst
        use probdata_module             , only : center
+       use bl_constants_module
 
        implicit none
+
        integer         , intent(in   ) :: grav_l1,grav_h1
        double precision, intent(in   ) :: point_mass
        double precision, intent(inout) :: grav(grav_l1  :grav_h1)
@@ -21,7 +23,7 @@
 !      This computes radial gravity due to a point mass at the origin.
        do i = grav_l1, grav_h1
 
-          x = problo(1) + (dble(i)+0.5d0) * dx(1)
+          x = problo(1) + (dble(i)+HALF) * dx(1)
 
           grav(i) = grav(i) - Gconst * point_mass / (x*x)
 
@@ -39,6 +41,7 @@
            problo,dx,time,dt)
 
       use meth_params_module, only : NVAR, URHO, UMX
+      use bl_constants_module
 
       implicit none
 
@@ -61,7 +64,7 @@
           do ii = 0, box_size-1
              delta_mass = delta_mass + vol(ii) * (uout(ii,URHO)-uin(ii,URHO))
           end do
-          delta_mass = max(0.d0, delta_mass)
+          delta_mass = max(ZERO, delta_mass)
       end if
 
       end subroutine pm_compute_delta_mass

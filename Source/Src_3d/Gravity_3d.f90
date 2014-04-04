@@ -19,7 +19,11 @@
       subroutine ca_avgdown_phi (crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3, &
                                  fine,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                                  lo,hi,lrat)
+
+      use bl_constants_module
+
       implicit none
+
       integer c_l1,c_l2,c_l3,c_h1,c_h2,c_h3
       integer f_l1,f_l2,f_l3,f_h1,f_h2,f_h3
       integer lo(3), hi(3)
@@ -34,14 +38,14 @@
       lratx   = lrat(1)
       lraty   = lrat(2)
       lratz   = lrat(3)
-      volfrac = 1.d0/float(lrat(1)*lrat(2)*lrat(3))
+      volfrac = ONE/float(lrat(1)*lrat(2)*lrat(3))
       !
       ! ::::: set coarse grid to zero on overlap
       !
       do kc = lo(3), hi(3)
          do jc = lo(2), hi(2)
             do ic = lo(1), hi(1)
-               crse(ic,jc,kc) = 0.d0
+               crse(ic,jc,kc) = ZERO
             enddo
          enddo
       enddo
@@ -243,6 +247,8 @@
            ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
            dx, problo, coord_type)
 
+      use bl_constants_module
+
       implicit none
       integer          :: lo(3),hi(3)
       integer          :: bc_lo(3),bc_hi(3)
@@ -265,7 +271,7 @@
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
-               cc(i,j,k,1) = 0.5d0 * ( ecx(i+1,j,k) + ecx(i,j,k) )
+               cc(i,j,k,1) = HALF * ( ecx(i+1,j,k) + ecx(i,j,k) )
             enddo
          enddo
       enddo
@@ -275,7 +281,7 @@
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
-               cc(i,j,k,2) = 0.5d0 * ( ecy(i,j+1,k) + ecy(i,j,k) )
+               cc(i,j,k,2) = HALF * ( ecy(i,j+1,k) + ecy(i,j,k) )
             enddo
          enddo
       enddo
@@ -285,7 +291,7 @@
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
-               cc(i,j,k,3) = 0.5d0 * ( ecz(i,j,k+1) + ecz(i,j,k) )
+               cc(i,j,k,3) = HALF * ( ecz(i,j,k+1) + ecz(i,j,k) )
             enddo
          enddo
       enddo
@@ -393,6 +399,10 @@
            cz, czl1, czl2, czl3, czh1, czh2, czh3, &
            lo, hi, rr)
 
+      use bl_constants_module
+
+      implicit none
+
       integer lo(3),hi(3)
       integer fxl1, fxl2, fxl3, fxh1, fxh2, fxh3
       integer fyl1, fyl2, fyl3, fyh1, fyh2, fyh3
@@ -419,7 +429,7 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)+1
-               cx(i,j,k) = 0.d0
+               cx(i,j,k) = ZERO
                do n = 0,facy-1
                   do m = 0,facz-1
                      cx(i,j,k) = cx(i,j,k) + fx(facx*i,facy*j+n,facz*k+m)
@@ -435,7 +445,7 @@
       do k = lo(3), hi(3)
          do i = lo(1), hi(1)
             do j = lo(2), hi(2)+1
-               cy(i,j,k) = 0.d0
+               cy(i,j,k) = ZERO
                do n = 0,facx-1
                   do m = 0,facz-1
                      cy(i,j,k) = cy(i,j,k) + fy(facx*i+n,facy*j,facz*k+m)
@@ -451,7 +461,7 @@
       do j = lo(2), hi(2)
          do i = lo(1), hi(1)
             do k = lo(3), hi(3)+1
-               cz(i,j,k) = 0.d0
+               cz(i,j,k) = ZERO
                do n = 0,facx-1
                   do m = 0,facy-1
                      cz(i,j,k) = cz(i,j,k) + fz(facx*i+n,facy*j+m,facz*k)
@@ -474,6 +484,7 @@
                                          rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
                                          radial_mass,radial_vol,problo,&
                                          n1d,drdxfac,level)
+      use bl_constants_module
       use probdata_module
 
       implicit none
@@ -499,9 +510,9 @@
       if (( abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1) ) .and. &
           ( abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2) ) .and. &
           ( abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3) ) ) then
-         octant_factor = 8.d0
+         octant_factor = EIGHT
       else
-         octant_factor = 1.d0
+         octant_factor = ONE
       end if
 
 
@@ -515,13 +526,13 @@
       ! Don't OMP this.
       !
       do k = lo(3), hi(3)
-         zc = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+         zc = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
 
          do j = lo(2), hi(2)
-            yc = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+            yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
             do i = lo(1), hi(1)
-               xc  = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+               xc  = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
 
                r = sqrt(xc**2 + yc**2 + zc**2)
                index = int(r/dr)
@@ -543,14 +554,14 @@
                   lo_k =  problo(3) + dble(k)*dx(3) - center(3)
 
                   do kk = 0,drdxfac-1
-                     zz   = lo_k + (dble(kk)+0.5d0)*dz_frac
+                     zz   = lo_k + (dble(kk)+HALF)*dz_frac
                      zzsq = zz*zz
                      do jj = 0,drdxfac-1
-                        yy   = lo_j + (dble(jj)+0.5d0)*dy_frac
+                        yy   = lo_j + (dble(jj)+HALF)*dy_frac
                         yysq = yy*yy
                         do ii = 0,drdxfac-1
 
-                           xx    = lo_i + (dble(ii)+0.5d0)*dx_frac
+                           xx    = lo_i + (dble(ii)+HALF)*dx_frac
                            xxsq  = xx*xx
                            r     = sqrt(xxsq  + yysq + zzsq)
                            index = int(r/dr)
@@ -578,6 +589,7 @@
                                      grav,g_l1,g_l2,g_l3,g_h1,g_h2,g_h3, &
                                      radial_grav,problo,n1d,level)
 
+      use bl_constants_module
       use probdata_module
 
       implicit none
@@ -601,16 +613,16 @@
       !
       !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r,index,cen,xi,slope,mag_grav,ghi,gmd,glo,minvar,maxvar)
       do k = g_l3,g_h3
-         z = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+         z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
 
          do j = g_l2,g_h2
-            y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+            y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
             do i = g_l1,g_h1
-               x     = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+               x     = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                r     = sqrt(x**2 + y**2 + z**2)
                index = int(r/dr)
-               cen   = (dble(index)+0.5d0)*dr
+               cen   = (dble(index)+HALF)*dr
                xi    = r - cen
 
                if (index == 0) then
@@ -646,8 +658,8 @@
                   gmd = radial_grav(index  )
                   glo = radial_grav(index-1)
                   mag_grav = &
-                   ( ghi -  2.d0*gmd + glo)*xi**2/(2.d0*dr**2) + &
-                   ( ghi       - glo      )*xi   /(2.d0*dr   ) + &
+                   ( ghi -   TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
+                   ( ghi       - glo      )*xi   /(TWO*dr   ) + &
                    (-ghi + 26.d0*gmd - glo)/24.d0
    
                   minvar = min(gmd, min(glo,ghi))
@@ -676,6 +688,7 @@
                                     phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
                                     radial_phi,problo,&
                                     numpts_1d,fill_interior)
+        use bl_constants_module
         use probdata_module
 
         implicit none
@@ -705,7 +718,7 @@
            else if (k .lt. domlo(3)) then
               z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
            else 
-              z = problo(3) + (dble(k  )+0.50d0) * dx(3) - center(3)
+              z = problo(3) + (dble(k  )+HALF) * dx(3) - center(3)
            end if
 
            do j = p_l2,p_h2
@@ -714,7 +727,7 @@
               else if (j .lt. domlo(2)) then
                  y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
               else 
-                 y = problo(2) + (dble(j  )+0.50d0) * dx(2) - center(2)
+                 y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
               end if
 
               do i = p_l1,p_h1
@@ -723,7 +736,7 @@
                  else if (i .lt. domlo(1)) then
                     x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
                  else 
-                    x = problo(1) + (dble(i  )+0.50d0) * dx(1) - center(1)
+                    x = problo(1) + (dble(i  )+HALF) * dx(1) - center(1)
                  end if
 
                  r     = sqrt( x**2 + y**2 + z**2 )
@@ -740,7 +753,7 @@
                       ( i.lt.domlo(1).or.i.gt.domhi(1)  .or. &
                       j.lt.domlo(2).or.j.gt.domhi(2)  .or. &
                       k.lt.domlo(3).or.k.gt.domhi(3)  ) ) then  
-                    cen = (dble(index)+0.5d0)*dr
+                    cen = (dble(index)+HALF)*dr
                     xi  = r - cen
                     if (index == 0) then
                        !
@@ -762,8 +775,8 @@
                        p_md = radial_phi(index  )
                        p_lo = radial_phi(index-1)
                        phi(i,j,k) = &
-                            ( p_hi -  2.d0*p_md + p_lo)*xi**2/(2.d0*dr**2) + &
-                            ( p_hi       - p_lo      )*xi   /(2.d0*dr   ) + &
+                            ( p_hi -   TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
+                            ( p_hi       - p_lo      )*xi    /(TWO*dr   ) + &
                             (-p_hi + 26.d0*p_md - p_lo)/24.d0
                        minvar     = min(p_md, min(p_lo,p_hi))
                        maxvar     = max(p_md, max(p_lo,p_hi))

@@ -23,6 +23,7 @@ contains
          ppm_flatten_before_integrals
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
+    use bl_constants_module
 
     implicit none
 
@@ -77,6 +78,9 @@ contains
 
     double precision, allocatable :: Ip(:,:,:)
     double precision, allocatable :: Im(:,:,:)
+
+    double precision, allocatable :: Ip_gc(:,:,:)
+    double precision, allocatable :: Im_gc(:,:,:)
     
     fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
          .and. (ilo .eq. domlo(1))
@@ -88,11 +92,14 @@ contains
        call bl_error("Error:: ppm_1d.f90 :: trace_ppm")
     end if
     
-    hdt = 0.5d0 * dt
+    hdt = HALF * dt
     dtdx = dt/dx
 
     allocate(Ip(ilo-1:ihi+1,3,QVAR))
     allocate(Im(ilo-1:ihi+1,3,QVAR))
+
+    allocate(Ip_gc(ilo-1:ihi+1,3,1))
+    allocate(Im_gc(ilo-1:ihi+1,3,1))
 
     !=========================================================================
     ! PPM CODE
@@ -131,6 +138,13 @@ contains
                 Ip(:,:,n),Im(:,:,n),ilo,ihi,dx,dt)
     end do
 
+    ! get an edge-based gam1 here
+    call ppm(gamc(:),qd_l1,qd_h1, &
+             q(:,QU),c, &
+             flatn, &
+             Ip_gc(:,:,1),Im_gc(:,:,1),ilo,ihi,dx,dt)
+
+
     ! Trace to left and right edges using upwind PPM
     do i = ilo-1, ihi+1
 
@@ -154,7 +168,7 @@ contains
 
        ! set the reference state
        if (ppm_reference == 0 .or. &
-            (ppm_reference == 1 .and. u - cc >= 0.0d0 .and. &
+            (ppm_reference == 1 .and. u - cc >= ZERO .and. &
              ppm_reference_edge_limit == 0)) then
           ! original Castro way -- cc value
           rho_ref  = rho
@@ -175,7 +189,7 @@ contains
           p_ref    = Im(i,1,QPRES)
           rhoe_ref = Im(i,1,QREINT)
 
-          gam_ref = gamc(i)
+          gam_ref = Im_gc(i,1,1)
        endif
 
        ! for tracing (optionally)
@@ -222,36 +236,36 @@ contains
        ! (except we work with rho instead of tau).  This is simply 
        ! (l . dq), where dq = qref - I(q)
 
-       alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-       alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+       alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+       alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dp/csq_ev
        alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
 
-       if (u-cc .gt. 0.d0) then
-          amright = 0.d0
-       else if (u-cc .lt. 0.d0) then
+       if (u-cc .gt. ZERO) then
+          amright = ZERO
+       else if (u-cc .lt. ZERO) then
           amright = -alpham
        else
-          amright = -0.5d0*alpham
+          amright = -HALF*alpham
        endif
 
-       if (u+cc .gt. 0.d0) then
-          apright = 0.d0
-       else if (u+cc .lt. 0.d0) then
+       if (u+cc .gt. ZERO) then
+          apright = ZERO
+       else if (u+cc .lt. ZERO) then
           apright = -alphap
        else
-          apright = -0.5d0*alphap
+          apright = -HALF*alphap
        endif
 
-       if (u .gt. 0.d0) then
-          azrright = 0.d0
-          azeright = 0.d0
-       else if (u .lt. 0.d0) then
+       if (u .gt. ZERO) then
+          azrright = ZERO
+          azeright = ZERO
+       else if (u .lt. ZERO) then
           azrright = -alpha0r
           azeright = -alpha0e
        else
-          azrright = -0.5d0*alpha0r
-          azeright = -0.5d0*alpha0e        
+          azrright = -HALF*alpha0r
+          azeright = -HALF*alpha0e        
        endif
        
        ! the final interface states are just
@@ -259,11 +273,11 @@ contains
        if (i .ge. ilo) then
 
           if (ppm_flatten_before_integrals == 0) then
-             xi1 = 1.0d0-flatn(i)
+             xi1 = ONE-flatn(i)
              xi = flatn(i)
           else
-             xi1 = 0.0d0
-             xi = 1.0d0
+             xi1 = ZERO
+             xi = ONE
           endif
 
           qxp(i,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
@@ -293,7 +307,7 @@ contains
 
        ! set the reference state
        if (ppm_reference == 0 .or. &
-            (ppm_reference == 1 .and. u + cc <= 0.0d0 .and. &
+            (ppm_reference == 1 .and. u + cc <= ZERO .and. &
             ppm_reference_edge_limit == 0) ) then
           ! original Castro way -- cc values 
           rho_ref  = rho
@@ -312,7 +326,7 @@ contains
           p_ref    = Ip(i,3,QPRES)
           rhoe_ref = Ip(i,3,QREINT)
 
-          gam_ref  = gamc(i)
+          gam_ref  = Ip_gc(i,3,1)
        endif
 
        ! for tracing (optionally)
@@ -358,36 +372,36 @@ contains
        ! these are analogous to the beta's from the original PPM paper
        ! (except we work with rho instead of tau).  This is simply 
        ! (l . dq), where dq = qref - I(q)
-       alpham = 0.5d0*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-       alphap = 0.5d0*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+       alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+       alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dp/csq_ev
        alpha0e = drhoe - dp*enth_ev
 
-       if (u-cc .gt. 0.d0) then
+       if (u-cc .gt. ZERO) then
           amleft = -alpham
-       else if (u-cc .lt. 0.d0) then
-          amleft = 0.d0
+       else if (u-cc .lt. ZERO) then
+          amleft = ZERO
        else
-          amleft = -0.5d0*alpham
+          amleft = -HALF*alpham
        endif
 
-       if (u+cc .gt. 0.d0) then
+       if (u+cc .gt. ZERO) then
           apleft = -alphap
-       else if (u+cc .lt. 0.d0) then
-          apleft = 0.d0
+       else if (u+cc .lt. ZERO) then
+          apleft = ZERO
        else
-          apleft = -0.5d0*alphap
+          apleft = -HALF*alphap
        endif
 
-       if (u .gt. 0.d0) then
+       if (u .gt. ZERO) then
           azrleft = -alpha0r
           azeleft = -alpha0e
-       else if (u .lt. 0.d0) then
-          azrleft = 0.d0
-          azeleft = 0.d0
+       else if (u .lt. ZERO) then
+          azrleft = ZERO
+          azeleft = ZERO
        else
-          azrleft = -0.5d0*alpha0r
-          azeleft = -0.5d0*alpha0e
+          azrleft = -HALF*alpha0r
+          azeleft = -HALF*alpha0e
        endif
 
        ! the final interface states are just
@@ -395,11 +409,11 @@ contains
        if (i .le. ihi) then
 
           if (ppm_flatten_before_integrals == 0) then
-             xi1 = 1.0d0-flatn(i)
+             xi1 = ONE-flatn(i)
              xi = flatn(i)
           else
-             xi1 = 0.0d0
-             xi = 1.0d0
+             xi1 = ZERO
+             xi = ONE
           endif
 
           qxm(i+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
@@ -428,9 +442,9 @@ contains
 
        if(dloga(i).ne.0)then
           courn = dtdx*(cc+abs(u))
-          eta = (1.d0-courn)/(cc*dt*abs(dloga(i)))
-          dlogatmp = min(eta,1.d0)*dloga(i)
-          sourcr = -0.5d0*dt*rho*dlogatmp*u
+          eta = (ONE-courn)/(cc*dt*abs(dloga(i)))
+          dlogatmp = min(eta,ONE)*dloga(i)
+          sourcr = -HALF*dt*rho*dlogatmp*u
           sourcp = sourcr*csq
           source = sourcp*enth
 
@@ -480,7 +494,7 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
           ! the flattening here is a little confusing.  What we want
@@ -501,12 +515,12 @@ contains
           ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)] 
           !      = q_i + xi*(I - q_i)
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxp(i,n) = q(i,n)
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxp(i,n) = q(i,n) + xi*(Im(i,2,n) - q(i,n))
           else
-             qxp(i,n) = q(i,n) + 0.5d0*xi*(Im(i,2,n) - q(i,n))
+             qxp(i,n) = q(i,n) + HALF*xi*(Im(i,2,n) - q(i,n))
           endif
        enddo
        if (fix_mass_flux_hi) qxp(ihi+1,n) = q(ihi+1,n)
@@ -518,15 +532,15 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxm(i+1,n) = q(i,n) + xi*(Ip(i,2,n) - q(i,n))
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxm(i+1,n) = q(i,n)
           else
-             qxm(i+1,n) = q(i,n) + 0.5d0*xi*(Ip(i,2,n) - q(i,n))
+             qxm(i+1,n) = q(i,n) + HALF*xi*(Ip(i,2,n) - q(i,n))
           endif
        enddo
        if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
@@ -545,15 +559,15 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxp(i,ns) = q(i,ns)
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxp(i,ns) = q(i,ns) + xi*(Im(i,2,ns) - q(i,ns))
           else
-             qxp(i,ns) = q(i,ns) + 0.5d0*xi*(Im(i,2,ns) - q(i,ns))
+             qxp(i,ns) = q(i,ns) + HALF*xi*(Im(i,2,ns) - q(i,ns))
           endif
        enddo
        if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
@@ -565,15 +579,15 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxm(i+1,ns) = q(i,ns) + xi*(Ip(i,2,ns) - q(i,ns))
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxm(i+1,ns) = q(i,ns)
           else
-             qxm(i+1,ns) = q(i,ns) + 0.5d0*xi*(Ip(i,2,ns) - q(i,ns))
+             qxm(i+1,ns) = q(i,ns) + HALF*xi*(Ip(i,2,ns) - q(i,ns))
           endif
        enddo
        if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
@@ -592,15 +606,15 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxp(i,ns) = q(i,ns)
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxp(i,ns) = q(i,ns) + xi*(Im(i,2,ns) - q(i,ns))
           else
-             qxp(i,ns) = q(i,ns) + 0.5d0*xi*(Im(i,2,ns) - q(i,ns))
+             qxp(i,ns) = q(i,ns) + HALF*xi*(Im(i,2,ns) - q(i,ns))
           endif
        enddo
        if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
@@ -612,15 +626,15 @@ contains
           if (ppm_flatten_before_integrals == 0) then
              xi = flatn(i)
           else
-             xi = 1.0d0
+             xi = ONE
           endif
 
-          if (u .gt. 0.d0) then
+          if (u .gt. ZERO) then
              qxm(i+1,ns) = q(i,ns) + xi*(Ip(i,2,ns) - q(i,ns))
-          else if (u .lt. 0.d0) then
+          else if (u .lt. ZERO) then
              qxm(i+1,ns) = q(i,ns)
           else
-             qxm(i+1,ns) = q(i,ns) + 0.5d0*xi*(Ip(i,2,ns) - q(i,ns))
+             qxm(i+1,ns) = q(i,ns) + HALF*xi*(Ip(i,2,ns) - q(i,ns))
           endif
        enddo
        if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)

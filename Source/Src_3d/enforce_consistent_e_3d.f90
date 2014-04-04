@@ -2,6 +2,7 @@
                                       state_l1,state_l2,state_l3,state_h1,state_h2,state_h3)
 
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
+     use bl_constants_module
 
      implicit none
 
@@ -26,7 +27,7 @@
               w = state(i,j,k,UMZ) / state(i,j,k,URHO)
 
               state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
-                     0.5d0 * state(i,j,k,URHO) * (u*u + v*v + w*w)
+                     HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
 
            end do
         end do

@@ -22,6 +22,7 @@ contains
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix
+    use bl_constants_module
 
     implicit none
 
@@ -56,7 +57,7 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i-1,j,k3d) )
-             cavg(i,j) = 0.5d0*( c(i,j,k3d) + c(i-1,j,k3d) )
+             cavg(i,j) = HALF*( c(i,j,k3d) + c(i-1,j,k3d) )
              gamcm(i,j) = gamc(i-1,j,k3d)
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
@@ -65,7 +66,7 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i,j-1,k3d) )
-             cavg(i,j) = 0.5d0*( c(i,j,k3d) + c(i,j-1,k3d) )
+             cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j-1,k3d) )
              gamcm(i,j) = gamc(i,j-1,k3d)
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
@@ -74,7 +75,7 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i,j,k3d-1) )
-             cavg(i,j) = 0.5d0*( c(i,j,k3d) + c(i,j,k3d-1) )
+             cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j,k3d-1) )
              gamcm(i,j) = gamc(i,j,k3d-1)
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
@@ -170,9 +171,9 @@ contains
                                    UESGS, UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol
+    use bl_constants_module
 
     double precision, parameter:: small = 1.d-8
-    double precision, parameter:: twothirds = 2.d0/3.d0
 
     integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
     integer :: gd_l1,gd_l2,gd_h1,gd_h2
@@ -274,7 +275,7 @@ contains
           ! sometime we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
           ! consistent
-          if (rel <= 0.d0 .or. pl <= small_pres) then
+          if (rel <= ZERO .or. pl <= small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
              eos_state%T   = small_temp
              eos_state%rho = rl
@@ -310,7 +311,7 @@ contains
           rer = qr(i,j,kc,QREINT)
           gcr = gamcr(i,j)
 
-          if (rer <= 0.d0 .or. pr <= small_pres) then
+          if (rer <= ZERO .or. pr <= small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
              eos_state % T   = small_temp
              eos_state % rho = rr
@@ -326,8 +327,8 @@ contains
 
             
           ! common quantities
-          taul = 1.d0/rl
-          taur = 1.d0/rr
+          taul = ONE/rl
+          taur = ONE/rr
           
           ! lagrangian sound speeds
           clsql = gcl*pl*rl
@@ -339,18 +340,18 @@ contains
           ! evolution equation.  In Castro, we instead bring (rho e)
           ! to the edges, so we construct the necessary gamma_e here from
           ! what we have on the interfaces.
-          gamel = pl/rel + 1.d0
-          gamer = pr/rer + 1.d0
+          gamel = pl/rel + ONE
+          gamer = pr/rer + ONE
           
           ! these should consider a wider average of the cell-centered
           ! gammas
-          gmin = min(gamel, gamer, 1.0, 4.d0/3.d0)
-          gmax = max(gamel, gamer, 2.0, 5.d0/3.d0)
+          gmin = min(gamel, gamer, ONE, FOUR3RD)
+          gmax = max(gamel, gamer, TWO, FIVE3RD)
           
-          game_bar = 0.5d0*(gamel + gamer)
-          gamc_bar = 0.5d0*(gcl + gcr)
+          game_bar = HALF*(gamel + gamer)
+          gamc_bar = HALF*(gcl + gcr)
           
-          gdot = 2.d0*(1.d0 - game_bar/gamc_bar)*(game_bar - 1.0d0)
+          gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
           
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
@@ -399,8 +400,8 @@ contains
                         gamstar,pstar,wrsq,clsqr,gmin,gmax)
 
              ! NOTE: these are really the inverses of the wave speeds!
-             wl = 1.d0 / sqrt(wlsq)
-             wr = 1.d0 / sqrt(wrsq)
+             wl = ONE / sqrt(wlsq)
+             wr = ONE / sqrt(wrsq)
              
              ustnm1 = ustarm
              ustnp1 = ustarp
@@ -415,12 +416,12 @@ contains
              ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
              ! simply |du*_p| (or something that looks like dp/Z!).
              zp=abs(ustarp-ustnp1)
-             if(zp-weakwv*cav(i,j) <= 0.d0)then
+             if(zp-weakwv*cav(i,j) <= ZERO)then
                 zp = dpditer*wl
              endif
              
              zm=abs(ustarm-ustnm1)
-             if(zm-weakwv*cav(i,j) <= 0.d0)then
+             if(zm-weakwv*cav(i,j) <= ZERO)then
                 zm = dpditer*wr
              endif
              
@@ -457,13 +458,13 @@ contains
           ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
           ustarp = ul+(pl-pstar)*wl            
 
-          ustar = 0.5d0* ( ustarp + ustarm )
+          ustar = HALF* ( ustarp + ustarm )
 
           
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
           ! worry about the L/L* states or the R*/R states.  
-          if (ustar .gt. 0.d0) then
+          if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
              po = pl
@@ -471,7 +472,7 @@ contains
              gamco = gcl
              gameo = gamel
              
-          else if (ustar .lt. 0.d0) then
+          else if (ustar .lt. ZERO) then
              ro = rr
              uo = ur
              po = pr
@@ -479,17 +480,17 @@ contains
              gamco = gcr
              gameo = gamer
           else
-             ro = 0.5d0*(rl+rr)
-             uo = 0.5d0*(ul+ur)
-             po = 0.5d0*(pl+pr)
-             tauo = 0.5d0*(taul+taur)
-             gamco = 0.5d0*(gcl+gcr)
-             gameo = 0.5d0*(gamel + gamer)
+             ro = HALF*(rl+rr)
+             uo = HALF*(ul+ur)
+             po = HALF*(pl+pr)
+             tauo = HALF*(taul+taur)
+             gamco = HALF*(gcl+gcr)
+             gameo = HALF*(gamel + gamer)
           endif
 
           ! use tau = 1/rho as the independent variable here
-          ro = max(small_dens,1.0d0/tauo)
-          tauo = 1.0d0/ro
+          ro = max(small_dens,ONE/tauo)
+          tauo = ONE/ro
          
           co = sqrt(abs(gamco*po/ro))
           co = max(csmall,co)
@@ -501,14 +502,14 @@ contains
           call wsqge(po,tauo,gameo,gdot,   &
                      gamstar,pstar,wosq,clsq,gmin,gmax)
 
-          sgnm = sign(1.d0,ustar)
+          sgnm = sign(ONE,ustar)
           
           wo = sqrt(wosq)
           dpjmp = pstar - po
 
           ! is this max really necessary?
-          !rstar=max(1.d0-ro*dpjmp/wosq, (gameo-1.d0)/(gameo+1.d0))
-          rstar=1.d0-ro*dpjmp/wosq
+          !rstar=max(ONE-ro*dpjmp/wosq, (gameo-ONE)/(gameo+ONE))
+          rstar=ONE-ro*dpjmp/wosq
           rstar=ro/rstar
           rstar = max(small_dens,rstar)
 
@@ -519,52 +520,52 @@ contains
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
           
-          !ushock = 0.5d0*(spin + spout)
+          !ushock = HALF*(spin + spout)
           ushock = wo/ro - sgnm*uo
           
-          if (pstar-po .ge. 0.d0) then
+          if (pstar-po .ge. ZERO) then
              spin = ushock
              spout = ushock
           endif
-          !if (spout-spin .eq. 0.d0) then
+          !if (spout-spin .eq. ZERO) then
           !   scr = small*cav(i,j)
           !else
           !   scr = spout-spin
           !endif
-          !frac = (1.d0 + (spout + spin)/scr)*0.5d0
-          !frac = max(0.d0,min(1.d0,frac))
+          !frac = (ONE + (spout + spin)/scr)*HALF
+          !frac = max(ZERO,min(ONE,frac))
 
-          frac = 0.5d0*(1.0d0 + (spin + spout)/max(spout-spin,spin+spout, small*cav(i,j)))
+          frac = HALF*(ONE + (spin + spout)/max(spout-spin,spin+spout, small*cav(i,j)))
 
           ! the transverse velocity states only depend on the
           ! direction that the contact moves
-          if (ustar .gt. 0.d0) then
+          if (ustar .gt. ZERO) then
              v1gdnv = v1l
              v2gdnv = v2l
-          else if (ustar .lt. 0.d0) then
+          else if (ustar .lt. ZERO) then
              v1gdnv = v1r
              v2gdnv = v2r
           else
-             v1gdnv = 0.5d0*(v1l+v1r)
-             v2gdnv = 0.5d0*(v2l+v2r)
+             v1gdnv = HALF*(v1l+v1r)
+             v2gdnv = HALF*(v2l+v2r)
           endif
 
           ! linearly interpolate between the star and normal state -- this covers the
           ! case where we are inside the rarefaction fan.
-          rgdnv = frac*rstar + (1.d0 - frac)*ro          
-          ugdnv(i,j,kc) = frac*ustar + (1.d0 - frac)*uo
-          pgdnv(i,j,kc) = frac*pstar + (1.d0 - frac)*po
-          gamgdnv =  frac*gamstar + (1.d0-frac)*gameo          
+          rgdnv = frac*rstar + (ONE - frac)*ro          
+          ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
+          pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
+          gamgdnv =  frac*gamstar + (ONE-frac)*gameo          
 
           ! now handle the cases where instead we are fully in the
           ! star or fully in the original (l/r) state
-          if (spout .lt. 0.d0) then
+          if (spout .lt. ZERO) then
              rgdnv = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
              gamgdnv = gameo
           endif
-          if (spin .ge. 0.d0) then
+          if (spin .ge. ZERO) then
              rgdnv = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
@@ -578,31 +579,31 @@ contains
              if (i.eq.domlo(1) .and. &
                  (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
                   physbc_lo(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (i.eq.domhi(1)+1 .and. &
                  (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
                   physbc_hi(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 2) then
              if (j.eq.domlo(2) .and. &
                  (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
                   physbc_lo(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (j.eq.domhi(2)+1 .and. &
                  (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
                   physbc_hi(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
              if (kflux.eq.domlo(3) .and. &
                  (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (kflux.eq.domhi(3)+1 .and. &
                  (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
 
           ! Compute fluxes, order as conserved state (not q)
@@ -623,11 +624,11 @@ contains
           endif
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-          rhoetot = pgdnv(i,j,kc)/(gamgdnv - 1.0d0) + &
-               0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+          rhoetot = pgdnv(i,j,kc)/(gamgdnv - ONE) + &
+               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
-          uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*pgdnv(i,j,kc)/(gamgdnv - 1.d0)
+          uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*pgdnv(i,j,kc)/(gamgdnv - ONE)
 
 
           ! Treat K as a passively advected quantity but allow it to
@@ -635,17 +636,17 @@ contains
           if (UESGS .gt. -1) then
              n  = UESGS
              nq = QESGS
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 qavg = ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 qavg = qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
              endif
              
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              
-             rho_K_contrib =  twothirds * rgdnv * qavg
+             rho_K_contrib =  TWO3RD * rgdnv * qavg
              
              if(idir.eq.1) then
                 uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
@@ -662,12 +663,12 @@ contains
           do iadv = 1, nadv
              n  = UFA + iadv - 1
              nq = QFA + iadv - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -676,12 +677,12 @@ contains
           do ispec = 1, nspec
              n  = UFS + ispec - 1
              nq = QFS + ispec - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -690,12 +691,12 @@ contains
           do iaux = 1, naux
              n  = UFX + iaux - 1
              nq = QFX + iaux - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -706,6 +707,10 @@ contains
   end subroutine riemanncg
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
+
+    use bl_constants_module
+    
+    implicit none
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
 
@@ -724,10 +729,10 @@ contains
     ! to compute the wave speed.
 
     ! CG Eq. 34
-    ! wsq = (0.5d0*(gstar-1.0d0)*(pstar+p)+pstar)
-    ! temp = ((gstar-gam)/(gam-1.0d0))
+    ! wsq = (HALF*(gstar-ONE)*(pstar+p)+pstar)
+    ! temp = ((gstar-gam)/(gam-ONE))
 
-    ! if (pstar-p == 0.0d0) then
+    ! if (pstar-p == ZERO) then
     !    divide=small
     ! else
     !    divide=pstar-p
@@ -736,17 +741,17 @@ contains
     ! temp=temp/divide
     ! wsq = wsq/(v - temp*p*v)
 
-    alpha = pstar-(gstar-1.0d0)*p/(gam-1.0d0)
-    if (alpha == 0.0d0) alpha = smlp1*(pstar + p)
+    alpha = pstar-(gstar-ONE)*p/(gam-ONE)
+    if (alpha == ZERO) alpha = smlp1*(pstar + p)
 
-    beta = pstar + 0.5d0*(gstar-1.0d0)*(pstar+p)
+    beta = pstar + HALF*(gstar-ONE)*(pstar+p)
 
     wsq = (pstar-p)*beta/(v*alpha)
 
     if (abs(pstar - p) < smlp1*(pstar + p)) then
        wsq = csq
     endif
-    wsq=max(wsq,(0.5d0*(gam-1.d0)/gam)*csq)
+    wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
     
     return
   end subroutine wsqge
@@ -766,10 +771,10 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
                                      nadv, small_dens, small_pres
+    use bl_constants_module
 
     implicit none
     double precision, parameter:: small = 1.d-8
-    double precision, parameter:: twothirds = 2.d0/3.d0
 
     integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
     integer :: gd_l1,gd_l2,gd_h1,gd_h2
@@ -857,24 +862,24 @@ contains
           ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
           pstar = max(pstar,small_pres)
           
-          if (ustar .gt. 0.d0) then
+          if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
              po = pl
              reo = rel
              gamco = gamcl(i,j)
-          else if (ustar .lt. 0.d0) then
+          else if (ustar .lt. ZERO) then
              ro = rr
              uo = ur
              po = pr
              reo = rer
              gamco = gamcr(i,j)
           else
-             ro = 0.5d0*(rl+rr)
-             uo = 0.5d0*(ul+ur)
-             po = 0.5d0*(pl+pr)
-             reo = 0.5d0*(rel+rer)
-             gamco = 0.5d0*(gamcl(i,j)+gamcr(i,j))
+             ro = HALF*(rl+rr)
+             uo = HALF*(ul+ur)
+             po = HALF*(pl+pr)
+             reo = HALF*(rel+rer)
+             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
           endif
           ro = max(small_dens,ro)
           
@@ -887,45 +892,45 @@ contains
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
           
-          sgnm = sign(1.d0,ustar)
+          sgnm = sign(ONE,ustar)
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
-          ushock = 0.5d0*(spin + spout)
-          if (pstar-po .ge. 0.d0) then
+          ushock = HALF*(spin + spout)
+          if (pstar-po .ge. ZERO) then
              spin = ushock
              spout = ushock
           endif
-          if (spout-spin .eq. 0.d0) then
+          if (spout-spin .eq. ZERO) then
              scr = small*cav(i,j)
           else
              scr = spout-spin
           endif
-          frac = (1.d0 + (spout + spin)/scr)*0.5d0
-          frac = max(0.d0,min(1.d0,frac))
+          frac = (ONE + (spout + spin)/scr)*HALF
+          frac = max(ZERO,min(ONE,frac))
           
-          if (ustar .gt. 0.d0) then
+          if (ustar .gt. ZERO) then
              v1gdnv = v1l
              v2gdnv = v2l
-          else if (ustar .lt. 0.d0) then
+          else if (ustar .lt. ZERO) then
              v1gdnv = v1r
              v2gdnv = v2r
           else
-             v1gdnv = 0.5d0*(v1l+v1r)
-             v2gdnv = 0.5d0*(v2l+v2r)
+             v1gdnv = HALF*(v1l+v1r)
+             v2gdnv = HALF*(v2l+v2r)
           endif
-          rgdnv = frac*rstar + (1.d0 - frac)*ro
+          rgdnv = frac*rstar + (ONE - frac)*ro
           
-          ugdnv(i,j,kc) = frac*ustar + (1.d0 - frac)*uo
-          pgdnv(i,j,kc) = frac*pstar + (1.d0 - frac)*po
+          ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
+          pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
           
-          regdnv = frac*estar + (1.d0 - frac)*reo
-          if (spout .lt. 0.d0) then
+          regdnv = frac*estar + (ONE - frac)*reo
+          if (spout .lt. ZERO) then
              rgdnv = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
              regdnv = reo
           endif
-          if (spin .ge. 0.d0) then
+          if (spin .ge. ZERO) then
              rgdnv = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
@@ -939,31 +944,31 @@ contains
              if (i.eq.domlo(1) .and. &
                   (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
                   physbc_lo(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (i.eq.domhi(1)+1 .and. &
                   (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
                   physbc_hi(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 2) then
              if (j.eq.domlo(2) .and. &
                   (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
                   physbc_lo(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (j.eq.domhi(2)+1 .and. &
                   (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
                   physbc_hi(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
              if (kflux.eq.domlo(3) .and. &
                   (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
              if (kflux.eq.domhi(3)+1 .and. &
                   (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
-                  ugdnv(i,j,kc) = 0.d0
+                  ugdnv(i,j,kc) = ZERO
           end if
           
           ! Compute fluxes, order as conserved state (not q)
@@ -983,7 +988,7 @@ contains
              uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
           endif
           
-          rhoetot = regdnv + 0.5d0*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+          rhoetot = regdnv + HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
@@ -992,17 +997,17 @@ contains
           if (UESGS .gt. -1) then
              n  = UESGS
              nq = QESGS
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 qavg = ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 qavg = qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
              endif
              
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              
-             rho_K_contrib =  twothirds * rgdnv * qavg
+             rho_K_contrib =  TWO3RD * rgdnv * qavg
              
              if(idir.eq.1) then
                 uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
@@ -1018,12 +1023,12 @@ contains
           do iadv = 1, nadv
              n  = UFA + iadv - 1
              nq = QFA + iadv - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1031,12 +1036,12 @@ contains
           do ispec = 1, nspec
              n  = UFS + ispec - 1
              nq = QFS + ispec - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1044,12 +1049,12 @@ contains
           do iaux = 1, naux
              n  = UFX + iaux - 1
              nq = QFX + iaux - 1
-             if (ustar .gt. 0.d0) then
+             if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
              else
-                qavg = 0.5d0 * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo

@@ -17,6 +17,7 @@ contains
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,nv)
 
       use meth_params_module
+      use bl_constants_module
 
       implicit none
 
@@ -38,8 +39,6 @@ contains
 
       double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
-      double precision, parameter :: four3rd = 4.d0/3.d0, sixth = 1.d0/6.d0
-
       ilo = MIN(ilo1,ilo2)
       ihi = MAX(ihi1,ihi2)
 
@@ -53,9 +52,9 @@ contains
          do n = 1, nv
             do j = ilo2-1, ihi2+1
                do i = ilo1-1, ihi1+1
-                  dqx(i,j,kc,n) = 0.d0
-                  dqy(i,j,kc,n) = 0.d0
-                  dqz(i,j,kc,n) = 0.d0
+                  dqx(i,j,kc,n) = ZERO
+                  dqy(i,j,kc,n) = ZERO
+                  dqz(i,j,kc,n) = ZERO
                enddo
             enddo
          enddo
@@ -70,22 +69,22 @@ contains
 
                ! First compute Fromm slopes
                do i = ilo1-2, ihi1+2
-                  dlft = 2.d0*(q(i ,j,k3d,n) - q(i-1,j,k3d,n))
-                  drgt = 2.d0*(q(i+1,j,k3d,n) - q(i ,j,k3d,n))
-                  dcen(i,j) = .25d0 * (dlft+drgt)
-                  dsgn(i,j) = sign(1.d0, dcen(i,j))
+                  dlft = TWO*(q(i ,j,k3d,n) - q(i-1,j,k3d,n))
+                  drgt = TWO*(q(i+1,j,k3d,n) - q(i ,j,k3d,n))
+                  dcen(i,j) = FOURTH * (dlft+drgt)
+                  dsgn(i,j) = sign(ONE, dcen(i,j))
                   slop = min( abs(dlft), abs(drgt) )
-                  if (dlft*drgt .ge. 0.d0) then
+                  if (dlft*drgt .ge. ZERO) then
                      dlim(i,j) = slop
                   else
-                     dlim(i,j) = 0.d0
+                     dlim(i,j) = ZERO
                   endif
                   df(i,j) = dsgn(i,j)*min( dlim(i,j), abs(dcen(i,j)) )
                enddo
 
                ! Now compute limited fourth order slopes
                do i = ilo1-1, ihi1+1
-                  dq1       = four3rd*dcen(i,j) - sixth*(df(i+1,j) + df(i-1,j))
+                  dq1       = FOUR3RD*dcen(i,j) - SIXTH*(df(i+1,j) + df(i-1,j))
                   dqx(i,j,kc,n) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dq1))
                enddo
 
@@ -97,22 +96,22 @@ contains
             do i = ilo1-1, ihi1+1
                ! First compute Fromm slopes for this column
                do j = ilo2-2, ihi2+2
-                  dlft = 2.d0*(q(i,j ,k3d,n) - q(i,j-1,k3d,n))
-                  drgt = 2.d0*(q(i,j+1,k3d,n) - q(i,j ,k3d,n))
-                  dcen(i,j) = .25d0 * (dlft+drgt)
-                  dsgn(i,j) = sign( 1.d0, dcen(i,j) )
+                  dlft = TWO*(q(i,j ,k3d,n) - q(i,j-1,k3d,n))
+                  drgt = TWO*(q(i,j+1,k3d,n) - q(i,j ,k3d,n))
+                  dcen(i,j) = FOURTH * (dlft+drgt)
+                  dsgn(i,j) = sign( ONE, dcen(i,j) )
                   slop = min( abs(dlft), abs(drgt) )
-                  if (dlft*drgt .ge. 0.d0) then
+                  if (dlft*drgt .ge. ZERO) then
                      dlim(i,j) = slop
                   else
-                     dlim(i,j) = 0.d0
+                     dlim(i,j) = ZERO
                   endif
                   df(i,j) = dsgn(i,j)*min( dlim(i,j),abs(dcen(i,j)) )
                enddo
 
                ! Now compute limited fourth order slopes
                do j = ilo2-1, ihi2+1
-                  dq1 = four3rd*dcen(i,j) - sixth*( df(i,j+1) + df(i,j-1) )
+                  dq1 = FOUR3RD*dcen(i,j) - SIXTH*( df(i,j+1) + df(i,j-1) )
                   dqy(i,j,kc,n) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dq1))
                enddo
             enddo
@@ -125,47 +124,47 @@ contains
 
                   ! Compute Fromm slope on slab below
                   k = k3d-1
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
+                  dm = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
+                  dp = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
+                  dc = FOURTH*(dm+dp)
+                  ds = sign( ONE, dc )
                   sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
+                  if (dm*dp .ge. ZERO) then
                      dl = sl
                   else
-                     dl = 0.d0
+                     dl = ZERO
                   endif
                   dfm = ds*min(dl,abs(dc))
 
                   ! Compute Fromm slope on slab above
                   k = k3d+1
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
+                  dm = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
+                  dp = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
+                  dc = FOURTH*(dm+dp)
+                  ds = sign( ONE, dc )
                   sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
+                  if (dm*dp .ge. ZERO) then
                      dl = sl
                   else
-                     dl = 0.d0
+                     dl = ZERO
                   endif
                   dfp = ds*min(dl,abs(dc))
 
                   ! Compute Fromm slope on current slab
                   k = k3d
-                  dm = 2.d0*(q(i,j,k ,n) - q(i,j,k-1,n))
-                  dp = 2.d0*(q(i,j,k+1,n) - q(i,j,k, n))
-                  dc = .25d0*(dm+dp)
-                  ds = sign( 1.d0, dc )
+                  dm = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
+                  dp = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
+                  dc = FOURTH*(dm+dp)
+                  ds = sign( ONE, dc )
                   sl = min( abs(dm), abs(dp) )
-                  if (dm*dp .ge. 0.d0) then
+                  if (dm*dp .ge. ZERO) then
                      dl = sl
                   else
-                     dl = 0.d0
+                     dl = ZERO
                   endif
 
                   ! Now compute limited fourth order slopes
-                  dq1 = four3rd*dc - sixth*( dfp + dfm )
+                  dq1 = FOUR3RD*dc - SIXTH*( dfp + dfm )
                   dqz(i,j,kc,n) = flatn(i,j,k3d)*ds*min(dl,abs(dq1))
                enddo
             enddo
@@ -188,6 +187,7 @@ contains
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
         
         use meth_params_module
+        use bl_constants_module
 
         implicit none
 
@@ -211,8 +211,6 @@ contains
         double precision dlft, drgt, dp1
         double precision dm, dp, dc, dl, dfm, dfp, ds
 
-        double precision, parameter :: four3rd = 4.d0/3.d0, sixth = 1.d0/6.d0
-
         !     Local arrays
         double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
@@ -228,9 +226,9 @@ contains
 
            do j = ilo2-1, ihi2+1
               do i = ilo1-1, ihi1+1
-                 dpx(i,j,kc) = 0.d0
-                 dpy(i,j,kc) = 0.d0
-                 dpz(i,j,kc) = 0.d0
+                 dpx(i,j,kc) = ZERO
+                 dpy(i,j,kc) = ZERO
+                 dpz(i,j,kc) = ZERO
               enddo
            enddo
 
@@ -246,24 +244,24 @@ contains
                  drgt = p(i+1,j,k3d) - p(i  ,j,k3d)
 
                  ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * &
+                 dlft = dlft - FOURTH * &
                       (rho(i,j,k3d)+rho(i-1,j,k3d))*(grav(i,j,k3d,1)+grav(i-1,j,k3d,1))*dx
-                 drgt = drgt - 0.25d0 * &
+                 drgt = drgt - FOURTH * &
                       (rho(i,j,k3d)+rho(i+1,j,k3d))*(grav(i,j,k3d,1)+grav(i+1,j,k3d,1))*dx
 
-                 dcen(i,j) = 0.5d0*(dlft+drgt)
-                 dsgn(i,j) = sign(1.d0, dcen(i,j))
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(i,j) = 2.d0 * min( abs(dlft), abs(drgt) )
+                 dcen(i,j) = HALF*(dlft+drgt)
+                 dsgn(i,j) = sign(ONE, dcen(i,j))
+                 if (dlft*drgt .ge. ZERO) then
+                    dlim(i,j) = TWO * min( abs(dlft), abs(drgt) )
                  else
-                    dlim(i,j) = 0.d0
+                    dlim(i,j) = ZERO
                  endif
                  df(i,j) = dsgn(i,j)*min( dlim(i,j), abs(dcen(i,j)) )
               enddo
 
               ! Now limited fourth order slopes
               do i = ilo1-1, ihi1+1
-                 dp1         = four3rd*dcen(i,j) - sixth*(df(i+1,j) + df(i-1,j))
+                 dp1         = FOUR3RD*dcen(i,j) - SIXTH*(df(i+1,j) + df(i-1,j))
                  dpx(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
                  dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,1)*dx
               enddo
@@ -280,24 +278,24 @@ contains
                  drgt = p(i,j+1,k3d) - p(i,j  ,k3d)
 
                  ! Subtract off (rho * grav) so as not to limit that part of the slope
-                 dlft = dlft - 0.25d0 * &
+                 dlft = dlft - FOURTH * &
                       (rho(i,j,k3d)+rho(i,j-1,k3d))*(grav(i,j,k3d,2)+grav(i,j-1,k3d,2))*dy
-                 drgt = drgt - 0.25d0 * &
+                 drgt = drgt - FOURTH * &
                       (rho(i,j,k3d)+rho(i,j+1,k3d))*(grav(i,j,k3d,2)+grav(i,j+1,k3d,2))*dy
 
-                 dcen(i,j) = 0.5d0*(dlft+drgt)
-                 dsgn(i,j) = sign( 1.d0, dcen(i,j) )
-                 if (dlft*drgt .ge. 0.d0) then
-                    dlim(i,j) = 2.d0 * min( abs(dlft), abs(drgt) )
+                 dcen(i,j) = HALF*(dlft+drgt)
+                 dsgn(i,j) = sign( ONE, dcen(i,j) )
+                 if (dlft*drgt .ge. ZERO) then
+                    dlim(i,j) = TWO * min( abs(dlft), abs(drgt) )
                  else
-                    dlim(i,j) = 0.d0
+                    dlim(i,j) = ZERO
                  endif
                  df(i,j) = dsgn(i,j)*min( dlim(i,j),abs(dcen(i,j)) )
               enddo
 
               ! Now limited fourth order slopes
               do j = ilo2-1, ihi2+1
-                 dp1 = four3rd*dcen(i,j) - sixth*( df(i,j+1) + df(i,j-1) )
+                 dp1 = FOUR3RD*dcen(i,j) - SIXTH*( df(i,j+1) + df(i,j-1) )
                  dpy(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
                  dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,2)*dy
               enddo
@@ -313,16 +311,16 @@ contains
                  k = k3d-1
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
+                 dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
                       (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
+                 dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
                       (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
+                 dc = HALF*(dm+dp)
+                 ds = sign( ONE, dc )
+                 if (dm*dp .ge. ZERO) then
+                    dl = TWO * min( abs(dm), abs(dp) )
                  else
-                    dl = 0.d0
+                    dl = ZERO
                  endif
                  dfm = ds*min(dl,abs(dc))
 
@@ -330,16 +328,16 @@ contains
                  k = k3d+1
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
+                 dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
                       (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
+                 dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
                       (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
+                 dc = HALF*(dm+dp)
+                 ds = sign( ONE, dc )
+                 if (dm*dp .ge. ZERO) then
+                    dl = TWO * min( abs(dm), abs(dp) )
                  else
-                    dl = 0.d0
+                    dl = ZERO
                  endif
                  dfp = ds*min(dl,abs(dc))
 
@@ -347,20 +345,20 @@ contains
                  k = k3d
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
-                 dm = dm - 0.25d0 * (rho(i,j,k)+rho(i,j,k-1))* &
+                 dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
                       (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
-                 dp = dp - 0.25d0 * (rho(i,j,k)+rho(i,j,k+1))* &
+                 dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
                       (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
-                 dc = 0.5d0*(dm+dp)
-                 ds = sign( 1.d0, dc )
-                 if (dm*dp .ge. 0.d0) then
-                    dl = 2.d0 * min( abs(dm), abs(dp) )
+                 dc = HALF*(dm+dp)
+                 ds = sign( ONE, dc )
+                 if (dm*dp .ge. ZERO) then
+                    dl = TWO * min( abs(dm), abs(dp) )
                  else
-                    dl = 0.d0
+                    dl = ZERO
                  endif
 
                  ! now limited fourth order slopes
-                 dp1 = four3rd*dc - sixth*( dfp + dfm )
+                 dp1 = FOUR3RD*dc - SIXTH*( dfp + dfm )
                  dpz(i,j,kc) = flatn(i,j,k3d)*ds*min(dl,abs(dp1))
                  dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,3)*dz
               enddo

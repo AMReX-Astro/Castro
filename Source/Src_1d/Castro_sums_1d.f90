@@ -18,7 +18,7 @@
                             dx,mass,r,irlo,irhi)
  
       use prob_params_module, only: coord_type 
-      use bl_constants_module, only: M_PI
+      use bl_constants_module
 
       implicit none
       integer irlo, irhi
@@ -30,13 +30,13 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
+      double precision, parameter :: spherical_factor = FOUR3RD*M_PI
 
-      mass = 0.d0
+      mass = ZERO
       if (coord_type .eq. 2) then
         do i = lo(1), hi(1)
-           ro = r(i)+0.5d0*dx(1)
-           ri = r(i)-0.5d0*dx(1)
+           ro = r(i)+HALF*dx(1)
+           ri = r(i)-HALF*dx(1)
            vol = spherical_factor * (ro**3 - ri**3)
            mass = mass + vol*rho(i)
         enddo
@@ -68,7 +68,7 @@
                                dx,mass,r,irlo,irhi)
  
       use prob_params_module, only: coord_type 
-      use bl_constants_module, only: M_PI
+      use bl_constants_module
 
       implicit none
       integer irlo, irhi
@@ -80,13 +80,13 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
+      double precision, parameter :: spherical_factor = FOUR3RD*M_PI
 
-      mass = 0.d0
+      mass = ZERO
       if (coord_type .eq. 2) then
         do i = lo(1), hi(1)
-           ro = r(i)+0.5d0*dx(1)
-           ri = r(i)-0.5d0*dx(1)
+           ro = r(i)+HALF*dx(1)
+           ri = r(i)-HALF*dx(1)
            vol = spherical_factor * (ro**3 - ri**3)
            mass = mass + vol*rho(i)*rho(i)
         enddo
@@ -119,7 +119,7 @@
                                dx,mass,r,irlo,irhi,idir) 
  
       use prob_params_module, only: coord_type 
-      use bl_constants_module, only: M_PI
+      use bl_constants_module
 
       implicit none
       integer irlo, irhi, idir
@@ -131,13 +131,13 @@
  
       integer i
       double precision vol,ro,ri
-      double precision, parameter :: spherical_factor =4.d0/3.d0*M_PI
+      double precision, parameter :: spherical_factor = FOUR3RD*M_PI
 
-      mass = 0.d0
+      mass = ZERO
       if (coord_type .eq. 2) then
         do i = lo(1), hi(1)
-           ro = r(i)+0.5d0*dx(1)
-           ri = r(i)-0.5d0*dx(1)
+           ro = r(i)+HALF*dx(1)
+           ri = r(i)-HALF*dx(1)
            vol = spherical_factor * (ro**3 - ri**3)
            mass = mass + vol*rho(i)*r(i)
         enddo
@@ -167,6 +167,9 @@
        subroutine ca_sumproduct(f1, f1_l1,f1_h1,&
                                 f2, f2_l1,f2_h1,&
                                 lo,hi,dx,product)
+
+       use bl_constants_module
+
        implicit none
 
        integer          :: f1_l1,f1_h1
@@ -179,7 +182,7 @@
 
        integer          :: i
 
-       product = 0.d0
+       product = ZERO
        vol = dx(1)
  
        !$OMP PARALLEL DO PRIVATE(i) REDUCTION(+:product)

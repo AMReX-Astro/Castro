@@ -10,6 +10,7 @@
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
       use network, only : nspec, naux
+      use bl_constants_module
 
       implicit none
 
@@ -37,10 +38,10 @@
       dy_frac = dx(2) / fac
 
       do j = lo(2), hi(2)
-         yc = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+         yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
          do i = lo(1), hi(1)
-            xc = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+            xc = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
 
             r = sqrt(xc**2  + yc**2)
             index = int(r/dr)
@@ -74,12 +75,12 @@
                lo_i = problo(1) + dble(i)*dx(1) - center(1)
                lo_j = problo(2) + dble(j)*dx(2) - center(2)
                do ii = 0,drdxfac-1
-                  xx  = lo_i + (dble(ii  )+0.5d0)*dx_frac
-                  rlo = lo_i +  dble(ii  )       *dx_frac
-                  rhi = lo_i +  dble(ii+1)       *dx_frac
-                  vol_frac = (rhi**2 - rlo**2)  * dy_frac
+                  xx  = lo_i + (dble(ii  )+HALF)*dx_frac
+                  rlo = lo_i +  dble(ii  )      *dx_frac
+                  rhi = lo_i +  dble(ii+1)      *dx_frac
+                  vol_frac = (rhi**2 - rlo**2)  *dy_frac
                   do jj = 0,drdxfac-1
-                     yy = lo_j + (dble(jj)+0.5d0)*dy_frac
+                     yy = lo_j + (dble(jj)+HALF)*dy_frac
                       r = sqrt(xx**2  + yy**2)
                      index = int(r/dr)
 

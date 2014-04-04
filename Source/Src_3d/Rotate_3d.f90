@@ -6,7 +6,7 @@
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period
     use probdata_module, only: center
     use prob_params_module, only: coord_type
-    use bl_constants_module, only: M_PI
+    use bl_constants_module
 
     implicit none
 
@@ -24,10 +24,10 @@
     double precision :: vdotr,omegadotr,omegadotv,omegacrossv(3),omega2
 
     double precision :: TWO_PI
-    parameter (TWO_PI = 2.d0 * M_PI)
+    parameter (TWO_PI = TWO * M_PI)
 
     if (coord_type == 0) then
-       omega = (/ 0.0d0, 0.0d0, TWO_PI/rot_period /)
+       omega = (/ ZERO, ZERO, TWO_PI/rot_period /)
     else
        call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
     endif
@@ -35,11 +35,11 @@
     omega2 = dot_product(omega,omega)
     
     do k = lo(3), hi(3)
-       z = problo(3) + dx(3)*(float(k)+0.5d0) - center(3)
+       z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
        do j = lo(2), hi(2)
-          y = problo(2) + dx(2)*(float(j)+0.5d0) - center(2)
+          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
           do i = lo(1), hi(1)
-             x = problo(1) + dx(1)*(float(i)+0.5d0) - center(1)
+             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
              r = (/ x, y, z /)
 
@@ -57,7 +57,7 @@
              ! momentum sources: this is the Coriolis force
              ! (-2 rho omega x v) and the centrifugal force
              ! (-rho omega x ( omega x r))
-             rot_src(i,j,k,1:3) = -2.0d0 * dens * omegacrossv(:) - &
+             rot_src(i,j,k,1:3) = -TWO * dens * omegacrossv(:) - &
                   dens * (omegadotr * omega(:) - omega2 * r(:))
 
              ! kinetic energy source: this is v . the momentum

@@ -11,6 +11,7 @@ contains
   subroutine uflaten(lo,hi,p,u,flatn,q_l1,q_h1)
 
     use meth_params_module, only : small_pres
+    use bl_constants_module
 
     implicit none
 
@@ -34,7 +35,7 @@ contains
     
     allocate(dp(lo(1)-1:hi(1)+1),z(lo(1)-1:hi(1)+1),chi(lo(1)-1:hi(1)+1))
 
-    dzcut = 1.d0/(zcut2-zcut1)
+    dzcut = ONE/(zcut2-zcut1)
 
     
     ! x-direction flattening coef
@@ -42,26 +43,26 @@ contains
        denom = max(small_pres,abs(p(i+2)-p(i-2)))
        dp(i) = p(i+1) - p(i-1)
        zeta = abs(dp(i))/denom
-       z(i) = min( 1.d0, max( 0.d0, dzcut*(zeta - zcut1) ) )
-       if (u(i-1)-u(i+1) .ge. 0.d0) then
-          tst = 1.d0
+       z(i) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
+       if (u(i-1)-u(i+1) .ge. ZERO) then
+          tst = ONE
        else
-          tst = 0.d0
+          tst = ZERO
        endif
        tmp = min(p(i+1),p(i-1))
        if ((abs(dp(i))/tmp).gt.shktst) then
           chi(i) = tst
        else
-          chi(i) = 0.d0
+          chi(i) = ZERO
        endif
     enddo
     do i = lo(1),hi(1)
-       if(dp(i).gt.0.d0)then
+       if(dp(i).gt.ZERO)then
           ishft = 1
        else
           ishft = -1
        endif
-       flatn(i) = 1.d0 - &
+       flatn(i) = ONE - &
             max(chi(i-ishft)*z(i-ishft),chi(i)*z(i))
     enddo
     

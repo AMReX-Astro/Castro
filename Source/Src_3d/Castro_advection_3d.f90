@@ -58,6 +58,7 @@ contains
     use eos_module
     use eos_type_module
     use riemann_module, only: cmpflx
+    use bl_constants_module
 
     implicit none
 
@@ -229,16 +230,16 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
     dtdz = dt/dz
-    hdt = 0.5d0*dt
-    hdtdx = 0.5d0*dtdx
-    hdtdy = 0.5d0*dtdy
-    hdtdz = 0.5d0*dtdz
-    cdtdx = dtdx/3.d0
-    cdtdy = dtdy/3.d0
-    cdtdz = dtdz/3.d0
+    hdt = HALF*dt
+    hdtdx = HALF*dtdx
+    hdtdy = HALF*dtdy
+    hdtdz = HALF*dtdz
+    cdtdx = dtdx*THIRD
+    cdtdy = dtdy*THIRD
+    cdtdz = dtdz*THIRD
 
     ! Initialize pdivu to zero
-    pdivu(:,:,:) = 0.d0
+    pdivu(:,:,:) = ZERO
 
     ! Initialize kc (current k-level) and km (previous k-level)
     kc = 1
@@ -469,7 +470,7 @@ contains
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        0.5d0*(pgdnvzf(i,j,kc)+pgdnvzf(i,j,km)) * &
+                        HALF*(pgdnvzf(i,j,kc)+pgdnvzf(i,j,km)) * &
                               (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))/dz
                 end do
              end do
@@ -550,9 +551,9 @@ contains
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        0.5d0*(pgdnvxf(i+1,j,km) + pgdnvxf(i,j,km)) *  &
+                        HALF*(pgdnvxf(i+1,j,km) + pgdnvxf(i,j,km)) *  &
                               (ugdnvxf(i+1,j,km)-ugdnvxf(i,j,km))/dx + &
-                        0.5d0*(pgdnvyf(i,j+1,km) + pgdnvyf(i,j,km)) *  &
+                        HALF*(pgdnvyf(i,j+1,km) + pgdnvyf(i,j,km)) *  &
                               (ugdnvyf(i,j+1,km)-ugdnvyf(i,j,km))/dy
                 end do
              end do
@@ -929,6 +930,7 @@ contains
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
          UEDEN, UEINT, UTEMP, normalize_species
+    use bl_constants_module
 
     implicit none
 
@@ -965,9 +967,9 @@ contains
          
        if ( n.eq.UTEMP ) then
           
-          flux1(:,:,:,n) = 0.d0
-          flux2(:,:,:,n) = 0.d0
-          flux3(:,:,:,n) = 0.d0
+          flux1(:,:,:,n) = ZERO
+          flux2(:,:,:,n) = ZERO
+          flux3(:,:,:,n) = ZERO
           
        else
 
@@ -976,8 +978,8 @@ contains
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
-                   div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
+                   div1 = difmag*min(ZERO,div1)
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
                    flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
@@ -988,8 +990,8 @@ contains
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
-                   div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
+                   div1 = difmag*min(ZERO,div1)
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
                    flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
@@ -1000,8 +1002,8 @@ contains
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
-                   div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
+                   div1 = difmag*min(ZERO,div1)
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dz*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
                    flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
@@ -1072,6 +1074,7 @@ contains
                   div,div_l1,div_l2,div_l3,div_h1,div_h2,div_h3)
     
     use meth_params_module, only : QU, QV, QW
+    use bl_constants_module
     
     implicit none
 
@@ -1090,19 +1093,19 @@ contains
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
              
-             ux = .25d0*( &
+             ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
                     + q(i  ,j-1,k  ,QU) - q(i-1,j-1,k  ,QU) &
                     + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) )/ dx
 
-             vy = .25d0*( &
+             vy = FOURTH*( &
                     + q(i  ,j  ,k  ,QV) - q(i  ,j-1,k  ,QV) &
                     + q(i  ,j  ,k-1,QV) - q(i  ,j-1,k-1,QV) &
                     + q(i-1,j  ,k  ,QV) - q(i-1,j-1,k  ,QV) &
                     + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) )/ dy
 
-             wz = .25d0*( &
+             wz = FOURTH*( &
                     + q(i  ,j  ,k  ,QW) - q(i  ,j  ,k-1,QW) &
                     + q(i  ,j-1,k  ,QW) - q(i  ,j-1,k-1,QW) &
                     + q(i-1,j  ,k  ,QW) - q(i-1,j  ,k-1,QW) &
@@ -1131,6 +1134,7 @@ contains
     
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
 
     implicit none
 
@@ -1152,14 +1156,14 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
-             sum = 0.d0
+             sum = ZERO
              do n = UFS, UFS+nspec-1
                 sum = sum + flux1(i,j,k,n)
              end do
-             if (sum .ne. 0.d0) then
+             if (sum .ne. ZERO) then
                 fac = flux1(i,j,k,URHO) / sum
              else
-                fac = 1.d0
+                fac = ONE
              end if
              do n = UFS, UFS+nspec-1
                 flux1(i,j,k,n) = flux1(i,j,k,n) * fac
@@ -1173,14 +1177,14 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
-             sum = 0.d0
+             sum = ZERO
              do n = UFS, UFS+nspec-1
                 sum = sum + flux2(i,j,k,n)
              end do
-             if (sum .ne. 0.d0) then
+             if (sum .ne. ZERO) then
                 fac = flux2(i,j,k,URHO) / sum
              else
-                fac = 1.d0
+                fac = ONE
              end if
              do n = UFS, UFS+nspec-1
                 flux2(i,j,k,n) = flux2(i,j,k,n) * fac
@@ -1194,14 +1198,14 @@ contains
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             sum = 0.d0
+             sum = ZERO
              do n = UFS, UFS+nspec-1
                 sum = sum + flux3(i,j,k,n)
              end do
-             if (sum .ne. 0.d0) then
+             if (sum .ne. ZERO) then
                 fac = flux3(i,j,k,URHO) / sum
              else
-                fac = 1.d0
+                fac = ONE
              end if
              do n = UFS, UFS+nspec-1
                 flux3(i,j,k,n) = flux3(i,j,k,n) * fac
@@ -1227,6 +1231,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
                                      UFA, small_dens, nadv
+    use bl_constants_module
 
     implicit none
 
@@ -1248,16 +1253,16 @@ contains
     
     allocate(fac(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
     
-    initial_mass = 0.d0
-      final_mass = 0.d0
+    initial_mass = ZERO
+      final_mass = ZERO
 
-    initial_eint = 0.d0
-      final_eint = 0.d0
+    initial_eint = ZERO
+      final_eint = ZERO
 
-    initial_eden = 0.d0
-      final_eden = 0.d0
+    initial_eden = ZERO
+      final_eden = ZERO
 
-    min_dens = 0.d0
+    min_dens = ZERO
 
     !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
     do k = lo(3),hi(3)
@@ -1268,7 +1273,7 @@ contains
              initial_eint = initial_eint + uout(i,j,k,UEINT)
              initial_eden = initial_eden + uout(i,j,k,UEDEN)
              
-             if (uout(i,j,k,URHO) .eq. 0.d0) then
+             if (uout(i,j,k,URHO) .eq. ZERO) then
                 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
@@ -1291,7 +1296,7 @@ contains
                 end do
                 
                 if (verbose .gt. 0) then
-                   if (uout(i,j,k,URHO) < 0.d0) then
+                   if (uout(i,j,k,URHO) < ZERO) then
                       print *,'   '
                       print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
                       print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
@@ -1352,7 +1357,7 @@ contains
     ! in (final_mass - initial_mass) even if no cells have been reset.
     ! Guard against this by only taking the difference if any cell has been reset.
 
-    if ( min_dens /= 0.d0 ) then
+    if ( min_dens /= ZERO ) then
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
@@ -1370,6 +1375,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
 
     implicit none
 
@@ -1385,14 +1391,14 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             sum = 0.d0
+             sum = ZERO
              do n = UFS, UFS+nspec-1
                 sum = sum + u(i,j,k,n)
              end do
-             if (sum .ne. 0.d0) then
+             if (sum .ne. ZERO) then
                 fac = u(i,j,k,URHO) / sum
              else
-                fac = 1.d0
+                fac = ONE
              end if
              do n = UFS, UFS+nspec-1
                 u(i,j,k,n) = u(i,j,k,n) * fac

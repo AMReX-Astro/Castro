@@ -40,13 +40,13 @@
       ! Don't OMP this.
       !
       do k = lo(3), hi(3)
-         zc = problo(3) + (dble(k)+0.50d0) * dx(3) - center(3)
+         zc = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
 
          do j = lo(2), hi(2)
-            yc = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+            yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
             do i = lo(1), hi(1)
-               xc    = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+               xc    = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                r     = sqrt(xc**2 + yc**2 + zc**2)
                index = int(r/dr)
 
@@ -79,12 +79,12 @@
                   lo_k =  problo(3) + dble(k)*dx(3) - center(3)
 
                   do kk = 0,drdxfac-1
-                     zz = lo_k + (dble(kk)+0.5d0)*dz_frac
+                     zz = lo_k + (dble(kk)+HALF)*dz_frac
                      do jj = 0,drdxfac-1
-                        yy = lo_j + (dble(jj)+0.5d0)*dy_frac
+                        yy = lo_j + (dble(jj)+HALF)*dy_frac
                         do ii = 0,drdxfac-1
 
-                           xx    = lo_i + (dble(ii)+0.5d0)*dx_frac
+                           xx    = lo_i + (dble(ii)+HALF)*dx_frac
                            r     = sqrt(xx**2  + yy**2 + zz**2)
                            index = int(r/dr)
 
