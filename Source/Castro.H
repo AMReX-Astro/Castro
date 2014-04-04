@@ -584,6 +584,7 @@ protected:
     static int       use_colglaz;
     static int       use_flattening;
     static int       transverse_use_eos;
+    static int       transverse_reset_density;
 
     static int       cg_maxiter;
     static Real      cg_tol;

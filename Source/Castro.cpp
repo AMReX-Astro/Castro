@@ -154,6 +154,7 @@ int          Castro::use_flattening = 1;
 int          Castro::ppm_flatten_before_integrals = 0;
 
 int          Castro::transverse_use_eos = 0;
+int          Castro::transverse_reset_density = 0;
 
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
@@ -381,6 +382,7 @@ Castro::read_params ()
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
+    pp.query("transverse_reset_density",transverse_reset_density);
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);

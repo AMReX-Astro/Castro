@@ -19,7 +19,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, transverse_use_eos
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, transverse_reset_density
     use eos_module
     
     implicit none
@@ -152,6 +153,24 @@ contains
           rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
 
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewry .lt. ZERO) then
+                rrnewry = rrry
+                runewry = rury
+                rvnewry = rvry
+                rwnewry = rwry
+                renewry = rery
+             endif
+             if (rrnewly .lt. ZERO) then
+                rrnewly = rrly 
+                runewly = ruly 
+                rvnewly = rvly 
+                rwnewly = rwly 
+                renewly = rely 
+             endif
+          endif
+
           ! we need to augment our conserved system with a p equation to
           ! be able to deal with the general EOS -- add the transverse term
           ! to the p evolution eq here
@@ -238,7 +257,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, transverse_use_eos
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, transverse_reset_density
     use eos_module
 
     implicit none
@@ -359,7 +379,16 @@ contains
           rvnewrz = rvrz - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
           rwnewrz = rwrz - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           renewrz = rerz - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
-                    
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
+             rrnewrz = rrrz 
+             runewrz = rurz 
+             rvnewrz = rvrz 
+             rwnewrz = rwrz 
+             renewrz = rerz 
+          endif
+                   
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -411,7 +440,16 @@ contains
           rvnewlz = rvlz - cdtdx*(fx(i+1,j,km,UMY) - fx(i,j,km,UMY))
           rwnewlz = rwlz - cdtdx*(fx(i+1,j,km,UMZ) - fx(i,j,km,UMZ))
           renewlz = relz - cdtdx*(fx(i+1,j,km,UEDEN) - fx(i,j,km,UEDEN))
-                    
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
+             rrnewlz = rrlz
+             runewlz = rulz
+             rvnewlz = rvlz
+             rwnewlz = rwlz
+             renewlz = relz
+          endif
+
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -459,7 +497,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, transverse_use_eos
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, transverse_reset_density
     use eos_module
 
     implicit none
@@ -589,7 +628,25 @@ contains
           rvnewlx = rvlx - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
           rwnewlx = rwlx - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
           renewlx = relx - cdtdy*(fy(i,j+1,kc,UEDEN)- fy(i,j,kc,UEDEN))
-          
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewrx .lt. ZERO) then
+                rrnewrx = rrrx 
+                runewrx = rurx 
+                rvnewrx = rvrx 
+                rwnewrx = rwrx 
+                renewrx = rerx 
+             endif
+             if (rrnewlx .lt. ZERO) then
+                rrnewlx = rrlx 
+                runewlx = rulx 
+                rvnewlx = rvlx 
+                rwnewlx = rwlx 
+                renewlx = relx 
+             endif
+          endif
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
@@ -673,7 +730,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, transverse_use_eos
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, transverse_reset_density
     use eos_module
 
     implicit none
@@ -791,7 +849,16 @@ contains
           rvnewrz = rvrz - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
           rwnewrz = rwrz - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
           renewrz = rerz - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))
-          
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
+             rrnewrz = rrrz 
+             runewrz = rurz 
+             rvnewrz = rvrz 
+             rwnewrz = rwrz 
+             renewrz = rerz 
+          endif
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
@@ -845,6 +912,15 @@ contains
           rvnewlz = rvlz - cdtdy*(fy(i,j+1,km,UMY) - fy(i,j,km,UMY))
           rwnewlz = rwlz - cdtdy*(fy(i,j+1,km,UMZ) - fy(i,j,km,UMZ))
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
+             rrnewlz = rrlz
+             runewlz = rulz
+             rvnewlz = rvlz
+             rwnewlz = rwlz
+             renewlz = relz
+          endif
           
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
@@ -898,7 +974,8 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, transverse_use_eos
+                                   nadv, small_pres, small_temp, &
+                                   transverse_use_eos, transverse_reset_density
     use eos_module
 
     implicit none
@@ -1073,7 +1150,39 @@ contains
           rvnewly = rvly - cdtdz*(fz(i,j,kc,UMY) - fz(i,j,km,UMY))
           rwnewly = rwly - cdtdz*(fz(i,j,kc,UMZ) - fz(i,j,km,UMZ))
           renewly = rely - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
-          
+
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewrx .lt. ZERO) then
+                rrnewrx = rrrx 
+                runewrx = rurx 
+                rvnewrx = rvrx 
+                rwnewrx = rwrx 
+                renewrx = rerx 
+             endif
+             if (rrnewry .lt. ZERO) then
+                rrnewry = rrry 
+                runewry = rury 
+                rvnewry = rvry 
+                rwnewry = rwry 
+                renewry = rery 
+             endif
+             if (rrnewlx .lt. ZERO) then
+                rrnewlx = rrlx 
+                runewlx = rulx 
+                rvnewlx = rvlx 
+                rwnewlx = rwlx 
+                renewlx = relx 
+             endif
+             if (rrnewly .lt. ZERO) then
+                rrnewly = rrly 
+                runewly = ruly 
+                rvnewly = rvly 
+                rwnewly = rwly 
+                renewly = rely 
+             endif
+          endif
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
@@ -1220,7 +1329,8 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav
+                                   transverse_use_eos, transverse_reset_density, &
+                                   ppm_type, ppm_trace_grav
     use eos_module
 
     implicit none
@@ -1377,7 +1487,6 @@ contains
           renewr = rer - cdtdx*(fxy(i+1,j,kc,UEDEN) - fxy(i,j,kc,UEDEN)) &
                        - cdtdy*(fyx(i,j+1,kc,UEDEN) - fyx(i,j,kc,UEDEN))
 
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
 
           rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
                        - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
@@ -1390,6 +1499,25 @@ contains
           renewl = rel - cdtdx*(fxy(i+1,j,km,UEDEN) - fxy(i,j,km,UEDEN)) &
                        - cdtdy*(fyx(i,j+1,km,UEDEN) - fyx(i,j,km,UEDEN))
 
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewr .lt. ZERO) then
+                rrnewr = rrr 
+                runewr = rur 
+                rvnewr = rvr 
+                rwnewr = rwr 
+                renewr = rer 
+             endif
+             if (rrnewl .lt. ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                rwnewl = rwl 
+                renewl = rel 
+             endif
+          endif
+
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
           rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duxp = pgxp*ugxp - pgxm*ugxm
@@ -1511,7 +1639,8 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav
+                                   transverse_use_eos, transverse_reset_density, &
+                                   ppm_type, ppm_trace_grav
     use eos_module
 
     implicit none      
@@ -1653,8 +1782,6 @@ contains
           renewr = rer - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
                        - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-
           rrnewl = rrl - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
                        - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
           runewl = rul - cdtdx*(fxz(i+1,j,km,UMX) - fxz(i,j,km,UMX)) &
@@ -1666,6 +1793,25 @@ contains
           renewl = rel - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
                        - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewr .lt. ZERO) then
+                rrnewr = rrr 
+                runewr = rur
+                rvnewr = rvr 
+                rwnewr = rwr 
+                renewr = rer 
+             endif
+             if (rrnewl .lt. ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                rwnewl = rwl 
+                renewl = rel 
+             endif
+          endif
+
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
           rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duxp = pgxp*ugxp - pgxm*ugxm
@@ -1781,7 +1927,8 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav
+                                   transverse_use_eos, transverse_reset_density, &
+                                   ppm_type, ppm_trace_grav
     use eos_module
 
     implicit none
@@ -1925,8 +2072,6 @@ contains
           renewr = rer - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
                        - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-
           rrnewl = rrl - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
                        - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
           runewl = rul - cdtdy*(fyz(i,j+1,km,UMX) - fyz(i,j,km,UMX)) &
@@ -1938,6 +2083,25 @@ contains
           renewl = rel - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
                        - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1) then
+             if (rrnewr .lt. ZERO) then
+                rrnewr = rrr 
+                runewr = rur 
+                rvnewr = rvr 
+                rwnewr = rwr 
+                renewr = rer 
+             endif
+             if (rrnewl .lt. ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                rwnewl = rwl 
+                renewl = rel 
+             endif
+          endif
+
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
           rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duyp = pgyp*ugyp - pgym*ugym
