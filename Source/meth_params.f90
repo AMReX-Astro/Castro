@@ -43,6 +43,7 @@ module meth_params_module
   integer         , save :: use_flattening
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density
+  integer         , save :: transverse_reset_rhoe
 
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol

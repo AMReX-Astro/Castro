@@ -20,7 +20,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
     
     implicit none
@@ -189,25 +189,26 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-             if (qypo(i,j,kc,QREINT) .le. ZERO) then
-                qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+                if (qypo(i,j,kc,QREINT) .le. ZERO) then
+                   qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
+                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
 
-                ! if we are still negative, then we need to reset
-                if (qypo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qypo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
-                   
-                   call eos(eos_input_rt, eos_state)
+                   ! if we are still negative, then we need to reset
+                   if (qypo(i,j,kc,QREINT) < ZERO) then
+                      eos_state % rho = qypo(i,j,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
 
-                   qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
+                      qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
+                   endif
                 endif
              endif
-             
 
              ! Optionally, use the EOS to calculate the pressure.
 
@@ -238,22 +239,24 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-             if (qymo(i,j+1,kc,QREINT) .le. ZERO) then
-                qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qymo(i,j+1,kc,QREINT) < ZERO) then
-                   eos_state % rho = qymo(i,j+1,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
+                if (qymo(i,j+1,kc,QREINT) .le. ZERO) then
+                   qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
+                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
                    
-                   call eos(eos_input_rt, eos_state)
-
-                   qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
+                   ! if we are still negative, then we need to reset
+                   if (qymo(i,j+1,kc,QREINT) < ZERO) then
+                      eos_state % rho = qymo(i,j+1,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -297,7 +300,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
     implicit none
@@ -438,25 +441,26 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
 
-          if (qzpo(i,j,kc,QREINT) .le. ZERO) then
-             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                  cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-
-             ! if we are still negative, then we need to reset
-             if (qzpo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+             if (qzpo(i,j,kc,QREINT) .le. ZERO) then
+                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
                 
-                call eos(eos_input_rt, eos_state)
+                ! if we are still negative, then we need to reset
+                if (qzpo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qzpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
                 
-                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
-          
 
           ! Optionally, use the EOS to calculate the pressure.
 
@@ -518,22 +522,24 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
 
-          if (qzmo(i,j,kc,QREINT) .le. ZERO) then
-             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-                  cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
-
-             ! if we are still negative, then we need to reset
-             if (qzmo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+             if (qzmo(i,j,kc,QREINT) .le. ZERO) then
+                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
                 
-                call eos(eos_input_rt, eos_state)
+                ! if we are still negative, then we need to reset
+                if (qzmo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qzmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
                 
-                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
 
@@ -576,7 +582,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
     implicit none
@@ -740,22 +746,24 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QREINT) = renewrx - rhoekenrx
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
              
-             if (qxpo(i,j,kc,QREINT) .le. ZERO) then
-                qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
-                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qxpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qxpo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
+                if (qxpo(i,j,kc,QREINT) .le. ZERO) then
+                   qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
+                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qxpo(i,j,kc,QREINT) < ZERO) then
+                      eos_state % rho = qxpo(i,j,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
+                   endif
                 endif
              endif
 
@@ -788,22 +796,24 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QREINT) = renewlx - rhoekenlx
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-
-             if (qxmo(i+1,j,kc,QREINT) .le. ZERO) then
-                qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
-                   cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qxmo(i+1,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qxmo(i+1,j,kc,QRHO) 
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
+                if (qxmo(i+1,j,kc,QREINT) .le. ZERO) then
+                   qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
+                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qxmo(i+1,j,kc,QREINT) < ZERO) then
+                      eos_state % rho = qxmo(i+1,j,kc,QRHO) 
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
+                   
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -847,7 +857,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
     implicit none
@@ -990,22 +1000,24 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
           
-          if (qzpo(i,j,kc,QREINT) .le. ZERO) then
-             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                  cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-
-             ! if we are still negative, then we need to reset
-             if (qzpo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
+             if (qzpo(i,j,kc,QREINT) .le. ZERO) then
+                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
                 
-                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                ! if we are still negative, then we need to reset
+                if (qzpo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qzpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
 
@@ -1070,22 +1082,24 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
+             
+             if (qzmo(i,j,kc,QREINT) .le. ZERO) then
+                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
+                
+                ! if we are still negative, then we need to reset
+                if (qzmo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qzmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
 
-          if (qzmo(i,j,kc,QREINT) .le. ZERO) then
-             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-              cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
-
-             ! if we are still negative, then we need to reset
-             if (qzmo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
 
@@ -1131,7 +1145,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
     implicit none
@@ -1354,22 +1368,24 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT) = renewrx - rhoekenrx
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
+                if (qxpo(i,j,km,QREINT) .le. ZERO) then
+                   qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
 
-             if (qxpo(i,j,km,QREINT) .le. ZERO) then
-                qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qxpo(i,j,km,QREINT) < ZERO) then
-                   eos_state % rho = qxpo(i,j,km,QRHO) 
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
+                   ! if we are still negative, then we need to reset
+                   if (qxpo(i,j,km,QREINT) < ZERO) then
+                      eos_state % rho = qxpo(i,j,km,QRHO) 
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -1402,22 +1418,24 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT) = renewry - rhoekenry
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-             if (qypo(i,j,km,QREINT) .le. ZERO) then
-                qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qypo(i,j,km,QREINT) < ZERO) then
-                   eos_state % rho = qypo(i,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
+                if (qypo(i,j,km,QREINT) .le. ZERO) then
+                   qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qypo(i,j,km,QREINT) < ZERO) then
+                      eos_state % rho = qypo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -1450,22 +1468,24 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT) = renewlx - rhoekenlx
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-
-             if (qxmo(i+1,j,km,QREINT) .le. ZERO) then
-                qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qxmo(i+1,j,km,QREINT) < ZERO) then
-                   eos_state % rho = qxmo(i+1,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e                   
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
+                if (qxmo(i+1,j,km,QREINT) .le. ZERO) then
+                   qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qxmo(i+1,j,km,QREINT) < ZERO) then
+                      eos_state % rho = qxmo(i+1,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e                   
+                   endif
                 endif
              endif
                 
@@ -1498,22 +1518,24 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT) = renewly - rhoekenly
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-             if (qymo(i,j+1,km,QREINT) .le. ZERO) then
-                qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qymo(i,j+1,km,QREINT) < ZERO) then
-                   eos_state % rho = qymo(i,j+1,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
+                if (qymo(i,j+1,km,QREINT) .le. ZERO) then
+                   qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qymo(i,j+1,km,QREINT) < ZERO) then
+                      eos_state % rho = qymo(i,j+1,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -1562,7 +1584,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density, &
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
 
@@ -1782,24 +1804,26 @@ contains
           ! note: we run the risk of (rho e) being negative here
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
-          
-          if (qpo(i,j,kc,QREINT) .le. ZERO) then
-             qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
-                  - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
-                  - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
-                  + hdt*srcQ(i,j,k3d,QREINT)
-
-             ! if we are still negative, then we need to reset
-             if (qpo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
+             
+             if (qpo(i,j,kc,QREINT) .le. ZERO) then
+                qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
+                     - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
+                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
+                
+                ! if we are still negative, then we need to reset
+                if (qpo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
 
@@ -1831,24 +1855,26 @@ contains
           ! note: we run the risk of (rho e) being negative here
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
 
-          ! If it is negative, reset the internal energy by using the discretized
-          ! expression for updating (rho e).
-
-          if (qmo(i,j,kc,QREINT) .le. ZERO) then
-             qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
-                  - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
-                  - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
-                  + hdt*srcQ(i,j,k3d-1,QREINT)
-
-             ! if we are still negative, then we need to reset
-             if (qmo(i,j,kc,QREINT) < ZERO) then
-                eos_state % rho = qmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using the discretized
+             ! expression for updating (rho e).
+             
+             if (qmo(i,j,kc,QREINT) .le. ZERO) then
+                qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
+                     - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
+                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
+                     + hdt*srcQ(i,j,k3d-1,QREINT)
                 
-                call eos(eos_input_rt, eos_state)
-
-                qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
+                ! if we are still negative, then we need to reset
+                if (qmo(i,j,kc,QREINT) < ZERO) then
+                   eos_state % rho = qmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
+                endif
              endif
           endif
 
@@ -1914,7 +1940,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density, &
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
 
@@ -2109,24 +2135,26 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-             if (qpo(i,j,km,QREINT) .le. ZERO) then
-                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                     - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-                
-                ! if we are still negative, then we need to reset
-                if (qpo(i,j,km,QREINT) < ZERO) then
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                if (qpo(i,j,km,QREINT) .le. ZERO) then
+                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qpo(i,j,km,QREINT) < ZERO) then
+                      eos_state % rho = qpo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
                 
@@ -2161,27 +2189,29 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
+                if (qmo(i,j+1,km,QREINT) .le. ZERO) then
+                   qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
+                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qmo(i,j+1,km,QREINT) < ZERO) then
+                      eos_state % rho = qmo(i,j+1,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
 
-             if (qmo(i,j+1,km,QREINT) .le. ZERO) then
-                qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
-                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                     - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-
-                ! if we are still negative, then we need to reset
-                if (qmo(i,j+1,km,QREINT) < ZERO) then
-                   eos_state % rho = qmo(i,j+1,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
+                      qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
-                                   
+             
 
              ! Optionally, use the EOS to calculate the pressure.
 
@@ -2245,7 +2275,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   transverse_use_eos, transverse_reset_density, &
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
 
@@ -2442,24 +2472,26 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-
-             if (qpo(i,j,km,QREINT) .le. ZERO) then
-                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-
-                ! if we are still negative, then we need to reset
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
                 if (qpo(i,j,km,QREINT) .le. ZERO) then
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qpo(i,j,km,QREINT) .le. ZERO) then
+                      eos_state % rho = qpo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 
@@ -2494,24 +2526,26 @@ contains
              ! note: we run the risk of (rho e) being negative here
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                
+                if (qmo(i+1,j,km,QREINT) .le. ZERO) then
+                   qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
+                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (qmo(i+1,j,km,QREINT) .le. ZERO) then
-                qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
-                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
+                   ! if we are still negative, then we need to reset
+                   if (qmo(i+1,j,km,QREINT) < ZERO) then
+                      eos_state % rho = qmo(i+1,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
 
-                ! if we are still negative, then we need to reset
-                if (qmo(i+1,j,km,QREINT) < ZERO) then
-                   eos_state % rho = qmo(i+1,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
+                      qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
+                   endif
                 endif
              endif
 

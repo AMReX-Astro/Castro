@@ -585,6 +585,7 @@ protected:
     static int       use_flattening;
     static int       transverse_use_eos;
     static int       transverse_reset_density;
+    static int       transverse_reset_rhoe;
 
     static int       cg_maxiter;
     static Real      cg_tol;
