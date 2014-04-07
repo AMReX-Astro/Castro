@@ -384,7 +384,7 @@ Castro::read_params ()
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
     pp.query("transverse_reset_density",transverse_reset_density);
-    pp.query("transverse_reset_density",transverse_reset_rhoe);
+    pp.query("transverse_reset_rhoe",transverse_reset_rhoe);
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
