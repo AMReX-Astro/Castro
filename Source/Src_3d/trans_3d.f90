@@ -206,6 +206,7 @@ contains
                       call eos(eos_input_rt, eos_state)
 
                       qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
+                      qypo(i,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -256,6 +257,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
+                      qymo(i,j+1,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -458,6 +460,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                 
                    qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                   qzpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -539,6 +542,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                    
                    qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   qzmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -763,6 +767,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
+                      qxpo(i,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -813,6 +818,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
+                      qxmo(i+1,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1017,6 +1023,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                    
                    qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                   qzpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -1099,6 +1106,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                    
                    qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   qzmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -1385,6 +1393,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
+                      qxpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1435,6 +1444,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
+                      qypo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1484,7 +1494,8 @@ contains
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e                   
+                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e 
+                      qxmo(i+1,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1535,6 +1546,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
+                      qymo(i,j+1,km,QPRES) =  eos_state % p
                    endif
                 endif
              endif
@@ -1823,6 +1835,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                    
                    qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
+                   qpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -1874,6 +1887,7 @@ contains
                    call eos(eos_input_rt, eos_state)
                    
                    qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
+                   qmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -2154,6 +2168,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                      qpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2208,6 +2223,7 @@ contains
                       call eos(eos_input_rt, eos_state)
 
                       qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
+                      qmo(i,j+1,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2491,6 +2507,7 @@ contains
                       call eos(eos_input_rt, eos_state)
                       
                       qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                      qpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2545,6 +2562,7 @@ contains
                       call eos(eos_input_rt, eos_state)
 
                       qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
+                      qmo(i+1,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
