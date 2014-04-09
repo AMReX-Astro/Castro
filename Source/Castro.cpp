@@ -155,6 +155,7 @@ int          Castro::ppm_flatten_before_integrals = 0;
 
 int          Castro::transverse_use_eos = 0;
 int          Castro::transverse_reset_density = 0;
+int          Castro::transverse_reset_rhoe = 0;
 
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
@@ -383,6 +384,7 @@ Castro::read_params ()
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
     pp.query("transverse_reset_density",transverse_reset_density);
+    pp.query("transverse_reset_rhoe",transverse_reset_rhoe);
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
@@ -415,7 +417,7 @@ Castro::read_params ()
     // ppm_flatten_before_integrals is only done for ppm_type == 1
     if (ppm_type == 0 && ppm_flatten_before_integrals > 0)
       {
-        std::cerr << "ppm_flatten_before_integral > 0 not implemented for ppm_type != 0 \n";
+        std::cerr << "ppm_flatten_before_integrals > 0 not implemented for ppm_type != 0 \n";
         BoxLib::Error();
       }
 	
