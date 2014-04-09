@@ -186,8 +186,6 @@ contains
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 u_ref    = u
-                v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
 
@@ -203,8 +201,6 @@ contains
                 ! Woodward use
                 rho_ref  = Im(i,j,kc,1,1,QRHO)
                 u_ref    = Im(i,j,kc,1,1,QU)
-                v_ref    = Im(i,j,kc,1,1,QV)
-                w_ref    = Im(i,j,kc,1,1,QW)
 
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
@@ -213,6 +209,13 @@ contains
 
                 gam_ref  = Im_gc(i,j,kc,1,1,1)
              endif
+
+             ! transverse directions are special -- we define a
+             ! reference value here only so it looks like the other
+             ! quantities, but it is important that the end result be
+             ! a jump only across the middle wave.
+             v_ref    = v
+             w_ref    = w
    
              ! for tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -429,8 +432,6 @@ contains
                 ! original Castro way -- cc values
                 rho_ref  = rho
                 u_ref    = u
-                v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -443,8 +444,6 @@ contains
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
                 u_ref    = Ip(i,j,kc,1,3,QU)
-                v_ref    = Ip(i,j,kc,1,3,QV)
-                w_ref    = Ip(i,j,kc,1,3,QW)
 
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,1,3,QREINT)
@@ -453,6 +452,10 @@ contains
 
                 gam_ref  = Ip_gc(i,j,kc,1,3,1)
              endif
+
+             ! transverse directions
+             v_ref    = v
+             w_ref    = w
    
              ! for tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -777,9 +780,7 @@ contains
                    ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc value
                 rho_ref  = rho
-                u_ref    = u
                 v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -791,9 +792,7 @@ contains
              else
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
-                u_ref    = Im(i,j,kc,2,1,QU)
                 v_ref    = Im(i,j,kc,2,1,QV)
-                w_ref    = Im(i,j,kc,2,1,QW)
 
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
@@ -801,6 +800,11 @@ contains
                 tau_ref  = 1.d0/Im(i,j,kc,2,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,2,1,1)
              endif
+
+             ! transverse directions
+             u_ref    = u
+             w_ref    = w
+
    
              ! for tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -1013,9 +1017,7 @@ contains
                    ppm_reference_edge_limit == 0) ) then
                 ! original Castro way -- cc value
                 rho_ref  = rho
-                u_ref    = u
                 v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -1027,9 +1029,7 @@ contains
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
-                u_ref    = Ip(i,j,kc,2,3,QU)
                 v_ref    = Ip(i,j,kc,2,3,QV)
-                w_ref    = Ip(i,j,kc,2,3,QW)
 
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
@@ -1038,6 +1038,10 @@ contains
 
                 gam_ref  = Ip_gc(i,j,kc,2,3,1)
              endif
+
+             ! transverse directions
+             u_ref    = u
+             w_ref    = w
 
              ! for tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -1448,8 +1452,6 @@ contains
                 ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
-             u_ref    = u
-             v_ref    = v
              w_ref    = w
 
              p_ref    = p
@@ -1462,8 +1464,6 @@ contains
           else
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
-             u_ref    = Im(i,j,kc,3,1,QU)
-             v_ref    = Im(i,j,kc,3,1,QV)
              w_ref    = Im(i,j,kc,3,1,QW)
 
              p_ref    = Im(i,j,kc,3,1,QPRES)
@@ -1472,6 +1472,10 @@ contains
              tau_ref  = 1.d0/Im(i,j,kc,3,1,QRHO)
              gam_ref  = Im_gc(i,j,kc,3,1,1)
           endif
+
+          ! transverse directions
+          u_ref    = u
+          v_ref    = v
 
           ! for tracing (optionally)
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -1698,8 +1702,6 @@ contains
                (ppm_reference == 1 .and. w + cc <= 0.0d0 .and. &
                 ppm_reference_edge_limit == 0) ) then
              rho_ref  = rho
-             u_ref    = u
-             v_ref    = v
              w_ref    = w
 
              p_ref    = p
@@ -1712,8 +1714,6 @@ contains
           else
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
-             u_ref    = Ip(i,j,km,3,3,QU)
-             v_ref    = Ip(i,j,km,3,3,QV)
              w_ref    = Ip(i,j,km,3,3,QW)
 
              p_ref    = Ip(i,j,km,3,3,QPRES)
@@ -1723,6 +1723,10 @@ contains
 
              gam_ref  = Ip_gc(i,j,km,3,3,1)
           endif
+
+          ! transverse directions
+          u_ref    = u
+          v_ref    = v
 
           ! for tracing (optionally)
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
