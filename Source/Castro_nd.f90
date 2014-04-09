@@ -309,8 +309,11 @@
 
         iorder = 2 
 
-!        difmag = 0.1d0
         difmag = difmag_in
+
+        !---------------------------------------------------------------------
+        ! conserved state components
+        !---------------------------------------------------------------------
 
         ! NTHERM: number of thermodynamic variables
         ! NVAR  : number of total variables in initial system
@@ -349,12 +352,17 @@
           UFX = 1
         end if
 
-        ! QTHERM: number of primitive variables, which includes pressure (+1), but
-        !         not little e (-1)
-        ! QVAR  : number of total variables in primitive form
 
-        QTHERM = NTHERM
-        if (use_colglaz_in == 1) QTHERM = QTHERM + 2
+        !---------------------------------------------------------------------
+        ! primitive state components
+        !---------------------------------------------------------------------
+
+        ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
+        !         + dm velocity components + 1 SGS components (if defined)
+        ! QVAR  : number of total variables in primitive form
+      
+        QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
+                             ! the SGS component is accounted for already in NTHERM
 
         QVAR = QTHERM + nspec + naux + numadv
 
@@ -374,11 +382,9 @@
            QLAST = 4
         end if
 
-        if (use_colglaz_in == 1) then
-           QGAME   = QLAST + 1
-           QGAMC   = QLAST + 2
-           QLAST   = QGAMC
-        endif
+        ! we'll carry this around as an potential alternate to (rho e)
+        QGAME   = QLAST + 1
+        QLAST   = QGAME
 
         QPRES   = QLAST + 1
         QREINT  = QLAST + 2
@@ -403,6 +409,11 @@
         else 
           QFX = 1
         end if
+
+
+        !---------------------------------------------------------------------
+        ! other initializations
+        !---------------------------------------------------------------------
 
         if (small_pres_in > 0.d0) then
           small_pres = small_pres_in
