@@ -1511,7 +1511,7 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 pnewlx = eos_state % p
-                qymo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
              else
                 pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
              endif
