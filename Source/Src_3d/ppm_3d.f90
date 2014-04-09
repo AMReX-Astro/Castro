@@ -63,7 +63,8 @@ contains
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
-
+    use bl_constants_module
+  
     implicit none
 
     integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
@@ -133,22 +134,22 @@ contains
     ! compute s at x-edges
 
     ! compute van Leer slopes in x-direction
-    dsvl = 0.d0
+    dsvl = ZERO
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+2
-          dsc = 0.5d0 * (s(i+1,j,k3d) - s(i-1,j,k3d))
-          dsl = 2.d0  * (s(i  ,j,k3d) - s(i-1,j,k3d))
-          dsr = 2.d0  * (s(i+1,j,k3d) - s(i  ,j,k3d))
-          if (dsl*dsr .gt. 0.d0) &
-               dsvl(i,j) = sign(1.d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i+1,j,k3d) - s(i-1,j,k3d))
+          dsl = TWO  * (s(i  ,j,k3d) - s(i-1,j,k3d))
+          dsr = TWO  * (s(i+1,j,k3d) - s(i  ,j,k3d))
+          if (dsl*dsr .gt. ZERO) &
+               dsvl(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
        end do
     end do
 
     ! interpolate s to x-edges
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+2
-          sedge(i,j) = 0.5d0*(s(i,j,k3d)+s(i-1,j,k3d)) &
-               - (1.d0/6.d0)*(dsvl(i,j)-dsvl(i-1,j))
+          sedge(i,j) = HALF*(s(i,j,k3d)+s(i-1,j,k3d)) &
+               - SIXTH*(dsvl(i,j)-dsvl(i-1,j))
           ! make sure sedge lies in between adjacent cell-centered values
           sedge(i,j) = max(sedge(i,j),min(s(i,j,k3d),s(i-1,j,k3d)))
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i-1,j,k3d)))
@@ -166,36 +167,36 @@ contains
           if (ppm_flatten_before_integrals == 1) then
              ! flatten the parabola BEFORE doing the other                     
              ! monotonization -- this is the method that Flash does       
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
           ! modify using quadratic limiters -- note this version of the limiting comes
           ! from Colella and Sekora (2008), not the original PPM paper.
-          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
+          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. ZERO) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
 
-          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sm(i,j)-s(i,j,k3d))) then
-          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
-          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
-             sp(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sm(i,j)
+          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. TWO*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/SIX > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j)))) then
+             sp(i,j) = THREE*s(i,j,k3d) - TWO*sm(i,j)
 
-          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sp(i,j)-s(i,j,k3d))) then
-          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
-          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
-             sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
+          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. TWO*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/SIX) then
+             sm(i,j) = THREE*s(i,j,k3d) - TWO*sp(i,j)
           end if
 
           if (ppm_flatten_before_integrals == 2) then
              ! flatten the parabola AFTER doing the monotonization --
              ! this is the method that Miller & Colella do
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
           ! compute x-component of Ip and Im
-          s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6 = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! Ip/m is the integral under the parabola for the extent
           ! that a wave can travel over a timestep
@@ -206,52 +207,52 @@ contains
           ! u-c wave
           sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dt/dx
 
-          if (u(i,j,k3d,1)-cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,1) = sp(i,j)
           else
              Ip(i,j,kc,1,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,1)-cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,1,1) = sm(i,j) 
           else
              Im(i,j,kc,1,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u wave
           sigma = abs(u(i,j,k3d,1))*dt/dx
 
-          if (u(i,j,k3d,1) <= 0.0d0) then
+          if (u(i,j,k3d,1) <= ZERO) then
              Ip(i,j,kc,1,2) = sp(i,j) 
           else
              Ip(i,j,kc,1,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
              
-          if (u(i,j,k3d,1) >= 0.0d0) then
+          if (u(i,j,k3d,1) >= ZERO) then
              Im(i,j,kc,1,2) = sm(i,j) 
           else
              Im(i,j,kc,1,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u+c wave
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dt/dx
 
-          if (u(i,j,k3d,1)+cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,3) = sp(i,j) 
           else
              Ip(i,j,kc,1,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,1)+cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,1,3) = sm(i,j) 
           else
              Im(i,j,kc,1,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
@@ -273,22 +274,22 @@ contains
     ! compute s at y-edges
 
     ! compute van Leer slopes in y-direction
-    dsvl = 0.d0
+    dsvl = ZERO
     do j=ilo2-2,ihi2+2
        do i=ilo1-1,ihi1+1
-          dsc = 0.5d0 * (s(i,j+1,k3d) - s(i,j-1,k3d))
-          dsl = 2.d0  * (s(i,j  ,k3d) - s(i,j-1,k3d))
-          dsr = 2.d0  * (s(i,j+1,k3d) - s(i,j  ,k3d))
-          if (dsl*dsr .gt. 0.d0) &
-               dsvl(i,j) = sign(1.d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i,j+1,k3d) - s(i,j-1,k3d))
+          dsl = TWO  * (s(i,j  ,k3d) - s(i,j-1,k3d))
+          dsr = TWO  * (s(i,j+1,k3d) - s(i,j  ,k3d))
+          if (dsl*dsr .gt. ZERO) &
+               dsvl(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
        end do
     end do
 
     ! interpolate s to y-edges
     do j=ilo2-1,ihi2+2
        do i=ilo1-1,ihi1+1
-          sedge(i,j) = 0.5d0*(s(i,j,k3d)+s(i,j-1,k3d)) &
-               - (1.d0/6.d0)*(dsvl(i,j)-dsvl(i,j-1))
+          sedge(i,j) = HALF*(s(i,j,k3d)+s(i,j-1,k3d)) &
+               - SIXTH*(dsvl(i,j)-dsvl(i,j-1))
           ! make sure sedge lies in between adjacent cell-centered values
           sedge(i,j) = max(sedge(i,j),min(s(i,j,k3d),s(i,j-1,k3d)))
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i,j-1,k3d)))
@@ -306,85 +307,85 @@ contains
           if (ppm_flatten_before_integrals == 1) then
              ! flatten the parabola BEFORE doing the other                     
              ! monotonization -- this is the method that Flash does       
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
           ! modify using quadratic limiters
-          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.d0) then
+          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. ZERO) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
 
-          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sm(i,j)-s(i,j,k3d))) then
-          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
-          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
-             sp(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sm(i,j)
+          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. TWO*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/SIX > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j)))) then
+             sp(i,j) = THREE*s(i,j,k3d) - TWO*sm(i,j)
 
-          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.d0*abs(sp(i,j)-s(i,j,k3d))) then
-          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
-          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
-             sm(i,j) = 3.d0*s(i,j,k3d) - 2.d0*sp(i,j)
+          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. TWO*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/SIX) then
+             sm(i,j) = THREE*s(i,j,k3d) - TWO*sp(i,j)
           end if
 
           if (ppm_flatten_before_integrals == 2) then
              ! flatten the parabola AFTER doing the monotonization --
              ! this is the method that Miller & Colella do
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
           ! compute y-component of Ip and Im
-          s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6 = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! v-c wave
           sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dt/dy
 
-          if (u(i,j,k3d,2)-cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,1) = sp(i,j)
           else
              Ip(i,j,kc,2,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,2)-cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,2,1) = sm(i,j) 
           else
              Im(i,j,kc,2,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v wave
           sigma = abs(u(i,j,k3d,2))*dt/dy
 
-          if (u(i,j,k3d,2) <= 0.0d0) then
+          if (u(i,j,k3d,2) <= ZERO) then
              Ip(i,j,kc,2,2) = sp(i,j) 
           else
              Ip(i,j,kc,2,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,2) >= 0.0d0) then
+          if (u(i,j,k3d,2) >= ZERO) then
              Im(i,j,kc,2,2) = sm(i,j) 
           else
              Im(i,j,kc,2,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v+c wave
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dt/dy
 
-          if (u(i,j,k3d,2)+cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,3) = sp(i,j) 
           else
              Ip(i,j,kc,2,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,2)+cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,2,3) = sm(i,j) 
           else
              Im(i,j,kc,2,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
@@ -407,9 +408,9 @@ contains
     ! compute s at z-edges
 
     ! compute van Leer slopes in z-direction
-    dsvl  = 0.d0
-    dsvlm = 0.d0
-    dsvlp = 0.d0
+    dsvl  = ZERO
+    dsvlm = ZERO
+    dsvlp = ZERO
 
     !$OMP PARALLEL DO PRIVATE(i,j,k,dsc,dsl,dsr,s6,sigma)
     do j=ilo2-1,ihi2+1
@@ -417,38 +418,38 @@ contains
 
           ! compute on slab below
           k = k3d-1
-          dsc = 0.5d0 * (s(i,j,k+1) - s(i,j,k-1))
-          dsl = 2.0d0 * (s(i,j,k  ) - s(i,j,k-1))
-          dsr = 2.0d0 * (s(i,j,k+1) - s(i,j,k  ))
-          if (dsl*dsr .gt. 0.d0) &
-               dsvlm(i,j) = sign(1.0d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i,j,k+1) - s(i,j,k-1))
+          dsl = TWO  * (s(i,j,k  ) - s(i,j,k-1))
+          dsr = TWO  * (s(i,j,k+1) - s(i,j,k  ))
+          if (dsl*dsr .gt. ZERO) &
+               dsvlm(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
 
           ! compute on slab above
           k = k3d+1
-          dsc = 0.5d0 * (s(i,j,k+1) - s(i,j,k-1))
-          dsl = 2.0d0 * (s(i,j,k  ) - s(i,j,k-1))
-          dsr = 2.0d0 * (s(i,j,k+1) - s(i,j,k  ))
-          if (dsl*dsr .gt. 0.d0) &
-               dsvlp(i,j) = sign(1.0d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i,j,k+1) - s(i,j,k-1))
+          dsl = TWO  * (s(i,j,k  ) - s(i,j,k-1))
+          dsr = TWO  * (s(i,j,k+1) - s(i,j,k  ))
+          if (dsl*dsr .gt. ZERO) &
+               dsvlp(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
 
           ! compute on current slab
           k = k3d
-          dsc = 0.5d0 * (s(i,j,k+1) - s(i,j,k-1))
-          dsl = 2.0d0 * (s(i,j,k  ) - s(i,j,k-1))
-          dsr = 2.0d0 * (s(i,j,k+1) - s(i,j,k  ))
-          if (dsl*dsr .gt. 0.d0) &
-               dsvl(i,j) = sign(1.0d0,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+          dsc = HALF * (s(i,j,k+1) - s(i,j,k-1))
+          dsl = TWO  * (s(i,j,k  ) - s(i,j,k-1))
+          dsr = TWO  * (s(i,j,k+1) - s(i,j,k  ))
+          if (dsl*dsr .gt. ZERO) &
+               dsvl(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
 
           ! interpolate to lo face
           k = k3d
-          sm(i,j) = 0.5d0*(s(i,j,k)+s(i,j,k-1)) - (1.0d0/6.0d0)*(dsvl(i,j)-dsvlm(i,j))
+          sm(i,j) = HALF*(s(i,j,k)+s(i,j,k-1)) - SIXTH*(dsvl(i,j)-dsvlm(i,j))
           ! make sure sedge lies in between adjacent cell-centered values
           sm(i,j) = max(sm(i,j),min(s(i,j,k),s(i,j,k-1)))
           sm(i,j) = min(sm(i,j),max(s(i,j,k),s(i,j,k-1)))
 
           ! interpolate to hi face
           k = k3d+1
-          sp(i,j) = 0.5d0*(s(i,j,k)+s(i,j,k-1)) - (1.0d0/6.0d0)*(dsvlp(i,j)-dsvl(i,j))
+          sp(i,j) = HALF*(s(i,j,k)+s(i,j,k-1)) - SIXTH*(dsvlp(i,j)-dsvl(i,j))
 
           ! make sure sedge lies in between adjacent cell-centered values
           sp(i,j) = max(sp(i,j),min(s(i,j,k),s(i,j,k-1)))
@@ -457,86 +458,86 @@ contains
           if (ppm_flatten_before_integrals == 1) then
              ! flatten the parabola BEFORE doing the other                     
              ! monotonization -- this is the method that Flash does       
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
 
           ! modify using quadratic limiters
-          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. 0.0d0) then
+          if ((sp(i,j)-s(i,j,k3d))*(s(i,j,k3d)-sm(i,j)) .le. ZERO) then
              sp(i,j) = s(i,j,k3d)
              sm(i,j) = s(i,j,k3d)
 
-          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. 2.0d0*abs(sm(i,j)-s(i,j,k3d))) then
-          !else if (-(sp(i,j)-sm(i,j))**2/6.0d0 > &
-          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j)))) then
-             sp(i,j) = 3.0d0*s(i,j,k3d) - 2.0d0*sm(i,j)
+          else if (abs(sp(i,j)-s(i,j,k3d)) .ge. TWO*abs(sm(i,j)-s(i,j,k3d))) then
+          !else if (-(sp(i,j)-sm(i,j))**2/SIX > &
+          !     (sp(i,j) - sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j)))) then
+             sp(i,j) = THREE*s(i,j,k3d) - TWO*sm(i,j)
 
-          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. 2.0d0*abs(sp(i,j)-s(i,j,k3d))) then
-          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - 0.5d0*(sm(i,j) + sp(i,j))) > &
-          !     (sp(i,j) - sm(i,j))**2/6.0d0) then
-             sm(i,j) = 3.0d0*s(i,j,k3d) - 2.0d0*sp(i,j)
+          else if (abs(sm(i,j)-s(i,j,k3d)) .ge. TWO*abs(sp(i,j)-s(i,j,k3d))) then
+          !else if ((sp(i,j)-sm(i,j))*(s(i,j,k3d) - HALF*(sm(i,j) + sp(i,j))) > &
+          !     (sp(i,j) - sm(i,j))**2/SIX) then
+             sm(i,j) = THREE*s(i,j,k3d) - TWO*sp(i,j)
           end if
 
           if (ppm_flatten_before_integrals == 2) then
              ! flatten the parabola AFTER doing the monotonization --
              ! this is the method that Miller & Colella do
-             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
-             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (1.d0-flatn(i,j,k3d))*s(i,j,k3d)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
 
           ! compute z-component of Ip and Im
-          s6 = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6 = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! w-c wave
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dt/dz
 
-          if (u(i,j,k3d,3)-cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,1) = sp(i,j) 
           else
              Ip(i,j,kc,3,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,3)-cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,3,1) = sm(i,j) 
           else
              Im(i,j,kc,3,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! w wave
           sigma = abs(u(i,j,k3d,3))*dt/dz
 
-          if (u(i,j,k3d,3) <= 0.0d0) then
+          if (u(i,j,k3d,3) <= ZERO) then
              Ip(i,j,kc,3,2) = sp(i,j) 
           else
              Ip(i,j,kc,3,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,3) >= 0.0d0) then
+          if (u(i,j,k3d,3) >= ZERO) then
              Im(i,j,kc,3,2) = sm(i,j) 
           else
              Im(i,j,kc,3,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! w+c wave
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dt/dz
 
-          if (u(i,j,k3d,3)+cspd(i,j,k3d) <= 0.0d0) then
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,3) = sp(i,j) 
           else
              Ip(i,j,kc,3,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,3)+cspd(i,j,k3d) >= 0.0d0) then
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
              Im(i,j,kc,3,3) = sm(i,j) 
           else
              Im(i,j,kc,3,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+               HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
@@ -556,7 +557,8 @@ contains
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-    use meth_params_module, only : ppm_type
+    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use bl_constants_module
 
     implicit none
 
@@ -633,18 +635,18 @@ contains
     ! interpolate s to x-edges
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+3
-          sedge(i,j) = (7.d0/12.d0)*(s(i-1,j,k3d)+s(i  ,j,k3d)) &
-               - (1.d0/12.d0)*(s(i-2,j,k3d)+s(i+1,j,k3d))
+          sedge(i,j) = SEVEN12TH*(s(i-1,j,k3d)+s(i  ,j,k3d)) &
+               - TWELFTH*(s(i-2,j,k3d)+s(i+1,j,k3d))
           !
           ! limit sedge
           !
-          if ((sedge(i,j)-s(i-1,j,k3d))*(s(i,j,k3d)-sedge(i,j)) .lt. 0.d0) then
-             D2  = 3.d0*(s(i-1,j,k3d)-2.d0*sedge(i,j)+s(i,j,k3d))
-             D2L = s(i-2,j,k3d)-2.d0*s(i-1,j,k3d)+s(i,j,k3d)
-             D2R = s(i-1,j,k3d)-2.d0*s(i,j,k3d)+s(i+1,j,k3d)
-             sgn = sign(1.d0,D2)
-             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),0.d0)
-             sedge(i,j) = 0.5d0*(s(i-1,j,k3d)+s(i,j,k3d)) - (1.d0/6.d0)*D2LIM
+          if ((sedge(i,j)-s(i-1,j,k3d))*(s(i,j,k3d)-sedge(i,j)) .lt. ZERO) then
+             D2  = THREE*(s(i-1,j,k3d)-TWO*sedge(i,j)+s(i,j,k3d))
+             D2L = s(i-2,j,k3d)-TWO*s(i-1,j,k3d)+s(i,j,k3d)
+             D2R = s(i-1,j,k3d)-TWO*s(i,j,k3d)+s(i+1,j,k3d)
+             sgn = sign(ONE,D2)
+             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),ZERO)
+             sedge(i,j) = HALF*(s(i-1,j,k3d)+s(i,j,k3d)) - SIXTH*D2LIM
           end if
        end do
     end do
@@ -661,11 +663,11 @@ contains
 
           alphap   = sedge(i+1,j)-s(i,j,k3d)
           alpham   = sedge(i  ,j)-s(i,j,k3d)
-          bigp     = abs(alphap).gt.2.d0*abs(alpham)
-          bigm     = abs(alpham).gt.2.d0*abs(alphap)
+          bigp     = abs(alphap).gt.TWO*abs(alpham)
+          bigm     = abs(alpham).gt.TWO*abs(alphap)
           extremum = .false.
 
-          if (alpham*alphap .ge. 0.d0) then
+          if (alpham*alphap .ge. ZERO) then
              extremum = .true.
           else if (bigp .or. bigm) then
              !
@@ -687,40 +689,40 @@ contains
                 dachkm = dabarm
                 dachkp = dabarp
              endif
-             extremum = (dachkm*dachkp .le. 0.d0)
+             extremum = (dachkm*dachkp .le. ZERO)
           end if
 
           if (extremum) then
-             D2     = 6.d0*(alpham + alphap)
-             D2L    = s(i-2,j,k3d)-2.d0*s(i-1,j,k3d)+s(i,j,k3d)
-             D2R    = s(i,j,k3d)-2.d0*s(i+1,j,k3d)+s(i+2,j,k3d)
-             D2C    = s(i-1,j,k3d)-2.d0*s(i,j,k3d)+s(i+1,j,k3d)
-             sgn    = sign(1.d0,D2)
-             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),0.d0)
+             D2     = SIX*(alpham + alphap)
+             D2L    = s(i-2,j,k3d)-TWO*s(i-1,j,k3d)+s(i,j,k3d)
+             D2R    = s(i,j,k3d)-TWO*s(i+1,j,k3d)+s(i+2,j,k3d)
+             D2C    = s(i-1,j,k3d)-TWO*s(i,j,k3d)+s(i+1,j,k3d)
+             sgn    = sign(ONE,D2)
+             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
              alpham = alpham*D2LIM/max(abs(D2),1.d-10)
              alphap = alphap*D2LIM/max(abs(D2),1.d-10)
           else
              if (bigp) then
-                sgn   = sign(1.d0,alpham)
+                sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
-                      alphap = (-2.d0*delam - 2.d0*sgn*sqrt(delam**2 - delam*alpham))
+                      alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
-                      alphap = -2.d0*alpham
+                      alphap = -TWO*alpham
                    endif
                 endif
              end if
              if (bigm) then
-                sgn   = sign(1.d0,alphap)
+                sgn   = sign(ONE,alphap)
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
                    if (sgn*(delap - alphap).ge.1.d-10) then
-                      alpham = (-2.d0*delap - 2.d0*sgn*sqrt(delap**2 - delap*alphap))
+                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
-                      alpham = -2.d0*alphap
+                      alpham = -TWO*alphap
                    endif
                 endif
              end if
@@ -728,28 +730,69 @@ contains
 
           sm(i,j) = s(i,j,k3d) + alpham
           sp(i,j) = s(i,j,k3d) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization 
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
+
           !
           ! Compute x-component of Ip and Im.
           !
-          s6    = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6    = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
+          ! u-c wave
           sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dt/dx
-          Ip(i,j,kc,1,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
 
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,1,1) = sp(i,j)
+          else
+             Ip(i,j,kc,1,1) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,1)-cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,1,1) = sm(i,j)
+          else
+             Im(i,j,kc,1,1) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! u wave
           sigma = abs(u(i,j,k3d,1))*dt/dx
-          Ip(i,j,kc,1,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
 
+          if (u(i,j,k3d,1) <= ZERO) then
+             Ip(i,j,kc,1,2) = sp(i,j)
+          else
+             Ip(i,j,kc,1,2) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,1) >= ZERO) then
+             Im(i,j,kc,1,2) = sm(i,j)
+          else
+             Im(i,j,kc,1,2) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! u+c wave
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dt/dx
-          Ip(i,j,kc,1,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,1,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,1,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,1,3) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,1,3) = sm(i,j) 
+          else
+             Im(i,j,kc,1,3) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
 
        end do
     end do
@@ -772,18 +815,18 @@ contains
     ! interpolate s to y-edges
     do j=ilo2-2,ihi2+3
        do i=ilo1-1,ihi1+1
-          sedge(i,j) = (7.d0/12.d0)*(s(i,j-1,k3d)+s(i,j,k3d)) &
-               - (1.d0/12.d0)*(s(i,j-2,k3d)+s(i,j+1,k3d))
+          sedge(i,j) = SEVEN12TH*(s(i,j-1,k3d)+s(i,j,k3d)) &
+               - TWELFTH*(s(i,j-2,k3d)+s(i,j+1,k3d))
           !
           ! limit sedge
           !
-          if ((sedge(i,j)-s(i,j-1,k3d))*(s(i,j,k3d)-sedge(i,j)) .lt. 0.d0) then
-             D2  = 3.d0*(s(i,j-1,k3d)-2.d0*sedge(i,j)+s(i,j,k3d))
-             D2L = s(i,j-2,k3d)-2.d0*s(i,j-1,k3d)+s(i,j,k3d)
-             D2R = s(i,j-1,k3d)-2.d0*s(i,j,k3d)+s(i,j+1,k3d)
-             sgn = sign(1.d0,D2)
-             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),0.d0)
-             sedge(i,j) = 0.5d0*(s(i,j-1,k3d)+s(i,j,k3d)) - (1.d0/6.d0)*D2LIM
+          if ((sedge(i,j)-s(i,j-1,k3d))*(s(i,j,k3d)-sedge(i,j)) .lt. ZERO) then
+             D2  = THREE*(s(i,j-1,k3d)-TWO*sedge(i,j)+s(i,j,k3d))
+             D2L = s(i,j-2,k3d)-TWO*s(i,j-1,k3d)+s(i,j,k3d)
+             D2R = s(i,j-1,k3d)-TWO*s(i,j,k3d)+s(i,j+1,k3d)
+             sgn = sign(ONE,D2)
+             D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),ZERO)
+             sedge(i,j) = HALF*(s(i,j-1,k3d)+s(i,j,k3d)) - SIXTH*D2LIM
           end if
        end do
     end do
@@ -799,11 +842,11 @@ contains
 
           alphap   = sedge(i,j+1)-s(i,j,k3d)
           alpham   = sedge(i,j  )-s(i,j,k3d)
-          bigp     = abs(alphap).gt.2.d0*abs(alpham)
-          bigm     = abs(alpham).gt.2.d0*abs(alphap)
+          bigp     = abs(alphap).gt.TWO*abs(alpham)
+          bigm     = abs(alpham).gt.TWO*abs(alphap)
           extremum = .false.
 
-          if (alpham*alphap .ge. 0.d0) then
+          if (alpham*alphap .ge. ZERO) then
              extremum = .true.
           else if (bigp .or. bigm) then
              !
@@ -825,40 +868,40 @@ contains
                 dachkm = dabarm
                 dachkp = dabarp
              endif
-             extremum = (dachkm*dachkp .le. 0.d0)
+             extremum = (dachkm*dachkp .le. ZERO)
           end if
 
           if (extremum) then
-             D2     = 6.d0*(alpham + alphap)
-             D2L    = s(i,j-2,k3d)-2.d0*s(i,j-1,k3d)+s(i,j,k3d)
-             D2R    = s(i,j,k3d)-2.d0*s(i,j+1,k3d)+s(i,j+2,k3d)
-             D2C    = s(i,j-1,k3d)-2.d0*s(i,j,k3d)+s(i,j+1,k3d)
-             sgn    = sign(1.d0,D2)
-             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),0.d0)
+             D2     = SIX*(alpham + alphap)
+             D2L    = s(i,j-2,k3d)-TWO*s(i,j-1,k3d)+s(i,j,k3d)
+             D2R    = s(i,j,k3d)-TWO*s(i,j+1,k3d)+s(i,j+2,k3d)
+             D2C    = s(i,j-1,k3d)-TWO*s(i,j,k3d)+s(i,j+1,k3d)
+             sgn    = sign(ONE,D2)
+             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
              alpham = alpham*D2LIM/max(abs(D2),1.d-10)
              alphap = alphap*D2LIM/max(abs(D2),1.d-10)
           else
              if (bigp) then
-                sgn   = sign(1.d0,alpham)
+                sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j-1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
-                      alphap = (-2.d0*delam - 2.d0*sgn*sqrt(delam**2 - delam*alpham))
+                      alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
-                      alphap = -2.d0*alpham
+                      alphap = -TWO*alpham
                    endif
                 endif
              end if
              if (bigm) then
-                sgn   = sign(1.d0,alphap)
+                sgn   = sign(ONE,alphap)
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j+1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
                    if (sgn*(delap - alphap).ge.1.d-10) then
-                      alpham = (-2.d0*delap - 2.d0*sgn*sqrt(delap**2 - delap*alphap))
+                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
-                      alpham = -2.d0*alphap
+                      alpham = -TWO*alphap
                    endif
                 endif
              end if
@@ -866,28 +909,70 @@ contains
 
           sm(i,j) = s(i,j,k3d) + alpham
           sp(i,j) = s(i,j,k3d) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization 
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
+
           !
           ! Compute y-component of Ip and Im.
           !
-          s6    = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6    = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
+          ! v-c wave
           sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dt/dy
-          Ip(i,j,kc,2,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
 
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,2,1) = sp(i,j) 
+          else
+             Ip(i,j,kc,2,1) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,2,1) = sm(i,j) 
+          else
+             Im(i,j,kc,2,1) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! v wave
           sigma = abs(u(i,j,k3d,2))*dt/dy
-          Ip(i,j,kc,2,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
 
+          if (u(i,j,k3d,2) <= ZERO) then
+             Ip(i,j,kc,2,2) = sp(i,j) 
+          else
+             Ip(i,j,kc,2,2) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,2) >= ZERO) then
+             Im(i,j,kc,2,2) = sm(i,j) 
+          else
+             Im(i,j,kc,2,2) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! v+c wave
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dt/dy
-          Ip(i,j,kc,2,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,2,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,2,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,2,3) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,2,3) = sm(i,j) 
+          else
+             Im(i,j,kc,2,3) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
        end do
     end do
     !$OMP END PARALLEL DO
@@ -912,18 +997,18 @@ contains
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sedgez(i,j,k) = (7.d0/12.d0)*(s(i,j,k-1)+s(i,j,k)) &
-                  - (1.d0/12.d0)*(s(i,j,k-2)+s(i,j,k+1))
+             sedgez(i,j,k) = SEVEN12TH*(s(i,j,k-1)+s(i,j,k)) &
+                  - TWELFTH*(s(i,j,k-2)+s(i,j,k+1))
              !
              ! limit sedgez
              !
-             if ((sedgez(i,j,k)-s(i,j,k-1))*(s(i,j,k)-sedgez(i,j,k)) .lt. 0.d0) then
-                D2  = 3.d0*(s(i,j,k-1)-2.d0*sedgez(i,j,k)+s(i,j,k))
-                D2L = s(i,j,k-2)-2.d0*s(i,j,k-1)+s(i,j,k)
-                D2R = s(i,j,k-1)-2.d0*s(i,j,k)+s(i,j,k+1)
-                sgn = sign(1.d0,D2)
-                D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),0.d0)
-                sedgez(i,j,k) = 0.5d0*(s(i,j,k-1)+s(i,j,k)) - (1.d0/6.d0)*D2LIM
+             if ((sedgez(i,j,k)-s(i,j,k-1))*(s(i,j,k)-sedgez(i,j,k)) .lt. ZERO) then
+                D2  = THREE*(s(i,j,k-1)-TWO*sedgez(i,j,k)+s(i,j,k))
+                D2L = s(i,j,k-2)-TWO*s(i,j,k-1)+s(i,j,k)
+                D2R = s(i,j,k-1)-TWO*s(i,j,k)+s(i,j,k+1)
+                sgn = sign(ONE,D2)
+                D2LIM = sgn*max(min(C*sgn*D2L,C*sgn*D2R,sgn*D2),ZERO)
+                sedgez(i,j,k) = HALF*(s(i,j,k-1)+s(i,j,k)) - SIXTH*D2LIM
              end if
           end do
        end do
@@ -942,11 +1027,11 @@ contains
 
           alphap   = sedgez(i,j,k+1)-s(i,j,k)
           alpham   = sedgez(i,j,k  )-s(i,j,k)
-          bigp     = abs(alphap).gt.2.d0*abs(alpham)
-          bigm     = abs(alpham).gt.2.d0*abs(alphap)
+          bigp     = abs(alphap).gt.TWO*abs(alpham)
+          bigm     = abs(alpham).gt.TWO*abs(alphap)
           extremum = .false.
 
-          if (alpham*alphap .ge. 0.d0) then
+          if (alpham*alphap .ge. ZERO) then
              extremum = .true.
           else if (bigp .or. bigm) then
              !
@@ -968,40 +1053,40 @@ contains
                 dachkm = dabarm
                 dachkp = dabarp
              endif
-             extremum = (dachkm*dachkp .le. 0.d0)
+             extremum = (dachkm*dachkp .le. ZERO)
           end if
 
           if (extremum) then
-             D2     = 6.d0*(alpham + alphap)
-             D2L    = s(i,j,k-2)-2.d0*s(i,j,k-1)+s(i,j,k)
-             D2R    = s(i,j,k)-2.d0*s(i,j,k+1)+s(i,j,k+2)
-             D2C    = s(i,j,k-1)-2.d0*s(i,j,k)+s(i,j,k+1)
-             sgn    = sign(1.d0,D2)
-             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),0.d0)
+             D2     = SIX*(alpham + alphap)
+             D2L    = s(i,j,k-2)-TWO*s(i,j,k-1)+s(i,j,k)
+             D2R    = s(i,j,k)-TWO*s(i,j,k+1)+s(i,j,k+2)
+             D2C    = s(i,j,k-1)-TWO*s(i,j,k)+s(i,j,k+1)
+             sgn    = sign(ONE,D2)
+             D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
              alpham = alpham*D2LIM/max(abs(D2),1.d-10)
              alphap = alphap*D2LIM/max(abs(D2),1.d-10)
           else
              if (bigp) then
-                sgn   = sign(1.d0,alpham)
+                sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j,k-1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
-                      alphap = (-2.d0*delam - 2.d0*sgn*sqrt(delam**2 - delam*alpham))
+                      alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
-                      alphap = -2.d0*alpham
+                      alphap = -TWO*alpham
                    endif
                 endif
              end if
              if (bigm) then
-                sgn   = sign(1.d0,alphap)
+                sgn   = sign(ONE,alphap)
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j,k+1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delap) then
                    if (sgn*(delap - alphap).ge.1.d-10) then
-                      alpham = (-2.d0*delap - 2.d0*sgn*sqrt(delap**2 - delap*alphap))
+                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
-                      alpham = -2.d0*alphap
+                      alpham = -TWO*alphap
                    endif
                 endif
              end if
@@ -1009,28 +1094,69 @@ contains
 
           sm(i,j) = s(i,j,k) + alpham
           sp(i,j) = s(i,j,k) + alphap
+
+          if (ppm_flatten_before_integrals > 0) then
+             ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
+             sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+             sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          endif
+
           !
           ! Compute z-component of Ip and Im.
           !
-          s6    = 6.0d0*s(i,j,k3d) - 3.0d0*(sm(i,j)+sp(i,j))
+          s6    = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
+          
+          ! w-c wave
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dt/dz
-          Ip(i,j,kc,3,1) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,1) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+          
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,3,1) = sp(i,j) 
+          else
+             Ip(i,j,kc,3,1) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
 
+          if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,3,1) = sm(i,j) 
+          else
+             Im(i,j,kc,3,1) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! w wave
           sigma = abs(u(i,j,k3d,3))*dt/dz
-          Ip(i,j,kc,3,2) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,2) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
 
+          if (u(i,j,k3d,3) <= ZERO) then
+             Ip(i,j,kc,3,2) = sp(i,j)
+          else
+             Ip(i,j,kc,3,2) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,3) >= ZERO) then
+             Im(i,j,kc,3,2) = sm(i,j)
+          else
+             Im(i,j,kc,3,2) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! w+c wave
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dt/dz
-          Ip(i,j,kc,3,3) = sp(i,j) - &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)-(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
-          Im(i,j,kc,3,3) = sm(i,j) + &
-               (sigma/2.0d0)*(sp(i,j)-sm(i,j)+(1.0d0-(2.0d0/3.0d0)*sigma)*s6)
+
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
+             Ip(i,j,kc,3,3) = sp(i,j) 
+          else
+             Ip(i,j,kc,3,3) = sp(i,j) - &
+                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
+             Im(i,j,kc,3,3) = sm(i,j) 
+          else
+             Im(i,j,kc,3,3) = sm(i,j) + &
+                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
 
        end do
     end do

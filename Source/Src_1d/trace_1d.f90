@@ -23,6 +23,8 @@ contains
                                      nadv, small_dens, ppm_type, fix_mass_flux, use_pslope
       use prob_params_module, only : physbc_lo, physbc_hi, Outflow
       use slope_module, only : uslope, pslope
+      use bl_constants_module
+
       implicit none
 
       integer domlo(1),domhi(1)
@@ -73,13 +75,13 @@ contains
         call bl_error("Error:: Castro_1d.f90 :: trace")
       end if
 
-      hdt = 0.5d0 * dt
+      hdt = HALF * dt
       dtdx = dt/dx
 
       ! Compute slopes
       if (iorder .eq. 1) then
 
-         dq(ilo-1:ihi+1,1:QVAR) = 0.d0
+         dq(ilo-1:ihi+1,1:QVAR) = ZERO
 
       else
 
@@ -112,31 +114,31 @@ contains
          dp    = dq(i,QPRES) 
          drhoe = dq(i,QREINT)
 
-         alpham = 0.5d0*(dp/(rho*cc) - du)*rho/cc
-         alphap = 0.5d0*(dp/(rho*cc) + du)*rho/cc
+         alpham = HALF*(dp/(rho*cc) - du)*rho/cc
+         alphap = HALF*(dp/(rho*cc) + du)*rho/cc
          alpha0r = drho - dp/csq
          alpha0e = drhoe - dp*enth
 
-         if (u-cc .gt. 0.d0) then
-            spminus = -1.d0
+         if (u-cc .gt. ZERO) then
+            spminus = -ONE
          else
             spminus = (u-cc)*dtdx
          endif
-         if (u+cc .gt. 0.d0) then
-            spplus = -1.d0
+         if (u+cc .gt. ZERO) then
+            spplus = -ONE
          else
             spplus = (u+cc)*dtdx
          endif
-         if (u .gt. 0.d0) then
-            spzero = -1.d0
+         if (u .gt. ZERO) then
+            spzero = -ONE
          else
             spzero = u*dtdx
          endif
 
-         apright = 0.5d0*(-1.d0 - spplus )*alphap
-         amright = 0.5d0*(-1.d0 - spminus)*alpham
-         azrright = 0.5d0*(-1.d0 - spzero )*alpha0r
-         azeright = 0.5d0*(-1.d0 - spzero )*alpha0e
+         apright = HALF*(-ONE - spplus )*alphap
+         amright = HALF*(-ONE - spminus)*alpham
+         azrright = HALF*(-ONE - spzero )*alpha0r
+         azeright = HALF*(-ONE - spzero )*alpha0e
 
          if (i .ge. ilo) then
             qxp(i,QRHO  ) = rho + apright + amright + azrright
@@ -156,26 +158,26 @@ contains
             qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i)
          end if
 
-         if (u-cc .ge. 0.d0) then
+         if (u-cc .ge. ZERO) then
             spminus = (u-cc)*dtdx
          else
-            spminus = 1.d0
+            spminus = ONE
          endif
-         if (u+cc .ge. 0.d0) then
+         if (u+cc .ge. ZERO) then
             spplus = (u+cc)*dtdx
          else
-            spplus = 1.d0
+            spplus = ONE
          endif
-         if (u .ge. 0.d0) then
+         if (u .ge. ZERO) then
             spzero = u*dtdx
          else
-            spzero = 1.d0
+            spzero = ONE
          endif
 
-         apleft = 0.5d0*(1.d0 - spplus )*alphap
-         amleft = 0.5d0*(1.d0 - spminus)*alpham
-         azrleft = 0.5d0*(1.d0 - spzero )*alpha0r
-         azeleft = 0.5d0*(1.d0 - spzero )*alpha0e
+         apleft = HALF*(ONE - spplus )*alphap
+         amleft = HALF*(ONE - spminus)*alpham
+         azrleft = HALF*(ONE - spzero )*alpha0r
+         azeleft = HALF*(ONE - spzero )*alpha0e
 
          if (i .le. ihi) then
             qxm(i+1,QRHO  ) = rho + apleft + amleft + azrleft
@@ -197,9 +199,9 @@ contains
 
          if(dloga(i).ne.0)then
             courn = dtdx*(cc+abs(u))
-            eta = (1.d0-courn)/(cc*dt*abs(dloga(i)))
-            dlogatmp = min(eta,1.d0)*dloga(i)
-            sourcr = -0.5d0*dt*rho*dlogatmp*u
+            eta = (ONE-courn)/(cc*dt*abs(dloga(i)))
+            dlogatmp = min(eta,ONE)*dloga(i)
+            sourcr = -HALF*dt*rho*dlogatmp*u
             sourcp = sourcr*csq
             source = sourcp*enth
             if (i .le. ihi) then
@@ -239,12 +241,12 @@ contains
          ! Right state
          do i = ilo,ihi+1
             u = q(i,QU)
-            if (u .gt. 0.d0) then
-               spzero = -1.d0
+            if (u .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = u*dtdx
             endif
-            acmprght = 0.5d0*(-1.d0 - spzero )*dq(i,n)
+            acmprght = HALF*(-ONE - spzero )*dq(i,n)
             qxp(i,n) = q(i,n) + acmprght
          enddo
          if (fix_mass_flux_hi) qxp(ihi+1,n) = q(ihi+1,n)
@@ -252,12 +254,12 @@ contains
          ! Left state
          do i = ilo-1,ihi
             u = q(i,QU)
-            if (u .ge. 0.d0) then
+            if (u .ge. ZERO) then
                spzero = u*dtdx
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
-            acmpleft = 0.5d0*(1.d0 - spzero )*dq(i,n)
+            acmpleft = HALF*(ONE - spzero )*dq(i,n)
             qxm(i+1,n) = q(i,n) + acmpleft
          enddo
          if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
@@ -269,12 +271,12 @@ contains
          ! Right state
          do i = ilo,ihi+1
             u = q(i,QU)
-            if (u .gt. 0.d0) then
-               spzero = -1.d0
+            if (u .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = u*dtdx
             endif
-            ascmprght = 0.5d0*(-1.d0 - spzero )*dq(i,ns)
+            ascmprght = HALF*(-ONE - spzero )*dq(i,ns)
             qxp(i,ns) = q(i,ns) + ascmprght
             if (fix_mass_flux_hi .and. i.eq.domhi(1)+1) & 
                qxp(i,ns) = q(i,ns)
@@ -284,12 +286,12 @@ contains
          ! Left state
          do i = ilo-1,ihi
             u = q(i,QU)
-            if (u .ge. 0.d0) then
+            if (u .ge. ZERO) then
                spzero = u*dtdx
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
-            ascmpleft = 0.5d0*(1.d0 - spzero )*dq(i,ns)
+            ascmpleft = HALF*(ONE - spzero )*dq(i,ns)
             qxm(i+1,ns) = q(i,ns) + ascmpleft
          enddo
          if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
@@ -301,12 +303,12 @@ contains
          ! Right state
          do i = ilo,ihi+1
             u = q(i,QU)
-            if (u .gt. 0.d0) then
-               spzero = -1.d0
+            if (u .gt. ZERO) then
+               spzero = -ONE
             else
                spzero = u*dtdx
             endif
-            ascmprght = 0.5d0*(-1.d0 - spzero )*dq(i,ns)
+            ascmprght = HALF*(-ONE - spzero )*dq(i,ns)
             qxp(i,ns) = q(i,ns) + ascmprght
          enddo
          if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
@@ -314,12 +316,12 @@ contains
          ! Left state
          do i = ilo-1,ihi
             u = q(i,QU)
-            if (u .ge. 0.d0) then
+            if (u .ge. ZERO) then
                spzero = u*dtdx
             else
-               spzero = 1.d0
+               spzero = ONE
             endif
-            ascmpleft = 0.5d0*(1.d0 - spzero )*dq(i,ns)
+            ascmpleft = HALF*(ONE - spzero )*dq(i,ns)
             qxm(i+1,ns) = q(i,ns) + ascmpleft
          enddo
          if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)

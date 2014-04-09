@@ -229,19 +229,25 @@
 \clearpage
 
 \listoffigures
-\addcontentsline{toc}{part}{list of figures}
+\addcontentsline{toc}{chapter}{list of figures}
 
 \clearpage
 
 \listoftables
-\addcontentsline{toc}{part}{list of tables}
+\addcontentsline{toc}{chapter}{list of tables}
+
+\clearpage
+
+\chapter*{Preface}
+\chaptermark{Preface}
+\addcontentsline{toc}{chapter}{preface}
+
+\input Introduction/CastroIntroduction
 
 \clearpage
 
 \mainmatter
 
-\chapter{Introduction}
-\input Introduction/CastroIntroduction
 
 \chapter{Getting Started}
 \input GettingStarted/CastroGettingStarted

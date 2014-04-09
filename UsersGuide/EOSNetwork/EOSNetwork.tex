@@ -6,28 +6,86 @@ that come with the CASTRO distribution.
 
 EOS routines that come with CASTRO are (listed by directory name):
 \begin{itemize}
-\item {\bf Gamma\_Law\_General} directory represents a gamma law gas, with equation of state:
+
+\item {\tt gamma\_law\_general} represents a gamma law gas, with equation of state:
 \begin{equation}
   P = (\gamma - 1) \rho e.
 \end{equation}
 The gas is currently assumed to be monatomic and ideal. The entropy comes from the Sackur-Tetrode equation.
-\item {\bf Polytrope} directory represents a polytropic fluid, with equation of state:
+
+\item {\tt polytrope} represents a polytropic fluid, with equation of state:
 \begin{equation}
   P = K \rho^\gamma.
 \end{equation}
-The gas is also assumed to obey the above gamma law equation of state connecting the pressure and internal energy. Therefore $\rho$ is the only independent variable; there is no temperature dependence. The user either selects from a set of predefined options reflecting physical polytropes (e.g. a non-relativistic, fully degenerate electron gas) or inputs their own values for $K$ and $\gamma$.
-\item {\bf HelmEOS} directory contains a general, publicly available
+The gas is also assumed to obey the above gamma law equation of state
+connecting the pressure and internal energy. Therefore $\rho$ is the
+only independent variable; there is no temperature dependence. The
+user either selects from a set of predefined options reflecting
+physical polytropes (e.g. a non-relativistic, fully degenerate
+electron gas) or inputs their own values for $K$ and $\gamma$.
+
+\item {\tt multigamma} is an ideal gas equation of state where each
+  species can have a different value of $\gamma$.  This mainly affects
+  how the internal energy is constructed as each species, represented
+  with a mass fraction $X_k$ will have its contribution to the total
+  specific internal energy take the form of $e = p/\rho/(\gamma_k -
+  1)$.  The main thermodynamic quantities take the form:
+\begin{align}
+p &= \frac{\rho k T}{m_u} \sum_k \frac{X_k}{A_k} \\
+e &= \frac{k T}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
+h &= \frac{k T}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k}
+\end{align}
+We recognize that the usual astrophysical $\bar{A}^{-1} = \sum_k
+X_k/A_k$, but now we have two other sums that involve different
+$\gamma_k$ weightings.
+
+The specific heats are constructed as usual, 
+\begin{align}
+c_v &= \left . \frac{\partial e}{\partial T} \right |_\rho = 
+    \frac{k}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
+c_p &= \left . \frac{\partial h}{\partial T} \right |_p = 
+    \frac{k}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} 
+\end{align}
+and it can be seen that the specific gas constant, $R \equiv c_p - c_v$ is
+independent of the $\gamma_i$, and is simply $R = k/m_u\bar{A}$ giving the
+usual relation that $p = R\rho T$.  Furthermore, we can show
+\begin{equation}
+\Gamma_1 \equiv \left . \frac{\partial \log p}{\partial \log \rho} \right |_s =  
+   \left ( \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} \right ) \bigg /
+   \left ( \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \right ) =
+\frac{c_p}{c_v} \equiv \gamma_\mathrm{effective} 
+\end{equation}
+and $p = \rho e (\gamma_\mathrm{effective} - 1)$.
+
+This equation of state takes several runtime parameters that can set the
+$\gamma_i$ for a specific species.  These are set in the {\tt \&extern}
+namelist in the {\tt probin} file.  The parameters are:
+\begin{itemize}
+\item {\tt eos\_gamma\_default}: the default $\gamma$ to apply for
+  all species
+\item {\tt species\_X\_name} and {\tt species\_X\_gamma}: set the $\gamma_i$
+  for the species whose name is given as {\tt species\_X\_name} to the
+  value provided by {\tt species\_X\_gamma}.  Here, {\tt X} can be one
+  of the letters: {\tt a}, {\tt b}, or {\tt c}, allowing us to specify
+  custom $\gamma_i$ for up to three different species.
+\end{itemize}
+
+\item {\tt helmeos} contains a general, publicly available
 stellar equation of state based on the Helmholtz free energy,
 with contributions from ions, radiation, and electron degeneracy, as
 described in (Timmes and Arnett 1999, Times and Swesty 2000, and Fryxell et al. 2000).
-\item {\bf LattimerSwestyEOS} directory contains a modified version of the
-LS EOS available at http://www.astro.sunysb.edu/dswesty.  Full
-documentation is available through that web site.  We use this EOS
-in the 1D core collapse supernova example in a later section.
+
+%% \item {\bf LattimerSwestyEOS} directory contains a modified version of the
+%% LS EOS available at http://www.astro.sunysb.edu/dswesty.  Full
+%% documentation is available through that web site.  We use this EOS
+%% in the 1D core collapse supernova example in a later section.
 \end{itemize}
 
-Each EOS should have two main routines by which it interfaces to the rest of CASTRO.
-At the beginning of the simulation, {\bf \rm eos\_init} will perform any initialization steps and save EOS variables (mainly \texttt{smallt}, the temperature floor, and \texttt{smalld}, the density floor). Then, whenever you want to call the EOS, use
+Each EOS should have two main routines by which it interfaces to the
+rest of CASTRO.  At the beginning of the simulation, {\tt eos\_init}
+will perform any initialization steps and save EOS variables (mainly
+\texttt{smallt}, the temperature floor, and \texttt{smalld}, the
+density floor). Then, whenever you want to call the EOS, use
 \[
 {\bf \rm eos}(\texttt{eos\_input, eos\_state, do\_eos\_diag, pt\_index}).
 \]
@@ -40,7 +98,18 @@ The \texttt{eos\_state} variable is a Fortran derived type (similar to a C++ str
   &\texttt{eos\_state } \% \texttt{ xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)} \\
   &\texttt{eos\_state } \% \texttt{ aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)}.
 \end{align*}
-Whenever the \texttt{eos\_state} type is initialized, the thermodynamic state variables are filled with unphysical numbers. If you do not input the correct arguments to match your input quantities, the EOS will call an error. However, this means that it is good practice to fill the quantities that will be iterated over with an initial guess. The values they are initialized with will likely not converge. Usually a prior value of the temperature or density suffices if it's available, but if not then use \texttt{small\_temp} or \texttt{small\_dens}. \textbf{Please note that the auxiliary variables now go in a separate field in the derived type, eos\_state \% aux. The original CASTRO behavior was to pack them in with the species abundances, xn.}
+Whenever the \texttt{eos\_state} type is initialized, the
+thermodynamic state variables are filled with unphysical numbers. If
+you do not input the correct arguments to match your input quantities,
+the EOS will call an error. However, this means that it is good
+practice to fill the quantities that will be iterated over with an
+initial guess. The values they are initialized with will likely not
+converge. Usually a prior value of the temperature or density suffices
+if it's available, but if not then use \texttt{small\_temp} or
+\texttt{small\_dens}. \textbf{Please note that the auxiliary variables
+  now go in a separate field in the derived type, {\tt eos\_state \%
+  aux}. The original CASTRO behavior was to pack them in with the
+  species abundances, xn.}
 
 The last two arguments are optional quantities: set \texttt{do\_eos\_diag} to \texttt{.true.} if you want diagnostic output as the iterations occur, and set \texttt{pt\_index} to be equal to the indices of the current zone if you want the zone information to be displayed on any error messages.
 

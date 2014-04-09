@@ -24,3 +24,8 @@ released with CASTRO:
    The EOS for a polytropic fluid. The proportionality constant and
    gamma exponent can either be specified by the user in the extern
    namelist, or select one of the predefined types.
+
+4) multigamma
+
+   The multigamma EOS allows each fluid to specify their own gamma.
+   Each species acts as an ideal gas.

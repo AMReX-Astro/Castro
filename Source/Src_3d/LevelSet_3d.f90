@@ -7,6 +7,7 @@
                            type,type_l1,type_l2,type_l3,type_h1,type_h2,type_h3)
         
         use LS_probdata_module, only: LSorder, kapa, kapb, nbandwidth, mineloc, LARGEINT
+        use bl_constants_module
         
         implicit none
         
@@ -142,31 +143,31 @@
 
 
 
-                 Ad = Dxm + .5*SWITCH(Dxmm,Dxpm)
-                 Bd = Dxp + .5*SWITCH(Dxpp,Dxpm)
-                 Cd = Dym + .5*SWITCH(Dymm,Dypm)
-                 Dd = Dyp + .5*SWITCH(Dypp,Dypm)
-                 Ed = Dzm + .5*SWITCH(Dzmm,Dzpm)
-                 Fd = Dzp + .5*SWITCH(Dzpp,Dzpm)
+                 Ad = Dxm + HALF*SWITCH(Dxmm,Dxpm)
+                 Bd = Dxp + HALF*SWITCH(Dxpp,Dxpm)
+                 Cd = Dym + HALF*SWITCH(Dymm,Dypm)
+                 Dd = Dyp + HALF*SWITCH(Dypp,Dypm)
+                 Ed = Dzm + HALF*SWITCH(Dzmm,Dzpm)
+                 Fd = Dzp + HALF*SWITCH(Dzpp,Dzpm)
 
-                 Delp = (max(Ad,0.d0)**2 + min(Bd,0.d0)**2 + max(Cd,0.d0)**2 &
-                      + min(Dd,0.d0)**2 + max(Ed,0.d0)**2 + min(Fd,0.d0)**2)**(.5)
+                 Delp = (max(Ad,ZERO)**2 + min(Bd,ZERO)**2 + max(Cd,ZERO)**2 &
+                      + min(Dd,ZERO)**2 + max(Ed,ZERO)**2 + min(Fd,ZERO)**2)**(.5)
 
-                 Delm = (max(Bd,0.d0)**2 + min(Ad,0.d0)**2 + max(Dd,0.d0)**2 &
-                      + min(Cd,0.d0)**2 + max(Fd,0.d0)**2 + min(Ed,0.d0)**2)**(.5)
+                 Delm = (max(Bd,ZERO)**2 + min(Ad,ZERO)**2 + max(Dd,ZERO)**2 &
+                      + min(Cd,ZERO)**2 + max(Fd,ZERO)**2 + min(Ed,ZERO)**2)**(.5)
 
               endif
 
               Fo = kapa
               if (LSorder .EQ. 1) then
                  if (Fo .GT. 0) then
-                    Fo = Fo*( ( max(Dxm,0.d0) + min(Dxp,0.d0) )**2 &
-                         + ( max(Dym,0.d0) + min(Dyp,0.d0) )**2 &
-                         + ( max(Dzm,0.d0) + min(Dzp,0.d0) )**2)**(1./2.) 
+                    Fo = Fo*( ( max(Dxm,ZERO) + min(Dxp,ZERO) )**2 &
+                         + ( max(Dym,ZERO) + min(Dyp,ZERO) )**2 &
+                         + ( max(Dzm,ZERO) + min(Dzp,ZERO) )**2)**(1./2.) 
                  else
-                    Fo = Fo*( ( min(Dxm,0.d0) + max(Dxp,0.d0) )**2 &
-                         + ( min(Dym,0.d0) + max(Dyp,0.d0) )**2 &
-                         + ( min(Dzm,0.d0) + max(Dzp,0.d0) )**2)**(1./2.) 
+                    Fo = Fo*( ( min(Dxm,ZERO) + max(Dxp,ZERO) )**2 &
+                         + ( min(Dym,ZERO) + max(Dyp,ZERO) )**2 &
+                         + ( min(Dzm,ZERO) + max(Dzp,ZERO) )**2)**(1./2.) 
                  endif
               else if (LSorder .EQ. 2) then
                  if (Fo .GT. 0) then
@@ -220,7 +221,7 @@
            k = mine(p,3)
            p = p + 1
 
-           if (sign(1.d0,phi(i,j,k))*sign(1.d0,phin(i,j,k)) .LE. 0) then
+           if (sign(ONE,phi(i,j,k))*sign(ONE,phin(i,j,k)) .LE. 0) then
               flag = 1
               exit
            endif
@@ -254,6 +255,7 @@
                         type,type_l1,type_l2,type_l3,type_h1,type_h2,type_h3)
         
         use LS_probdata_module, only: kapa, kapb, nbandwidth, LARGEINT
+        use bl_constants_module
 
         implicit none
 
@@ -320,13 +322,13 @@
                       - 2*phiy*phiz*phiyz) / ((phix**2 + phiy**2 + phiz**2)**(3./2.))
 
               else
-                 kappa = 0.d0
+                 kappa = ZERO
               endif
 
 
-              speed = ( (.5*( uadv(i,j,k) + uadv(i+1,j,k) ) )**2 &
-                   + ( .5*( vadv(i,j,k) +vadv(i,j+1,k) ) )**2 &
-                   + ( .5*( wadv(i,j,k) +wadv(i,j,k+1) ) )**2)**.5 + abs(kapa-kapb*kappa)
+              speed = ( (HALF*( uadv(i,j,k) + uadv(i+1,j,k) ) )**2 &
+                   + ( HALF*( vadv(i,j,k) +vadv(i,j+1,k) ) )**2 &
+                   + ( HALF*( wadv(i,j,k) +wadv(i,j,k+1) ) )**2)**.5 + abs(kapa-kapb*kappa)
 
               phidt = min( phit,1/(max(1./phidt,speed/(.8*min(dx(1),dx(2),dx(3))), &
                    6*abs(kapb)/(.8*min(dx(1),dx(2),dx(3))**2) ))  )     
@@ -482,6 +484,7 @@
                          dx, intfacesize, lo, hi  )
       
       use LS_probdata_module, only: BOGUS
+      use bl_constants_module
 
       implicit none      
 
@@ -576,7 +579,7 @@
                      kkk = k + kk
                   
                      distance = FINDDIST(grad,B, &
-                          sign(1.d0,phi(iii,jjj,kkk)),ii*dx(1),jj*dx(2),kk*dx(3),dx)     
+                          sign(ONE,phi(iii,jjj,kkk)),ii*dx(1),jj*dx(2),kk*dx(3),dx)     
 
 
                      if (type(iii,jjj,kkk) .NE. 0 .AND. phi(iii,jjj,kkk) .GE. 0 &
@@ -606,7 +609,7 @@
                      if (distance .GE. 0) then
                         type(iii,jjj,kkk) = 0
                         phin(iii,jjj,kkk) = min(abs(phin(iii,jjj,kkk)),distance) &
-                             *sign(1.d0,phi(iii,jjj,kkk))
+                             *sign(ONE,phi(iii,jjj,kkk))
                      endif
                   enddo   
                enddo
@@ -695,10 +698,15 @@
 
 
     double precision function POLYVAL(B,x,y,z)
+
+      use bl_constants_module
+
+      implicit none
+
       double precision B(64)
       double precision x,y,z
       integer c,d,e,n  
-      POLYVAL=0.d0
+      POLYVAL=ZERO
       do n=0,63
          c = n/16
          d = n/4 - 4*(n/16)
@@ -1033,8 +1041,11 @@
 
       subroutine EVAL(phi,i,j,k,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
                       type_l1,type_l2,type_l3,type_h1,type_h2,type_h3,lo,hi,type,sgn,dx)
-      
+
+      use bl_constants_module      
+
       implicit none
+
       integer i,j,k
 
       integer  phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
@@ -1051,8 +1062,8 @@
       integer  left,right,up,down,front,back
       LOGICAL  lok, rok, uok, dok, fok, bok
       
-      a = 0.d0
-      b = 0.d0
+      a = ZERO
+      b = ZERO
       c = - 1
       
       left  = i - 1
@@ -1504,6 +1515,7 @@
                          nbandsize, lo, hi, dx, heaploc)
 
       use LS_probdata_module, only: BOGUS
+      use bl_constants_module
 
       implicit none
 
@@ -1538,7 +1550,7 @@
         if (ii .GE. lo(1) .AND. ii .LE. hi(1) .AND. jj .GE. lo(2) .AND. jj .LE. hi(2) &
              .AND. kk .GE. lo(3) .AND. kk .LE. hi(3)) then
         
-           if (sgn*sign(1.d0,phi(ii,jj,kk)) .GE. 0 .AND. &
+           if (sgn*sign(ONE,phi(ii,jj,kk)) .GE. 0 .AND. &
                 abs(phi(ii,jj,kk)) .GT. abs(phi(i,j,k)) &
                 .AND. (abs(phi(ii,jj,kk)) .GE. BOGUS .OR. .NOT.(sgn*phi(ii+1,jj,kk) .LE. 0  &
                 .OR. sgn*phi(ii-1,jj,kk) .LE. 0 &
@@ -1586,6 +1598,9 @@
       LOGICAL function EVAL2(phi,i,j,k,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
                              type_l1,type_l2,type_l3,type_h1,type_h2,type_h3, &
                              lo,hi, type,sgn,dx,phisrc)      
+
+      use bl_constants_module
+
       implicit none
 
       integer  phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
@@ -1604,8 +1619,8 @@
       double precision phisrc
       LOGICAL  lok, rok, uok, dok, fok, bok
       
-      a = 0.d0
-      b = 0.d0
+      a = ZERO
+      b = ZERO
       c = - 1
       
       left  = i - 1
@@ -1689,7 +1704,7 @@
       endif
       
       b = -2*b
-      if (a .EQ. 0.d0) then
+      if (a .EQ. ZERO) then
 
         EVAL2 = .FALSE.
         return
@@ -1698,7 +1713,7 @@
       
       EVAL2 = .FALSE.
       
-      if (b**2 - 4*a*c .LT. 0.d0) then
+      if (b**2 - 4*a*c .LT. ZERO) then
          if (ABS(phi(i,j,k)) .GT. (-b)/(2*a) + 1.d-10) then
             phi(i,j,k) = sgn*(-b)/(2*a)
             EVAL2 = .TRUE.

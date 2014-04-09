@@ -59,4 +59,7 @@ module fundamental_constants_module
   ! Hubble constant (in s^{-1}, converted from 100 (km/s)/Mpc by dividing by 3.08568025e19km/Mpc)
   real(kind=dp_t), parameter :: Hubble_const = 32.407764868e-19
 
+  ! solar mass (from http://asa.usno.navy.mil/SecK/Constants.html)
+  real(kind=dp_t), parameter :: M_solar = 1.9884e33_dp_t
+
 end module fundamental_constants_module

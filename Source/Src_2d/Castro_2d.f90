@@ -173,6 +173,7 @@
 
       use network           , only : nspec
       use meth_params_module, only : NVAR, URHO, UFS
+      use bl_constants_module
 
       implicit none
 
@@ -187,7 +188,7 @@
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
 
-         sum = 0.d0
+         sum = ZERO
          do n = 1, nspec
              sum = sum + state(i,j,UFS+n-1)
          end do
@@ -225,7 +226,11 @@
                             cv,cv_l1,cv_l2,cv_h1,cv_h2, &
                             fine,f_l1,f_l2,f_h1,f_h2, &
                             fv,fv_l1,fv_l2,fv_h1,fv_h2,lo,hi,lrat)
+
+      use bl_constants_module
+
       implicit none
+
       integer c_l1,c_l2,c_h1,c_h2
       integer cv_l1,cv_l2,cv_h1,cv_h2
       integer f_l1,f_l2,f_h1,f_h2
@@ -253,7 +258,7 @@
 !           Set coarse grid to zero on overlap
             do jc = lo(2), hi(2)
                do ic = lo(1), hi(1)
-                  crse(ic,jc,n) = 0.d0
+                  crse(ic,jc,n) = ZERO
                enddo
             enddo
 
@@ -286,7 +291,7 @@
 !           Set coarse grid to zero on overlap
             do ic = lo(1), hi(1)
                do jc = lo(2), hi(2)
-                  crse(ic,jc,n) = 0.d0
+                  crse(ic,jc,n) = ZERO
                enddo
             enddo
  
@@ -327,6 +332,8 @@
 
       use meth_params_module, only : URHO, UMX, UMY
       use probdata_module
+      use bl_constants_module
+
       implicit none
 
       integer          :: lo(2),hi(2),nc
@@ -347,9 +354,9 @@
       double precision :: x_mom,y_mom,radial_mom
 
       do j = lo(2), hi(2)
-         y = problo(2) + (dble(j)+0.50d0) * dx(2) - center(2)
+         y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
          do i = lo(1), hi(1)
-            x = problo(1) + (dble(i)+0.50d0) * dx(1) - center(1)
+            x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
             r = sqrt(x**2  + y**2)
             index = int(r/dr)
             if (index .gt. numpts_1d-1) then
@@ -385,6 +392,7 @@
 
       use network, only : nspec
       use meth_params_module, only : NVAR, URHO, UFS
+      use bl_constants_module
 
       implicit none
 
@@ -407,10 +415,10 @@
 
          ! First deal with tiny undershoots by just setting them to zero
          do n = UFS, UFS+nspec-1
-           if (uout(i,j,n) .lt. 0.d0) then
+           if (uout(i,j,n) .lt. ZERO) then
               x = uout(i,j,n)/uout(i,j,URHO)
               if (x .gt. eps) then
-                 uout(i,j,n) = 0.d0
+                 uout(i,j,n) = ZERO
               else
                  any_negative = .true.
               end if
@@ -434,15 +442,15 @@
            ! Now take care of undershoots greater in magnitude than 1e-16.
            do n = UFS, UFS+nspec-1
 
-              if (uout(i,j,n) .lt. 0.d0) then
+              if (uout(i,j,n) .lt. ZERO) then
 
                  x = uout(i,j,n)/uout(i,j,URHO)
 
                  ! Here we only print the bigger negative values
                  if (x .lt. -1.d-2) then
                     print *,'At cell (i,j) = ',i,j
-                    print *,'... Fixing negative species ',n           ,' with X = ',x
-                    print *,'...   from dominant species ',int_dom_spec,' with X = ',&
+                    print *,'... Fixing negative species ',n-UFS+1           ,' with X = ',x
+                    print *,'...   from dominant species ',int_dom_spec-UFS+1,' with X = ',&
                              uout(i,j,int_dom_spec) / uout(i,j,URHO)
                  end if
 
@@ -450,15 +458,15 @@
                  uout(i,j,int_dom_spec) = uout(i,j,int_dom_spec) + uout(i,j,n)
    
                  ! Test that we didn't make the dominant species negative
-                 if (uout(i,j,int_dom_spec) .lt. 0.d0) then 
-                    print *,'Just made dominant species negative ',int_dom_spec,' at ',i,j
-                    print *,'... We were fixing species ',n,' which had value ',x
+                 if (uout(i,j,int_dom_spec) .lt. ZERO) then 
+                    print *,'Just made dominant species negative ',int_dom_spec-UFS+1,' at ',i,j
+                    print *,'... We were fixing species ',n-UFS+1,' which had value ',x
                     print *,'... Dominant species became ',uout(i,j,int_dom_spec) / uout(i,j,URHO)
                     call bl_error("Error:: Castro_2d.f90 :: ca_enforce_nonnegative_species")
                  end if
 
                  ! Now the negative species to zero
-                 uout(i,j,n) = 0.d0
+                 uout(i,j,n) = ZERO
 
               end if
 
@@ -508,6 +516,8 @@
 
       subroutine find_center(data,new_center,icen,dx,problo)
 
+        use bl_constants_module
+
         implicit none
 
         double precision :: data(-1:1,-1:1)
@@ -526,8 +536,8 @@
         end do
 
 !       This puts the center at the cell center
-        new_center(1) = problo(1) +  (icen(1)+0.5d0) * dx(1)
-        new_center(2) = problo(2) +  (icen(2)+0.5d0) * dx(2)
+        new_center(1) = problo(1) +  (icen(1)+HALF) * dx(1)
+        new_center(2) = problo(2) +  (icen(2)+HALF) * dx(2)
    
         ! Fit parabola y = a x^2  + b x + c through three points
         ! a = 1/2 ( y_1 + y_-1)
@@ -535,15 +545,15 @@
         ! x_vertex = -b / 2a
 
         ! ... in x-direction
-        a = 0.5d0 * (data(1,0) + data(-1,0)) - data(0,0)
-        b = 0.5d0 * (data(1,0) - data(-1,0)) - data(0,0)
-        x = -b / (2.d0*a)
+        a = HALF * (data(1,0) + data(-1,0)) - data(0,0)
+        b = HALF * (data(1,0) - data(-1,0)) - data(0,0)
+        x = -b / (TWO*a)
         new_center(1) = new_center(1) +  x*dx(1)
 
         ! ... in y-direction
-        a = 0.5d0 * (data(0,1) + data(0,-1)) - data(0,0)
-        b = 0.5d0 * (data(0,1) - data(0,-1)) - data(0,0)
-        y = -b / (2.d0*a)
+        a = HALF * (data(0,1) + data(0,-1)) - data(0,0)
+        b = HALF * (data(0,1) - data(0,-1)) - data(0,0)
+        y = -b / (TWO*a)
         new_center(2) = new_center(2) +  y*dx(2)
 
       end subroutine find_center

@@ -25,6 +25,7 @@ subroutine ca_ext_src(lo,hi,&
                       new_state_h1,new_state_h2,new_state_h3,&
                       src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,problo,dx,time,dt)
 
+  use bl_constants_module, only: ZERO
   use meth_params_module, only : NVAR
   !    use probdata_module   , only : center
  
@@ -47,7 +48,7 @@ subroutine ca_ext_src(lo,hi,&
                                         src_l3:src_h3,NVAR)
   double precision,intent(in   ) :: problo(3),dx(3),time,dt
   
-  src = 0.d0
+  src = ZERO
  
 end subroutine ca_ext_src
 

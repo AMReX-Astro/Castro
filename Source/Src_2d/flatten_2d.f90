@@ -11,7 +11,8 @@ contains
   subroutine uflaten(lo,hi,p,u,v,flatn, &
                      q_l1,q_l2,q_h1,q_h2)
 
-    use meth_params_module, only : iorder, small_pres
+    use meth_params_module, only : small_pres
+    use bl_constants_module
     
     implicit none
 
@@ -34,7 +35,7 @@ contains
     double precision, parameter :: zcut1 = 0.75d0
     double precision, parameter :: zcut2 = 0.85d0
 
-    dzcut = 1.d0/(zcut2-zcut1)
+    dzcut = ONE/(zcut2-zcut1)
     
     ! x-direction flattening coef
     allocate(dp(q_l1:q_h1),z(q_l1:q_h1),chi(q_l1:q_h1))
@@ -45,29 +46,29 @@ contains
           denom = max(small_pres,abs(p(i+2,j)-p(i-2,j)))
 
           zeta = abs(dp(i))/denom
-          z(i) = min( 1.d0, max( 0.d0, dzcut*(zeta - zcut1) ) )
+          z(i) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
 
-          if (u(i-1,j)-u(i+1,j) .ge. 0.d0) then
-             tst = 1.d0
+          if (u(i-1,j)-u(i+1,j) .ge. ZERO) then
+             tst = ONE
           else
-             tst = 0.d0
+             tst = ZERO
           endif
 
           tmp = min(p(i+1,j),p(i-1,j))
           if ((abs(dp(i))/tmp).gt.shktst) then
              chi(i) = tst
           else
-             chi(i) = 0.d0
+             chi(i) = ZERO
           endif
        enddo
 
        do i = lo(1),hi(1)
-          if(dp(i).gt.0.d0)then
+          if(dp(i).gt.ZERO)then
              ishft = 1
           else
              ishft = -1
           endif
-          flatn(i,j) = 1.d0 - &
+          flatn(i,j) = ONE - &
                max(chi(i-ishft)*z(i-ishft),chi(i)*z(i))
        enddo
     enddo
@@ -83,29 +84,29 @@ contains
           denom = max(small_pres,abs(p(i,j+2)-p(i,j-2)))
 
           zeta = abs(dp(j))/denom
-          z(j) = min( 1.d0, max( 0.d0, dzcut*(zeta - zcut1) ) )
+          z(j) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
 
-          if (v(i,j-1)-v(i,j+1) .ge. 0.d0) then
-             tst = 1.d0
+          if (v(i,j-1)-v(i,j+1) .ge. ZERO) then
+             tst = ONE
           else
-             tst = 0.d0
+             tst = ZERO
           endif
 
           tmp = min(p(i,j+1),p(i,j-1))
           if ((abs(dp(j))/tmp).gt.shktst) then
              chi(j) = tst
           else
-             chi(j) = 0.d0
+             chi(j) = ZERO
           endif
        enddo
 
        do j = lo(2),hi(2)
-          if(dp(j).gt.0.d0)then
+          if(dp(j).gt.ZERO)then
              ishft = 1
           else
              ishft = -1
           endif
-          ftmp = 1.d0 - &
+          ftmp = ONE - &
                max(chi(j-ishft)*z(j-ishft),chi(j)*z(j))
 
           ! merge the x- and y-directions into a single flattening

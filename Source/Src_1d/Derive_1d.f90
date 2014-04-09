@@ -235,6 +235,7 @@
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
       use meth_params_module, only : URHO, UMX, UEDEN 
+      use bl_constants_module
 
       implicit none
 
@@ -251,9 +252,9 @@
 
 !     Compute internal energy from (rho E)
       do i = lo(1),hi(1)
-         rhoInv = 1.d0/u(i,URHO)
+         rhoInv = ONE/u(i,URHO)
          ux = u(i,UMX)*rhoInv
-         e(i,1) = u(i,UEDEN)*rhoInv-0.5d0*(ux**2)
+         e(i,1) = u(i,UEDEN)*rhoInv-HALF*(ux**2)
       enddo
 
       end subroutine ca_dereint1
@@ -608,6 +609,9 @@
 !
 !     This routine will divergence of velocity.
 !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(1), hi(1)
@@ -626,7 +630,7 @@
       do i = lo(1), hi(1)
          vhi = dat(i+1,2) / dat(i+1,1)
          vlo = dat(i-1,2) / dat(i-1,1)
-         divu(i,1) = 0.5d0 * (vhi - vlo) / delta(1)
+         divu(i,1) = HALF * (vhi - vlo) / delta(1)
       end do
 
       end subroutine ca_derdivu
@@ -639,6 +643,9 @@
 !
 !     This routine will derive kinetic energy = 1/2 rho (u^2 + v^2)
 !
+
+      use bl_constants_module
+
       implicit none
 
       integer          lo(1), hi(1)
@@ -654,7 +661,7 @@
       integer    i
 
       do i = lo(1), hi(1)
-         kineng(i,1) = 0.5d0 * (dat(i,2)**2) / dat(i,1)
+         kineng(i,1) = HALF * (dat(i,2)**2) / dat(i,1)
       end do
 
       end subroutine ca_derkineng

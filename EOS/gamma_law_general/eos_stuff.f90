@@ -200,9 +200,9 @@ contains
 
        ! temperature, enthalpy and xmass are inputs
 
-       ! Solve for density
-       dens = state % p * state % mu * m_nucleon / (k_B * state % T)
-       temp = state % T
+       ! This system is underconstrained.
+
+       call bl_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
 
 
 
@@ -238,10 +238,10 @@ contains
     state % dpdr = state % p / dens
     state % dedT = state % e / temp
     state % dedr = ZERO
-    state % dsdT = ZERO
-    state % dsdr = ZERO
+    state % dsdT = THREE / TWO * k_B / (state % mu * m_nucleon) / temp
+    state % dsdr = - k_B / (state % mu * m_nucleon) / dens
     state % dhdT = state % dedT + state % dpdT / dens
-    state % dhdr = state % dedr + (gamma_const - ONE) * state % p / dens**2
+    state % dhdr = ZERO
 
     state % cv = state % dedT
     state % cp = gamma_const * state % cv

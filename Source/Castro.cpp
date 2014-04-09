@@ -143,14 +143,20 @@ int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
-int          Castro::ppm_reference_edge_limit = 0;
-int          Castro::ppm_flatten_before_integrals = 0;
+int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
-int          Castro::use_colglaz = 0;
-int          Castro::use_flattening = 1;
 
+int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
+
+int          Castro::use_flattening = 1;
+int          Castro::ppm_flatten_before_integrals = 0;
+
+int          Castro::transverse_use_eos = 0;
+int          Castro::transverse_reset_density = 0;
+int          Castro::transverse_reset_rhoe = 0;
+
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
@@ -376,6 +382,9 @@ Castro::read_params ()
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
+    pp.query("transverse_use_eos",transverse_use_eos);
+    pp.query("transverse_reset_density",transverse_reset_density);
+    pp.query("transverse_reset_rhoe",transverse_reset_rhoe);
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
@@ -406,12 +415,25 @@ Castro::read_params ()
 
 
     // ppm_flatten_before_integrals is only done for ppm_type == 1
-    if (ppm_type != 1 && ppm_flatten_before_integrals > 0)
+    if (ppm_type == 0 && ppm_flatten_before_integrals > 0)
       {
-        std::cerr << "ppm_flatten_before_integral > 0 not implemented for ppm_type != 1 \n";
+        std::cerr << "ppm_flatten_before_integrals > 0 not implemented for ppm_type != 0 \n";
         BoxLib::Error();
       }
 	
+
+    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
+      {
+        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
+        BoxLib::Error();
+      }
+
+    if (ppm_tau_in_tracing == 1 && BL_SPACEDIM == 1)
+      {
+        std::cerr << "ppm_tau_in_tracing == 1 not implemented in 1-d \n";
+        BoxLib::Error();
+      }
+
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;

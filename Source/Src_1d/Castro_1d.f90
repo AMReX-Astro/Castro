@@ -17,12 +17,13 @@
                           mass_added,eint_added,eden_added,&
                           E_added_flux, E_added_grav)
 
-      use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
-                                     normalize_species
+      use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
+                                     do_sponge, &
+                                     normalize_species, use_flattening
       use advection_module, only : umeth1d, ctoprim, consup, enforce_minimum_density, &
            normalize_new_species
-      use CastroCG_module, only : ctoprimcg, umeth1dcg
       use sponge_module, only : sponge
+      use bl_constants_module
 
       implicit none
 
@@ -62,7 +63,7 @@
 
       double precision :: dx,E_added_flux,E_added_grav
       double precision :: mass_added, eint_added, eden_added
-      integer i,ngf,iflaten
+      integer i,ngf
 
       allocate(     q(uin_l1:uin_h1,QVAR))
       allocate(     c(uin_l1:uin_h1))
@@ -79,20 +80,17 @@
       dx = delta(1)
 
       ngf = 1
-      iflaten = 1
 
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
 !       and set to correspond to coordinates of (lo:hi)
    
-      if (use_colglaz.eq.0) then
-
-         call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
+      call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                    src,srcQ,src_l1,src_h1, &
-                   courno,dx,dt,NHYP,ngf,iflaten)
+                   courno,dx,dt,NHYP,ngf)
 
-         call umeth1d(lo,hi,domlo,domhi, &
+      call umeth1d(lo,hi,domlo,domhi, &
                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
                    srcQ, src_l1, src_h1, &
                    grav, gv_l1, gv_h1, &
@@ -102,26 +100,9 @@
                    ugdnv,ugdnv_l1,ugdnv_h1, &
                    dloga,dloga_l1,dloga_h1)
 
-      else
-
-          call ctoprimcg(lo,hi,uin,uin_l1,uin_h1, &
-                    q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                    src,srcQ,src_l1,src_h1, &
-                    courno,dx,dt,NHYP,ngf,iflaten)
-
-          call umeth1dcg(q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                    srcQ, src_l1, src_h1, &
-                    grav, gv_l1, gv_h1, &
-                    lo(1),hi(1),dx,dt, &
-                    flux,flux_l1,flux_h1, & 
-                    pgdnv,lo(1),hi(1)+1, &
-                    dloga,dloga_l1,dloga_h1)
-
-      endif
-
       ! Define p*divu
       do i = lo(1), hi(1)
-         pdivu(i) = 0.5d0 * &
+         pdivu(i) = HALF * &
               (pgdnv(i+1)+pgdnv(i))*(ugdnv(i+1)*area(i+1)-ugdnv(i)*area(i)) / vol(i)
       end do
 
@@ -175,6 +156,7 @@
 
       use network           , only : nspec
       use meth_params_module, only : NVAR, URHO, UFS
+      use bl_constants_module
 
       implicit none
 
@@ -188,7 +170,7 @@
 
       do i = lo(1), hi(1)
 
-         sum = 0.d0
+         sum = ZERO
          do n = 1, nspec
              sum = sum + state(i,UFS+n-1)
          end do
@@ -226,7 +208,10 @@
            fine,f_l1,f_h1, &
            fv,fv_l1,fv_h1,lo,hi,lrat)
 
+      use bl_constants_module
+
       implicit none
+
       integer c_l1,c_h1
       integer cv_l1,cv_h1
       integer f_l1,f_h1
@@ -247,7 +232,7 @@
  
 !        Set coarse grid to zero on overlap
          do ic = lo(1), hi(1)
-            crse(ic,n) = 0.d0
+            crse(ic,n) = ZERO
          enddo
  
  
@@ -276,6 +261,7 @@
 
       use network, only : nspec
       use meth_params_module, only : NVAR, URHO, UFS
+      use bl_constants_module
 
       implicit none
 
@@ -297,10 +283,10 @@
 
          ! First deal with tiny undershoots by just setting them to zero
          do n = UFS, UFS+nspec-1
-           if (uout(i,n) .lt. 0.d0) then
+           if (uout(i,n) .lt. ZERO) then
               x = uout(i,n)/uout(i,URHO)
               if (x .gt. eps) then
-                 uout(i,n) = 0.d0
+                 uout(i,n) = ZERO
               else
                  any_negative = .true.
               end if
@@ -311,7 +297,7 @@
          if (any_negative) then
 
             ! Find the dominant species
-            dom_spec = 0.d0
+            dom_spec = ZERO
             int_dom_spec = 0
             do n = UFS,UFS+nspec-1
               if (uout(i,n) .gt. dom_spec) then
@@ -323,7 +309,7 @@
            ! Now take care of undershoots greater in magnitude than 1e-16.
            do n = UFS, UFS+nspec-1
 
-              if (uout(i,n) .lt. 0.d0) then
+              if (uout(i,n) .lt. ZERO) then
 
                  x = uout(i,n)/uout(i,URHO)
 
@@ -342,7 +328,7 @@
                  uout(i,int_dom_spec) = uout(i,int_dom_spec) + uout(i,n)
    
                  ! Test that we didn't make the dominant species negative
-                 if (uout(i,int_dom_spec) .lt. 0.d0) then 
+                 if (uout(i,int_dom_spec) .lt. ZERO) then 
                     print *,' Just made dominant species negative ',int_dom_spec,' at ',i
                     print *,'We were fixing species ',n,' which had value ',x
                     print *,'Dominant species became ',uout(i,int_dom_spec) / uout(i,URHO)
@@ -350,7 +336,7 @@
                  end if
 
                  ! Now set the negative species to zero
-                 uout(i,n) = 0.d0
+                 uout(i,n) = ZERO
 
               end if
 
@@ -399,13 +385,15 @@
 
       subroutine find_center(data,new_center)
 
+        use bl_constants_module
+
         implicit none
 
         double precision :: data(0:2)
         double precision :: new_center(1)
 
         ! In 1-D it only make sense to have the center at the origin
-        new_center(1) = 0.d0 
+        new_center(1) = ZERO 
 
       end subroutine find_center
 

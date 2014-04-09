@@ -13,7 +13,11 @@
 ! ::
 
       subroutine ca_summass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi,dx,mass)
+
+        use bl_constants_module
+
         implicit none
+
         integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
         integer          :: lo(3), hi(3)
         double precision :: mass, dx(3)
@@ -23,7 +27,7 @@
         double precision :: vol
 
         vol  = dx(1)*dx(2)*dx(3)
-        mass = 0.d0
+        mass = ZERO
 
         !$OMP PARALLEL DO PRIVATE(i,j,k) reduction(+:mass)
         do k = lo(3), hi(3)
@@ -53,7 +57,11 @@
 ! ::
 
       subroutine ca_sumsquared(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi,dx,mass)
+
+        use bl_constants_module
+
         implicit none
+
         integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
         integer          :: lo(3), hi(3)
         double precision :: mass, dx(3)
@@ -63,7 +71,7 @@
         double precision :: vol
 
         vol  = dx(1)*dx(2)*dx(3)
-        mass = 0.d0
+        mass = ZERO
 
         !$OMP PARALLEL DO PRIVATE(i,j,k) reduction(+:mass)
         do k = lo(3), hi(3)
@@ -98,6 +106,7 @@
                                 problo,dx,mass,idir)
 
        use probdata_module, only : center
+       use bl_constants_module
 
        implicit none
        integer          :: idir
@@ -110,12 +119,12 @@
        double precision :: x,y,z,vol
 
        vol  = dx(1)*dx(2)*dx(3)
-       mass = 0.d0
+       mass = ZERO
 
        if (idir .eq. 0) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,x) REDUCTION(+:mass)
           do i = lo(1), hi(1)
-             x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
                    mass = mass + rho(i,j,k) * x
@@ -126,7 +135,7 @@
        else if (idir .eq. 1) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,y) REDUCTION(+:mass)
           do j = lo(2), hi(2)
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * y
@@ -137,7 +146,7 @@
        else
           !$OMP PARALLEL DO PRIVATE(i,j,k,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
-             z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+             z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * z
@@ -175,6 +184,7 @@
                                   problo,dx,mass,idir1,idir2)
 
        use probdata_module, only : center
+       use bl_constants_module
 
        implicit none
        integer          :: idir1, idir2
@@ -187,12 +197,12 @@
        double precision :: x,y,z,vol
 
        vol  = dx(1)*dx(2)*dx(3)
-       mass = 0.d0
+       mass = ZERO
 
        if (idir1 .eq. 0) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do i = lo(1), hi(1)
-             x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              if (idir2 .eq. 0) then
                 do k = lo(3), hi(3)
                    do j = lo(2), hi(2)
@@ -201,14 +211,14 @@
                 enddo
              elseif (idir2 .eq. 1) then
                 do j = lo(2), hi(2)
-                   y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+                   y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
                    do k = lo(3), hi(3)
                       mass = mass + rho(i,j,k) * x * y
                    enddo
                 enddo
              else
                 do k = lo(3), hi(3)
-                   z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+                   z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
                    do j = lo(2), hi(2)
                       mass = mass + rho(i,j,k) * x * z
                    enddo
@@ -219,10 +229,10 @@
        else if (idir1 .eq. 1) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do j = lo(2), hi(2)
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
-                   x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+                   x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                    do k = lo(3), hi(3)
                       mass = mass + rho(i,j,k) * y * x
                    enddo
@@ -235,7 +245,7 @@
                 enddo
              else
                 do k = lo(3), hi(3)
-                   z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+                   z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
                    do i = lo(1), hi(1)
                       mass = mass + rho(i,j,k) * y * z
                    enddo
@@ -246,17 +256,17 @@
        else
           !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
-             z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+             z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
-                   x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+                   x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                    do j = lo(2), hi(2)
                       mass = mass + rho(i,j,k) * z * x
                    enddo
                 enddo
              elseif (idir2 .eq. 1) then
                 do j = lo(2), hi(2)
-                   y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+                   y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
                    do i = lo(1), hi(1)
                       mass = mass + rho(i,j,k) * z * y
                    enddo
@@ -299,6 +309,7 @@
                                        problo,dx,mass,idir)
 
        use probdata_module, only : center
+       use bl_constants_module
 
        implicit none
        integer          :: idir
@@ -311,12 +322,12 @@
        double precision :: x,y,z,vol
 
        vol  = dx(1)*dx(2)*dx(3)
-       mass = 0.d0
+       mass = ZERO
 
        if (idir .eq. 0) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,x) REDUCTION(+:mass)
           do i = lo(1), hi(1)
-             x = problo(1) + (dble(i)+0.5d0) * dx(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
                    mass = mass + rho(i,j,k) * (x**2)
@@ -327,7 +338,7 @@
        else if (idir .eq. 1) then
           !$OMP PARALLEL DO PRIVATE(i,j,k,y) REDUCTION(+:mass)
           do j = lo(2), hi(2)
-             y = problo(2) + (dble(j)+0.5d0) * dx(2) - center(2)
+             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * (y**2)
@@ -338,7 +349,7 @@
        else
           !$OMP PARALLEL DO PRIVATE(i,j,k,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
-             z = problo(3) + (dble(k)+0.5d0) * dx(3) - center(3)
+             z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * (z**2)
@@ -369,6 +380,9 @@
        subroutine ca_sumproduct(f1, f1_l1,f1_l2,f1_l3,f1_h1,f1_h2,f1_h3, &
                                 f2, f2_l1,f2_l2,f2_l3,f2_h1,f2_h2,f2_h3, &
                                 lo,hi,dx,product)
+
+       use bl_constants_module
+
        implicit none
 
        integer          :: f1_l1,f1_l2,f1_l3,f1_h1,f1_h2,f1_h3
@@ -381,7 +395,7 @@
 
        integer          :: i,j,k
 
-       product = 0.d0
+       product = ZERO
        vol = dx(1) * dx(2) * dx(3)
  
        !$OMP PARALLEL DO PRIVATE(i,j,k) REDUCTION(+:product)

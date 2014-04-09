@@ -6,7 +6,7 @@
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period
     use probdata_module, only: center
     use prob_params_module, only: coord_type
-    use bl_constants_module, only: M_PI
+    use bl_constants_module
 
     implicit none
 
@@ -24,12 +24,12 @@
     double precision :: vdotr,omegadotr,omegadotv,omegacrossv(3),omega2
 
     double precision :: TWO_PI
-    parameter (TWO_PI = 2.d0 * M_PI)
+    parameter (TWO_PI = TWO * M_PI)
 
     if (coord_type == 0) then
-       omega = (/ 0.0d0, 0.0d0, TWO_PI/rot_period /)
+       omega = (/ ZERO, ZERO, TWO_PI/rot_period /)
     elseif (coord_type == 1) then
-       omega = (/ 0.0d0, TWO_PI/rot_period, 0.0d0 /)
+       omega = (/ ZERO, TWO_PI/rot_period, ZERO /)
     else
        call bl_error("Error:: Rotate_2d.f90 :: unknown coord_type")
     endif
@@ -37,24 +37,24 @@
     omega2 = dot_product(omega,omega)
     
        do j = lo(2), hi(2)
-          y = problo(2) + dx(2)*(float(j)+0.5d0) - center(2)
+          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
           do i = lo(1), hi(1)
-             x = problo(1) + dx(1)*(float(i)+0.5d0) - center(1)
+             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
-             r = (/ x, y, 0.0d0 /)
+             r = (/ x, y, ZERO /)
 
              dens = state(i,j,URHO)
              
              v = (/ state(i,j,UMX)/dens, &
                     state(i,j,UMY)/dens, &
-                    0.0d0 /)
+                    ZERO /)
 
              omegacrossv = cross_product(omega,v)
              omegadotr   = dot_product(omega,r)
              omegadotv   = dot_product(omega,v)
              vdotr       = dot_product(v,r)
 
-             rot_src(i,j,1:2) = -2.0d0 * dens * omegacrossv(1:2) - &
+             rot_src(i,j,1:2) = -TWO * dens * omegacrossv(1:2) - &
                   dens * (omegadotr * omega(1:2) - omega2 * r(1:2))
              rot_src(i,j,3) = -dens * omegadotv * omegadotr + &
                   dens * omega2 * vdotr
