@@ -615,7 +615,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QESGS, QPRES, QTEMP, QFA, QFS, QFX, &
+                                   QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
     use bl_constants_module
@@ -788,6 +788,8 @@ contains
 
              ! convert "e" back to "rho e"
              q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
+
+             q(i,j,k,QGAME) = q(i,j,k,QPRES)/q(i,j,k,QREINT) + ONE
 
           end do
        end do

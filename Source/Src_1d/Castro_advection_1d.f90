@@ -121,7 +121,7 @@ contains
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    UFA, UFS, UFX, &
-                                   QVAR, QRHO, QU, QREINT, QPRES, QTEMP, &
+                                   QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QGAME, &
                                    QFA, QFS, QFX, &
                                    nadv, small_temp, allow_negative_energy, use_flattening
     use flatten_module
@@ -252,6 +252,7 @@ contains
     ! Make this "rho e" instead of "e"
     do i = loq(1),hiq(1)
        q(i,QREINT ) = q(i,QREINT )*q(i,QRHO)
+       q(i,QGAME) = q(i,QPRES)/q(i,QREINT) + ONE
     enddo
     
     ! compute srcQ terms

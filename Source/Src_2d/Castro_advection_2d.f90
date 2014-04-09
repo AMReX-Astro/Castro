@@ -249,7 +249,7 @@ contains
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
                                    UFA, UFS, UFX, &
-                                   QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, &
+                                   QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
                                    QFA, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, use_flattening
     use flatten_module
@@ -400,6 +400,9 @@ contains
     do j = loq(2),hiq(2)
        do i = loq(1),hiq(1)
           q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
+
+          q(i,j,QGAME) = q(i,j,QPRES)/q(i,j,QREINT) + ONE
+
        enddo
     enddo
     
