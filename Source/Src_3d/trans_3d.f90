@@ -85,6 +85,9 @@ contains
        enddo
        npassive = npassive + nspec + naux
     endif
+
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
   
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -110,7 +113,6 @@ contains
     enddo
     !$OMP end parallel do
 
-    ! NOTE: it is better *not* to protect against small density in this routine
 
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
     !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly,dup,pav,du,pnewry) &
@@ -177,6 +179,8 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
+
+          ! qypo state
                     
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
@@ -190,13 +194,13 @@ contains
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
              if (transverse_reset_rhoe == 1) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
+                ! If it is negative, reset the internal energy by
+                ! using the discretized expression for updating (rho e).
 
                 if (qypo(i,j,kc,QREINT) .le. ZERO) then
                    qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
                         cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-
+                   
                    ! if we are still negative, then we need to reset
                    if (qypo(i,j,kc,QREINT) < ZERO) then
                       eos_state % rho = qypo(i,j,kc,QRHO)
@@ -204,13 +208,13 @@ contains
                       eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
-
+                      
                       qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
                       qypo(i,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
-
+                
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
@@ -218,9 +222,9 @@ contains
                 eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
-
+                
                 call eos(eos_input_re, eos_state)
-
+                
                 pnewry = eos_state % p
                 qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
@@ -228,8 +232,10 @@ contains
              endif
 
              qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
-          end if
+          endif
           
+          ! qymo state
+
           if (j.le.jhi-1) then
              qymo(i,j+1,kc,QRHO) = rrnewly
              qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
@@ -368,6 +374,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -652,6 +661,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -929,6 +941,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -1223,6 +1238,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -1666,6 +1684,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq,ipassive) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -2022,6 +2043,9 @@ contains
        npassive = npassive + nspec + naux
     endif
     
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+
     !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -2358,6 +2382,9 @@ contains
        enddo
        npassive = npassive + nspec + naux
     endif
+
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
 
     !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
