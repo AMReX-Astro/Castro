@@ -1,5 +1,7 @@
 module transverse_module
 
+  use bl_constants_module
+
   implicit none
 
 contains
