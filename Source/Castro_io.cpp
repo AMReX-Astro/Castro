@@ -557,9 +557,9 @@ Castro::writePlotFile (const std::string& dir,
 
 	for (i = 0; i <= f_lev; i++)
 	  {
-	    jobInfoFile << "level: " << i << "\n";
-	    jobInfoFile << "  number of boxes = " << parent->numGrids(i) << "\n";
-	    jobInfoFile << "  maximum zones   = ";
+	    jobInfoFile << " level: " << i << "\n";
+	    jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
+	    jobInfoFile << "   maximum zones   = ";
 	    for (n = 0; n < BL_SPACEDIM; n++)
 	      {
 		jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
@@ -567,7 +567,33 @@ Castro::writePlotFile (const std::string& dir,
 	      }
 	    jobInfoFile << "\n\n";
 	  }
-	jobInfoFile << "\n";
+
+	jobInfoFile << " Boundary conditions\n";
+	Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+	ParmParse pp("castro");
+	pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
+	pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
+
+
+	// these names correspond to the integer flags setup in the 
+	// Castro_setup.cpp
+	const char* names_bc[] =
+	  { "interior", "inflow", "outflow", 
+	    "symmetry", "slipwall", "noslipwall" };
+
+
+	jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
+	jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
+	if (BL_SPACEDIM >= 2) {
+	  jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
+	  jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
+	}
+	if (BL_SPACEDIM == 3) {
+	  jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
+	  jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
+	}
+
+	jobInfoFile << "\n\n";
 
 
 	// species info
