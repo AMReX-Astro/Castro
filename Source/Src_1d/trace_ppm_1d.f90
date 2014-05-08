@@ -20,7 +20,8 @@ contains
          QREINT, QPRES, QFA, QFS, QFX, & 
          nadv, small_dens, ppm_type, fix_mass_flux, &
          ppm_reference, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals
+         ppm_flatten_before_integrals, &
+         npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
     use bl_constants_module
@@ -49,8 +50,7 @@ contains
     
     ! Local variables
     integer i
-    integer n, iadv
-    integer ns, ispec, iaux
+    integer n, ipassive
 
     double precision hdt,dtdx
     double precision cc, csq, Clag, rho, u, p, rhoe
@@ -484,8 +484,8 @@ contains
     !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
     !-------------------------------------------------------------------------
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
+    do ipassive = 1, npassive
+       n = qpass_map(ipassive)
 
        ! plus state on face i
        do i = ilo, ihi+1
@@ -547,100 +547,6 @@ contains
        
     enddo
 
-    ! species
-
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-
-       ! plus state on face i
-       do i = ilo, ihi+1
-          u = q(i,QU)
-
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
-          if (u .gt. ZERO) then
-             qxp(i,ns) = q(i,ns)
-          else if (u .lt. ZERO) then
-             qxp(i,ns) = q(i,ns) + xi*(Im(i,2,ns) - q(i,ns))
-          else
-             qxp(i,ns) = q(i,ns) + HALF*xi*(Im(i,2,ns) - q(i,ns))
-          endif
-       enddo
-       if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
-       
-       ! minus state on face i+1
-       do i = ilo-1, ihi
-          u = q(i,QU)
-
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
-          if (u .gt. ZERO) then
-             qxm(i+1,ns) = q(i,ns) + xi*(Ip(i,2,ns) - q(i,ns))
-          else if (u .lt. ZERO) then
-             qxm(i+1,ns) = q(i,ns)
-          else
-             qxm(i+1,ns) = q(i,ns) + HALF*xi*(Ip(i,2,ns) - q(i,ns))
-          endif
-       enddo
-       if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
-       
-    enddo
-
-    ! auxillary quantities
-
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       
-       ! plus state on face i
-       do i = ilo, ihi+1
-          u = q(i,QU)
-  
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
-          if (u .gt. ZERO) then
-             qxp(i,ns) = q(i,ns)
-          else if (u .lt. ZERO) then
-             qxp(i,ns) = q(i,ns) + xi*(Im(i,2,ns) - q(i,ns))
-          else
-             qxp(i,ns) = q(i,ns) + HALF*xi*(Im(i,2,ns) - q(i,ns))
-          endif
-       enddo
-       if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
-       
-       ! minus state on face i+1
-       do i = ilo-1, ihi
-          u = q(i,QU)
-
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
-          if (u .gt. ZERO) then
-             qxm(i+1,ns) = q(i,ns) + xi*(Ip(i,2,ns) - q(i,ns))
-          else if (u .lt. ZERO) then
-             qxm(i+1,ns) = q(i,ns)
-          else
-             qxm(i+1,ns) = q(i,ns) + HALF*xi*(Ip(i,2,ns) - q(i,ns))
-          endif
-       enddo
-       if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
-       
-    enddo
-    
     deallocate(Ip,Im)
     
   end subroutine trace_ppm
