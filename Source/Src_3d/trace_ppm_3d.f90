@@ -262,6 +262,13 @@ contains
                 p_ev    = p_ref
              endif
 
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = ZERO
+                xi = ONE
+             endif
 
              if (ppm_tau_in_tracing == 0) then
 
@@ -303,14 +310,6 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
 
                 qxp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
                 qxp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
@@ -362,14 +361,6 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
 
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,kc,QRHO  ) = xi1*rho + xi/tau_s
@@ -499,6 +490,14 @@ contains
                 p_ev    = p_ref
              endif
 
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = ZERO
+                xi = ONE
+             endif
+                
              if (ppm_tau_in_tracing == 0) then
 
                 ! these are analogous to the beta's from the original PPM
@@ -540,14 +539,6 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                 qxm(i+1,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
                 qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
@@ -599,14 +590,6 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,kc,QRHO  ) = xi1*rho + xi/tau_s
 
@@ -843,7 +826,14 @@ contains
                 p_ev    = p_ref
              endif
 
-
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = ZERO
+                xi = ONE
+             endif
+                
              if (ppm_tau_in_tracing == 0) then
 
                 ! these are analogous to the beta's from the original PPM
@@ -884,14 +874,7 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
+
                 qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
                 qyp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
                 qyp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
@@ -943,14 +926,6 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 tau_s = tau_ref + apright + amright + azrright                
                 qyp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
 
@@ -1076,6 +1051,13 @@ contains
                 p_ev    = p_ref
              endif
 
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+             else
+                xi1 = ZERO
+                xi = ONE
+             endif
 
              if (ppm_tau_in_tracing == 0) then
 
@@ -1117,14 +1099,6 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
                 qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
                 qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
@@ -1175,14 +1149,6 @@ contains
                 
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE - flatn(i,j,k3d)
-                   xi = flatn(i,j,k3d)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
 
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi/tau_s
@@ -1504,6 +1470,14 @@ contains
              p_ev    = p_ref
           endif
 
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE - flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+          else
+             xi1 = ZERO
+             xi = ONE
+          endif
+          
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original PPM
@@ -1541,14 +1515,6 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
-             
              qzp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
              qzp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apright - amright)*cc_ev/rho_ev)
              qzp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
@@ -1599,14 +1565,6 @@ contains
 
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
 
              tau_s = tau_ref + apright + amright + azrright
              qzp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
@@ -1748,7 +1706,15 @@ contains
              enth_ev = enth_ref
              p_ev    = p_ref
           endif
-
+          
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE - flatn(i,j,k3d-1)
+             xi = flatn(i,j,k3d-1)
+          else
+             xi1 = ZERO
+             xi = ONE
+          endif
+          
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original PPM
@@ -1785,14 +1751,6 @@ contains
              
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d-1)
-                xi = flatn(i,j,k3d-1)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
 
              qzm(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
              qzm(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apleft - amleft)*cc_ev/rho_ev)
@@ -1842,14 +1800,6 @@ contains
              
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d-1)
-                xi = flatn(i,j,k3d-1)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
 
              tau_s = tau_ref + apleft + amleft + azrleft
              qzm(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
