@@ -24,7 +24,8 @@ contains
          nadv, small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals
+         ppm_flatten_before_integrals, &
+         npassive, qpass_map
     use ppm_module, only : ppm
 
     implicit none
@@ -53,8 +54,8 @@ contains
     
     ! Local variables
     integer i, j, iwave, idim
-    integer n, iadv
-    integer ns, ispec, iaux
+    integer n, ipassive
+    integer ns
     
     double precision dtdx, dtdy
     double precision cc, csq, Clag, rho, u, v, p, rhoe
@@ -734,9 +735,10 @@ contains
     !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
     !-------------------------------------------------------------------------
-
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
+    
+    ! We do all passively advected quantities in one loop
+    do ipassive = 1, npassive
+       n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
           
           ! plus state on face i
@@ -749,23 +751,26 @@ contains
                 xi = ONE
              endif
 
-             ! the flattening here is a little confusing.  What we
-             ! want to do is:
+             ! the flattening here is a little confusing.  If
+             ! ppm_flatten_before_integrals = 0, then we are blending
+             ! the cell centered state and the edge state here through
+             ! the flattening procedure.  Otherwise, we've already
+             ! took care of flattening.  What we want to do is:
+             ! 
+             ! q_l*  (1-xi)*q_i + xi*q_l 
              !
-             ! q_l*  (1-xi)*q_i + xi*q_l
-             !
-             ! where 
-             !
+             ! where
+             !                                                         
              ! q_l = q_ref - Proj{(q_ref - I)} 
-             !
+             ! 
              ! and Proj{} represents the characteristic projection.
              ! But for these, there is only 1-wave that matters, the u
              ! wave, so no projection is needed.  Since we are not
              ! projecting, the reference state doesn't matter, so we
              ! take it to be q_i, therefore, we reduce to
-             !
-             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
-             !      = q_i + xi*(I - q_i)
+             !  
+             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)] 
+             !      = q_i + xi*(I - q_i) 
              
              if (u .gt. ZERO) then
                 qxp(i,j,n) = q(i,j,n)    ! we might want to change this to 
@@ -793,101 +798,6 @@ contains
                 qxm(i+1,j,n) = q(i,j,n)
              else
                 qxm(i+1,j,n) = q(i,j,n) + HALF*xi*(Ip(i,j,1,2,n) - q(i,j,n))
-             endif
-          enddo
-          
-       enddo
-    enddo
-
-
-    ! species
-
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-       do j = ilo2-1, ihi2+1
-          
-          ! plus state on face i
-          do i = ilo1, ihi1+1
-             u = q(i,j,QU)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (u .gt. ZERO) then
-                qxp(i,j,ns) = q(i,j,ns)
-             else if (u .lt. ZERO) then
-                qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
-             else
-                qxp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-          ! minus state on face i+1
-          do i = ilo1-1, ihi1
-             u = q(i,j,QU)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (u .gt. ZERO) then
-                qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
-             else if (u .lt. ZERO) then
-                qxm(i+1,j,ns) = q(i,j,ns)
-             else
-                qxm(i+1,j,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-       enddo
-    enddo
-
-    ! auxillary quantities
-
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       do j = ilo2-1, ihi2+1
-          
-          ! plus state on face i
-          do i = ilo1, ihi1+1
-             u = q(i,j,QU)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (u .gt. ZERO) then
-                qxp(i,j,ns) = q(i,j,ns)
-             else if (u .lt. ZERO) then
-                qxp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,1,2,ns) - q(i,j,ns))
-             else
-                qxp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,1,2,ns) - q(i,j,ns))
-             endif
-          enddo
-
-          ! minus state on face i+1
-          do i = ilo1-1, ihi1
-             u = q(i,j,QU)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (u .gt. ZERO) then
-                qxm(i+1,j,ns) = q(i,j,ns) + xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
-             else if (u .lt. ZERO) then
-                qxm(i+1,j,ns) = q(i,j,ns)
-             else
-                qxm(i+1,j,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,1,2,ns) - q(i,j,ns))
              endif
           enddo
           
@@ -1378,8 +1288,9 @@ contains
     ! Now do the passively advected quantities
     !-------------------------------------------------------------------------
 
-    do iadv = 1, nadv
-       n = QFA + iadv - 1
+    ! do all of the passively advected quantities in one loop
+    do ipassive = 1, npassive
+       n = qpass_map(ipassive)
        do i = ilo1-1, ihi1+1
           
           ! plus state on face j
@@ -1422,102 +1333,7 @@ contains
           
        enddo
     enddo
-
-
-    ! species
-
-    do ispec = 1, nspec
-       ns = QFS + ispec - 1
-       do i = ilo1-1, ihi1+1
           
-          ! plus state on face j
-          do j = ilo2, ihi2+1
-             v = q(i,j,QV)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (v .gt. ZERO) then
-                qyp(i,j,ns) = q(i,j,ns)
-             else if (v .lt. ZERO) then
-                qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
-             else
-                qyp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-          ! minus state on face j+1
-          do j = ilo2-1, ihi2
-             v = q(i,j,QV)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (v .gt. ZERO) then
-                qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             else if (v .lt. ZERO) then
-                qym(i,j+1,ns) = q(i,j,ns)
-             else
-                qym(i,j+1,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-       enddo
-    enddo
-
-    
-    ! auxillary quantities
-    
-    do iaux = 1, naux
-       ns = QFX + iaux - 1
-       do i = ilo1-1, ihi1+1
-          
-          ! plus state on face j
-          do j = ilo2, ihi2+1
-             v = q(i,j,QV)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (v .gt. ZERO) then
-                qyp(i,j,ns) = q(i,j,ns)
-             else if (v .lt. ZERO) then
-                qyp(i,j,ns) = q(i,j,ns) + xi*(Im(i,j,2,2,ns) - q(i,j,ns))
-             else
-                qyp(i,j,ns) = q(i,j,ns) + HALF*xi*(Im(i,j,2,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-          ! minus state on face j+1
-          do j = ilo2-1, ihi2
-             v = q(i,j,QV)
-
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             if (v .gt. ZERO) then
-                qym(i,j+1,ns) = q(i,j,ns) + xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             else if (v .lt. ZERO) then
-                qym(i,j+1,ns) = q(i,j,ns)
-             else
-                qym(i,j+1,ns) = q(i,j,ns) + HALF*xi*(Ip(i,j,2,2,ns) - q(i,j,ns))
-             endif
-          enddo
-          
-       enddo
-    enddo
     
     deallocate(Ip,Im)
     if (ppm_trace_grav == 1) then
