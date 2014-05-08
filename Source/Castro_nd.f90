@@ -302,6 +302,7 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_period_in, const_grav_in
+        integer :: iadv, ispec
 
         integer             :: QLAST
 
@@ -401,7 +402,7 @@
           QFA = QTHERM + 1
           QFS = QFA + numadv
         else 
-          QFA = 1
+          QFA = 1   ! density
           QFS = QTHERM + 1
         end if
         if (naux .ge. 1) then
@@ -410,7 +411,32 @@
           QFX = 1
         end if
 
+        ! easy indexing for the passively advected quantities.  This
+        ! lets us loop over all four groups (SGS, advected, species, aux)
+        ! in a single loop.
+        allocate(qpass_map(QVAR))
+        allocate(upass_map(NVAR))
+        npassive = 0
+        if (QESGS > -1) then
+           upass_map(1) = UESGS
+           qpass_map(1) = QESGS
+           npassive = 1
+        endif
+        do iadv = 1, nadv
+           upass_map(npassive + iadv) = UFA + iadv - 1
+           qpass_map(npassive + iadv) = QFA + iadv - 1
+        enddo
+        npassive = npassive + nadv
+        if(QFS > -1) then
+           do ispec = 1, nspec+naux
+              upass_map(npassive + ispec) = UFS + ispec - 1
+              qpass_map(npassive + ispec) = QFS + ispec - 1
+           enddo
+           npassive = npassive + nspec + naux
+        endif
+        
 
+         
         !---------------------------------------------------------------------
         ! other initializations
         !---------------------------------------------------------------------

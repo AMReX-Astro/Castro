@@ -21,7 +21,8 @@ contains
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
-         ppm_reference_edge_limit, ppm_flatten_before_integrals
+         ppm_reference_edge_limit, ppm_flatten_before_integrals, &
+         npassive, qpass_map
     use bl_constants_module
 
     implicit none
@@ -59,7 +60,7 @@ contains
     ! Local variables
     integer i, j
     integer n, iadv, ispec
-    integer npassive,ipassive,qpass_map(QVAR)
+    integer ipassive
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
@@ -86,23 +87,6 @@ contains
     integer, parameter :: igx = 1
     integer, parameter :: igy = 2
     integer, parameter :: igz = 3
-
-    ! Group all the passively advected quantities together
-    npassive = 0
-    if (QESGS .gt. -1) then
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if(QFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -374,7 +358,6 @@ contains
 
                 qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
                 qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
-
 
              endif    ! which tracing method 
                 
@@ -1260,7 +1243,8 @@ contains
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
-         ppm_reference_edge_limit, ppm_flatten_before_integrals
+         ppm_reference_edge_limit, ppm_flatten_before_integrals, &
+         npassive, qpass_map
     use bl_constants_module
 
     implicit none
@@ -1296,7 +1280,7 @@ contains
     !     Local variables
     integer i, j
     integer n, iadv, ispec
-    integer npassive,ipassive,qpass_map(QVAR)
+    integer ipassive
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
@@ -1323,23 +1307,6 @@ contains
     integer, parameter :: igx = 1
     integer, parameter :: igy = 2
     integer, parameter :: igz = 3
-
-    ! Group all the passively advected quantities together
-    npassive = 0
-    if (QESGS .gt. -1) then
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if(QFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
 
     halfdt = HALF * dt
 

@@ -1,5 +1,7 @@
 
-! This module stores the runtime parameters.  
+! This module stores the runtime parameters and integer names for 
+! indexing arrays.
+!
 ! These parameter are initialized in set_method_params().
 
 module meth_params_module
@@ -64,5 +66,8 @@ module meth_params_module
 
   double precision, save :: rot_period
   double precision, save :: const_grav
+
+  integer, save :: npassive
+  integer, save, allocatable :: qpass_map(:), upass_map(:)
 
 end module meth_params_module
