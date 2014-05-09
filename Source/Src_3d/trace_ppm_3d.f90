@@ -246,6 +246,8 @@ contains
                 p_ev    = p_ref
              endif
 
+             ! we may have already dealt with the flattening in the construction
+             ! of the parabola
              if (ppm_flatten_before_integrals == 0) then
                 xi1 = ONE-flatn(i,j,k3d)
                 xi = flatn(i,j,k3d)
@@ -300,9 +302,6 @@ contains
                 qxp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
                 qxp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
 
-                qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
-                qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
-
              else
                 ! (tau, u, p, e) eigensystem
 
@@ -356,10 +355,11 @@ contains
 
                 qxp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
 
-                qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
-                qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
-
              endif    ! which tracing method 
+
+             ! enforce small_*
+             qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
+             qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
                 
 
              ! transverse velocities
@@ -527,9 +527,6 @@ contains
                 qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
                 qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
 
-                qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
-                qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
-
              else
                 ! (tau, u, p, e) eigensystem
 
@@ -583,11 +580,11 @@ contains
 
                 qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
 
-                qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
-                qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
-
-
              endif
+
+             ! enforce small_*
+             qxm(i+1,j,kc,QRHO  ) = max(qxm(i+1,j,kc,QRHO ),small_dens)
+             qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
 
              ! transverse velocities
              dv    = (v_ref    - Ip(i,j,kc,1,2,QV))
@@ -863,9 +860,6 @@ contains
                 qyp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
                 qyp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
                 
-                qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
-                qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
-
              else
                 ! (tau, u, p, e) eigensystem
 
@@ -919,10 +913,11 @@ contains
 
                 qyp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
                 
-                qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
-                qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
-
              endif
+
+             ! enforce small_*
+             qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
+             qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
 
              ! transverse velocities
              du    = (u_ref    - Im(i,j,kc,2,2,QU))
@@ -1087,9 +1082,6 @@ contains
                 qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
                 qym(i,j+1,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
                 
-                qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
-                qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
-
              else
                 ! (tau, u, p, e) eigensystem
 
@@ -1143,10 +1135,11 @@ contains
 
                 qym(i,j+1,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
                 
-                qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
-                qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
-
              endif
+
+             ! enforce small_*
+             qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
+             qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
              
              ! transverse velocities
              du    = (u_ref    - Ip(i,j,kc,2,2,QU))
@@ -1487,9 +1480,6 @@ contains
              qzp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
              qzp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
              
-             qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
-             qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
-
           else
              ! (tau, u, p, e) eigensystem
              
@@ -1543,10 +1533,11 @@ contains
 
              qzp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
              
-             qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
-             qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
-
           endif
+
+          ! enforce small_*
+          qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
+          qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           ! transverse velocities
           du    = (u_ref    - Im(i,j,kc,3,2,QU))
@@ -1724,9 +1715,6 @@ contains
              qzm(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
              qzm(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
              
-             qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
-             qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
-             
           else
              ! (tau, u, p, e) eigensystem
              
@@ -1778,10 +1766,11 @@ contains
 
              qzm(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
              
-             qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
-             qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
-
           endif
+
+          ! enforce small_*
+          qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
+          qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
 
           ! transverse velocity
           du    = (u_ref    - Ip(i,j,km,3,2,QU))
