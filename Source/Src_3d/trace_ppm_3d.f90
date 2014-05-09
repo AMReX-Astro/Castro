@@ -246,15 +246,6 @@ contains
                 p_ev    = p_ref
              endif
 
-             ! we may have already dealt with the flattening in the construction
-             ! of the parabola
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE-flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
 
              if (ppm_tau_in_tracing == 0) then
 
@@ -297,10 +288,10 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
 
-                qxp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-                qxp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
-                qxp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-                qxp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
+                qxp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
+                qxp(i,j,kc,QU    ) = u_ref + (apright - amright)*cc_ev/rho_ev
+                qxp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qxp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
 
              else
                 ! (tau, u, p, e) eigensystem
@@ -346,14 +337,14 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
 
                 tau_s = tau_ref + apright + amright + azrright
-                qxp(i,j,kc,QRHO  ) = xi1*rho + xi/tau_s
+                qxp(i,j,kc,QRHO  ) = ONE/tau_s
 
-                qxp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + (amright - apright)*Clag_ev)
+                qxp(i,j,kc,QU    ) = u_ref + (amright - apright)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                qxp(i,j,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qxp(i,j,kc,QREINT) = e_s/tau_s
 
-                qxp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
+                qxp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
 
              endif    ! which tracing method 
 
@@ -381,8 +372,23 @@ contains
                 azv1rght = -HALF*dv
                 azw1rght = -HALF*dw
              endif
-             qxp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1rght)
-             qxp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1rght)
+             qxp(i,j,kc,QV    ) = v_ref + azv1rght
+             qxp(i,j,kc,QW    ) = w_ref + azw1rght
+
+
+             ! we may have already dealt with the flattening in the construction
+             ! of the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+
+                qxp(i,j,kc,QRHO  ) = xi1*rho  + xi*qxp(i,j,kc,QRHO  )
+                qxp(i,j,kc,QU    ) = xi1*u    + xi*qxp(i,j,kc,QU    )
+                qxp(i,j,kc,QV    ) = xi1*v    + xi*qxp(i,j,kc,QV    )
+                qxp(i,j,kc,QW    ) = xi1*w    + xi*qxp(i,j,kc,QW    )
+                qxp(i,j,kc,QREINT) = xi1*rhoe + xi*qxp(i,j,kc,QREINT)
+                qxp(i,j,kc,QPRES ) = xi1*p    + xi*qxp(i,j,kc,QPRES )
+             endif
 
           end if
 
@@ -473,14 +479,6 @@ contains
                 p_ev    = p_ref
              endif
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
-                
              if (ppm_tau_in_tracing == 0) then
 
                 ! these are analogous to the beta's from the original PPM
@@ -522,10 +520,10 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qxm(i+1,j,kc,QU    ) = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
-                qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-                qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
+                qxm(i+1,j,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
+                qxm(i+1,j,kc,QU    ) = u_ref + (apleft - amleft)*cc_ev/rho_ev
+                qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qxm(i+1,j,kc,QPRES ) = p_ref + (apleft + amleft)*csq_ev
 
              else
                 ! (tau, u, p, e) eigensystem
@@ -571,14 +569,14 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
 
                 tau_s = tau_ref + (apleft + amleft + azrleft)
-                qxm(i+1,j,kc,QRHO  ) = xi1*rho + xi/tau_s
+                qxm(i+1,j,kc,QRHO  ) = ONE/tau_s
 
-                qxm(i+1,j,kc,QU    ) = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag_ev)
+                qxm(i+1,j,kc,QU    ) = u_ref + (amleft - apleft)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qxm(i+1,j,kc,QREINT) = e_s/tau_s
 
-                qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
+                qxm(i+1,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
 
              endif
 
@@ -603,8 +601,22 @@ contains
                 azv1left = -HALF*dv
                 azw1left = -HALF*dw
              endif
-             qxm(i+1,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1left)
-             qxm(i+1,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1left)
+             qxm(i+1,j,kc,QV    ) = v_ref + azv1left
+             qxm(i+1,j,kc,QW    ) = w_ref + azw1left
+
+
+             ! we may have already dealt with flattening in the parabolas
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+
+                qxm(i+1,j,kc,QRHO  ) = xi1*rho  + xi*qxm(i+1,j,kc,QRHO  )
+                qxm(i+1,j,kc,QU    ) = xi1*u    + xi*qxm(i+1,j,kc,QU    )
+                qxm(i+1,j,kc,QV    ) = xi1*v    + xi*qxm(i+1,j,kc,QV    )
+                qxm(i+1,j,kc,QW    ) = xi1*w    + xi*qxm(i+1,j,kc,QW    )
+                qxm(i+1,j,kc,QREINT) = xi1*rhoe + xi*qxm(i+1,j,kc,QREINT)
+                qxm(i+1,j,kc,QPRES ) = xi1*p    + xi*qxm(i+1,j,kc,QPRES )
+             endif
 
           end if
 
@@ -806,14 +818,6 @@ contains
                 p_ev    = p_ref
              endif
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
-                
              if (ppm_tau_in_tracing == 0) then
 
                 ! these are analogous to the beta's from the original PPM
@@ -855,10 +859,10 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-                qyp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
-                qyp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-                qyp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
+                qyp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
+                qyp(i,j,kc,QV    ) = v_ref + (apright - amright)*cc_ev/rho_ev
+                qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qyp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
                 
              else
                 ! (tau, u, p, e) eigensystem
@@ -904,14 +908,14 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
 
                 tau_s = tau_ref + apright + amright + azrright                
-                qyp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
+                qyp(i,j,kc,QRHO  ) = ONE/tau_s
 
-                qyp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + (amright - apright)*Clag_ev)
+                qyp(i,j,kc,QV    ) = v_ref + (amright - apright)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                qyp(i,j,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qyp(i,j,kc,QREINT) = e_s/tau_s
 
-                qyp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
+                qyp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
                 
              endif
 
@@ -936,8 +940,22 @@ contains
                 azu1rght = -HALF*du
                 azw1rght = -HALF*dw
              endif
-             qyp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1rght)
-             qyp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + azw1rght)
+             qyp(i,j,kc,QU    ) = u_ref + azu1rght
+             qyp(i,j,kc,QW    ) = w_ref + azw1rght
+
+
+             ! we may have already dealt with flattening in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+
+                qyp(i,j,kc,QRHO  ) = xi1*rho  + xi*qyp(i,j,kc,QRHO  )
+                qyp(i,j,kc,QV    ) = xi1*v    + xi*qyp(i,j,kc,QV    )
+                qyp(i,j,kc,QU    ) = xi1*u    + xi*qyp(i,j,kc,QU    )
+                qyp(i,j,kc,QW    ) = xi1*w    + xi*qyp(i,j,kc,QW    )
+                qyp(i,j,kc,QREINT) = xi1*rhoe + xi*qyp(i,j,kc,QREINT)
+                qyp(i,j,kc,QPRES ) = xi1*p    + xi*qyp(i,j,kc,QPRES )
+             endif
 
           end if
 
@@ -1029,14 +1047,6 @@ contains
                 p_ev    = p_ref
              endif
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE - flatn(i,j,k3d)
-                xi = flatn(i,j,k3d)
-             else
-                xi1 = ZERO
-                xi = ONE
-             endif
-
              if (ppm_tau_in_tracing == 0) then
 
                 ! these are analogous to the beta's from the original PPM
@@ -1077,10 +1087,10 @@ contains
                 ! the final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
 
-                qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
-                qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-                qym(i,j+1,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
+                qym(i,j+1,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
+                qym(i,j+1,kc,QV    ) = v_ref + (apleft - amleft)*cc_ev/rho_ev
+                qym(i,j+1,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qym(i,j+1,kc,QPRES ) = p_ref + (apleft + amleft)*csq_ev
                 
              else
                 ! (tau, u, p, e) eigensystem
@@ -1126,14 +1136,14 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
 
                 tau_s = tau_ref + apleft + amleft + azrleft
-                qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi/tau_s
+                qym(i,j+1,kc,QRHO  ) = ONE/tau_s
 
-                qym(i,j+1,kc,QV    ) = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag_ev)
+                qym(i,j+1,kc,QV    ) = v_ref + (amleft - apleft)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qym(i,j+1,kc,QREINT) = e_s/tau_s
 
-                qym(i,j+1,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
+                qym(i,j+1,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
                 
              endif
 
@@ -1158,8 +1168,22 @@ contains
                 azu1left = -HALF*du
                 azw1left = -HALF*dw
              endif
-             qym(i,j+1,kc,QU    ) = xi1*u    + xi*(u_ref + azu1left)
-             qym(i,j+1,kc,QW    ) = xi1*w    + xi*(w_ref + azw1left)
+             qym(i,j+1,kc,QU    ) = u_ref + azu1left
+             qym(i,j+1,kc,QW    ) = w_ref + azw1left
+
+
+             ! we may have already dealt with flattening in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE - flatn(i,j,k3d)
+                xi = flatn(i,j,k3d)
+
+                qym(i,j+1,kc,QRHO  ) = xi1*rho  + xi*qym(i,j+1,kc,QRHO  )
+                qym(i,j+1,kc,QV    ) = xi1*v    + xi*qym(i,j+1,kc,QV    )
+                qym(i,j+1,kc,QU    ) = xi1*u    + xi*qym(i,j+1,kc,QU    )
+                qym(i,j+1,kc,QW    ) = xi1*w    + xi*qym(i,j+1,kc,QW    )
+                qym(i,j+1,kc,QREINT) = xi1*rhoe + xi*qym(i,j+1,kc,QREINT)
+                qym(i,j+1,kc,QPRES ) = xi1*p    + xi*qym(i,j+1,kc,QPRES )
+             endif
 
           end if
 
@@ -1429,14 +1453,6 @@ contains
              enth_ev = enth_ref
              p_ev    = p_ref
           endif
-
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE - flatn(i,j,k3d)
-             xi = flatn(i,j,k3d)
-          else
-             xi1 = ZERO
-             xi = ONE
-          endif
           
           if (ppm_tau_in_tracing == 0) then
 
@@ -1475,10 +1491,10 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
 
-             qzp(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-             qzp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apright - amright)*cc_ev/rho_ev)
-             qzp(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-             qzp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
+             qzp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
+             qzp(i,j,kc,QW    ) = w_ref + (apright - amright)*cc_ev/rho_ev
+             qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+             qzp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
              
           else
              ! (tau, u, p, e) eigensystem
@@ -1524,14 +1540,14 @@ contains
              ! q_s = q_ref - sum (l . dq) r
 
              tau_s = tau_ref + apright + amright + azrright
-             qzp(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
+             qzp(i,j,kc,QRHO  ) = ONE/tau_s
 
-             qzp(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (amright - apright)*Clag_ev)
+             qzp(i,j,kc,QW    ) = w_ref + (amright - apright)*Clag_ev
 
              e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)           
-             qzp(i,j,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+             qzp(i,j,kc,QREINT) = e_s/tau_s
 
-             qzp(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
+             qzp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
              
           endif
 
@@ -1556,8 +1572,22 @@ contains
              azu1rght = -HALF*du
              azv1rght = -HALF*dv
           endif
-          qzp(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1rght)
-          qzp(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1rght)
+          qzp(i,j,kc,QU    ) = u_ref + azu1rght
+          qzp(i,j,kc,QV    ) = v_ref + azv1rght
+
+
+          ! we may have already dealt with flattening in the parabola
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE - flatn(i,j,k3d)
+             xi = flatn(i,j,k3d)
+
+             qzp(i,j,kc,QRHO  ) = xi1*rho  + xi*qzp(i,j,kc,QRHO  )
+             qzp(i,j,kc,QW    ) = xi1*w    + xi*qzp(i,j,kc,QW    )
+             qzp(i,j,kc,QU    ) = xi1*u    + xi*qzp(i,j,kc,QU    )
+             qzp(i,j,kc,QV    ) = xi1*v    + xi*qzp(i,j,kc,QV    )
+             qzp(i,j,kc,QREINT) = xi1*rhoe + xi*qzp(i,j,kc,QREINT)
+             qzp(i,j,kc,QPRES ) = xi1*p    + xi*qzp(i,j,kc,QPRES )
+          endif
 
 
           !--------------------------------------------------------------------
@@ -1665,14 +1695,6 @@ contains
              p_ev    = p_ref
           endif
           
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE - flatn(i,j,k3d-1)
-             xi = flatn(i,j,k3d-1)
-          else
-             xi1 = ZERO
-             xi = ONE
-          endif
-          
           if (ppm_tau_in_tracing == 0) then
 
              ! these are analogous to the beta's from the original PPM
@@ -1710,10 +1732,10 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
 
-             qzm(i,j,kc,QRHO  ) = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-             qzm(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (apleft - amleft)*cc_ev/rho_ev)
-             qzm(i,j,kc,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-             qzm(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
+             qzm(i,j,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
+             qzm(i,j,kc,QW    ) = w_ref + (apleft - amleft)*cc_ev/rho_ev
+             qzm(i,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+             qzm(i,j,kc,QPRES ) = p_ref + (apleft + amleft)*csq_ev
              
           else
              ! (tau, u, p, e) eigensystem
@@ -1757,14 +1779,14 @@ contains
              ! q_s = q_ref - sum (l . dq) r
 
              tau_s = tau_ref + apleft + amleft + azrleft
-             qzm(i,j,kc,QRHO  ) = xi1*rho  + xi/tau_s
+             qzm(i,j,kc,QRHO  ) = ONE/tau_s
 
-             qzm(i,j,kc,QW    ) = xi1*w    + xi*(w_ref + (amleft - apleft)*Clag_ev)
+             qzm(i,j,kc,QW    ) = w_ref + (amleft - apleft)*Clag_ev
 
              e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-             qzm(i,j,kc,QREINT) = xi1*rhoe + xi*e_s/tau_s
+             qzm(i,j,kc,QREINT) = e_s/tau_s
 
-             qzm(i,j,kc,QPRES ) = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
+             qzm(i,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
              
           endif
 
@@ -1789,8 +1811,23 @@ contains
              azu1left = -HALF*du
              azv1left = -HALF*dv
           endif
-          qzm(i,j,kc,QU    ) = xi1*u    + xi*(u_ref + azu1left)
-          qzm(i,j,kc,QV    ) = xi1*v    + xi*(v_ref + azv1left)
+          qzm(i,j,kc,QU    ) = u_ref + azu1left
+          qzm(i,j,kc,QV    ) = v_ref + azv1left
+
+
+          ! we may have already taken care of flattening in the parabola
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE - flatn(i,j,k3d-1)
+             xi = flatn(i,j,k3d-1)
+
+             qzm(i,j,kc,QRHO  ) = xi1*rho  + xi*qzm(i,j,kc,QRHO  )
+             qzm(i,j,kc,QW    ) = xi1*w    + xi*qzm(i,j,kc,QW    )
+             qzm(i,j,kc,QU    ) = xi1*u    + xi*qzm(i,j,kc,QU    )
+             qzm(i,j,kc,QV    ) = xi1*v    + xi*qzm(i,j,kc,QV    )
+             qzm(i,j,kc,QREINT) = xi1*rhoe + xi*qzm(i,j,kc,QREINT)
+             qzm(i,j,kc,QPRES ) = xi1*p    + xi*qzm(i,j,kc,QPRES )
+
+          endif          
 
        end do
     end do
