@@ -17,7 +17,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QESGS, QPRES, QFA, QFS, nadv, &
+         QREINT, QPRES, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
@@ -59,7 +59,7 @@ contains
 
     ! Local variables
     integer i, j
-    integer n, iadv, ispec
+    integer n
     integer ipassive
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
@@ -1232,7 +1232,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QESGS, QPRES, QFA, QFS, nadv, &
+         QREINT, QPRES, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
@@ -1272,7 +1272,7 @@ contains
 
     !     Local variables
     integer i, j
-    integer n, iadv, ispec
+    integer n
     integer ipassive
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
