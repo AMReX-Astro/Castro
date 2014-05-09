@@ -19,9 +19,9 @@ contains
     use eos_type_module
     use eos_module
     use bl_constants_module
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
-         QREINT, QPRES, QFA, QFS, QFX, QTEMP, &
-         nadv, small_dens, small_pres, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, &
+         QREINT, QPRES, QTEMP, QFS, &
+         small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, &
@@ -55,13 +55,12 @@ contains
     ! Local variables
     integer i, j, iwave, idim
     integer n, ipassive
-    integer ns
     
     double precision dtdx, dtdy
     double precision cc, csq, Clag, rho, u, v, p, rhoe
     double precision drho, du, dv, dp, drhoe, dtau
-    double precision drhop, dup, dvp, dpp, drhoep
-    double precision drhom, dum, dvm, dpm, drhoem
+    double precision dup, dvp, dpp, drhoep
+    double precision dum, dvm, dpm, drhoem
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de
@@ -71,7 +70,6 @@ contains
     double precision :: gam
     
     double precision enth, alpham, alphap, alpha0r, alpha0e
-    double precision alpha0u, alpha0v
     double precision apright, amright, azrright, azeright
     double precision azu1rght, azv1rght
     double precision apleft, amleft, azrleft, azeleft
@@ -364,24 +362,10 @@ contains
              ! q_s = q_ref - sum (l . dq) r
              if (i .ge. ilo1) then
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-
-                qxp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-
-                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
-                qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
-                
-                qxp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
-                
-                qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
-                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+                qxp(i,j,QRHO)   = rho_ref + apright + amright + azrright
+                qxp(i,j,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
+                qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qxp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
              end if
              
           else
@@ -430,32 +414,28 @@ contains
              ! q_s = q_ref - sum (l . dq) r
              if (i .ge. ilo1) then
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-
                 tau_s = tau_ref + apright + amright + azrright
-                qxp(i,j,QRHO)   = xi1*rho + xi/tau_s
+                qxp(i,j,QRHO)   = ONE/tau_s
 
-                qxp(i,j,QU)     = xi1*u    + xi*(u_ref + (amright - apright)*Clag_ev)
+                qxp(i,j,QU)     = u_ref + (amright - apright)*Clag_ev
                 
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
-                qxp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qxp(i,j,QREINT) = e_s/tau_s
 
-                qxp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
-                
-                qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
-                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+                qxp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
              end if
 
           endif
 
-          ! transverse velocity
+
           if (i .ge. ilo1) then
+
+             ! enforce small_*
+             qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
+             qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+
+
+             ! transverse velocity
              dv    = (v_ref    - Im(i,j,1,2,QV))
              if (ppm_trace_grav == 1) then
                 dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
@@ -468,7 +448,22 @@ contains
                 azv1rght = -HALF*dv
              endif
              
-             qxp(i,j,QV)     = xi1*v    + xi*(v_ref + azv1rght)
+             qxp(i,j,QV)     = v_ref + azv1rght
+
+
+             ! we may have done the flattening already in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j)
+                xi = flatn(i,j)
+
+                qxp(i,j,QRHO)   = xi1*rho  + xi*qxp(i,j,QRHO)
+                qxp(i,j,QU)     = xi1*u    + xi*qxp(i,j,QU)
+                qxp(i,j,QREINT) = xi1*rhoe + xi*qxp(i,j,QREINT)
+                qxp(i,j,QPRES)  = xi1*p    + xi*qxp(i,j,QPRES) 
+                qxp(i,j,QV)     = xi1*v    + xi*qxp(i,j,QV) 
+             endif
+
+
           endif
 
 
@@ -595,23 +590,10 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              if (i .le. ihi1) then
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
-                qxm(i+1,j,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
-                
-                qxm(i+1,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
-                
-                qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
-                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+                qxm(i+1,j,QRHO)   = rho_ref + apleft + amleft + azrleft
+                qxm(i+1,j,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev  
+                qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qxm(i+1,j,QPRES)  = p_ref + (apleft + amleft)*csq_ev
              end if
 
           else
@@ -659,33 +641,28 @@ contains
              ! q_s = q_ref - sum (l . dq) r
              if (i .le. ihi1) then
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 tau_s = tau_ref + (apleft + amleft + azrleft)
-                qxm(i+1,j,QRHO)   = xi1*rho  + xi/tau_s
+                qxm(i+1,j,QRHO)   = ONE/tau_s
 
-                qxm(i+1,j,QU)     = xi1*u    + xi*(u_ref + (amleft - apleft)*Clag_ev)
+                qxm(i+1,j,QU)     = u_ref + (amleft - apleft)*Clag_ev
                 
                 e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
-                qxm(i+1,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qxm(i+1,j,QREINT) = e_s/tau_s
 
-                qxm(i+1,j,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
-                
-                qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
-                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
-
+                qxm(i+1,j,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
              end if
 
           endif
 
-          ! transverse velocity
+
           if (i .le. ihi1) then
+             
+             ! enforce small_*
+             qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
+             qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+
+
+             ! transverse velocity
              dv    = (v_ref    - Ip(i,j,1,2,QV))
              if (ppm_trace_grav == 1) then
                 dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
@@ -697,7 +674,22 @@ contains
              else
                 azv1left = -HALF*dv
              endif
-             qxm(i+1,j,QV)     = xi1*v    + xi*(v_ref + azv1left)
+             qxm(i+1,j,QV)     = v_ref + azv1left
+
+
+             ! we may have already done the flattening in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j)
+                xi = flatn(i,j)
+
+                qxm(i+1,j,QRHO)   = xi1*rho  + xi*qxm(i+1,j,QRHO)
+                qxm(i+1,j,QU)     = xi1*u    + xi*qxm(i+1,j,QU)
+                qxm(i+1,j,QV)     = xi1*v    + xi*qxm(i+1,j,QV)
+                qxm(i+1,j,QREINT) = xi1*rhoe + xi*qxm(i+1,j,QREINT)
+                qxm(i+1,j,QPRES)  = xi1*p    + xi*qxm(i+1,j,QPRES) 
+
+             endif               
+
           endif
 
           !-------------------------------------------------------------------
@@ -950,23 +942,10 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r          
              if (j .ge. ilo2) then
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
-                qyp(i,j,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (apright - amright)*cc_ev/rho_ev)
-
-                qyp(i,j,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
-                
-                qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+                qyp(i,j,QRHO)   = rho_ref + apright + amright + azrright
+                qyp(i,j,QV)     = v_ref + (apright - amright)*cc_ev/rho_ev
+                qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qyp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
              end if
 
           else
@@ -1014,33 +993,28 @@ contains
              ! q_s = q_ref - sum (l . dq) r          
              if (j .ge. ilo2) then
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 tau_s = tau_ref + apright + amright + azrright
-                qyp(i,j,QRHO)   = xi1*rho  + xi/tau_s
+                qyp(i,j,QRHO)   = ONE/tau_s
 
-                qyp(i,j,QV)     = xi1*v    + xi*(v_ref + (amright - apright)*Clag_ev)
+                qyp(i,j,QV)     = v_ref + (amright - apright)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
-                qyp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qyp(i,j,QREINT) = e_s/tau_s
 
-                qyp(i,j,QPRES)  = xi1*p    + xi*(p_ref + (-apright - amright)*Clag_ev**2)
-                
-                qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
-
+                qyp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
              end if
 
           endif
 
-          ! transverse velocity
+
           if (j .ge. ilo2) then
+
+             ! enforce small_*   
+             qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
+             qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+
+
+             ! transverse velocity
              du    = (u_ref    - Im(i,j,2,2,QU))
              if (ppm_trace_grav == 1) then
                 du  = du  - halfdt*Im_g(i,j,2,2,igx)
@@ -1052,7 +1026,21 @@ contains
              else
                 azu1rght = -HALF*du                
              endif
-             qyp(i,j,QU)     = xi1*u    + xi*(u_ref + azu1rght)          
+             qyp(i,j,QU)     = u_ref + azu1rght
+
+
+             ! we may have already done the flattening in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j)
+                xi = flatn(i,j)
+
+                qyp(i,j,QRHO)   = xi1*rho  + xi*qyp(i,j,QRHO)
+                qyp(i,j,QV)     = xi1*v    + xi*qyp(i,j,QV)
+                qyp(i,j,QU)     = xi1*u    + xi*qyp(i,j,QU)
+                qyp(i,j,QREINT) = xi1*rhoe + xi*qyp(i,j,QREINT)
+                qyp(i,j,QPRES)  = xi1*p    + xi*qyp(i,j,QPRES)
+             endif
+                
           endif
 
           !-------------------------------------------------------------------
@@ -1176,23 +1164,10 @@ contains
              ! the final interface states are just
              ! q_s = q_ref - sum (l . dq) r          
              if (j .le. ihi2) then
-
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
-                qym(i,j+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (apleft - amleft)*cc_ev/rho_ev)
-             
-                qym(i,j+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
-                
-                qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+                qym(i,j+1,QRHO)   = rho_ref + apleft + amleft + azrleft
+                qym(i,j+1,QV)     = v_ref + (apleft - amleft)*cc_ev/rho_ev
+                qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qym(i,j+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
              end if
 
           else
@@ -1240,32 +1215,27 @@ contains
              ! q_s = q_ref - sum (l . dq) r          
              if (j .le. ihi2) then
 
-                if (ppm_flatten_before_integrals == 0) then
-                   xi1 = ONE-flatn(i,j)
-                   xi = flatn(i,j)
-                else
-                   xi1 = ZERO
-                   xi = ONE
-                endif
-                
                 tau_s = tau_ref + apleft + amleft + azrleft
-                qym(i,j+1,QRHO)   = xi1*rho  + xi/tau_s
-                qym(i,j+1,QV)     = xi1*v    + xi*(v_ref + (amleft - apleft)*Clag_ev)
+                qym(i,j+1,QRHO)   = ONE/tau_s
+                qym(i,j+1,QV)     = v_ref + (amleft - apleft)*Clag_ev
 
                 e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
-                qym(i,j+1,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qym(i,j+1,QREINT) = e_s/tau_s
 
-                qym(i,j+1,QPRES)  = xi1*p    + xi*(p_ref + (-apleft - amleft)*Clag_ev**2)
-                
-                qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
-
+                qym(i,j+1,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
              end if
 
           endif
 
-          ! transverse velocity
+
           if (j .le. ihi2) then
+
+             ! enforce small_*
+             qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
+             qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+
+
+             ! transverse velocity
              du    = (u_ref    - Ip(i,j,2,2,QU))
              if (ppm_trace_grav == 1) then
                 du  = du  - halfdt*Ip_g(i,j,2,2,igx)
@@ -1277,7 +1247,21 @@ contains
              else
                 azu1left = -HALF*du
              endif
-             qym(i,j+1,QU)     = xi1*u    + xi*(u_ref + azu1left)
+             qym(i,j+1,QU)     = u_ref + azu1left
+
+
+             ! we may have already applied flattening in the parabola
+             if (ppm_flatten_before_integrals == 0) then
+                xi1 = ONE-flatn(i,j)
+                xi = flatn(i,j)
+
+                qym(i,j+1,QRHO)   = xi1*rho  + xi*qym(i,j+1,QRHO)
+                qym(i,j+1,QV)     = xi1*v    + xi*qym(i,j+1,QV)
+                qym(i,j+1,QU)     = xi1*u    + xi*qym(i,j+1,QU)
+                qym(i,j+1,QREINT) = xi1*rhoe + xi*qym(i,j+1,QREINT)
+                qym(i,j+1,QPRES)  = xi1*p    + xi*qym(i,j+1,QPRES)
+             endif
+                
           endif
 
        end do
