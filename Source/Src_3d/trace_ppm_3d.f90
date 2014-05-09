@@ -353,27 +353,32 @@ contains
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
                 
 
-             ! transverse velocities
-             dv    = (v_ref    - Im(i,j,kc,1,2,QV))
-             dw    = (w_ref    - Im(i,j,kc,1,2,QW))
+             ! transverse velocities -- there's no projection here, so we don't
+             ! need a reference state.  We only care about the state traced under
+             ! the middle wave
+             dv = Im(i,j,kc,1,2,QV)
+             dw = Im(i,j,kc,1,2,QW)
 
              if (ppm_trace_grav .eq. 1) then
-                dv  = dv  - halfdt*Im_g(i,j,kc,1,2,igy)
-                dw  = dw  - halfdt*Im_g(i,j,kc,1,2,igz)
+                dv  = dv  + halfdt*Im_g(i,j,kc,1,2,igy)
+                dw  = dw  + halfdt*Im_g(i,j,kc,1,2,igz)
              endif
 
+             ! recall that I already takes the limit of the parabola
+             ! in the event that the wave is not moving toward the
+             ! interface
              if (u > ZERO) then
-                azv1rght = ZERO
-                azw1rght = ZERO
-             else if (u < ZERO) then
-                azv1rght = -dv
-                azw1rght = -dw
-             else
-                azv1rght = -HALF*dv
-                azw1rght = -HALF*dw
+                if (ppm_reference_edge_limit == 1) then
+                   qxp(i,j,kc,QV    ) = Im(i,j,kc,1,2,QV)
+                   qxp(i,j,kc,QW    ) = Im(i,j,kc,1,2,QW)
+                else
+                   qxp(i,j,kc,QV    ) = v
+                   qxp(i,j,kc,QW    ) = w
+                endif
+             else ! wave moving toward the interface 
+                qxp(i,j,kc,QV    ) = dv
+                qxp(i,j,kc,QW    ) = dw
              endif
-             qxp(i,j,kc,QV    ) = v_ref + azv1rght
-             qxp(i,j,kc,QW    ) = w_ref + azw1rght
 
 
              ! we may have already dealt with the flattening in the construction
@@ -438,9 +443,6 @@ contains
 
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
-   
-             ! Note: for the transverse velocities, the jump is carried
-             !       only by the u wave (the contact)
    
              dum    = (u_ref    - Ip(i,j,kc,1,1,QU))
              dpm    = (p_ref    - Ip(i,j,kc,1,1,QPRES))
@@ -585,24 +587,26 @@ contains
              qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
 
              ! transverse velocities
-             dv    = (v_ref    - Ip(i,j,kc,1,2,QV))
-             dw    = (w_ref    - Ip(i,j,kc,1,2,QW))
+             dv    = Ip(i,j,kc,1,2,QV)
+             dw    = Ip(i,j,kc,1,2,QW)
+
              if (ppm_trace_grav .eq. 1) then
-                dv  = dv  - halfdt*Ip_g(i,j,kc,1,2,igy)
-                dw  = dw  - halfdt*Ip_g(i,j,kc,1,2,igz)
+                dv  = dv  + halfdt*Ip_g(i,j,kc,1,2,igy)
+                dw  = dw  + halfdt*Ip_g(i,j,kc,1,2,igz)
              endif
-             if (u > ZERO) then
-                azv1left = -dv
-                azw1left = -dw
-             else if (u < ZERO) then
-                azv1left = ZERO
-                azw1left = ZERO
+
+             if (u < ZERO) then
+                if (ppm_reference_edge_limit == 1) then
+                   qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
+                   qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
+                else
+                   qxm(i+1,j,kc,QV    ) = v
+                   qxm(i+1,j,kc,QW    ) = w
+                endif
              else
-                azv1left = -HALF*dv
-                azw1left = -HALF*dw
+                qxm(i+1,j,kc,QV    ) = dv
+                qxm(i+1,j,kc,QW    ) = dw
              endif
-             qxm(i+1,j,kc,QV    ) = v_ref + azv1left
-             qxm(i+1,j,kc,QW    ) = w_ref + azw1left
 
 
              ! we may have already dealt with flattening in the parabolas
@@ -924,24 +928,26 @@ contains
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
 
              ! transverse velocities
-             du    = (u_ref    - Im(i,j,kc,2,2,QU))
-             dw    = (w_ref    - Im(i,j,kc,2,2,QW))
+             du    = Im(i,j,kc,2,2,QU)
+             dw    = Im(i,j,kc,2,2,QW)
+
              if (ppm_trace_grav .eq. 1) then
-                du  = du  - halfdt*Im_g(i,j,kc,2,2,igx)
-                dw  = dw  - halfdt*Im_g(i,j,kc,2,2,igz)
+                du  = du  + halfdt*Im_g(i,j,kc,2,2,igx)
+                dw  = dw  + halfdt*Im_g(i,j,kc,2,2,igz)
              endif
+
              if (v > ZERO) then
-                azu1rght = ZERO
-                azw1rght = ZERO
-             else if (v < ZERO) then
-                azu1rght = -du
-                azw1rght = -dw
-             else
-                azu1rght = -HALF*du
-                azw1rght = -HALF*dw
+                if (ppm_reference_edge_limit == 1) then
+                   qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
+                   qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
+                else
+                   qyp(i,j,kc,QU    ) = u
+                   qyp(i,j,kc,QW    ) = w
+                endif
+             else ! wave moving toward the interface
+                qyp(i,j,kc,QU    ) = du
+                qyp(i,j,kc,QW    ) = dw
              endif
-             qyp(i,j,kc,QU    ) = u_ref + azu1rght
-             qyp(i,j,kc,QW    ) = w_ref + azw1rght
 
 
              ! we may have already dealt with flattening in the parabola
@@ -1152,24 +1158,26 @@ contains
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
              
              ! transverse velocities
-             du    = (u_ref    - Ip(i,j,kc,2,2,QU))
-             dw    = (w_ref    - Ip(i,j,kc,2,2,QW))
+             du    = Ip(i,j,kc,2,2,QU)
+             dw    = Ip(i,j,kc,2,2,QW)
+
              if (ppm_trace_grav .eq. 1) then
-                du  = du  - halfdt*Ip_g(i,j,kc,2,2,igx)
-                dw  = dw  - halfdt*Ip_g(i,j,kc,2,2,igz)
+                du  = du  + halfdt*Ip_g(i,j,kc,2,2,igx)
+                dw  = dw  + halfdt*Ip_g(i,j,kc,2,2,igz)
              endif
-             if (v > ZERO) then
-                azu1left = -du
-                azw1left = -dw
-             else if (v < ZERO) then
-                azu1left = ZERO
-                azw1left = ZERO
-             else
-                azu1left = -HALF*du
-                azw1left = -HALF*dw
+
+             if (v < ZERO) then
+                if (ppm_reference_edge_limit == 1) then
+                   qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
+                   qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
+                else
+                   qym(i,j+1,kc,QU    ) = u
+                   qym(i,j+1,kc,QW    ) = w
+                endif
+             else ! wave is moving toward the interface
+                qym(i,j+1,kc,QU    ) = du
+                qym(i,j+1,kc,QW    ) = dw
              endif
-             qym(i,j+1,kc,QU    ) = u_ref + azu1left
-             qym(i,j+1,kc,QW    ) = w_ref + azw1left
 
 
              ! we may have already dealt with flattening in the parabola
@@ -1555,25 +1563,28 @@ contains
           qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
+
           ! transverse velocities
-          du    = (u_ref    - Im(i,j,kc,3,2,QU))
-          dv    = (v_ref    - Im(i,j,kc,3,2,QV))
+          du    = Im(i,j,kc,3,2,QU)
+          dv    = Im(i,j,kc,3,2,QV)
+
           if (ppm_trace_grav .eq. 1) then
-             du  = du  - halfdt*Im_g(i,j,kc,3,2,igx)
-             dv  = dv  - halfdt*Im_g(i,j,kc,3,2,igy)
+             du  = du  + halfdt*Im_g(i,j,kc,3,2,igx)
+             dv  = dv  + halfdt*Im_g(i,j,kc,3,2,igy)
           endif
-          if (w > ZERO) then
-             azu1rght = ZERO
-             azv1rght = ZERO
-          else if (w < 0) then
-             azu1rght = -du
-             azv1rght = -dv
-          else
-             azu1rght = -HALF*du
-             azv1rght = -HALF*dv
+
+          if (w > ZERO) then 
+             if (ppm_reference_edge_limit == 1) then
+                qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
+                qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
+             else
+                qzp(i,j,kc,QU    ) = u
+                qzp(i,j,kc,QV    ) = v
+             endif
+          else ! wave moving toward the interface
+             qzp(i,j,kc,QU    ) = du
+             qzp(i,j,kc,QV    ) = dv
           endif
-          qzp(i,j,kc,QU    ) = u_ref + azu1rght
-          qzp(i,j,kc,QV    ) = v_ref + azv1rght
 
 
           ! we may have already dealt with flattening in the parabola
@@ -1795,25 +1806,26 @@ contains
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
 
           ! transverse velocity
-          du    = (u_ref    - Ip(i,j,km,3,2,QU))
-          dv    = (v_ref    - Ip(i,j,km,3,2,QV))
-          if (ppm_trace_grav .eq. 1) then
-             du  = du  - halfdt*Ip_g(i,j,km,3,2,igx)
-             dv  = dv  - halfdt*Ip_g(i,j,km,3,2,igy)
-          endif
-          if (w > ZERO) then
-             azu1left = -du
-             azv1left = -dv
-          else if (w < ZERO) then
-             azu1left = ZERO
-             azv1left = ZERO
-          else
-             azu1left = -HALF*du
-             azv1left = -HALF*dv
-          endif
-          qzm(i,j,kc,QU    ) = u_ref + azu1left
-          qzm(i,j,kc,QV    ) = v_ref + azv1left
+          du    = Ip(i,j,km,3,2,QU)
+          dv    = Ip(i,j,km,3,2,QV)
 
+          if (ppm_trace_grav .eq. 1) then
+             du  = du  + halfdt*Ip_g(i,j,km,3,2,igx)
+             dv  = dv  + halfdt*Ip_g(i,j,km,3,2,igy)
+          endif
+
+          if (w < ZERO) then
+             if (ppm_reference_edge_limit == 1) then
+                qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
+                qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
+             else
+                qzm(i,j,kc,QU    ) = u
+                qzm(i,j,kc,QV    ) = v
+             endif
+          else ! wave moving toward the interface
+             qzm(i,j,kc,QU    ) = du
+             qzm(i,j,kc,QV    ) = dv
+          endif
 
           ! we may have already taken care of flattening in the parabola
           if (ppm_flatten_before_integrals == 0) then
