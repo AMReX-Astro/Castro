@@ -207,16 +207,16 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the u wave (the contact)
    
-             dum    = (u_ref    - Im(i,j,kc,1,1,QU))
-             dpm    = (p_ref    - Im(i,j,kc,1,1,QPRES))
+             dum   = u_ref    - Im(i,j,kc,1,1,QU)
+             dpm   = p_ref    - Im(i,j,kc,1,1,QPRES)
    
-             drho  = (rho_ref  - Im(i,j,kc,1,2,QRHO))
-             dp    = (p_ref    - Im(i,j,kc,1,2,QPRES))
-             drhoe = (rhoe_ref - Im(i,j,kc,1,2,QREINT))
-             dtau  = (tau_ref  - ONE/Im(i,j,kc,1,2,QRHO))
+             drho  = rho_ref  - Im(i,j,kc,1,2,QRHO)
+             dp    = p_ref    - Im(i,j,kc,1,2,QPRES)
+             drhoe = rhoe_ref - Im(i,j,kc,1,2,QREINT)
+             dtau  = tau_ref  - ONE/Im(i,j,kc,1,2,QRHO)
 
-             dup    = (u_ref    - Im(i,j,kc,1,3,QU))
-             dpp    = (p_ref    - Im(i,j,kc,1,3,QPRES))
+             dup   = u_ref    - Im(i,j,kc,1,3,QU)
+             dpp   = p_ref    - Im(i,j,kc,1,3,QPRES)
 
              ! If we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -408,16 +408,16 @@ contains
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
    
-             dum    = (u_ref    - Ip(i,j,kc,1,1,QU))
-             dpm    = (p_ref    - Ip(i,j,kc,1,1,QPRES))
+             dum   = u_ref    - Ip(i,j,kc,1,1,QU)
+             dpm   = p_ref    - Ip(i,j,kc,1,1,QPRES)
    
-             drho  = (rho_ref  - Ip(i,j,kc,1,2,QRHO))
-             dp    = (p_ref    - Ip(i,j,kc,1,2,QPRES))
-             drhoe = (rhoe_ref - Ip(i,j,kc,1,2,QREINT))
-             dtau  = (tau_ref  - ONE/Ip(i,j,kc,1,2,QRHO))
+             drho  = rho_ref  - Ip(i,j,kc,1,2,QRHO)
+             dp    = p_ref    - Ip(i,j,kc,1,2,QPRES)
+             drhoe = rhoe_ref - Ip(i,j,kc,1,2,QREINT)
+             dtau  = tau_ref  - ONE/Ip(i,j,kc,1,2,QRHO)
 
-             dup    = (u_ref    - Ip(i,j,kc,1,3,QU))
-             dpp    = (p_ref    - Ip(i,j,kc,1,3,QPRES))
+             dup   = u_ref    - Ip(i,j,kc,1,3,QU)
+             dpp   = p_ref    - Ip(i,j,kc,1,3,QPRES)
 
              ! If we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -718,16 +718,16 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the v wave (the contact)
 
-             dvm    = (v_ref    - Im(i,j,kc,2,1,QV))
-             dpm    = (p_ref    - Im(i,j,kc,2,1,QPRES))
+             dvm   = v_ref    - Im(i,j,kc,2,1,QV)
+             dpm   = p_ref    - Im(i,j,kc,2,1,QPRES)
    
-             drho  = (rho_ref  - Im(i,j,kc,2,2,QRHO))
-             dp    = (p_ref    - Im(i,j,kc,2,2,QPRES))
-             drhoe = (rhoe_ref - Im(i,j,kc,2,2,QREINT))
-             dtau  = (tau_ref  - ONE/Im(i,j,kc,2,2,QRHO))
+             drho  = rho_ref  - Im(i,j,kc,2,2,QRHO)
+             dp    = p_ref    - Im(i,j,kc,2,2,QPRES)
+             drhoe = rhoe_ref - Im(i,j,kc,2,2,QREINT)
+             dtau  = tau_ref  - ONE/Im(i,j,kc,2,2,QRHO)
 
-             dvp    = (v_ref    - Im(i,j,kc,2,3,QV))
-             dpp    = (p_ref    - Im(i,j,kc,2,3,QPRES))
+             dvp   = v_ref    - Im(i,j,kc,2,3,QV)
+             dpp   = p_ref    - Im(i,j,kc,2,3,QPRES)
 
              ! If we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -917,16 +917,16 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the v wave (the contact)
 
-             dvm    = (v_ref    - Ip(i,j,kc,2,1,QV))
-             dpm    = (p_ref    - Ip(i,j,kc,2,1,QPRES))
+             dvm   = v_ref    - Ip(i,j,kc,2,1,QV)
+             dpm   = p_ref    - Ip(i,j,kc,2,1,QPRES)
    
-             rho  = (rho_ref  - Ip(i,j,kc,2,2,QRHO))
-             dp    = (p_ref    - Ip(i,j,kc,2,2,QPRES))
-             drhoe = (rhoe_ref - Ip(i,j,kc,2,2,QREINT))
-             dtau  = (tau_ref  - ONE/Ip(i,j,kc,2,2,QRHO))
+             drho  = rho_ref  - Ip(i,j,kc,2,2,QRHO)
+             dp    = p_ref    - Ip(i,j,kc,2,2,QPRES)
+             drhoe = rhoe_ref - Ip(i,j,kc,2,2,QREINT)
+             dtau  = tau_ref  - ONE/Ip(i,j,kc,2,2,QRHO)
 
-             dvp    = (v_ref    - Ip(i,j,kc,2,3,QV))
-             dpp    = (p_ref    - Ip(i,j,kc,2,3,QPRES))
+             dvp   = v_ref    - Ip(i,j,kc,2,3,QV)
+             dpp   = p_ref    - Ip(i,j,kc,2,3,QPRES)
 
              ! If we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
@@ -1289,16 +1289,16 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm    = (w_ref    - Im(i,j,kc,3,1,QW))
-          dpm    = (p_ref    - Im(i,j,kc,3,1,QPRES))
+          dwm   = w_ref    - Im(i,j,kc,3,1,QW)
+          dpm   = p_ref    - Im(i,j,kc,3,1,QPRES)
 
-          drho  = (rho_ref  - Im(i,j,kc,3,2,QRHO))
-          dp    = (p_ref    - Im(i,j,kc,3,2,QPRES))
-          drhoe = (rhoe_ref - Im(i,j,kc,3,2,QREINT))
-          dtau  = (tau_ref  - ONE/Im(i,j,kc,3,2,QRHO))
+          drho  = rho_ref  - Im(i,j,kc,3,2,QRHO)
+          dp    = p_ref    - Im(i,j,kc,3,2,QPRES)
+          drhoe = rhoe_ref - Im(i,j,kc,3,2,QREINT)
+          dtau  = tau_ref  - ONE/Im(i,j,kc,3,2,QRHO)
 
-          dwp    = (w_ref    - Im(i,j,kc,3,3,QW))
-          dpp    = (p_ref    - Im(i,j,kc,3,3,QPRES))
+          dwp   = w_ref    - Im(i,j,kc,3,3,QW)
+          dpp   = p_ref    - Im(i,j,kc,3,3,QPRES)
 
           ! If we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -1377,7 +1377,6 @@ contains
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (ppm_tau_in_tracing == 0) then
-
              qzp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
              qzp(i,j,kc,QW    ) = w_ref + (apright - amright)*cc_ev/rho_ev
              qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
@@ -1498,16 +1497,16 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm    = (w_ref    - Ip(i,j,km,3,1,QW))
-          dpm    = (p_ref    - Ip(i,j,km,3,1,QPRES))
+          dwm   = w_ref    - Ip(i,j,km,3,1,QW)
+          dpm   = p_ref    - Ip(i,j,km,3,1,QPRES)
 
-          drho  = (rho_ref  - Ip(i,j,km,3,2,QRHO))
-          dp    = (p_ref    - Ip(i,j,km,3,2,QPRES))
-          drhoe = (rhoe_ref - Ip(i,j,km,3,2,QREINT))
-          dtau  = (tau_ref  - ONE/Ip(i,j,km,3,2,QRHO))
+          drho  = rho_ref  - Ip(i,j,km,3,2,QRHO)
+          dp    = p_ref    - Ip(i,j,km,3,2,QPRES)
+          drhoe = rhoe_ref - Ip(i,j,km,3,2,QREINT)
+          dtau  = tau_ref  - ONE/Ip(i,j,km,3,2,QRHO)
 
-          dwp    = (w_ref    - Ip(i,j,km,3,3,QW))
-          dpp    = (p_ref    - Ip(i,j,km,3,3,QPRES))
+          dwp   = w_ref    - Ip(i,j,km,3,3,QW)
+          dpp   = p_ref    - Ip(i,j,km,3,3,QPRES)
 
           ! If we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
