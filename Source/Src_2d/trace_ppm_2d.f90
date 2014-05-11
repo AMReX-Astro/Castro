@@ -59,8 +59,8 @@ contains
     double precision dtdx, dtdy
     double precision cc, csq, Clag, rho, u, v, p, rhoe
     double precision drho, du, dv, dp, drhoe, dtau
-    double precision dup, dvp, dpp, drhoep
-    double precision dum, dvm, dpm, drhoem
+    double precision dup, dvp, dpp
+    double precision dum, dvm, dpm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de
@@ -245,7 +245,6 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -260,7 +259,6 @@ contains
              ! Woodward use
              rho_ref  = Im(i,j,1,1,QRHO)
              u_ref    = Im(i,j,1,1,QU)
-             v_ref    = Im(i,j,1,1,QV)
 
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
@@ -279,18 +277,16 @@ contains
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          dum    = (u_ref    - Im(i,j,1,1,QU))
-          dpm    = (p_ref    - Im(i,j,1,1,QPRES))
-          drhoem = (rhoe_ref - Im(i,j,1,1,QREINT))
+          dum    = u_ref    - Im(i,j,1,1,QU)
+          dpm    = p_ref    - Im(i,j,1,1,QPRES)
 
-          drho  = (rho_ref  - Im(i,j,1,2,QRHO))
-          dp    = (p_ref    - Im(i,j,1,2,QPRES))
-          drhoe = (rhoe_ref - Im(i,j,1,2,QREINT))
-          dtau  = (tau_ref  - ONE/Im(i,j,1,2,QRHO))
+          drho  = rho_ref  - Im(i,j,1,2,QRHO)
+          dp    = p_ref    - Im(i,j,1,2,QPRES)
+          drhoe = rhoe_ref - Im(i,j,1,2,QREINT)
+          dtau  = tau_ref  - ONE/Im(i,j,1,2,QRHO)
 
-          dup    = (u_ref    - Im(i,j,1,3,QU))
-          dpp    = (p_ref    - Im(i,j,1,3,QPRES))
-          drhoep = (rhoe_ref - Im(i,j,1,3,QREINT))
+          dup    = u_ref    - Im(i,j,1,3,QU)
+          dpp    = p_ref    - Im(i,j,1,3,QPRES)
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -331,44 +327,8 @@ contains
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
 
-             if (u-cc .gt. ZERO) then
-                amright = ZERO
-             else if (u-cc .lt. ZERO) then
-                amright = -alpham
-             else
-                amright = -HALF*alpham
-             endif
-             
-             if (u+cc .gt. ZERO) then
-                apright = ZERO
-             else if (u+cc .lt. ZERO) then
-                apright = -alphap
-             else
-                apright = -HALF*alphap
-             endif
-             
-             if (u .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
-             else if (u .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
-             else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
-             endif
-
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r
-             if (i .ge. ilo1) then
-
-                qxp(i,j,QRHO)   = rho_ref + apright + amright + azrright
-                qxp(i,j,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
-                qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
-                qxp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
-             end if
-             
           else
+
              ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
@@ -383,36 +343,45 @@ contains
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
 
-             if (u-cc .gt. ZERO) then
-                amright = ZERO
-             else if (u-cc .lt. ZERO) then
-                amright = -alpham
-             else
-                amright = -HALF*alpham
-             endif
-             
-             if (u+cc .gt. ZERO) then
-                apright = ZERO
-             else if (u+cc .lt. ZERO) then
-                apright = -alphap
-             else
-                apright = -HALF*alphap
-             endif
-             
-             if (u .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
-             else if (u .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
-             else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
-             endif
+          endif ! which tracing method
 
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r
-             if (i .ge. ilo1) then
+          if (u-cc .gt. ZERO) then
+             amright = ZERO
+          else if (u-cc .lt. ZERO) then
+             amright = -alpham
+          else
+             amright = -HALF*alpham
+          endif
+             
+          if (u+cc .gt. ZERO) then
+             apright = ZERO
+          else if (u+cc .lt. ZERO) then
+             apright = -alphap
+          else
+             apright = -HALF*alphap
+          endif
+             
+          if (u .gt. ZERO) then
+             azrright = ZERO
+             azeright = ZERO
+          else if (u .lt. ZERO) then
+             azrright = -alpha0r
+             azeright = -alpha0e
+          else
+             azrright = -HALF*alpha0r
+             azeright = -HALF*alpha0e
+          endif
+
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r
+          if (i .ge. ilo1) then
+
+             if (ppm_tau_in_tracing == 0) then
+                qxp(i,j,QRHO)   = rho_ref + apright + amright + azrright
+                qxp(i,j,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
+                qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qxp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
+             else
 
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,QRHO)   = ONE/tau_s
@@ -435,8 +404,9 @@ contains
              qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
 
 
-             ! transverse velocity
-             dv    = (v_ref    - Im(i,j,1,2,QV))
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a 
+             dv    = v_ref    - Im(i,j,1,2,QV)
              if (ppm_trace_grav == 1) then
                 dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
              endif
@@ -478,7 +448,6 @@ contains
              ! original Castro way -- cc values
              rho_ref  = rho
              u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -491,7 +460,6 @@ contains
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
              u_ref    = Ip(i,j,1,3,QU)
-             v_ref    = Ip(i,j,1,3,QV)
 
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
@@ -510,18 +478,16 @@ contains
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
-          dum    = (u_ref    - Ip(i,j,1,1,QU))
-          dpm    = (p_ref    - Ip(i,j,1,1,QPRES))
-          drhoem = (rhoe_ref - Ip(i,j,1,1,QREINT))
+          dum    = u_ref    - Ip(i,j,1,1,QU)
+          dpm    = p_ref    - Ip(i,j,1,1,QPRES)
           
-          drho  = (rho_ref  - Ip(i,j,1,2,QRHO))
-          dp    = (p_ref    - Ip(i,j,1,2,QPRES))
-          drhoe = (rhoe_ref - Ip(i,j,1,2,QREINT))
-          dtau  = (tau_ref  - ONE/Ip(i,j,1,2,QRHO))
+          drho  = rho_ref  - Ip(i,j,1,2,QRHO)
+          dp    = p_ref    - Ip(i,j,1,2,QPRES)
+          drhoe = rhoe_ref - Ip(i,j,1,2,QREINT)
+          dtau  = tau_ref  - ONE/Ip(i,j,1,2,QRHO)
           
-          dup    = (u_ref    - Ip(i,j,1,3,QU))
-          dpp    = (p_ref    - Ip(i,j,1,3,QPRES))
-          drhoep = (rhoe_ref - Ip(i,j,1,3,QREINT))
+          dup    = u_ref    - Ip(i,j,1,3,QU)
+          dpp    = p_ref    - Ip(i,j,1,3,QPRES)
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -559,44 +525,9 @@ contains
              alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! enth has a 1/c**2 in it
-             
-             if (u-cc .gt. ZERO) then
-                amleft = -alpham
-             else if (u-cc .lt. ZERO) then
-                amleft = ZERO
-             else
-                amleft = -HALF*alpham
-             endif
-             
-             if (u+cc .gt. ZERO) then
-                apleft = -alphap
-             else if (u+cc .lt. ZERO) then
-                apleft = ZERO
-             else
-                apleft = -HALF*alphap
-             endif
-             
-             if (u .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
-             else if (u .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
-             else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
-             endif
-             
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r
-             if (i .le. ihi1) then
-                qxm(i+1,j,QRHO)   = rho_ref + apleft + amleft + azrleft
-                qxm(i+1,j,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev  
-                qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-                qxm(i+1,j,QPRES)  = p_ref + (apleft + amleft)*csq_ev
-             end if
 
           else
+
              ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
@@ -610,36 +541,46 @@ contains
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
 
-             if (u-cc .gt. ZERO) then
-                amleft = -alpham
-             else if (u-cc .lt. ZERO) then
-                amleft = ZERO
-             else
-                amleft = -HALF*alpham
-             endif
+          endif
+
              
-             if (u+cc .gt. ZERO) then
-                apleft = -alphap
-             else if (u+cc .lt. ZERO) then
-                apleft = ZERO
+          if (u-cc .gt. ZERO) then
+             amleft = -alpham
+          else if (u-cc .lt. ZERO) then
+             amleft = ZERO
+          else
+             amleft = -HALF*alpham
+          endif
+          
+          if (u+cc .gt. ZERO) then
+             apleft = -alphap
+          else if (u+cc .lt. ZERO) then
+             apleft = ZERO
+          else
+             apleft = -HALF*alphap
+          endif
+          
+          if (u .gt. ZERO) then
+             azrleft = -alpha0r
+             azeleft = -alpha0e
+          else if (u .lt. ZERO) then
+             azrleft = ZERO
+             azeleft = ZERO
+          else
+             azrleft = -HALF*alpha0r
+             azeleft = -HALF*alpha0e
+          endif
+          
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r
+          if (i .le. ihi1) then
+             if (ppm_tau_in_tracing == 0) then
+
+                qxm(i+1,j,QRHO)   = rho_ref + apleft + amleft + azrleft
+                qxm(i+1,j,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev  
+                qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qxm(i+1,j,QPRES)  = p_ref + (apleft + amleft)*csq_ev
              else
-                apleft = -HALF*alphap
-             endif
-             
-             if (u .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
-             else if (u .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
-             else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
-             endif
-             
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r
-             if (i .le. ihi1) then
 
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,QRHO)   = ONE/tau_s
@@ -654,7 +595,6 @@ contains
 
           endif
 
-
           if (i .le. ihi1) then
              
              ! enforce small_*
@@ -663,7 +603,7 @@ contains
 
 
              ! transverse velocity
-             dv    = (v_ref    - Ip(i,j,1,2,QV))
+             dv    = v_ref    - Ip(i,j,1,2,QV)
              if (ppm_trace_grav == 1) then
                 dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
              endif
@@ -830,7 +770,6 @@ contains
                 ppm_reference_edge_limit == 0)) then
              ! original Castro way -- cc value
              rho_ref  = rho
-             u_ref    = u
              v_ref    = v
 
              p_ref    = p
@@ -842,7 +781,6 @@ contains
           else
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
-             u_ref    = Im(i,j,2,1,QU)
              v_ref    = Im(i,j,2,1,QV)
 
              p_ref    = Im(i,j,2,1,QPRES)
@@ -862,18 +800,16 @@ contains
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
-          dvm    = (v_ref    - Im(i,j,2,1,QV))
-          dpm    = (p_ref    - Im(i,j,2,1,QPRES))
-          drhoem = (rhoe_ref - Im(i,j,2,1,QREINT))
+          dvm    = v_ref    - Im(i,j,2,1,QV)
+          dpm    = p_ref    - Im(i,j,2,1,QPRES)
           
-          drho  = (rho_ref  - Im(i,j,2,2,QRHO))
-          dp    = (p_ref    - Im(i,j,2,2,QPRES))
-          drhoe = (rhoe_ref - Im(i,j,2,2,QREINT))
-          dtau  = (tau_ref  - ONE/Im(i,j,2,2,QRHO))
+          drho  = rho_ref  - Im(i,j,2,2,QRHO)
+          dp    = p_ref    - Im(i,j,2,2,QPRES)
+          drhoe = rhoe_ref - Im(i,j,2,2,QREINT)
+          dtau  = tau_ref  - ONE/Im(i,j,2,2,QRHO)
 
-          dvp    = (v_ref    - Im(i,j,2,3,QV))
-          dpp    = (p_ref    - Im(i,j,2,3,QPRES))
-          drhoep = (rhoe_ref - Im(i,j,2,3,QREINT))
+          dvp    = v_ref    - Im(i,j,2,3,QV)
+          dpp    = p_ref    - Im(i,j,2,3,QPRES)
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -912,43 +848,8 @@ contains
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev  ! enth has 1/c**2 in it
           
-             if (v-cc .gt. ZERO) then
-                amright = ZERO
-             else if (v-cc .lt. ZERO) then
-                amright = -alpham
-             else
-                amright = -HALF*alpham
-             endif
-
-             if (v+cc .gt. ZERO) then
-                apright = ZERO
-             else if (v+cc .lt. ZERO) then
-                apright = -alphap
-             else
-                apright = -HALF*alphap
-             endif
-
-             if (v .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
-             else if (v .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
-             else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
-             endif
-
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r          
-             if (j .ge. ilo2) then
-                qyp(i,j,QRHO)   = rho_ref + apright + amright + azrright
-                qyp(i,j,QV)     = v_ref + (apright - amright)*cc_ev/rho_ev
-                qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
-                qyp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
-             end if
-
           else
+
              ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
@@ -962,37 +863,45 @@ contains
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
           
-             if (v-cc .gt. ZERO) then
-                amright = ZERO
-             else if (v-cc .lt. ZERO) then
-                amright = -alpham
+          endif
+
+          if (v-cc .gt. ZERO) then
+             amright = ZERO
+          else if (v-cc .lt. ZERO) then
+             amright = -alpham
+          else
+             amright = -HALF*alpham
+          endif
+          
+          if (v+cc .gt. ZERO) then
+             apright = ZERO
+          else if (v+cc .lt. ZERO) then
+             apright = -alphap
+          else
+             apright = -HALF*alphap
+          endif
+          
+          if (v .gt. ZERO) then
+             azrright = ZERO
+             azeright = ZERO
+          else if (v .lt. ZERO) then
+             azrright = -alpha0r
+             azeright = -alpha0e
+          else
+             azrright = -HALF*alpha0r
+             azeright = -HALF*alpha0e
+          endif
+          
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r          
+          if (j .ge. ilo2) then
+             if (ppm_tau_in_tracing == 0) then
+                qyp(i,j,QRHO)   = rho_ref + apright + amright + azrright
+                qyp(i,j,QV)     = v_ref + (apright - amright)*cc_ev/rho_ev
+                qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+                qyp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
+
              else
-                amright = -HALF*alpham
-             endif
-
-             if (v+cc .gt. ZERO) then
-                apright = ZERO
-             else if (v+cc .lt. ZERO) then
-                apright = -alphap
-             else
-                apright = -HALF*alphap
-             endif
-
-             if (v .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
-             else if (v .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
-             else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
-             endif
-
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r          
-             if (j .ge. ilo2) then
-
                 tau_s = tau_ref + apright + amright + azrright
                 qyp(i,j,QRHO)   = ONE/tau_s
 
@@ -1015,7 +924,7 @@ contains
 
 
              ! transverse velocity
-             du    = (u_ref    - Im(i,j,2,2,QU))
+             du    = u_ref    - Im(i,j,2,2,QU)
              if (ppm_trace_grav == 1) then
                 du  = du  - halfdt*Im_g(i,j,2,2,igx)
              endif
@@ -1053,7 +962,6 @@ contains
                 ppm_reference_edge_limit == 0) ) then
              ! original Castro way -- cc value
              rho_ref  = rho
-             u_ref    = u
              v_ref    = v
 
              p_ref    = p
@@ -1066,7 +974,6 @@ contains
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,2,3,QRHO)
-             u_ref    = Ip(i,j,2,3,QU)
              v_ref    = Ip(i,j,2,3,QV)
 
              p_ref    = Ip(i,j,2,3,QPRES)
@@ -1086,18 +993,16 @@ contains
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
-          dvm    = (v_ref    - Ip(i,j,2,1,QV))
-          dpm    = (p_ref    - Ip(i,j,2,1,QPRES))
-          drhoem = (rhoe_ref - Ip(i,j,2,1,QREINT))
+          dvm    = v_ref    - Ip(i,j,2,1,QV)
+          dpm    = p_ref    - Ip(i,j,2,1,QPRES)
           
-          drho  = (rho_ref  - Ip(i,j,2,2,QRHO))
-          dp    = (p_ref    - Ip(i,j,2,2,QPRES))
-          drhoe = (rhoe_ref - Ip(i,j,2,2,QREINT))
-          dtau  = (tau_ref  - ONE/Ip(i,j,2,2,QRHO))
+          drho  = rho_ref  - Ip(i,j,2,2,QRHO)
+          dp    = p_ref    - Ip(i,j,2,2,QPRES)
+          drhoe = rhoe_ref - Ip(i,j,2,2,QREINT)
+          dtau  = tau_ref  - ONE/Ip(i,j,2,2,QRHO)
           
-          dvp    = (v_ref    - Ip(i,j,2,3,QV))
-          dpp    = (p_ref    - Ip(i,j,2,3,QPRES))
-          drhoep = (rhoe_ref - Ip(i,j,2,3,QREINT))
+          dvp    = v_ref    - Ip(i,j,2,3,QV)
+          dpp    = p_ref    - Ip(i,j,2,3,QPRES)
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
@@ -1133,44 +1038,9 @@ contains
              alphap = HALF*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev
-             
-             if (v-cc .gt. ZERO) then
-                amleft = -alpham
-             else if (v-cc .lt. ZERO) then
-                amleft = ZERO
-             else
-                amleft = -HALF*alpham
-             endif
-             
-             if (v+cc .gt. ZERO) then
-                apleft = -alphap
-             else if (v+cc .lt. ZERO) then
-                apleft = ZERO
-             else
-                apleft = -HALF*alphap
-             endif
-             
-             if (v .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
-             else if (v .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
-             else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
-             endif
-             
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r          
-             if (j .le. ihi2) then
-                qym(i,j+1,QRHO)   = rho_ref + apleft + amleft + azrleft
-                qym(i,j+1,QV)     = v_ref + (apleft - amleft)*cc_ev/rho_ev
-                qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-                qym(i,j+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
-             end if
 
           else
+
              ! (tau, u, p, e) eigensystem
 
              ! this is the way things were done in the original PPM
@@ -1183,38 +1053,44 @@ contains
              alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
              alpha0e = de - dp*p_ev/Clag_ev**2
-             
-             if (v-cc .gt. ZERO) then
-                amleft = -alpham
-             else if (v-cc .lt. ZERO) then
-                amleft = ZERO
-             else
-                amleft = -HALF*alpham
-             endif
-             
-             if (v+cc .gt. ZERO) then
-                apleft = -alphap
-             else if (v+cc .lt. ZERO) then
-                apleft = ZERO
-             else
-                apleft = -HALF*alphap
-             endif
-             
-             if (v .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
-             else if (v .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
-             else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
-             endif
-             
-             ! the final interface states are just
-             ! q_s = q_ref - sum (l . dq) r          
-             if (j .le. ihi2) then
+          endif
 
+          if (v-cc .gt. ZERO) then
+             amleft = -alpham
+          else if (v-cc .lt. ZERO) then
+             amleft = ZERO
+          else
+             amleft = -HALF*alpham
+          endif
+          
+          if (v+cc .gt. ZERO) then
+             apleft = -alphap
+          else if (v+cc .lt. ZERO) then
+             apleft = ZERO
+          else
+             apleft = -HALF*alphap
+          endif
+          
+          if (v .gt. ZERO) then
+             azrleft = -alpha0r
+             azeleft = -alpha0e
+          else if (v .lt. ZERO) then
+             azrleft = ZERO
+             azeleft = ZERO
+          else
+             azrleft = -HALF*alpha0r
+             azeleft = -HALF*alpha0e
+          endif
+          
+          ! the final interface states are just
+          ! q_s = q_ref - sum (l . dq) r          
+          if (j .le. ihi2) then
+             if (ppm_tau_in_tracing == 0) then
+                qym(i,j+1,QRHO)   = rho_ref + apleft + amleft + azrleft
+                qym(i,j+1,QV)     = v_ref + (apleft - amleft)*cc_ev/rho_ev
+                qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+                qym(i,j+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
+             else
                 tau_s = tau_ref + apleft + amleft + azrleft
                 qym(i,j+1,QRHO)   = ONE/tau_s
                 qym(i,j+1,QV)     = v_ref + (amleft - apleft)*Clag_ev
@@ -1236,7 +1112,7 @@ contains
 
 
              ! transverse velocity
-             du    = (u_ref    - Ip(i,j,2,2,QU))
+             du    = u_ref    - Ip(i,j,2,2,QU)
              if (ppm_trace_grav == 1) then
                 du  = du  - halfdt*Ip_g(i,j,2,2,igx)
              endif
