@@ -245,6 +245,7 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
+             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -259,6 +260,7 @@ contains
              ! Woodward use
              rho_ref  = Im(i,j,1,1,QRHO)
              u_ref    = Im(i,j,1,1,QU)
+             v_ref    = Im(i,j,1,1,QV)
 
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
@@ -448,6 +450,7 @@ contains
              ! original Castro way -- cc values
              rho_ref  = rho
              u_ref    = u
+             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -460,6 +463,7 @@ contains
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
              u_ref    = Ip(i,j,1,3,QU)
+             v_ref    = Ip(i,j,1,3,QV)
 
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
@@ -771,6 +775,7 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              v_ref    = v
+             u_ref    = u
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -782,6 +787,7 @@ contains
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
              v_ref    = Im(i,j,2,1,QV)
+             u_ref    = Im(i,j,2,1,QU)
 
              p_ref    = Im(i,j,2,1,QPRES)
              rhoe_ref = Im(i,j,2,1,QREINT)
@@ -963,6 +969,7 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              v_ref    = v
+             u_ref    = u
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -975,6 +982,7 @@ contains
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,2,3,QRHO)
              v_ref    = Ip(i,j,2,3,QV)
+             u_ref    = Ip(i,j,2,3,QU)
 
              p_ref    = Ip(i,j,2,3,QPRES)
              rhoe_ref = Ip(i,j,2,3,QREINT)
