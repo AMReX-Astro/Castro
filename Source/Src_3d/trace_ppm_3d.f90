@@ -315,9 +315,9 @@ contains
              qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
 
-             ! Transverse velocities -- there's no projection here, so we don't
-             ! need a reference state.  We only care about the state traced under
-             ! the middle wave
+             ! Transverse velocities -- there's no projection here, so
+             ! we don't need a reference state.  We only care about
+             ! the state traced under the middle wave
              dv = Im(i,j,kc,1,2,QV)
              dw = Im(i,j,kc,1,2,QW)
 
@@ -703,9 +703,6 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
    
-             ! Note: for the transverse velocities, the jump is carried
-             !       only by the v wave (the contact)
-
              dvm   = v_ref    - Im(i,j,kc,2,1,QV)
              dpm   = p_ref    - Im(i,j,kc,2,1,QPRES)
    
