@@ -529,7 +529,7 @@ contains
                    qxm(i+1,j,kc,QV    ) = v
                    qxm(i+1,j,kc,QW    ) = w
                 endif
-             else
+             else ! wave moving toward interface
                 qxm(i+1,j,kc,QV    ) = dv
                 qxm(i+1,j,kc,QW    ) = dw
              endif
@@ -895,9 +895,6 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
    
-             ! Note: for the transverse velocities, the jump is carried
-             !       only by the v wave (the contact)
-
              dvm   = v_ref    - Ip(i,j,kc,2,1,QV)
              dpm   = p_ref    - Ip(i,j,kc,2,1,QPRES)
    
