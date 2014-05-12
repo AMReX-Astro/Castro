@@ -127,7 +127,7 @@ contains
 
     ! Trace to left and right edges using upwind PPM
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
+    !$OMP PRIVATE(rho_ref, u_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,dv,dw,dp,drhoe,de,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright) &
     !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,xi,xi1) &
@@ -168,8 +168,6 @@ contains
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 u_ref    = u
-                v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -184,8 +182,6 @@ contains
                 ! Woodward use
                 rho_ref  = Im(i,j,kc,1,1,QRHO)
                 u_ref    = Im(i,j,kc,1,1,QU)
-                v_ref    = Im(i,j,kc,1,1,QV)
-                w_ref    = Im(i,j,kc,1,1,QW)
 
                 p_ref    = Im(i,j,kc,1,1,QPRES)
                 rhoe_ref = Im(i,j,kc,1,1,QREINT)
@@ -319,9 +315,9 @@ contains
              qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
 
-             ! Transverse velocities -- there's no projection here, so we don't
-             ! need a reference state.  We only care about the state traced under
-             ! the middle wave
+             ! Transverse velocities -- there's no projection here, so
+             ! we don't need a reference state.  We only care about
+             ! the state traced under the middle wave
              dv = Im(i,j,kc,1,2,QV)
              dw = Im(i,j,kc,1,2,QW)
 
@@ -374,8 +370,6 @@ contains
                 ! original Castro way -- cc values
                 rho_ref  = rho
                 u_ref    = u
-                v_ref    = v
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -388,8 +382,6 @@ contains
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
                 u_ref    = Ip(i,j,kc,1,3,QU)
-                v_ref    = Ip(i,j,kc,1,3,QV)
-                w_ref    = Ip(i,j,kc,1,3,QW)
 
                 p_ref    = Ip(i,j,kc,1,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,1,3,QREINT)
@@ -537,7 +529,7 @@ contains
                    qxm(i+1,j,kc,QV    ) = v
                    qxm(i+1,j,kc,QW    ) = w
                 endif
-             else
+             else ! wave moving toward interface
                 qxm(i+1,j,kc,QV    ) = dv
                 qxm(i+1,j,kc,QW    ) = dw
              endif
@@ -641,7 +633,7 @@ contains
 
     ! Trace to bottom and top edges using upwind PPM
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref) &
+    !$OMP PRIVATE(rho_ref, v_ref, p_ref, rhoe_ref) &
     !$OMP PRIVATE(drho,du,dw,dp,drhoe,de,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright,amleft) &
     !$OMP PRIVATE(apleft,azrleft,azeleft,xi,xi1) &
@@ -682,8 +674,6 @@ contains
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 v_ref    = v
-                u_ref    = u
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -696,8 +686,6 @@ contains
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
                 v_ref    = Im(i,j,kc,2,1,QV)
-                u_ref    = Im(i,j,kc,2,1,QU)
-                w_ref    = Im(i,j,kc,2,1,QW)
 
                 p_ref    = Im(i,j,kc,2,1,QPRES)
                 rhoe_ref = Im(i,j,kc,2,1,QREINT)
@@ -715,9 +703,6 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
    
-             ! Note: for the transverse velocities, the jump is carried
-             !       only by the v wave (the contact)
-
              dvm   = v_ref    - Im(i,j,kc,2,1,QV)
              dpm   = p_ref    - Im(i,j,kc,2,1,QPRES)
    
@@ -880,8 +865,6 @@ contains
                 ! original Castro way -- cc value
                 rho_ref  = rho
                 v_ref    = v
-                u_ref    = u
-                w_ref    = w
 
                 p_ref    = p
                 rhoe_ref = rhoe
@@ -894,8 +877,6 @@ contains
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
                 v_ref    = Ip(i,j,kc,2,3,QV)
-                u_ref    = Ip(i,j,kc,2,3,QU)
-                w_ref    = Ip(i,j,kc,2,3,QW)
 
                 p_ref    = Ip(i,j,kc,2,3,QPRES)
                 rhoe_ref = Ip(i,j,kc,2,3,QREINT)
@@ -914,9 +895,6 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
    
-             ! Note: for the transverse velocities, the jump is carried
-             !       only by the v wave (the contact)
-
              dvm   = v_ref    - Ip(i,j,kc,2,1,QV)
              dpm   = p_ref    - Ip(i,j,kc,2,1,QPRES)
    
@@ -1179,7 +1157,7 @@ contains
     double precision dwp, dpp
     double precision dwm, dpm
 
-    double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref, tau_ref
+    double precision :: rho_ref, w_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
@@ -1215,7 +1193,7 @@ contains
 
 
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref,u_ref,v_ref,w_ref,p_ref,rhoe_ref) &
+    !$OMP PRIVATE(rho_ref,w_ref,p_ref,rhoe_ref) &
     !$OMP PRIVATE(drho,du,dv,dp,drhoe,de,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(amright,apright,azrright,azeright,amleft,apleft)&
     !$OMP PRIVATE(azrleft,azeleft,xi,xi1) &
@@ -1253,8 +1231,6 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              w_ref    = w
-             u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -1267,8 +1243,6 @@ contains
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
              w_ref    = Im(i,j,kc,3,1,QW)
-             u_ref    = Im(i,j,kc,3,1,QU)
-             v_ref    = Im(i,j,kc,3,1,QV)
 
              p_ref    = Im(i,j,kc,3,1,QPRES)
              rhoe_ref = Im(i,j,kc,3,1,QREINT)
@@ -1460,8 +1434,6 @@ contains
                 ppm_reference_edge_limit == 0) ) then
              rho_ref  = rho
              w_ref    = w
-             u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -1474,8 +1446,6 @@ contains
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
              w_ref    = Ip(i,j,km,3,3,QW)
-             u_ref    = Ip(i,j,km,3,3,QU)
-             v_ref    = Ip(i,j,km,3,3,QV)
 
              p_ref    = Ip(i,j,km,3,3,QPRES)
              rhoe_ref = Ip(i,j,km,3,3,QREINT)
