@@ -2,6 +2,7 @@
 
 #include <new>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 
@@ -27,6 +28,10 @@
 #include <XGraph1d.H>
 #endif
 
+#include "Castro_io.H"
+
+std::string inputs_name = "";
+
 int
 main (int   argc,
       char* argv[])
@@ -36,6 +41,13 @@ main (int   argc,
     // Make sure to catch new failures.
     //
     BoxLib::Initialize(argc,argv);
+
+    // save the inputs file name for later
+    if (argc > 1) {
+      if (!strchr(argv[1], '=')) {
+	inputs_name = argv[1];
+      }
+    }
 
     BL_PROFILE_VAR("main()", pmain);
 
