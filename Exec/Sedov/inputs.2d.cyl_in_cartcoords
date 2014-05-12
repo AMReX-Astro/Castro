@@ -42,11 +42,11 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
-amr.check_file      = chk     # root name of checkpoint file
+amr.check_file      = sedov_2d_cyl_in_cart_chk   # root name of checkpoint file
 amr.check_int       = 20       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = plt
+amr.plot_file       = sedov_2d_cyl_in_cart_plt
 amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
