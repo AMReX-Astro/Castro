@@ -245,7 +245,6 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -260,7 +259,6 @@ contains
              ! Woodward use
              rho_ref  = Im(i,j,1,1,QRHO)
              u_ref    = Im(i,j,1,1,QU)
-             v_ref    = Im(i,j,1,1,QV)
 
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
@@ -396,10 +394,6 @@ contains
                 qxp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
              end if
 
-          endif
-
-
-          if (i .ge. ilo1) then
 
              ! enforce small_*
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
@@ -407,20 +401,26 @@ contains
 
 
              ! transverse velocity -- there is no projection here, so
-             ! we don't need a 
-             dv    = v_ref    - Im(i,j,1,2,QV)
+             ! we don't need a reference state.  We only care about 
+             ! the state traced under the middle wave
+             dv    = Im(i,j,1,2,QV)
+
              if (ppm_trace_grav == 1) then
-                dv  = dv  - halfdt*Im_g(i,j,1,2,igy)
+                dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
              endif
+
+             ! Recall that I already takes the limit of the parabola
+             ! in the event that the wave is not moving toward the
+             ! interface
              if (u > ZERO) then
-                azv1rght = ZERO
-             else if (u < ZERO) then
-                azv1rght = -dv
-             else
-                azv1rght = -HALF*dv
+                if (ppm_reference_edge_limit == 1) then
+                   qxp(i,j,QV)     = Im(i,j,1,2,QV)
+                else
+                   qxp(i,j,QV) = v
+                endif
+             else ! wave moving toward the interface
+                qxp(i,j,QV) = dv
              endif
-             
-             qxp(i,j,QV)     = v_ref + azv1rght
 
 
              ! we may have done the flattening already in the parabola
@@ -597,28 +597,28 @@ contains
                 qxm(i+1,j,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
              end if
 
-          endif
 
-          if (i .le. ihi1) then
-             
              ! enforce small_*
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
              qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
 
 
              ! transverse velocity
-             dv    = v_ref    - Ip(i,j,1,2,QV)
+             dv    = Ip(i,j,1,2,QV)
+
              if (ppm_trace_grav == 1) then
-                dv  = dv  - halfdt*Ip_g(i,j,1,2,igy)
+                dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
              endif
-             if (u > ZERO) then
-                azv1left = -dv
-             else if (u < ZERO) then
-                azv1left = ZERO
-             else
-                azv1left = -HALF*dv
+
+             if (u < ZERO) then
+                if (ppm_reference_edge_limit == 1) then
+                   qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
+                else
+                   qxm(i+1,j,QV) = v
+                endif
+             else ! wave moving toward interface
+                qxm(i+1,j,QV) = dv
              endif
-             qxm(i+1,j,QV)     = v_ref + azv1left
 
 
              ! we may have already done the flattening in the parabola
@@ -919,10 +919,6 @@ contains
                 qyp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
              end if
 
-          endif
-
-
-          if (j .ge. ilo2) then
 
              ! enforce small_*   
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
@@ -930,18 +926,21 @@ contains
 
 
              ! transverse velocity
-             du    = u_ref    - Im(i,j,2,2,QU)
+             du    = Im(i,j,2,2,QU)
+
              if (ppm_trace_grav == 1) then
-                du  = du  - halfdt*Im_g(i,j,2,2,igx)
+                du  = du  + halfdt*Im_g(i,j,2,2,igx)
              endif
+
              if (v > ZERO) then
-                azu1rght = ZERO
-             else if (v < ZERO) then
-                azu1rght = -du
-             else
-                azu1rght = -HALF*du                
+                if (ppm_reference_edge_limit == 1) then
+                   qyp(i,j,QU)     = Im(i,j,2,2,QU)
+                else
+                   qyp(i,j,QU)     = u
+                endif
+             else ! wave moving toward the interface
+                qyp(i,j,QU)     = du
              endif
-             qyp(i,j,QU)     = u_ref + azu1rght
 
 
              ! we may have already done the flattening in the parabola
@@ -1108,11 +1107,7 @@ contains
 
                 qym(i,j+1,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
              end if
-
-          endif
-
-
-          if (j .le. ihi2) then
+             
 
              ! enforce small_*
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
@@ -1120,18 +1115,21 @@ contains
 
 
              ! transverse velocity
-             du    = u_ref    - Ip(i,j,2,2,QU)
+             du    =  Ip(i,j,2,2,QU)
+
              if (ppm_trace_grav == 1) then
-                du  = du  - halfdt*Ip_g(i,j,2,2,igx)
+                du  = du  + halfdt*Ip_g(i,j,2,2,igx)
              endif
-             if (v > ZERO) then
-                azu1left = -du
-             else if (v < ZERO) then
-                azu1left = ZERO
+
+             if (v < ZERO) then
+                if (ppm_reference_edge_limit == 1) then
+                   qym(i,j+1,QU) = Ip(i,j,2,2,QU)
+                else
+                   qym(i,j+1,QU) = u
+                endif
              else
-                azu1left = -HALF*du
+                qym(i,j+1,QU)     = du
              endif
-             qym(i,j+1,QU)     = u_ref + azu1left
 
 
              ! we may have already applied flattening in the parabola
