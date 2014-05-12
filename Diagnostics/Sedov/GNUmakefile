@@ -5,35 +5,17 @@ MKVERBOSE :=t
 
 COMP := gfortran
 
-# some routines need an eos/network (i.e. to compute thermodynamic 
-# quantities.  If that is the case, set NEED_EOS_NETWORK := t
-NEED_EOS_NETWORK := 
-
-# define the location of the fParallel root directory
-FPARALLEL := ../..
-
 
 # include the main Makefile stuff
-include $(FPARALLEL)/mk/GMakedefs.mak
+include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
 
-# define the packages to build these tools
-Fmdirs := boxlib \
-          extern/constants
+# core BoxLib directories
+BOXLIB_CORE := Src/F_BaseLib
 
-# directories containing files that are 'include'-d via Fortran
-Fmincludes := 
+# BoxLib stuff
+Fmpack += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir))
 
-ifdef NEED_EOS_NETWORK
-  Fmdirs += extern/helmeos \
-            extern/networks/ignition \
-            extern/VODE
-
-  Fmincludes += extern/helmeos
-endif
-
-Fmpack := $(foreach dir, $(Fmdirs), $(FPARALLEL)/$(dir)/GPackage.mak)
-Fmlocs := $(foreach dir, $(Fmdirs), $(FPARALLEL)/$(dir))
-Fmincs := $(foreach dir, $(Fmincludes), $(FPARALLEL)/$(dir))
 
 # include the necessary GPackage.mak files that define this setup
 include $(Fmpack)
@@ -41,8 +23,6 @@ include $(Fmpack)
 # vpath defines the directories to search for the source files
 VPATH_LOCATIONS += $(Fmlocs)
 
-# list of directories to put in the Fortran include path
-FINCLUDE_LOCATIONS += $(Fmincs)
 
 
 programs += fsedov1d
@@ -58,7 +38,7 @@ programs += fsedov3d_sph
 
 all: $(pnames)
 
-include $(FPARALLEL)/mk/GMakerules.mak
+include $(BOXLIB_HOME)/Tools/F_mk/GMakerules.mak
 
 %.$(suf).exe:%.f90 $(objects)
 ifdef MKVERBOSE
