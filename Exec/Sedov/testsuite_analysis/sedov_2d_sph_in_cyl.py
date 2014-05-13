@@ -15,11 +15,10 @@ def process(castro_dir, plotfile):
     # 1. make sure that the analysis tool is built
     build_dir = castro_dir + "/Diagnostics/Sedov/"
     os.chdir(build_dir)
-    os.system("make programs=fsedov2d_sph_in_cylcoords")
+    os.system("make programs=fsedov2d_sph_in_cylcoords >& /dev/null")
 
     # find the executable
     for file in os.listdir(build_dir):
-        print file
         if (os.path.isfile(file) and 
             file.startswith("fsedov2d_sph_in_cylcoords") and
             file.endswith(".exe")):
