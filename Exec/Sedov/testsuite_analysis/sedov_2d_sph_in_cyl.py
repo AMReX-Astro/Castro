@@ -35,17 +35,6 @@ def process(castro_dir, plotfile):
 
     # 2. analyze the data
     
-    # find the plotfile
-    ctime = -1
-    for file in os.listdir(os.getcwd()):
-        if os.path.isdir(file) and file.rfind("plt") >= 0:
-            file_info = os.stat(file)
-            if file_info.st_ctime > ctime:
-                ctime = file_info.st_ctime
-                plotfile = file
-
-
-    print plotfile
 
     # output the average profile
     os.system("{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_2d_sph_in_cyl.out"))
