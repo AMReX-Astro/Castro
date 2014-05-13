@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+# run as: ./sedov_2d_sph_in_cyl.py castro_dir plotfle
+
 import sys
 import os
 import shutil
 import numpy as np
 import pylab
 
-def process(castro_dir):
+def process(castro_dir, plotfile):
 
     run_dir = os.getcwd()
 
@@ -107,6 +109,8 @@ def process(castro_dir):
 
 if __name__ == "__main__":
 
-    castro_dir = sys.argv[1]
-    process(castro_dir)
+    castro_dir = str(sys.argv[1])
+    plotfile = str(sys.argv[2])
+
+    process(castro_dir, plotfile)
 
