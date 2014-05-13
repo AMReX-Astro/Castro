@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# run as: ./sedov_2d_sph_in_cyl.py castro_dir plotfle
+# run as: ./sedov_2d_cyl_in_cart.py castro_dir plotfle
 
 import sys
 import os
@@ -15,12 +15,12 @@ def process(castro_dir, plotfile):
     # 1. make sure that the analysis tool is built
     build_dir = castro_dir + "/Diagnostics/Sedov/"
     os.chdir(build_dir)
-    os.system("make programs=fsedov3d_sph >& /dev/null")
+    os.system("make programs=fsedov2d_cyl_in_cartcoords >& /dev/null")
 
     # find the executable
     for file in os.listdir(build_dir):
         if (os.path.isfile(file) and 
-            file.startswith("fsedov3d_sph") and
+            file.startswith("fsedov2d_cyl_in_cartcoords") and
             file.endswith(".exe")):
             analysis_routine = file
             break
@@ -34,14 +34,15 @@ def process(castro_dir, plotfile):
 
     # 2. analyze the data
     
+    
     # output the average profile
-    os.system("./{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_3d_sph.out"))
+    os.system("./{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_2d_cyl_in_cart.out"))
 
 
-    analytic = castro_dir + "/Exec/Sedov/Verification/spherical_sedov.dat"
+    analytic = castro_dir + "/Exec/Sedov/Verification/cylindrical_sedov.dat"
     analytic_data = np.loadtxt(analytic)
 
-    data = np.loadtxt("sedov_3d_sph.out")
+    data = np.loadtxt("sedov_2d_cyl_in_cart.out")
 
 
     # 3. make the plot
@@ -52,7 +53,7 @@ def process(castro_dir, plotfile):
 
     pylab.xlabel("x")
     pylab.ylabel("density")
-    pylab.xlim(0,0.3)
+    pylab.xlim(0,0.4)
 
 
     pylab.subplot(222)
@@ -62,7 +63,7 @@ def process(castro_dir, plotfile):
 
     pylab.xlabel("x")
     pylab.ylabel("velocity")
-    pylab.xlim(0,0.3)
+    pylab.xlim(0,0.4)
 
 
     pylab.subplot(223)
@@ -72,7 +73,7 @@ def process(castro_dir, plotfile):
 
     pylab.xlabel("x")
     pylab.ylabel("pressure")
-    pylab.xlim(0,0.3)
+    pylab.xlim(0,0.4)
 
 
 
@@ -83,14 +84,14 @@ def process(castro_dir, plotfile):
 
     pylab.xlabel("x")
     pylab.ylabel("internal energy")
-    pylab.xlim(0,0.3)
+    pylab.xlim(0,0.4)
 
     ax = pylab.gca()
     ax.set_yscale("log")
 
     pylab.tight_layout()
 
-    pylab.savefig("sedov_3d_sph.png")
+    pylab.savefig("sedov_2d_cyl_in_cart.png")
 
 
 
