@@ -14,9 +14,10 @@ contains
                  u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                  flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                  Ip,Im, &
-                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc, &
+                 force_type_in)
 
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
 
     implicit none
 
@@ -28,21 +29,28 @@ contains
     double precision     s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
     double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
     double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn( f_l1: f_h1, f_l2: f_h2, f_l3:f_h3)
+    double precision flatn( f_l1: f_h1, f_l2: f_h2, f_l3: f_h3)
     double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
     double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
 
     double precision dx,dy,dz,dt
     integer          k3d,kc
    
-    if (ppm_type .eq. 1) then
+    integer, intent(in), optional :: force_type_in
+
+    integer :: ppm_type_to_use
+
+    ppm_type_to_use = ppm_type
+    if (present(force_type_in)) ppm_type_to_use = force_type_in
+
+    if (ppm_type_to_use == 1) then
 
         call ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
-    else if (ppm_type .eq. 2) then
+    else if (ppm_type_to_use == 2) then
 
         call ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                        u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -736,7 +744,6 @@ contains
              sm(i,j) = flatn(i,j,k3d)*sm(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
              sp(i,j) = flatn(i,j,k3d)*sp(i,j) + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
           endif
-
 
           !
           ! Compute x-component of Ip and Im.

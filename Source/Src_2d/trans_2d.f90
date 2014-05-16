@@ -20,10 +20,9 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
-                                   QFA, QFS, QFX, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, &
-                                   nadv, small_pres, small_temp, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, QFS, &
+                                   small_pres, small_temp, &
+                                   npassive, qpass_map, upass_map, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav
     use eos_module
     use bl_constants_module
@@ -56,8 +55,7 @@ contains
     double precision hdt, cdtdx
     
     integer i, j
-    integer n, nq, iadv
-    integer ispec, iaux
+    integer n, nq, ipassive
     
     double precision rr, rrnew, compo, compn
     double precision rrr, rur, rvr, rer, ekinr, rhoekinr
@@ -71,9 +69,10 @@ contains
     
     ! NOTE: it is better *not* to protect against small density in this routine
 
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! update all of the passively-advective quantities in a single loop
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
        
        do j = jlo, jhi 
           do i = ilo, ihi 
@@ -102,68 +101,7 @@ contains
        enddo
     enddo
 
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       
-       do j = jlo, jhi 
-          do i = ilo, ihi 
-
-             rr = qp(i  ,j,QRHO)
-             rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                               area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-
-             compo = rr*qp(i,j  ,nq)
-             compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                                  area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-
-             qpo(i,j  ,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-             rr = qm(i,j+1,QRHO)
-             rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                               area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-
-             compo  = rr*qm(i,j+1,nq)
-             compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                                  area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-
-             qmo(i,j+1,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-          enddo
-       enddo
-    enddo
-
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-
-       do j = jlo, jhi 
-          do i = ilo, ihi 
-
-             rr = qp(i  ,j,QRHO)
-             rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                               area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-
-             compo = rr*qp(i,j  ,nq)
-             compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                                  area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-
-             qpo(i,j  ,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-             rr = qm(i,j+1,QRHO)
-             rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                               area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-
-             compo = rr*qm(i,j+1,nq)
-             compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                                  area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-
-             qmo(i,j+1,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-          enddo
-       enddo
-    enddo
-
+    ! hydro variables
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -297,10 +235,9 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
-                                   QFA, QFS, QFX, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, &
-                                   nadv, small_pres, small_temp, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, QFS, &
+                                   small_pres, small_temp, &
+                                   npassive, qpass_map, upass_map, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav
     use eos_module
 
@@ -328,7 +265,7 @@ contains
     double precision hdt, cdtdy
     
     integer i, j
-    integer n, nq, iadv, ispec, iaux
+    integer n, nq, ipassive
   
     double precision rr,rrnew
     double precision pgp, pgm, ugp, ugm, dup, pav, du, pnewr,pnewl
@@ -343,9 +280,10 @@ contains
     
     ! NOTE: it is better *not* to protect against small density in this routine
 
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! update all of the passively-advective quantities in a single loop
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
 
        do j = jlo, jhi 
           do i = ilo, ihi 
@@ -370,60 +308,7 @@ contains
        enddo
     enddo
 
-    do ispec = 1, nspec 
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-
-       do j = jlo, jhi 
-          do i = ilo, ihi 
-
-             rr = qp(i,j,QRHO)
-             rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-
-             compo = rr*qp(i,j,nq)
-             compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-
-             qpo(i,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-             
-             rr = qm(i+1,j,QRHO)
-             rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-           
-             compo = rr*qm(i+1,j,nq)
-             compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-           
-             qmo(i+1,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-          enddo
-       enddo
-    enddo
-
-    do iaux = 1, naux 
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       
-       do j = jlo, jhi 
-          do i = ilo, ihi 
-             
-             rr = qp(i,j,QRHO)
-             rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-             
-             compo = rr*qp(i,j,nq)
-             compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-             
-             qpo(i,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-             
-             rr = qm(i+1,j,QRHO)
-             rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-             
-             compo = rr*qm(i+1,j,nq)
-             compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-             
-             qmo(i+1,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-             
-          enddo
-       enddo
-    enddo
-    
+    ! hydro variables    
     do j = jlo, jhi 
        do i = ilo, ihi 
 

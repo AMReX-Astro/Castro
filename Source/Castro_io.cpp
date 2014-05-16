@@ -12,6 +12,7 @@
 #include <Utility.H>
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_io.H"
 #include <ParmParse.H>
 
 #ifdef RADIATION
@@ -481,6 +482,7 @@ Castro::writePlotFile (const std::string& dir,
 	jobInfoFile << PrettyLine;
 	
 	jobInfoFile << "job name: " << job_name << "\n\n";
+	jobInfoFile << "inputs file: " << inputs_name << "\n\n";
 
 	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
 #ifdef _OPENMP

@@ -22,6 +22,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
     
@@ -64,29 +65,9 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
 
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -310,6 +291,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -352,30 +334,10 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
 
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
-    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
 
@@ -597,6 +559,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -639,29 +602,9 @@ contains
     double precision rhoekenrx, rhoekenlx
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-    
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
     
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -877,6 +820,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -919,30 +863,10 @@ contains
     double precision rhoekenrz, rhoekenlz
     double precision pgp, pgm, ugp, ugm, dup, pav, du
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
 
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
-    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
 
@@ -1170,6 +1094,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -1216,29 +1141,9 @@ contains
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
     double precision pgp, pgm, ugp, ugm, dup, pav, du
 
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-    
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
     
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -1616,6 +1521,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &            
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -1662,29 +1568,9 @@ contains
     double precision pgypm, pgymm, ugypm, ugymm, duypm, pyavm, duym, pynewm
     double precision compr, compl, compnr, compnl
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-    
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
     
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -1977,6 +1863,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -2021,29 +1908,9 @@ contains
     double precision pgzp, pgzm, ugzp, ugzm, duzp, pzav, duz, pznew
     double precision compr, compl, compnr, compnl
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-    
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
     
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -2317,6 +2184,7 @@ contains
                                    QPRES, QREINT, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -2361,29 +2229,9 @@ contains
     double precision pgzp, pgzm, ugzp, ugzm, duzp, pzav, duz, pznew
     double precision compr, compl, compnr, compnl
     
-    integer npassive,ipassive,upass_map(NVAR),qpass_map(NVAR)
+    integer ipassive
 
     type (eos_t) :: eos_state
-
-    npassive = 0
-    ! Treat K as a passively advected quantity
-    if (UESGS .gt. -1) then
-       upass_map(1) = UESGS
-       qpass_map(1) = QESGS
-       npassive = 1
-    endif
-    do iadv = 1, nadv
-       upass_map(npassive + iadv) = UFA + iadv - 1
-       qpass_map(npassive + iadv) = QFA + iadv - 1
-    enddo
-    npassive = npassive + nadv
-    if (UFS .gt. -1) then
-       do ispec = 1, nspec+naux
-          upass_map(npassive + ispec) = UFS + ispec - 1
-          qpass_map(npassive + ispec) = QFS + ispec - 1
-       enddo
-       npassive = npassive + nspec + naux
-    endif
 
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
