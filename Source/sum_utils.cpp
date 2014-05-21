@@ -582,25 +582,18 @@ Castro::volProductSum (const std::string& name1,
     const Real* dx      = geom.CellSize();
     MultiFab*   mf1;
     MultiFab*   mf2;
-    MultiFab    mfgrav(grids[level],1,0);
 
-    if (name1 == "phi" || name1 == "PHI" || name1 == "Phi")
+    if (name1 == "phi" || name1 == "PHI" || name1 == "Phi" || name1 == "phiGrav")
     {
-#ifdef GRAVITY
-      MultiFab::Copy(mfgrav,*gravity->get_phi_curr(level),0,0,1,0);
-      mf1 = &mfgrav;
-#else
-      BoxLib::Abort("Phi does not exist when gravity is not turned on.");
-#endif
+      BoxLib::Abort("volProductSum can only have phi be in the second string location.");
     }
     else
       mf1 = derive(name1,time,0);
       
-    if (name2 == "phi" || name2 == "PHI" || name2 == "Phi")
+    if (name2 == "phi" || name2 == "PHI" || name2 == "Phi" || name1 == "phiGrav")
     {
 #ifdef GRAVITY
-      MultiFab::Copy(mfgrav,*gravity->get_phi_curr(level),0,0,1,0);
-      mf2 = &mfgrav;
+      mf2 = gravity->get_phi_curr(level);
 #else
       BoxLib::Abort("Phi does not exist when gravity is not turned on.");
 #endif
@@ -632,7 +625,6 @@ Castro::volProductSum (const std::string& name1,
             for (int ii = 0; ii < isects.size(); ii++)
             {
                 fab1.setVal(0,isects[ii].second,0,fab1.nComp());
-                fab2.setVal(0,isects[ii].second,0,fab2.nComp());
             }
         }
         Real s = 0.0;
