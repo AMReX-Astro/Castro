@@ -6,6 +6,9 @@ import sys
 import os
 import shutil
 import numpy as np
+
+import matplotlib
+matplotlib.use('agg')
 import pylab
 
 def process(castro_dir, plotfile):
