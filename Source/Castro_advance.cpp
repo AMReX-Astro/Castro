@@ -759,10 +759,14 @@ Castro::advance_hydro (Real time,
 
     ParallelDescriptor::ReduceRealMax(courno);
 
-    if (courno > 1.0) {
-      if (ParallelDescriptor::IOProcessor()) 
-	std::cout << "OOPS -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-      BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+    // Note that we can wrap this Abort call inside the IOProcessor test because the courno test is
+    //      identical on all processors
+    if (ParallelDescriptor::IOProcessor()) 
+    {
+       if (courno > 1.0) {
+  	  std::cout << "OOPS -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+          BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+       }
     }
     
     dt_new = dt/courno;
