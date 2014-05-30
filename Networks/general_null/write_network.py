@@ -19,13 +19,21 @@ Header="""
 #=============================================================================
 # the species class holds the properties of a single species
 #=============================================================================
-class species:
+class species(object):
 
     def __init__(self):
         self.name = ""
         self.shortName = ""
         self.A = -1
         self.Z = -1
+
+#=============================================================================
+# convenience class for an auxilliary variable
+#=============================================================================
+class auxvar(object):
+    
+    def __init__(self):
+        self.name = ""
 
 
 #=============================================================================
@@ -49,17 +57,17 @@ def getNextLine(fin):
 
 
 #=============================================================================
-# getSpeciesIndex looks through the list and returns the index corresponding to
-# the species specified by name
+# getObjectIndex looks through the list and returns the index corresponding to
+# the network object (species or auxvar) specified by name
 #=============================================================================
-def getSpeciesIndex(speciesList, name):
+def getObjectIndex(objList, name):
 
     index = -1
 
     n = 0
-    while (n < len(speciesList)):
+    while (n < len(objList)):
         
-        if (speciesList[n].name == name):
+        if (objList[n].name == name):
             index = n
             break
 
@@ -73,7 +81,7 @@ def getSpeciesIndex(speciesList, name):
 # parseNetFile read all the species listed in a given network inputs file
 # and adds the valid species to the species list
 #=============================================================================
-def parseNetFile(speciesList, netFile):
+def parseNetFile(speciesList, auxvarsList, netFile):
 
     err = 0
 
@@ -91,36 +99,59 @@ def parseNetFile(speciesList, netFile):
 
         fields = line.split()
 
-        if (not (len(fields) == 4)):
-            print(line)
-            print("write_network.py: ERROR: missing one or more fields in species definition.")
-            err = 1
-            continue
+        # read the species or auxiliary variable from the line
+        netObj, err = parseNetworkObject(fields)
+        if netObj is None: return err
 
-        currentSpecies = species()
-            
-        currentSpecies.name      = fields[0]
-        currentSpecies.shortName = fields[1]
-        currentSpecies.A         = fields[2]
-        currentSpecies.Z         = fields[3]
+        objList = speciesList
+        if type(netObj).__name__ is "auxvar": objList = auxvarsList
 
-
-        # check to see if this species is defined in the current list
-        index = getSpeciesIndex(speciesList, currentSpecies.name)
+        # check to see if this species/auxvar is defined in the current list
+        index = getObjectIndex(objList, netObj.name)
 
         if (index >= 0):
-            print("write_network.py: ERROR: species %s already defined." % 
-                  (currentSpecies.name))
+            print("write_network.py: ERROR: %s %s already defined." % 
+                  (type(netObj).__name__,netObj.name))
             err = 1                
-
-
-            
-        speciesList.append(currentSpecies)
+        # add the species or auxvar to the appropriate list    
+        objList.append(netObj)
 
         line = getNextLine(f)
 
     return err
 
+
+
+#=============================================================================
+# parse the fields in a line of the network file for either species or 
+# auxiliary variables.  Aux variables are prefixed by '__aux_' in the network
+# file
+#=============================================================================
+def parseNetworkObject(fields):
+    err = 0
+
+    # check for aux variables first
+    if fields[0].startswith("__aux_"):
+        ret = auxvar()
+        ret.name = fields[0][6:]
+    # check for missing fields in species definition
+    elif not (len(fields) == 4):
+        print(" ".join(fields))
+        print("write_network.py: ERROR: missing one or more fields in species definition.")
+        ret = None
+        err = 1
+    else:
+        ret = species()
+            
+        ret.name      = fields[0]
+        ret.shortName = fields[1]
+        ret.A         = fields[2]
+        ret.Z         = fields[3]
+
+    return ret,err
+
+
+    
 
 #=============================================================================
 # abort exits when there is an error.  A dummy stub file is written out, which
@@ -142,6 +173,7 @@ def abort(outfile):
 def write_network(networkTemplate, netFile, outFile):
 
     speciesList = []
+    auxvarsList = []
 
     print(" ")
     print("write_network.py: creating %s" % (outFile))
@@ -150,7 +182,7 @@ def write_network(networkTemplate, netFile, outFile):
     #-------------------------------------------------------------------------
     # read the species defined in the netFile
     #-------------------------------------------------------------------------
-    err = parseNetFile(speciesList, netFile)
+    err = parseNetFile(speciesList, auxvarsList, netFile)
         
     if (err):
         abort(outFile)
@@ -195,6 +227,10 @@ def write_network(networkTemplate, netFile, outFile):
             if (keyword == "NSPEC"):
 
                 fout.write(string.replace(line,"@@NSPEC@@", str(len(speciesList))))
+            
+            elif (keyword == "NAUX"):
+
+                fout.write(string.replace(line,"@@NAUX@@", str(len(auxvarsList))))
 
             elif (keyword == "SPEC_NAMES"):
 
@@ -238,6 +274,18 @@ def write_network(networkTemplate, netFile, outFile):
                                (indent, n+1, speciesList[n].Z))
 
                     n += 1
+
+            elif (keyword == "AUX_NAMES"):
+                
+                n = 0
+                while (n < len(auxvarsList)):
+                    
+                    fout.write("%saux_names(%d) = \"%s\"\n" % 
+                               (indent, n+1, auxvarsList[n].name))
+                    fout.write("%sshort_aux_names(%d) = \"%s\"\n" % 
+                               (indent, n+1, auxvarsList[n].name))
+
+                    n += 1 
 
         else:
             fout.write(line)

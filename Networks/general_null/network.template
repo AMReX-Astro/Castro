@@ -2,12 +2,16 @@
 ! of a set of non-reacting species.
 !
 ! nspec            -- the number of species
+! naux             -- the number of auxiliary variables
 !
 ! aion             -- atomic number
 ! zion             -- proton number
 !
 ! spec_names       -- the name of the isotope
 ! short_spec_names -- an abbreviated form of the species name
+!
+! aux_names        -- the name of the auxiliary variable
+! short_aux_names  -- an abbreviated form of the auxiliary variable
 !
 !
 ! This module contains two routines:
@@ -24,10 +28,11 @@ module network
   implicit none
 
   integer, parameter :: nspec = @@NSPEC@@
-  integer, parameter :: naux = 0
+  integer, parameter :: naux =  @@NAUX@@
 
   character (len=16), save :: spec_names(nspec) 
   character (len= 5), save :: short_spec_names(nspec)
+  character (len=16), save :: aux_names(naux)
   character (len= 5), save :: short_aux_names(naux)
 
   real(kind=dp_t), save :: aion(nspec), zion(nspec)
@@ -45,6 +50,8 @@ contains
     @@AION@@
 
     @@ZION@@
+
+    @@AUX_NAMES@@
 
     network_initialized = .true.
 
