@@ -75,6 +75,72 @@ module interpolate_module
 
       endif
 
-      end function interpolate
+    end function interpolate
+
+    function tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
+                             model_x, model_y, model_z, model_var)
+
+      use bl_error_module
+
+      ! tri-linear interpolation; useful for EOS tables
+      ! this is stricly interpolation, so if the point (x,y,z) is outside
+      ! the bounds of model_x,model_y,model_z, then we abort
+      double precision, intent(in   ) :: x,y,z
+      integer,          intent(in   ) :: npts_x, npts_y, npts_z
+      double precision, intent(in   ) :: model_x(npts_x), &
+                                         model_y(npts_y), &
+                                         model_z(npts_z), &
+                                         model_var(npts_x,npts_y,npts_z)
+      double precision :: tri_interpolate
+
+      integer :: i
+      integer :: ix,iy,iz
+      double precision :: deltax, deltay, deltaz
+      double precision :: c(8), delta(8)
+        
+      ! find the indices below the point (x,y,z)
+      do ix = 2, npts_x
+         if (model_x(ix) .ge. x) exit
+      enddo
+      do iy = 2, npts_y
+         if (model_y(iy) .ge. y) exit
+      enddo
+      do iz = 2, npts_z
+         if (model_z(iz) .ge. z) exit
+      enddo
+      if ((ix>npts_x) .or. (iy>npts_y) .or. (iz>npts_z)) &
+           call bl_error("tri-interpolate: point out of bounds!")
+      ix=ix-1
+      iy=iy-1
+      iz=iz-1
+
+      ! form the weights for each point
+      deltax = (x - model_x(ix))/(model_x(ix+1)-model_x(ix))
+      deltay = (y - model_y(iy))/(model_y(iy+1)-model_y(iy))
+      deltaz = (z - model_z(iz))/(model_z(iz+1)-model_z(iz))
+      delta = (/ 1, deltax, deltay, deltaz, &
+                 deltax*deltay, deltax*deltaz, deltay*deltaz, &
+                 deltax*deltay*deltaz /)
+
+      ! the model_var function values for Lagrange interpolation
+      c(1) = model_var(ix  ,iy  ,iz  )
+      c(2) = model_var(ix+1,iy  ,iz  ) - model_var(ix  ,iy  ,iz  )
+      c(3) = model_var(ix  ,iy+1,iz  ) - model_var(ix  ,iy  ,iz  )
+      c(4) = model_var(ix  ,iy  ,iz+1) - model_var(ix  ,iy  ,iz  )
+      c(5) = model_var(ix+1,iy+1,iz  ) - model_var(ix  ,iy+1,iz  ) + &
+             model_var(ix  ,iy  ,iz  ) - model_var(ix+1,iy  ,iz  )
+      c(6) = model_var(ix+1,iy  ,iz+1) - model_var(ix  ,iy  ,iz+1) + &
+             model_var(ix  ,iy  ,iz  ) - model_var(ix+1,iy  ,iz  )
+      c(7) = model_var(ix  ,iy+1,iz+1) - model_var(ix  ,iy  ,iz+1) + &
+             model_var(ix  ,iy  ,iz  ) - model_var(ix  ,iy+1,iz  )
+      c(8) = model_var(ix+1,iy+1,iz+1) - model_var(ix  ,iy+1,iz+1) + &
+             model_var(ix  ,iy  ,iz+1) - model_var(ix+1,iy  ,iz+1) + &
+             model_var(ix  ,iy+1,iz  ) - model_var(ix+1,iy+1,iz  ) + &
+             model_var(ix+1,iy  ,iz  ) - model_var(ix  ,iy  ,iz  )
+
+      ! interpolated value
+      tri_interpolate = sum(c*delta)
+      
+    end function tri_interpolate
 
 end module interpolate_module
