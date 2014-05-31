@@ -81,6 +81,7 @@ module interpolate_module
                              model_x, model_y, model_z, model_var)
 
       use bl_error_module
+      use bl_constants_module, only: ONE
 
       ! tri-linear interpolation; useful for EOS tables
       ! this is stricly interpolation, so if the point (x,y,z) is outside
@@ -118,7 +119,7 @@ module interpolate_module
       deltax = (x - model_x(ix))/(model_x(ix+1)-model_x(ix))
       deltay = (y - model_y(iy))/(model_y(iy+1)-model_y(iy))
       deltaz = (z - model_z(iz))/(model_z(iz+1)-model_z(iz))
-      delta = (/ 1, deltax, deltay, deltaz, &
+      delta = (/ ONE, deltax, deltay, deltaz, &
                  deltax*deltay, deltax*deltaz, deltay*deltaz, &
                  deltax*deltay*deltaz /)
 
