@@ -56,12 +56,12 @@
 !..declare some parameters
       double precision pi,amu,kerg,clight,avo,qe,h,ssol,asol
       parameter       (pi      = 3.1415926535897932384d0, &
-                        amu    = 1.6605402d-24, &
-                        kerg   = 1.380658d-16, &
+                        amu    = 1.66053878283d-24, &
+                        kerg   = 1.380650424d-16, &
                         clight = 2.99792458d10,  &
-                        avo    = 6.0221367d23, &
-                        qe     = 4.8032068d-10,  & 
-                        h      = 6.6260755d-27, &
+                        avo    = 6.0221417930d23, &
+                        qe     = 4.8032042712d-10,  & 
+                        h      = 6.6260689633d-27, &
                         ssol   = 5.67051d-5, &
                         asol   = 4.0d0 * ssol / clight)
 
@@ -933,12 +933,12 @@
  1011 CONTINUE
 
 !..   read the helmholtz free energy table
-      tlo   = 4.0d0
-      thi   = 11.0d0
+      tlo   = 3.0d0
+      thi   = 13.0d0
       tstp  = (thi - tlo)/float(jmax-1)
       tstpi = 1.0d0/tstp
-      dlo   = -10.0d0
-      dhi   = 11.0d0
+      dlo   = -12.0d0
+      dhi   = 15.0d0
       dstp  = (dhi - dlo)/float(imax-1)
       dstpi = 1.0d0/dstp
       do j=1,jmax

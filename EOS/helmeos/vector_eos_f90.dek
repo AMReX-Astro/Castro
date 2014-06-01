@@ -3,7 +3,7 @@
 
 !..for the tables, in general
       integer          imax,jmax
-      parameter        (imax = 211, jmax = 71)
+      parameter        (imax = 271, jmax = 101)
       double precision d(imax),t(jmax)
       
       double precision tlo, thi, tstp, tstpi
