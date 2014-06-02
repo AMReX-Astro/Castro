@@ -71,6 +71,15 @@ contains
           exit
        endif
     enddo
+
+    if (naux > 0) then
+       do n = 1, naux
+          if (name == aux_names(n)) then
+             network_species_index = n
+	     exit
+	  endif
+       enddo
+    endif
     
     return
   end function network_species_index
