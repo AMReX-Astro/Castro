@@ -294,105 +294,64 @@ contains
       abar_row = state(:) % abar
       zbar_row = state(:) % zbar
 
-      ! Check the inputs, and do initial setup for iterations
+      ! So initial setup for iterations
 
-      do j = 1, N
+      if (input .eq. eos_input_rt) then
 
-         if (temp_row(j) .le. 0.0d0) then
-            call bl_error('EOS: temp less than 0')
-         end if
-         if (den_row(j)  .le. 0.0d0) then
-            call bl_error('EOS: den less than 0')
-         end if
+        ! Nothing to do here.
 
-         if ( temp_row(j) .lt. t(1) ) then
-            print *, 'TEMP = ', temp
-            call bl_warn("EOS: temp too cold")
-            eosfail = .true.
-            return
-         end if
-         if ( temp_row(j) .gt. t(jmax) ) then
-            print *, 'TEMP = ', temp
-            call bl_warn("EOS: temp too hot")
-            eosfail = .true.
-            return
-         end if
-         if ( den_row(j) * zbar_row(j) / abar_row(j) .gt. d(imax) ) then
-            call bl_warn("EOS: ye*den out of bounds")
-            eosfail = .true.
-            return
-         end if
-         if ( den_row(j) * zbar_row(j) / abar_row(j) .lt. d(1) ) then
-            call bl_warn("EOS: ye*den out of bounds")
-            eosfail = .true.
-            return
-         end if
+      elseif (input .eq. eos_input_rh) then
 
-         if (input .eq. eos_input_rt) then
+        single_iter = .true.
+        v_want(:) = state(:) % h
+        var  = ienth
+        dvar = itemp
 
-!           if (state(j) % rho .lt. init_test .or. state(j) % T .lt. init_test) call eos_error(ierr_init, input, pt_index)
+      elseif (input .eq. eos_input_tp) then
 
-         elseif (input .eq. eos_input_rh) then
+        single_iter = .true.
+        v_want(:) = state(:) % p
+        var  = ipres
+        dvar = idens
 
-!           if (state(j) % rho .lt. init_test .or. state(j) % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           single_iter = .true.
-           v_want(j) = state(j) % h
-           var  = ienth
-           dvar = itemp
+      elseif (input .eq. eos_input_rp) then
 
-         elseif (input .eq. eos_input_tp) then
- 
-!           if (state(j) % T   .lt. init_test .or. state(j) % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           single_iter = .true.
-           v_want(j) = state(j) % p
-           var  = ipres
-           dvar = idens
+        single_iter = .true.
+        v_want(:) = state(:) % p
+        var  = ipres
+        dvar = itemp
 
-         elseif (input .eq. eos_input_rp) then
+      elseif (input .eq. eos_input_re) then
 
-!           if (state(j) % rho .lt. init_test .or. state(j) % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           single_iter = .true.
-           v_want(j) = state(j) % p
-           var  = ipres
-           dvar = itemp
+        single_iter = .true.
+        v_want(:) = state(:) % e
+        var  = iener
+        dvar = itemp
 
-         elseif (input .eq. eos_input_re) then
+      elseif (input .eq. eos_input_ps) then
 
-!           if (state(j) % rho .lt. init_test .or. state(j) % e .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           single_iter = .true.
-           v_want(j) = state(j) % e
-           var  = iener
-           dvar = itemp
+        double_iter = .true.
+        v1_want(:) = state(:) % p
+        v2_want(:) = state(:) % s
+        var1 = ipres
+        var2 = ientr
 
-         elseif (input .eq. eos_input_ps) then
- 
-!           if (state(j) % p   .lt. init_test .or. state(j) % s .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           double_iter = .true.
-           v1_want(j) = state(j) % p
-           v2_want(j) = state(j) % s
-           var1 = ipres
-           var2 = ientr
+      elseif (input .eq. eos_input_ph) then
 
-         elseif (input .eq. eos_input_ph) then
+        double_iter = .true.
+        v1_want(:) = state(:) % p
+        v1_want(:) = state(:) % h
+        var1 = ipres
+        var2 = ienth
 
-!           if (state(j) % p   .lt. init_test .or. state(j) % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           double_iter = .true.
-           v1_want(j) = state(j) % p
-           v1_want(j) = state(j) % h
-           var1 = ipres
-           var2 = ienth
+      elseif (input .eq. eos_input_th) then
 
-         elseif (input .eq. eos_input_th) then
+        single_iter = .true.
+        v_want(:) = state(:) % h
+        var  = ienth
+        dvar = idens
 
-!           if (state(j) % T   .lt. init_test .or. state(j) % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
-           single_iter = .true.
-           v_want(j) = state(j) % h
-           var  = ienth
-           dvar = idens
-
-         endif
-
-      enddo
+      endif
 
 !..start of vectorization loop, normal execution starts here
 
