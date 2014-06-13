@@ -1025,41 +1025,8 @@ contains
 
       enddo
 
-      if (input_is_constant) then
-
-        if (input .eq. eos_input_rh) then
-
-          state(:) % h = v_want(:)
-
-        elseif (input .eq. eos_input_tp) then
-
-          state(:) % p = v_want(:)
-
-        elseif (input .eq. eos_input_rp) then
-
-          state(:) % p = v_want(:)
-
-        elseif (input .eq. eos_input_re) then
-
-          state(:) % e = v_want(:)
-
-        elseif (input .eq. eos_input_ps) then
-
-          state(:) % p = v1_want(:)
-          state(:) % s = v2_want(:)
-
-        elseif (input .eq. eos_input_ph) then
-
-          state(:) % p = v1_want(:)
-          state(:) % h = v2_want(:)
-
-        elseif (input .eq. eos_input_th) then
-
-          state(:) % h = v_want(:)
-
-        endif
-
-      endif
+      state(:) % T    = temp_row
+      state(:) % rho  = den_row
 
       state(:) % p    = ptot_row
       state(:) % dpdT = dpt_row
@@ -1106,6 +1073,42 @@ contains
       ! This replaces the relativistic version that comes out of helmeos.
 
       state(:) % cs = sqrt(state(:) % gam1 * state(:) % p / state(:) % rho)
+
+      if (input_is_constant) then
+
+        if (input .eq. eos_input_rh) then
+
+          state(:) % h = v_want(:)
+
+        elseif (input .eq. eos_input_tp) then
+
+          state(:) % p = v_want(:)
+
+        elseif (input .eq. eos_input_rp) then
+
+          state(:) % p = v_want(:)
+
+        elseif (input .eq. eos_input_re) then
+
+          state(:) % e = v_want(:)
+
+        elseif (input .eq. eos_input_ps) then
+
+          state(:) % p = v1_want(:)
+          state(:) % s = v2_want(:)
+
+        elseif (input .eq. eos_input_ph) then
+
+          state(:) % p = v1_want(:)
+          state(:) % h = v2_want(:)
+
+        elseif (input .eq. eos_input_th) then
+
+          state(:) % h = v_want(:)
+
+        endif
+
+      endif
 
       end subroutine helmeos
 
