@@ -11,11 +11,7 @@ module eos_module
   implicit none
 
   logical,         save, private :: do_coulomb
-  integer,         save, private :: max_newton = 100
   logical,         save, private :: input_is_constant
-
-  double precision, save, private :: ttol = 1.0d-8
-  double precision, save, private :: dtol = 1.0d-8
 
   public eos_init, eos
 
@@ -67,7 +63,7 @@ contains
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos(input, state, do_eos_diag, pt_index)
+  subroutine eos(input, state_in, do_eos_diag, pt_index, state_len)
 
     ! A generic wrapper for the Helmholtz electron/positron degenerate EOS.  
 
@@ -76,9 +72,14 @@ contains
     ! Input arguments
 
     integer,           intent(in   ) :: input
-    type (eos_t),      intent(inout) :: state 
+    type (eos_t),      intent(inout) :: state_in
     logical, optional, intent(in   ) :: do_eos_diag
     integer, optional, intent(in   ) :: pt_index(:)
+    integer, optional, intent(in   ) :: state_len
+
+    integer :: j, N
+
+    type (eos_t), allocatable :: state(:)
 
     ! Local variables and arrays
     
@@ -87,9 +88,18 @@ contains
 
     logical eosfail, eos_diag
 
-    integer :: n, ierr
+    integer :: ns, ierr
 
 
+    if(present(state_len)) then
+      N = state_len
+    else
+      N = 1
+    endif
+
+    allocate(state(N))
+
+    state(1) = state_in
 
     if (.not. initialized) call bl_error('EOS: not initialized')
 
@@ -97,15 +107,17 @@ contains
 
     if (present(do_eos_diag)) eos_diag = do_eos_diag
 
-    ! Check to make sure the composition was set properly.
+    do j = 1, N
+       ! Check to make sure the composition was set properly.
 
-    do n = 1, nspec
-      if (state % xn(n) .lt. init_test) call eos_error(ierr_init_xn, input, pt_index)
+       do ns = 1, nspec
+         if (state(j) % xn(ns) .lt. init_test) call eos_error(ierr_init_xn, input, pt_index)
+       enddo
+
+       ! Get abar, zbar, etc.
+
+       call composition(state(j), .false.)
     enddo
-
-    ! Get abar, zbar, etc.
-
-    call composition(state, .false.)
 
     eosfail = .false.
 
@@ -115,15 +127,12 @@ contains
 ! dens, temp, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    if (input .eq. eos_input_rt) then
-
-       if (state % rho .lt. init_test .or. state % T .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
        ! Call the EOS.
 
-       call helmeos(do_coulomb, eosfail, state)
+       call helmeos(do_coulomb, eosfail, state, N, input)
 
-       if (eosfail) call eos_error(ierr_general, input, pt_index)
+!       if (eosfail) call eos_error(ierr_general, input, pt_index)
 
 
 
@@ -131,25 +140,25 @@ contains
 ! dens, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_rh) then
+!    elseif (input .eq. eos_input_rh) then
 
-       if (state % rho .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % rho .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy.
 
-       h_want = state % h
+!       h_want = state % h
 
-       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
+!       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       if (eos_diag) print *, 'WANT h ', h_want
+!       if (eos_diag) print *, 'WANT h ', h_want
 
-       call newton_iter(state, eos_diag, ierr, ienth, itemp, h_want)
+!       call newton_iter(state, eos_diag, ierr, ienth, itemp, h_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) state % h = h_want
+!       if (input_is_constant) state % h = h_want
 
 
 
@@ -157,24 +166,24 @@ contains
 ! temp, pres, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_tp) then
+!    elseif (input .eq. eos_input_tp) then
 
-       if (state % T .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % T .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given pressure
-       p_want = state % p
+!       p_want = state % p
 
-       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+!       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
 
-       if (eos_diag) print *, 'WANT p ', p_want       
+!       if (eos_diag) print *, 'WANT p ', p_want       
 
-       call newton_iter(state, eos_diag, ierr, ipres, idens, p_want)
+!       call newton_iter(state, eos_diag, ierr, ipres, idens, p_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) state % p = p_want
+!       if (input_is_constant) state % p = p_want
 
 
 
@@ -182,24 +191,24 @@ contains
 ! dens, pres, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_rp) then
+!    elseif (input .eq. eos_input_rp) then
 
-       if (state % rho .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % rho .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given pressure
-       p_want = state % p
+!       p_want = state % p
 
-       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+!       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
 
-       if (eos_diag) print *, 'WANT p ', p_want       
+!       if (eos_diag) print *, 'WANT p ', p_want       
 
-       call newton_iter(state, eos_diag, ierr, ipres, itemp, p_want)
+!       call newton_iter(state, eos_diag, ierr, ipres, itemp, p_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) state % p = p_want
+!       if (input_is_constant) state % p = p_want
 
 
 
@@ -207,24 +216,24 @@ contains
 ! dens, energy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_re) then
+!    elseif (input .eq. eos_input_re) then
 
-       if (state % rho .lt. init_test .or. state % e .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % rho .lt. init_test .or. state % e .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given energy
-       e_want = state % e
+!       e_want = state % e
 
-       if (e_want < ZERO) call eos_error(ierr_neg_e, input, pt_index)
+!       if (e_want < ZERO) call eos_error(ierr_neg_e, input, pt_index)
 
-       if (eos_diag) print *, 'WANT e ', e_want
+!       if (eos_diag) print *, 'WANT e ', e_want
 
-       call newton_iter(state, eos_diag, ierr, iener, itemp, e_want)
+!       call newton_iter(state, eos_diag, ierr, iener, itemp, e_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) state % e = e_want
+!       if (input_is_constant) state % e = e_want
               
 
 
@@ -232,32 +241,32 @@ contains
 ! pres, entropy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_ps) then
+!    elseif (input .eq. eos_input_ps) then
 
-       if (state % p .lt. init_test .or. state % s .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % p .lt. init_test .or. state % s .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given entropy and pressure
-       s_want = state % s
-       p_want = state % p
+!       s_want = state % s
+!       p_want = state % p
 
-       if (s_want < ZERO) call eos_error(ierr_neg_s, input, pt_index)
-       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+!       if (s_want < ZERO) call eos_error(ierr_neg_s, input, pt_index)
+!       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
 
-       if (eos_diag) then
-          print *, 'WANT s ', s_want
-          print *, 'WANT p ', p_want
-       endif
+!       if (eos_diag) then
+!          print *, 'WANT s ', s_want
+!          print *, 'WANT p ', p_want
+!       endif
 
-       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ientr, s_want)
+!       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ientr, s_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) then
-          state % s = s_want
-          state % p = p_want
-       endif
+!       if (input_is_constant) then
+!          state % s = s_want
+!          state % p = p_want
+!       endif
 
 
 
@@ -265,32 +274,32 @@ contains
 ! pres, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_ph) then
+!    elseif (input .eq. eos_input_ph) then
 
-       if (state % p .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % p .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy and pressure
-       p_want = state % p
-       h_want = state % h
+!       p_want = state % p
+!       h_want = state % h
 
-       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
-       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
+!       if (p_want < ZERO) call eos_error(ierr_neg_p, input, pt_index)
+!       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       if (eos_diag) then
-          print *, 'WANT p ', p_want
-          print *, 'WANT h ', h_want
-       endif
+!       if (eos_diag) then
+!          print *, 'WANT p ', p_want
+!          print *, 'WANT h ', h_want
+!       endif
 
-       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ienth, h_want)
+!       call newton_iter2(state, eos_diag, ierr, ipres, p_want, ienth, h_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) then
-          state % p = p_want
-          state % h = h_want
-       endif
+!       if (input_is_constant) then
+!          state % p = p_want
+!          state % h = h_want
+!       endif
 
 
 
@@ -298,24 +307,24 @@ contains
 ! temp, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    elseif (input .eq. eos_input_th) then
+!    elseif (input .eq. eos_input_th) then
 
-       if (state % t .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
+!       if (state % t .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
-       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
+!       if (eos_diag) print *, 'T/D INIT ', state % T, state % rho
 
        ! We want to converge to the given enthalpy
-       h_want = state % h
+!       h_want = state % h
 
-       if (eos_diag) print *, 'WANT h ', h_want
+!       if (eos_diag) print *, 'WANT h ', h_want
 
-       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
+!       if (h_want < ZERO) call eos_error(ierr_neg_h, input, pt_index)
 
-       call newton_iter(state, eos_diag, ierr, ienth, idens, h_want)
+!       call newton_iter(state, eos_diag, ierr, ienth, idens, h_want)
 
-       if (ierr > 0) call eos_error(ierr, input, pt_index)
+!       if (ierr > 0) call eos_error(ierr, input, pt_index)
 
-       if (input_is_constant) state % h = h_want
+!       if (input_is_constant) state % h = h_want
 
 
 
@@ -323,311 +332,34 @@ contains
 ! The EOS input doesn't match any of the available options.
 !---------------------------------------------------------------------------
 
-    else
+!    else
 
-       call eos_error(ierr_input, input, pt_index)
+!       call eos_error(ierr_input, input, pt_index)
 
-    endif
+!    endif
 
 
 
     ! Take care of final housekeeping.
 
     ! Count the positron contribution in the electron quantities.
-    state % xne  = state % xne  + state % xnp
-    state % pele = state % pele + state % ppos
+    state(:) % xne  = state(:) % xne  + state(:) % xnp
+    state(:) % pele = state(:) % pele + state(:) % ppos
 
     ! Use the non-relativistic version of the sound speed, cs = sqrt(gam_1 * P / rho).
     ! This replaces the relativistic version that comes out of helmeos.
 
-    state % cs = sqrt(state % gam1 * state % p / state % rho)
+    state(:) % cs = sqrt(state(:) % gam1 * state(:) % p / state(:) % rho)
 
     ! Get dpdX, dedX, dhdX.
 
-    call composition_derivatives(state, .false.)
+    do j = 1, N
+       call composition_derivatives(state(j), .false.)
+    enddo
+
+    state_in = state(1)
 
   end subroutine eos
-
-
-
-  subroutine newton_iter(state, eos_diag, ierr, var, dvar, f_want)
-
-     implicit none
-
-     type (eos_t),       intent(inout) :: state
-     integer,            intent(in   ) :: var, dvar
-     double precision,   intent(in   ) :: f_want
-     logical,            intent(in   ) :: eos_diag
-     integer,            intent(inout) :: ierr
-
-     integer          :: iter
-     double precision :: smallx, error, xnew, xtol
-     double precision :: f, x, dfdx
-
-     logical :: converged, eosfail
-
-     if (.not. (dvar .eq. itemp .or. dvar .eq. idens) ) then
-       ierr = ierr_iter_var
-       return
-     endif
-
-     converged = .false.
-
-     do iter = 1, max_newton
-
-        ! Fill the state with the EOS
-
-        call helmeos(do_coulomb, eosfail, state)
-
-        if (eosfail) then
-          ierr = ierr_general
-          return
-        endif
-
-        ! IF we're converged, exit the loop
-
-        if (converged) return
-
-        ! Figure out what variable we're working with
-
-        if (dvar .eq. itemp) then
-
-          x = state % T
-
-          smallx = smallt
-          xtol = ttol
-
-          if (var .eq. ipres) then
-            f    = state % p
-            dfdx = state % dpdT
-          elseif (var .eq. iener) then
-            f    = state % e
-            dfdx = state % dedT
-          elseif (var .eq. ientr) then
-            f    = state % s
-            dfdx = state % dsdT
-          elseif (var .eq. ienth) then
-            f    = state % h
-            dfdx = state % dhdT
-          else
-            ierr = ierr_iter_var
-            return
-          endif
-
-        else ! dvar == density
-
-          x = state % rho
-
-          smallx = smalld
-          xtol = dtol
-
-          if (var .eq. ipres) then
-            f    = state % p
-            dfdx = state % dpdr
-          elseif (var .eq. iener) then
-            f    = state % e
-            dfdx = state % dedr
-          elseif (var .eq. ientr) then
-            f    = state % s
-            dfdx = state % dsdr
-          elseif (var .eq. ienth) then
-            f    = state % h
-            dfdx = state % dhdr
-          else
-            ierr = ierr_iter_var
-            return
-          endif
- 
-        endif
-
-        ! Now do the calculation for the next guess for T/rho
- 
-        if (eos_diag) then
-          print *, 'VAR  = ', var , iter, ' f    = ', f
-          print *, 'DVAR = ', dvar, iter, ' dfdx = ', dfdx
-        endif
-
-        xnew = x - (f - f_want) / dfdx
-
-        if (eos_diag) then
-          print *, 'XNEW FIRST ', x, ' - ', f - f_want, ' / ', dfdx
-        endif
-
-        ! Don't let the temperature/density change by more than a factor of two
-        xnew = max(HALF * x, min(xnew, TWO * x))
-
-        ! Don't let us freeze/evacuate
-        xnew = max(smallx, xnew)
-
-        if (eos_diag) then
-          print *, 'XNEW AFTER ', iter, xnew
-        endif
-
-        ! Store the new temperature/density
-
-        if (dvar .eq. itemp) then
-          state % T    = xnew
-        else
-          state % rho  = xnew
-        endif
-
-        ! Compute the error from the last iteration
-
-        error = abs( (xnew - x) / x )
-
-        if (error .lt. xtol) converged = .true.
-               
-     enddo
-
-     ! Call error if too many iterations were needed
-
-     if (.not. converged) ierr = ierr_iter_conv
-
-  end subroutine newton_iter
-
-
-
-  subroutine newton_iter2(state, eos_diag, ierr, var1, f_want, var2, g_want)
-
-     implicit none
-
-     type (eos_t),       intent(inout) :: state
-     integer,            intent(in   ) :: var1, var2
-     double precision,   intent(in   ) :: f_want, g_want
-     logical,            intent(in   ) :: eos_diag
-     integer,            intent(inout) :: ierr
-
-     integer          :: iter
-     double precision :: error1, error2, fi, gi, rnew, tnew, delr
-     double precision :: f, dfdt, dfdr
-     double precision :: g, dgdt, dgdr
-     double precision :: temp, dens
-
-     logical :: converged, eosfail
-
-     converged = .false.     
-
-     do iter = 1, max_newton
-
-        ! Fill the state with the EOS
-
-        call helmeos(do_coulomb, eosfail, state)
-
-        if (eosfail) then
-          ierr = ierr_general
-          return
-        endif
-
-        ! If we're converged, exit the loop
-
-        if (converged) return
-        
-        ! Figure out which variables we're using
- 
-        temp = state % T
-        dens = state % rho
-
-        if (var1 .eq. ipres) then
-             f    = state % p
-             dfdt = state % dpdT
-             dfdr = state % dpdr
-        elseif (var1 .eq. iener) then
-             f    = state % e
-             dfdt = state % dedT
-             dfdr = state % dedr
-        elseif (var1 .eq. ientr) then
-             f    = state % s
-             dfdt = state % dsdT
-             dfdr = state % dsdr
-        elseif (var1 .eq. ienth) then
-             f    = state % h
-             dfdT = state % dhdT
-             dfdr = state % dhdr
-        else
-             ierr = ierr_iter_var
-             return
-        endif
-
-        if (var2 .eq. ipres) then
-             g    = state % p
-             dgdt = state % dpdT
-             dgdr = state % dpdr
-        elseif (var2 .eq. iener) then
-             g    = state % e
-             dgdt = state % dedT
-             dgdr = state % dedr
-        elseif (var2 .eq. ientr) then
-             g    = state % s
-             dgdt = state % dsdT
-             dgdr = state % dsdr
-        elseif (var2 .eq. ienth) then
-             g    = state % h
-             dgdt = state % dhdT
-             dgdr = state % dhdr
-        else
-             ierr = ierr_iter_var
-             return
-        endif
-
-        if (eos_diag) then
-           print *, 'VAR1 ', var1, iter, f
-           print *, 'VAR2 ', var2, iter, g
-        endif
-
-        ! Two functions, f and g, to iterate over
-        fi = f_want - f
-        gi = g_want - g
-
-        !
-        ! 0 = f + dfdr * delr + dfdt * delt
-        ! 0 = g + dgdr * delr + dgdt * delt
-        !
-
-        ! note that dfi/dT = - df/dT
-        delr = (-fi*dgdt + gi*dfdt) / (dgdr*dfdt - dgdt*dfdr)
-
-        rnew = dens + delr
-
-        tnew = temp + (fi - dfdr*delr) / dfdt
-
-        if (eos_diag) then
-           print *, 'RNEW FIRST ', dens, ' + ', &
-                fi*dgdt - gi*dfdt, ' / ', dgdr*dfdt - dgdt*dfdr
-           print *, 'TNEW FIRST ', temp, ' - ', &
-                fi + dfdr*delr, ' / ', dfdt
-        endif
-
-        ! Don't let the temperature or density change by more
-        ! than a factor of two
-        tnew = max(HALF * temp, min(tnew, TWO * temp))
-        rnew = max(HALF * dens, min(rnew, TWO * dens))
-
-        ! Don't let us freeze or evacuate
-        tnew = max(smallt, tnew)
-        rnew = max(smalld, rnew)
-
-        if (eos_diag) then
-           print *, 'RNEW AFTER ', iter, rnew
-           print *, 'TNEW AFTER ', iter, tnew
-        endif
-
-        ! Store the new temperature and density
-        state % rho = rnew
-        state % T   = tnew
-
-        ! Compute the errors
-        error1 = abs( (rnew - dens) / dens )
-        error2 = abs( (tnew - temp) / temp )
-
-        if (error1 .LT. dtol .and. error2 .LT. ttol) converged = .true.
-                
-     enddo
-
-     ! Call error if too many iterations are needed
-
-     if (.not. converged) ierr = ierr_iter_conv
-
-  end subroutine newton_iter2
 
 
 
