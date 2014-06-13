@@ -1,7 +1,7 @@
 module helmeos_module
 
 !..for the tables, in general
-      integer          imax,jmax
+      integer          imax,jmax,itmax,jtmax
       parameter        (imax = 271, jmax = 101)
       double precision d(imax),t(jmax)
       
@@ -31,6 +31,71 @@ module helmeos_module
                        dti_sav(jmax),dt2i_sav(jmax),                    &
                        dd_sav(imax),dd2_sav(imax),                      &
                        ddi_sav(imax),dd2i_sav(imax)
+
+
+      ! 2006 CODATA physical constants                                                                             
+
+      ! Math constants                                                                                             
+      double precision :: pi       = 3.1415926535897932384d0
+      double precision :: eulercon = 0.577215664901532861d0
+      double precision :: a2rad    
+      double precision :: rad2a
+
+      ! Physical constants                                                                                         
+      double precision :: g       = 6.6742867d-8
+      double precision :: h       = 6.6260689633d-27
+      double precision :: hbar    
+      double precision :: qe      = 4.8032042712d-10
+      double precision :: avo     = 6.0221417930d23
+      double precision :: clight  = 2.99792458d10
+      double precision :: kerg    = 1.380650424d-16
+      double precision :: ev2erg  = 1.60217648740d-12
+      double precision :: kev     
+      double precision :: amu     = 1.66053878283d-24
+      double precision :: mn      = 1.67492721184d-24
+      double precision :: mp      = 1.67262163783d-24
+      double precision :: me      = 9.1093821545d-28
+      double precision :: rbohr   
+      double precision :: fine    
+      double precision :: hion    = 13.605698140d0
+
+      double precision :: ssol    = 5.67051d-5
+      double precision :: asol
+      double precision :: weinlam
+      double precision :: weinfre 
+      double precision :: rhonuc  = 2.342d14
+
+      ! Astronomical constants                                                                                     
+      double precision :: msol    = 1.9892d33
+      double precision :: rsol    = 6.95997d10
+      double precision :: lsol    = 3.8268d33
+      double precision :: mearth  = 5.9764d27
+      double precision :: rearth  = 6.37d8
+      double precision :: ly      = 9.460528d17
+      double precision :: pc
+      double precision :: au      = 1.495978921d13
+      double precision :: secyer  = 3.1558149984d7
+
+      ! Some other useful combinations of the constants
+      double precision :: sioncon
+      double precision :: forth  
+      double precision :: forpi  
+      double precision :: kergavo
+      double precision :: ikavo  
+      double precision :: asoli3 
+      double precision :: light2
+
+      ! Constants used for the Coulomb corrections
+      double precision :: a1    = -0.898004d0
+      double precision :: b1    =  0.96786d0
+      double precision :: c1    =  0.220703d0
+      double precision :: d1    = -0.86097d0
+      double precision :: e1    =  2.5269d0
+      double precision :: a2    =  0.29561d0
+      double precision :: b2    =  1.9885d0
+      double precision :: c2    =  0.288675d0
+      double precision :: onethird = 1.0d0/3.0d0
+      double precision :: esqu
 
 contains
 
@@ -164,18 +229,6 @@ contains
                        ecoul,decouldd,decouldt,decoulda,decouldz, &
                        pcoul,dpcouldd,dpcouldt,dpcoulda,dpcouldz, &
                        scoul,dscouldd,dscouldt,dscoulda,dscouldz
-
-      double precision  a1,b1,c1,d1,e1,a2,b2,c2,third,esqu
-      parameter        (a1    = -0.898004d0, &
-                        b1    =  0.96786d0,  &
-                        c1    =  0.220703d0, &
-                        d1    = -0.86097d0,  &
-                        e1    =  2.5269d0,   &
-                        a2    =  0.29561d0,  &
-                        b2    =  1.9885d0,   &
-                        c2    =  0.288675d0, &
-                        third = 1.0d0/3.0d0, &
-                        esqu  = qe * qe)
 
 ! ======================================================================
 !..Define Statement Functions
@@ -701,9 +754,9 @@ contains
       dsdd     = z * dxnidd
       dsda     = z * dxnida
 
-      lami     = 1.0d0/s**third
+      lami     = 1.0d0/s**onethird
       inv_lami = 1.0d0/lami
-      z        = -third * lami
+      z        = -onethird * lami
       lamidd   = z * dsdd/s
       lamida   = z * dsda/s
 
@@ -721,7 +774,7 @@ contains
              x        = plasg**(0.25d0) 
              y        = avo * ytot1 * kerg 
              ecoul    = y * temp * (a1*plasg + b1*x + c1/x + d1)
-             pcoul    = third * den * ecoul
+             pcoul    = onethird * den * ecoul
              scoul    = -y * (3.0d0*b1*x - 5.0d0*c1/x &
                   + d1 * (log(plasg) - 1.0d0) - e1)
             
@@ -731,8 +784,8 @@ contains
              decoulda = y * plasgda - ecoul/abar
              decouldz = y * plasgdz
             
-             y        = third * den
-             dpcouldd = third * ecoul + y*decouldd
+             y        = onethird * den
+             dpcouldd = onethird * ecoul + y*decouldd
              dpcouldt = y * decouldt
              dpcoulda = y * decoulda
              dpcouldz = y * decouldz
@@ -748,12 +801,12 @@ contains
           else if (plasg .lt. 1.0D0) then
              x        = plasg*sqrt(plasg)
              y        = plasg**b2
-             z        = c2 * x - third * a2 * y
+             z        = c2 * x - onethird * a2 * y
              pcoul    = -pion * z
              ecoul    = 3.0d0 * pcoul/den
              scoul    = -avo/abar*kerg*(c2*x -a2*(b2-1.0d0)/b2*y)
     
-             s        = 1.5d0*c2*x/plasg - third*a2*b2*y/plasg
+             s        = 1.5d0*c2*x/plasg - onethird*a2*b2*y/plasg
              dpcouldd = -dpiondd*z - pion*s*plasgdd
              dpcouldt = -dpiondt*z - pion*s*plasgdt
              dpcoulda = -dpionda*z - pion*s*plasgda
@@ -937,13 +990,13 @@ contains
        state % dpde = dpresdt / denerdt
        state % dpdr_e = dpresdd - dpresdt * denerdd / denerdt
        
-      return
       end subroutine helmeos
 
 !     -----------------------------------------------------------------
       subroutine helmeos_init(initialized)
+
       use bl_error_module
-!      use parallel
+
       implicit none
       
       double precision dth, dt2, dti, dt2i
@@ -961,6 +1014,9 @@ contains
  1010 CONTINUE
       call bl_error('EOSINIT: Failed to open helm_table.dat')
  1011 CONTINUE
+
+      itmax = imax
+      jtmax = jmax
 
 !..   read the helmholtz free energy table
       tlo   = 3.0d0
@@ -1027,22 +1083,33 @@ contains
 
       close(unit=2)
 
+      ! Some initialization of constants
+
+      esqu = qe * qe
+
+      a2rad   = pi/180.0d0
+      rad2a   = 180.0d0/pi
+
+      hbar    = 0.5d0 * h/pi
+      kev     = kerg/ev2erg
+      rbohr   = hbar*hbar/(me * qe * qe)
+      fine    = qe*qe/(hbar*clight)
+
+      asol    = 4.0d0 * ssol / clight
+      weinlam = h*clight/(kerg * 4.965114232d0)
+      weinfre = 2.821439372d0*kerg/h
+      pc      = 3.261633d0 * ly
+
+      sioncon = (2.0d0 * pi * amu * kerg)/(h*h)
+      forth   = 4.0d0/3.0d0
+      forpi   = 4.0d0 * pi
+      kergavo = kerg * avo
+      ikavo   = 1.0d0/kergavo
+      asoli3  = asol/3.0d0
+      light2  = clight * clight
+
       initialized = .true.
     
-!
-!..   popular format statements
-! 03   format(1x,4(a,1pe11.3))
-! 04   format(1x,4(a,i4))
-!
-!      if ( parallel_ioprocessor() ) then
-!         write(6,*)
-!         write(6,*) 'finished reading eos table'
-!         write(6,04) 'imax=',imax,' jmax=',jmax
-!         write(6,03) 'temp(1)   =',t(1),' temp(jmax)   =',t(jmax)
-!         write(6,03) 'ye*den(1) =',d(1),' ye*den(imax) =',d(imax)
-!         write(6,*)
-!      end if
-
       end subroutine helmeos_init
 
 end module helmeos_module
