@@ -111,13 +111,11 @@ contains
 
     ierr = 0
 
-    select case (input)
-
 !---------------------------------------------------------------------------
 ! dens, temp, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_rt)
+    if (input .eq. eos_input_rt) then
 
        if (state % rho .lt. init_test .or. state % T .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -133,7 +131,7 @@ contains
 ! dens, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_rh)
+    elseif (input .eq. eos_input_rh) then
 
        if (state % rho .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -159,7 +157,7 @@ contains
 ! temp, pres, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_tp)
+    elseif (input .eq. eos_input_tp) then
 
        if (state % T .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -184,7 +182,7 @@ contains
 ! dens, pres, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_rp)
+    elseif (input .eq. eos_input_rp) then
 
        if (state % rho .lt. init_test .or. state % p .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -209,7 +207,7 @@ contains
 ! dens, energy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_re)
+    elseif (input .eq. eos_input_re) then
 
        if (state % rho .lt. init_test .or. state % e .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -234,7 +232,7 @@ contains
 ! pres, entropy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_ps)
+    elseif (input .eq. eos_input_ps) then
 
        if (state % p .lt. init_test .or. state % s .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -267,7 +265,7 @@ contains
 ! pres, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_ph)
+    elseif (input .eq. eos_input_ph) then
 
        if (state % p .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -300,7 +298,7 @@ contains
 ! temp, enthalpy, and xmass are inputs
 !---------------------------------------------------------------------------
 
-    case (eos_input_th)
+    elseif (input .eq. eos_input_th) then
 
        if (state % t .lt. init_test .or. state % h .lt. init_test) call eos_error(ierr_init, input, pt_index)
 
@@ -325,11 +323,11 @@ contains
 ! The EOS input doesn't match any of the available options.
 !---------------------------------------------------------------------------
 
-    case default 
+    else
 
        call eos_error(ierr_input, input, pt_index)
 
-    end select
+    endif
 
 
 
@@ -399,25 +397,22 @@ contains
           smallx = smallt
           xtol = ttol
 
-          select case (var)
-
-            case (ipres)
-              f    = state % p
-              dfdx = state % dpdT
-            case (iener)
-              f    = state % e
-              dfdx = state % dedT
-            case (ientr)
-              f    = state % s
-              dfdx = state % dsdT
-            case (ienth)
-              f    = state % h
-              dfdx = state % dhdT
-            case default
-              ierr = ierr_iter_var
-              return
-
-          end select
+          if (var .eq. ipres) then
+            f    = state % p
+            dfdx = state % dpdT
+          elseif (var .eq. iener) then
+            f    = state % e
+            dfdx = state % dedT
+          elseif (var .eq. ientr) then
+            f    = state % s
+            dfdx = state % dsdT
+          elseif (var .eq. ienth) then
+            f    = state % h
+            dfdx = state % dhdT
+          else
+            ierr = ierr_iter_var
+            return
+          endif
 
         else ! dvar == density
 
@@ -426,26 +421,23 @@ contains
           smallx = smalld
           xtol = dtol
 
-          select case (var)
-
-            case (ipres)
-              f    = state % p
-              dfdx = state % dpdr
-            case (iener)
-              f    = state % e
-              dfdx = state % dedr
-            case (ientr)
-              f    = state % s
-              dfdx = state % dsdr
-            case (ienth)
-              f    = state % h
-              dfdx = state % dhdr
-            case default
-              ierr = ierr_iter_var
-              return
+          if (var .eq. ipres) then
+            f    = state % p
+            dfdx = state % dpdr
+          elseif (var .eq. iener) then
+            f    = state % e
+            dfdx = state % dedr
+          elseif (var .eq. ientr) then
+            f    = state % s
+            dfdx = state % dsdr
+          elseif (var .eq. ienth) then
+            f    = state % h
+            dfdx = state % dhdr
+          else
+            ierr = ierr_iter_var
+            return
+          endif
  
-          end select
-
         endif
 
         ! Now do the calculation for the next guess for T/rho
@@ -535,58 +527,52 @@ contains
         temp = state % T
         dens = state % rho
 
-        select case (var1)
-
-           case (ipres)
+        if (var1 .eq. ipres) then
              f    = state % p
              dfdt = state % dpdT
              dfdr = state % dpdr
-           case (iener)
+        elseif (var1 .eq. iener) then
              f    = state % e
              dfdt = state % dedT
              dfdr = state % dedr
-           case (ientr)
+        elseif (var1 .eq. ientr) then
              f    = state % s
              dfdt = state % dsdT
              dfdr = state % dsdr
-           case (ienth)
+        elseif (var1 .eq. ienth) then
              f    = state % h
              dfdT = state % dhdT
              dfdr = state % dhdr
-           case default
+        else
              ierr = ierr_iter_var
              return
+        endif
 
-         end select
-
-         select case (var2)
-
-           case (ipres)
+        if (var2 .eq. ipres) then
              g    = state % p
              dgdt = state % dpdT
              dgdr = state % dpdr
-           case (iener)
+        elseif (var2 .eq. iener) then
              g    = state % e
              dgdt = state % dedT
              dgdr = state % dedr
-           case (ientr)
+        elseif (var2 .eq. ientr) then
              g    = state % s
              dgdt = state % dsdT
              dgdr = state % dsdr
-           case (ienth)
+        elseif (var2 .eq. ienth) then
              g    = state % h
              dgdt = state % dhdT
              dgdr = state % dhdr
-           case default
+        else
              ierr = ierr_iter_var
              return
+        endif
 
-         end select
-
-         if (eos_diag) then
+        if (eos_diag) then
            print *, 'VAR1 ', var1, iter, f
            print *, 'VAR2 ', var2, iter, g
-         end if
+        endif
 
         ! Two functions, f and g, to iterate over
         fi = f_want - f
@@ -659,53 +645,51 @@ contains
 
     write(eos_input_str, '(A13, I1)') ' EOS input = ', input
 
-    select case (err)
+    if (err .eq. ierr_general) then
 
-      case (ierr_general)
+      err_string = 'EOS: error in the EOS.'
 
-        err_string = 'EOS: error in the EOS.'
+    elseif (err .eq. ierr_input) then
 
-      case (ierr_input)
+      err_string = 'EOS: invalid input.'
 
-        err_string = 'EOS: invalid input.'
+    elseif (err .eq. ierr_iter_conv) then
 
-      case (ierr_iter_conv)
+      err_string = 'EOS: Newton-Raphson iterations failed to converge.'
 
-        err_string = 'EOS: Newton-Raphson iterations failed to converge.'
+    elseif (err .eq. ierr_neg_e) then
 
-      case (ierr_neg_e)
+      err_string = 'EOS: energy < 0 in the EOS.'
 
-        err_string = 'EOS: energy < 0 in the EOS.'
+    elseif (err .eq. ierr_neg_p) then
 
-      case (ierr_neg_p)
+      err_string = 'EOS: pressure < 0 in the EOS.'
 
-        err_string = 'EOS: pressure < 0 in the EOS.'
+    elseif (err .eq. ierr_neg_h) then
 
-      case (ierr_neg_h)
+      err_string = 'EOS: enthalpy < 0 in the EOS.'
 
-        err_string = 'EOS: enthalpy < 0 in the EOS.'
+    elseif (err .eq. ierr_neg_s) then
 
-      case (ierr_neg_s)
+      err_string = 'EOS: entropy < 0 in the EOS.'
 
-        err_string = 'EOS: entropy < 0 in the EOS.'
+    elseif (err .eq. ierr_init) then
 
-      case (ierr_init)
- 
-        err_string = 'EOS: the input variables were not initialized.'
+      err_string = 'EOS: the input variables were not initialized.'
 
-      case (ierr_init_xn)
+    elseif (err .eq. ierr_init_xn) then
 
-        err_string = 'EOS: the species abundances were not initialized.'
+      err_string = 'EOS: the species abundances were not initialized.'
 
-      case (ierr_iter_var)
+    elseif (err .eq. ierr_iter_var) then
 
-        err_string = 'EOS: the variable you are iterating over was not recognized.'
+      err_string = 'EOS: the variable you are iterating over was not recognized.'
 
-      case default
+    else
 
-        err_string = 'EOS: invalid input to error handler.'
+      err_string = 'EOS: invalid input to error handler.'
 
-    end select
+    endif
 
     err_string = err_string // eos_input_str
 
