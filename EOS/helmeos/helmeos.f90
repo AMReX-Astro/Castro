@@ -210,11 +210,9 @@ contains
                        dsi0t,dsi1t,dsi2t,dsi0mt,dsi1mt,dsi2mt, &
                        dsi0d,dsi1d,dsi2d,dsi0md,dsi1md,dsi2md, &
                        ddsi0t,ddsi1t,ddsi2t,ddsi0mt,ddsi1mt,ddsi2mt, &
-                       z,psi0,dpsi0,ddpsi0,psi1,dpsi1,ddpsi1,psi2, &
-                       dpsi2,ddpsi2,din,h5,fi(36), &
-                       xpsi0,xdpsi0,xpsi1,xdpsi1,h3, &
-                       w0t,w1t,w2t,w0mt,w1mt,w2mt, &
-                       w0d,w1d,w2d,w0md,w1md,w2md
+                       z,din,fi(36)!, &
+                       !w0t,w1t,w2t,w0mt,w1mt,w2mt, &
+                       !w0d,w1d,w2d,w0md,w1md,w2md
 
 !..for the coulomb corrections
       double precision dsdd,dsda,lami,inv_lami,lamida,lamidd,     &
@@ -222,72 +220,6 @@ contains
                        ecoul,decouldd,decouldt,decoulda,decouldz, &
                        pcoul,dpcouldd,dpcouldt,dpcoulda,dpcouldz, &
                        scoul,dscouldd,dscouldt,dscoulda,dscouldz
-
-! ======================================================================
-!..Define Statement Functions
-
-!..quintic hermite polynomial statement functions
-!..psi0 and its derivatives
-!      psi0(z)   = z**3 * ( z * (-6.0d0*z + 15.0d0) -10.0d0) + 1.0d0
-      psi0(z)   = z*z*z * ( z * (-6.0d0*z + 15.0d0) -10.0d0) + 1.0d0
-!      dpsi0(z)  = z**2 * ( z * (-30.0d0*z + 60.0d0) - 30.0d0)
-      dpsi0(z)  = z*z * ( z * (-30.0d0*z + 60.0d0) - 30.0d0)
-      ddpsi0(z) = z* ( z*( -120.0d0*z + 180.0d0) -60.0d0)
-
-!..psi1 and its derivatives
-!      psi1(z)   = z* ( z**2 * ( z * (-3.0d0*z + 8.0d0) - 6.0d0) + 1.0d0)
-      psi1(z)   = z* ( z*z * ( z * (-3.0d0*z + 8.0d0) - 6.0d0) + 1.0d0)
-      dpsi1(z)  = z*z * ( z * (-15.0d0*z + 32.0d0) - 18.0d0) +1.0d0
-      ddpsi1(z) = z * (z * (-60.0d0*z + 96.0d0) -36.0d0)
-
-!..psi2  and its derivatives
-      psi2(z)   = 0.5d0*z*z*( z* ( z * (-z + 3.0d0) - 3.0d0) + 1.0d0)
-      dpsi2(z)  = 0.5d0*z*( z*(z*(-5.0d0*z + 12.0d0) - 9.0d0) + 2.0d0)
-      ddpsi2(z) = 0.5d0*(z*( z * (-20.0d0*z + 36.0d0) - 18.0d0) + 2.0d0)
-
-!..biquintic hermite polynomial statement function
-      h5(w0t,w1t,w2t,w0mt,w1mt,w2mt,w0d,w1d,w2d,w0md,w1md,w2md)= &
-             fi(1)  *w0d*w0t   + fi(2)  *w0md*w0t &
-           + fi(3)  *w0d*w0mt  + fi(4)  *w0md*w0mt &
-           + fi(5)  *w0d*w1t   + fi(6)  *w0md*w1t &
-           + fi(7)  *w0d*w1mt  + fi(8)  *w0md*w1mt &
-           + fi(9)  *w0d*w2t   + fi(10) *w0md*w2t &
-           + fi(11) *w0d*w2mt  + fi(12) *w0md*w2mt &
-           + fi(13) *w1d*w0t   + fi(14) *w1md*w0t &
-           + fi(15) *w1d*w0mt  + fi(16) *w1md*w0mt &
-           + fi(17) *w2d*w0t   + fi(18) *w2md*w0t &
-           + fi(19) *w2d*w0mt  + fi(20) *w2md*w0mt &
-           + fi(21) *w1d*w1t   + fi(22) *w1md*w1t &
-           + fi(23) *w1d*w1mt  + fi(24) *w1md*w1mt &
-           + fi(25) *w2d*w1t   + fi(26) *w2md*w1t &
-           + fi(27) *w2d*w1mt  + fi(28) *w2md*w1mt &
-           + fi(29) *w1d*w2t   + fi(30) *w1md*w2t &
-           + fi(31) *w1d*w2mt  + fi(32) *w1md*w2mt &
-           + fi(33) *w2d*w2t   + fi(34) *w2md*w2t &
-           + fi(35) *w2d*w2mt  + fi(36) *w2md*w2mt
-
-
-
-!..cubic hermite polynomial statement functions
-!..psi0 & derivatives
-      xpsi0(z)  = z * z * (2.0d0*z - 3.0d0) + 1.0
-      xdpsi0(z) = z * (6.0d0*z - 6.0d0)
-
-!..psi1 & derivatives
-      xpsi1(z)  = z * ( z * (z - 2.0d0) + 1.0d0)
-      xdpsi1(z) = z * (3.0d0*z - 4.0d0) + 1.0d0
-
-
-!..bicubic hermite polynomial statement function
-      h3(w0t,w1t,w0mt,w1mt,w0d,w1d,w0md,w1md) =  &
-             fi(1)  *w0d*w0t   +  fi(2)  *w0md*w0t  &
-           + fi(3)  *w0d*w0mt  +  fi(4)  *w0md*w0mt &
-           + fi(5)  *w0d*w1t   +  fi(6)  *w0md*w1t  &
-           + fi(7)  *w0d*w1mt  +  fi(8)  *w0md*w1mt &
-           + fi(9)  *w1d*w0t   +  fi(10) *w1md*w0t  &
-           + fi(11) *w1d*w0mt  +  fi(12) *w1md*w0mt &
-           + fi(13) *w1d*w1t   +  fi(14) *w1md*w1t  &
-           + fi(15) *w1d*w1mt  +  fi(16) *w1md*w1mt
 
       temp_row = state(:) % T
       den_row  = state(:) % rho
@@ -538,17 +470,17 @@ contains
 
 
             !..the free energy
-            free  = h5( &
+            free  = h5( fi, &
                      si0t,   si1t,   si2t,   si0mt,   si1mt,   si2mt, &
                      si0d,   si1d,   si2d,   si0md,   si1md,   si2md)
 
             !..derivative with respect to density
-            df_d  = h5( &
+            df_d  = h5( fi, &
                      si0t,   si1t,   si2t,   si0mt,   si1mt,   si2mt, &
                      dsi0d,  dsi1d,  dsi2d,  dsi0md,  dsi1md,  dsi2md)
 
             !..derivative with respect to temperature
-            df_t = h5( &
+            df_t = h5( fi, &
                      dsi0t,  dsi1t,  dsi2t,  dsi0mt,  dsi1mt,  dsi2mt, &
                      si0d,   si1d,   si2d,   si0md,   si1md,   si2md)
 
@@ -558,12 +490,12 @@ contains
       !               ddsi0d, ddsi1d, ddsi2d, ddsi0md, ddsi1md, ddsi2md)
 
             !..derivative with respect to temperature**2
-            df_tt = h5( &
+            df_tt = h5( fi, &
                    ddsi0t, ddsi1t, ddsi2t, ddsi0mt, ddsi1mt, ddsi2mt, &
                      si0d,   si1d,   si2d,   si0md,   si1md,   si2md)
 
             !..derivative with respect to temperature and density
-            df_dt = h5( &
+            df_dt = h5( fi, &
                      dsi0t,  dsi1t,  dsi2t,  dsi0mt,  dsi1mt,  dsi2mt, &
                      dsi0d,  dsi1d,  dsi2d,  dsi0md,  dsi1md,  dsi2md)
 
@@ -614,7 +546,8 @@ contains
             fi(16) = dpdfdt(iat+1,jat+1)
 
             !..pressure derivative with density
-            dpepdd  = h3(   si0t,   si1t,   si0mt,   si1mt, &
+            dpepdd  = h3(   fi, &
+                            si0t,   si1t,   si0mt,   si1mt, &
                             si0d,   si1d,   si0md,   si1md)
             dpepdd  = max(ye * dpepdd,0.0d0)
 
@@ -637,16 +570,19 @@ contains
             fi(16) = efdt(iat+1,jat+1)
 
             !..electron chemical potential etaele
-            etaele  = h3( si0t,   si1t,   si0mt,   si1mt, &
+            etaele  = h3( fi, &
+                          si0t,   si1t,   si0mt,   si1mt, &
                           si0d,   si1d,   si0md,   si1md)
 
             !..derivative with respect to density
-            x       = h3( si0t,   si1t,   si0mt,   si1mt, &
+            x       = h3( fi, &
+                          si0t,   si1t,   si0mt,   si1mt, &
                           dsi0d,  dsi1d,  dsi0md,  dsi1md)
             detadd  = ye * x
 
             !..derivative with respect to temperature
-            detadt  = h3( dsi0t,  dsi1t,  dsi0mt,  dsi1mt, &
+            detadt  = h3( fi, &
+                          dsi0t,  dsi1t,  dsi0mt,  dsi1mt, &
                           si0d,   si1d,   si0md,   si1md)
 
             !..derivative with respect to abar and zbar
@@ -672,17 +608,20 @@ contains
             fi(16) = xfdt(iat+1,jat+1)
 
             !..electron + positron number densities
-            xnefer   = h3( si0t,   si1t,   si0mt,   si1mt, &
+            xnefer   = h3( fi, &
+                           si0t,   si1t,   si0mt,   si1mt, &
                            si0d,   si1d,   si0md,   si1md)
 
             !..derivative with respect to density
-            x        = h3( si0t,   si1t,   si0mt,   si1mt, &
+            x        = h3( fi, &
+                           si0t,   si1t,   si0mt,   si1mt, &
                            dsi0d,  dsi1d,  dsi0md,  dsi1md)
             x = max(x,0.0d0)
             dxnedd   = ye * x
 
             !..derivative with respect to temperature
-            dxnedt   = h3( dsi0t,  dsi1t,  dsi0mt,  dsi1mt, &
+            dxnedt   = h3( fi, &
+                           dsi0t,  dsi1t,  dsi0mt,  dsi1mt, &
                            si0d,   si1d,   si0md,   si1md)
 
             !..derivative with respect to abar and zbar
@@ -1245,5 +1184,136 @@ contains
       initialized = .true.
     
       end subroutine helmeos_init
+
+
+
+      ! quintic hermite polynomial functions                                                             
+      ! psi0 and its derivatives                                                                                   
+      function psi0(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, psi0
+            psi0 = z**3 * ( z * (-6.0d0*z + 15.0d0) -10.0d0) + 1.0d0
+      end function
+
+      function dpsi0(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, dpsi0
+            dpsi0 = z**2 * ( z * (-30.0d0*z + 60.0d0) - 30.0d0)
+      end function
+
+      function ddpsi0(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, ddpsi0
+            ddpsi0 = z* ( z*( -120.0d0*z + 180.0d0) -60.0d0)
+      end function
+
+      ! psi1 and its derivatives                                                                                   
+      function psi1(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, psi1
+            psi1 = z* ( z**2 * ( z * (-3.0d0*z + 8.0d0) - 6.0d0) + 1.0d0)
+      end function
+
+      function dpsi1(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, dpsi1
+            dpsi1 = z*z * ( z * (-15.0d0*z + 32.0d0) - 18.0d0) +1.0d0
+      end function
+
+      function ddpsi1(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, ddpsi1
+            ddpsi1 = z * (z * (-60.0d0*z + 96.0d0) -36.0d0)
+      end function
+
+      ! psi2  and its derivatives                                                                                  
+      function psi2(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, psi2
+            psi2 = 0.5d0*z*z*( z* ( z * (-z + 3.0d0) - 3.0d0) + 1.0d0)
+      end function
+
+      function dpsi2(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, dpsi2
+            dpsi2 = 0.5d0*z*( z*(z*(-5.0d0*z + 12.0d0) - 9.0d0) + 2.0d0)
+      end function
+
+      function ddpsi2(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, ddpsi2
+            ddpsi2 = 0.5d0*(z*( z * (-20.0d0*z + 36.0d0) - 18.0d0) + 2.0d0)
+      end function
+
+
+      ! biquintic hermite polynomial function                                                            
+      function h5(fi,w0t,w1t,w2t,w0mt,w1mt,w2mt,w0d,w1d,w2d,w0md,w1md,w2md)
+      !$acc routine vector                                                                                         
+            double precision :: fi(36)
+            double precision :: w0t,w1t,w2t,w0mt,w1mt,w2mt,w0d,w1d,w2d,w0md,w1md,w2md,h5
+
+            h5 =   fi(1)  *w0d*w0t   + fi(2)  *w0md*w0t &
+                 + fi(3)  *w0d*w0mt  + fi(4)  *w0md*w0mt &
+                 + fi(5)  *w0d*w1t   + fi(6)  *w0md*w1t &
+                 + fi(7)  *w0d*w1mt  + fi(8)  *w0md*w1mt &
+                 + fi(9)  *w0d*w2t   + fi(10) *w0md*w2t &
+                 + fi(11) *w0d*w2mt  + fi(12) *w0md*w2mt &
+                 + fi(13) *w1d*w0t   + fi(14) *w1md*w0t &
+                 + fi(15) *w1d*w0mt  + fi(16) *w1md*w0mt &
+                 + fi(17) *w2d*w0t   + fi(18) *w2md*w0t &
+                 + fi(19) *w2d*w0mt  + fi(20) *w2md*w0mt &
+                 + fi(21) *w1d*w1t   + fi(22) *w1md*w1t &
+                 + fi(23) *w1d*w1mt  + fi(24) *w1md*w1mt &
+                 + fi(25) *w2d*w1t   + fi(26) *w2md*w1t &
+                 + fi(27) *w2d*w1mt  + fi(28) *w2md*w1mt &
+                 + fi(29) *w1d*w2t   + fi(30) *w1md*w2t &
+                 + fi(31) *w1d*w2mt  + fi(32) *w1md*w2mt &
+                 + fi(33) *w2d*w2t   + fi(34) *w2md*w2t &
+                 + fi(35) *w2d*w2mt  + fi(36) *w2md*w2mt
+      end function
+
+
+      ! cubic hermite polynomial functions                                                               
+      ! psi0 & derivatives                                                                                         
+      function xpsi0(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, xpsi0
+            xpsi0 = z * z * (2.0d0*z - 3.0d0) + 1.0
+      end function
+
+      function xdpsi0(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, xdpsi0
+            xdpsi0 = z * (6.0d0*z - 6.0d0)
+      end function
+
+
+      ! psi1 & derivatives                                                                                         
+      function xpsi1(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, xpsi1
+            xpsi1 = z * ( z * (z - 2.0d0) + 1.0d0)
+      end function
+
+      function xdpsi1(z)
+      !$acc routine vector                                                                                         
+            double precision :: z, xdpsi1
+            xdpsi1 = z * (3.0d0*z - 4.0d0) + 1.0d0
+      end function
+
+      ! bicubic hermite polynomial function                                                              
+      function h3(fi,w0t,w1t,w0mt,w1mt,w0d,w1d,w0md,w1md)
+      !$acc routine vector                                                                                         
+            double precision :: fi(36)
+            double precision :: w0t,w1t,w0mt,w1mt,w0d,w1d,w0md,w1md,h3
+            h3 =   fi(1)  *w0d*w0t   +  fi(2)  *w0md*w0t &
+                 + fi(3)  *w0d*w0mt  +  fi(4)  *w0md*w0mt &
+                 + fi(5)  *w0d*w1t   +  fi(6)  *w0md*w1t &
+                 + fi(7)  *w0d*w1mt  +  fi(8)  *w0md*w1mt &
+                 + fi(9)  *w1d*w0t   +  fi(10) *w1md*w0t &
+                 + fi(11) *w1d*w0mt  +  fi(12) *w1md*w0mt &
+                 + fi(13) *w1d*w1t   +  fi(14) *w1md*w1t &
+                 + fi(15) *w1d*w1mt  +  fi(16) *w1md*w1mt
+      end function
 
 end module helmeos_module
