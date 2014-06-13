@@ -1,3 +1,39 @@
+module helmeos_module
+
+!..for the tables, in general
+      integer          imax,jmax
+      parameter        (imax = 271, jmax = 101)
+      double precision d(imax),t(jmax)
+      
+      double precision tlo, thi, tstp, tstpi
+      double precision dlo, dhi, dstp, dstpi
+
+!..for the helmholtz free energy tables
+      double precision f(imax,jmax),fd(imax,jmax),                     &
+                       ft(imax,jmax),fdd(imax,jmax),ftt(imax,jmax),    &
+                       fdt(imax,jmax),fddt(imax,jmax),fdtt(imax,jmax), &
+                       fddtt(imax,jmax)
+
+!..for the pressure derivative with density ables
+      double precision dpdf(imax,jmax),dpdfd(imax,jmax),                &
+                       dpdft(imax,jmax),dpdfdt(imax,jmax)
+
+!..for chemical potential tables
+      double precision ef(imax,jmax),efd(imax,jmax),                    &
+                       eft(imax,jmax),efdt(imax,jmax)
+
+!..for the number density tables
+      double precision xf(imax,jmax),xfd(imax,jmax),                    &
+                       xft(imax,jmax),xfdt(imax,jmax)
+
+!..for storing the differences
+      double precision dt_sav(jmax),dt2_sav(jmax),                      &
+                       dti_sav(jmax),dt2i_sav(jmax),                    &
+                       dd_sav(imax),dd2_sav(imax),                      &
+                       ddi_sav(imax),dd2i_sav(imax)
+
+contains
+
       subroutine helmeos(do_coulomb, eosfail, state)
 
       use bl_error_module
@@ -5,7 +41,6 @@
       use eos_type_module
 
       implicit none
-      include 'vector_eos_f90.dek'
 
 !  Frank Timmes Helmholtz based Equation of State
 !  http://cococubed.asu.edu/
@@ -903,28 +938,23 @@
        state % dpdr_e = dpresdd - dpresdt * denerdd / denerdt
        
       return
-      end
+      end subroutine helmeos
 
 !     -----------------------------------------------------------------
-      subroutine helmeos_init
+      subroutine helmeos_init(initialized)
       use bl_error_module
 !      use parallel
       implicit none
       
-      include 'vector_eos_f90.dek'
-
       double precision dth, dt2, dti, dt2i
       double precision dd, dd2, ddi, dd2i
       double precision tsav, dsav
       integer i, j
 
-      logical          first
-      data             first/.false./ 
+      logical          initialized
 
-      if ( first ) return
+      if ( initialized ) return
 
-      first = .true.
-      
 !..   open the table
       open(unit=2,file='helm_table.dat',status='old',err=1010)
       GO TO 1011
@@ -996,6 +1026,9 @@
       end do
 
       close(unit=2)
+
+      initialized = .true.
+    
 !
 !..   popular format statements
 ! 03   format(1x,4(a,1pe11.3))
@@ -1010,5 +1043,6 @@
 !         write(6,*)
 !      end if
 
-      end
+      end subroutine helmeos_init
 
+end module helmeos_module

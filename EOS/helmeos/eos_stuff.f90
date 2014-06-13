@@ -6,6 +6,7 @@ module eos_module
   use network, only: nspec, aion, zion
   use eos_type_module
   use eos_data_module
+  use helmeos_module
 
   implicit none
 
@@ -57,10 +58,8 @@ contains
     ! Call the helmeos initialization routine and read in the table 
     ! containing the electron contribution.
 
-    call helmeos_init()
+    call helmeos_init(initialized)
 
-    initialized = .true.
- 
   end subroutine eos_init
 
 
