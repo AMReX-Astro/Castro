@@ -104,7 +104,7 @@ module helmeos_module
 
 contains
 
-      subroutine helmeos(do_coulomb, eosfail, state, N, input)
+      subroutine helmeos(do_coulomb, eosfail, state, N, input, input_is_constant)
 
       use bl_error_module
       use bl_types
@@ -141,6 +141,7 @@ contains
       integer :: N
       type (eos_t), dimension(N) :: state
       integer :: input
+      logical :: input_is_constant
 
 !..outputs
       double precision temp_row(N), den_row(N), abar_row(N), &
@@ -153,8 +154,8 @@ contains
                        dez_row(N),  &
                        stot_row(N), dsd_row(N), dst_row(N), &
                        htot_row(N), dhd_row(N), dht_row(N), &
-                       dpe_row(N), dpdr_e_row(N)
-      double precision gam1_row(N), cs_row(N)
+                       dpe_row(N), dpdr_e_row(N), &
+                       gam1_row(N), cs_row(N)
 
 ! these directives are used by f2py to generate a python wrapper around this
 ! fortran code
@@ -210,9 +211,7 @@ contains
                        dsi0t,dsi1t,dsi2t,dsi0mt,dsi1mt,dsi2mt, &
                        dsi0d,dsi1d,dsi2d,dsi0md,dsi1md,dsi2md, &
                        ddsi0t,ddsi1t,ddsi2t,ddsi0mt,ddsi1mt,ddsi2mt, &
-                       z,din,fi(36)!, &
-                       !w0t,w1t,w2t,w0mt,w1mt,w2mt, &
-                       !w0d,w1d,w2d,w0md,w1md,w2md
+                       z,din,fi(36)
 
 !..for the coulomb corrections
       double precision dsdd,dsda,lami,inv_lami,lamida,lamidd,     &
@@ -272,7 +271,7 @@ contains
 
         double_iter = .true.
         v1_want(:) = state(:) % p
-        v1_want(:) = state(:) % h
+        v2_want(:) = state(:) % h
         var1 = ipres
         var2 = ienth
 
@@ -962,7 +961,6 @@ contains
                     dv1dt = dht_row(j)
                     dv1dr = dhd_row(j)
                else
-!                    ierr = ierr_iter_var
                     exit
                endif
 
@@ -983,7 +981,6 @@ contains
                     dv2dt = dht_row(j)
                     dv2dr = dhd_row(j)
                else
-!                    ierr = ierr_iter_var
                     exit
                endif
 
@@ -1028,6 +1025,42 @@ contains
 
       enddo
 
+      if (input_is_constant) then
+
+        if (input .eq. eos_input_rh) then
+
+          state(:) % h = v_want(:)
+
+        elseif (input .eq. eos_input_tp) then
+
+          state(:) % p = v_want(:)
+
+        elseif (input .eq. eos_input_rp) then
+
+          state(:) % p = v_want(:)
+
+        elseif (input .eq. eos_input_re) then
+
+          state(:) % e = v_want(:)
+
+        elseif (input .eq. eos_input_ps) then
+
+          state(:) % p = v1_want(:)
+          state(:) % s = v2_want(:)
+
+        elseif (input .eq. eos_input_ph) then
+
+          state(:) % p = v1_want(:)
+          state(:) % h = v2_want(:)
+
+        elseif (input .eq. eos_input_th) then
+
+          state(:) % h = v_want(:)
+
+        endif
+
+      endif
+
       state(:) % p    = ptot_row
       state(:) % dpdT = dpt_row
       state(:) % dpdr = dpd_row
@@ -1061,7 +1094,18 @@ contains
       state(:) % cv   = cv_row
       state(:) % cp   = cp_row
       state(:) % gam1 = gam1_row
-      state(:) % cs   = cs_row
+!      state(:) % cs   = cs_row
+
+      ! Take care of final housekeeping.
+
+      ! Count the positron contribution in the electron quantities.
+      state(:) % xne  = state(:) % xne  + state(:) % xnp
+      state(:) % pele = state(:) % pele + state(:) % ppos
+ 
+      ! Use the non-relativistic version of the sound speed, cs = sqrt(gam_1 * P / rho).
+      ! This replaces the relativistic version that comes out of helmeos.
+
+      state(:) % cs = sqrt(state(:) % gam1 * state(:) % p / state(:) % rho)
 
       end subroutine helmeos
 

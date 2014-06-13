@@ -195,18 +195,7 @@ contains
 
     ! Call the EOS.
 
-    call helmeos(do_coulomb, eosfail, state, N, input)
-
-    ! Take care of final housekeeping.
-
-    ! Count the positron contribution in the electron quantities.
-    state(:) % xne  = state(:) % xne  + state(:) % xnp
-    state(:) % pele = state(:) % pele + state(:) % ppos
-
-    ! Use the non-relativistic version of the sound speed, cs = sqrt(gam_1 * P / rho).
-    ! This replaces the relativistic version that comes out of helmeos.
-
-    state(:) % cs = sqrt(state(:) % gam1 * state(:) % p / state(:) % rho)
+    call helmeos(do_coulomb, eosfail, state, N, input, input_is_constant)
 
     ! Get dpdX, dedX, dhdX.
 
