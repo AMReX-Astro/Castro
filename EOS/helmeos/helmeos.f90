@@ -286,6 +286,20 @@ contains
 
 !..start of vectorization loop, normal execution starts here
 
+      ! Note that for OpenACC, we do not seem to need to have a present clause
+      ! for the various constants and arrays -- the enter data constructs in helm_init
+      ! is enough for the Cray compiler to recognize they are present at runtime.
+
+      !$acc parallel loop &
+      !$acc copy(den_row,temp_row) &
+      !$acc copyin(abar_row,zbar_row) &
+      !$acc copyin(input,var,dvar,v_want) &
+      !$acc copyout(ptot_row,dpt_row,dpd_row,dpe_row,dpdr_e_row)  &
+      !$acc copyout(etot_row,det_row,ded_row,dea_row,dez_row) &
+      !$acc copyout(stot_row,dst_row,dsd_row) &
+      !$acc copyout(htot_row,dht_row,dhd_row) &
+      !$acc copyout(cs_row,cv_row,cp_row,gam1_row) &
+      !$acc copyout(etaele_row,pele_row,ppos_row,xne_row,xnp_row)
       do j = 1, N
 
          converged = .false.
@@ -368,9 +382,9 @@ contains
 
             !..hash locate this temperature and density
             jat = int((log10(temp) - tlo)*tstpi) + 1
-            jat = max(1,min(jat,jmax-1))
+            jat = max(1,min(jat,jtmax-1))
             iat = int((log10(din) - dlo)*dstpi) + 1
-            iat = max(1,min(iat,imax-1))
+            iat = max(1,min(iat,itmax-1))
 
             !..access the table locations only once
             fi(1)  = f(iat,jat)
@@ -831,6 +845,8 @@ contains
             ptot_row(j) = pres
             dpt_row(j) = dpresdt
             dpd_row(j) = dpresdd
+            dpa_row(j) = dpresda
+            dpz_row(j) = dpresdz
             dpe_row(j) = dpresdt / denerdt
             dpdr_e_row(j) = dpresdd - dpresdt * denerdd / denerdt
 
@@ -986,7 +1002,7 @@ contains
 
                ! Two functions, f and g, to iterate over
                v1i = v1_want(j) - v1
-               v1i = v2_want(j) - v2
+               v2i = v2_want(j) - v2
 
                !
                ! 0 = f + dfdr * delr + dfdt * delt
@@ -1024,6 +1040,7 @@ contains
          enddo
 
       enddo
+      !$acc end parallel loop
 
       state(:) % T    = temp_row
       state(:) % rho  = den_row
@@ -1113,9 +1130,10 @@ contains
       end subroutine helmeos
 
 !     -----------------------------------------------------------------
-      subroutine helmeos_init(initialized)
+      subroutine helmeos_init
 
       use bl_error_module
+      use eos_data_module
 
       implicit none
       
@@ -1123,8 +1141,6 @@ contains
       double precision dd, dd2, ddi, dd2i
       double precision tsav, dsav
       integer i, j
-
-      logical          initialized
 
       if ( initialized ) return
 
@@ -1137,6 +1153,8 @@ contains
 
       itmax = imax
       jtmax = jmax
+
+      !$acc enter data copyin(itmax,jtmax)
 
 !..   read the helmholtz free energy table
       tlo   = 3.0d0
@@ -1158,12 +1176,18 @@ contains
          end do
       end do
 
+      !$acc enter data copyin(tlo,thi,tstp,tstpi,dlo,dhi,dstp,dstpi)
+      !$acc enter data copyin(d,t)
+      !$acc enter data copyin(f,fd,ft,fdd,ftt,fdt,fdtt,fddt,fddtt)
+
 !..   read the pressure derivative with density table
       do j = 1, jmax
          do i = 1, imax
             read(2,*) dpdf(i,j),dpdfd(i,j),dpdft(i,j),dpdfdt(i,j)
          end do
       end do
+
+      !$acc enter data copyin(dpdf,dpdfd,dpdft,dpdfdt)
 
 !..   read the electron chemical potential table
       do j = 1, jmax
@@ -1172,12 +1196,16 @@ contains
          end do
       end do
 
+      !$acc enter data copyin(ef,efd,eft,efdt)
+
 !..   read the number density table
       do j = 1, jmax
          do i = 1, imax
             read(2,*) xf(i,j),xfd(i,j),xft(i,j),xfdt(i,j)
          end do
       end do
+
+      !$acc enter data copyin(xf,xfd,xft,xfdt)
 
 !..   construct the temperature and density deltas and their inverses 
       do j = 1, jmax-1
@@ -1200,6 +1228,9 @@ contains
          ddi_sav(i)  = ddi
          dd2i_sav(i) = dd2i
       end do
+
+      !$acc enter data copyin(dt_sav,dt2_sav,dti_sav,dt2i_sav)
+      !$acc enter data copyin(dd_sav,dd2_sav,ddi_sav,dd2i_sav)
 
       close(unit=2)
 
@@ -1227,6 +1258,21 @@ contains
       ikavo   = 1.0d0/kergavo
       asoli3  = asol/3.0d0
       light2  = clight * clight
+
+
+      !$acc enter data &                                                                           
+      !$acc copyin(msol,rsol,lsol,mearth,rearth,ly,pc,au,secyer) &
+      !$acc copyin(ssol,asol,weinlam,weinfre,rhonuc) &
+      !$acc copyin(pi,eulercon,a2rad,rad2a) &
+      !$acc copyin(g,h,hbar,qe,avo,clight,kerg,ev2erg,kev,amu,mn,mp,me,rbohr,fine,hion) &
+      !$acc copyin(sioncon,forth,forpi,kergavo,ikavo,asoli3,light2) &
+      !$acc copyin(a1,b1,c1,d1,e1,a2,b2,c2,onethird,esqu)
+
+      !$acc enter data &
+      !$acc copyin(eos_input_rt,eos_input_rh,eos_input_tp,eos_input_rp) &
+      !$acc copyin(eos_input_re,eos_input_ps,eos_input_ph,eos_input_th) &
+      !$acc copyin(iener,ienth,itemp,idens,ientr,ipres) &
+      !$acc copyin(smallt,smalld,ttol,dtol)
 
       initialized = .true.
     

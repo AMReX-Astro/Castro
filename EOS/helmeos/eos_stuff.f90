@@ -54,7 +54,7 @@ contains
     ! Call the helmeos initialization routine and read in the table 
     ! containing the electron contribution.
 
-    call helmeos_init(initialized)
+    call helmeos_init
 
   end subroutine eos_init
 
