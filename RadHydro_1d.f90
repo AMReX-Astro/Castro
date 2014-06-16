@@ -22,7 +22,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   use network, only : nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
-       QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
+       QVAR, QRHO, QU, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
        nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
@@ -229,6 +229,8 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   deallocate(dpdrho,dpde,flatg)
 
+  q(:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
+  
 end subroutine ctoprim_rad
 
 ! ::: ---------------------------------------------------------------
@@ -309,7 +311,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   allocate ( dq(ilo-1:ihi+1,QRADVAR))
   allocate ( qm(ilo-1:ihi+1,QRADVAR))
   allocate ( qp(ilo-1:ihi+1,QRADVAR))
-  
+
 !     Trace to edges w/o transverse flux correction terms
   if (ppm_type .gt. 0) then
      call trace_ppm_rad(lam, lam_l1, lam_h1, &       

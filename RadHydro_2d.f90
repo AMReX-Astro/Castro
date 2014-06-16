@@ -28,7 +28,7 @@ subroutine ctoprim_rad(lo,hi, &
   use network, only : nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
-       QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
+       QVAR, QRHO, QU, QV, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
        nadv, allow_negative_energy, small_temp
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
@@ -291,6 +291,8 @@ subroutine ctoprim_rad(lo,hi, &
   endif
 
   deallocate(dpdrho,dpde, flatg)
+
+  q(:,:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
 
 end subroutine ctoprim_rad
 
