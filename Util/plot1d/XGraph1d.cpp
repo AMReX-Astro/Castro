@@ -48,8 +48,9 @@ XGFrame::~XGFrame()
 //   ##### XGraph1d members
 //   ############################################################
 
-XGraph1d::XGraph1d(Amr& amrsys ){
-	amrptr = &amrsys;
+XGraph1d::XGraph1d(Amr& amrsys )
+{
+    amrptr = &amrsys;
 
     //parse input file
     ParmParse pp("xgraph");
@@ -195,6 +196,11 @@ void XGraph1d::addVar(std::string& file_nm, std::string& var_nm, int freq, int l
 
 void XGraph1d::draw(int nstep, Real time, int force_draw)
 {
+   if (frames.size()==0) return;
+
+   if (frames.size() > XGPtMXGY) 
+       BoxLib::Error("xgraph hardwired max number of vars");
+    
    if (format == "all" || format == "All" || format == "ALL") {
        draw_all(nstep, time, force_draw);
    }
@@ -205,7 +211,6 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
 
 void XGraph1d::draw_single(int nstep, Real time, int force_draw)
 {
-   if (frames.size()==0) return;
    std::list<XGFrame>::iterator lib=frames.begin();
    // determine whether any variable will be plotted this step
    // (all variables are derived whenever any one is plotted)
@@ -496,8 +501,6 @@ void XGraph1d::dumpXGraph(MultiFab& q, MultiFab& qf,int comp,
 
 void XGraph1d::draw_all(int nstep, Real time, int force_draw)
 {
-    if (frames.size()==0) return;
-    
     // determine whether any variable will be plotted this step
     // (all variables are derived whenever any one is plotted)
     // create vector of filenames and mappings from variable names

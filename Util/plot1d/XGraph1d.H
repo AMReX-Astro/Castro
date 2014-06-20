@@ -41,7 +41,7 @@ class XGFrame {
 // forward ref
 class Amr;
 
-static const int XGPtMXGY=128; // Man is weak...
+static const int XGPtMXGY=256; // Man is weak...
 class XGPt {
 public:
    Real x;
