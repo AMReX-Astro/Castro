@@ -79,8 +79,9 @@ module interpolate_module
 
     end function interpolate
 
-    function tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
-                             model_x, model_y, model_z, model_var)
+    subroutine tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
+                               model_x, model_y, model_z, model_var, &
+                               interp_var, derivs, error)
 
       use bl_error_module
       use bl_constants_module, only: ONE
@@ -94,13 +95,15 @@ module interpolate_module
                                          model_y(npts_y), &
                                          model_z(npts_z), &
                                          model_var(npts_x,npts_y,npts_z)
-      double precision :: tri_interpolate
+      double precision, intent(  out) :: interp_var, derivs(3)
+      logical,          intent(  out) :: error
 
-      integer :: i
       integer :: ix,iy,iz
       double precision :: deltax, deltay, deltaz
       double precision :: c(8), delta(8)
-        
+
+      error = .false.
+
       ! find the indices below the point (x,y,z)
       do ix = 2, npts_x
          if (model_x(ix) .ge. x) exit
@@ -111,8 +114,11 @@ module interpolate_module
       do iz = 2, npts_z
          if (model_z(iz) .ge. z) exit
       enddo
-      if ((ix>npts_x) .or. (iy>npts_y) .or. (iz>npts_z)) &
-           call bl_error("tri-interpolate: point out of bounds!")
+      if ((ix>npts_x) .or. (iy>npts_y) .or. (iz>npts_z)) then !&
+         error = .true.
+         return
+      endif
+
       ix=ix-1
       iy=iy-1
       iz=iz-1
@@ -142,9 +148,13 @@ module interpolate_module
              model_var(ix+1,iy  ,iz  ) - model_var(ix  ,iy  ,iz  )
 
       ! interpolated value
-      tri_interpolate = sum(c*delta)
+      interp_var = sum(c*delta)
+      ! derivs: dvar/dx, dvar/dy, dvar/dz
+      derivs(1) = c(2) / (model_x(ix+1)-model_x(ix))
+      derivs(2) = c(3) / (model_y(iy+1)-model_y(iy))
+      derivs(3) = c(4) / (model_z(iz+1)-model_z(iz))
       
-    end function tri_interpolate
+    end subroutine tri_interpolate
 
 
     function locate(x, n, xs)
