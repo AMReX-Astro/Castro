@@ -1,0 +1,56 @@
+This EOS is modelled after the drivers found at
+stellarcollapse.org/equationofstate, but has been modified to work
+within our EOS framework.  For completeness, we note that the source
+code from stellarcollapse.org is distributed under the Creative
+Commons Attribution-noncommercial-share alike license:
+http://creativecommons.org/licenses/by-nc-sa/3.0/us/.  I think our
+source here is sufficiently different to not need be released under
+the same license, but if you have concerns, please contact the mailing
+list.
+
+######################################################################
+## NOTE
+######################################################################
+The EOS has only been tested against the
+LS220_240r_140t_50y_analmu_20120628_SVNr28.h5.bz2 EOS file, but should
+work for others from stellarcollapse.org.  We don't include those
+files here as they are quite large.
+
+######################################################################
+## NOTE
+######################################################################
+The tables are assumed to be indexed by density, temperature, and
+electron fraction (ye).  Make sure you use a network that has ye as an
+auxilliary variable.
+
+######################################################################
+## NOTE
+######################################################################
+This EOS is currently only a 'partial' EOS.  By that, we mean that not
+all modes of operation (eos_input_*) are supported at this time.
+Furthermore, only the dedT and dedr_e thermodynamic derivatives are
+returned at this time.  Currently, only the following calling methods
+are supported:
+
+1) eos_input_rt: 
+  - density and temperature input 
+  - this is direct table interpolation 
+2) eos_input_tp:
+  - temperature and pressure input 
+  - uses Newton iterations to find the thermodynamically consistent
+    density
+3) eos_input_rp:
+  - density and pressure input
+  - uses Newton iterations to find the thermodynamically consistent
+    temperature
+4) eos_input_re:
+  - density and internal energy input
+  - uses Newton iterations to find the thermodynamically consistent
+    temperature
+
+######################################################################
+## NOTE
+######################################################################
+HDF5 is needed to read in the tabulated EOS file.  You may need to
+tweak your Makefile setup to get this to work.  See, for example,
+./test/GNUmakefile.
