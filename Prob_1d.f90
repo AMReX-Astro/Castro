@@ -14,7 +14,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, &
        denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
        velgrad,  max_velgrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev
+       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, &
+       temperr,tempgrad,max_temperr_lev,max_tempgrad_lev
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
