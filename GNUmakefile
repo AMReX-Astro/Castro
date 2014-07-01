@@ -19,7 +19,7 @@ EOS_dir     := helmeos
 
 # This sets the EOS directory in $(CASTRO_DIR)/Networks
 NETWORK_HOME := $(ASTRODEV_DIR)/networks
-Network_dir := approx8
+Network_dir := aprox13
 
 Bpack   := ./Make.package
 Blocs   := .

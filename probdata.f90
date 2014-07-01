@@ -22,7 +22,7 @@ module probdata_module
       double precision, save ::  center(3)
       double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
       
-      integer, save :: ic12, io16
+      integer, save :: ihe4, ic12, io16
       double precision, save, allocatable :: xn(:)
 
 end module probdata_module

@@ -63,10 +63,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = frac*(problo(1)+probhi(1))
 
   ! get the species indices
+  ihe4 = network_species_index("helium-4")
   ic12 = network_species_index("carbon-12")
   io16 = network_species_index("oxygen-16")
 
-  if (ic12 < 0 .or. io16 < 0) then
+  if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
      call bl_error("ERROR: species indices not found")
   endif
 
@@ -81,7 +82,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   xn(:) = 0.d0
   xn(ic12) = cfrac
-  xn(io16) = 1.d0 - cfrac
+  xn(ihe4) = 1.d0 - cfrac
   
 end subroutine PROBINIT
 
