@@ -61,7 +61,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xmin = problo(1)
   xmax = probhi(1)
 
-  center(1) = frac*(problo(1)+probhi(1))
+  center(1) = 0.5d0*(problo(1)+probhi(1))
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")
@@ -129,14 +129,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision p_temp, eint_temp
   integer i
 
+  double precision :: L_x
+
   type (eos_t) :: eos_state
+
+  L_x = xmax - xmin
 
   do i = lo(1), hi(1)
      xcen = xmin + delta(1)*(dble(i) + 0.5d0)
 
      state(i,URHO ) = dens
             
-     if (xcen <= frac*(xmin + 0.5d0*(xmax-xmin))) then
+     if (xcen <= xmin + frac*L_x) then
         state(i,UTEMP) = T_l
      else
         state(i,UTEMP) = T_r
