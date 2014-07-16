@@ -261,8 +261,8 @@ buildInfo.cpp:
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" \
           --FCOMP "$(FCOMP)" \
-          --AUX "$(EOS_PATH)" "$(NETWORK_PATH)" \
-          --GIT "$(TOP)" "$(BOXLIB_HOME)" "$(ASTRODEV_DIR)" 
+          --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
+          --GIT "$(TOP) $(BOXLIB_HOME) $(ASTRODEV_DIR)" 
 
 
 vpath %.c   . $(VPATH_LOCATIONS)
