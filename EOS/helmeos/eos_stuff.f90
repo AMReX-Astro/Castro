@@ -12,9 +12,7 @@ module eos_module
 
   logical,         save, private :: do_coulomb
   logical,         save, private :: input_is_constant
-
-  double precision, save, private :: ttol = 1.0d-8
-  double precision, save, private :: dtol = 1.0d-8
+  integer,         save, private :: acc_cutoff
 
   private itemp, idens, iener, ienth, ientr, ipres 
   public eos_init, eos
@@ -27,7 +25,7 @@ contains
   subroutine eos_init(small_temp, small_dens)
 
     use parallel
-    use extern_probin_module, only: use_eos_coulomb, eos_input_is_constant
+    use extern_probin_module, only: use_eos_coulomb, eos_input_is_constant, eos_acc_cutoff
 
     implicit none
  
@@ -36,6 +34,7 @@ contains
  
     do_coulomb = use_eos_coulomb
     input_is_constant = eos_input_is_constant 
+    acc_cutoff = eos_acc_cutoff
 
     smallt = 1.d4
 
