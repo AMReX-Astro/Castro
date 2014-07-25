@@ -63,7 +63,7 @@ contains
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos(input, state_in, do_eos_diag, pt_index, state_len)
+  subroutine eos(input, state, do_eos_diag, pt_index, state_len)
 
     ! A generic wrapper for the Helmholtz electron/positron degenerate EOS.  
 
@@ -72,14 +72,12 @@ contains
     ! Input arguments
 
     integer,           intent(in   ) :: input
-    type (eos_t),      intent(inout) :: state_in
+    type (eos_t),      intent(inout) :: state(:)
     logical, optional, intent(in   ) :: do_eos_diag
     integer, optional, intent(in   ) :: pt_index(:)
     integer, optional, intent(in   ) :: state_len
 
     integer :: j, N
-
-    type (eos_t), allocatable :: state(:)
 
     ! Local variables and arrays
     
@@ -96,10 +94,6 @@ contains
     else
       N = 1
     endif
-
-    allocate(state(N))
-
-    state(1) = state_in
 
     if (.not. initialized) call bl_error('EOS: not initialized')
 
@@ -202,8 +196,6 @@ contains
     do j = 1, N
        call composition_derivatives(state(j), .false.)
     enddo
-
-    state_in = state(1)
 
   end subroutine eos
 

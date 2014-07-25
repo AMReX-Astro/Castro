@@ -394,35 +394,31 @@
       double precision :: rhoInv
       integer          :: i,j,k
 
-      type (eos_t) :: eos_state
-      !
-      ! Compute pressure from the EOS
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               rhoInv = ONE / u(i,j,k,URHO)
+      type (eos_t), allocatable :: eos_state(:)
+      integer :: nx(3), eos_state_len(1), n
 
-               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-               eos_state % rho = u(i,j,k,URHO)
-               eos_state % T   = u(i,j,k,UTEMP)
-               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-               !
-               ! Protect against negative internal energy.
-               !
-               if (allow_negative_energy .eq. 0 .and. eos_state % e .le. ZERO) then
-                  call eos(eos_input_rt, eos_state, .false.)
-               else
-                  call eos(eos_input_re, eos_state, .false.)
-               end if
+      nx = hi - lo + 1
+      eos_state_len(1) = nx(1) * nx(2) * nx(3)
+      allocate(eos_state(eos_state_len(1)))
 
-               p(i,j,k,1) = eos_state % p
-            enddo
-         enddo
+      do n = 1, nspec
+         eos_state(:) % xn(n)  = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
+                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO   ), eos_state_len)
       enddo
-      !$OMP END PARALLEL DO
+      do n = 1, naux
+         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
+                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO   ), eos_state_len)
+      enddo
+
+      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
+      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
+      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+
+      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+      p(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % p, nx)
+
+      deallocate(eos_state)
 
       end subroutine ca_derpres
 
@@ -526,37 +522,31 @@
       double precision :: rhoInv
       integer          :: i,j,k
 
-      type (eos_t) :: eos_state
+      type (eos_t), allocatable :: eos_state(:)
+      integer :: nx(3), eos_state_len(1), n
 
-      c = ZERO
-      !
-      ! Compute soundspeed from the EOS.
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               rhoInv = ONE / u(i,j,k,URHO)
-              
-               eos_state % e = u(i,j,k,UEINT) * rhoInv
+      nx = hi - lo + 1
+      eos_state_len(1) = nx(1) * nx(2) * nx(3)
+      allocate(eos_state(eos_state_len(1)))
 
-               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
-
-                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-                  eos_state % rho = u(i,j,k,URHO) 
-                  eos_state % T   = u(i,j,k,UTEMP)
-
-                  call eos(eos_input_re, eos_state, .false.)
-
-                  c(i,j,k,1) = eos_state % cs
-
-               end if
-
-            enddo
-         enddo
+      do n = 1, nspec
+         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
+                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
       enddo
-      !$OMP END PARALLEL DO
+      do n = 1, naux
+         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
+                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      enddo
+
+      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
+      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+
+      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+      c(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % cs, nx)
+
+      deallocate(eos_state)
 
       end subroutine ca_dersoundspeed
 
@@ -586,37 +576,34 @@
       double precision :: rhoInv,ux,uy,uz
       integer          :: i,j,k
 
-      type (eos_t) :: eos_state
+      type (eos_t), allocatable :: eos_state(:)
+      integer :: nx(3), eos_state_len(1), n
 
-      mach = ZERO
-      !
-      ! Compute Mach number of the flow.
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,eos_state)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               rhoInv = ONE / u(i,j,k,URHO)
+      nx = hi - lo + 1
+      eos_state_len(1) = nx(1) * nx(2) * nx(3)
+      allocate(eos_state(eos_state_len(1)))
 
-               eos_state % e = u(i,j,k,UEINT) * rhoInv
-
-               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
-                  ux = u(i,j,k,UMX) * rhoInv
-                  uy = u(i,j,k,UMY) * rhoInv
-                  uz = u(i,j,k,UMZ) * rhoInv
-                  eos_state % rho = u(i,j,k,URHO)
-                  eos_state % T   = u(i,j,k,UTEMP)
-                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                  call eos(eos_input_re, eos_state, .false.)
-                  mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
-               end if
-
-            enddo
-         enddo
+      do n = 1, nspec
+         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
+                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
       enddo
-      !$OMP END PARALLEL DO
+      do n = 1, naux
+         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
+                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      enddo
+
+      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
+      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+
+      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+      mach(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = ( u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
+                                                      u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
+                                                      u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2 )**0.5 / &
+                                                    reshape(eos_state(:) % cs / eos_state(:) % rho, nx)
+
+      deallocate(eos_state)
 
       end subroutine ca_dermachnumber
 
@@ -646,33 +633,31 @@
       double precision :: rhoInv
       integer i,j,k
 
-      type (eos_t) :: eos_state
+      type (eos_t), allocatable :: eos_state(:)
+      integer :: nx(3), eos_state_len(1), n
 
-      s = ZERO
-      !
-      ! Compute entropy from the EOS.
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
-      do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-               rhoInv = ONE / u(i,j,k,URHO)
+      nx = hi - lo + 1
+      eos_state_len(1) = nx(1) * nx(2) * nx(3)
+      allocate(eos_state(eos_state_len(1)))
 
-               eos_state % e  = u(i,j,k,UEINT) * rhoInv
-
-               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
-                  eos_state % rho = u(i,j,k,URHO)
-                  eos_state % T   = u(i,j,k,UTEMP)
-                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                  call eos(eos_input_re, eos_state, .false.)
-                  s(i,j,k,1) = eos_state % s
-               end if
-            enddo
-         enddo
+      do n = 1, nspec
+         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
+                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
       enddo
-      !$OMP END PARALLEL DO
+      do n = 1, naux
+         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
+                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      enddo
+
+      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
+      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+
+      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+      s(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % s, nx)
+
+      deallocate(eos_state)
 
       end subroutine ca_derentropy
 

@@ -18,12 +18,12 @@
       integer          :: pt_index(3)
       double precision :: Up, Vp, Wp, ke, rho_eint, eint_new
 
-      type (eos_t) :: eos_state
+      type (eos_t) :: eos_state(1)
 
       ! Reset internal energy
       if (allow_negative_energy .eq. 0) then
 
-         !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,Up,Vp,Wp,ke,rho_eint,eint_new)
+!         !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,Up,Vp,Wp,ke,rho_eint,eint_new)
          do k = lo(3),hi(3)
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -48,18 +48,15 @@
               ! If not resetting and little e is negative ...
               else if (u(i,j,k,UEINT) .le. ZERO) then
 
+                 eos_state(1) % rho = u(i,j,k,URHO)
+                 eos_state(1) % T   = small_temp 
+                 eos_state(1) % e   = ZERO
+                 eos_state(1) % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
+                 eos_state(1) % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
 
-                 eos_state % rho = u(i,j,k,URHO)
-                 eos_state % T   = small_temp 
-                 eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
-                 eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
-
-                 pt_index(1) = i
-                 pt_index(2) = j
-                 pt_index(3) = k
                  call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
 
-                 eint_new = eos_state % e
+                 eint_new = eos_state(1) % e
 
                  if (verbose .gt. 0) then
                     print *,'   '
@@ -76,7 +73,7 @@
          enddo
          enddo
          enddo
-         !$OMP END PARALLEL DO
+!         !$OMP END PARALLEL DO
 
       ! If (allow_negative_energy .eq. 1) then just reset (rho e) from (rho E)
       else

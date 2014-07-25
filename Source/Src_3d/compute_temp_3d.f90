@@ -15,11 +15,16 @@
       double precision, intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,&
                                                state_l3:state_h3,NVAR)
 
-      integer          :: i,j,k
+      integer          :: i,j,k,n
       double precision :: rhoInv
       integer          :: pt_index(3)
 
-      type (eos_t) :: eos_state
+      type (eos_t), allocatable :: eos_state(:)
+      integer :: eos_state_len(1), nx(3), n
+      
+      nx = hi - lo + 1
+      eos_state_len(1) = nx(1) * nx(2) * nx(3)
+      allocate(eos_state(eos_state_len(1)))
 
       do k = lo(3),hi(3)
       do j = lo(2),hi(2)
@@ -50,39 +55,31 @@
          enddo
       end if
 
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index)
-      do k = lo(3),hi(3)
-      do j = lo(2),hi(2)
-      do i = lo(1),hi(1)
-
-         rhoInv = ONE / state(i,j,k,URHO)
-
-         eos_state % rho = state(i,j,k,URHO)
-         eos_state % e   = state(i,j,k,UEINT) * rhoInv
-         eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-         eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-         eos_state % T   = state(i,j,k,UTEMP) ! Initial guess for EOS
-
-         pt_index(1) = i
-         pt_index(2) = j
-         pt_index(3) = k
-
-         call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
-
-         state(i,j,k,UTEMP) = eos_state % T
-
-         ! Reset energy in case we floored
-
-         state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-         state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF &
-                            * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 &
-                            +  state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
-
+      eos_state(:) % rho = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
+      eos_state(:) % T   = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len) ! Initial guess for the EOS
+      eos_state(:) % e   = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+      do n = 1, nspec
+         eos_state(:) % xn(n)  = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1), eos_state_len) / eos_state(:) % rho
       enddo
+      do n = 1, naux
+         eos_state(:) % aux(n) = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1), eos_state_len) / eos_state(:) % rho
       enddo
-      enddo
-      !$OMP END PARALLEL DO
+
+      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+      !$OMP PARALLEL WORKSHARE
+
+      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) = reshape(eos_state(:) % T, nx)
+
+      ! Reset energy in case we floored
+      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) * &
+                                                         reshape(eos_state(:) % e, nx)
+      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEDEN) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) + HALF * &
+                                                         (state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
+                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
+                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2) / &
+                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
+      
+      !$OMP END PARALLEL WORKSHARE
 
       end subroutine compute_temp

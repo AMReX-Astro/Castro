@@ -32,7 +32,7 @@ contains
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer idir,ilo,ihi,jlo,jhi
     integer i,j,kc,kflux,k3d
-    integer domlo(3),domhi(3)
+    integer domlo(3),domhi(3),nx(2)
 
     double precision qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
@@ -46,7 +46,8 @@ contains
     double precision, allocatable :: smallc(:,:),cavg(:,:)
     double precision, allocatable :: gamcm(:,:),gamcp(:,:)
 
-    type (eos_t) :: eos_state
+    type (eos_t), allocatable :: eos_state(:)
+    integer :: eos_state_len(1), nx(2), n
 
     allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
@@ -89,43 +90,49 @@ contains
        ! we want to take the edge states of rho, p, and X, and get
        ! new values for gamc and (rho e) on the edges that are 
        ! thermodynamically consistent.
-       do j = jlo, jhi
-          do i = ilo, ihi
 
-             ! this is an initial guess for iterations, since we
-             ! can't be certain that temp is on interfaces
-             eos_state%T = 10000.0d0   
-                              
-             ! minus state
-             eos_state%rho = qm(i,j,kc,QRHO)
-             eos_state%p   = qm(i,j,kc,QPRES)
-             eos_state%e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
-             eos_state%xn  = qm(i,j,kc,QFS:QFS-1+nspec)
-             eos_state%aux = qm(i,j,kc,QFX:QFX-1+naux)
+       nx(1) = ihi - ilo + 1
+       nx(2) = jhi - jlo + 1
 
-             call eos(eos_input_re, eos_state, .false.)
+       eos_state_len(1) = nx(1) * nx(2)
+       allocate(eos_state(eos_state_len(1)))
 
-             qm(i,j,kc,QREINT) = qm(i,j,kc,QRHO)*eos_state%e
-             qm(i,j,kc,QPRES) = eos_state%p
-             gamcm(i,j) = eos_state%gam1
+       ! this is an initial guess for iterations, since we
+       ! can't be certain that temp is on interfaces
+       eos_state(:) % T = 10000.0d0
 
-
-             ! plus state
-             eos_state%rho = qp(i,j,kc,QRHO)
-             eos_state%p   = qp(i,j,kc,QPRES)
-             eos_state%e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
-             eos_state%xn  = qp(i,j,kc,QFS:QFS-1+nspec)
-             eos_state%aux = qp(i,j,kc,QFX:QFX-1+naux)
-
-             call eos(eos_input_re, eos_state, .false.)
-
-             qp(i,j,kc,QREINT) = qp(i,j,kc,QRHO)*eos_state%e
-             qp(i,j,kc,QPRES) = eos_state%p
-             gamcp(i,j) = eos_state%gam1
-
-          enddo
+       ! minus state
+       eos_state(:) % rho = reshape(qm(ilo:ihi,jlo:jhi,kc,QRHO),eos_state_len)
+       eos_state(:) % p = reshape(qm(ilo:ihi,jlo:jhi,kc,QPRES),eos_state_len)
+       do n = 1, nspec
+          eos_state(:) % xn(n)  = reshape(qm(ilo:ihi,jlo:jhi,kc,QFS+n-1),eos_state_len)
        enddo
-         
+       do n = 1, naux
+          eos_state(:) % aux(n) = reshape(qm(ilo:ihi,jlo:jhi,kc,QFX+n-1),eos_state_len)
+       enddo
+
+       call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+       qm(ilo:ihi,jlo:jhi,kc,QREINT) = reshape(eos_state(:) % e, nx) * qm(ilo:ihi,jlo:jhi,kc,QRHO)
+       qm(ilo:ihi,jlo:jhi,kc,QPRES)  = reshape(eos_state(:) % p, nx)
+       gamcm(ilo:ihi,jlo:jhi)        = reshape(eos_state(:) % gam1, nx)
+
+       ! plus state
+       eos_state(:) % rho = reshape(qp(ilo:ihi,jlo:jhi,kc,QRHO),eos_state_len)
+       eos_state(:) % p = reshape(qp(ilo:ihi,jlo:jhi,kc,QPRES),eos_state_len)
+       do n = 1, nspec
+          eos_state(:) % xn(n)  = reshape(qp(ilo:ihi,jlo:jhi,kc,QFS+n-1),eos_state_len)
+       enddo
+       do n = 1, naux
+          eos_state(:) % aux(n) = reshape(qp(ilo:ihi,jlo:jhi,kc,QFX+n-1),eos_state_len)
+       enddo
+
+       call eos(eos_input_re, eos_state)
+
+       qp(ilo:ihi,jlo:jhi,kc,QREINT) = reshape(eos_state(:) % e, nx) * qp(ilo:ihi,jlo:jhi,kc,QRHO)
+       qp(ilo:ihi,jlo:jhi,kc,QPRES)  = reshape(eos_state(:) % p, nx)
+       gamcp(ilo:ihi,jlo:jhi)        = reshape(eos_state(:) % gam1, nx)
+
     endif
 
     ! Solve Riemann problem
@@ -227,26 +234,26 @@ contains
 
     double precision, allocatable :: pstar_hist(:)
 
-    type (eos_t) :: eos_state
+    type (eos_t) :: eos_state(1)
 
     tol = cg_tol
     iter_max = cg_maxiter
 
     allocate (pstar_hist(iter_max))
 
-    !$OMP PARALLEL DO PRIVATE(i,j) &
-    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,gcl,gcr) &
-    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
-    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
-    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
-    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
-    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
-    !$OMP PRIVATE(ro,uo,po,tauo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
-    !$OMP PRIVATE(rstar,cstar,spout,spin,ushock,scr,frac) &
-    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
-    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
-    !$OMP PRIVATE(pstar_hist) &
-    !$OMP PRIVATE(eos_state)
+!    !$OMP PARALLEL DO PRIVATE(i,j) &
+!    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,gcl,gcr) &
+!    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
+!    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
+!    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
+!    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
+!    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
+!    !$OMP PRIVATE(ro,uo,po,tauo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
+!    !$OMP PRIVATE(rstar,cstar,spout,spin,ushock,scr,frac) &
+!    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
+!    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
+!    !$OMP PRIVATE(pstar_hist) &
+!    !$OMP PRIVATE(eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -278,16 +285,16 @@ contains
           if (rel <= ZERO .or. pl < small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
 
-             eos_state%T   = small_temp
-             eos_state%rho = rl
-             eos_state%xn  = ql(i,j,kc,QFS:QFS-1+nspec)
-             eos_state%aux = ql(i,j,kc,QFX:QFX-1+naux)
+             eos_state(1) % T   = small_temp
+             eos_state(1) % rho = rl
+             eos_state(1) % xn  = ql(i,j,kc,QFS:QFS-1+nspec)
+             eos_state(1) % aux = ql(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
-             rel = rl*eos_state%e
-             pl  = eos_state%p
-             gcl = eos_state%gam1
+             rel = rl*eos_state(1) % e
+             pl  = eos_state(1) % p
+             gcl = eos_state(1) % gam1
           endif
 
           ! right state
@@ -315,16 +322,16 @@ contains
           if (rer <= ZERO .or. pr < small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
 
-             eos_state % T   = small_temp
-             eos_state % rho = rr
-             eos_state % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
-             eos_state % aux = qr(i,j,kc,QFX:QFX-1+naux)
+             eos_state(1) % T   = small_temp
+             eos_state(1) % rho = rr
+             eos_state(1) % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
+             eos_state(1) % aux = qr(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
-             rer = rr*eos_state%e
-             pr  = eos_state%p
-             gcr = eos_state%gam1
+             rer = rr*eos_state(1) % e
+             pr  = eos_state(1) % p
+             gcr = eos_state(1) % gam1
           endif
 
             

@@ -138,7 +138,8 @@ contains
     double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
     double precision, allocatable:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
     
-    type (eos_t) :: eos_state
+    type (eos_t), allocatable :: eos_state(:)
+    integer :: eos_state_len(1), nx(4)
 
     allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
@@ -283,38 +284,40 @@ contains
           
           ! temperature-based PPM
           if (ppm_temp_fix == 1) then
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
-                         eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
-                         eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
-                         eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
-                         eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX-1+naux)
+             nx = (/ ihi1 - ilo1 + 2, ihi2 - ilo2 + 2, 3, 3 /)
+             eos_state_len = (/ nx(1) * nx(2) * nx(3) * nx(4) /)
+             allocate(eos_state(eos_state_len(1)))
 
-                         call eos(eos_input_rt, eos_state, .false.)
-                         
-                         Ip(i,j,kc,idim,iwave,QPRES) = eos_state%p
-                         Ip(i,j,kc,idim,iwave,QREINT) = Ip(i,j,kc,idim,iwave,QRHO)*eos_state%e
-                         Ip_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
-
-                         
-                         eos_state % rho = Im(i,j,kc,idim,iwave,QRHO)
-                         eos_state % T   = Im(i,j,kc,idim,iwave,QTEMP)
-                         eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
-                         eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX-1+naux)
-                         
-                         call eos(eos_input_rt, eos_state, .false.)
-                         
-                         Im(i,j,kc,idim,iwave,QPRES) = eos_state%p
-                         Im(i,j,kc,idim,iwave,QREINT) = Im(i,j,kc,idim,iwave,QRHO)*eos_state%e
-                         Im_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
-                         
-                      enddo
-                   enddo
-                enddo
+             eos_state(:) % rho = reshape(Ip(:,:,kc,:,:,QRHO), eos_state_len)
+             eos_state(:) % T   = reshape(Ip(:,:,kc,:,:,QTEMP), eos_state_len)
+             do n = 1, nspec
+                eos_state(:) % xn(n)  = reshape(Ip(:,:,kc,:,:,QFS+n-1), eos_state_len) / eos_state(:) % rho
              enddo
-             
+             do n = 1, naux
+                eos_state(:) % aux(n) = reshape(Ip(:,:,kc,:,:,QFX+n-1), eos_state_len) / eos_state(:) % rho
+             enddo
+
+             call eos(eos_input_rt, eos_state, state_len = eos_state_len(1))
+
+             Ip(:,:,kc,:,:,QPRES)  = reshape(eos_state(:) % p, nx)
+             Ip(:,:,kc,:,:,QREINT) = reshape(eos_state(:) % e, nx) * Ip(:,:,kc,:,:,QRHO)
+             Ip_gc(:,:,kc,:,:,1)   = reshape(eos_state(:) % gam1, nx)
+
+             eos_state(:) % rho = reshape(Im(:,:,kc,:,:,QRHO), eos_state_len)
+             eos_state(:) % T   = reshape(Im(:,:,kc,:,:,QTEMP), eos_state_len)
+             do n = 1, nspec
+                eos_state(:) % xn(n)  = reshape(Im(:,:,kc,:,:,QFS+n-1), eos_state_len) / eos_state(:) % rho
+             enddo
+             do n = 1, naux
+                eos_state(:) % aux(n) = reshape(Im(:,:,kc,:,:,QFX+n-1), eos_state_len) / eos_state(:) % rho
+             enddo
+
+             call eos(eos_input_rt, eos_state, state_len = eos_state_len(1))
+
+             Im(:,:,kc,:,:,QPRES)  = reshape(eos_state(:) % p, nx)
+             Im(:,:,kc,:,:,QREINT) = reshape(eos_state(:) % e, nx) * Im(:,:,kc,:,:,QRHO)
+             Im_gc(:,:,kc,:,:,1)   = reshape(eos_state(:) % gam1, nx)
+
           endif
 
           ! Compute U_x and U_y at kc (k3d)
@@ -650,16 +653,22 @@ contains
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
 
-    type (eos_t) :: eos_state
+    type (eos_t), allocatable :: eos_state(:)
+
+    integer :: eos_state_len(1), nx(3)
 
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
+!    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
 
     do i=1,3
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
+
+    nx = hiq - loq + 1
+    eos_state_len(1) = nx(1) * nx(2) * nx(3)
+    allocate(eos_state(eos_state_len(1)))
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
@@ -720,6 +729,8 @@ contains
              enddo
           enddo
        enddo
+
+       eos_state(:) % xn(ispec) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
     !$OMP END PARALLEL DO
       
@@ -735,66 +746,36 @@ contains
              enddo
           enddo
        enddo
+
+       eos_state(:) % aux(iaux) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
     !$OMP END PARALLEL DO
 
     ! Get gamc, p, T, c, csml using q state
-    !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index)
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
-             
-             pt_index(1) = i
-             pt_index(2) = j
-             pt_index(3) = k
 
-             eos_state % T   = q(i,j,k,QTEMP)
-             eos_state % rho = q(i,j,k,QRHO)
-             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)             
+    eos_state(:) % T   = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP ),eos_state_len)
+    eos_state(:) % rho = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QRHO  ),eos_state_len)
+    eos_state(:) % e   = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT),eos_state_len)
 
-             ! If necessary, reset the energy using small_temp
-             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. ZERO)) then
-                q(i,j,k,QTEMP) = small_temp
-                eos_state % T =  q(i,j,k,QTEMP)
+    call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
 
-                call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
-                q(i,j,k,QREINT) = eos_state % e
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP)  = reshape(eos_state(:) % T, nx)
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) = reshape(eos_state(:) % e, nx)
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QPRES)  = reshape(eos_state(:) % p, nx)
 
-                if (q(i,j,k,QREINT) .lt. ZERO) then
-                   print *,'   '
-                   print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
-                   print *,'>>> ... new e from eos (input_rt) call is negative ' &
-                        ,q(i,j,k,QREINT)
-                   print *,'    '
-                   call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
-                end if
-             end if
+    dpdrho(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))   = reshape(eos_state(:) % dpdr_e, nx)
+    dpde(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = reshape(eos_state(:) % dpde, nx)
+    c(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))        = reshape(eos_state(:) % cs, nx)
+    gamc(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = reshape(eos_state(:) % gam1, nx)
 
-             eos_state % e = q(i,j,k,QREINT)
+    csml(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = max(small, small * c(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3)))
 
-             call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) = q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) * &
+                                                          q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QRHO)
 
-             q(i,j,k,QTEMP)  = eos_state % T
-             q(i,j,k,QREINT) = eos_state % e
-             q(i,j,k,QPRES)  = eos_state % p
-
-             dpdrho(i,j,k) = eos_state % dpdr_e
-             dpde(i,j,k)   = eos_state % dpde
-             c(i,j,k)      = eos_state % cs
-             gamc(i,j,k)   = eos_state % gam1
-
-             csml(i,j,k) = max(small, small * c(i,j,k))
-
-             ! convert "e" back to "rho e"
-             q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
-
-             q(i,j,k,QGAME) = q(i,j,k,QPRES)/q(i,j,k,QREINT) + ONE
-
-          end do
-       end do
-    end do
-    !$OMP END PARALLEL DO
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QGAME)  = q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QPRES)  / &
+                                                          q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) + &
+                                                          ONE
 
     ! compute srcQ terms
     !$OMP PARALLEL DO PRIVATE(i,j,k,ispec,iaux,iadv)
@@ -909,6 +890,7 @@ contains
     endif
 
     deallocate(dpdrho,dpde)
+    deallocate(eos_state)
     
   end subroutine ctoprim
 

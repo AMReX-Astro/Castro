@@ -12,6 +12,8 @@
      integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
      integer          :: lo(3), hi(3)
      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
+     double precision :: cs(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3)
+     double precision :: e(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3)
      double precision :: dx(3), dt
 
      double precision :: rhoInv,ux,uy,uz,c,dt1,dt2,dt3
@@ -19,7 +21,30 @@
      integer          :: i,j,k
      integer          :: pt_index(3)
 
-     type (eos_t) :: eos_state
+     type (eos_t), allocatable :: eos_state(:)
+     integer :: nx(3), eos_state_len(1), n
+
+     ! Compute sound speed
+
+     nx = hi - lo + 1
+     eos_state_len(1) = nx(1) * nx(2) * nx(3)
+     allocate(eos_state(eos_state_len(1)))
+
+     eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
+     eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
+     eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+
+     do n = 1, nspec
+        eos_state(:) % xn(n)  = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1), eos_state_len) / eos_state(:) % rho
+     enddo
+     do n = 1, naux
+        eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1), eos_state_len) / eos_state(:) % rho
+     enddo
+
+     call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+
+     cs(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = reshape(eos_state(:) % cs, nx)
+     e(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))  = reshape(eos_state(:) % e , nx)
 
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
@@ -35,26 +60,12 @@
                uy = u(i,j,k,UMY) * rhoInv
                uz = u(i,j,k,UMZ) * rhoInv
 
-               ! Use internal energy for calculating dt 
-               eos_state % e  = u(i,j,k,UEINT)*rhoInv
-
                if (UESGS .gt. -1) &
                   sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 
                ! Protect against negative e
-               if (eos_state % e .gt. ZERO .or. allow_negative_energy .eq. 1) then
-                  eos_state % rho = u(i,j,k,URHO)
-                  eos_state % T   = u(i,j,k,UTEMP)
-                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                  pt_index(1) = i
-                  pt_index(2) = j
-                  pt_index(3) = k
- 
-                  call eos(eos_input_re, eos_state, .false., pt_index = pt_index)
-
-                  c = eos_state % cs
+               if (e(i,j,k) .gt. ZERO .or. allow_negative_energy .eq. 1) then
+                  c = cs(i,j,k)
                else
                   c = ZERO
                end if
@@ -86,5 +97,7 @@
          enddo
      enddo
      !$OMP END PARALLEL DO
+
+     deallocate(eos_state)
 
      end subroutine ca_estdt

@@ -284,6 +284,41 @@ contains
 
       endif
 
+      ptot_row = 0.0d0
+      dpt_row = 0.0d0
+      dpd_row = 0.0d0
+      dpa_row = 0.0d0
+      dpz_row = 0.0d0
+      dpe_row = 0.0d0
+      dpdr_e_row = 0.0d0
+
+      etot_row = 0.0d0
+      det_row = 0.0d0
+      ded_row = 0.0d0
+      dea_row = 0.0d0
+      dez_row = 0.0d0
+
+      stot_row = 0.0d0
+      dst_row = 0.0d0
+      dsd_row = 0.0d0
+
+      htot_row = 0.0d0
+      dhd_row = 0.0d0
+      dht_row = 0.0d0
+
+      pele_row = 0.0d0
+      ppos_row = 0.0d0
+
+      xne_row = 0.0d0
+      xnp_row = 0.0d0
+
+      etaele_row = 0.0d0
+
+      cv_row = 0.0d0
+      cp_row = 0.0d0
+      cs_row = 0.0d0
+      gam1_row = 0.0d0
+
 !..start of vectorization loop, normal execution starts here
 
       ! Note that for OpenACC, we do not seem to need to have a present clause
@@ -1045,39 +1080,39 @@ contains
       state(:) % T    = temp_row
       state(:) % rho  = den_row
 
-      state(:) % p    = ptot_row
-      state(:) % dpdT = dpt_row
-      state(:) % dpdr = dpd_row
-      state(:) % dpdA = dpa_row   
-      state(:) % dpdZ = dpz_row
-      state(:) % dpde = dpe_row
-      state(:) % dpdr_e = dpdr_e_row
+      state(:) % p    = ptot_row(:)
+      state(:) % dpdT = dpt_row(:)
+      state(:) % dpdr = dpd_row(:)
+      state(:) % dpdA = dpa_row(:)
+      state(:) % dpdZ = dpz_row(:)
+      state(:) % dpde = dpe_row(:)
+      state(:) % dpdr_e = dpdr_e_row(:)
 
-      state(:) % e    = etot_row
-      state(:) % dedT = det_row
-      state(:) % dedr = ded_row
-      state(:) % dedA = dea_row   
-      state(:) % dedZ = dez_row
+      state(:) % e    = etot_row(:)
+      state(:) % dedT = det_row(:)
+      state(:) % dedr = ded_row(:)
+      state(:) % dedA = dea_row(:)   
+      state(:) % dedZ = dez_row(:)
 
-      state(:) % s    = stot_row
-      state(:) % dsdT = dst_row
-      state(:) % dsdr = dsd_row
+      state(:) % s    = stot_row(:)
+      state(:) % dsdT = dst_row(:)
+      state(:) % dsdr = dsd_row(:)
 
-      state(:) % h    = htot_row
-      state(:) % dhdR = dhd_row
-      state(:) % dhdT = dht_row
+      state(:) % h    = htot_row(:)
+      state(:) % dhdR = dhd_row(:)
+      state(:) % dhdT = dht_row(:)
 
-      state(:) % pele = pele_row
-      state(:) % ppos = ppos_row
+      state(:) % pele = pele_row(:)
+      state(:) % ppos = ppos_row(:)
 
-      state(:) % xne = xne_row
-      state(:) % xnp = xnp_row
+      state(:) % xne = xne_row(:)
+      state(:) % xnp = xnp_row(:)
 
-      state(:) % eta = etaele_row
+      state(:) % eta = etaele_row(:)
 
-      state(:) % cv   = cv_row
-      state(:) % cp   = cp_row
-      state(:) % gam1 = gam1_row
+      state(:) % cv   = cv_row(:)
+      state(:) % cp   = cp_row(:)
+      state(:) % gam1 = gam1_row(:)
 !      state(:) % cs   = cs_row
 
       ! Take care of final housekeeping.
