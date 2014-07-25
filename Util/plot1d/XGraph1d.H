@@ -41,7 +41,7 @@ class XGFrame {
 // forward ref
 class Amr;
 
-static const int XGPtMXGY=128; // Man is weak...
+static const int XGPtMXGY=256; // Man is weak...
 class XGPt {
 public:
    Real x;
@@ -74,6 +74,12 @@ class XGraph1d {
          std::list<XGGrid>& xgg, int& lev, int& maxlev);
 
    private:
+
+      // each file contains a single variable
+      void draw_single(int nstep, Real time, int force_draw);
+      // all variables at the time are stored in file
+      void draw_all(int nstep, Real time, int force_draw);
+
       std::list<XGFrame> frames;
       Amr *amrptr;
 

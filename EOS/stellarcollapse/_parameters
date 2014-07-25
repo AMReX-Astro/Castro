@@ -1,0 +1,3 @@
+# name of the HDF5 file containing tabulated data
+eos_file                character                    ""
+use_energy_shift        logical                      .false.

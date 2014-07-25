@@ -1,8 +1,10 @@
 module interpolate_module
 
+  implicit none
+
   contains
 
-      function interpolate(r, npts_model, model_r, model_var)
+      function interpolate(r, npts_model, model_r, model_var, iloc)
       
 !     given the array of model coordinates (model_r), and variable (model_var),
 !     find the value of model_var at point r using linear interpolation.
@@ -11,19 +13,19 @@ module interpolate_module
       double precision, intent(in   ) :: r
       integer         , intent(in   ) :: npts_model
       double precision, intent(in   ) :: model_r(npts_model), model_var(npts_model)
+      integer, intent(in), optional   :: iloc
       double precision                :: interpolate
 
       ! Local variables
-      integer                         :: i, id
+      integer                         :: id
       double precision                :: slope,minvar,maxvar
       
 !     find the location in the coordinate array where we want to interpolate
-      do i = 1, npts_model
-         if (model_r(i) .ge. r) exit
-      enddo
-      
-      if (i .eq. npts_model+1) i = i-1
-      id = i
+      if (present(iloc)) then
+         id = iloc
+      else
+         id = locate(r, npts_model, model_r)
+      end if
       
       if (id .eq. 1) then
 
@@ -54,22 +56,22 @@ module interpolate_module
             slope = (model_var(id+1) - model_var(id))/(model_r(id+1) - model_r(id))
             interpolate = slope*(r - model_r(id)) + model_var(id)
 
-            ! safety check to make sure interpolate lies within the bounding points
-            minvar = min(model_var(id+1),model_var(id))
-            maxvar = max(model_var(id+1),model_var(id))
-            interpolate = max(interpolate,minvar)
-            interpolate = min(interpolate,maxvar)
+            ! ! safety check to make sure interpolate lies within the bounding points
+            ! minvar = min(model_var(id+1),model_var(id))
+            ! maxvar = max(model_var(id+1),model_var(id))
+            ! interpolate = max(interpolate,minvar)
+            ! interpolate = min(interpolate,maxvar)
 
          else
 
             slope = (model_var(id) - model_var(id-1))/(model_r(id) - model_r(id-1))
             interpolate = slope*(r - model_r(id)) + model_var(id)
 
-            ! safety check to make sure interpolate lies within the bounding points
-            minvar = min(model_var(id),model_var(id-1))
-            maxvar = max(model_var(id),model_var(id-1))
-            interpolate = max(interpolate,minvar)
-            interpolate = min(interpolate,maxvar)
+            ! ! safety check to make sure interpolate lies within the bounding points
+            ! minvar = min(model_var(id),model_var(id-1))
+            ! maxvar = max(model_var(id),model_var(id-1))
+            ! interpolate = max(interpolate,minvar)
+            ! interpolate = min(interpolate,maxvar)
 
           end if
 
@@ -77,8 +79,9 @@ module interpolate_module
 
     end function interpolate
 
-    function tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
-                             model_x, model_y, model_z, model_var)
+    subroutine tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
+                               model_x, model_y, model_z, model_var, &
+                               interp_var, derivs, error)
 
       use bl_error_module
       use bl_constants_module, only: ONE
@@ -92,13 +95,15 @@ module interpolate_module
                                          model_y(npts_y), &
                                          model_z(npts_z), &
                                          model_var(npts_x,npts_y,npts_z)
-      double precision :: tri_interpolate
+      double precision, intent(  out) :: interp_var, derivs(3)
+      logical,          intent(  out) :: error
 
-      integer :: i
       integer :: ix,iy,iz
       double precision :: deltax, deltay, deltaz
       double precision :: c(8), delta(8)
-        
+
+      error = .false.
+
       ! find the indices below the point (x,y,z)
       do ix = 2, npts_x
          if (model_x(ix) .ge. x) exit
@@ -109,8 +114,11 @@ module interpolate_module
       do iz = 2, npts_z
          if (model_z(iz) .ge. z) exit
       enddo
-      if ((ix>npts_x) .or. (iy>npts_y) .or. (iz>npts_z)) &
-           call bl_error("tri-interpolate: point out of bounds!")
+      if ((ix>npts_x) .or. (iy>npts_y) .or. (iz>npts_z)) then !&
+         error = .true.
+         return
+      endif
+
       ix=ix-1
       iy=iy-1
       iz=iz-1
@@ -140,8 +148,44 @@ module interpolate_module
              model_var(ix+1,iy  ,iz  ) - model_var(ix  ,iy  ,iz  )
 
       ! interpolated value
-      tri_interpolate = sum(c*delta)
+      interp_var = sum(c*delta)
+      ! derivs: dvar/dx, dvar/dy, dvar/dz
+      derivs(1) = c(2) / (model_x(ix+1)-model_x(ix))
+      derivs(2) = c(3) / (model_y(iy+1)-model_y(iy))
+      derivs(3) = c(4) / (model_z(iz+1)-model_z(iz))
       
-    end function tri_interpolate
+    end subroutine tri_interpolate
+
+
+    function locate(x, n, xs)
+      integer, intent(in) :: n
+      double precision, intent(in) :: x, xs(n)
+      integer :: locate      
+
+      integer :: ilo, ihi, imid
+
+      if (x .le. xs(1)) then
+         locate = 1
+      else if (x .gt. xs(n-1)) then
+         locate = n
+      else
+
+         ilo = 1
+         ihi = n-1
+
+         do while (ilo+1 .ne. ihi)
+            imid = (ilo+ihi)/2
+            if (x .le. xs(imid)) then
+               ihi = imid
+            else 
+               ilo = imid
+            end if
+         end do
+         
+         locate = ihi
+
+      end if
+
+    end function locate
 
 end module interpolate_module

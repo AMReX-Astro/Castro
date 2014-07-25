@@ -12,11 +12,6 @@
 #include <Array.H>
 #include <Misc.H>
 
-#ifdef _NO_INLINE_
-#       define  INLINE
-#       include "XGraph1d.I"
-#endif
-
 #include <iomanip>
 #include <sstream>
 #include <cstdio>
@@ -53,8 +48,9 @@ XGFrame::~XGFrame()
 //   ##### XGraph1d members
 //   ############################################################
 
-XGraph1d::XGraph1d(Amr& amrsys ){
-	amrptr = &amrsys;
+XGraph1d::XGraph1d(Amr& amrsys )
+{
+    amrptr = &amrsys;
 
     //parse input file
     ParmParse pp("xgraph");
@@ -201,6 +197,20 @@ void XGraph1d::addVar(std::string& file_nm, std::string& var_nm, int freq, int l
 void XGraph1d::draw(int nstep, Real time, int force_draw)
 {
    if (frames.size()==0) return;
+
+   if (frames.size() > XGPtMXGY) 
+       BoxLib::Error("xgraph hardwired max number of vars");
+    
+   if (format == "all" || format == "All" || format == "ALL") {
+       draw_all(nstep, time, force_draw);
+   }
+   else {
+       draw_single(nstep, time, force_draw);
+   }
+}
+
+void XGraph1d::draw_single(int nstep, Real time, int force_draw)
+{
    std::list<XGFrame>::iterator lib=frames.begin();
    // determine whether any variable will be plotted this step
    // (all variables are derived whenever any one is plotted)
@@ -212,7 +222,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
    for(std::list<XGFrame>::iterator li = lib; li != frames.end(); li++) {
       int myinterval = li->interval;
       std::string myvarname = li->var_name, myfilename = li->file_name;
-      if ((myinterval > 0) && (nstep%myinterval == 0)||force_draw) {
+      if (((myinterval > 0) && (nstep%myinterval == 0)) || force_draw) {
          bool fname_used=false;
          int findex = 0;
          for (std::vector<std::string>::iterator vi=fname_vec.begin(); vi!=fname_vec.end(); ++vi,++findex) {
@@ -487,4 +497,109 @@ void XGraph1d::dumpXGraph(MultiFab& q, MultiFab& qf,int comp,
       }
    }
 }
+
+
+void XGraph1d::draw_all(int nstep, Real time, int force_draw)
+{
+    // determine whether any variable will be plotted this step
+    // (all variables are derived whenever any one is plotted)
+    // create vector of filenames and mappings from variable names
+    int draw = 0;
+    int maxlev = 0;
+    std::vector<std::string> vname_vec;
+    std::map<std::string,int> vname_map;
+    int iv=0;
+    for(std::list<XGFrame>::iterator li = frames.begin(); li != frames.end(); li++, iv++) {
+	int myinterval = li->interval;
+	std::string shortvarname = li->file_name;
+	if (((myinterval > 0) && (nstep%myinterval == 0)) || force_draw) {
+	    bool vname_used=false;
+	    for (std::vector<std::string>::iterator vi=vname_vec.begin(); vi!=vname_vec.end(); ++vi) {
+		if (shortvarname==*vi) {
+		    vname_used=true;
+		    break;
+		}
+	    }
+	    if (vname_map.count(shortvarname)==0) {
+		vname_map[shortvarname]=iv;
+	    } else {
+		if(ParallelDescriptor::IOProcessor()) std::cerr << "XGraph::draw::duplicate specification of variable: " << shortvarname << std::endl;
+		abort();
+	    }
+	    draw=1;
+	    if (!vname_used) vname_vec.push_back(shortvarname);
+	    if (maxlev>-1){ 
+		int mylev = li->level;
+		if (mylev>maxlev||mylev<0) maxlev=mylev;
+	    }
+	}
+    }
+
+    // return if no variables will be plotted
+    if(!draw) return;
+
+    int amrlev = amrptr->finestLevel();
+    if (maxlev < 0 || maxlev > amrlev) maxlev = amrlev;
+
+    std::ostringstream ofname;
+    ofname << "xgr_" << std::setfill('0') << std::setw(4) << nstep;
+    std::string fname = ofname.str();
+    std::ofstream os;
+    std::string xvar = (amrptr->Geom(0).Coord()==0) ? "x" : "r";
+    if (ParallelDescriptor::IOProcessor()) {
+	os.open(fname.c_str(), std::ios::out);
+	os << std::setprecision(16);
+	os << "; step = " << nstep << ", t = " << time;
+	if (maxlev<amrlev) os << " level = " << maxlev;
+	os << std::endl;
+	os << "; " << xvar;
+	for (int i=0; i<vname_vec.size(); i++)  {
+	    os << " " << vname_vec[i];
+	}
+	os << std::endl;
+    }
+    
+    Array<MultiFab*> soln(amrlev+1);
+    for(int lev = 0; lev <= amrlev; lev++)
+	soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),frames.size(),0);
+
+    int cntall=0;
+    for(std::list<XGFrame>::iterator li=frames.begin(); li != frames.end(); li++,cntall++) {
+	for(int lev = 0; lev <= maxlev; lev++) {
+	    MultiFab* temp = amrptr->derive(li->var_name,time,lev,0);
+	    MultiFab::Copy(*soln[lev],*temp,0,cntall,1,0);
+	    delete temp;
+	}
+    }
+
+    std::list<XGGrid> XGGlist;
+    for(int lev = 0; lev <= maxlev; lev++) {
+	dumpXGraph(*soln[lev],*soln[Min(lev+1,maxlev)],frames.size(),XGGlist,lev,maxlev);
+    }
+
+    if (ParallelDescriptor::IOProcessor()) {
+	for(std::list<XGGrid>::iterator it=XGGlist.begin();it!=XGGlist.end();) {
+	    if(it->point.empty()) {
+		it=XGGlist.erase(it);
+	    } else {
+		++it;
+	    }
+	}
+	XGGlist.sort();
+	
+	for(std::list<XGGrid>::iterator it=XGGlist.begin(); it!=XGGlist.end(); ++it) {
+	    for(std::list<XGPt>::iterator itt=it->point.begin();itt!=it->point.end();++itt) {
+		os << itt->x;
+		for (int i=0; i<vname_vec.size(); i++)  {
+		    os << " " << itt->y[vname_map[vname_vec[i]]];
+		}
+		os << std::endl;
+	    }
+	}
+    }
+
+    for(int lev = 0; lev <= amrlev; lev++)
+	delete soln[lev];
+}
+
 #endif
