@@ -104,7 +104,7 @@ module helmeos_module
 
 contains
 
-      subroutine helmeos(do_coulomb, eosfail, state, N, input, input_is_constant)
+      subroutine helmeos(do_coulomb, eosfail, state, N, input, input_is_constant, acc_cutoff)
 
       use bl_error_module
       use bl_types
@@ -142,6 +142,7 @@ contains
       type (eos_t), dimension(N) :: state
       integer :: input
       logical :: input_is_constant
+      integer :: acc_cutoff
 
 !..outputs
       double precision temp_row(N), den_row(N), abar_row(N), &
@@ -169,6 +170,7 @@ contains
       integer j
 
       logical :: single_iter, double_iter, converged
+      logical :: use_acc
       integer :: var, dvar, var1, var2, dvar1, dvar2, iter
       double precision :: v_want(N), v1_want(N), v2_want(N)
       double precision :: xnew, xtol, dvdx, smallx, error, v
@@ -319,13 +321,19 @@ contains
       cs_row = 0.0d0
       gam1_row = 0.0d0
 
+      if (N > acc_cutoff) then
+         use_acc = .true.
+      else
+         use_acc = .false.
+      endif
+
 !..start of vectorization loop, normal execution starts here
 
       ! Note that for OpenACC, we do not seem to need to have a present clause
       ! for the various constants and arrays -- the enter data constructs in helm_init
       ! is enough for the Cray compiler to recognize they are present at runtime.
 
-      !$acc parallel loop &
+      !$acc parallel loop if(use_acc) &
       !$acc copy(den_row,temp_row) &
       !$acc copyin(abar_row,zbar_row) &
       !$acc copyin(input,var,dvar,v_want) &

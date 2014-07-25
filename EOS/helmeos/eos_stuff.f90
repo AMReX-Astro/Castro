@@ -192,7 +192,7 @@ contains
 
     ! Call the EOS.
 
-    call helmeos(do_coulomb, eosfail, state, N, input, input_is_constant)
+    call helmeos(do_coulomb, eosfail, state, N, input, input_is_constant, acc_cutoff)
 
     ! Get dpdX, dedX, dhdX.
 
