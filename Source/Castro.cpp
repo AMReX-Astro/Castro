@@ -104,6 +104,8 @@ int          Castro::do_hydro = -1;
 int          Castro::do_react = -1;
 int          Castro::add_ext_src = 0;
 
+int          Castro::do_acc = -1;
+
 #ifdef POINTMASS
 Real         Castro::point_mass    = 0.0;
 #endif
@@ -353,6 +355,8 @@ Castro::read_params ()
     pp.get("do_hydro",do_hydro);
     pp.get("do_react",do_react);
     pp.query("add_ext_src",add_ext_src);
+
+    pp.query("do_acc",do_acc);
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);

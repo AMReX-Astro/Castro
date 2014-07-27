@@ -217,7 +217,7 @@ Castro::variableSetUp ()
          use_pslope, 
 	 grav_source_type, do_sponge,
          normalize_species,fix_mass_flux,use_sgs,rotational_period,
-	 const_grav);
+	 const_grav, do_acc);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  

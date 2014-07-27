@@ -57,7 +57,8 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
-     const Real& rotational_period, const Real& const_grav);
+     const Real& rotational_period, const Real& const_grav,
+     const int& do_grav);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,

@@ -647,6 +647,9 @@ protected:
     // permits sponge to be turned on and off
     static int do_sponge;
 
+    // determines whether we use accelerators for specific loops
+    static int do_acc;
+
     // put phi in the plotfile
     static int plot_phiGrav;
 

@@ -33,6 +33,8 @@ module meth_params_module
 
   integer         , save :: allow_negative_energy
 
+  integer         , save :: do_acc
+
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
   integer         , save :: ppm_trace_grav
