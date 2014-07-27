@@ -592,7 +592,7 @@
                                          u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
       enddo
 
-      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
       eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
       eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
 
@@ -601,7 +601,8 @@
       mach(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = ( u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
                                                       u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
                                                       u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2 )**0.5 / &
-                                                    reshape(eos_state(:) % cs / eos_state(:) % rho, nx)
+                                                    u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) / &
+                                                    reshape(eos_state(:) % cs, nx)
 
       deallocate(eos_state)
 
