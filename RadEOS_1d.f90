@@ -82,7 +82,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UFS, UFX, UTEMP
+  use meth_params_module, only : NVAR, URHO, UFS, UFX, UTEMP, small_temp, allow_negative_energy
 
   implicit none
   integer         , intent(in) :: lo(1),hi(1)
@@ -95,18 +95,19 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   type (eos_t) :: eos_state
 
   do i = lo(1),hi(1)
-
-     rhoInv = 1.d0 / state(i,URHO)
-     eos_state % rho = state(i,URHO)
-     eos_state % T   = state(i,UTEMP)
-     eos_state % e   = temp(i)*rhoInv 
-     eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
-     eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
-
-     call eos(eos_input_re, eos_state)
-
-     temp(i) = eos_state % T
-
+     if (allow_negative_energy.eq.0 .and. temp(i).le.0.d0) then
+        temp(i) = small_temp
+     else
+        rhoInv = 1.d0 / state(i,URHO)
+        eos_state % rho = state(i,URHO)
+        eos_state % T   = state(i,UTEMP)
+        eos_state % e   = temp(i)*rhoInv 
+        eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
+        eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
+        
+        call eos(eos_input_re, eos_state)
+        temp(i) = eos_state % T
+     end if
   enddo
 
 end subroutine ca_compute_temp_given_rhoe
@@ -156,7 +157,7 @@ subroutine reset_eint_compute_temp( lo, hi, &
   use network, only: nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UMX, UTEMP, UFS, UFX, &
-       allow_negative_energy
+       allow_negative_energy, small_temp
 
   implicit none
   integer, intent(in) :: lo(1), hi(1), resetei
@@ -181,6 +182,20 @@ subroutine reset_eint_compute_temp( lo, hi, &
      eos_state % e = e1
      eos_state % T = state(i,UTEMP)
 
+     if (allow_negative_energy.eq.0 .and. eos_state%e.lt.0.d0) then
+        e2 = (state(i,UEDEN) - ek) * rhoInv
+        if (e2 .gt. 0.d0) then
+           eos_state % e = e2
+           e1 = e2
+           state(i,UEINT) = eos_state%e * eos_state%rho
+        else
+           eos_state % T = small_temp
+           call eos(eos_input_rt, eos_state)
+           e1 = eos_state%e
+           state(i,UEINT) = eos_state%e * eos_state%rho
+        end if
+     end if
+
      call eos(eos_input_re, eos_state)
      
      T1 = eos_state % T
@@ -197,12 +212,15 @@ subroutine reset_eint_compute_temp( lo, hi, &
 
      else 
         e2 = (state(i,UEDEN) - ek) * rhoInv
-        eos_state % e = e2
-        eos_state % T = T1
-
-        call eos(eos_input_re, eos_state)
-
-        T2 = eos_state % T
+        if (allow_negative_energy.eq.1 .or. e2.gt.0.d0) then
+           eos_state % e = e2
+           eos_state % T = T1
+           call eos(eos_input_re, eos_state)
+           T2 = eos_state % T
+        else
+           T2 = T1
+           state(i,UEDEN) = state(i,UEINT) + ek
+        end if
 
         diff = abs(T1-T2)
         rdiff = diff/T1
