@@ -588,9 +588,13 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
      eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
      eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
-     call eos(eos_input_re, eos_state)
-
-     c = eos_state % cs
+     ! Protect against negative e
+     if (eos_state % e .gt. ZERO .or. allow_negative_energy .eq. 1) then
+        call eos(eos_input_re, eos_state)
+        c = eos_state % cs
+     else
+        c = 0.d0
+     end if
 
      c = sqrt(c**2 + gpr(i)*rhoInv)
 

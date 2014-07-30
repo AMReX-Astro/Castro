@@ -127,6 +127,22 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      eos_state % xn  = q(i,QFS:QFS+nspec-1)
      eos_state % aux = q(i,QFX:QFX+naux-1)
 
+     ! If necessary, reset the energy using small_temp
+     if ((allow_negative_energy .eq. 0) .and. (q(i,QREINT) .lt. 0)) then
+        q(i,QTEMP) = small_temp
+        eos_state % T = q(i,QTEMP)
+        call eos(eos_input_rt, eos_state)
+        q(i,QPRES ) = eos_state % p
+        q(i,QREINT) = eos_state % e
+        if (q(i,QREINT) .lt. 0.d0) then
+           print *,'   '
+           print *,'>>> Error: ctoprim ',i
+           print *,'>>> ... new e from eos call is negative ',q(i,QREINT)
+           print *,'    '
+           call bl_error("Error:: ctoprim")
+        end if
+     end if
+     
      call eos(eos_input_re, eos_state)
 
      q(i,QTEMP) = eos_state % T
