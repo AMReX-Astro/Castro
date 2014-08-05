@@ -16,6 +16,7 @@ module eos_module
   double precision, save, private :: ttol = 1.0d-8
   double precision, save, private :: dtol = 1.0d-8
 
+  private itemp, idens, iener, ienth, ientr, ipres 
   public eos_init, eos
 
 contains
