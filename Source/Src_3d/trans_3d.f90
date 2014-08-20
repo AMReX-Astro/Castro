@@ -6,6 +6,9 @@ module transverse_module
 
 contains
 
+  !===========================================================================
+  ! transx1
+  !===========================================================================
   subroutine transx1(qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      ugdnvx,pgdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
@@ -69,9 +72,11 @@ contains
 
     type (eos_t) :: eos_state
 
+    !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
-  
+    !-------------------------------------------------------------------------
+
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -102,6 +107,11 @@ contains
     !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
+
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the x-direction to y-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
           
           pgp = pgdnvx(i+1,j,kc)
           pgm = pgdnvx(i,j,kc)
@@ -163,7 +173,9 @@ contains
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
 
+          !-------------------------------------------------------------------
           ! qypo state
+          !-------------------------------------------------------------------
                     
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
@@ -216,8 +228,10 @@ contains
 
              qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
           endif
-          
+
+          !-------------------------------------------------------------------          
           ! qymo state
+          !-------------------------------------------------------------------
 
           if (j.le.jhi-1) then
              qymo(i,j+1,kc,QRHO) = rrnewly
@@ -276,10 +290,10 @@ contains
     
   end subroutine transx1
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
 
+  !===========================================================================
+  ! transx2
+  !===========================================================================
   subroutine transx2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      ugdnvx,pgdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
@@ -338,8 +352,10 @@ contains
 
     type (eos_t) :: eos_state
 
+    !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -373,6 +389,10 @@ contains
     do j = jlo, jhi 
        do i = ilo, ihi 
           
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the x-direction to z-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
           pgp = pgdnvx(i+1,j,kc)
           pgm = pgdnvx(i,j,kc)
           ugp = ugdnvx(i+1,j,kc)
@@ -405,6 +425,10 @@ contains
              rwnewrz = rwrz 
              renewrz = rerz 
           endif
+
+          !-------------------------------------------------------------------
+          ! qzpo state
+          !-------------------------------------------------------------------
                    
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
@@ -489,6 +513,11 @@ contains
              renewlz = relz
           endif
 
+          !-------------------------------------------------------------------
+          ! qzmo state
+          !-------------------------------------------------------------------
+
+          ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -544,10 +573,10 @@ contains
     
   end subroutine transx2
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
 
+  !===========================================================================
+  ! transy1
+  !===========================================================================
   subroutine transy1(qxm,qxmo,qxp,qxpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
                      ugdnvy,pgdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
@@ -605,9 +634,11 @@ contains
     integer ipassive
 
     type (eos_t) :: eos_state
-    
+
+    !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -638,6 +669,11 @@ contains
     !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
+
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the y-direction to x-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
           
           pgp = pgdnvy(i,j+1,kc)
           pgm = pgdnvy(i,j,kc)
@@ -695,7 +731,11 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
-          
+
+          !-------------------------------------------------------------------
+          ! qxpo state
+          !-------------------------------------------------------------------          
+
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
              qxpo(i,j,kc,QRHO) = rrnewrx
@@ -747,6 +787,10 @@ contains
 
              qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
           end if
+
+          !-------------------------------------------------------------------
+          ! qxmo state
+          !-------------------------------------------------------------------
           
           if (i.le.ihi-1) then
              qxmo(i+1,j,kc,QRHO) = rrnewlx
@@ -805,10 +849,10 @@ contains
 
   end subroutine transy1
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
 
+  !===========================================================================
+  ! transy2
+  !===========================================================================
   subroutine transy2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
                      ugdnvy,pgdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
@@ -867,8 +911,10 @@ contains
 
     type (eos_t) :: eos_state
 
+    !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -901,6 +947,11 @@ contains
     !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
+
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the y-direction to z-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
           
           pgp = pgdnvy(i,j+1,kc)
           pgm = pgdnvy(i,j,kc)
@@ -936,7 +987,10 @@ contains
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
-          
+          !-------------------------------------------------------------------
+          ! qzpo states
+          !-------------------------------------------------------------------          
+
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -1020,7 +1074,11 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
-                    
+
+          !-------------------------------------------------------------------
+          ! qzmo states
+          !-------------------------------------------------------------------
+
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -1077,11 +1135,9 @@ contains
   end subroutine transy2
 
 
-  
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
+  !===========================================================================
+  ! transz
+  !===========================================================================
   subroutine transz(qxm,qxmo,qxp,qxpo, &
                     qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     fz,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
@@ -1144,9 +1200,11 @@ contains
     integer ipassive
 
     type (eos_t) :: eos_state
-    
+
+    !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -1190,7 +1248,12 @@ contains
     !$OMP PRIVATE(eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
-          
+
+          !-------------------------------------------------------------------
+          ! add transverse flux difference in the z-direction to the x- and
+          ! y-states for the fluid variables
+          !-------------------------------------------------------------------          
+
           pgp = pgdnvz(i,j,kc)
           pgm = pgdnvz(i,j,km)
           ugp = ugdnvz(i,j,kc)
@@ -1289,6 +1352,10 @@ contains
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
+
+          !-------------------------------------------------------------------
+          ! qxpo state
+          !-------------------------------------------------------------------
           
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
@@ -1341,6 +1408,10 @@ contains
 
              qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
           end if
+
+          !-------------------------------------------------------------------
+          ! qypo state
+          !-------------------------------------------------------------------
           
           if (j.ge.jlo+1) then
              qypo(i,j,km,QRHO) = rrnewry
@@ -1392,6 +1463,10 @@ contains
 
              qypo(i,j,km,QPRES) = max(pnewry,small_pres)
           end if
+
+          !-------------------------------------------------------------------
+          ! qxmo state
+          !-------------------------------------------------------------------
           
           if (i.le.ihi-1) then
              qxmo(i+1,j,km,QRHO) = rrnewlx
@@ -1443,6 +1518,10 @@ contains
 
              qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
           end if
+
+          !-------------------------------------------------------------------
+          ! qymo state
+          !-------------------------------------------------------------------
           
           if (j.le.jhi-1) then
              qymo(i,j+1,km,QRHO) = rrnewly
@@ -1502,10 +1581,9 @@ contains
   end subroutine transz
 
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
+  !===========================================================================
+  ! transxy
+  !===========================================================================
   subroutine transxy(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fxy,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      fyx,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
@@ -1571,9 +1649,11 @@ contains
     integer ipassive
 
     type (eos_t) :: eos_state
-    
+
+    !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq,ipassive) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -1613,7 +1693,12 @@ contains
     !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
-          
+
+          !-------------------------------------------------------------------
+          ! add the transverse xy and yx differences to the z-states for the
+          ! fluid variables
+          !-------------------------------------------------------------------          
+
           pgxp = pgdnvx(i+1,j,kc)
           pgxm = pgdnvx(i,j,kc)
           ugxp = ugdnvx(i+1,j,kc)
@@ -1715,6 +1800,10 @@ contains
           pyavm = HALF*(pgypm+pgymm)
           duym = ugypm-ugymm
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
+
+          !-------------------------------------------------------------------
+          ! qzpo state
+          !-------------------------------------------------------------------          
           
           ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1768,7 +1857,11 @@ contains
           endif
 
           qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
-          
+
+          !-------------------------------------------------------------------
+          ! qzmo state
+          !-------------------------------------------------------------------          
+
           qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
           qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU)
           qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV)
@@ -1844,10 +1937,10 @@ contains
     
   end subroutine transxy
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
   
+  !===========================================================================
+  ! transxz
+  !===========================================================================
   subroutine transxz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fxz,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      fzx,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
@@ -1911,9 +2004,11 @@ contains
     integer ipassive
 
     type (eos_t) :: eos_state
-    
+
+    !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -1952,7 +2047,11 @@ contains
     !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
-            
+
+          !-------------------------------------------------------------------
+          ! add the transverse xz and zx differences to the y-states for the
+          ! fluid variables
+          !-------------------------------------------------------------------            
           pgxp = pgdnvx(i+1,j,km)
           pgxm = pgdnvx(i,j,km)
           ugxp = ugdnvx(i+1,j,km)
@@ -2031,7 +2130,11 @@ contains
           pzav = HALF*(pgzp+pgzm)
           duz = ugzp-ugzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
-                    
+
+          !-------------------------------------------------------------------
+          ! qypo state
+          !-------------------------------------------------------------------
+
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -2087,7 +2190,11 @@ contains
 
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
           end if
-          
+
+          !-------------------------------------------------------------------
+          ! qymo state
+          !-------------------------------------------------------------------          
+
           if (j.le.jhi-1) then
              qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
              qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
@@ -2165,10 +2272,10 @@ contains
     
   end subroutine transxz
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
 
+  !===========================================================================
+  ! transyz
+  !===========================================================================
   subroutine transyz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fyz,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
                      fzy,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
@@ -2233,8 +2340,10 @@ contains
 
     type (eos_t) :: eos_state
 
+    !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
 
     !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
@@ -2273,7 +2382,12 @@ contains
     !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
-          
+
+          !-------------------------------------------------------------------
+          ! add the transverse yz and zy differences to the x-states for the 
+          ! fluid variables
+          !-------------------------------------------------------------------          
+
           pgyp = pgdnvy(i,j+1,km)
           pgym = pgdnvy(i,j,km)
           ugyp = ugdnvy(i,j+1,km)
@@ -2354,6 +2468,10 @@ contains
           pzav = HALF*(pgzp+pgzm)
           duz = ugzp-ugzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
+
+          !-------------------------------------------------------------------
+          ! qxpo state
+          !-------------------------------------------------------------------
           
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
@@ -2410,6 +2528,10 @@ contains
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
              
           end if
+
+          !-------------------------------------------------------------------
+          ! qxmo state
+          !-------------------------------------------------------------------
 
           if (i.le.ihi-1) then
              qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
