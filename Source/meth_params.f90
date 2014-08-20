@@ -38,6 +38,7 @@ module meth_params_module
   integer         , save :: ppm_trace_grav
   integer         , save :: ppm_temp_fix
   integer         , save :: ppm_tau_in_tracing
+  integer         , save :: ppm_predict_gammae
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_flatten_before_integrals
   integer         , save :: ppm_reference_eigenvectors

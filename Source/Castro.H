@@ -578,6 +578,7 @@ protected:
     static int       ppm_trace_grav;
     static int       ppm_temp_fix;
     static int       ppm_tau_in_tracing;
+    static int       ppm_predict_gammae;
     static int       ppm_reference_edge_limit;
     static int       ppm_flatten_before_integrals;
     static int       ppm_reference_eigenvectors;

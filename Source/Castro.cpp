@@ -143,6 +143,7 @@ int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
+int          Castro::ppm_predict_gammae = 0;
 int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
 
@@ -377,6 +378,7 @@ Castro::read_params ()
     pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
+    pp.query("ppm_predict_gammae", ppm_predict_gammae);
     pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
@@ -434,6 +436,11 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
+    if (ppm_predict_gammae == 1 && ppm_tau_in_tracing != 1)
+      {
+	std::cerr << "ppm_predict_gammae == 1 needs ppm_tau_in_tracing == 1\n";
+	BoxLib::Error();
+      }
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
