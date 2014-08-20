@@ -17,11 +17,12 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QPRES, &
+         QREINT, QPRES, QGAME, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_reference_edge_limit, ppm_flatten_before_integrals, &
+         ppm_predict_gammae, &
          npassive, qpass_map
     use bl_constants_module
 
@@ -64,16 +65,16 @@ contains
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
-    double precision drho, du, dv, dw, dp, drhoe, de, dtau
+    double precision drho, du, dv, dw, dp, drhoe, de, dge, dtau
     double precision dup, dvp, dpp
     double precision dum, dvm, dpm
 
     double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
-    double precision :: gam
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
+    double precision :: gam, game
 
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision apright, amright, azrright, azeright
@@ -128,12 +129,12 @@ contains
     ! Trace to left and right edges using upwind PPM
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref, u_ref, p_ref, rhoe_ref) &
-    !$OMP PRIVATE(drho,dv,dw,dp,drhoe,de,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
+    !$OMP PRIVATE(drho,dv,dw,dp,drhoe,de,dge,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright) &
     !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev) &
-    !$OMP PRIVATE(gam, tau_ref, dtau, tau_s, e_s)
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
+    !$OMP PRIVATE(gam, game, tau_ref, dtau, tau_s, e_s)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -151,6 +152,8 @@ contains
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
           enth = ( (rhoe+p)/rho )/csq          
+
+          game = q(i,j,k3d,QGAME)
 
           gam = gamc(i,j,k3d)
 
@@ -175,6 +178,8 @@ contains
                 tau_ref  = ONE/rho
 
                 gam_ref  = gam
+                
+                game_ref = game
 
              else
                 ! This will be the fastest moving state to the left --
@@ -189,6 +194,8 @@ contains
                 tau_ref  = ONE/Im(i,j,kc,1,1,QRHO)
 
                 gam_ref  = Im_gc(i,j,kc,1,1,1)
+
+                game_ref = Im(i,j,kc,1,1,QGAME)
              endif
 
              ! For tracing (optionally)
@@ -214,6 +221,7 @@ contains
              dup   = u_ref    - Im(i,j,kc,1,3,QU)
              dpp   = p_ref    - Im(i,j,kc,1,3,QPRES)
 
+
              ! If we are doing gravity tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
@@ -231,6 +239,7 @@ contains
                 Clag_ev = Clag
                 enth_ev = enth
                 p_ev    = p
+                tau_ev  = 1.0d0/rho
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -238,6 +247,7 @@ contains
                 Clag_ev = Clag_ref
                 enth_ev = enth_ref
                 p_ev    = p_ref
+                tau_ev  = tau_ref
              endif
 
              if (ppm_tau_in_tracing == 0) then
@@ -245,7 +255,7 @@ contains
                 ! These are analogous to the beta's from the original PPM
                 ! paper (except we work with rho instead of tau).  This is 
                 ! simply (l . dq), where dq = qref - I(q)
-   
+
                 alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
                 alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
                 alpha0r = drho - dp/csq_ev
@@ -254,16 +264,25 @@ contains
              else
 
                 ! (tau, u, p, e) eigensystem
+                ! or
+                ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
                 de = (rhoe_ref/rho_ref - Im(i,j,kc,1,2,QREINT)/Im(i,j,kc,1,2,QRHO))
+                dge   = game_ref - Im(i,j,kc,1,2,QGAME)
 
                 alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
                 alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
                 alpha0r = dtau + dp/Clag_ev**2
-                alpha0e = de - dp*p_ev/Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   alpha0e = de - dp*p_ev/Clag_ev**2
+                else
+                   gfactor = (game + 1.0d0)*(game - gam)
+                   alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+                endif
 
              endif    ! which tracing method 
                 
@@ -296,6 +315,7 @@ contains
                 
              ! The final interface states are just
              ! q_s = q_ref - sum(l . dq) r
+             ! note that the a{mpz}right as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
                 qxp(i,j,kc,QRHO  ) =  rho_ref +  apright + amright + azrright
                 qxp(i,j,kc,QU    ) =    u_ref + (apright - amright)*cc_ev/rho_ev
@@ -306,9 +326,15 @@ contains
                 qxp(i,j,kc,QRHO  ) = ONE/tau_s
                 qxp(i,j,kc,QU    ) = u_ref + (amright - apright)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                qxp(i,j,kc,QREINT) = e_s/tau_s
                 qxp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
+                   qxp(i,j,kc,QREINT) = e_s/tau_s
+                else
+                   qxp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright 
+                   qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES )/(qxp(i,j,kc,QGAME) - 1.0d0)
+                endif
              endif    
 
              ! Enforce small_*
@@ -378,6 +404,8 @@ contains
 
                 gam_ref  = gam
 
+                game_ref = game
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,1,3,QRHO)
@@ -389,6 +417,8 @@ contains
                 tau_ref  = ONE/Ip(i,j,kc,1,3,QRHO)
 
                 gam_ref  = Ip_gc(i,j,kc,1,3,1)
+
+                game_ref = Ip(i,j,kc,1,3,QGAME)
              endif
 
              ! For tracing (optionally)
@@ -428,6 +458,7 @@ contains
                 Clag_ev = Clag
                 enth_ev = enth
                 p_ev    = p
+                tau_ev  = 1.0d0/rho
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -435,6 +466,7 @@ contains
                 Clag_ev = Clag_ref
                 enth_ev = enth_ref
                 p_ev    = p_ref
+                tau_ev  = tau_ref
              endif
 
              if (ppm_tau_in_tracing == 0) then
@@ -450,16 +482,25 @@ contains
 
              else
                 ! (tau, u, p, e) eigensystem
+                ! or
+                ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
                 de = (rhoe_ref/rho_ref - Ip(i,j,kc,1,2,QREINT)/Ip(i,j,kc,1,2,QRHO))
+                dge = game_ref - Ip(i,j,kc,1,2,QGAME)
 
                 alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
                 alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
                 alpha0r = dtau + dp/Clag_ev**2
-                alpha0e = de - dp*p_ev/Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   alpha0e = de - dp*p_ev/Clag_ev**2
+                else
+                   gfactor = (game + 1.0d0)*(game - gam)
+                   alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+                endif
 
              end if
                 
@@ -493,6 +534,7 @@ contains
                 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
+             ! note that the a{mpz}left as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
                 qxm(i+1,j,kc,QRHO  ) =  rho_ref +  apleft + amleft + azrleft
                 qxm(i+1,j,kc,QU    ) =    u_ref + (apleft - amleft)*cc_ev/rho_ev
@@ -503,9 +545,15 @@ contains
                 qxm(i+1,j,kc,QRHO  ) = ONE/tau_s
                 qxm(i+1,j,kc,QU    ) = u_ref + (amleft - apleft)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                qxm(i+1,j,kc,QREINT) = e_s/tau_s
                 qxm(i+1,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                   qxm(i+1,j,kc,QREINT) = e_s/tau_s
+                else
+                   qxm(i+1,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                   qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QPRES )/(qxm(i+1,j,kc,QGAME) - 1.0d0)
+                endif
              endif
 
              ! Enforce small_*
@@ -634,12 +682,12 @@ contains
     ! Trace to bottom and top edges using upwind PPM
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref, v_ref, p_ref, rhoe_ref) &
-    !$OMP PRIVATE(drho,du,dw,dp,drhoe,de,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
+    !$OMP PRIVATE(drho,du,dw,dp,drhoe,de,dge,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
     !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright,amleft) &
     !$OMP PRIVATE(apleft,azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev) &
-    !$OMP PRIVATE(gam, dtau, tau_ref, tau_s, e_s)
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
+    !$OMP PRIVATE(gam, game, dtau, tau_ref, tau_s, e_s)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -660,6 +708,7 @@ contains
 
           gam = gamc(i,j,k3d)
 
+          game = q(i,j,k3d,QGAME)
 
           !--------------------------------------------------------------------
           ! plus state on face j
@@ -682,6 +731,8 @@ contains
 
                 gam_ref  = gam
 
+                game_ref = game
+
              else
                 ! This will be the fastest moving state to the left
                 rho_ref  = Im(i,j,kc,2,1,QRHO)
@@ -692,6 +743,8 @@ contains
 
                 tau_ref  = ONE/Im(i,j,kc,2,1,QRHO)
                 gam_ref  = Im_gc(i,j,kc,2,1,1)
+
+                game_ref = Im(i,j,kc,2,1,QGAME)
              endif
 
              ! For tracing (optionally)
@@ -731,6 +784,7 @@ contains
                 Clag_ev = Clag
                 enth_ev = enth
                 p_ev    = p
+                tau_ev  = 1.0d0/rho
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -738,6 +792,7 @@ contains
                 Clag_ev = Clag_ref
                 enth_ev = enth_ref
                 p_ev    = p_ref
+                tau_ev  = tau_ref
              endif
 
              if (ppm_tau_in_tracing == 0) then
@@ -754,16 +809,25 @@ contains
              else
 
                 ! (tau, u, p, e) eigensystem
+                ! or
+                ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
                 de = (rhoe_ref/rho_ref - Im(i,j,kc,2,2,QREINT)/Im(i,j,kc,2,2,QRHO))
+                dge = game_ref - Im(i,j,kc,2,2,QGAME)
 
                 alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
                 alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
                 alpha0r = dtau + dp/Clag_ev**2
-                alpha0e = de - dp*p_ev/Clag_ev**2
+                
+                if (ppm_predict_gammae == 0) then
+                   alpha0e = de - dp*p_ev/Clag_ev**2
+                else
+                   gfactor = (game + 1.0d0)*(game - gam)
+                   alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+                endif
 
              end if
    
@@ -796,6 +860,7 @@ contains
                 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
+             ! note that the a{mpz}right as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
                 qyp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
                 qyp(i,j,kc,QV    ) = v_ref + (apright - amright)*cc_ev/rho_ev
@@ -806,9 +871,15 @@ contains
                 qyp(i,j,kc,QRHO  ) = ONE/tau_s
                 qyp(i,j,kc,QV    ) = v_ref + (amright - apright)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                qyp(i,j,kc,QREINT) = e_s/tau_s
                 qyp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
+                   qyp(i,j,kc,QREINT) = e_s/tau_s
+                else
+                   qyp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                   qyp(i,j,kc,QREINT) = qyp(i,j,kc,QPRES )/(qyp(i,j,kc,QGAME) - 1.0d0)
+                endif
              endif
 
              ! Enforce small_*
@@ -873,6 +944,8 @@ contains
 
                 gam_ref  = gam
 
+                game_ref = game
+
              else
                 ! This will be the fastest moving state to the right
                 rho_ref  = Ip(i,j,kc,2,3,QRHO)
@@ -884,6 +957,8 @@ contains
                 tau_ref  = ONE/Ip(i,j,kc,2,3,QRHO)
 
                 gam_ref  = Ip_gc(i,j,kc,2,3,1)
+
+                game_ref = Ip(i,j,kc,2,3,QGAME)
              endif
 
              ! For tracing (optionally)
@@ -923,6 +998,7 @@ contains
                 Clag_ev = Clag
                 enth_ev = enth
                 p_ev    = p
+                tau_ev  = 1.0d0/rho
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -930,6 +1006,7 @@ contains
                 Clag_ev = Clag_ref
                 enth_ev = enth_ref
                 p_ev    = p_ref
+                tau_ev  = tau_ref
              endif
 
              if (ppm_tau_in_tracing == 0) then
@@ -944,16 +1021,25 @@ contains
                 
              else
                 ! (tau, u, p, e) eigensystem
+                ! or
+                ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
                 de = (rhoe_ref/rho_ref - Ip(i,j,kc,2,2,QREINT)/Ip(i,j,kc,2,2,QRHO))
+                dge = game_ref - Ip(i,j,kc,2,2,QGAME)
 
                 alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
                 alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
                 alpha0r = dtau + dp/Clag_ev**2
-                alpha0e = de - dp*p_ev/Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   alpha0e = de - dp*p_ev/Clag_ev**2
+                else
+                   gfactor = (game + 1.0d0)*(game - gam)
+                   alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+                endif
                 
              end if
 
@@ -986,6 +1072,7 @@ contains
 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
+             ! note that the a{mpz}left as defined above has the minus already
              if (ppm_tau_in_tracing == 0) then
                 qym(i,j+1,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
                 qym(i,j+1,kc,QV    ) = v_ref + (apleft - amleft)*cc_ev/rho_ev
@@ -996,9 +1083,16 @@ contains
                 qym(i,j+1,kc,QRHO  ) = ONE/tau_s
                 qym(i,j+1,kc,QV    ) = v_ref + (amleft - apleft)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                qym(i,j+1,kc,QREINT) = e_s/tau_s
                 qym(i,j+1,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                   qym(i,j+1,kc,QREINT) = e_s/tau_s
+                else
+                   qym(i,j+1,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft 
+                   qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES )/(qym(i,j+1,kc,QGAME) - 1.0d0)
+                endif
+
              endif
 
              ! Enforce small_*
@@ -1108,11 +1202,12 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QPRES, &
+         QREINT, QPRES, QGAME, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_grav, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_reference_edge_limit, ppm_flatten_before_integrals, &
+         ppm_predict_gammae, &
          npassive, qpass_map
     use bl_constants_module
 
@@ -1153,16 +1248,16 @@ contains
 
     double precision cc, csq, Clag, rho, u, v, w, p, rhoe
 
-    double precision drho, du, dv, dp, drhoe, de, dtau
+    double precision drho, du, dv, dp, drhoe, de, dge, dtau
     double precision dwp, dpp
     double precision dwm, dpm
 
     double precision :: rho_ref, w_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
-    double precision :: gam
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
+    double precision :: gam, game
 
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision apright, amright, azrright, azeright
@@ -1194,12 +1289,12 @@ contains
 
     !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
     !$OMP PRIVATE(rho_ref,w_ref,p_ref,rhoe_ref) &
-    !$OMP PRIVATE(drho,du,dv,dp,drhoe,de,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
+    !$OMP PRIVATE(drho,du,dv,dp,drhoe,de,dge,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
     !$OMP PRIVATE(amright,apright,azrright,azeright,amleft,apleft)&
     !$OMP PRIVATE(azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev) &
-    !$OMP PRIVATE(gam, dtau, tau_ref, tau_s, e_s)
+    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
+    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
+    !$OMP PRIVATE(gam, game, dtau, tau_ref, tau_s, e_s)
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
@@ -1223,6 +1318,7 @@ contains
 
           gam = gamc(i,j,k3d)
 
+          game = q(i,j,k3d,QGAME)
 
           ! Set the reference state
           if (ppm_reference == 0 .or. &
@@ -1239,6 +1335,8 @@ contains
 
              gam_ref  = gam
 
+             game_ref = game
+
           else
              ! This will be the fastest moving state to the left
              rho_ref  = Im(i,j,kc,3,1,QRHO)
@@ -1249,6 +1347,8 @@ contains
 
              tau_ref  = ONE/Im(i,j,kc,3,1,QRHO)
              gam_ref  = Im_gc(i,j,kc,3,1,1)
+
+             game_ref = Im(i,j,kc,3,1,QGAME)
           endif
 
           ! For tracing (optionally)
@@ -1291,6 +1391,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
+             tau_ev  = 1.0d0/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -1298,6 +1399,7 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
+             tau_ev  = tau_ref
           endif
           
           if (ppm_tau_in_tracing == 0) then
@@ -1311,16 +1413,26 @@ contains
 
           else 
              ! (tau, u, p, e) eigensystem
-             
+             ! or
+             ! (tau, u, p, game) eigensystem
+
              ! This is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system
              de = (rhoe_ref/rho_ref - Im(i,j,kc,3,2,QREINT)/Im(i,j,kc,3,2,QRHO))
+             dge = game_ref - Im(i,j,kc,3,2,QGAME)
 
              alpham = HALF*( dwm - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dwp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game + 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
+
           endif
 
           if (w-cc .gt. ZERO) then
@@ -1350,6 +1462,7 @@ contains
 
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
+          ! note that the a{mpz}right as defined above have the minus already
           if (ppm_tau_in_tracing == 0) then
              qzp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
              qzp(i,j,kc,QW    ) = w_ref + (apright - amright)*cc_ev/rho_ev
@@ -1360,9 +1473,16 @@ contains
              qzp(i,j,kc,QRHO  ) = ONE/tau_s
              qzp(i,j,kc,QW    ) = w_ref + (amright - apright)*Clag_ev
 
-             e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)           
-             qzp(i,j,kc,QREINT) = e_s/tau_s
              qzp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)           
+                qzp(i,j,kc,QREINT) = e_s/tau_s
+             else
+                qzp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                qzp(i,j,kc,QREINT) = qzp(i,j,kc,QPRES )/(qzp(i,j,kc,QGAME) - 1.0d0)
+             endif
+
           endif
 
           ! Enforce small_*
@@ -1428,6 +1548,8 @@ contains
 
           gam = gamc(i,j,k3d-1)
 
+          game = q(i,j,k3d-1,QGAME)
+
           ! Set the reference state
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. w + cc <= ZERO .and. &
@@ -1442,6 +1564,8 @@ contains
 
              gam_ref  = gam
 
+             game_ref = game
+
           else
              ! This will be the fastest moving state to the right
              rho_ref  = Ip(i,j,km,3,3,QRHO)
@@ -1453,6 +1577,8 @@ contains
              tau_ref  = ONE/Ip(i,j,km,3,3,QRHO)
 
              gam_ref  = Ip_gc(i,j,km,3,3,1)
+
+             game_ref = Ip(i,j,km,3,3,QGAME)
           endif
 
           ! For tracing (optionally)
@@ -1495,6 +1621,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
+             tau_ev  = 1.0d0/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -1502,12 +1629,13 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
+             tau_ev  = tau_ref
           endif
           
           if (ppm_tau_in_tracing == 0) then
 
              ! These are analogous to the beta's from the original PPM
-             ! paper.  This is simply (l . dq), where dq = qref - I(q)
+             ! paper.  This is simply (l . dq), where dq = qref - I(q)             
              alpham = HALF*(dpm/(rho_ev*cc_ev) - dwm)*rho_ev/cc_ev
              alphap = HALF*(dpp/(rho_ev*cc_ev) + dwp)*rho_ev/cc_ev
              alpha0r = drho - dp/csq_ev
@@ -1516,16 +1644,25 @@ contains
           else
 
              ! (tau, u, p, e) eigensystem
-             
+             ! or
+             ! (tau, u, p, game) eigensystem
+
              ! This is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system
              de = (rhoe_ref/rho_ref - Ip(i,j,km,3,2,QREINT)/Ip(i,j,km,3,2,QRHO))
+             dge = game_ref - Ip(i,j,km,3,2,QGAME)
 
              alpham = HALF*( dwm - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dwp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game + 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
 
           endif 
              
@@ -1556,6 +1693,7 @@ contains
              
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
+          ! note that the a{mpz}left as defined above have the minus already
           if (ppm_tau_in_tracing == 0) then
              qzm(i,j,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
              qzm(i,j,kc,QW    ) = w_ref + (apleft - amleft)*cc_ev/rho_ev
@@ -1566,9 +1704,16 @@ contains
              qzm(i,j,kc,QRHO  ) = ONE/tau_s
              qzm(i,j,kc,QW    ) = w_ref + (amleft - apleft)*Clag_ev
 
-             e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-             qzm(i,j,kc,QREINT) = e_s/tau_s
              qzm(i,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                qzm(i,j,kc,QREINT) = e_s/tau_s
+             else
+                qzm(i,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                qzm(i,j,kc,QREINT) = qzm(i,j,kc,QPRES )/(qzm(i,j,kc,QGAME) - 1.0d0)
+             endif
+
           endif
 
           ! Enforce small_*
