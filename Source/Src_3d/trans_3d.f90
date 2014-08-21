@@ -68,7 +68,7 @@ contains
     double precision pnewry, pnewly
     double precision rhoekenry, rhoekenly
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
     
     integer ipassive
 
@@ -104,7 +104,8 @@ contains
     !$OMP end parallel do
 
 
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
+    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
+    !$OMP PRIVATE(rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
     !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly,dup,pav,du,pnewry) &
     !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
@@ -119,6 +120,8 @@ contains
           pgm = pgdnvx(i,j,kc)
           ugp = ugdnvx(i+1,j,kc)
           ugm = ugdnvx(i,j,kc)
+          gegp = gegdnvx(i+1,j,kc)
+          gegm = gegdnvx(i,j,kc)
           
           ! Convert to conservation form
           rrry = qyp(i,j,kc,QRHO)
@@ -371,7 +374,7 @@ contains
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
     
     integer ipassive
 
@@ -408,7 +411,8 @@ contains
     enddo
     !$OMP end parallel do
     
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
+    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
+    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
     !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav) &
     !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi 
@@ -427,6 +431,8 @@ contains
           pgm = pgdnvx(i,j,kc)
           ugp = ugdnvx(i+1,j,kc)
           ugm = ugdnvx(i,j,kc)
+          gegp = gegdnvx(i+1,j,kc)
+          gegm = gegdnvx(i,j,kc)
           
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -528,6 +534,8 @@ contains
           pgm = pgdnvx(i,j,km)
           ugp = ugdnvx(i+1,j,km)
           ugm = ugdnvx(i,j,km)
+          gegp = gegdnvx(i+1,j,km)
+          gegm = gegdnvx(i,j,km)
           
 
           rrlz = qzm(i,j,kc,QRHO)
@@ -683,7 +691,7 @@ contains
     double precision renewrx, renewlx
     double precision pnewrx, pnewlx
     double precision rhoekenrx, rhoekenlx
-    double precision pgp, pgm, ugp, ugm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
     
     integer ipassive
 
@@ -718,7 +726,8 @@ contains
     enddo
     !$OMP end parallel do
     
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
+    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
+    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
     !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,dup,pav,du,pnewrx) &
     !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
     do j = jlo, jhi
@@ -733,6 +742,8 @@ contains
           pgm = pgdnvy(i,j,kc)
           ugp = ugdnvy(i,j+1,kc)
           ugm = ugdnvy(i,j,kc)
+          gegp = gegdnvy(i,j+1,kc)
+          gegm = gegdnvy(i,j,kc)
           
           ! Convert to conservation form
           rrrx = qxp(i,j,kc,QRHO)
@@ -986,7 +997,7 @@ contains
     double precision renewrz, renewlz
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
-    double precision pgp, pgm, ugp, ugm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
     
     integer ipassive
 
@@ -1023,7 +1034,8 @@ contains
     enddo
     !$OMP end parallel do
     
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
+    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
+    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
     !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav,du,pnewrz) &
     !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi
@@ -1042,6 +1054,8 @@ contains
           pgm = pgdnvy(i,j,kc)
           ugp = ugdnvy(i,j+1,kc)
           ugm = ugdnvy(i,j,kc)
+          gegp = ugdnvy(i,j+1,kc)
+          gegm = ugdnvy(i,j,kc)
           
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -1144,6 +1158,8 @@ contains
           pgm = pgdnvy(i,j,km)
           ugp = ugdnvy(i,j+1,km)
           ugm = ugdnvy(i,j,km)
+          gegp = ugdnvy(i,j+1,km)
+          gegm = ugdnvy(i,j,km)
           
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
@@ -1305,7 +1321,7 @@ contains
     double precision renewrx, renewry, renewlx, renewly
     double precision pnewrx, pnewry, pnewlx, pnewly
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
-    double precision pgp, pgm, ugp, ugm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
 
     integer ipassive
 
@@ -1350,7 +1366,8 @@ contains
     enddo
     !$OMP end parallel do
     
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrry,rury) &
+    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
+    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrry,rury) &
     !$OMP PRIVATE(rvry,rwry,ekenry,rery,rrlx,rulx,rvlx,rwlx,ekenlx,relx,rrly,ruly,rvly,rwly,ekenly)&
     !$OMP PRIVATE(rely,rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewry,runewry,rvnewry,rwnewry)&
     !$OMP PRIVATE(renewry,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,rrnewly,runewly,rvnewly,rwnewly)&
@@ -1368,6 +1385,8 @@ contains
           pgm = pgdnvz(i,j,km)
           ugp = ugdnvz(i,j,kc)
           ugm = ugdnvz(i,j,km)
+          gegp = ugdnvz(i,j,kc)
+          gegm = ugdnvz(i,j,km)
           
           ! Convert to conservation form
           rrrx = qxp(i,j,km,QRHO)
@@ -1794,10 +1813,10 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, duxp, pxav, dux, pxnew
-    double precision pgyp, pgym, ugyp, ugym, duyp, pyav, duy, pynew
-    double precision pgxpm, pgxmm, ugxpm, ugxmm, duxpm, pxavm, duxm, pxnewm
-    double precision pgypm, pgymm, ugypm, ugymm, duypm, pyavm, duym, pynewm
+    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
+    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
+    double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm
+    double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -1841,6 +1860,7 @@ contains
     !$OMP end parallel do
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgyp,pgym,ugyp,ugym,pgxpm,pgxmm,ugxpm)&
+    !$OMP PRIVATE(gegxp,gegxm,gegyp,gegym,gegxpm,gegxmm,gegypm,gegymm) &
     !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
     !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
     !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
@@ -1855,23 +1875,31 @@ contains
 
           pgxp = pgdnvx(i+1,j,kc)
           pgxm = pgdnvx(i,j,kc)
-          ugxp = ugdnvx(i+1,j,kc)
+          ugxp = ugdnvx(i+1,j,kc)          
           ugxm = ugdnvx(i,j,kc)
+          gegxp = gegdnvx(i+1,j,kc)          
+          gegxm = gegdnvx(i,j,kc)
           
           pgyp = pgdnvy(i,j+1,kc)
           pgym = pgdnvy(i,j,kc)
           ugyp = ugdnvy(i,j+1,kc)
           ugym = ugdnvy(i,j,kc)
+          gegyp = gegdnvy(i,j+1,kc)
+          gegym = gegdnvy(i,j,kc)
           
           pgxpm = pgdnvx(i+1,j,km)
           pgxmm = pgdnvx(i,j,km)
           ugxpm = ugdnvx(i+1,j,km)
           ugxmm = ugdnvx(i,j,km)
+          gegxpm = gegdnvx(i+1,j,km)
+          gegxmm = gegdnvx(i,j,km)
           
           pgypm = pgdnvy(i,j+1,km)
           pgymm = pgdnvy(i,j,km)
           ugypm = ugdnvy(i,j+1,km)
           ugymm = ugdnvy(i,j,km)
+          gegypm = gegdnvy(i,j+1,km)
+          gegymm = gegdnvy(i,j,km)
           
           ! Convert to conservation form
           rrr = qp(i,j,kc,QRHO)
@@ -2172,8 +2200,8 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, duxp, pxav, dux, pxnew
-    double precision pgzp, pgzm, ugzp, ugzm, duzp, pzav, duz, pznew
+    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
+    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -2216,7 +2244,8 @@ contains
     enddo
     !$OMP end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgzp,pgzm,ugzp,ugzm,rrr,rur,rvr,rwr)&
+    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgzp,pgzm,gegxp,gegxm,gegzp,gegzm) &
+    !$OMP PRIVATE(ugzp,ugzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
     !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
@@ -2231,11 +2260,15 @@ contains
           pgxm = pgdnvx(i,j,km)
           ugxp = ugdnvx(i+1,j,km)
           ugxm = ugdnvx(i,j,km)
+          gegxp = gegdnvx(i+1,j,km)
+          gegxm = gegdnvx(i,j,km)
           
           pgzp = pgdnvz(i,j,kc)
           pgzm = pgdnvz(i,j,km)
           ugzp = ugdnvz(i,j,kc)
           ugzm = ugdnvz(i,j,km)
+          gegzp = gegdnvz(i,j,kc)
+          gegzm = gegdnvz(i,j,km)
 
           ! Convert to conservation form
           rrr = qp(i,j,km,QRHO)
@@ -2521,8 +2554,8 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgyp, pgym, ugyp, ugym, duyp, pyav, duy, pynew
-    double precision pgzp, pgzm, ugzp, ugzm, duzp, pzav, duz, pznew
+    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
+    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -2565,7 +2598,8 @@ contains
     enddo
     !$OMP end parallel do
     
-    !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm,rrr,rur,rvr,rwr)&
+    !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm) &
+    !$OMP PRIVATE(gegyp,gegym,gegzp,gegzmrrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
     !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
@@ -2581,11 +2615,15 @@ contains
           pgym = pgdnvy(i,j,km)
           ugyp = ugdnvy(i,j+1,km)
           ugym = ugdnvy(i,j,km)
+          gegyp = gegdnvy(i,j+1,km)
+          gegym = gegdnvy(i,j,km)
           
           pgzp = pgdnvz(i,j,kc)
           pgzm = pgdnvz(i,j,km)
           ugzp = ugdnvz(i,j,kc)
           ugzm = ugdnvz(i,j,km)
+          gegzp = gegdnvz(i,j,kc)
+          gegzm = gegdnvz(i,j,km)
           
           ! Convert to conservation form
           rrr = qp(i,j,km,QRHO)
