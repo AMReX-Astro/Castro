@@ -245,6 +245,8 @@ contains
 
                 ! Update gammae with its transverse terms
 
+                ! and compute the p edge state from this and (rho e)
+
              endif
 
           endif
@@ -310,6 +312,8 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
 
              end if
           
@@ -531,6 +535,8 @@ contains
           else
 
              ! Update gammae with its transverse terms
+
+             ! and compute the p edge state from this and (rho e)
              
           endif
 
@@ -636,6 +642,8 @@ contains
           else
 
              ! Update gammae with its transverse terms
+
+             ! and compute the p edge state from this and (rho e)
 
           endif
 
@@ -878,6 +886,8 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
                 
              endif
 
@@ -944,6 +954,8 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
 
              endif
 
@@ -1167,6 +1179,8 @@ contains
 
              ! Update gammae with its transverse terms
 
+             ! and compute the p edge state from this and (rho e)
+
           endif
 
 
@@ -1272,6 +1286,8 @@ contains
           else
 
              ! Update gammae with its transverse terms
+
+             ! and compute the p edge state from this and (rho e)
 
           endif
 
@@ -1572,6 +1588,8 @@ contains
 
                 ! Update gammae with its transverse terms
 
+                ! and compute the p edge state from this and (rho e)
+
              endif
 
           end if
@@ -1636,6 +1654,8 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
 
              endif
 
@@ -1703,6 +1723,8 @@ contains
 
              ! Update gammae with its transverse terms             
 
+             ! and compute the p edge state from this and (rho e)
+
           endif
 
 
@@ -1766,6 +1788,8 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
 
              endif
 
@@ -2088,6 +2112,8 @@ contains
              
              ! Update gammae with its transverse terms
 
+             ! and compute the p edge state from this and (rho e)
+
           endif
 
 
@@ -2153,6 +2179,8 @@ contains
           else
 
              ! Update gammae with its transverse terms
+
+             ! and compute the p edge state from this and (rho e)
 
           endif
 
@@ -2454,6 +2482,8 @@ contains
                 
                 ! Update gammae with its transverse terms
 
+                ! and compute the p edge state from this and (rho e)
+
              endif
 
           end if
@@ -2496,27 +2526,38 @@ contains
                 endif
              endif
              
+             
+             if (ppm_predict_gammae == 0) then
 
-             ! Optionally, use the EOS to calculate the pressure.
+                ! Optionally, use the EOS to calculate the pressure.
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qmo(i,j+1,km,QRHO)
-                eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qmo(i,j+1,km,QRHO)
+                   eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
 
-                call eos(eos_input_re, eos_state)
+                   pnewl = eos_state % p
+                   qmo(i,j+1,km,QPRES ) = pnewl
+                   qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
+                   qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                endif
 
-                pnewl = eos_state % p
-                qmo(i,j+1,km,QPRES ) = pnewl
-                qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
+             
              else
-                pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
-                qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+
+                ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
+
              endif
 
-             qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
-          end if
+          endif
           
        enddo
     enddo
@@ -2817,6 +2858,8 @@ contains
 
                 ! Update gammae with its transverse terms
 
+                ! and compute the p edge state from this and (rho e)
+
              end if
 
           endif
@@ -2884,6 +2927,8 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
+
+                ! and compute the p edge state from this and (rho e)
 
              end if
 
