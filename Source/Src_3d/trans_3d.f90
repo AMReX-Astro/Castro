@@ -26,6 +26,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
     
@@ -166,16 +167,17 @@ contains
              endif
           endif
 
-          ! we need to augment our conserved system with a p equation to
-          ! be able to deal with the general EOS -- add the transverse term
-          ! to the p evolution eq here
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
 
-          !-------------------------------------------------------------------
+          !----------------------------------------------------------------
           ! qypo state
-          !-------------------------------------------------------------------
+          !----------------------------------------------------------------
                     
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
@@ -209,30 +211,41 @@ contains
                    endif
                 endif
              endif
-                
-             ! Optionally, use the EOS to calculate the pressure.
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qypo(i,j,kc,QRHO)
-                eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
+             if (ppm_predict_gammae == 0) then
                 
-                call eos(eos_input_re, eos_state)
+                ! Optionally, use the EOS to calculate the pressure.
+
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qypo(i,j,kc,QRHO)
+                   eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
                 
-                pnewry = eos_state % p
-                qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                   call eos(eos_input_re, eos_state)
+                
+                   pnewry = eos_state % p
+                   qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                endif
+
+                qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
+
              else
-                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+
+                ! Update gammae with its transverse terms
+
              endif
 
-             qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
           endif
 
-          !-------------------------------------------------------------------          
+          !-------------------------------------------------------------------   
           ! qymo state
           !-------------------------------------------------------------------
 
+          ! Convert back to primitive form
           if (j.le.jhi-1) then
              qymo(i,j+1,kc,QRHO) = rrnewly
              qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
@@ -242,7 +255,7 @@ contains
              ! note: we run the risk of (rho e) being negative here
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
-
+             
              if (transverse_reset_rhoe == 1) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
@@ -265,25 +278,34 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qymo(i,j+1,kc,QRHO)
-                eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+             if (ppm_predict_gammae == 0) then
 
-                call eos(eos_input_re, eos_state)
+                ! Optionally, use the EOS to calculate the pressure.
+
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qymo(i,j+1,kc,QRHO)
+                   eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+
+                   call eos(eos_input_re, eos_state)
   
-                pnewly = eos_state % p
-                qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-             endif
+                   pnewly = eos_state % p
+                   qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
+                else
+                   pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                endif
+                
+                qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
 
-             qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
-          end if
+             else
+                
+                ! Update gammae with its transverse terms
+
+             end if
           
+          endif
        enddo
     enddo
     !$OMP END PARALLEL DO
@@ -306,6 +328,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -393,14 +416,15 @@ contains
           ! add the transverse flux difference in the x-direction to z-states
           ! for the fluid variables
           !-------------------------------------------------------------------
+
+          !-------------------------------------------------------------------
+          ! qzpo state
+          !-------------------------------------------------------------------
+
           pgp = pgdnvx(i+1,j,kc)
           pgm = pgdnvx(i,j,kc)
           ugp = ugdnvx(i+1,j,kc)
           ugm = ugdnvx(i,j,kc)
-          
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          du = ugp-ugm
           
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -426,10 +450,14 @@ contains
              renewrz = rerz 
           endif
 
-          !-------------------------------------------------------------------
-          ! qzpo state
-          !-------------------------------------------------------------------
-                   
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
+          dup = pgp*ugp - pgm*ugm
+          pav = HALF*(pgp+pgm)
+          du = ugp-ugm
+                             
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -462,34 +490,44 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qzpo(i,j,kc,QRHO)
-             eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+             ! Optionally, use the EOS to calculate the pressure.
 
-             call eos(eos_input_re, eos_state)
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
 
-             pnewrz = eos_state % p
-             qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                call eos(eos_input_re, eos_state)
+
+                pnewrz = eos_state % p
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                ! add the transverse term to the p evolution eq here
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+             endif
+
+             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+             
           else
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+
+             ! Update gammae with its transverse terms
+             
           endif
 
-          qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
 
+          !-------------------------------------------------------------------
+          ! qzmo state
+          !-------------------------------------------------------------------
           
           pgp = pgdnvx(i+1,j,km)
           pgm = pgdnvx(i,j,km)
           ugp = ugdnvx(i+1,j,km)
           ugm = ugdnvx(i,j,km)
           
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          du = ugp-ugm
-          
+
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
@@ -513,9 +551,13 @@ contains
              renewlz = relz
           endif
 
-          !-------------------------------------------------------------------
-          ! qzmo state
-          !-------------------------------------------------------------------
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
+          dup = pgp*ugp - pgm*ugm
+          pav = HALF*(pgp+pgm)
+          du = ugp-ugm         
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
@@ -549,24 +591,32 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qzmo(i,j,kc,QRHO)
-             eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+             ! Optionally, use the EOS to calculate the pressure.
 
-             call eos(eos_input_re, eos_state)
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
 
-             pnewlz = eos_state % p
-             qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                pnewlz = eos_state % p
+                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+             endif
+             
+             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+          
           else
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+
+             ! Update gammae with its transverse terms
+
           endif
 
-          qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
-          
        enddo
     enddo
     !$OMP END PARALLEL DO
@@ -589,6 +639,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -728,13 +779,17 @@ contains
              endif
           endif
 
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
 
           !-------------------------------------------------------------------
           ! qxpo state
-          !-------------------------------------------------------------------          
+          !-------------------------------------------------------------------    
 
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
@@ -748,8 +803,8 @@ contains
              qxpo(i,j,kc,QREINT) = renewrx - rhoekenrx
 
              if (transverse_reset_rhoe == 1) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
+                ! If it is negative, reset the internal energy by
+                ! using the discretized expression for updating (rho e).
              
                 if (qxpo(i,j,kc,QREINT) .le. ZERO) then
                    qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
@@ -769,23 +824,33 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.             
+             if (ppm_predict_gammae == 0) then
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qxpo(i,j,kc,QRHO)
-                eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
+                ! Optionally, use the EOS to calculate the pressure.             
 
-                call eos(eos_input_re, eos_state)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qxpo(i,j,kc,QRHO)
+                   eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
 
-                pnewrx = eos_state % p
-                qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                   call eos(eos_input_re, eos_state)
+
+                   pnewrx = eos_state % p
+                   qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                endif
+
+                qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
+
              else
-                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+
+                ! Update gammae with its transverse terms
+                
              endif
 
-             qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
           end if
 
           !-------------------------------------------------------------------
@@ -824,24 +889,35 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.             
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qxmo(i+1,j,kc,QRHO)
-                eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+             if (ppm_predict_gammae == 0) then
 
-                call eos(eos_input_re, eos_state)
+                ! Optionally, use the EOS to calculate the pressure.             
 
-                pnewlx = eos_state % p
-                qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qxmo(i+1,j,kc,QRHO)
+                   eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+
+                   pnewlx = eos_state % p
+                   qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                endif
+
+                qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
+
              else
-                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+
+                ! Update gammae with its transverse terms
+
              endif
 
-             qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
-          end if
+          endif
           
        enddo
     enddo
@@ -865,6 +941,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -952,6 +1029,10 @@ contains
           ! add the transverse flux difference in the y-direction to z-states
           ! for the fluid variables
           !-------------------------------------------------------------------
+
+          !-------------------------------------------------------------------
+          ! qzpo states
+          !-------------------------------------------------------------------          
           
           pgp = pgdnvy(i,j+1,kc)
           pgm = pgdnvy(i,j,kc)
@@ -983,14 +1064,14 @@ contains
              renewrz = rerz 
           endif
 
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
           
-          !-------------------------------------------------------------------
-          ! qzpo states
-          !-------------------------------------------------------------------          
-
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -1023,24 +1104,37 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qzpo(i,j,kc,QRHO)
-             eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+             ! Optionally, use the EOS to calculate the pressure.
 
-             call eos(eos_input_re, eos_state)
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
 
-             pnewrz = eos_state % p
-             qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                call eos(eos_input_re, eos_state)
+                
+                pnewrz = eos_state % p
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                ! add the transverse term to the p evolution eq here
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+             endif
+
+             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+          
           else
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+
+             ! Update gammae with its transverse terms
+
           endif
 
-          qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
-          
+
+          !-------------------------------------------------------------------
+          ! qzmo states
+          !-------------------------------------------------------------------
 
           pgp = pgdnvy(i,j+1,km)
           pgm = pgdnvy(i,j,km)
@@ -1070,15 +1164,16 @@ contains
              rwnewlz = rwlz
              renewlz = relz
           endif
+
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
           
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
           du = ugp-ugm
 
-          !-------------------------------------------------------------------
-          ! qzmo states
-          !-------------------------------------------------------------------
-
+          ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
@@ -1110,24 +1205,33 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qzmo(i,j,kc,QRHO)
-             eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+             ! Optionally, use the EOS to calculate the pressure.
 
-             call eos(eos_input_re, eos_state)
-  
-             pnewlz = eos_state % p
-             qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                pnewlz = eos_state % p
+                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                ! add the transverse term to the p evolution eq here
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+             endif
+             
+             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+          
           else
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+
+             ! Update gammae with its transverse terms
+
           endif
 
-          qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
-          
        enddo
     enddo
     !$OMP END PARALLEL DO
@@ -1151,6 +1255,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
     use eos_module
 
@@ -1252,7 +1357,7 @@ contains
           !-------------------------------------------------------------------
           ! add transverse flux difference in the z-direction to the x- and
           ! y-states for the fluid variables
-          !-------------------------------------------------------------------          
+          !-------------------------------------------------------------------    
 
           pgp = pgdnvz(i,j,kc)
           pgm = pgdnvz(i,j,km)
@@ -1390,23 +1495,34 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.
+             if (ppm_predict_gammae == 0) then
+             
+                ! Optionally, use the EOS to calculate the pressure.
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qxpo(i,j,km,QRHO)
-                eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qxpo(i,j,km,QRHO)
+                   eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
 
-                call eos(eos_input_re, eos_state)
+                   call eos(eos_input_re, eos_state)
 
-                pnewrx = eos_state % p
-                qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                   pnewrx = eos_state % p
+                   qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+
+                endif
+
+                qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
+
              else
-                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+
+                ! Update gammae with its transverse terms
+
              endif
 
-             qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
           end if
 
           !-------------------------------------------------------------------
@@ -1445,23 +1561,33 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.
+             if (ppm_predict_gammae == 0) then
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qypo(i,j,km,QRHO)
-                eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
+                ! Optionally, use the EOS to calculate the pressure.
 
-                call eos(eos_input_re, eos_state)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qypo(i,j,km,QRHO)
+                   eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
 
-                pnewry = eos_state % p
-                qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                   call eos(eos_input_re, eos_state)
+                   
+                   pnewry = eos_state % p
+                   qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                endif
+
+                qypo(i,j,km,QPRES) = max(pnewry,small_pres)
+
              else
-                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+
+                ! Update gammae with its transverse terms
+
              endif
 
-             qypo(i,j,km,QPRES) = max(pnewry,small_pres)
           end if
 
           !-------------------------------------------------------------------
@@ -1499,25 +1625,35 @@ contains
                    endif
                 endif
              endif
+
+             if (ppm_predict_gammae == 0) then
+             
+                ! Optionally, use the EOS to calculate the pressure.
+
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qxmo(i+1,j,km,QRHO)
+                   eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+
+                   pnewlx = eos_state % p
+                   qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                endif
                 
-             ! Optionally, use the EOS to calculate the pressure.
+                qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
+             end if
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qxmo(i+1,j,km,QRHO)
-                eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+          else
 
-                call eos(eos_input_re, eos_state)
+             ! Update gammae with its transverse terms             
 
-                pnewlx = eos_state % p
-                qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
-             else
-                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-             endif
+          endif
 
-             qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
-          end if
 
           !-------------------------------------------------------------------
           ! qymo state
@@ -1555,25 +1691,35 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.             
+             if (ppm_predict_gammae == 0) then
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qymo(i,j+1,km,QRHO)
-                eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+                ! Optionally, use the EOS to calculate the pressure.             
 
-                call eos(eos_input_re, eos_state)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qymo(i,j+1,km,QRHO)
+                   eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                
+                   pnewly = eos_state % p
+                   qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                endif
 
-                pnewly = eos_state % p
-                qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+                qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
+
              else
-                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+
+                ! Update gammae with its transverse terms
+
              endif
 
-             qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
-          end if
-          
+          endif
+
        enddo
     enddo
     !$OMP END PARALLEL DO
@@ -1600,6 +1746,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &            
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -1838,25 +1985,34 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
+             ! Optionally, use the EOS to calculate the pressure.
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qpo(i,j,kc,QRHO)
-             eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qpo(i,j,kc,QRHO)
+                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
 
-             call eos(eos_input_re, eos_state)
+                pnewr = eos_state % p
+                qpo(i,j,kc,QPRES ) = pnewr
+                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
+             else
+                ! add the transverse term to the p evolution eq here
+                pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
+                qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+             endif
 
-             pnewr = eos_state % p
-             qpo(i,j,kc,QPRES ) = pnewr
-             qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
+             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
+
           else
-             pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-             qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+             
+             ! Update gammae with its transverse terms
+
           endif
 
-          qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
 
           !-------------------------------------------------------------------
           ! qzmo state
@@ -1894,26 +2050,35 @@ contains
              endif
           endif
 
-          ! Optionally, use the EOS to calculate the pressure.
+          if (ppm_predict_gammae == 0) then
 
-          if (transverse_use_eos .eq. 1) then
-             eos_state % rho = qmo(i,j,kc,QRHO)
-             eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
-             eos_state % T   = small_temp
-             eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+             ! Optionally, use the EOS to calculate the pressure.
 
-             call eos(eos_input_re, eos_state)
+             if (transverse_use_eos .eq. 1) then
+                eos_state % rho = qmo(i,j,kc,QRHO)
+                eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
 
-             pnewl = eos_state % p
-             qmo(i,j,kc,QPRES ) = pnewl
-             qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                pnewl = eos_state % p
+                qmo(i,j,kc,QPRES ) = pnewl
+                qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             else
+                ! add the transverse term to the p evolution eq here
+                pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
+                qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+             endif
+
+             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
+          
           else
-             pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
-             qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+
+             ! Update gammae with its transverse terms
+
           endif
 
-          qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
-          
        enddo
     enddo
     !$OMP END PARALLEL DO
@@ -1957,6 +2122,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -2168,28 +2334,39 @@ contains
                    endif
                 endif
              endif
+
+             if (ppm_predict_gammae == 0) then
                 
-             ! Optionally, use the EOS to calculate the pressure.
+                ! Optionally, use the EOS to calculate the pressure.
 
-             if (transverse_use_eos .eq. 1) then
+                if (transverse_use_eos .eq. 1) then
 
-                eos_state % rho = qpo(i,j,km,QRHO)
-                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
 
-                call eos(eos_input_re, eos_state)
+                   call eos(eos_input_re, eos_state)
 
-                pnewr = eos_state % p
-                qpo(i,j,km,QPRES ) = pnewr
-                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                   pnewr = eos_state % p
+                   qpo(i,j,km,QPRES ) = pnewr
+                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,km,QPRES) - pxnew - pznew
+                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                endif
+                
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+
              else
-                pnewr = qp(i,j,km,QPRES) - pxnew - pznew
-                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                
+                ! Update gammae with its transverse terms
+
              endif
 
-             qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
           end if
+
 
           !-------------------------------------------------------------------
           ! qymo state
@@ -2292,6 +2469,7 @@ contains
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav
     use eos_module
@@ -2507,27 +2685,36 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS to calculate the pressure.
+             if (ppm_predict_gammae == 0) then
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qpo(i,j,km,QRHO)
-                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                ! Optionally, use the EOS to calculate the pressure.
 
-                call eos(eos_input_re, eos_state)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
 
-                pnewr = eos_state % p
-                qpo(i,j,km,QPRES ) = pnewr
-                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                   call eos(eos_input_re, eos_state)
+
+                   pnewr = eos_state % p
+                   qpo(i,j,km,QPRES ) = pnewr
+                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,km,QPRES) - pynew - pznew
+                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                endif
+
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+
              else
-                pnewr = qp(i,j,km,QPRES) - pynew - pznew
-                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-             endif
 
-             qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
-             
-          end if
+                ! Update gammae with its transverse terms
+
+             end if
+
+          endif
 
           !-------------------------------------------------------------------
           ! qxmo state
@@ -2566,27 +2753,37 @@ contains
                 endif
              endif
 
-             ! Optionally, use the EOS To calculate the pressure.
+             if (ppm_predict_gammae == 0) then
 
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qmo(i+1,j,km,QRHO)
-                eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+                ! Optionally, use the EOS To calculate the pressure.
 
-                call eos(eos_input_re, eos_state)
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qmo(i+1,j,km,QRHO)
+                   eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+                
+                   call eos(eos_input_re, eos_state)
+                   
+                   pnewl = eos_state % p
+                   qmo(i+1,j,km,QPRES ) = pnewl
+                   qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
+                   qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                endif
 
-                pnewl = eos_state % p
-                qmo(i+1,j,km,QPRES ) = pnewl
-                qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
+
              else
-                pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
-                qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-             endif
+                
+                ! Update gammae with its transverse terms
 
-             qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
-          end if
-          
+             end if
+
+          endif
+
        enddo
     enddo
     !$OMP END PARALLEL DO
