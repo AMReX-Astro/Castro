@@ -68,7 +68,7 @@ contains
     double precision pnewry, pnewly
     double precision rhoekenry, rhoekenly
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
     integer ipassive
 
@@ -106,7 +106,8 @@ contains
 
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
-    !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly,dup,pav,du,pnewry) &
+    !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly) &
+    !$OMP PRIVATE(dup,pav,du,dge,uav,geavpnewry) &
     !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
@@ -177,7 +178,10 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
+          dge = gegp-gegm
 
           !----------------------------------------------------------------
           ! qypo state
@@ -374,7 +378,7 @@ contains
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
     integer ipassive
 
@@ -413,7 +417,8 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
-    !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav) &
+    !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
+    !$OMP PRIVATE(dge,uav,geav,dup,pav) &
     !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
@@ -464,8 +469,12 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
-                             
+          dge = gegp-gegm
+          
+                 
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
@@ -567,7 +576,10 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm         
+          dge = gegp-gegm
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
@@ -691,7 +703,7 @@ contains
     double precision renewrx, renewlx
     double precision pnewrx, pnewlx
     double precision rhoekenrx, rhoekenlx
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
     integer ipassive
 
@@ -728,7 +740,8 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
-    !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,dup,pav,du,pnewrx) &
+    !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx) &
+    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrx) &
     !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
@@ -799,7 +812,10 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
+          dge = gegp-gegm
 
           !-------------------------------------------------------------------
           ! qxpo state
@@ -997,7 +1013,7 @@ contains
     double precision renewrz, renewlz
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
     integer ipassive
 
@@ -1036,7 +1052,8 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
-    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz,dup,pav,du,pnewrz) &
+    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz)
+    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrz) &
     !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
@@ -1088,7 +1105,10 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
+          dge = gegp-gegm
           
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
@@ -1191,7 +1211,10 @@ contains
           
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
+          dge = gegp-gegm
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
@@ -1321,7 +1344,7 @@ contains
     double precision renewrx, renewry, renewlx, renewly
     double precision pnewrx, pnewry, pnewlx, pnewly
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du
+    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
     integer ipassive
 
@@ -1371,7 +1394,8 @@ contains
     !$OMP PRIVATE(rvry,rwry,ekenry,rery,rrlx,rulx,rvlx,rwlx,ekenlx,relx,rrly,ruly,rvly,rwly,ekenly)&
     !$OMP PRIVATE(rely,rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewry,runewry,rvnewry,rwnewry)&
     !$OMP PRIVATE(renewry,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,rrnewly,runewly,rvnewly,rwnewly)&
-    !$OMP PRIVATE(renewly,dup,pav,du,pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)&
+    !$OMP PRIVATE(renewly,dup,pav,du,dge,uav,geav) &
+    !$OMP PRIVATE(pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)&
     !$OMP PRIVATE(eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
@@ -1480,7 +1504,10 @@ contains
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
           du = ugp-ugm
+          dge = gegp-gegm
 
           !-------------------------------------------------------------------
           ! qxpo state
@@ -1815,8 +1842,10 @@ contains
     double precision pnewr, pnewl
     double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
     double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
+    double precision uxav, gexav, dgex, uyav, geyav, dgey
     double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm
     double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm
+    double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -1864,6 +1893,7 @@ contains
     !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
     !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
     !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
+    !$OMP PRIVATE(uxav,gexav,dgex,uyav,geyav,dgey,uxavm,gexavm,dgexm,uyavm,geyavm,dgeym)
     !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
@@ -1965,22 +1995,34 @@ contains
 
           duxp = pgxp*ugxp - pgxm*ugxm
           pxav = HALF*(pgxp+pgxm)
+          uxav = HALF*(ugxp+ugxm)
+          gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
+          dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
 
           duxpm = pgxpm*ugxpm - pgxmm*ugxmm
           pxavm = HALF*(pgxpm+pgxmm)
+          uxavm = HALF*(ugxpm+ugxmm)
+          gexavm = HALF*(gegxpm+gegxmm)
           duxm = ugxpm-ugxmm
+          dgexm = gegxpm-gegxmm
           pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
           
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
+          uyav = HALF*(ugyp+ugym)
+          geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
+          dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
 
           duypm = pgypm*ugypm - pgymm*ugymm
           pyavm = HALF*(pgypm+pgymm)
+          uyavm = HALF*(ugypm+ugymm)
+          geyavm = HALF*(gegypm+gegymm)
           duym = ugypm-ugymm
+          dgeym = gegypm-gegymm
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
 
           !-------------------------------------------------------------------
@@ -2202,6 +2244,7 @@ contains
     double precision pnewr, pnewl
     double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
     double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
+    double precision uxav, gexav, dgex, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -2248,7 +2291,7 @@ contains
     !$OMP PRIVATE(ugzp,ugzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
+    !$OMP PRIVATE(uxav, gexav, dgex, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2331,12 +2374,18 @@ contains
 
           duxp = pgxp*ugxp - pgxm*ugxm
           pxav = HALF*(pgxp+pgxm)
+          uxav = HALF*(ugxp+ugxm)
+          gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
+          dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
           
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
+          uzav = HALF*(ugzp+ugzm)
+          gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
+          dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
 
           !-------------------------------------------------------------------
@@ -2556,6 +2605,7 @@ contains
     double precision pnewr, pnewl
     double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
     double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
+    double precision uyav, geyav, dgey, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
     
     integer ipassive
@@ -2602,7 +2652,7 @@ contains
     !$OMP PRIVATE(gegyp,gegym,gegzp,gegzmrrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(rhoekenr,rhoekenl,eos_state)
+    !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2688,12 +2738,18 @@ contains
 
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
+          uyav = HALF*(ugyp+ugym)
+          geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
+          dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
           
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
+          uzav = HALF*(ugzp+ugzm)
+          gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
+          dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
 
           !-------------------------------------------------------------------
