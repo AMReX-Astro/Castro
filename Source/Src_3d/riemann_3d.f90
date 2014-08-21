@@ -575,6 +575,8 @@ contains
              pgdnv(i,j,kc) = pstar
              gamgdnv = gamstar
           endif
+
+          gegdnv(i,j,kc) = gamgdnv
           
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
@@ -942,6 +944,8 @@ contains
              regdnv = estar
           endif
           
+          gegdnv(i,j,kc) = pgdnv(i,j,kc)/regdnv + 1.0d0
+
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
             
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
