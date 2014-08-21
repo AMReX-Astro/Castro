@@ -22,7 +22,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -244,8 +244,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qypo(i,j,kc,QGAME) = qypo(i,j,kc,QGAME) + &
+                     cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
 
              endif
 
@@ -312,8 +315,11 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
+                qymo(i,j+1,kc,QGAME) = qymo(i,j+1,kc,QGAME) + &
+                     cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
 
              end if
           
@@ -336,7 +342,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -535,8 +541,11 @@ contains
           else
 
              ! Update gammae with its transverse terms
+             qzpo(i,j,kc,QGAME) = qzpo(i,j,kc,QGAME) + &
+                  cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
+             qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
              
           endif
 
@@ -642,8 +651,11 @@ contains
           else
 
              ! Update gammae with its transverse terms
+             qzmo(i,j,kc,QGAME) = qzmo(i,j,kc,QGAME) + &
+                  cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
+             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
 
           endif
 
@@ -665,7 +677,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -886,8 +898,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qxpo(i,j,kc,QGAME) = qxpo(i,j,kc,QGAME) + &
+                     cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
                 
              endif
 
@@ -954,8 +969,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qxmo(i+1,j,kc,QGAME) = qxmo(i+1,j,kc,QGAME) + &
+                     cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
 
              endif
 
@@ -979,7 +997,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -1178,8 +1196,11 @@ contains
           else
 
              ! Update gammae with its transverse terms
+             qzpo(i,j,kc,QGAME) = qzpo(i,j,kc,QGAME) + &
+                  cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
+              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
 
           endif
 
@@ -1286,8 +1307,11 @@ contains
           else
 
              ! Update gammae with its transverse terms
+             qzmo(i,j,kc,QGAME) = qzmo(i,j,kc,QGAME) + &
+                  cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
+             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
 
           endif
 
@@ -1310,7 +1334,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -1587,8 +1611,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qxpo(i,j,km,QGAME) = qxpo(i,j,km,QGAME) + &
+                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
 
              endif
 
@@ -1654,8 +1681,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qypo(i,j,km,QGAME) = qypo(i,j,km,QGAME) + &
+                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
 
              endif
 
@@ -1722,8 +1752,11 @@ contains
           else
 
              ! Update gammae with its transverse terms             
+             qxmo(i+1,j,km,QGAME) = qxmo(i+1,j,km,QGAME) + &
+                  cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
+             qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
 
           endif
 
@@ -1788,8 +1821,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qymo(i,j+1,km,QGAME) = qymo(i,j+1,km,QGAME) + &
+                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
+                qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
 
              endif
 
@@ -1817,7 +1853,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &            
@@ -1864,11 +1900,11 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
-    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
+    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
     double precision uxav, gexav, dgex, uyav, geyav, dgey
-    double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm
-    double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm
+    double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
+    double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
     double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
     
@@ -1917,8 +1953,8 @@ contains
     !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
     !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
     !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
-    !$OMP PRIVATE(uxav,gexav,dgex,uyav,geyav,dgey,uxavm,gexavm,dgexm,uyavm,geyavm,dgeym)
-    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state)
+    !$OMP PRIVATE(uxav,gexav,dgex,uyav,geyav,dgey,uxavm,gexavm,dgexm,uyavm,geyavm,dgeym) &
+    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state,gexnew,gexnewm,geynew,geynewm)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2024,6 +2060,7 @@ contains
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
+          gexnew = cdtdx*( (gexav+ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
 
           duxpm = pgxpm*ugxpm - pgxmm*ugxmm
           pxavm = HALF*(pgxpm+pgxmm)
@@ -2032,6 +2069,7 @@ contains
           duxm = ugxpm-ugxmm
           dgexm = gegxpm-gegxmm
           pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
+          gexnewm = cdtdx*( (gexavm+ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
           
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
@@ -2040,6 +2078,7 @@ contains
           duy = ugyp-ugym
           dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
+          geynew = cdtdy*( (geyav+ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
 
           duypm = pgypm*ugypm - pgymm*ugymm
           pyavm = HALF*(pgypm+pgymm)
@@ -2048,6 +2087,8 @@ contains
           duym = ugypm-ugymm
           dgeym = gegypm-gegymm
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
+          geynewm = cdtdy*( (geyavm+ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
+
 
           !-------------------------------------------------------------------
           ! qzpo state
@@ -2111,8 +2152,10 @@ contains
           else
              
              ! Update gammae with its transverse terms
+             qpo(i,j,kc,QGAME) = qpo(i,j,kc,QGAME) + gexnew + geynew
 
              ! and compute the p edge state from this and (rho e)
+             qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
 
           endif
 
@@ -2179,8 +2222,10 @@ contains
           else
 
              ! Update gammae with its transverse terms
-
+             qmo(i,j,kc,QGAME) = qmo(i,j,kc,QGAME) + gexnewm + geynewm
+                 
              ! and compute the p edge state from this and (rho e)
+             qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
 
           endif
 
@@ -2223,7 +2268,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -2270,8 +2315,8 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew
-    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
+    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uxav, gexav, dgex, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
     
@@ -2319,7 +2364,7 @@ contains
     !$OMP PRIVATE(ugzp,ugzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uxav, gexav, dgex, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state)
+    !$OMP PRIVATE(uxav, gexav, dgex, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,gexnew,geznew)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2407,7 +2452,8 @@ contains
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          
+          gexnew = cdtdx*( (gexav+ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
           uzav = HALF*(ugzp+ugzm)
@@ -2415,6 +2461,8 @@ contains
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
+          geznew = cdtdz*( (gezav+ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+
 
           !-------------------------------------------------------------------
           ! qypo state
@@ -2481,8 +2529,10 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
+                qpo(i,j,km,QGAME) = qpo(i,j,km,QGAME) + gexnew + geznew
 
                 ! and compute the p edge state from this and (rho e)
+                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
 
              endif
 
@@ -2552,8 +2602,10 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qmo(i,j+1,km,QGAME) = qmo(i,j+1,km,QGAME) + gexnew + geznew
 
                 ! and compute the p edge state from this and (rho e)
+                qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
 
              endif
 
@@ -2597,7 +2649,7 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
@@ -2644,8 +2696,8 @@ contains
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew
-    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew
+    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uyav, geyav, dgey, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
     
@@ -2693,7 +2745,7 @@ contains
     !$OMP PRIVATE(gegyp,gegym,gegzp,gegzmrrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state)
+    !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,geynew,geznew)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2784,6 +2836,7 @@ contains
           duy = ugyp-ugym
           dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
+          geynew = cdtdy*( (geyav+ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
           
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
@@ -2792,6 +2845,8 @@ contains
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
+          geznew = cdtdz*( (gezav+ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+
 
           !-------------------------------------------------------------------
           ! qxpo state
@@ -2857,8 +2912,10 @@ contains
              else
 
                 ! Update gammae with its transverse terms
+                qpo(i,j,km,QGAME) = qpo(i,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
+                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
 
              end if
 
@@ -2927,8 +2984,10 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
+                qmo(i+1,j,km,QGAME) = qmo(i+1,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
+                qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
 
              end if
 
