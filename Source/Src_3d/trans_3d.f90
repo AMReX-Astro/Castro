@@ -107,7 +107,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
     !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly) &
-    !$OMP PRIVATE(dup,pav,du,dge,uav,geavpnewry) &
+    !$OMP PRIVATE(dup,pav,du,dge,uav,geav,pnewry) &
     !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
@@ -2742,7 +2742,7 @@ contains
     !$OMP end parallel do
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm) &
-    !$OMP PRIVATE(gegyp,gegym,gegzp,gegzmrrr,rur,rvr,rwr)&
+    !$OMP PRIVATE(gegyp,gegym,gegzp,gegzm,rrr,rur,rvr,rwr)&
     !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
     !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
     !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,geynew,geznew)
