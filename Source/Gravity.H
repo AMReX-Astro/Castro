@@ -207,6 +207,12 @@ protected:
     void add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_mass);
 #endif
 
+#ifdef PARTICLES
+    void AddParticlesToRhs(int level, MultiFab& Rhs, int ngrow);
+    void AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles);
+#endif
+
+
 };
 #endif
 

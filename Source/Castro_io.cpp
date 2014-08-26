@@ -377,10 +377,26 @@ Castro::writePlotFile (const std::string& dir,
 	 ++it)
     {
         if (parent->isDerivePlotVar(it->name()))
-	{
-            derive_names.push_back(it->name());
-            num_derive++;
-	}
+#ifdef PARTICLES
+        {
+            if (it->name() == "particle_count" ||
+                it->name() == "total_particle_count" ||
+                it->name() == "particle_mass_density" ||
+                it->name() == "total_density")
+            {
+                if (Castro::theDMPC())
+                {
+                    derive_names.push_back(it->name());
+                    num_derive++;
+                }
+            }
+            else 
+#endif
+            {
+                derive_names.push_back(it->name());
+                num_derive++;
+	    }
+	} 
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
