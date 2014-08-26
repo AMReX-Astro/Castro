@@ -1082,7 +1082,7 @@ contains
     
     !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
     !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
-    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz)
+    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
     !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrz) &
     !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
     do j = jlo, jhi
