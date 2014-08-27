@@ -114,10 +114,6 @@ Castro::init_particles ()
              DMPC->InitRandom(particle_initrandom_count,particle_initrandom_iseed, 
                               particle_initrandom_mass, particle_initrandom_serialize);
          }
-         else if (particle_init_type == "Cosmological")
-         {
-             DMPC->InitCosmo();
-         }
          else if (particle_init_type == "AsciiFile")
          {
              if (verbose && ParallelDescriptor::IOProcessor())
@@ -138,6 +134,7 @@ Castro::init_particles ()
              BoxLib::Error("not a valid input for castro.particle_init_type");
          }
      }
+     DMPC->SetAllowParticlesNearBoundary(true);
 }
 
 void
@@ -202,7 +199,7 @@ Castro::ParticleEstTimeStep(Real& estdt)
     {
 
        const Real      a              = 1.0;
-       const MultiFab& grav           = get_new_data(Gravity_Type);
+       MultiFab& grav                 = get_new_data(Gravity_Type);
        const Real      estdt_particle = DMPC->estTimestep(grav,a,level,particle_cfl);
 
        if (estdt_particle > 0.0) 

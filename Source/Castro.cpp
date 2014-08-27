@@ -1536,7 +1536,8 @@ Castro::postCoarseTimeStep (Real cumtime)
     // postCoarseTimeStep() is only called by level 0.
     //
 #ifdef PARTICLES
-    ParticleMoveRandom();
+    if (Castro::theDMPC() && particle_move_type == "Random")
+        ParticleMoveRandom();
 #endif
 }
 

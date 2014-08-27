@@ -1,11 +1,11 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = FALSE
+DEBUG      = TRUE
 
 DIM        = 1
 #DIM        = 2
-#DIM        = 3
+DIM        = 3
 
 COMP	   = gcc
 FCOMP	   = gfortran

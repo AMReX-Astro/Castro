@@ -198,7 +198,7 @@ contains
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
-    double precision :: rgdnv,v1gdnv,v2gdnv,regdnv,ustar,gamgdnv
+    double precision :: rgdnv,v1gdnv,v2gdnv,ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr

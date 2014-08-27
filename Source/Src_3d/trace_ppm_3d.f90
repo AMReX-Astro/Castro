@@ -11,9 +11,8 @@ contains
   subroutine tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
                          qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                         grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
-                         ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+                         ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -30,7 +29,6 @@ contains
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer ilo1,ilo2,ihi1,ihi2
     integer kc,k3d
@@ -53,10 +51,9 @@ contains
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
 
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
 
-    double precision dx, dy, dt
+    double precision dt
 
     ! Local variables
     integer i, j
@@ -69,7 +66,7 @@ contains
     double precision dup, dvp, dpp
     double precision dum, dvm, dpm
 
-    double precision :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref, tau_ref
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
@@ -1196,9 +1193,8 @@ contains
   subroutine tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                         Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
                         qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                         gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
-                        ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+                        ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -1215,7 +1211,6 @@ contains
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer ilo1,ilo2,ihi1,ihi2
     integer km,kc,k3d
@@ -1236,10 +1231,9 @@ contains
     double precision qzm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qzp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
 
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
 
-    double precision dz, dt
+    double precision dt
 
     !     Local variables
     integer i, j

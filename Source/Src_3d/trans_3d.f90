@@ -51,7 +51,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
 
     double precision rrnew, rr
     double precision rrry, rrly
@@ -371,7 +370,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
     
     double precision rrnew, rr
     double precision rrrz, rrlz
@@ -706,7 +704,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
     
     double precision rrnew, rr
     double precision compn, compu
@@ -1026,7 +1023,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
     
     double precision rrnew, rr
     double precision compn, compu
@@ -1209,10 +1205,10 @@ contains
           ! qzmo states
           !-------------------------------------------------------------------
 
-          pgp = pgdnvy(i,j+1,km)
-          pgm = pgdnvy(i,j,km)
-          ugp = ugdnvy(i,j+1,km)
-          ugm = ugdnvy(i,j,km)
+          pgp  =  pgdnvy(i,j+1,km)
+          pgm  =  pgdnvy(i,j,km)
+          ugp  =  ugdnvy(i,j+1,km)
+          ugm  =  ugdnvy(i,j,km)
           gegp = gegdnvy(i,j+1,km)
           gegm = gegdnvy(i,j,km)
           
@@ -1366,7 +1362,6 @@ contains
     double precision cdtdz
     
     integer n, nq
-    integer iadv, ispec
     integer i, j
     
     double precision rrnew, rr
@@ -1445,10 +1440,10 @@ contains
           ! y-states for the fluid variables
           !-------------------------------------------------------------------    
 
-          pgp = pgdnvz(i,j,kc)
-          pgm = pgdnvz(i,j,km)
-          ugp = ugdnvz(i,j,kc)
-          ugm = ugdnvz(i,j,km)
+          pgp  =  pgdnvz(i,j,kc)
+          pgm  =  pgdnvz(i,j,km)
+          ugp  =  ugdnvz(i,j,kc)
+          ugm  =  ugdnvz(i,j,km)
           gegp = gegdnvz(i,j,kc)
           gegm = gegdnvz(i,j,km)
           
@@ -1893,7 +1888,6 @@ contains
     
     integer i, j
     integer n , nq
-    integer iadv, ispec
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2308,7 +2302,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2689,7 +2682,6 @@ contains
     
     integer i, j
     integer n, nq
-    integer iadv, ispec
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
