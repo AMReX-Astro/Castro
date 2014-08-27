@@ -3003,6 +3003,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     }
 }
 
+#ifdef PARTICLES
 void
 Gravity::AddParticlesToRhs (int               level,
                             MultiFab&         Rhs,
@@ -3047,4 +3048,5 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
         }
     }
 }
+#endif
 #endif
