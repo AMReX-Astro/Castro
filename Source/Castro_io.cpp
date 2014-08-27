@@ -377,8 +377,8 @@ Castro::writePlotFile (const std::string& dir,
 	 ++it)
     {
         if (parent->isDerivePlotVar(it->name()))
-#ifdef PARTICLES
         {
+#ifdef PARTICLES
             if (it->name() == "particle_count" ||
                 it->name() == "total_particle_count" ||
                 it->name() == "particle_mass_density" ||
@@ -389,13 +389,10 @@ Castro::writePlotFile (const std::string& dir,
                     derive_names.push_back(it->name());
                     num_derive++;
                 }
-            }
-            else 
+            } else 
 #endif
-            {
-                derive_names.push_back(it->name());
-                num_derive++;
-	    }
+            derive_names.push_back(it->name());
+            num_derive++;
 	} 
     }
 
