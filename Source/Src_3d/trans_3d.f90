@@ -1101,8 +1101,8 @@ contains
           pgm = pgdnvy(i,j,kc)
           ugp = ugdnvy(i,j+1,kc)
           ugm = ugdnvy(i,j,kc)
-          gegp = ugdnvy(i,j+1,kc)
-          gegm = ugdnvy(i,j,kc)
+          gegp = gegdnvy(i,j+1,kc)
+          gegm = gegdnvy(i,j,kc)
           
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -1213,8 +1213,8 @@ contains
           pgm = pgdnvy(i,j,km)
           ugp = ugdnvy(i,j+1,km)
           ugm = ugdnvy(i,j,km)
-          gegp = ugdnvy(i,j+1,km)
-          gegm = ugdnvy(i,j,km)
+          gegp = gegdnvy(i,j+1,km)
+          gegm = gegdnvy(i,j,km)
           
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
@@ -1449,8 +1449,8 @@ contains
           pgm = pgdnvz(i,j,km)
           ugp = ugdnvz(i,j,kc)
           ugm = ugdnvz(i,j,km)
-          gegp = ugdnvz(i,j,kc)
-          gegm = ugdnvz(i,j,km)
+          gegp = gegdnvz(i,j,kc)
+          gegm = gegdnvz(i,j,km)
           
           ! Convert to conservation form
           rrrx = qxp(i,j,km,QRHO)
