@@ -261,7 +261,8 @@
                                    allow_negative_energy_in, &
                                    ppm_type_in,ppm_reference_in, &
                                    ppm_trace_grav_in, ppm_temp_fix_in, &
-                                   ppm_tau_in_tracing_in, ppm_reference_edge_limit_in, &
+                                   ppm_tau_in_tracing_in, ppm_predict_gammae_in, &
+                                   ppm_reference_edge_limit_in, &
                                    ppm_flatten_before_integrals_in, &
                                    ppm_reference_eigenvectors_in, &
                                    use_colglaz_in, use_flattening_in, &
@@ -287,7 +288,8 @@
         integer, intent(in) :: numadv
         integer, intent(in) :: allow_negative_energy_in, ppm_type_in
         integer, intent(in) :: ppm_reference_in, ppm_trace_grav_in, ppm_temp_fix_in
-        integer, intent(in) :: ppm_tau_in_tracing_in, ppm_reference_edge_limit_in
+        integer, intent(in) :: ppm_tau_in_tracing_in, ppm_predict_gammae_in
+        integer, intent(in) :: ppm_reference_edge_limit_in
         integer, intent(in) :: ppm_flatten_before_integrals_in
         integer, intent(in) :: ppm_reference_eigenvectors_in
         integer, intent(in) :: use_colglaz_in, use_flattening_in
@@ -458,6 +460,7 @@
         ppm_trace_grav             = ppm_trace_grav_in
         ppm_temp_fix               = ppm_temp_fix_in
         ppm_tau_in_tracing         = ppm_tau_in_tracing_in
+        ppm_predict_gammae         = ppm_predict_gammae
         ppm_reference_edge_limit   = ppm_reference_edge_limit_in
         ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
         ppm_reference_eigenvectors = ppm_reference_eigenvectors_in

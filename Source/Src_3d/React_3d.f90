@@ -23,14 +23,14 @@
       double precision reaction_terms(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,nspec+2)
       double precision time, dt_react
 
-      integer          :: i,j,k
+      integer          :: i,j,k,n
       integer          :: pt_index(3)
       double precision :: rho, rhoInv, u, v, w, ke, e_in, e_out, T
       double precision :: x_in(nspec+naux), x_out(nspec+naux)
 
       type (eos_t) :: eos_state
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,n,eos_state,pt_index,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
       do k = lo(3), hi(3)
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
@@ -59,7 +59,7 @@
            eos_state % rho = rho
            eos_state % e   = e_in
            eos_state % xn  = x_in(1:nspec)
-           eos_state % aux = s_in(nspec+1:nspec+naux)
+           eos_state % aux = s_in(i,j,k,nspec+1:nspec+naux)
 
            if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
               print *,'... e negative in react_state: ', i, j, k, e_in
@@ -80,7 +80,7 @@
            call eos(eos_input_re, eos_state, pt_index = pt_index)
 
            T = eos_state % T
-           e = eos_state % e
+           e_in = eos_state % e
 
            call burner(rho, T, x_in, e_in, dt_react, time, x_out, e_out)
 

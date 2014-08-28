@@ -371,16 +371,16 @@ Gravity::solve_for_old_phi (int               level,
 
     Real time = LevelData[level].get_state_data(State_Type).prevTime();
 
-    MultiFab& S_old = LevelData[level].get_old_data(State_Type);
     MultiFab Rhs(grids[level],1,0);
+
+    // Put the gas density into the RHS
+    MultiFab& S_old = LevelData[level].get_old_data(State_Type);
     MultiFab::Copy(Rhs,S_old,Density,0,1,0);
 
 #ifdef PARTICLES
-    if( Castro::theDMPC() ){
-       MultiFab RhoDM(grids[level],1,1);
-       Castro::theDMPC()->AssignDensity(RhoDM,level);
-       MultiFab::Add(Rhs,RhoDM,0,0,1,0);
-    }
+    // Add the particle density to the RHS
+    if( Castro::theDMPC() )
+        AddParticlesToRhs(level,Rhs,1);
 #endif
 
     // This is a correction for fully periodic domains only
@@ -406,11 +406,8 @@ Gravity::solve_for_new_phi (int               level,
     MultiFab::Copy(Rhs,S_new,Density,0,1,0);
 
 #ifdef PARTICLES
-    if( Castro::theDMPC() ){
-       MultiFab RhoDM(grids[level],1,1);
-       Castro::theDMPC()->AssignDensity(RhoDM,level);
-       MultiFab::Add(Rhs,RhoDM,0,0,1,0);
-    }
+    if( Castro::theDMPC() )
+        AddParticlesToRhs(level,Rhs,1);
 #endif
 
     // This is a correction for fully periodic domains only
@@ -1052,20 +1049,15 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     Array< PArray<MultiFab> > coeffs(nlevs);
 
 #ifdef PARTICLES
-    PArray<MultiFab> partmf;
-    if (Castro::theDMPC())
+    PArray<MultiFab> Rhs_particles(nlevs,PArrayManage);
+    if ( Castro::theDMPC() )
     {
-        Castro::theDMPC()->AssignDensity(partmf);
-        for (int lev = 0; lev < nlevs; lev++) 
-           if (partmf[lev].contains_nan()) {
-              std::cout << "Testing particle density at level " << lev << std::endl;
-              BoxLib::Abort("...partmf has NaNs in Gravity::actual_multilevel_solve()");
-           }
-	for (int lev = finest_level-1; lev >= 0; lev--)
+        for (int lev = 0; lev < nlevs; lev++)
         {
-           const IntVect ratio = parent->refRatio(lev);
-           avgDown(partmf[lev],partmf[lev+1],ratio);
+           Rhs_particles.set(lev, new MultiFab(grids[level+lev], 1, 0));
+           Rhs_particles[lev].setVal(0.);
         }
+        AddParticlesToRhs(level,finest_level,Rhs_particles);
     }
 #endif
      
@@ -1087,7 +1079,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 
 #ifdef PARTICLES
        if( Castro::theDMPC() ){
-          MultiFab::Add(*(Rhs_p[lev]),partmf[lev],0,0,1,0);
+          MultiFab::Add(*(Rhs_p[lev]),Rhs_particles[lev],0,0,1,0);
        }
 #endif
 
@@ -2679,8 +2671,7 @@ Gravity::set_mass_offset (Real time)
 
 #ifdef PARTICLES
           if ( Castro::theDMPC() )
-             mass_offset   += Castro::theDMPC()->sumParticleMass
-                 ( parent->getLevel(lev).get_new_data(State_Type), lev );
+             mass_offset   += Castro::theDMPC()->sumParticleMass(lev);
 #endif
        }
  
@@ -3011,4 +3002,51 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl;
     }
 }
+
+#ifdef PARTICLES
+void
+Gravity::AddParticlesToRhs (int               level,
+                            MultiFab&         Rhs,
+                            int               ngrow)
+{
+    if( Castro::theDMPC() )
+    {
+        MultiFab particle_mf(grids[level], 1, ngrow);
+        particle_mf.setVal(0.);
+        Castro::theDMPC()->AssignDensitySingleLevel(particle_mf, level);
+        MultiFab::Add(Rhs, particle_mf, 0, 0, 1, 0);
+    }
+}
+
+void
+Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles)
+{
+    const int num_levels = finest_level - base_level + 1;
+
+    if( Castro::theDMPC() )
+    {
+        PArray<MultiFab> PartMF;
+        Castro::theDMPC()->AssignDensity(PartMF, base_level, 1, finest_level);
+        for (int lev = 0; lev < num_levels; lev++)
+        {
+            if (PartMF[lev].contains_nan())
+            {
+                std::cout << "Testing particle density at level " << base_level+lev << std::endl;
+                BoxLib::Abort("...PartMF has NaNs in Gravity::actual_multilevel_solve()");
+            }
+        }
+
+        for (int lev = finest_level - 1 - base_level; lev >= 0; lev--)
+        {
+            const IntVect ratio = parent->refRatio(lev+base_level);
+            avgDown(PartMF[lev], PartMF[lev+1], ratio);
+        }
+
+        for (int lev = 0; lev < num_levels; lev++)
+        {
+            MultiFab::Add(Rhs_particles[lev], PartMF[lev], 0, 0, 1, 0);
+        }
+    }
+}
+#endif
 #endif

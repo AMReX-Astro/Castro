@@ -14,6 +14,7 @@ CEXE_headers += Problem_Derives.H
 
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
+CEXE_sources += Prob.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Problem_F.H

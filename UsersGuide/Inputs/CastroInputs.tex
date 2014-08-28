@@ -107,7 +107,7 @@ Parameter & Definition & Acceptable Values &Default\\
 {\bf amr.n\_cell} &  number of cells in each direction at the coarsest level & Integer $> 0$ & must be set \\
 {\bf amr.max\_level} &  number of levels of refinement above the coarsest level& Integer $\geq 0$  & must be set \\
 {\bf amr.ref\_ratio} & ratio of coarse to fine grid spacing between subsequent levels & 2 or 4 & must be set \\
-{\bf amr.regrid\_int} & how often to regrid & Integer $> 0$  & must be set \\
+{\bf amr.regrid\_int} & how often to regrid & Integer & must be set \\
 {\bf amr.regrid\_on\_restart} & should we regrid immediately after restarting & 0 or 1 & 0 \\
 \hline
 \end{tabular}
@@ -142,8 +142,7 @@ Note that you must have at least {\bf amr.max\_level} values of {\bf amr.ref\_ra
 (Additional values may appear in that line and they will be ignored).
 
 \item {\bf amr.regrid\_int} = 2 2 \\
-tells the code to regrid every 2 steps.  Thus in this example, new level 1 grids will be created every 2 level 0 time steps, and
-new level 2 grids will be created every 2 level 1 time steps.
+tells the code to regrid every 2 steps.  Thus in this example, new level 1 grids will be created every 2 level 0 time steps, and new level 2 grids will be created every 2 level 1 time steps. If {\bf amr.regrid\_int} $<$ 0 for any level, then regridding starting at that level will be disabled. If {\bf amr.regrid\_int} = -1 only, then we never regrid for any level. Note that this is not compatible with {\bf amr.regrid\_on\_restart} = 1.
 
 \end{itemize}
 
