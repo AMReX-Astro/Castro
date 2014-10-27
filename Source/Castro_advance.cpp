@@ -971,7 +971,7 @@ Castro::advance_hydro (Real time,
 	   }
         }	
 
-	//computeTemp(S_new);
+	computeTemp(S_new);
       }
 #endif
     
@@ -987,7 +987,7 @@ Castro::advance_hydro (Real time,
     time_center_rotation(S_new, OldRotationTerms, cur_time, dt);
 #endif
     
-    //reset_internal_energy(S_new);
+    reset_internal_energy(S_new);
     
 #ifdef REACTIONS
 #ifdef TAU
