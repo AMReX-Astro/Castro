@@ -55,8 +55,8 @@
 
          ! Reset energy in case we floored
 
+         state(i,UEDEN) = state(i,UEDEN) + state(i,URHO) * eos_state % e - state(i,UEINT)
          state(i,UEINT) = state(i,URHO) * eos_state % e
-         state(i,UEDEN) = state(i,UEINT) + HALF * (state(i,UMX)**2) / state(i,URHO)
 
       enddo
 
