@@ -67,9 +67,13 @@ contains
                SrV = rho * grav(i,j,k,2)
                SrW = rho * grav(i,j,k,3)
 
-               uout(i,j,k,UMX)   = uout(i,j,k,UMX) + SrU * dt
-               uout(i,j,k,UMY)   = uout(i,j,k,UMY) + SrV * dt
-               uout(i,j,k,UMZ)   = uout(i,j,k,UMZ) + SrW * dt
+               if (grav_source_type .ne. 4) then
+
+                  uout(i,j,k,UMX)   = uout(i,j,k,UMX) + SrU * dt
+                  uout(i,j,k,UMY)   = uout(i,j,k,UMY) + SrV * dt
+                  uout(i,j,k,UMZ)   = uout(i,j,k,UMZ) + SrW * dt
+                  
+               endif
 
                if (grav_source_type == 1 .or. grav_source_type == 2) then
 
@@ -84,6 +88,9 @@ contains
                    new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                      uout(i,j,k,URHO) 
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
+
+               else if (grav_source_type .eq. 4) then
+                  ! Do nothing here, for the conservative gravity option
 
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
@@ -117,10 +124,17 @@ end module grav_sources_module
                              gnew,gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3, &
                              uold,uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3, &
                              unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
-                             dt,E_added)
+                             pold,pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3, &
+                             pnew,pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3, &
+                             old_flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                             old_flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                             old_flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                             dx,dt,E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
+      use multifab_module
+      use fundamental_constants_module, only: Gconst
 
       implicit none
 
@@ -129,13 +143,33 @@ end module grav_sources_module
       integer gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3
       integer uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3
       integer unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
+      integer pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3
+      integer pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3
+      integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+      integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+      integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
       double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,gold_l3:gold_h3,3)
       double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
+      double precision   grav(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
+      double precision   dgdt(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
       double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
       double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
-      double precision  dt,E_added
+      double precision   rho(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3)
+      double precision  drdt(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3)
+      double precision  pold(pold_l1:pold_h1,pold_l2:pold_h2,pold_l3:pold_h3)
+      double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
+      double precision   phi(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
+      double precision  dpdt(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
+      double precision old_flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
+      double precision old_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
+      double precision old_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+      double precision flux1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3)
+      double precision flux2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3)
+      double precision flux3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1)
+      double precision gtens(unew_l1:unew_h1+1,unew_l2:unew_h2+1,unew_l3:unew_h3+1,3,3)
+      double precision  dx(3),dt,E_added,E_added_fluxes
 
-      integer i,j,k
+      integer i,j,k,n
 
       double precision SrU_old, SrV_old, SrW_old
       double precision SrU_new, SrV_new, SrW_new
@@ -146,6 +180,10 @@ end module grav_sources_module
       double precision rhooinv, rhoninv
       double precision old_ke, old_rhoeint, old_re
       double precision new_ke, new_rhoeint
+      double precision old_xmom, old_ymom, old_zmom, xmom_added, ymom_added, zmom_added
+
+      double precision phi_av, grav_av, dpdt_av, dgdt_av, drdt_av, mom_av
+      double precision rho_E_added, my_sum, flux_added
 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
@@ -153,10 +191,112 @@ end module grav_sources_module
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
+      flux1 = ZERO
+      flux2 = ZERO
+      flux3 = ZERO
+
+      gtens = ZERO
+
+      if (grav_source_type .eq. 4) then
+
+         rho_E_added = ZERO
+         flux_added  = ZERO
+
+         phi  = HALF * (pnew + pold)
+         dpdt = (pnew - pold) / dt
+
+         grav = HALF * (gnew + gold)
+         dgdt = (gnew - gold) / dt
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)+1
+
+                  phi_av    = HALF * (phi(i-1,j,k)    + phi(i,j,k) )
+                  dpdt_av   = HALF * (dpdt(i-1,j,k)   + dpdt(i,j,k))
+                  grav_av   = HALF * (grav(i-1,j,k,1) + grav(i,j,k,1))
+                  dgdt_av   = HALF * (dgdt(i-1,j,k,1) + dgdt(i,j,k,1))
+                  mom_av    = old_flux1(i,j,k,URHO) / (dx(2) * dx(3)) / dt
+
+                  flux1(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                  mom_av * phi_av
+
+                  flux1(i,j,k) = flux1(i,j,k) * dt / dx(1)
+
+                  old_flux1(i,j,k,UEDEN) = old_flux1(i,j,k,UEDEN) + flux1(i,j,k)
+
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2) + 1
+               do i = lo(1), hi(1)
+
+                  phi_av    = HALF * (phi(i,j-1,k)    + phi(i,j,k) )
+                  dpdt_av   = HALF * (dpdt(i,j-1,k)   + dpdt(i,j,k))
+                  grav_av   = HALF * (grav(i,j-1,k,2) + grav(i,j,k,2))
+                  dgdt_av   = HALF * (dgdt(i,j-1,k,2) + dgdt(i,j,k,2))
+                  mom_av    = old_flux2(i,j,k,URHO) / (dx(1) * dx(3)) / dt
+
+                  flux2(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                  mom_av * phi_av
+
+                  flux2(i,j,k) = flux2(i,j,k) * dt / dx(2)
+
+                  old_flux2(i,j,k,UEDEN) = old_flux2(i,j,k,UEDEN) + flux2(i,j,k)
+
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3) + 1
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+
+                  phi_av    = HALF * (phi(i,j,k-1)    + phi(i,j,k) )
+                  dpdt_av   = HALF * (dpdt(i,j,k-1)   + dpdt(i,j,k))
+                  grav_av   = HALF * (grav(i,j,k-1,3) + grav(i,j,k,3))
+                  dgdt_av   = HALF * (dgdt(i,j,k-1,3) + dgdt(i,j,k,3))
+                  mom_av    = old_flux3(i,j,k,URHO) / (dx(1) * dx(2)) / dt
+
+                  flux3(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                  mom_av * phi_av
+
+                  flux3(i,j,k) = flux3(i,j,k) * dt / dx(3)
+
+                  old_flux3(i,j,k,UEDEN) = old_flux3(i,j,k,UEDEN) + flux3(i,j,k)
+
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3) + 1
+            do j = lo(2), hi(2) + 1
+               do i = lo(1), hi(1) + 1
+                  do n = 1, 3
+
+                     gtens(i,j,k,1,n) = HALF * (grav(i-1,j,k,1) + grav(i,j,k,1)) * HALF * (grav(i-1,j,k,n) + grav(i,j,k,n))
+                     gtens(i,j,k,2,n) = HALF * (grav(i,j-1,k,2) + grav(i,j,k,2)) * HALF * (grav(i,j-1,k,n) + grav(i,j,k,n))
+                     gtens(i,j,k,3,n) = HALF * (grav(i,j,k-1,3) + grav(i,j,k,3)) * HALF * (grav(i,j,k-1,n) + grav(i,j,k,n))
+
+                     gtens(i,j,k,1,1) = gtens(i,j,k,1,1) - HALF * (HALF * (grav(i-1,j,k,n) + grav(i,j,k,n)))
+                     gtens(i,j,k,2,2) = gtens(i,j,k,2,2) - HALF * (HALF * (grav(i,j-1,k,n) + grav(i,j,k,n)))
+                     gtens(i,j,k,3,3) = gtens(i,j,k,3,3) - HALF * (HALF * (grav(i,j,k-1,n) + grav(i,j,k,n)))
+
+                  enddo
+                  do n = 1, 3
+                     gtens(i,j,k,n,:) = gtens(i,j,k,n,:) * dt / dx(n) / (FOUR * M_PI * Gconst)
+                  enddo
+               enddo
+            enddo
+         enddo
+
+      endif
 
       !$OMP PARALLEL DO PRIVATE(i,j,k,rhoo,Upo,Vpo,Wpo,SrU_old,SrV_old,SrW_old,rhon,Upn,Vpn,Wpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr,rhooinv,rhoninv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added) 
+      !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr,rhooinv,rhoninv,drhodt,phi_av,d_rho_phi_dt) &
+      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint,old_xmom,old_ymom,old_zmom) reduction(+:E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -166,6 +306,9 @@ end module grav_sources_module
                old_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                old_rhoeint = unew(i,j,k,UEDEN) - old_ke
+               old_xmom = unew(i,j,k,UMX)
+               old_ymom = unew(i,j,k,UMY)
+               old_zmom = unew(i,j,k,UMZ)
                ! ****   End Diagnostics ****
 
                rhoo    = uold(i,j,k,URHO)
@@ -201,10 +344,14 @@ end module grav_sources_module
                                         (SrW_new * Wpn - SrW_old * Wpo) )
                end if
 
-               ! Correct state with correction terms
-               unew(i,j,k,UMX)   = unew(i,j,k,UMX)   + SrUcorr*dt
-               unew(i,j,k,UMY)   = unew(i,j,k,UMY)   + SrVcorr*dt
-               unew(i,j,k,UMZ)   = unew(i,j,k,UMZ)   + SrWcorr*dt
+               if (grav_source_type .ne. 4) then
+
+                  ! Correct state with correction terms
+                  unew(i,j,k,UMX)   = unew(i,j,k,UMX)   + SrUcorr*dt
+                  unew(i,j,k,UMY)   = unew(i,j,k,UMY)   + SrVcorr*dt
+                  unew(i,j,k,UMZ)   = unew(i,j,k,UMZ)   + SrWcorr*dt
+
+               endif
 
                if (grav_source_type .eq. 1) then
 
@@ -219,11 +366,36 @@ end module grav_sources_module
                    SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
                                         (SrV_new * Vpn - SrV_old * Vpo) + &
                                         (SrW_new * Wpn - SrW_old * Wpo) )
+
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
+
                else if (grav_source_type .eq. 3) then
                    new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
-                                     unew(i,j,k,URHO) 
+                                    unew(i,j,k,URHO) 
                    unew(i,j,k,UEDEN) = old_rhoeint + new_ke
+               else if (grav_source_type .eq. 4) then
+
+                  unew(i,j,k,UMX) = unew(i,j,k,UMX) &
+                                  + ( gtens(i,j,k,1,1) - gtens(i+1,j,k,1,1) ) &
+                                  + ( gtens(i,j,k,1,2) - gtens(i,j+1,k,1,2) ) &
+                                  + ( gtens(i,j,k,1,3) - gtens(i,j,k+1,1,3) )
+
+                  unew(i,j,k,UMY) = unew(i,j,k,UMY) &
+                                  + ( gtens(i,j,k,2,1) - gtens(i+1,j,k,2,1) ) &
+                                  + ( gtens(i,j,k,2,2) - gtens(i,j+1,k,2,2) ) &
+                                  + ( gtens(i,j,k,2,3) - gtens(i,j,k+1,2,3) )
+
+                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) &
+                                  + ( gtens(i,j,k,3,1) - gtens(i+1,j,k,3,1) ) &
+                                  + ( gtens(i,j,k,3,2) - gtens(i,j+1,k,3,2) ) &
+                                  + ( gtens(i,j,k,3,3) - gtens(i,j,k+1,3,3) )
+
+                  unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN)         &
+                                    + ( flux1(i,j,k) - flux1(i+1,j,k)  &
+                                    +   flux2(i,j,k) - flux2(i,j+1,k)  &
+                                    +   flux3(i,j,k) - flux3(i,j,k+1)) &
+                                    + (HALF * unew(i,j,k,URHO) * pnew(i,j,k) - &
+                                       HALF * uold(i,j,k,URHO) * pold(i,j,k))
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
                end if
@@ -233,8 +405,13 @@ end module grav_sources_module
                new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                new_rhoeint = unew(i,j,k,UEDEN) - new_ke
- 
-                E_added =  E_added + unew(i,j,k,UEDEN) - old_re
+               E_added =  E_added + unew(i,j,k,UEDEN) - old_re
+               E_added_fluxes = E_added_fluxes + ( flux1(i,j,k) - flux1(i+1,j,k)  &
+                                               +   flux2(i,j,k) - flux2(i,j+1,k)  &
+                                               +   flux3(i,j,k) - flux3(i,j,k+1))
+               xmom_added = xmom_added + unew(i,j,k,UMX) - old_xmom
+               ymom_added = ymom_added + unew(i,j,k,UMY) - old_ymom
+               zmom_added = zmom_added + unew(i,j,k,UMZ) - old_zmom
                ! ****   End Diagnostics ****
             enddo
          enddo

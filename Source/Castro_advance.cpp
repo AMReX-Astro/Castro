@@ -23,6 +23,8 @@
 #include "LevelSet_F.H"
 #endif
 
+#include <cmath>
+
 using std::string;
 
 Real
@@ -327,17 +329,17 @@ Castro::advance_hydro (Real time,
     Real courno    = -1.0e+200;
     
     MultiFab fluxes[BL_SPACEDIM];
-    
-    if (do_reflux && fine)
-      {
-	for (int j = 0; j < BL_SPACEDIM; j++)
-	  {
-	    BoxArray ba = S_new.boxArray();
-	    ba.surroundingNodes(j);
-	    fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
-	  }
-      }
-    
+
+    // We want to define this on every grid for conservative gravity
+
+    for (int j = 0; j < BL_SPACEDIM; j++)
+       {
+         BoxArray ba = S_new.boxArray();
+         ba.surroundingNodes(j);
+         fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
+         fluxes[j].setVal(0.0);
+       }
+
 #ifdef SGS
     // We need these even if we are single-level because they are used in the source construction.
     MultiFab sgs_fluxes[BL_SPACEDIM];
@@ -641,7 +643,7 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(u_gdnv[2][fpi]),
 #endif
 	     BL_TO_FORTRAN(ext_src_old[fpi]),
-	     BL_TO_FORTRAN(grav_vector[fpi]), 
+	     BL_TO_FORTRAN(grav_vector[fpi]),
 	     dx, &dt,
 	     D_DECL(BL_TO_FORTRAN(flux[0]), 
 		    BL_TO_FORTRAN(flux[1]), 
@@ -657,14 +659,15 @@ Castro::advance_hydro (Real time,
 	     mass_added, eint_added, eden_added, 
 	     E_added_flux, E_added_grav);
   BL_PROFILE_VAR_STOP(CA_UMDRV);
-	  
+
+          // Since we need the fluxes for the conservative gravity, we'll copy them
+          // to the fluxes MultiFAB even if we aren't on a fine grid.
+
+          for (int i = 0; i < BL_SPACEDIM ; i++)
+            fluxes[i][mfiindex].copy(flux[i]);	  
+
 	  if (do_reflux)
 	    {
-	      if (fine)
-		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][mfiindex].copy(flux[i]);
-		}
 	      if (current)
 		{
 		  for (int i = 0; i < BL_SPACEDIM ; i++)
@@ -920,35 +923,55 @@ Castro::advance_hydro (Real time,
 	    
             if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
 	  }
-	
+
 	// Now do corrector part of source term update
-	MultiFab grav_vec_new(grids,BL_SPACEDIM,0,Fab_allocate);
+	MultiFab grav_vec_new(grids,BL_SPACEDIM,1,Fab_allocate);
 	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
-	
-        Real E_added = 0.;
+
+        Real E_added         = 0.;
+	Real E_added_fluxes  = 0.;
+	Real xmom_added      = 0.;
+	Real ymom_added      = 0.;
+	Real zmom_added      = 0.;
 	for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	  {
+            int mfiindex = mfi.index();
 	    const Box bx = mfi.validbox();
-	    
+
 	    BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 	      (bx.loVect(), bx.hiVect(),
 	       BL_TO_FORTRAN(grav_vec_old[mfi]),
 	       BL_TO_FORTRAN(grav_vec_new[mfi]),
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
-	       dt,E_added);
+	       BL_TO_FORTRAN((*gravity->get_phi_prev(level))[mfi]),
+	       BL_TO_FORTRAN((*gravity->get_phi_curr(level))[mfi]),
+	       BL_TO_FORTRAN(fluxes[0][mfi]),
+	       BL_TO_FORTRAN(fluxes[1][mfi]),
+	       BL_TO_FORTRAN(fluxes[2][mfi]),
+	       dx,dt,E_added,E_added_fluxes,
+	       xmom_added,ymom_added,zmom_added);
 	  }
 
         ParallelDescriptor::ReduceRealSum(E_added);
+	ParallelDescriptor::ReduceRealSum(E_added_fluxes);
+	ParallelDescriptor::ReduceRealSum(xmom_added);
+	ParallelDescriptor::ReduceRealSum(ymom_added);
+        ParallelDescriptor::ReduceRealSum(zmom_added);	
 
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-           if (ParallelDescriptor::IOProcessor()) 
+           if (ParallelDescriptor::IOProcessor()) {
                std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
-        }
+	       std::cout << "(rho E) added from gravitational fluxes        : " << E_added_fluxes*cell_vol << std::endl;
+	       std::cout << "xmom added from gravitational fluxes           : " << xmom_added*cell_vol << std::endl;
+	       std::cout << "ymom added from gravitational fluxes           : " << ymom_added*cell_vol << std::endl;
+	       std::cout << "zmom added from gravitational fluxes           : " << zmom_added*cell_vol << std::endl;
+	   }
+        }	
 
-	computeTemp(S_new);
+	//computeTemp(S_new);
       }
 #endif
     
@@ -964,7 +987,7 @@ Castro::advance_hydro (Real time,
     time_center_rotation(S_new, OldRotationTerms, cur_time, dt);
 #endif
     
-    reset_internal_energy(S_new);
+    //reset_internal_energy(S_new);
     
 #ifdef REACTIONS
 #ifdef TAU
