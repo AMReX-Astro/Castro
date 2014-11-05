@@ -110,13 +110,21 @@ contains
           ugp = ugdx(i+1,j)
           ugm = ugdx(i,j)
 
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the x-direction to y-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
+
           ! Convert to conservation form
+          
+          ! "right" state on the j-1/2 interface
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
           ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
           rer = qp(i,j,QREINT) + ekinr
           
+          ! "left" state on the j+1/2 interface
           rrl = qm(i,j+1,QRHO)
           rul = rrl*qm(i,j+1,QU)
           rvl = rrl*qm(i,j+1,QV)
@@ -316,14 +324,22 @@ contains
           pgm = pgdy(i,j)
           ugp = ugdy(i,j+1)
           ugm = ugdy(i,j)
+
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the y-direction to x-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
           
           ! Convert to conservation form
+
+          ! right state on the i-1/2 interface
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
           ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
           rer = qp(i,j,QREINT) + ekinr
           
+          ! left state on the i+1/2 interface
           rrl = qm(i+1,j,QRHO)
           rul = rrl*qm(i+1,j,QU)
           rvl = rrl*qm(i+1,j,QV)
