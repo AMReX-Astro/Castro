@@ -23,7 +23,8 @@ contains
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav
+                                   transverse_use_eos, ppm_type, ppm_trace_grav, &
+                                   transverse_reset_density
     use eos_module
     use bl_constants_module
 
@@ -131,12 +132,12 @@ contains
           ekinl = HALF*rrl*(qm(i,j+1,QU)**2 + qm(i,j+1,QV)**2)
           rel = qm(i,j+1,QREINT) + ekinl
           
-          ! Add transverse predictor
+          ! Add transverse predictor 
           rrnewr = rrr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                               area1(i,j)*fx(i,j,URHO))/vol(i,j) 
           runewr = rur - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                               area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                              -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
+                        -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
           rvnewr = rvr - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                               area1(i,j)*fx(i,j,UMY))/vol(i,j) 
           renewr = rer - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
@@ -146,11 +147,27 @@ contains
                               area1(i,j)*fx(i,j,URHO))/vol(i,j) 
           runewl = rul - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                               area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                              -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
+                        -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pgp-pgm)/vol(i,j) 
           rvnewl = rvl - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                               area1(i,j)*fx(i,j,UMY))/vol(i,j) 
           renewl = rel - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
                               area1(i,j)*fx(i,j,UEDEN))/vol(i,j) 
+
+          if (transverse_reset_density == 1) then
+             if (rrnewr < ZERO) then
+                rrnewr = rrr 
+                runewr = rur 
+                rvnewr = rvr 
+                renewr = rer 
+             endif
+                
+             if (rrnewl < ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                renewl = rel 
+             endif
+          endif
           
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
@@ -166,7 +183,7 @@ contains
 
           ! Optionally, use the EOS to calculate the pressure.
 
-          if (transverse_use_eos .eq. 1) then
+          if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
              eos_state % rho = qpo(i,j,QRHO)
              eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
              eos_state % T   = small_temp
@@ -194,7 +211,7 @@ contains
 
           ! Optionally, use the EOS to calculate the pressure.
 
-          if (transverse_use_eos .eq. 1) then
+          if (transverse_use_eos .eq. 1 .and. qmo(i,j+1,QRHO) > ZERO) then
              eos_state % rho = qmo(i,j+1,QRHO)
              eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
              eos_state % T   = small_temp
@@ -246,7 +263,8 @@ contains
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav
+                                   transverse_use_eos, ppm_type, ppm_trace_grav, &
+                                   transverse_reset_density
     use eos_module
 
     implicit none
@@ -346,7 +364,7 @@ contains
           ekinl = HALF*rrl*(qm(i+1,j,QU)**2 + qm(i+1,j,QV)**2)
           rel = qm(i+1,j,QREINT) + ekinl
           
-          ! Add transverse predictor
+          ! Add transverse predictor 
           rrnewr = rrr - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO)) 
           
           runewr = rur - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX)) 
@@ -354,11 +372,29 @@ contains
                         -cdtdy*(pgp-pgm) 
           renewr = rer - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN)) 
 
+
           rrnewl = rrl - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO)) 
           runewl = rul - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX)) 
           rvnewl = rvl - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) &
                         -cdtdy*(pgp-pgm) 
           renewl = rel - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN)) 
+
+          if (transverse_reset_density == 1) then
+             if (rrnewr <= ZERO) then
+                rrnewr = rrr 
+                runewr = rur 
+                rvnewr = rvr 
+                renewr = rer 
+             endif
+                
+             if (rrnewl <= ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                renewl = rel 
+             endif
+          endif
+
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
@@ -374,7 +410,7 @@ contains
 
           ! Optionally, use the EOS to calculate the pressure.
 
-          if (transverse_use_eos .eq. 1) then
+          if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
              eos_state % rho = qpo(i,j,QRHO)
              eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
              eos_state % T   = small_temp
@@ -402,7 +438,7 @@ contains
 
           ! Optionally, use the EOS to calculate the pressure.
 
-          if (transverse_use_eos .eq. 1) then
+          if (transverse_use_eos .eq. 1 .and. qmo(i+1,j,QRHO) > ZERO) then
              eos_state % rho = qmo(i+1,j,QRHO)
              eos_state % e   = qmo(i+1,j,QREINT) / qmo(i+1,j,QRHO)
              eos_state % T   = small_temp
