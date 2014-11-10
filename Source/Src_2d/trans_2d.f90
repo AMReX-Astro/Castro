@@ -184,7 +184,7 @@ contains
           rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
           qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. j >= jlo+1 ) then
              ! If it is negative, reset the internal energy by
              ! using the discretized expression for updating (rho e).
 
@@ -194,11 +194,14 @@ contains
                           area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j) 
      
                 ! if we are still negative, then we need to reset
-                if (qpo(i,j,QREINT) < ZERO) then
+                if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
                    eos_state % rho = qpo(i,j,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
-                      
+
+                   print *, eos_state % rho
+                   print *, eos_state % xn(:)
+
                    call eos(eos_input_rt, eos_state)
                       
                    qpo(i,j,QREINT) = qpo(i,j,QRHO)*eos_state % e
@@ -239,7 +242,7 @@ contains
           rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
           qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. j <= jhi-1) then
              ! If it is negative, reset the internal energy by using
              ! the discretized expression for updating (rho e).
 
@@ -249,7 +252,7 @@ contains
                           area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j) 
 
                 ! if we are still negative, then we need to reset
-                if (qmo(i,j+1,QREINT) < ZERO) then
+                if (qmo(i,j+1,QREINT) < ZERO .and. qmo(i,j+1,QRHO) > ZERO) then
                    eos_state % rho = qmo(i,j+1,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qmo(i,j+1,QFS:QFS-1+nspec)
@@ -472,7 +475,7 @@ contains
                      cdtdy*(fy(i,j+1,UEINT)- fy(i,j,UEINT) + pav*du) 
 
                 ! if we are still negative, then we need to reset
-                if (qpo(i,j,QREINT) < ZERO) then
+                if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
                    eos_state % rho = qpo(i,j,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
@@ -524,7 +527,7 @@ contains
                      cdtdy*(fy(i,j+1,UEINT) - fy(i,j,UEINT) + pav*du)
                 
                 ! if we are still negative, then we need to reset
-                if (qmo(i+1,j,QREINT) < ZERO) then
+                if (qmo(i+1,j,QREINT) < ZERO .and. qmo(i+1,j,QRHO) > ZERO) then
                    eos_state % rho = qmo(i+1,j,QRHO) 
                    eos_state % T = small_temp
                    eos_state % xn(:) = qmo(i+1,j,QFS:QFS-1+nspec) 
