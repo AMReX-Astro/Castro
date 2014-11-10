@@ -24,7 +24,7 @@ contains
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav, &
-                                   transverse_reset_density
+                                   transverse_reset_density, transverse_reset_rhoe
     use eos_module
     use bl_constants_module
 
@@ -63,7 +63,7 @@ contains
     double precision rrnewr, runewr, rvnewr, renewr
     double precision rrl, rul, rvl, rel, ekinl, rhoekinl
     double precision rrnewl, runewl, rvnewl, renewl
-    double precision pgp, pgm, ugp, ugm, dup, pav, du, pnewl,pnewr
+    double precision pgp, pgm, ugp, ugm, dAup, pav, dAu, pnewl,pnewr
     double precision rhotmp
 
     type (eos_t) :: eos_state
@@ -169,17 +169,43 @@ contains
              endif
           endif
           
-          dup = pgp*ugp - pgm*ugm
+          dAup = area1(i+1,j)*pgp*ugp - area1(i,j)*pgm*ugm
           pav = HALF*(pgp+pgm)
-          du = ugp-ugm
+          dAu = area1(i+1,j)*ugp-area1(i,j)*ugm
         
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form  
+          ! NOTE: should probably have a j >= jlo+1 here as in 3-d
           rhotmp = rrnewr
           qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
           qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU)  
           qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  
+
+          ! note: we run the risk of (rho e) being negative here
           rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
-          qpo(i,j,QREINT)= renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
+          qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
+
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by
+             ! using the discretized expression for updating (rho e).
+
+             if (qpo(i,j,QREINT) <= ZERO) then
+                qpo(i,j,QREINT) = qp(i,j,QREINT) - &
+                     hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
+                          area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j) 
+     
+                ! if we are still negative, then we need to reset
+                if (qpo(i,j,QREINT) < ZERO) then
+                   eos_state % rho = qpo(i,j,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
+                      
+                   call eos(eos_input_rt, eos_state)
+                      
+                   qpo(i,j,QREINT) = qpo(i,j,QRHO)*eos_state % e
+                   qpo(i,j,QPRES) = eos_state % p
+                endif
+             endif
+          endif
 
           ! Optionally, use the EOS to calculate the pressure.
 
@@ -195,19 +221,47 @@ contains
              qpo(i,j,QPRES ) = pnewr
              qpo(i,j,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewr = qp(i,j,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-ONE))
+             ! we are expressing the pressure evolution as:
+             !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
+             ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
+             ! but these are divergences, so we need area factors
+             pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
              qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
           endif
           
           qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
 
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           rhotmp = rrnewl
           qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
           qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
           qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
           rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
           qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
+
+          if (transverse_reset_rhoe == 1) then
+             ! If it is negative, reset the internal energy by using
+             ! the discretized expression for updating (rho e).
+
+             if (qmo(i,j+1,QREINT) <= ZERO) then
+                qmo(i,j+1,QREINT) = qm(i,j+1,QREINT) - &
+                     hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
+                          area1(i,j)*fx(i,j,UEDEN) + pav*dAu)/vol(i,j) 
+
+                ! if we are still negative, then we need to reset
+                if (qmo(i,j+1,QREINT) < ZERO) then
+                   eos_state % rho = qmo(i,j+1,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qmo(i,j+1,QFS:QFS-1+nspec)
+                      
+                   call eos(eos_input_rt, eos_state)
+                      
+                   qmo(i,j+1,QREINT) = qmo(i,j+1,QRHO)*eos_state % e
+                   qmo(i,j+1,QPRES) = eos_state % p
+                endif
+             endif
+          endif
+
 
           ! Optionally, use the EOS to calculate the pressure.
 
@@ -223,7 +277,11 @@ contains
              qmo(i,j+1,QPRES ) = pnewr
              qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
           else           
-             pnewl = qm(i,j+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j)-ONE))
+             ! we are expressing the pressure evolution as:
+             !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
+             ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
+             ! but these are divergences, so we need area factors
+             pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
              qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
           endif
           
