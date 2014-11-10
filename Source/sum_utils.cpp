@@ -123,13 +123,13 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 #if(BL_SPACEDIM == 1) 
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 2)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
 #endif
         sum += s;
