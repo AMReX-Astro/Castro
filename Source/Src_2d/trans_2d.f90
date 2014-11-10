@@ -172,7 +172,8 @@ contains
           dAup = area1(i+1,j)*pgp*ugp - area1(i,j)*pgm*ugm
           pav = HALF*(pgp+pgm)
           dAu = area1(i+1,j)*ugp-area1(i,j)*ugm
-        
+          
+
           ! Convert back to primitive form  
           ! NOTE: should probably have a j >= jlo+1 here as in 3-d
           rhotmp = rrnewr

@@ -16,6 +16,7 @@ contains
                     flx,flx_l1,flx_l2,flx_h1,flx_h2, &
                     pgd,pgd_l1,pgd_l2,pgd_h1,pgd_h2, &
                     ugd,ugd_l1,ugd_l2,ugd_h1,ugd_h2, &
+                    gegd,ggd_l1,ggd_l2,ggd_h1,ggd_h2, &
                     gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
                     idir,ilo,ihi,jlo,jhi,domlo,domhi)
 
@@ -31,6 +32,7 @@ contains
     integer flx_l1,flx_l2,flx_h1,flx_h2
     integer pgd_l1,pgd_l2,pgd_h1,pgd_h2
     integer ugd_l1,ugd_l2,ugd_h1,ugd_h2
+    integer ggd_l1,ggd_l2,ggd_h1,ggd_h2
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer idir,ilo,ihi,jlo,jhi
     integer domlo(2),domhi(2)
@@ -38,8 +40,9 @@ contains
     double precision    qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision    qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision   flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
-    double precision pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
-    double precision ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision  pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
+    double precision  ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
     double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
@@ -145,6 +148,7 @@ contains
                       flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                       pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                      gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
     else
        call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
@@ -152,6 +156,7 @@ contains
                       flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                       pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                      gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
     endif
     
@@ -169,6 +174,7 @@ contains
                        uflx,uflx_l1,uflx_l2,uflx_h1,uflx_h2, &
                        pgdnv,pg_l1,pg_l2,pg_h1,pg_h2, &
                        ugdnv,ug_l1,ug_l2,ug_h1,ug_h2, &
+                       gegdnv,gg_l1,gg_l2,gg_h1,gg_h2, &
                        idir,ilo1,ihi1,ilo2,ihi2,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
@@ -193,6 +199,7 @@ contains
     integer :: uflx_l1,uflx_l2,uflx_h1,uflx_h2
     integer :: ug_l1,ug_l2,ug_h1,ug_h2
     integer :: pg_l1,pg_l2,pg_h1,pg_h2
+    integer :: gg_l1,gg_l2,gg_h1,gg_h2
     integer :: idir,ilo1,ihi1,ilo2,ihi2
     integer :: domlo(2),domhi(2)
 
@@ -205,6 +212,7 @@ contains
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
     double precision :: ugdnv(ug_l1:ug_h1,ug_l2:ug_h2)
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2)
+    double precision :: gegdnv(gg_l1:gg_h1,gg_l2:gg_h2)
 
     integer :: i,j,ilo,jlo,ihi,jhi
     integer :: n, nq
@@ -570,6 +578,8 @@ contains
              gamgdnv = gamstar
           endif
 
+          gegdnv(i,j) = gamgdnv
+
           pgdnv(i,j) = max(pgdnv(i,j),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
@@ -722,6 +732,7 @@ contains
                        uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
                        pgdnv, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                        ugdnv, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                       gegdnv, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
     use network, only : nspec, naux
@@ -740,6 +751,7 @@ contains
     integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
     integer :: pgd_l1, pgd_l2, pgd_h1, pgd_h2
     integer :: ugd_l1, ugd_l2, ugd_h1, ugd_h2
+    integer :: ggd_l1, ggd_l2, ggd_h1, ggd_h2
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
@@ -752,6 +764,7 @@ contains
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
     double precision :: pgdnv(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
     double precision :: ugdnv(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision :: gegdnv(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
     
     integer :: ilo,ihi,jlo,jhi
     integer :: iadv, ispec, iaux, n, nq
@@ -895,6 +908,9 @@ contains
              pgdnv(i,j) = pstar
              regd = estar
           endif
+
+          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
+
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if (idir .eq. 1) then
