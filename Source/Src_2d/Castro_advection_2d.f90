@@ -176,6 +176,7 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -200,6 +201,7 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &

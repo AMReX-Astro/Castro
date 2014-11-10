@@ -10,6 +10,7 @@ contains
                     fx, fx_l1, fx_l2, fx_h1, fx_h2, &
                     pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                     ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                    gegdx, gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -35,6 +36,7 @@ contains
     integer fx_l1, fx_l2, fx_h1, fx_h2
     integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
     integer ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2
+    integer gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
     integer area1_l1, area1_l2, area1_h1, area1_h2
@@ -48,6 +50,7 @@ contains
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
     double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
+    double precision gegdx(gegdx_l1:gegdx_h1,gegdx_l2:gegdx_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
@@ -315,6 +318,7 @@ contains
                     fy,fy_l1,fy_l2,fy_h1,fy_h2, &
                     pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                     ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                    gegdy, gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -336,6 +340,7 @@ contains
     integer fy_l1, fy_l2, fy_h1, fy_h2
     integer pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2
     integer ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2
+    integer gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
     integer ilo, ihi, jlo, jhi
@@ -347,6 +352,7 @@ contains
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
     double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
     double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
+    double precision gegdy(gegdy_l1:gegdy_h1,gegdy_l2:gegdy_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
