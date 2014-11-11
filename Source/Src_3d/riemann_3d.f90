@@ -135,14 +135,14 @@ contains
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     else
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
     endif
 
     deallocate(smallc,cavg,gamcm,gamcp)
@@ -157,7 +157,7 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -194,7 +194,14 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
-    integer :: i,j,kc,kflux
+    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+    !         it should be used for print statements or tests against domlo, domhi, etc
+    !         kc  is the k corresponding to the 3-wide slab of k-planes, so takes values
+    !             only of -1, 0, or 1
+    !         kflux is used for indexing into the uflx array -- in the initial calls to
+    !             cmpflx when uflx = {ugdnvx,ugdnvy,ugdnvz,ugdnvtmpx,ugdnvtmpy,ugdnvtmpz1,ugdnvtmpz2}, kflux = kc,
+    !             but in later calls, when uflx = {ugdnvxf,ugdnvyf,ugdnvzf} kflux = k3d
+    integer :: i,j,kc,kflux,k3d
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -589,11 +596,11 @@ contains
                   ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
-             if (kflux.eq.domlo(3) .and. &
+             if (k3d.eq.domlo(3) .and. &
                  (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
-             if (kflux.eq.domhi(3)+1 .and. &
+             if (k3d.eq.domhi(3)+1 .and. &
                  (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
@@ -757,7 +764,7 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
@@ -787,7 +794,14 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     
-    integer :: i,j,kc,kflux
+    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+    !         it should be used for print statements or tests against domlo, domhi, etc
+    !         kc  is the k corresponding to the 3-wide slab of k-planes, so takes values
+    !             only of -1, 0, or 1
+    !         kflux is used for indexing into the uflx array -- in the initial calls to
+    !             cmpflx when uflx = {ugdnvx,ugdnvy,ugdnvz,ugdnvtmpx,ugdnvtmpy,ugdnvtmpz1,ugdnvtmpz2}, kflux = kc,
+    !             but in later calls, when uflx = {ugdnvxf,ugdnvyf,ugdnvzf} kflux = k3d
+    integer :: i,j,kc,kflux,k3d
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -954,11 +968,11 @@ contains
                   ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
-             if (kflux.eq.domlo(3) .and. &
+             if (k3d.eq.domlo(3) .and. &
                   (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
-             if (kflux.eq.domhi(3)+1 .and. &
+             if (k3d.eq.domhi(3)+1 .and. &
                   (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
