@@ -69,9 +69,6 @@ contains
       !!!!!!!!!!!!!!!
       
       ! Compute left and right traced states
-      !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,drho,du,dv,dw,dp,drhoe,alpham,alphap,alpha0r,alpha0e) &
-      !$OMP PRIVATE(alpha0v,alpha0w,spminus,spplus,spzero,apright,amright,azrright,azeright,azv1rght,azw1rght,apleft) &
-      !$OMP PRIVATE(amleft,azrleft,azeleft,azv1left,azw1left)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -167,7 +164,6 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
@@ -199,7 +195,6 @@ contains
          enddo
       endif
 
-      !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,u,spzero,acmprght,acmpleft) IF(nadv.gt.1)
       do iadv = 1, nadv
          n = QFA + iadv - 1
 
@@ -231,9 +226,7 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(ispec,n,i,j,u,spzero,ascmprght,ascmpleft) IF(nspec.gt.1)
       do ispec = 1, nspec
          n = QFS + ispec - 1
 
@@ -265,9 +258,7 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(iaux,n,i,j,u,spzero,ascmprght,ascmpleft) IF(naux.gt.1)
       do iaux = 1, naux
          n = QFX + iaux - 1
 
@@ -299,12 +290,7 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,drho,du,dv,dw,dp,drhoe,alpham,alphap,alpha0r) &
-      !$OMP PRIVATE(alpha0e,alpha0v,alpha0w,spminus,spplus,spzero,apright,amright,azrright,azeright,azv1rght) &
-      !$OMP PRIVATE(azw1rght,apleft,amleft,azrleft,azeleft,azv1left,azw1left) &
-      !$OMP PRIVATE(alpha0u,azu1rght,azu1left)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -400,7 +386,6 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
@@ -433,7 +418,6 @@ contains
          enddo
       endif
 
-      !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,v,spzero,acmptop,acmpbot) IF(nadv.gt.1)
       do iadv = 1, nadv
          n = QFA + iadv - 1
 
@@ -465,9 +449,7 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(ispec,n,i,j,v,spzero,ascmptop,ascmpbot) IF(nspec.gt.1)
       do ispec = 1, nspec
          n = QFS + ispec - 1
 
@@ -498,9 +480,7 @@ contains
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(iaux,n,i,j,v,spzero,ascmptop,ascmpbot) IF(naux.gt.1)
       do iaux = 1, naux
          n = QFX + iaux - 1
 
@@ -532,7 +512,6 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
     end subroutine tracexy
 
@@ -597,9 +576,6 @@ contains
       ! NON-PPM CODE
       !!!!!!!!!!!!!!!
       
-      !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth,drho,du,dv,dw,dp,drhoe,alpham,alphap,alpha0r,alpha0e) &
-      !$OMP PRIVATE(alpha0u,alpha0v,spminus,spplus,spzero,apright,amright,azrright,azeright,azu1rght,azv1rght,apleft) &
-      !$OMP PRIVATE(amleft,azrleft,azeleft,azu1left,azv1left)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -716,7 +692,6 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
@@ -748,7 +723,6 @@ contains
          enddo
       endif
 
-      !$OMP PARALLEL DO PRIVATE(iadv,n,i,j,w,acmptop,acmpbot,spzero) IF(nadv.gt.1)
       do iadv = 1, nadv
          n = QFA + iadv - 1
 
@@ -777,9 +751,7 @@ contains
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(ispec,n,i,j,w,ascmptop,ascmpbot,spzero) IF(nspec.gt.1)
       do ispec = 1, nspec
          n = QFS + ispec - 1
 
@@ -808,9 +780,7 @@ contains
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
-      !$OMP PARALLEL DO PRIVATE(iaux,n,i,j,w,ascmptop,ascmpbot,spzero) IF(naux.gt.1)
       do iaux = 1, naux
          n = QFX + iaux - 1
 
@@ -839,7 +809,6 @@ contains
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
     end subroutine tracez
 

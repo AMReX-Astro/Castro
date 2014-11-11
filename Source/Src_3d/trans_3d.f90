@@ -78,7 +78,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -100,14 +99,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
 
-
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
-    !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly) &
-    !$OMP PRIVATE(dup,pav,du,dge,uav,geav,pnewry) &
-    !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -325,7 +317,6 @@ contains
           endif
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transx1
 
@@ -397,7 +388,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -421,13 +411,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
-    !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav) &
-    !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz,eos_state)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -659,7 +643,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transx2
 
@@ -731,7 +714,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -753,13 +735,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
-    !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrx) &
-    !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
+
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -978,7 +954,6 @@ contains
           
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
   end subroutine transy1
 
@@ -1050,7 +1025,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1074,13 +1048,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
-    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrz) &
-    !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
+
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -1313,7 +1281,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transy2
 
@@ -1390,7 +1357,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1422,16 +1388,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrry,rury) &
-    !$OMP PRIVATE(rvry,rwry,ekenry,rery,rrlx,rulx,rvlx,rwlx,ekenlx,relx,rrly,ruly,rvly,rwly,ekenly)&
-    !$OMP PRIVATE(rely,rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewry,runewry,rvnewry,rwnewry)&
-    !$OMP PRIVATE(renewry,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,rrnewly,runewly,rvnewly,rwnewly)&
-    !$OMP PRIVATE(renewly,dup,pav,du,dge,uav,geav) &
-    !$OMP PRIVATE(pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)&
-    !$OMP PRIVATE(eos_state)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -1828,7 +1785,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
   end subroutine transz
 
@@ -1911,7 +1867,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq,ipassive) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1940,15 +1895,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgyp,pgym,ugyp,ugym,pgxpm,pgxmm,ugxpm)&
-    !$OMP PRIVATE(gegxp,gegxm,gegyp,gegym,gegxpm,gegxmm,gegypm,gegymm) &
-    !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
-    !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
-    !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
-    !$OMP PRIVATE(uxav,gexav,dgex,uyav,geyav,dgey,uxavm,gexavm,dgexm,uyavm,geyavm,dgeym) &
-    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state,gexnew,gexnewm,geynew,geynewm)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2225,7 +2172,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
@@ -2322,7 +2268,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2351,13 +2296,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgzp,pgzm,gegxp,gegxm,gegzp,gegzm) &
-    !$OMP PRIVATE(ugzp,ugzm,rrr,rur,rvr,rwr)&
-    !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
-    !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uxav, gexav, dgex, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,gexnew,geznew)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2606,7 +2545,6 @@ contains
           
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
@@ -2702,7 +2640,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2731,13 +2668,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm) &
-    !$OMP PRIVATE(gegyp,gegym,gegzp,gegzm,rrr,rur,rvr,rwr)&
-    !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
-    !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,geynew,geznew)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2987,7 +2918,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states

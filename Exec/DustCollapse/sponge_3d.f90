@@ -13,7 +13,7 @@ contains
        dx,dy,dz,domlo,domhi)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
-    use probdata_module
+    use probdata_module, only : center, r_old_s
 
     implicit none
     integer          :: lo(3),hi(3),domlo(3),domhi(3)
@@ -37,7 +37,7 @@ contains
 
     ! find the analytic solution via Newton iteration
     converged = .false.
-    r_guess = 0.95*r_old
+    r_guess = 0.95*r_old_s
 
     do n = 1, max_iter
        dr = -f(r_guess,t)/dfdr(r_guess,t)
@@ -52,7 +52,7 @@ contains
        if (abs(dr/r_guess) < TOL) then
           converged = .true.
           r = r_guess
-          r_old = r_guess
+          r_old_s = r_guess
           exit
        endif
 

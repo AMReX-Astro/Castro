@@ -47,8 +47,6 @@ contains
 
 
       ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rho,SrU,SrV,SrW,SrE,rhoInv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -102,7 +100,6 @@ contains
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine add_grav_source
 

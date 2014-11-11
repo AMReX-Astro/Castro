@@ -5,7 +5,7 @@ module advection_module
   private
 
   public umeth3d, ctoprim, divu, consup, enforce_minimum_density, normalize_new_species, &
-       normalize_species_fluxes
+       normalize_species_fluxes, enforce_nonnegative_species
   
 contains
 
@@ -650,7 +650,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision :: srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR)
     double precision :: dx, dy, dz, dt, courno
 
     double precision, allocatable:: dpdrho(:,:,:)
@@ -678,7 +678,6 @@ contains
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    !$OMP PARALLEL DO PRIVATE(i,j,k)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
@@ -705,10 +704,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(iadv,n,nq,i,j,k) IF(nadv.gt.1)
     do iadv = 1, nadv
        n = UFA + iadv - 1
        nq = QFA + iadv - 1
@@ -720,10 +717,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
       
     ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(ispec,n,nq,i,j,k) IF(nspec.gt.1)
     do ispec = 1, nspec
        n  = UFS + ispec - 1
        nq = QFS + ispec - 1
@@ -735,10 +730,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
       
     ! Load auxiliary variables which are needed in the EOS
-    !$OMP PARALLEL DO PRIVATE(iaux,n,nq,i,j,k) IF(naux.gt.1)
     do iaux = 1, naux
        n  = UFX + iaux - 1
        nq = QFX + iaux - 1
@@ -750,10 +743,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! Get gamc, p, T, c, csml using q state
-    !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index)
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
@@ -808,10 +799,8 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
 
     ! compute srcQ terms
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ispec,iaux,iadv)
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -853,13 +842,11 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! Compute running max of Courant number over grids
     courmx = courno
     courmy = courno
     courmz = courno
-    !$OMP PARALLEL DO PRIVATE(i,j,k,courx,coury,courz) REDUCTION(max:courmx,courmy,courmz)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -902,7 +889,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     courno = max( courmx, courmy, courmz )
 
@@ -989,8 +975,6 @@ contains
           
        else
 
-          !$OMP PARALLEL PRIVATE(i,j,k,div1)
-          !$OMP DO
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
@@ -1001,8 +985,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
@@ -1013,8 +996,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1025,8 +1007,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO
-          !$OMP END PARALLEL
           
        endif
 
@@ -1052,7 +1032,6 @@ contains
           enddo
        else 
           ! update everything else with fluxes and source terms
-          !$OMP PARALLEL DO PRIVATE(i,j,k)
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1075,7 +1054,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        endif
          
     enddo
@@ -1104,7 +1082,6 @@ contains
     integer          :: i, j, k
     double precision :: ux, vy, wz
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ux,vy,wz)
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
@@ -1132,7 +1109,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine divu
 
@@ -1166,9 +1142,6 @@ contains
     integer          :: i,j,k,n
     double precision :: sum,fac
     
-    !$OMP PARALLEL PRIVATE(i,j,k,sum,n,fac)
-
-    !$OMP DO
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -1187,9 +1160,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
@@ -1208,9 +1179,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1229,9 +1198,6 @@ contains
           end do
        end do
     end do
-    !$OMP END DO
-    
-    !$OMP END PARALLEL
 
   end subroutine normalize_species_fluxes
 
@@ -1280,7 +1246,6 @@ contains
 
     min_dens = ZERO
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1332,9 +1297,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1367,7 +1330,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
     ! When enabled with OpenMP sometimes there is a small numerical error
     ! in (final_mass - initial_mass) even if no cells have been reset.
@@ -1382,6 +1344,113 @@ contains
     deallocate(fac)
     
   end subroutine enforce_minimum_density
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+  subroutine enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
+       uout_h1,uout_h2,uout_h3,lo,hi)
+    
+    use network, only : nspec
+    use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
+    
+    implicit none
+    
+    integer          :: lo(3), hi(3)
+    integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
+    double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+    
+    ! Local variables
+    integer          :: i,j,k,n
+    integer          :: int_dom_spec
+    logical          :: any_negative
+    double precision :: dom_spec,x
+    
+    double precision, parameter :: eps = -1.0d-16
+  
+    do k = lo(3),hi(3)
+       do j = lo(2),hi(2)
+          do i = lo(1),hi(1)
+             
+             any_negative = .false.
+             !
+             ! First deal with tiny undershoots by just setting them to zero.
+             !
+             do n = UFS, UFS+nspec-1
+                if (uout(i,j,k,n) .lt. ZERO) then
+                   x = uout(i,j,k,n)/uout(i,j,k,URHO)
+                   if (x .gt. eps) then
+                      uout(i,j,k,n) = ZERO
+                   else
+                      any_negative = .true.
+                   end if
+                end if
+             end do
+             !
+             ! We know there are one or more undershoots needing correction.
+             !
+             if (any_negative) then
+                !
+                ! Find the dominant species.
+                !
+                int_dom_spec = UFS
+                dom_spec     = uout(i,j,k,int_dom_spec)
+                
+                do n = UFS,UFS+nspec-1
+                   if (uout(i,j,k,n) .gt. dom_spec) then
+                      dom_spec     = uout(i,j,k,n)
+                      int_dom_spec = n
+                   end if
+                end do
+                !
+                ! Now take care of undershoots greater in magnitude than 1e-16.
+                !
+                do n = UFS, UFS+nspec-1
+                   
+                   if (uout(i,j,k,n) .lt. ZERO) then
+                      
+                      x = uout(i,j,k,n)/uout(i,j,k,URHO)
+                      !
+                      ! Here we only print the bigger negative values.
+                      !
+                      if (x .lt. -1.d-2) then
+                         print *,'Correcting nth negative species ',n-UFS+1
+                         print *,'   at cell (i,j,k)              ',i,j,k
+                         print *,'Negative (rho*X) is             ',uout(i,j,k,n)
+                         print *,'Negative      X  is             ',x
+                         print *,'Filling from dominant species   ',int_dom_spec-UFS+1
+                         print *,'  which had X =                 ',&
+                              uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
+                      end if
+                      !
+                      ! Take enough from the dominant species to fill the negative one.
+                      !
+                      uout(i,j,k,int_dom_spec) = uout(i,j,k,int_dom_spec) + uout(i,j,k,n)
+                      !
+                      ! Test that we didn't make the dominant species negative.
+                      !
+                      if (uout(i,j,k,int_dom_spec) .lt. ZERO) then 
+                         print *,' Just made nth dominant species negative ',int_dom_spec-UFS+1,' at ',i,j,k 
+                         print *,'We were fixing species ',n-UFS+1,' which had value ',x
+                         print *,'Dominant species became ',uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
+                         call bl_error("Error:: Castro_3d.f90 :: ca_enforce_nonnegative_species")
+                      end if
+                      !
+                      ! Now set the negative species to zero.
+                      !
+                      uout(i,j,k,n) = ZERO
+                      
+                   end if
+                   
+                enddo
+             end if
+          enddo
+       enddo
+    enddo
+
+  end subroutine enforce_nonnegative_species
 
 ! :::
 ! ::: ------------------------------------------------------------------
@@ -1403,7 +1472,6 @@ contains
     integer          :: i,j,k,n
     double precision :: fac,sum
     
-    !$OMP PARALLEL DO PRIVATE(i,j,k,sum,n,fac)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1422,7 +1490,6 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
     
   end subroutine normalize_new_species
 

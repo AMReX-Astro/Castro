@@ -46,7 +46,6 @@ contains
     allocate(dp (0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
     allocate(z  (0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
     allocate(chi(0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
-    !$OMP PARALLEL DO PRIVATE(i,j,k,idx,denom,zeta,tst,tmp,ishft)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           do i = lo(1)-1,hi(1)+1
@@ -79,7 +78,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     deallocate(dp,z,chi)
 
@@ -87,7 +85,6 @@ contains
     allocate(dp (lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
     allocate(z  (lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
     allocate(chi(lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
-    !$OMP PARALLEL DO PRIVATE(i,j,k,idx,denom,zeta,tst,tmp,ishft,ftmp)
     do k = lo(3),hi(3)
        do i = lo(1),hi(1)
           do j = lo(2)-1,hi(2)+1
@@ -121,7 +118,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     deallocate(dp,z,chi)
 
@@ -129,7 +125,6 @@ contains
     allocate(dp (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
     allocate(z  (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
     allocate(chi(lo(1):hi(1),lo(2):hi(2),0:nmax-1))
-    !$OMP PARALLEL DO PRIVATE(i,j,k,idx,denom,zeta,tst,tmp,ishft,ftmp)
     do j = lo(2),hi(2) 
        do i = lo(1),hi(1)
           do k = lo(3)-1,hi(3)+1
@@ -163,7 +158,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
     deallocate(dp,z,chi)
 

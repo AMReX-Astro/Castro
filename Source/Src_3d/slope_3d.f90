@@ -64,7 +64,6 @@ contains
          do n = 1, nv 
 
             ! Compute slopes in first coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,slop,dq1)
             do j = ilo2-1, ihi2+1
 
                ! First compute Fromm slopes
@@ -89,10 +88,8 @@ contains
                enddo
 
             enddo
-            !$OMP END PARALLEL DO
 
             ! Compute slopes in second coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,slop,dq1)
             do i = ilo1-1, ihi1+1
                ! First compute Fromm slopes for this column
                do j = ilo2-2, ihi2+2
@@ -115,10 +112,8 @@ contains
                   dqy(i,j,kc,n) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dq1))
                enddo
             enddo
-            !$OMP END PARALLEL DO
 
             ! Compute slopes in third coordinate direction
-            !$OMP PARALLEL DO PRIVATE(i,j,k,dm,dp,dc,ds,sl,dl,dfm,dfp,dq1)
             do j = ilo2-1, ihi2+1
                do i = ilo1-1, ihi1+1
 
@@ -168,7 +163,6 @@ contains
                   dqz(i,j,kc,n) = flatn(i,j,k3d)*ds*min(dl,abs(dq1))
                enddo
             enddo
-            !$OMP END PARALLEL DO
          enddo
 
       endif
@@ -234,7 +228,6 @@ contains
 
         else
            ! Compute slopes in first coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,dp1)
            do j = ilo2-1, ihi2+1
 
               ! First compute Fromm slopes
@@ -266,10 +259,8 @@ contains
                  dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,1)*dx
               enddo
            enddo
-           !$OMP END PARALLEL DO
 
            ! Compute slopes in second coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,dlft,drgt,dp1)
            do i = ilo1-1, ihi1+1
 
               ! First compute Fromm slopes
@@ -300,10 +291,8 @@ contains
                  dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,2)*dy
               enddo
            enddo
-           !$OMP END PARALLEL DO
 
            ! Compute slopes in third coordinate direction
-           !$OMP PARALLEL DO PRIVATE(i,j,k,dm,dp,dc,ds,dl,dfm,dfp,dp1)
            do j = ilo2-1, ihi2+1
               do i = ilo1-1, ihi1+1
 
@@ -363,7 +352,6 @@ contains
                  dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,3)*dz
               enddo
            enddo
-           !$OMP END PARALLEL DO
 
         endif
 

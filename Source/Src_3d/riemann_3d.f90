@@ -236,19 +236,6 @@ contains
 
     allocate (pstar_hist(iter_max))
 
-    !$OMP PARALLEL DO PRIVATE(i,j) &
-    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,gcl,gcr) &
-    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
-    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
-    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
-    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
-    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
-    !$OMP PRIVATE(ro,uo,po,tauo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
-    !$OMP PRIVATE(rstar,cstar,spout,spin,ushock,scr,frac) &
-    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
-    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
-    !$OMP PRIVATE(pstar_hist) &
-    !$OMP PRIVATE(eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -814,9 +801,6 @@ contains
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
     
-    !$OMP PARALLEL DO PRIVATE(i,j,rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,csmall,wsmall,wl,wr,pstar,ustar,ro,uo) &
-    !$OMP PRIVATE(po,reo,gamco,co,entho,rstar,estar,cstar,sgnm,spout,spin,ushock,scr,frac,v1gdnv,v2gdnv,rgdnv,regdnv) &
-    !$OMP PRIVATE(rhoetot,iadv,n,nq,qavg,ispec,iaux,rho_K_contrib)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -1070,7 +1054,6 @@ contains
           
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine riemannus
 

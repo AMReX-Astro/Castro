@@ -124,14 +124,6 @@ contains
     !-------------------------------------------------------------------------
 
     ! Trace to left and right edges using upwind PPM
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref, u_ref, p_ref, rhoe_ref) &
-    !$OMP PRIVATE(drho,dv,dw,dp,drhoe,de,dge,dum,dpm,dup,dpp,alpham,alphap,alpha0r) &
-    !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright) &
-    !$OMP PRIVATE(amleft,apleft,azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
-    !$OMP PRIVATE(gam, game, tau_ref, dtau, tau_s, e_s)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -596,7 +588,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     
     !--------------------------------------------------------------------------
@@ -604,7 +595,6 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(ipassive,i,j,u,n,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -669,7 +659,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
 
 
     !--------------------------------------------------------------------------
@@ -677,14 +666,6 @@ contains
     !--------------------------------------------------------------------------
 
     ! Trace to bottom and top edges using upwind PPM
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref, v_ref, p_ref, rhoe_ref) &
-    !$OMP PRIVATE(drho,du,dw,dp,drhoe,de,dge,dvm,dpm,dvp,dpp,alpham,alphap,alpha0r) &
-    !$OMP PRIVATE(alpha0e,amright,apright,azrright,azeright,amleft) &
-    !$OMP PRIVATE(apleft,azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
-    !$OMP PRIVATE(gam, game, dtau, tau_ref, tau_s, e_s)
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -1135,14 +1116,12 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     !--------------------------------------------------------------------------
     ! Passively advected quantities
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(n,i,j,v,ipassive,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do i = ilo1-1, ihi1+1
@@ -1280,15 +1259,6 @@ contains
     ! Note: in contrast to the above code for x and y, here the loop
     ! is over interfaces, not over cell-centers.
 
-
-    !$OMP PARALLEL DO PRIVATE(i,j,cc,csq,rho,u,v,w,p,rhoe,enth) &
-    !$OMP PRIVATE(rho_ref,w_ref,p_ref,rhoe_ref) &
-    !$OMP PRIVATE(drho,du,dv,dp,drhoe,de,dge,dwm,dpm,dwp,dpp,alpham,alphap,alpha0r,alpha0e) &
-    !$OMP PRIVATE(amright,apright,azrright,azeright,amleft,apleft)&
-    !$OMP PRIVATE(azrleft,azeleft,xi,xi1) &
-    !$OMP PRIVATE(cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref,gfactor) &
-    !$OMP PRIVATE(cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev) &
-    !$OMP PRIVATE(gam, game, dtau, tau_ref, tau_s, e_s)
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
@@ -1752,14 +1722,12 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     !--------------------------------------------------------------------------
     ! passively advected quantities
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$OMP parallel do private(n,w,i,j,ipassive,xi) IF(npassive .gt. 1)
     do ipassive = 1, npassive
          n = qpass_map(ipassive)
          do j = ilo2-1, ihi2+1
@@ -1802,7 +1770,6 @@ contains
                enddo
          enddo
     enddo
-    !$OMP end parallel do
 
   end subroutine tracez_ppm
 
