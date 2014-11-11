@@ -196,8 +196,8 @@ contains
 
     ! Note:  Here k3d is the k corresponding to the full 3d array -- 
     !         it should be used for print statements or tests against domlo, domhi, etc
-    !         kc  is the k corresponding to the 3-wide slab of k-planes, so in this routine 
-    !             it takes values only of  0, 1 or 2 
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so in this routine 
+    !             it takes values only of  1 or 2 
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
@@ -796,8 +796,8 @@ contains
     
     ! Note:  Here k3d is the k corresponding to the full 3d array -- 
     !         it should be used for print statements or tests against domlo, domhi, etc
-    !         kc  is the k corresponding to the 3-wide slab of k-planes, so takes values
-    !             only of -1, 0, or 1
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so takes values
+    !             only of 1 or 2
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
