@@ -63,7 +63,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
   double precision mass_added,eint_added,eden_added
 
-  integer, parameter :: xblksize=2048, yblksize=8, zblksize=8
+  integer, parameter :: xblksize=2048, yblksize=2048, zblksize=2048
   integer, parameter :: blocksize_min = 4
 
   integer :: i,j,k,n, ib, jb, kb, nb(3), boxsize(3)
