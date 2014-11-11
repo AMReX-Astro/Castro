@@ -97,9 +97,10 @@ contains
     double precision, allocatable::qxm(:,:,:),qym(:,:,:)
     double precision, allocatable::qxp(:,:,:),qyp(:,:,:)
     
-    ! Work arrays to hold 3 planes of riemann state and conservative fluxes
+    ! Work arrays to hold riemann state and conservative fluxes
     double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
     double precision, allocatable::   pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
 
     ! Local scalar variables
     double precision :: dtdx
@@ -108,6 +109,10 @@ contains
 
     allocate ( pgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2))
     allocate ( ugdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+
     allocate ( dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
@@ -150,6 +155,7 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -159,6 +165,7 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
@@ -169,6 +176,7 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -182,6 +190,7 @@ contains
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
@@ -192,6 +201,7 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -207,6 +217,7 @@ contains
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
@@ -224,7 +235,7 @@ contains
 
     deallocate(dq,qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
-    deallocate(pgdxtmp,ugdxtmp)
+    deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
     
   end subroutine umeth2d
 
