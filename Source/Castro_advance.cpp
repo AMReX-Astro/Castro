@@ -687,13 +687,15 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-           ParallelDescriptor::ReduceRealSum(mass_added);
-           ParallelDescriptor::ReduceRealSum(eint_added);
-           ParallelDescriptor::ReduceRealSum(eden_added);
-           ParallelDescriptor::ReduceRealSum(E_added_flux);
-           ParallelDescriptor::ReduceRealSum(E_added_grav);
+	   Real foo[5] = {mass_added, eint_added, eden_added, E_added_flux, E_added_grav};
+	   ParallelDescriptor::ReduceRealSum(foo, 5, ParallelDescriptor::IOProcessorNumber());
            if (ParallelDescriptor::IOProcessor()) 
            {
+	       mass_added = foo[0];
+	       eint_added = foo[1];
+	       eden_added = foo[2];
+	       E_added_flux = foo[3];
+	       E_added_grav = foo[4];
                if (std::abs(mass_added) != 0)
                {
                   std::cout << "   Mass added from negative density correction : " << 
