@@ -260,7 +260,7 @@ contains
 
              ! Update gammae with its transverse terms
              qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                  hdt*( (geav+ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                  hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
              
              ! and compute the p edge state from this and (rho e)
              qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
@@ -333,7 +333,7 @@ contains
 
              ! Update gammae with its transverse terms
              qmo(i,j+1,QGAME) = qm(i,j+1,QGAME) + &
-                  hdt*( (geav+ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                  hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
 
              ! and compute the p edge state from this and (rho e)
              qmo(i,j+1,QPRES) = qmo(i,j+1,QREINT)*(qmo(i,j+1,QGAME)-ONE)
@@ -585,7 +585,7 @@ contains
 
              ! Update gammae with its transverse terms
              qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                  cdtdy*( (geav+ONE)*(geav-gamc(i,j))*du - uav*dge )
+                  cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
              
              ! and compute the p edge state from this and (rho e)
              qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
@@ -654,7 +654,7 @@ contains
 
              ! Update gammae with its transverse terms
              qmo(i+1,j,QGAME) = qm(i+1,j,QGAME) + &
-                  cdtdy*( (geav+ONE)*(geav-gamc(i,j))*du - uav*dge )
+                  cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
              qmo(i+1,j,QPRES) = qmo(i+1,j,QREINT)*(qmo(i+1,j,QGAME)-ONE)

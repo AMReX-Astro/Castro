@@ -357,7 +357,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e = de - dp*p_ev/Clag_ev**2
              else
-                gfactor = (game + 1.0d0)*(game - gam)
+                gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -578,7 +578,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e = de - dp*p_ev/Clag_ev**2
              else
-                gfactor = (game + 1.0d0)*(game - gam)
+                gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -922,7 +922,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e = de - dp*p_ev/Clag_ev**2
              else
-                gfactor = (game + 1.0d0)*(game - gam)
+                gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
              endif
           
@@ -1133,7 +1133,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e = de - dp*p_ev/Clag_ev**2
              else
-                gfactor = (game + 1.0d0)*(game - gam)
+                gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
              endif
 
