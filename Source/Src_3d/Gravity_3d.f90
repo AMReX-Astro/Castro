@@ -272,25 +272,7 @@
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
                cc(i,j,k,1) = HALF * ( ecx(i+1,j,k) + ecx(i,j,k) )
-            enddo
-         enddo
-      enddo
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
                cc(i,j,k,2) = HALF * ( ecy(i,j+1,k) + ecy(i,j,k) )
-            enddo
-         enddo
-      enddo
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
                cc(i,j,k,3) = HALF * ( ecz(i,j,k+1) + ecz(i,j,k) )
             enddo
          enddo
@@ -316,8 +298,8 @@
       !
       if (ccl2 .lt. 0 .and. bc_lo(2) .eq. symmetry_type) then
          do k=lo(3),hi(3)
-            do i=lo(1),hi(1)
-               do j=lo(2),-1
+            do j=lo(2),-1
+               do i=lo(1),hi(1)
                   cc(i,j,k,1) =  cc(i,-j-1,k,1)
                   cc(i,j,k,2) = -cc(i,-j-1,k,2)
                   cc(i,j,k,3) =  cc(i,-j-1,k,3)
@@ -329,9 +311,9 @@
       ! Note this assumes the lo end of the domain is 0.
       !
       if (ccl3 .lt. 0 .and. bc_lo(3) .eq. symmetry_type) then
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               do k=lo(3),-1
+         do k=lo(3),-1
+            do j=lo(2),hi(2)
+               do i=lo(1),hi(1)
                   cc(i,j,k,1) =  cc(i,j,-k-1,1)
                   cc(i,j,k,2) =  cc(i,j,-k-1,2)
                   cc(i,j,k,3) = -cc(i,j,-k-1,3)
@@ -443,8 +425,8 @@
 
       !$OMP DO
       do k = lo(3), hi(3)
-         do i = lo(1), hi(1)
-            do j = lo(2), hi(2)+1
+         do j = lo(2), hi(2)+1
+            do i = lo(1), hi(1)
                cy(i,j,k) = ZERO
                do n = 0,facx-1
                   do m = 0,facz-1
@@ -458,9 +440,9 @@
       !$OMP END DO NOWAIT
 
       !$OMP DO
-      do j = lo(2), hi(2)
-         do i = lo(1), hi(1)
-            do k = lo(3), hi(3)+1
+      do k = lo(3), hi(3)+1
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
                cz(i,j,k) = ZERO
                do n = 0,facx-1
                   do m = 0,facy-1
@@ -504,17 +486,19 @@
       integer          :: ii,jj,kk
       double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
-      double precision :: vol_frac
+      double precision :: vol_frac, drinv
       double precision :: lo_i,lo_j,lo_k
+      double precision, allocatable :: mass(:), vol(:)
 
-      if (( abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1) ) .and. &
-          ( abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2) ) .and. &
-          ( abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3) ) ) then
+      if (( abs(center(1) - problo(1)) .lt. 1.d-2 * dx(1) ) .and. &
+          ( abs(center(2) - problo(2)) .lt. 1.d-2 * dx(2) ) .and. &
+          ( abs(center(3) - problo(3)) .lt. 1.d-2 * dx(3) ) ) then
          octant_factor = EIGHT
       else
          octant_factor = ONE
       end if
 
+      drinv = ONE/dr
 
       fac     = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -522,20 +506,29 @@
       dz_frac = dx(3) / fac
 
       vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
-      !
-      ! Don't OMP this.
-      !
+
+      !$omp parallel private(i,j,k,xc,yc,zc,mass,vol,r,index,lo_i,lo_j,lo_k) &
+      !$omp private(ii,jj,kk,xx,yy,zz,xxsq,yysq,zzsq)
+
+      allocate(mass(0:n1d-1),vol(0:n1d-1))
+      mass = ZERO
+      vol = ZERO
+
+      !$omp do
       do k = lo(3), hi(3)
          zc = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+         lo_k =  problo(3) + dble(k)*dx(3) - center(3)
 
          do j = lo(2), hi(2)
             yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+            lo_j =  problo(2) + dble(j)*dx(2) - center(2)
 
             do i = lo(1), hi(1)
                xc  = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+               lo_i =  problo(1) + dble(i)*dx(1) - center(1)
 
                r = sqrt(xc**2 + yc**2 + zc**2)
-               index = int(r/dr)
+               index = int(r*drinv)
 
                if (index .gt. n1d-1) then
 
@@ -549,10 +542,6 @@
 
                else
 
-                  lo_i =  problo(1) + dble(i)*dx(1) - center(1)
-                  lo_j =  problo(2) + dble(j)*dx(2) - center(2)
-                  lo_k =  problo(3) + dble(k)*dx(3) - center(3)
-
                   do kk = 0,drdxfac-1
                      zz   = lo_k + (dble(kk)+HALF)*dz_frac
                      zzsq = zz*zz
@@ -564,11 +553,11 @@
                            xx    = lo_i + (dble(ii)+HALF)*dx_frac
                            xxsq  = xx*xx
                            r     = sqrt(xxsq  + yysq + zzsq)
-                           index = int(r/dr)
+                           index = int(r*drinv)
 
                            if (index .le. n1d-1) then
-                              radial_mass(index) = radial_mass(index) + vol_frac * rho(i,j,k)
-                              radial_vol (index) = radial_vol (index) + vol_frac
+                              mass(index) = mass(index) + vol_frac * rho(i,j,k)
+                              vol (index) = vol (index) + vol_frac
                            end if
                         end do
                      end do
@@ -578,6 +567,17 @@
             enddo
          enddo
       enddo
+      !$omp end do
+
+      do i = 0, n1d-1
+         !$omp atomic
+         radial_mass(i) = radial_mass(i) + mass(i) 
+         !$omp atomic
+         radial_vol(i) = radial_vol(i) + vol(i) 
+      end do
+
+      deallocate(mass,vol)
+      !$omp end parallel
 
       end subroutine ca_compute_radial_mass
 
