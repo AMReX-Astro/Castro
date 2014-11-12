@@ -271,7 +271,7 @@
                                    use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   rot_period_in, const_grav_in)
+                                   rot_period_in, const_grav_in, deterministic_in)
 !                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
@@ -304,6 +304,7 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_period_in, const_grav_in
+        integer, intent(in) :: deterministic_in
         integer :: iadv, ispec
 
         integer             :: QLAST
@@ -479,7 +480,8 @@
         fix_mass_flux              = fix_mass_flux_in
         rot_period                 = rot_period_in
         const_grav                 = const_grav_in
-        
+        deterministic              = deterministic_in.ne.0
+
 
 !       allocate(outflow_bc_lo(dm))
 !       allocate(outflow_bc_hi(dm))

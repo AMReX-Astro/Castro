@@ -71,4 +71,6 @@ module meth_params_module
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
+  logical, save :: deterministic   ! set this to true for regression tests
+
 end module meth_params_module

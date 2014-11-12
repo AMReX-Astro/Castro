@@ -129,6 +129,8 @@ int          Castro::do_rotation = -1;
 Real         Castro::rotational_period = 0.0;
 #endif
 
+int          Castro::deterministic = 0;
+
 int          Castro::grown_factor = 1;
 int          Castro::star_at_center = -1;
 int          Castro::moving_center = 0;
@@ -484,6 +486,8 @@ Castro::read_params ()
       }
 #endif
 #endif
+
+   pp.query("deterministic", deterministic);
 
    pp.query("job_name",job_name);  
 }

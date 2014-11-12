@@ -23,6 +23,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   use meth_params_module, only : NVAR
   use threadbox_module, only : build_threadbox_3d, get_lo_hi
+  use omp_module, only : omp_get_max_threads
 
   ! This is used for IsoTurb only
   ! use probdata_module   , only : radiative_cooling_type
@@ -66,23 +67,16 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer, parameter :: xblksize=2048, yblksize=2048, zblksize=2048
   integer, parameter :: blocksize_min = 4
 
+  integer :: nthreads
   integer :: i,j,k,n, ib, jb, kb, nb(3), boxsize(3)
   integer :: fxlo(3),fxhi(3),fylo(3),fyhi(3),fzlo(3),fzhi(3),tlo(3),thi(3)
   integer, allocatable :: bxlo(:), bxhi(:), bylo(:), byhi(:), bzlo(:), bzhi(:)
   double precision, allocatable :: bxflx(:,:,:,:), byflx(:,:,:,:), bzflx(:,:,:,:)
   double precision, allocatable :: bxugd(:,:,:), byugd(:,:,:), bzugd(:,:,:)
-  integer, save :: nthreads = 0
-  logical, save :: first_call = .true.
-
-  if (first_call) then
-     first_call = .false.
-     nthreads=0
-     !$omp parallel reduction(+:nthreads)
-     nthreads = nthreads + 1
-     !$omp end parallel
-  end if
 
   boxsize = hi-lo+1
+
+  nthreads = omp_get_max_threads()
 
   if (nthreads > 1) then
      call build_threadbox_3d(nthreads, boxsize, blocksize_min, nb)

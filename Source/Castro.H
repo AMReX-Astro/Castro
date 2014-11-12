@@ -693,6 +693,9 @@ protected:
   static Real rotational_period;
 #endif
 
+    // set it to true to make OMP deterministic
+    static int deterministic;  
+
 /* problem-specific includes */
 #include <Problem.H>
 

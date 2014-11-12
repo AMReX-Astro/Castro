@@ -468,6 +468,8 @@
                                          n1d,drdxfac,level)
       use bl_constants_module
       use probdata_module
+      use meth_params_module, only : deterministic
+      use omp_module
 
       implicit none
 
@@ -482,7 +484,7 @@
       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
-      integer          :: i,j,k,index
+      integer          :: i,j,k,index,tid,nthreads
       integer          :: ii,jj,kk
       double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
@@ -508,7 +510,7 @@
       vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
 
       !$omp parallel private(i,j,k,xc,yc,zc,mass,vol,r,index,lo_i,lo_j,lo_k) &
-      !$omp private(ii,jj,kk,xx,yy,zz,xxsq,yysq,zzsq)
+      !$omp private(ii,jj,kk,xx,yy,zz,xxsq,yysq,zzsq,tid,nthreads)
 
       allocate(mass(0:n1d-1),vol(0:n1d-1))
       mass = ZERO
@@ -569,12 +571,26 @@
       enddo
       !$omp end do
 
-      do i = 0, n1d-1
-         !$omp atomic
-         radial_mass(i) = radial_mass(i) + mass(i) 
-         !$omp atomic
-         radial_vol(i) = radial_vol(i) + vol(i) 
-      end do
+      if (deterministic) then
+         tid = omp_get_thread_num()
+         nthreads = omp_get_num_threads()
+         do j = 0, nthreads-1
+            if (j .eq. tid) then
+               do i = 0, n1d-1
+                  radial_mass(i) = radial_mass(i) + mass(i) 
+                  radial_vol(i) = radial_vol(i) + vol(i) 
+               end do
+            end if
+            !$omp barrier
+         end do
+      else
+         do i = 0, n1d-1
+            !$omp atomic
+            radial_mass(i) = radial_mass(i) + mass(i) 
+            !$omp atomic
+            radial_vol(i) = radial_vol(i) + vol(i) 
+         end do
+      end if
 
       deallocate(mass,vol)
       !$omp end parallel
