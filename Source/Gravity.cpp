@@ -1094,15 +1094,15 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 
        if ( (level == 0) && (lev == 0) && !Geometry::isAllPeriodic() ) 
        {
-         if (verbose && ParallelDescriptor::IOProcessor()) 
-             std::cout << " ... Making bc's for phi at level 0 " << std::endl;
+	   if (verbose && ParallelDescriptor::IOProcessor()) 
+	       std::cout << " ... Making bc's for phi at level 0 " << std::endl;
 
-             int fill_interior = 1;
-             make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
+	   int fill_interior = 1;
+	   make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
 #if (BL_SPACEDIM == 3)
-             if ( direct_sum_bcs )
+	   if ( direct_sum_bcs )
                fill_direct_sum_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
-             else
+	   else
                // Note that the ghost cells of phi are zero'd out before being filled
                //      so the previous values from make_radial_phi will be forgotten
                fill_multipole_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
