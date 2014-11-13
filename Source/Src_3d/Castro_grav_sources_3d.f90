@@ -89,7 +89,7 @@ contains
                                      uout(i,j,k,URHO) 
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
 
-               else if (grav_source_type .eq. 4) then
+               else if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
                   ! Do nothing here, for the conservative gravity option
 
                else 
@@ -197,7 +197,16 @@ end module grav_sources_module
 
       gtens = ZERO
 
-      if (grav_source_type .eq. 4) then
+      if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
+
+         ! This implements the approach of Jiang et al. (2013). The gravitational force
+         ! is coupled to the hydrodynamics through a conservative flux formalism
+         ! rather than a cell-centered source construction.
+         ! grav_source_type == 4 is implemented straight from the text, with the exception that
+         ! the time derivative of phi is approximated using the time-level n and n+1 values of phi,
+         ! instead of using a Poisson solve. grav_source_type == 5 does the same thing, except that the
+         ! values of the flux and gravitational energy are those from the appendix, which are the
+         ! Galilean invariant versions.
 
          rho_E_added = ZERO
          flux_added  = ZERO
@@ -218,8 +227,16 @@ end module grav_sources_module
                   dgdt_av   = HALF * (dgdt(i-1,j,k,1) + dgdt(i,j,k,1))
                   mom_av    = old_flux1(i,j,k,URHO) / (dx(2) * dx(3)) / dt
 
-                  flux1(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                  mom_av * phi_av
+                  if (grav_source_type .eq. 4) then
+                  
+                     flux1(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                     mom_av * phi_av
+
+                  else if (grav_source_type .eq. 5) then
+
+                     flux1(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+
+                  endif
 
                   flux1(i,j,k) = flux1(i,j,k) * dt / dx(1)
 
@@ -239,8 +256,16 @@ end module grav_sources_module
                   dgdt_av   = HALF * (dgdt(i,j-1,k,2) + dgdt(i,j,k,2))
                   mom_av    = old_flux2(i,j,k,URHO) / (dx(1) * dx(3)) / dt
 
-                  flux2(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                  mom_av * phi_av
+                  if (grav_source_type .eq. 4) then
+
+                     flux2(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                     mom_av * phi_av
+
+                  else if (grav_source_type .eq. 5) then
+
+                     flux2(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+
+                  endif
 
                   flux2(i,j,k) = flux2(i,j,k) * dt / dx(2)
 
@@ -260,8 +285,16 @@ end module grav_sources_module
                   dgdt_av   = HALF * (dgdt(i,j,k-1,3) + dgdt(i,j,k,3))
                   mom_av    = old_flux3(i,j,k,URHO) / (dx(1) * dx(2)) / dt
 
-                  flux3(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                  mom_av * phi_av
+                  if (grav_source_type .eq. 4) then
+
+                     flux3(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                     mom_av * phi_av
+
+                  else if (grav_source_type .eq. 5) then
+
+                     flux3(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+
+                  endif
 
                   flux3(i,j,k) = flux3(i,j,k) * dt / dx(3)
 
@@ -373,7 +406,7 @@ end module grav_sources_module
                    new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                     unew(i,j,k,URHO) 
                    unew(i,j,k,UEDEN) = old_rhoeint + new_ke
-               else if (grav_source_type .eq. 4) then
+               else if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
 
                   unew(i,j,k,UMX) = unew(i,j,k,UMX) &
                                   + ( gtens(i,j,k,1,1) - gtens(i+1,j,k,1,1) ) &
@@ -393,9 +426,24 @@ end module grav_sources_module
                   unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN)         &
                                     + ( flux1(i,j,k) - flux1(i+1,j,k)  &
                                     +   flux2(i,j,k) - flux2(i,j+1,k)  &
-                                    +   flux3(i,j,k) - flux3(i,j,k+1)) &
-                                    + (HALF * unew(i,j,k,URHO) * pnew(i,j,k) - &
-                                       HALF * uold(i,j,k,URHO) * pold(i,j,k))
+                                    +   flux3(i,j,k) - flux3(i,j,k+1))
+
+                  if (grav_source_type .eq. 4) then
+
+                     unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) &
+                                       + HALF * unew(i,j,k,URHO) * pnew(i,j,k) &
+                                       - HALF * uold(i,j,k,URHO) * pold(i,j,k)
+
+                  else if (grav_source_type .eq. 5) then
+
+                     unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) &
+                                       + unew(i,j,k,URHO) * pnew(i,j,k) &
+                                       - uold(i,j,k,URHO) * pold(i,j,k) &
+                                       - (gnew(i,j,k,1)**2 + grav(i,j,k,2)**2 + grav(i,j,k,3)**2) / (EIGHT * M_PI * Gconst) &
+                                       + (gold(i,j,k,1)**2 + grav(i,j,k,2)**2 + grav(i,j,k,3)**2) / (EIGHT * M_PI * Gconst)
+
+                  endif
+
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
                end if
@@ -413,6 +461,7 @@ end module grav_sources_module
                ymom_added = ymom_added + unew(i,j,k,UMY) - old_ymom
                zmom_added = zmom_added + unew(i,j,k,UMZ) - old_zmom
                ! ****   End Diagnostics ****
+
             enddo
          enddo
       enddo
