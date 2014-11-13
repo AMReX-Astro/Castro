@@ -68,7 +68,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer, parameter :: blocksize_min = 4
 
   integer :: nthreads
-  integer :: i,j,k,n, ib, jb, kb, nb(3), boxsize(3)
+  integer :: iblock, nblocks, nblocksxy, iblockxy, i,j,k,n, ib, jb, kb, nb(3), boxsize(3)
   integer :: fxlo(3),fxhi(3),fylo(3),fyhi(3),fzlo(3),fzhi(3),tlo(3),thi(3)
   integer, allocatable :: bxlo(:), bxhi(:), bylo(:), byhi(:), bzlo(:), bzhi(:)
   double precision, allocatable :: bxflx(:,:,:,:), byflx(:,:,:,:), bzflx(:,:,:,:)
@@ -100,124 +100,129 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call get_lo_hi(boxsize(2), nb(2), bylo, byhi)
   call get_lo_hi(boxsize(3), nb(3), bzlo, bzhi)
 
+  nblocksxy = nb(1)*nb(2)
+  nblocks   = nb(1)*nb(2)*nb(3)
+
   !$omp parallel private(i,j,k,n,ib,jb,kb,fxlo,fxhi,fylo,fyhi,fzlo,fzhi,tlo,thi) &
-  !$omp private(bxflx,byflx,bzflx,bxugd,byugd,bzugd) reduction(+:E_added_flux,E_added_grav) &
-  !$omp reduction(+:mass_added,eint_added,eden_added) reduction(max:courno)
-  !$omp do collapse(3)
-  do       kb = 0, nb(3)-1
-     do    jb = 0, nb(2)-1
-        do ib = 0, nb(1)-1
+  !$omp private(iblock,iblockxy,bxflx,byflx,bzflx,bxugd,byugd,bzugd) &
+  !$omp reduction(+:E_added_flux,E_added_grav,mass_added,eint_added,eden_added) &
+  !$omp reduction(max:courno)
+  !$omp do
+  do iblock = 0, nblocks-1
 
-           tlo(1) = lo(1) + bxlo(ib)
-           thi(1) = lo(1) + bxhi(ib)
-           
-           tlo(2) = lo(2) + bylo(jb)
-           thi(2) = lo(2) + byhi(jb)
-           
-           tlo(3) = lo(3) + bzlo(kb)
-           thi(3) = lo(3) + bzhi(kb)
+     kb = iblock / nblocksxy
+     iblockxy = iblock - kb*nblocksxy
+     jb = iblockxy / nb(1)
+     ib = iblockxy - jb*nb(1)
 
-           fxlo = tlo
-           fxhi(1) = thi(1)+1
-           fxhi(2) = thi(2)
-           fxhi(3) = thi(3)
-           
-           fylo = tlo
-           fyhi(1) = thi(1)
-           fyhi(2) = thi(2)+1
-           fyhi(3) = thi(3)
-           
-           fzlo = tlo
-           fzhi(1) = thi(1)
-           fzhi(2) = thi(2)
-           fzhi(3) = thi(3)+1
-           
-           allocate(bxflx(fxlo(1):fxhi(1),fxlo(2):fxhi(2),fxlo(3):fxhi(3),NVAR))
-           allocate(byflx(fylo(1):fyhi(1),fylo(2):fyhi(2),fylo(3):fyhi(3),NVAR))
-           allocate(bzflx(fzlo(1):fzhi(1),fzlo(2):fzhi(2),fzlo(3):fzhi(3),NVAR))
-
-           allocate(bxugd(fxlo(1)-1:fxhi(1)+1,fxlo(2)-1:fxhi(2)+1,fxlo(3)-1:fxhi(3)+1))
-           allocate(byugd(fylo(1)-1:fyhi(1)+1,fylo(2)-1:fyhi(2)+1,fylo(3)-1:fyhi(3)+1))
-           allocate(bzugd(fzlo(1)-1:fzhi(1)+1,fzlo(2)-1:fzhi(2)+1,fzlo(3)-1:fzhi(3)+1))
-
-           call umdrv_tile(is_finest_level,time,tlo,thi,domlo,domhi, &
-                uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                bxugd,fxlo(1)-1,fxlo(2)-1,fxlo(3)-1,fxhi(1)+1,fxhi(2)+1,fxhi(3)+1, &
-                byugd,fylo(1)-1,fylo(2)-1,fylo(3)-1,fyhi(1)+1,fyhi(2)+1,fyhi(3)+1, &
-                bzugd,fzlo(1)-1,fzlo(2)-1,fzlo(3)-1,fzhi(1)+1,fzhi(2)+1,fzhi(3)+1, &
-                src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                delta,dt, &
-                bxflx,fxlo(1),fxlo(2),fxlo(3),fxhi(1),fxhi(2),fxhi(3), &
-                byflx,fylo(1),fylo(2),fylo(3),fyhi(1),fyhi(2),fyhi(3), &
-                bzflx,fzlo(1),fzlo(2),fzlo(3),fzhi(1),fzhi(2),fzhi(3), &
-                area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-                area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-                area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-                vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                courno,verbose,mass_added,eint_added,eden_added,&
-                E_added_flux,E_added_grav)
-
-           ! Note that fluxes are on faces.  To avoid race conditions, ...
-           if (thi(1) .ne. hi(1)) fxhi(1) = fxhi(1) - 1
-           if (thi(2) .ne. hi(2)) fyhi(2) = fyhi(2) - 1
-           if (thi(3) .ne. hi(3)) fzhi(3) = fzhi(3) - 1
-           
-           do n=1,NVAR
-              do       k=fxlo(3),fxhi(3)
-                 do    j=fxlo(2),fxhi(2)
-                    do i=fxlo(1),fxhi(1)
-                       flux1(i,j,k,n) = bxflx(i,j,k,n)
-                    end do
-                 end do
-              end do
-
-              do       k=fylo(3),fyhi(3)
-                 do    j=fylo(2),fyhi(2)
-                    do i=fylo(1),fyhi(1)
-                       flux2(i,j,k,n) = byflx(i,j,k,n)
-                    end do
-                 end do
-              end do
-              
-              do       k=fzlo(3),fzhi(3)
-                 do    j=fzlo(2),fzhi(2)
-                    do i=fzlo(1),fzhi(1)
-                       flux3(i,j,k,n) = bzflx(i,j,k,n)
-                    end do
-                 end do
+     tlo(1) = lo(1) + bxlo(ib)
+     thi(1) = lo(1) + bxhi(ib)
+     
+     tlo(2) = lo(2) + bylo(jb)
+     thi(2) = lo(2) + byhi(jb)
+     
+     tlo(3) = lo(3) + bzlo(kb)
+     thi(3) = lo(3) + bzhi(kb)
+     
+     fxlo = tlo
+     fxhi(1) = thi(1)+1
+     fxhi(2) = thi(2)
+     fxhi(3) = thi(3)
+     
+     fylo = tlo
+     fyhi(1) = thi(1)
+     fyhi(2) = thi(2)+1
+     fyhi(3) = thi(3)
+     
+     fzlo = tlo
+     fzhi(1) = thi(1)
+     fzhi(2) = thi(2)
+     fzhi(3) = thi(3)+1
+     
+     allocate(bxflx(fxlo(1):fxhi(1),fxlo(2):fxhi(2),fxlo(3):fxhi(3),NVAR))
+     allocate(byflx(fylo(1):fyhi(1),fylo(2):fyhi(2),fylo(3):fyhi(3),NVAR))
+     allocate(bzflx(fzlo(1):fzhi(1),fzlo(2):fzhi(2),fzlo(3):fzhi(3),NVAR))
+     
+     allocate(bxugd(fxlo(1)-1:fxhi(1)+1,fxlo(2)-1:fxhi(2)+1,fxlo(3)-1:fxhi(3)+1))
+     allocate(byugd(fylo(1)-1:fyhi(1)+1,fylo(2)-1:fyhi(2)+1,fylo(3)-1:fyhi(3)+1))
+     allocate(bzugd(fzlo(1)-1:fzhi(1)+1,fzlo(2)-1:fzhi(2)+1,fzlo(3)-1:fzhi(3)+1))
+     
+     call umdrv_tile(is_finest_level,time,tlo,thi,domlo,domhi, &
+          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+          bxugd,fxlo(1)-1,fxlo(2)-1,fxlo(3)-1,fxhi(1)+1,fxhi(2)+1,fxhi(3)+1, &
+          byugd,fylo(1)-1,fylo(2)-1,fylo(3)-1,fyhi(1)+1,fyhi(2)+1,fyhi(3)+1, &
+          bzugd,fzlo(1)-1,fzlo(2)-1,fzlo(3)-1,fzhi(1)+1,fzhi(2)+1,fzhi(3)+1, &
+          src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+          grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+          delta,dt, &
+          bxflx,fxlo(1),fxlo(2),fxlo(3),fxhi(1),fxhi(2),fxhi(3), &
+          byflx,fylo(1),fylo(2),fylo(3),fyhi(1),fyhi(2),fyhi(3), &
+          bzflx,fzlo(1),fzlo(2),fzlo(3),fzhi(1),fzhi(2),fzhi(3), &
+          area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
+          area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
+          area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
+          vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+          courno,verbose,mass_added,eint_added,eden_added,&
+          E_added_flux,E_added_grav)
+     
+     ! Note that fluxes are on faces.  To avoid race conditions, ...
+     if (thi(1) .ne. hi(1)) fxhi(1) = fxhi(1) - 1
+     if (thi(2) .ne. hi(2)) fyhi(2) = fyhi(2) - 1
+     if (thi(3) .ne. hi(3)) fzhi(3) = fzhi(3) - 1
+     
+     do n=1,NVAR
+        do       k=fxlo(3),fxhi(3)
+           do    j=fxlo(2),fxhi(2)
+              do i=fxlo(1),fxhi(1)
+                 flux1(i,j,k,n) = bxflx(i,j,k,n)
               end do
            end do
-
-           do       k=fxlo(3),fxhi(3)
-              do    j=fxlo(2),fxhi(2)
-                 do i=fxlo(1),fxhi(1)
-                    ugdnvx_out(i,j,k) = bxugd(i,j,k)
-                 end do
+        end do
+        
+        do       k=fylo(3),fyhi(3)
+           do    j=fylo(2),fyhi(2)
+              do i=fylo(1),fyhi(1)
+                 flux2(i,j,k,n) = byflx(i,j,k,n)
               end do
            end do
-
-           do       k=fylo(3),fyhi(3)
-              do    j=fylo(2),fyhi(2)
-                 do i=fylo(1),fyhi(1)
-                    ugdnvy_out(i,j,k) = byugd(i,j,k)
-                 end do
+        end do
+        
+        do       k=fzlo(3),fzhi(3)
+           do    j=fzlo(2),fzhi(2)
+              do i=fzlo(1),fzhi(1)
+                 flux3(i,j,k,n) = bzflx(i,j,k,n)
               end do
            end do
-              
-           do       k=fzlo(3),fzhi(3)
-              do    j=fzlo(2),fzhi(2)
-                 do i=fzlo(1),fzhi(1)
-                    ugdnvz_out(i,j,k) = bzugd(i,j,k)
-                 end do
-              end do
-           end do
-           
-           deallocate(bxflx,byflx,bzflx,bxugd,byugd,bzugd)
-
         end do
      end do
+     
+     do       k=fxlo(3),fxhi(3)
+        do    j=fxlo(2),fxhi(2)
+           do i=fxlo(1),fxhi(1)
+              ugdnvx_out(i,j,k) = bxugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     do       k=fylo(3),fyhi(3)
+        do    j=fylo(2),fyhi(2)
+           do i=fylo(1),fyhi(1)
+              ugdnvy_out(i,j,k) = byugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     do       k=fzlo(3),fzhi(3)
+        do    j=fzlo(2),fzhi(2)
+           do i=fzlo(1),fzhi(1)
+              ugdnvz_out(i,j,k) = bzugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     deallocate(bxflx,byflx,bzflx,bxugd,byugd,bzugd)
+     
   end do
   !$omp end do
   !$omp end parallel
@@ -636,7 +641,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
 
   ! Local variables
   integer, parameter :: xblksize = 2048, yblksize = 8, zblksize = 8
-  integer :: ib,jb,kb,nb(3), boxsize(3), tlo(3), thi(3)
+  integer :: ib,jb,kb,nb(3), boxsize(3), tlo(3), thi(3), iblock, iblockxy, nblocks, nblocksxy
   integer, allocatable :: bxlo(:), bxhi(:), bylo(:), byhi(:), bzlo(:), bzhi(:)
 
   boxsize = hi-lo+1
@@ -655,26 +660,29 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   call get_lo_hi(boxsize(2), nb(2), bylo, byhi)
   call get_lo_hi(boxsize(3), nb(3), bzlo, bzhi)
 
-  !$omp parallel private(ib,jb,kb,tlo,thi)
-  !$omp do collapse(3)
-  do       kb = 0, nb(3)-1
-     do    jb = 0, nb(2)-1
-        do ib = 0, nb(1)-1
-           
-           tlo(1) = lo(1) + bxlo(ib)
-           thi(1) = lo(1) + bxhi(ib)
-           
-           tlo(2) = lo(2) + bylo(jb)
-           thi(2) = lo(2) + byhi(jb)
-           
-           tlo(3) = lo(3) + bzlo(kb)
-           thi(3) = lo(3) + bzhi(kb)
+  nblocksxy = nb(1)*nb(2)
+  nblocks   = nb(1)*nb(2)*nb(3)
 
-           call enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                tlo,thi)
+  !$omp parallel private(ib,jb,kb,tlo,thi,iblock,iblockxy)
+  !$omp do
+  do iblock = 0, nblocks-1
 
-        end do
-     end do
+     kb = iblock / nblocksxy
+     iblockxy = iblock - kb*nblocksxy
+     jb = iblockxy / nb(1)
+     ib = iblockxy - jb*nb(1)
+           
+     tlo(1) = lo(1) + bxlo(ib)
+     thi(1) = lo(1) + bxhi(ib)
+     
+     tlo(2) = lo(2) + bylo(jb)
+     thi(2) = lo(2) + byhi(jb)
+     
+     tlo(3) = lo(3) + bzlo(kb)
+     thi(3) = lo(3) + bzhi(kb)
+     
+     call enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,tlo,thi)
+
   end do
   !$omp end do
   !$omp end parallel
