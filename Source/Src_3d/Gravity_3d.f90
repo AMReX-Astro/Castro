@@ -950,6 +950,7 @@
                                                problo,probhi,lnum,q0,qC,qS)
         use probdata_module
         use bl_constants_module
+        use meth_params_module, only : deterministic
 
         implicit none
 
@@ -1137,7 +1138,7 @@
 
         !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,legPolyArr,assocLegPolyArr) &
         !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor,rho_r_to_l) &
-        !$OMP REDUCTION(+:q0,qC,qS)
+        !$OMP REDUCTION(+:q0,qC,qS) if (.not.deterministic)
         do k = klo, khi
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
@@ -1468,6 +1469,7 @@
         use probdata_module
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
+        use meth_params_module, only : deterministic
 
         implicit none
 
@@ -1557,7 +1559,7 @@
 
  
         !$OMP PARALLEL DO PRIVATE(i,j,k,loc,locb,dx2,dy2,dz2,r,l,m,n) &
-        !$OMP REDUCTION(+:bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
+        !$OMP REDUCTION(+:bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) if(.not.deterministic)
         do k = klo, khi
            loc(3) = problo(3) + (dble(k)+HALF) * dx(3)
 
