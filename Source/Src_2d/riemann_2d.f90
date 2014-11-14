@@ -1148,7 +1148,7 @@ contains
     double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
     integer :: iadv, iaux, ispec, n, nq
     
-    
+    double precision, parameter :: small = 1.d-10
 
     if (idir == 1) then
        ivel = QU
@@ -1169,6 +1169,7 @@ contains
 
     rhod = ONE/(rhol_sqrt + rhor_sqrt)
 
+    
 
     ! compute the average sound speed. This uses an approximation from
     ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
@@ -1191,7 +1192,12 @@ contains
     bm = min(ZERO, bl)
     bp = max(ZERO, br)
 
-    bd = ONE/(bp - bm)
+    bd = bp - bm
+
+    if (abs(bd) < small*max(abs(bm),abs(bp))) return
+
+    bd = ONE/bd
+    
 
     ! compute the fluxes according to E91, eq. 4.4b -- note that the
     ! min/max above picks the correct flux if we are not in the star
@@ -1204,19 +1210,19 @@ contains
     f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
 
 
-    ! normal velocity flux -- leave out the pressure term -- we handle
+    ! normal momentum flux -- leave out the pressure term -- we handle
     ! that separately
     fl_tmp = ql(QRHO)*ql(ivel)**2
     fr_tmp = qr(QRHO)*qr(ivel)**2
 
-    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(ivel) - ql(ivel))
+    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
 
 
-    ! transverse velocity flux
+    ! transverse momentum flux
     fl_tmp = ql(QRHO)*ql(ivel)*ql(ivelt)
     fr_tmp = qr(QRHO)*qr(ivel)*qr(ivelt)
 
-    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(ivelt) - ql(ivelt))
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivelt) - ql(QRHO)*ql(ivelt))
 
 
     ! total energy flux
@@ -1241,10 +1247,10 @@ contains
        n  = UFA + iadv - 1
        nq = QFA + iadv - 1
 
-       fl_tmp = ql(nq)*ql(ivel)
-       fr_tmp = qr(nq)*qr(ivel)
+       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
     enddo
 
     ! species 
@@ -1252,10 +1258,10 @@ contains
        n  = UFS + ispec - 1
        nq = QFS + ispec - 1
 
-       fl_tmp = ql(nq)*ql(ivel)
-       fr_tmp = qr(nq)*qr(ivel)
+       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
     enddo
 
     ! auxillary quantities -- only the contact matters
@@ -1263,10 +1269,10 @@ contains
        n  = UFX + iaux - 1
        nq = QFX + iaux - 1
 
-       fl_tmp = ql(nq)*ql(ivel)
-       fr_tmp = qr(nq)*qr(ivel)
+       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
     enddo
 
 
