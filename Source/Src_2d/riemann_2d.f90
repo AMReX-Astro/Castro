@@ -4,7 +4,7 @@ module riemann_module
 
   private
 
-  public cmpflx
+  public cmpflx, shock
 
 contains
 
@@ -163,6 +163,88 @@ contains
     deallocate(smallc,cavg,gamcm,gamcp)
     
   end subroutine cmpflx
+
+
+  subroutine shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   shk,s_l1,s_l2,s_h1,s_h2, &
+                   ilo1,ilo2,ihi1,ihi2,dx,dy)  
+
+    use meth_params_module, only : QU, QV, QPRES, QVAR
+    use bl_constants_module
+
+    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    double precision, intent(in) :: dx, dy
+    double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    double precision, intent(inout) :: shk(s_l1:s_h1,s_l2:s_h2)
+
+    integer :: i, j
+
+    double precision :: divU
+    double precision :: px_pre, px_post, py_pre, py_post
+    double precision :: e_x, e_y, d
+    double precision :: p_pre, p_post, pjump
+
+    double precision, parameter :: small = 1.d-10
+    double precision, parameter :: eps = 0.33d0
+
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+
+    do j = ilo2-1, ihi2+1
+       do i = ilo1-1, ihi1+1
+
+          ! construct div{U}
+          divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
+                 HALF*(q(i,j+1,QV) - q(i,j+1,QV))/dy
+          
+          ! find the pre- and post-shock pressures in each direction
+          if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
+             px_pre  = q(i+1,j,QPRES)
+             px_post = q(i-1,j,QPRES)
+          else
+             px_pre  = q(i-1,j,QPRES)
+             px_post = q(i+1,j,QPRES)
+          endif
+
+          if (q(i,j+1,QPRES) - q(i,j-1,QPRES) < ZERO) then
+             py_pre  = q(i,j+1,QPRES)
+             py_post = q(i,j-1,QPRES)
+          else
+             py_pre  = q(i,j-1,QPRES)
+             py_post = q(i,j+1,QPRES)
+          endif
+
+          ! use compression to create unit vectors for the shock direction
+          e_x = (q(i+1,j,QU) - q(i-1,j,QU))**2
+          e_y = (q(i,j+1,QV) - q(i,j-1,QV))**2
+          d = ONE/(e_x + e_y + small)
+
+          e_x = e_x*d
+          e_y = e_y*d 
+
+          ! project the pressures onto the shock direction 
+          p_pre  = e_x*px_pre + e_y*py_pre
+          p_post = e_x*px_post + e_y*py_post
+
+          ! test for compression + pressure jump to flag a shock
+          pjump = eps - (p_post - p_pre)/p_pre
+
+          if (pjump < ZERO .and. divU < ZERO) then
+             shk(i,j) = ONE
+          else
+             shk(i,j) = ZERO
+          endif
+
+       enddo
+    enddo
+
+  end subroutine shock
 
 
 ! ::: 
