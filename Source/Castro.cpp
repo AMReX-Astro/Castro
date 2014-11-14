@@ -149,6 +149,7 @@ int          Castro::ppm_predict_gammae = 0;
 int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
 
+int          Castro::hybrid_riemann = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
@@ -384,6 +385,7 @@ Castro::read_params ()
     pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
+    pp.query("hybrid_riemann",hybrid_riemann);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
@@ -443,6 +445,13 @@ Castro::read_params ()
 	std::cerr << "ppm_predict_gammae == 1 needs ppm_tau_in_tracing == 1\n";
 	BoxLib::Error();
       }
+
+    if (hybrid_riemann == 1 && BL_SPACEDIM != 2)
+      {
+        std::cerr << "hybrid_riemann only implemented in 2-d\n";
+        BoxLib::Error();
+      }
+
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
