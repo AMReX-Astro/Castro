@@ -47,11 +47,11 @@ contains
                      domlo, domhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, ppm_type
+    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
-    use riemann_module, only: cmpflx
+    use riemann_module, only: cmpflx, shock
     use bl_constants_module
 
     implicit none
@@ -93,14 +93,15 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
 
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable:: dq(:,:,:),  qm(:,:,:),   qp(:,:,:)
-    double precision, allocatable::qxm(:,:,:),qym(:,:,:)
-    double precision, allocatable::qxp(:,:,:),qyp(:,:,:)
+    double precision, allocatable::  dq(:,:,:),  qm(:,:,:),   qp(:,:,:)
+    double precision, allocatable:: qxm(:,:,:), qym(:,:,:)
+    double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
     
     ! Work arrays to hold riemann state and conservative fluxes
-    double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable::   pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
+    double precision, allocatable ::  pgdxtmp(:,:) ,  ugdxtmp(:,:)
     double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+    double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
     double precision :: dtdx
@@ -113,21 +114,36 @@ contains
     allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
     allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
 
-    allocate ( dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate (  dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( fx(ilo1:ihi1+1,ilo2-1:ihi2+1,NVAR))
-    allocate ( fy(ilo1-1:ihi1+1,ilo2:ihi2+1,NVAR))
+    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NVAR))
+    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NVAR))
+
+    allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+
 
     ! Local constants
     dtdx = dt/dx
     hdtdx = HALF*dtdx
     hdtdy = HALF*dt/dy
     hdt = HALF*dt
+
+
+    ! multidimensional shock detection -- this will be used to do the
+    ! hybrid Riemann solver
+    if (hybrid_riemann == 1) then
+       call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+                  shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
+                  ilo1,ilo2,ihi1,ihi2,dx,dy)
+    else
+       shk(:,:) = ZERO
+    endif
+
     
     ! NOTE: Geometry terms need to be punched through
 
@@ -157,6 +173,7 @@ contains
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
@@ -167,6 +184,7 @@ contains
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
@@ -192,6 +210,7 @@ contains
                 ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
     ! Correct the y-interface states (qym, qyp) by adding the
@@ -219,6 +238,7 @@ contains
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
 
@@ -235,6 +255,7 @@ contains
 
     deallocate(dq,qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
+    deallocate(shk)
     deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
     
   end subroutine umeth2d

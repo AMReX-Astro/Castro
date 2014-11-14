@@ -1,5 +1,7 @@
 module riemann_module
 
+  use bl_constants_module
+
   implicit none
 
   private
@@ -18,34 +20,38 @@ contains
                     ugd,ugd_l1,ugd_l2,ugd_h1,ugd_h2, &
                     gegd,ggd_l1,ggd_l2,ggd_h1,ggd_h2, &
                     gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                    shk,s_l1,s_l2,s_h1,s_h2, &
                     idir,ilo,ihi,jlo,jhi,domlo,domhi)
 
     use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
-                                   use_colglaz, ppm_temp_fix
-    use bl_constants_module
+                                   use_colglaz, ppm_temp_fix, hybrid_riemann
+
 
     implicit none
 
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer flx_l1,flx_l2,flx_h1,flx_h2
-    integer pgd_l1,pgd_l2,pgd_h1,pgd_h2
-    integer ugd_l1,ugd_l2,ugd_h1,ugd_h2
-    integer ggd_l1,ggd_l2,ggd_h1,ggd_h2
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer idir,ilo,ihi,jlo,jhi
-    integer domlo(2),domhi(2)
+    integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
+    integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
+    integer, intent(in) :: pgd_l1,pgd_l2,pgd_h1,pgd_h2
+    integer, intent(in) :: ugd_l1,ugd_l2,ugd_h1,ugd_h2
+    integer, intent(in) :: ggd_l1,ggd_l2,ggd_h1,ggd_h2
+    integer, intent(in) :: qd_l1,qd_l2,qd_h1,qd_h2
+    integer, intent(in) :: s_l1,s_l2,s_h1,s_h2
+    integer, intent(in) :: idir,ilo,ihi,jlo,jhi
+    integer, intent(in) :: domlo(2),domhi(2)
     
-    double precision    qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision    qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision   flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
-    double precision  pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
-    double precision  ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
-    double precision gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
-    double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision, intent(inout) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
+    double precision, intent(inout) :: pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
+    double precision, intent(inout) :: ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision, intent(inout) ::gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
+
+    double precision, intent(in) :: gamc(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) ::    c(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) :: csml(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) ::  shk( s_l1: s_h1, s_l2: s_h2)
     
     ! Local variables
     integer i, j
@@ -54,7 +60,8 @@ contains
     double precision, allocatable :: gamcm(:,:), gamcp(:,:)
     
     integer :: imin, imax, jmin, jmax
-
+    integer :: is_shock
+    double precision :: cl, cr
     type (eos_t) :: eos_state
 
     allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
@@ -62,7 +69,7 @@ contains
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
 
-    if(idir.eq.1) then
+    if (idir == 1) then
        do j = jlo, jhi
           do i = ilo, ihi+1
              smallc(i,j) = max( csml(i,j), csml(i-1,j) )
@@ -71,6 +78,7 @@ contains
              gamcp(i,j) = gamc(i,j)
           enddo
        enddo
+
     else
        do j = jlo, jhi+1
           do i = ilo, ihi
@@ -159,7 +167,51 @@ contains
                       gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
     endif
+
+    if (hybrid_riemann == 1) then
+       ! correct the fluxes using an HLL scheme if we are in a shock
+       ! and doing the hybrid approach
+       if (idir == 1) then
+          imin = ilo
+          imax = ihi+1
+          jmin = jlo
+          jmax = jhi
+       else
+          imin = ilo
+          imax = ihi
+          jmin = jlo
+          jmax = jhi+1
+       endif
+       
+       do j = jmin, jmax
+          do i = imin, imax
+         
+             if (idir == 1) then
+                is_shock = shk(i-1,j) + shk(i,j)
+             else
+                is_shock = shk(i,j-1) + shk(i,j)
+             endif
+             
+             if (is_shock >= 1) then
+
+                if (idir == 1) then
+                   cl = c(i-1,j)
+                   cr = c(i,j)
+                else
+                   cl = c(i,j-1)
+                   cr = c(i,j)
+                endif
+
+                call HLL(qm(i,j,:), qp(i,j,:), cl, cr, &
+                         idir, flx(i,j,:))
+                
+             endif
     
+          enddo
+       enddo
+    
+    endif
+
     deallocate(smallc,cavg,gamcm,gamcp)
     
   end subroutine cmpflx
@@ -169,8 +221,8 @@ contains
                    shk,s_l1,s_l2,s_h1,s_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy)  
 
+    use prob_params_module, only : coord_type
     use meth_params_module, only : QU, QV, QPRES, QVAR
-    use bl_constants_module
 
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
     integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
@@ -195,6 +247,10 @@ contains
     !
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
+
+    if (coord_type /= 0) then
+       call bl_error("ERROR: invalid geometry in shock()")
+    endif
 
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
@@ -272,7 +328,6 @@ contains
                                    UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol
-    use bl_constants_module
 
     double precision, parameter:: small = 1.d-8
 
@@ -756,8 +811,6 @@ contains
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
-    use bl_constants_module
-
     implicit none
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
@@ -822,7 +875,6 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
                                    small_dens, small_pres
-    use bl_constants_module
 
     implicit none
 
@@ -1076,5 +1128,148 @@ contains
        enddo
     enddo
   end subroutine riemannus
+
+  subroutine HLL(ql, qr, cl, cr, idir, f)
+ 
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
+                                   small_dens, small_pres
+
+    use network, only : nspec, naux
+
+    double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
+    double precision, intent(inout) :: f(NVAR)
+    integer, intent(in) :: idir
+
+    integer :: ivel, ivelt, imom, imomt
+    double precision :: a1, a4, bd, bl, bm, bp, br
+    double precision :: cavg, uavg
+    double precision :: fl_tmp, fr_tmp
+    double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
+    integer :: iadv, iaux, ispec, n, nq
+    
+    
+
+    if (idir == 1) then
+       ivel = QU
+       ivelt = QV
+
+       imom = UMX
+       imomt = UMY
+    else
+       ivel = QV
+       ivelt = QU
+
+       imom = UMY
+       imomt = UMX
+    endif
+
+    rhol_sqrt = sqrt(ql(QRHO))
+    rhor_sqrt = sqrt(qr(QRHO))
+
+    rhod = ONE/(rhol_sqrt + rhor_sqrt)
+
+
+    ! compute the average sound speed. This uses an approximation from
+    ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
+    ! and 5/3
+    cavg = sqrt( (rhol_sqrt*cl**2 + rhor_sqrt*cr**2)*rhod + &
+         HALF*rhol_sqrt*rhor_sqrt*rhod**2*(qr(ivel) - ql(ivel))**2 )
+
+
+    ! Roe eigenvalues (E91, eq. 5.3b)
+    uavg = (rhol_sqrt*ql(ivel) + rhor_sqrt*qr(ivel))*rhod
+
+    a1 = uavg - cavg
+    a4 = uavg + cavg
+    
+
+    ! signal speeds (E91, eq. 4.5)
+    bl = min(a1, ql(ivel) - cl)
+    br = max(a4, qr(ivel) + cr)
+
+    bm = min(ZERO, bl)
+    bp = max(ZERO, br)
+
+    bd = ONE/(bp - bm)
+
+    ! compute the fluxes according to E91, eq. 4.4b -- note that the
+    ! min/max above picks the correct flux if we are not in the star
+    ! region
+
+    ! density flux
+    fl_tmp = ql(QRHO)*ql(ivel)
+    fr_tmp = qr(QRHO)*qr(ivel)
+
+    f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
+
+
+    ! normal velocity flux -- leave out the pressure term -- we handle
+    ! that separately
+    fl_tmp = ql(QRHO)*ql(ivel)**2
+    fr_tmp = qr(QRHO)*qr(ivel)**2
+
+    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(ivel) - ql(ivel))
+
+
+    ! transverse velocity flux
+    fl_tmp = ql(QRHO)*ql(ivel)*ql(ivelt)
+    fr_tmp = qr(QRHO)*qr(ivel)*qr(ivelt)
+
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(ivelt) - ql(ivelt))
+
+
+    ! total energy flux
+    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2)
+    fl_tmp = ql(ivel)*(rhoEl + ql(QPRES))
+
+    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2)
+    fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
+
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
+
+
+    ! eint flux
+    fl_tmp = ql(QREINT)*ql(ivel)
+    fr_tmp = qr(QREINT)*qr(ivel)
+
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
+
+
+    ! advected scalar fluxes
+    do iadv = 1, nadv
+       n  = UFA + iadv - 1
+       nq = QFA + iadv - 1
+
+       fl_tmp = ql(nq)*ql(ivel)
+       fr_tmp = qr(nq)*qr(ivel)
+
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+    enddo
+
+    ! species 
+    do ispec = 1, nspec
+       n  = UFS + ispec - 1
+       nq = QFS + ispec - 1
+
+       fl_tmp = ql(nq)*ql(ivel)
+       fr_tmp = qr(nq)*qr(ivel)
+
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+    enddo
+
+    ! auxillary quantities -- only the contact matters
+    do iaux = 1, naux
+       n  = UFX + iaux - 1
+       nq = QFX + iaux - 1
+
+       fl_tmp = ql(nq)*ql(ivel)
+       fr_tmp = qr(nq)*qr(ivel)
+
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(nq) - ql(nq))
+    enddo
+
+
+  end subroutine HLL
 
 end module riemann_module
