@@ -1232,14 +1232,14 @@ contains
     rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2)
     fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
 
-    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
+    f(UEDEN) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
 
 
     ! eint flux
     fl_tmp = ql(QREINT)*ql(ivel)
     fr_tmp = qr(QREINT)*qr(ivel)
 
-    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
+    f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
 
 
     ! advected scalar fluxes
