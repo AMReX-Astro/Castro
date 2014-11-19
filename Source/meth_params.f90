@@ -9,7 +9,7 @@ module meth_params_module
   implicit none
 
   double precision, save :: difmag        ! used only in consup to weight the divu contribution
-  integer         , save :: iorder        ! used only in uslope and uflaten
+  integer         , save :: iorder        ! used only in uslope 
 
   integer, parameter     :: NHYP    = 4
   integer, parameter     :: MAXADV  = 2
