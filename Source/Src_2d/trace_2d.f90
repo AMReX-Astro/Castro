@@ -10,7 +10,7 @@ contains
 
   subroutine trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                    dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                   dq,qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                   qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -34,13 +34,14 @@ contains
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision  dq(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    
+
+    double precision, allocatable :: dqx(:,:,:), dqy(:,:,:)
+
     ! Local variables
     integer i, j
     integer n, iadv, ispec, iaux
@@ -71,6 +72,9 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
 
+    allocate(dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
+    allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
+
 
     !-------------------------------------------------------------------------
     ! x-direction
@@ -78,18 +82,19 @@ contains
 
     ! Compute slopes
     if (iorder .eq. 1) then
-       dq(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
+       dqx(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
+       dqy(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
     else
        call uslope(q, &
                    flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
-                   dq   ,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                   dqx  ,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                    ilo1,ilo2,ihi1,ihi2,QVAR,1)
 
        if (use_pslope .eq. 1) &
             call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
                         flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
-                        dq(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        grav         , gv_l1, gv_l2, gv_h1, gv_h2, &
+                        dqx(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                        grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
                         ilo1,ilo2,ihi1,ihi2,dx,dy,1)
 
     endif
@@ -108,11 +113,11 @@ contains
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
           
-          drho = dq(i,j,QRHO)
-          du = dq(i,j,QU)
-          dv = dq(i,j,QV)
-          dp = dq(i,j,QPRES)
-          drhoe = dq(i,j,QREINT)
+          drho = dqx(i,j,QRHO)
+          du = dqx(i,j,QU)
+          dv = dqx(i,j,QV)
+          dp = dqx(i,j,QPRES)
+          drhoe = dqx(i,j,QREINT)
 
           alpham = HALF*(dp/(rho*cc) - du)*rho/cc
           alphap = HALF*(dp/(rho*cc) + du)*rho/cc
@@ -212,7 +217,7 @@ contains
              else
                 spzero = u*dtdx
              endif
-             acmprght = HALF*(-ONE - spzero )*dq(i,j,n)
+             acmprght = HALF*(-ONE - spzero )*dqx(i,j,n)
              qxp(i,j,n) = q(i,j,n) + acmprght
           enddo
           
@@ -224,7 +229,7 @@ contains
              else
                 spzero = ONE
              endif
-             acmpleft = HALF*(ONE - spzero )*dq(i,j,n)
+             acmpleft = HALF*(ONE - spzero )*dqx(i,j,n)
              qxm(i+1,j,n) = q(i,j,n) + acmpleft
           enddo
           
@@ -243,7 +248,7 @@ contains
              else
                 spzero = u*dtdx
              endif
-             ascmprght = HALF*(-ONE - spzero )*dq(i,j,n)
+             ascmprght = HALF*(-ONE - spzero )*dqx(i,j,n)
              qxp(i,j,n) = q(i,j,n) + ascmprght
           enddo
           
@@ -255,7 +260,7 @@ contains
              else
                 spzero = ONE
              endif
-             ascmpleft = HALF*(ONE - spzero )*dq(i,j,n)
+             ascmpleft = HALF*(ONE - spzero )*dqx(i,j,n)
              qxm(i+1,j,n) = q(i,j,n) + ascmpleft
           enddo
           
@@ -274,7 +279,7 @@ contains
              else
                 spzero = u*dtdx
              endif
-             ascmprght = HALF*(-ONE - spzero )*dq(i,j,n)
+             ascmprght = HALF*(-ONE - spzero )*dqx(i,j,n)
              qxp(i,j,n) = q(i,j,n) + ascmprght
           enddo
           
@@ -286,7 +291,7 @@ contains
              else
                 spzero = ONE
              endif
-             ascmpleft = HALF*(ONE - spzero )*dq(i,j,n)
+             ascmpleft = HALF*(ONE - spzero )*dqx(i,j,n)
              qxm(i+1,j,n) = q(i,j,n) + ascmpleft
           enddo
           
@@ -302,14 +307,14 @@ contains
     if (iorder .ne. 1) then
        
        call uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   dq,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                   dqy,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                    ilo1,ilo2,ihi1,ihi2,QVAR,2)
 
        if (use_pslope .eq. 1) &
             call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
                         flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
-                        dq(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        grav         , gv_l1, gv_l2, gv_h1, gv_h2, &
+                        dqy(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                        grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
                         ilo1,ilo2,ihi1,ihi2,dx,dy,2)
 
     endif
@@ -327,11 +332,11 @@ contains
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
           
-          drho = dq(i,j,QRHO)
-          du = dq(i,j,QU)
-          dv = dq(i,j,QV)
-          dp = dq(i,j,QPRES)
-          drhoe = dq(i,j,QREINT)
+          drho = dqy(i,j,QRHO)
+          du = dqy(i,j,QU)
+          dv = dqy(i,j,QV)
+          dp = dqy(i,j,QPRES)
+          drhoe = dqy(i,j,QREINT)
           
           alpham = HALF*(dp/(rho*cc) - dv)*rho/cc
           alphap = HALF*(dp/(rho*cc) + dv)*rho/cc
@@ -406,7 +411,7 @@ contains
              else
                 spzero = v*dtdy
              endif
-             acmptop = HALF*(-ONE - spzero )*dq(i,j,n)
+             acmptop = HALF*(-ONE - spzero )*dqy(i,j,n)
              qyp(i,j,n) = q(i,j,n) + acmptop
           enddo
           
@@ -418,7 +423,7 @@ contains
              else
                 spzero = ONE
              endif
-             acmpbot = HALF*(ONE - spzero )*dq(i,j,n)
+             acmpbot = HALF*(ONE - spzero )*dqy(i,j,n)
              qym(i,j+1,n) = q(i,j,n) + acmpbot
           enddo
           
@@ -437,7 +442,7 @@ contains
              else
                 spzero = v*dtdy
              endif
-             ascmptop = HALF*(-ONE - spzero )*dq(i,j,n)
+             ascmptop = HALF*(-ONE - spzero )*dqy(i,j,n)
              qyp(i,j,n) = q(i,j,n) + ascmptop
           enddo
           
@@ -449,7 +454,7 @@ contains
              else
                 spzero = ONE
              endif
-             ascmpbot = HALF*(ONE - spzero )*dq(i,j,n)
+             ascmpbot = HALF*(ONE - spzero )*dqy(i,j,n)
              qym(i,j+1,n) = q(i,j,n) + ascmpbot
           enddo
           
@@ -468,7 +473,7 @@ contains
              else
                 spzero = v*dtdy
              endif
-             ascmptop = HALF*(-ONE - spzero )*dq(i,j,n)
+             ascmptop = HALF*(-ONE - spzero )*dqy(i,j,n)
              qyp(i,j,n) = q(i,j,n) + ascmptop
           enddo
           
@@ -480,7 +485,7 @@ contains
              else
                 spzero = ONE
              endif
-             ascmpbot = HALF*(ONE - spzero )*dq(i,j,n)
+             ascmpbot = HALF*(ONE - spzero )*dqy(i,j,n)
              qym(i,j+1,n) = q(i,j,n) + ascmpbot
           enddo
           
