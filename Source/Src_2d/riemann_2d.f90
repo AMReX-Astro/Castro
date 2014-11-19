@@ -191,7 +191,7 @@ contains
              else
                 is_shock = shk(i,j-1) + shk(i,j)
              endif
-             
+
              if (is_shock >= 1) then
 
                 if (idir == 1) then
