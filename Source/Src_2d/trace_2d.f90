@@ -18,7 +18,7 @@ contains
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
                                    QREINT, QPRES, QFA, QFS, QFX, &
                                    nadv, small_dens, ppm_type, use_pslope
-    use slope_module, only : uslope, pslope
+    use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
 
     implicit none
@@ -75,29 +75,59 @@ contains
     allocate(dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
     allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
 
-
-    !-------------------------------------------------------------------------
-    ! x-direction
-    !-------------------------------------------------------------------------
-
+    
     ! Compute slopes
-    if (iorder .eq. 1) then
+    if (iorder == 1) then
        dqx(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
        dqy(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
-    else
+
+    elseif (iorder == 2) then
+       ! these are piecewise linear slopes.  The limiter is a 4th order
+       ! limiter, but the overall method will be second order.
        call uslope(q, &
                    flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
                    dqx  ,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                    ilo1,ilo2,ihi1,ihi2,QVAR,1)
 
-       if (use_pslope .eq. 1) &
-            call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                        flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
-                        dqx(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
-                        ilo1,ilo2,ihi1,ihi2,dx,dy,1)
+       call uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   dqy,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                   ilo1,ilo2,ihi1,ihi2,QVAR,2)
 
+       if (use_pslope .eq. 1) then
+          call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
+                      flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
+                      dqx(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                      grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
+                      ilo1,ilo2,ihi1,ihi2,dx,dy,1)
+
+          call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
+                      flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
+                      dqy(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+                      grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
+                      ilo1,ilo2,ihi1,ihi2,dx,dy,2)
+       endif
+
+    elseif (iorder == -2) then
+       ! these are also piecewise linear, but it uses a multidimensional
+       ! reconstruction based on the BDS advection method to construct
+       ! the x- and y-slopes together
+       do n = 1, QVAR
+          call multid_slope(q(:,:,n), flatn, &
+                            qd_l1, qd_l2, qd_h1, qd_h2, &
+                            dqx(:,:,n), dqy(:,:,n), &
+                            qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                            dx, dy, &
+                            ilo1, ilo2, ihi1, ihi2)
+       enddo
+
+    else
+       call bl_error("ERROR: invalid value of islope")
+       
     endif
+
+    !-------------------------------------------------------------------------
+    ! x-direction
+    !-------------------------------------------------------------------------
       
     ! Compute left and right traced states
 
@@ -303,22 +333,6 @@ contains
     ! y-direction
     !-------------------------------------------------------------------------
     
-    ! Compute slopes
-    if (iorder .ne. 1) then
-       
-       call uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   dqy,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                   ilo1,ilo2,ihi1,ihi2,QVAR,2)
-
-       if (use_pslope .eq. 1) &
-            call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                        flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
-                        dqy(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                        grav          , gv_l1, gv_l2, gv_h1, gv_h2, &
-                        ilo1,ilo2,ihi1,ihi2,dx,dy,2)
-
-    endif
-
     ! Compute left and right traced states
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
