@@ -365,8 +365,8 @@ contains
 
 
           ! now construct the limited differences in x and y
-          dqx(i,j) = A_x*dx
-          dqy(i,j) = A_y*dy
+          dqx(i,j) = flatn(i,j)*A_x*dx
+          dqy(i,j) = flatn(i,j)*A_y*dy
 
        enddo
     enddo
