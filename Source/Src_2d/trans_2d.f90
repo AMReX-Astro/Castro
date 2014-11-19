@@ -219,9 +219,6 @@ contains
                    eos_state % T = small_temp
                    eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
 
-                   print *, eos_state % rho
-                   print *, eos_state % xn(:)
-
                    call eos(eos_input_rt, eos_state)
                       
                    qpo(i,j,QREINT) = qpo(i,j,QRHO)*eos_state % e
