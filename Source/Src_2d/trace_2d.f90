@@ -60,6 +60,9 @@ contains
     double precision ascmprght, ascmpleft, ascmpbot, ascmptop
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
     
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
+    double precision :: e(3)
+
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in trace with ppm_type != 0'
        call bl_error("Error:: Castro_2d.f90 :: trace")
@@ -117,70 +120,58 @@ contains
           alpha0e = drhoe - dp*enth
           alpha0v = dv
 
+          e(1) = u-cc
+          e(2) = u
+          e(3) = u+cc
+
           ! construct the right state on the i-1/2 interface
                     
-          if (u-cc .gt. ZERO) then
-             spminus = -ONE
-          else
-             spminus = (u-cc)*dtdx
-          endif
-          if (u+cc .gt. ZERO) then
-             spplus = -ONE
-          else
-             spplus = (u+cc)*dtdx
-          endif
-          if (u .gt. ZERO) then
-             spzero = -ONE
-          else
-             spzero = u*dtdx
-          endif
+          rho_ref = rho - HALF*(ONE + dtdx*min(e(1),ZERO))*drho
+          u_ref = u - HALF*(ONE + dtdx*min(e(1),ZERO))*du
+          v_ref = v - HALF*(ONE + dtdx*min(e(1),ZERO))*dv
+          p_ref = p - HALF*(ONE + dtdx*min(e(1),ZERO))*dp
+          rhoe_ref = rhoe - HALF*(ONE + dtdx*min(e(1),ZERO))*drhoe
 
-          apright = HALF*(-ONE - spplus )*alphap
-          amright = HALF*(-ONE - spminus)*alpham
-          azrright = HALF*(-ONE - spzero )*alpha0r
-          azeright = HALF*(-ONE - spzero )*alpha0e
-          azv1rght = HALF*(-ONE - spzero )*alpha0v
+          ! this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
+          apright = 0.25d0*dtdx*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
+          amright = 0.25d0*dtdx*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
           
+          azrright = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0r
+          azeright = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
+          azv1rght = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0v
+            
           if (i .ge. ilo1) then
-             qxp(i,j,QRHO) = rho + apright + amright + azrright
+             qxp(i,j,QRHO) = rho_ref + apright + amright + azrright
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
-             qxp(i,j,QU) = u + (apright - amright)*cc/rho
-             qxp(i,j,QV) = v + azv1rght
-             qxp(i,j,QPRES) = p + (apright + amright)*csq
-             qxp(i,j,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
+             qxp(i,j,QU) = u_ref + (apright - amright)*cc/rho
+             qxp(i,j,QV) = v_ref + azv1rght
+             qxp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
           end if
 
 
           ! construct the left state on the i+1/2 interface
-          if (u-cc .ge. ZERO) then
-             spminus = (u-cc)*dtdx
-          else
-             spminus = ONE
-          endif
-          if (u+cc .ge. ZERO) then
-             spplus = (u+cc)*dtdx
-          else
-             spplus = ONE
-          endif
-          if (u .ge. ZERO) then
-             spzero = u*dtdx
-          else
-             spzero = ONE
-          endif
+
+          rho_ref = rho + HALF*(ONE - dtdx*max(e(3),ZERO))*drho
+          u_ref = u + HALF*(ONE - dtdx*max(e(3),ZERO))*du
+          v_ref = v + HALF*(ONE - dtdx*max(e(3),ZERO))*dv
+          p_ref = p + HALF*(ONE - dtdx*max(e(3),ZERO))*dp
+          rhoe_ref = rhoe + HALF*(ONE - dtdx*max(e(3),ZERO))*drhoe
+
+          apleft = 0.25d0*dtdx*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
+          amleft = 0.25d0*dtdx*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
           
-          apleft = HALF*(ONE - spplus )*alphap
-          amleft = HALF*(ONE - spminus)*alpham
-          azrleft = HALF*(ONE - spzero )*alpha0r
-          azeleft = HALF*(ONE - spzero )*alpha0e
-          azv1left = HALF*(ONE - spzero )*alpha0v
+          azrleft = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
+          azeleft = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
+          azv1left = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0v
           
           if (i .le. ihi1) then
-             qxm(i+1,j,QRHO) = rho + apleft + amleft + azrleft
+             qxm(i+1,j,QRHO) = rho_ref + apleft + amleft + azrleft
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
-             qxm(i+1,j,QU) = u + (apleft - amleft)*cc/rho
-             qxm(i+1,j,QV) = v + azv1left
-             qxm(i+1,j,QPRES) = p + (apleft + amleft)*csq
-             qxm(i+1,j,QREINT) = rhoe + (apleft + amleft)*enth*csq + azeleft
+             qxm(i+1,j,QU) = u_ref + (apleft - amleft)*cc/rho
+             qxm(i+1,j,QV) = v_ref + azv1left
+             qxm(i+1,j,QPRES) = p_ref + (apleft + amleft)*csq
+             qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
           end if
           
 
@@ -348,72 +339,56 @@ contains
           alpha0e = drhoe - dp*enth
           alpha0u = du
           
+          e(1) = v-cc
+          e(2) = v
+          e(3) = v+cc
 
           ! construct the right state on the j-1/2 interface
+          rho_ref = rho - HALF*(ONE + dtdy*min(e(1),ZERO))*drho
+          u_ref = u - HALF*(ONE + dtdy*min(e(1),ZERO))*du
+          v_ref = v - HALF*(ONE + dtdy*min(e(1),ZERO))*dv
+          p_ref = p - HALF*(ONE + dtdy*min(e(1),ZERO))*dp
+          rhoe_ref = rhoe - HALF*(ONE + dtdy*min(e(1),ZERO))*drhoe
 
-          if (v-cc .gt. ZERO) then
-             spminus = -ONE
-          else
-             spminus = (v-cc)*dtdy
-          endif
-          if (v+cc .gt. ZERO) then
-             spplus = -ONE
-          else
-             spplus = (v+cc)*dtdy
-          endif
-          if (v .gt. ZERO) then
-             spzero = -ONE
-          else
-             spzero = v*dtdy
-          endif
+          apright = 0.25d0*dtdy*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
+          amright = 0.25d0*dtdy*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
           
-          apright = HALF*(-ONE - spplus )*alphap
-          amright = HALF*(-ONE - spminus)*alpham
-          azrright = HALF*(-ONE - spzero )*alpha0r
-          azeright = HALF*(-ONE - spzero )*alpha0e
-          azu1rght = HALF*(-ONE - spzero )*alpha0u
+          azrright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0r
+          azeright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
+          azu1rght = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0u
           
           if (j .ge. ilo2) then
-             qyp(i,j,QRHO) = rho + apright + amright + azrright
+             qyp(i,j,QRHO) = rho_ref + apright + amright + azrright
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-             qyp(i,j,QV) = v + (apright - amright)*cc/rho
-             qyp(i,j,QU) = u + azu1rght
-             qyp(i,j,QPRES) = p + (apright + amright)*csq
-             qyp(i,j,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
+             qyp(i,j,QV) = v_ref + (apright - amright)*cc/rho
+             qyp(i,j,QU) = u_ref + azu1rght
+             qyp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
           end if
 
 
           ! construct the left state on the j+1/2 interface
 
-          if (v-cc .ge. ZERO) then
-             spminus = (v-cc)*dtdy
-          else
-             spminus = ONE
-          endif
-          if (v+cc .ge. ZERO) then
-             spplus = (v+cc)*dtdy
-          else
-             spplus = ONE
-          endif
-          if (v .ge. ZERO) then
-             spzero = v*dtdy
-          else
-             spzero = ONE
-          endif
-          
-          apleft = HALF*(ONE - spplus )*alphap
-          amleft = HALF*(ONE - spminus)*alpham
-          azrleft = HALF*(ONE - spzero )*alpha0r
-          azeleft = HALF*(ONE - spzero )*alpha0e
-          azu1left = HALF*(ONE - spzero )*alpha0u
+          rho_ref = rho + HALF*(ONE - dtdy*max(e(3),ZERO))*drho
+          u_ref = u + HALF*(ONE - dtdy*max(e(3),ZERO))*du
+          v_ref = v + HALF*(ONE - dtdy*max(e(3),ZERO))*dv
+          p_ref = p + HALF*(ONE - dtdy*max(e(3),ZERO))*dp
+          rhoe_ref = rhoe + HALF*(ONE - dtdy*max(e(3),ZERO))*drhoe
+
+          apleft = 0.25d0*dtdy*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
+          amleft = 0.25d0*dtdy*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
+
+          azrleft = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
+          azeleft = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
+          azu1left = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0u
           
           if (j .le. ihi2) then
-             qym(i,j+1,QRHO) = rho + apleft + amleft + azrleft
+             qym(i,j+1,QRHO) = rho_ref + apleft + amleft + azrleft
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-             qym(i,j+1,QV) = v + (apleft - amleft)*cc/rho
-             qym(i,j+1,QU) = u + azu1left
-             qym(i,j+1,QPRES) = p + (apleft + amleft)*csq
-             qym(i,j+1,QREINT) = rhoe + (apleft + amleft)*enth*csq + azeleft
+             qym(i,j+1,QV) = v_ref + (apleft - amleft)*cc/rho
+             qym(i,j+1,QU) = u_ref + azu1left
+             qym(i,j+1,QPRES) = p_ref + (apleft + amleft)*csq
+             qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
           end if
           
        enddo
