@@ -92,6 +92,7 @@ contains
     endif
       
     ! Compute left and right traced states
+
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
                
@@ -109,13 +110,15 @@ contains
           dv = dq(i,j,QV)
           dp = dq(i,j,QPRES)
           drhoe = dq(i,j,QREINT)
-          
+
           alpham = HALF*(dp/(rho*cc) - du)*rho/cc
           alphap = HALF*(dp/(rho*cc) + du)*rho/cc
           alpha0r = drho - dp/csq
           alpha0e = drhoe - dp*enth
           alpha0v = dv
-          
+
+          ! construct the right state on the i-1/2 interface
+                    
           if (u-cc .gt. ZERO) then
              spminus = -ONE
           else
@@ -147,6 +150,8 @@ contains
              qxp(i,j,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
           end if
 
+
+          ! construct the left state on the i+1/2 interface
           if (u-cc .ge. ZERO) then
              spminus = (u-cc)*dtdx
           else
@@ -178,6 +183,8 @@ contains
              qxm(i+1,j,QREINT) = rhoe + (apleft + amleft)*enth*csq + azeleft
           end if
           
+
+          ! geometry source terms
           if(dloga(i,j).ne.0)then
              courn = dtdx*(cc+abs(u))
              eta = (ONE-courn)/(cc*dt*abs(dloga(i,j)))
@@ -341,6 +348,9 @@ contains
           alpha0e = drhoe - dp*enth
           alpha0u = du
           
+
+          ! construct the right state on the j-1/2 interface
+
           if (v-cc .gt. ZERO) then
              spminus = -ONE
           else
@@ -371,7 +381,10 @@ contains
              qyp(i,j,QPRES) = p + (apright + amright)*csq
              qyp(i,j,QREINT) = rhoe + (apright + amright)*enth*csq + azeright
           end if
-          
+
+
+          ! construct the left state on the j+1/2 interface
+
           if (v-cc .ge. ZERO) then
              spminus = (v-cc)*dtdy
           else
