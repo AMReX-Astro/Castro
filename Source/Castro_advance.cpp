@@ -443,24 +443,24 @@ Castro::advance_hydro (Real time,
 	  Box bx_g4(BoxLib::grow(bx,4));
 
 	  // Create FAB for extended grid values (including boundaries) and fill.
-	  FArrayBox &state = Sborder[mfiindex];
-	  FArrayBox &stateout = S_new[mfiindex];
+	  FArrayBox &state = Sborder[mfi];
+	  FArrayBox &stateout = S_new[mfi];
 
-	  FArrayBox &Er = Erborder[mfiindex];
-	  FArrayBox &lam = lamborder[mfiindex];
-	  FArrayBox &Erout = Er_new[mfiindex];
+	  FArrayBox &Er = Erborder[mfi];
+	  FArrayBox &lam = lamborder[mfi];
+	  FArrayBox &Erout = Er_new[mfi];
 	  
 	  grid_volume.resize(bx_g4,1);
-	  grid_volume.copy(levelVolume[mfiindex]);
+	  grid_volume.copy(levelVolume[mfi]);
 	    
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 	    area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-	    area[i].copy(levelArea[i][mfiindex]);
+	    area[i].copy(levelArea[i][mfi]);
 	  }
           
 #if (BL_SPACEDIM <=2)
 	  dloga.resize(bx_g4);
-	  dloga.copy(dLogArea[0][mfiindex]);
+	  dloga.copy(dLogArea[0][mfi]);
 #endif
 
 	  // Allocate fabs for fluxes.
@@ -485,15 +485,15 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
 	     BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 	     BL_TO_FORTRAN(Erout), 
-	     BL_TO_FORTRAN(u_gdnv[0][mfiindex]),
+	     BL_TO_FORTRAN(u_gdnv[0][mfi]),
 #if (BL_SPACEDIM >= 2)
-	     BL_TO_FORTRAN(u_gdnv[1][mfiindex]),
+	     BL_TO_FORTRAN(u_gdnv[1][mfi]),
 #endif
 #if (BL_SPACEDIM == 3)
-	     BL_TO_FORTRAN(u_gdnv[2][mfiindex]),
+	     BL_TO_FORTRAN(u_gdnv[2][mfi]),
 #endif
-	     BL_TO_FORTRAN(ext_src_old[mfiindex]),
-	     BL_TO_FORTRAN(grav_vector[mfiindex]), 
+	     BL_TO_FORTRAN(ext_src_old[mfi]),
+	     BL_TO_FORTRAN(grav_vector[mfi]), 
 	     dx, &dt,
 	     D_DECL(BL_TO_FORTRAN(flux[0]), 
 		    BL_TO_FORTRAN(flux[1]), 
@@ -517,7 +517,7 @@ Castro::advance_hydro (Real time,
 	      if (fine)
 		{
 		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][mfiindex].copy(flux[i]);
+		    fluxes[i][mfi].copy(flux[i]);
 		}
 	      if (current)
 		{
@@ -528,7 +528,7 @@ Castro::advance_hydro (Real time,
 	      if (rad_fine)
 		{
 		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    rad_fluxes[i][mfiindex].copy(rad_flux[i]);
+		    rad_fluxes[i][mfi].copy(rad_flux[i]);
 		}
 	      if (rad_current)
 		{
@@ -600,12 +600,12 @@ Castro::advance_hydro (Real time,
 	    
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 	    area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-	    area[i].copy(levelArea[i][mfiindex]);
+	    area[i].copy(levelArea[i][fpi]);
 	  }
           
 #if (BL_SPACEDIM <=2)
 	  dloga.resize(bx_g4);
-	  dloga.copy(dLogArea[0][mfiindex]);
+	  dloga.copy(dLogArea[0][fpi]);
 #endif
 
 	  // Allocate fabs for fluxes.
@@ -663,7 +663,7 @@ Castro::advance_hydro (Real time,
 	      if (fine)
 		{
 		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][mfiindex].copy(flux[i]);
+		    fluxes[i][fpi].copy(flux[i]);
 		}
 	      if (current)
 		{
@@ -1149,8 +1149,7 @@ Castro::advance_no_hydro (Real time,
         
     // Copy old data into new data.
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-        int i = mfi.index();
-        S_new[i].copy(S_old[i]);
+        S_new[mfi].copy(S_old[mfi]);
     }
         
     if (add_ext_src) {
