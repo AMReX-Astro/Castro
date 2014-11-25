@@ -1752,8 +1752,8 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
   const BoxArray& grids = parent->boxArray(level);
-//  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-//  Real time = castro->get_state_data(Rad_Type).curTime();
+  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+  Real time = castro->get_state_data(Rad_Type).curTime();
   
   Array<Real> r, s;
 

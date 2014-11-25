@@ -26,8 +26,8 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
 
   const BoxArray& grids = boxes();
   const Box& domain = geom.Domain();
-  const Real* dx = geom.CellSize();
-  const Real* xlo = geom.ProbLo();
+  //  const Real* dx = geom.CellSize();
+  //  const Real* xlo = geom.ProbLo();
 
   // It is desirable that the type array be set up after static init.
   // This is part of the reason this step is not in NGBndry.
@@ -122,7 +122,6 @@ void RadBndry::init(Real bv)
 {
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    int dir = face.coordDir();
     int bctype;
     if (face.isLow()) {
       bctype       = LO_DIRICHLET;
