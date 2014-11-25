@@ -30,8 +30,8 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
 
   const BoxArray& grids = boxes();
   const Box& domain = geom.Domain();
-  const Real* dx = geom.CellSize();
-  const Real* xlo = geom.ProbLo();
+//  const Real* dx = geom.CellSize();
+//  const Real* xlo = geom.ProbLo();
 
   // It is desirable that the type array be set up after static init.
   // This is part of the reason this step is not in NGBndry.
@@ -43,11 +43,11 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
 	int igrid = bi.index();
         if (domain[face] == boxes()[igrid][face] &&
             !geom.isPeriodic(face.coordDir())) {
-	  const Box& face_box = bndry[face][igrid].box();
+	  const Box& face_box = bndry[face][bi].box();
 	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(bndry[face][igrid].dataPtr(), dimlist(face_box),
+          FORT_RADBNDRY2(bndry[face][bi].dataPtr(), dimlist(face_box),
                          bctypearray[face][igrid].dataPtr(),
                          dimlist(domain), dx, xlo, time);
 #endif
@@ -203,7 +203,7 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
 void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 {
   const BoxArray& grids = boxes();
-  int ngrds = grids.size();
+//  int ngrds = grids.size();
   const Real* dx = geom.CellSize();
   const Real* xlo = geom.ProbLo();
   const Box& domain = geom.Domain();
@@ -214,8 +214,8 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    Array<Real> &bloc = bcloc[face];
-    Array<RadBoundCond> &bctag = bcond[face];
+//    Array<Real> &bloc = bcloc[face];
+//    Array<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));
@@ -243,11 +243,11 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
 	    if (p_bcflag == 0) {
 	      for(int igroup = 0; igroup < ngroups; igroup++) {
-		bndry[face][i].setVal(value_nu[igroup], igroup);
+		bndry[face][bi].setVal(value_nu[igroup], igroup);
 	      }
 	    }
 	    else {
-	      Fab& bnd_fab = bndry[face][i];
+	      Fab& bnd_fab = bndry[face][bi];
 	      const Box& bnd_box = bnd_fab.box();
 	      int iface = face.isLow() ? 0 : 1;
 	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
@@ -261,10 +261,11 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	  }
 	  exit(2);
 
-	  Fab& bnd_fab = bndry[face][i];
+#if 0
+	  Fab& bnd_fab = bndry[face][bi];
 	  const Box& bnd_box = bnd_fab.box();
 	  BaseFab<int>& tfab = bctypearray[face][i];
-#if 0
+
 	  FORT_RADBNDRY2(bnd_fab.dataPtr(), dimlist(bnd_box),
 			 tfab.dataPtr(), dimlist(domain), dx, xlo, time);
 #endif
@@ -288,8 +289,7 @@ void MGRadBndry::setHomogValues(const BCRec& bc, IntVect& ratio)
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
     for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
-      int grd = bi.index();
-      FArrayBox& bnd_fab = bndry[face][grd];
+      FArrayBox& bnd_fab = bndry[face][bi];
       bnd_fab.setVal(0.);
     }
   }

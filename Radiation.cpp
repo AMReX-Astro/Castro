@@ -953,8 +953,8 @@ void Radiation::analytic_solution(int level)
 
       RealBox gridloc = RealBox(grids[i], geom.CellSize(), geom.ProbLo());
 
-      FORT_ANATW2(T_new[i].dataPtr(), dimlist(reg),
-		  temp[i].dataPtr(),
+      FORT_ANATW2(T_new[ti].dataPtr(), dimlist(reg),
+		  temp[ti].dataPtr(),
 		  p, xf, Tc, dx, gridloc.lo(), reg.loVect());
     }
 
@@ -1037,20 +1037,18 @@ void Radiation::clear_internal_borders(FluxRegister& fr)
     for (int j = 0; j < grids.size(); j++) {
       Box jbox = BoxLib::bdryHi(grids[j], dir);
       for (FabSetIter fsi(fr[lo]); fsi.isValid(); ++fsi) {
-	int i = fsi.index();
-	Box ibox = fr[lo][i].box();
+	Box ibox = fr[lo][fsi].box();
 	ibox &= jbox;
 	if (ibox.ok()) {
-	  fr[lo][i].setVal(0.0, ibox, 0, ncomp);
+	  fr[lo][fsi].setVal(0.0, ibox, 0, ncomp);
 	}
       }
       jbox = BoxLib::bdryLo(grids[j], dir);
       for (FabSetIter fsi(fr[hi]); fsi.isValid(); ++fsi) {
-	int i = fsi.index();
-	Box ibox = fr[hi][i].box();
+	Box ibox = fr[hi][fsi].box();
 	ibox &= jbox;
 	if (ibox.ok()) {
-	  fr[hi][i].setVal(0.0, ibox, 0, ncomp);
+	  fr[hi][fsi].setVal(0.0, ibox, 0, ncomp);
 	}
       }
     }
@@ -1071,10 +1069,10 @@ void Radiation::compute_exchange(MultiFab& exch,
   for (MFIter exi(exch); exi.isValid(); ++exi) {
     int i = exi.index();
     const Box& reg = grids[i];
-    const Box& ebox = Er[i].box();
-    FORT_CEXCH(exch[i].dataPtr(), dimlist(reg),
-	       Er[i].dataPtr(0), dimlist(ebox),
-	       fkp[i].dataPtr(), sigma, c);
+    const Box& ebox = Er[exi].box();
+    FORT_CEXCH(exch[exi].dataPtr(), dimlist(reg),
+	       Er[exi].dataPtr(0), dimlist(ebox),
+	       fkp[exi].dataPtr(), sigma, c);
   }
 }
 
@@ -1096,27 +1094,27 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
     const Box& reg = grids[i];
 
     if (lag_planck) {
-      eta[i].copy(fkp[i]);
+      eta[mfi].copy(fkp[mfi]);
     }
     else {
       // This is the only case where we need a direct call for
       // Planck mean as a function of temperature.
-      temp[i].plus(dT, 0, 1);
-      get_planck_from_temp(eta[i], temp[i], state[i], reg, igroup);
-      temp[i].plus(-dT, 0, 1);
+      temp[mfi].plus(dT, 0, 1);
+      get_planck_from_temp(eta[mfi], temp[mfi], state[mfi], reg, igroup);
+      temp[mfi].plus(-dT, 0, 1);
     }
 
     // This is the only case in the radiation algorithm (outside of
     // Jeff's branch) where we need to return c_v.
     Fab c_v(reg);
-    get_c_v(c_v, temp[i], state[i], reg);
+    get_c_v(c_v, temp[mfi], state[mfi], reg);
 
-    const Box& sbox = state[i].box();
-    const Box& ebox = Er[i].box();
-    FORT_CETA2(eta[i].dataPtr(), etainv[i].dataPtr(), dimlist(reg),
-	       state[i].dataPtr(Density), dimlist(sbox),
-	       temp[i].dataPtr(), c_v.dataPtr(),
-	       fkp[i].dataPtr(), Er[i].dataPtr(igroup), dimlist(ebox),
+    const Box& sbox = state[mfi].box();
+    const Box& ebox = Er[mfi].box();
+    FORT_CETA2(eta[mfi].dataPtr(), etainv[mfi].dataPtr(), dimlist(reg),
+	       state[mfi].dataPtr(Density), dimlist(sbox),
+	       temp[mfi].dataPtr(), c_v.dataPtr(),
+	       fkp[mfi].dataPtr(), Er[mfi].dataPtr(igroup), dimlist(ebox),
 	       dT, delta_t, sigma, c,
 	       underrel, lag_planck);
   }
@@ -1143,10 +1141,10 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
     int i = mfi.index();
     const Box &reg = grids[i];
 
-    FORT_CEUP(relative, absolute, frhoes[i].dataPtr(), dimlist(reg),
-	      frhoem[i].dataPtr(), eta[i].dataPtr(), etainv[i].dataPtr(),
-	      dflux_old[i].dataPtr(), dflux_new[i].dataPtr(),
-	      exch[i].dataPtr(), delta_t, theta);
+    FORT_CEUP(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
+	      frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+	      dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+	      exch[mfi].dataPtr(), delta_t, theta);
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1175,10 +1173,10 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
     int i = mfi.index();
     const Box &reg = grids[i];
 
-    FORT_CEUPDTERM(relative, absolute, frhoes[i].dataPtr(), dimlist(reg),
-		   frhoem[i].dataPtr(), eta[i].dataPtr(), etainv[i].dataPtr(),
-		   dflux_old[i].dataPtr(), dflux_new[i].dataPtr(),
-		   exch[i].dataPtr(), Dterm[i].dataPtr(), delta_t, theta);
+    FORT_CEUPDTERM(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
+		   frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+		   dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+		   exch[mfi].dataPtr(), Dterm[mfi].dataPtr(), delta_t, theta);
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1209,16 +1207,16 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
     const Box &reg = grids[i];
 
     Fab c_v(reg);
-    get_c_v(c_v, temp[i], state[i], reg);
+    get_c_v(c_v, temp[mfi], state[mfi], reg);
 
-    const Box& sbox = state[i].box();
-    const Box& ebox = Er_new[i].box();
-    FORT_NCEUP(relative, absolute, frhoes[i].dataPtr(), dimlist(reg),
-	       frhoem[i].dataPtr(), eta[i].dataPtr(), etainv[i].dataPtr(),
-	       Er_new[i].dataPtr(), dimlist(ebox),
-               dflux_old[i].dataPtr(), dflux_new[i].dataPtr(),
-	       temp[i].dataPtr(), fkp[i].dataPtr(), c_v.dataPtr(),
-	       state[i].dataPtr(), dimlist(sbox),
+    const Box& sbox = state[mfi].box();
+    const Box& ebox = Er_new[mfi].box();
+    FORT_NCEUP(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
+	       frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+	       Er_new[mfi].dataPtr(), dimlist(ebox),
+               dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+	       temp[mfi].dataPtr(), fkp[mfi].dataPtr(), c_v.dataPtr(),
+	       state[mfi].dataPtr(), dimlist(sbox),
                sigma, c, delta_t, theta);
   }
 
@@ -1234,22 +1232,22 @@ void Radiation::state_update(MultiFab& state,
 
   for (MFIter si(state); si.isValid(); ++si) {
     int i = si.index();
-    const Box& sbox = state[i].box();
+    const Box& sbox = state[si].box();
     const Box& reg = grids[i];
-    FORT_CETOT(state[i].dataPtr(), dimlist(sbox), dimlist(reg),
-	       frhoes[i].dataPtr());
+    FORT_CETOT(state[si].dataPtr(), dimlist(sbox), dimlist(reg),
+	       frhoes[si].dataPtr());
 
     if (do_real_eos == 0) {
 
-      temp[i].copy(frhoes[i]);
+      temp[si].copy(frhoes[si]);
 
       BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
 	(reg.loVect(), reg.hiVect(), 
-	 BL_TO_FORTRAN(temp[i]), 
-	 BL_TO_FORTRAN(state[i]),
+	 BL_TO_FORTRAN(temp[si]), 
+	 BL_TO_FORTRAN(state[si]),
 	 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 
-      state[i].copy(temp[i],0,Temp,1);
+      state[si].copy(temp[si],0,Temp,1);
     }
   }
 }
@@ -1263,10 +1261,10 @@ void Radiation::extrapolateBorders(MultiFab& f, int indx)
 
   for(MFIter mfi(f); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box& fbox = f[i].box();
+    const Box& fbox = f[mfi].box();
     const Box& reg  = f.box(i);
 
-    FORT_BEXTRP(f[i].dataPtr(indx), dimlist(fbox), dimlist(reg));
+    FORT_BEXTRP(f[mfi].dataPtr(indx), dimlist(fbox), dimlist(reg));
   }
 }
 
@@ -1645,7 +1643,7 @@ void Radiation::get_frhoe(MultiFab& frhoe,
   const BoxArray& grids = frhoe.boxArray();
   for (MFIter si(state); si.isValid(); ++si) {
     int i = si.index();
-    get_frhoe(frhoe[i], state[i], grids[i]);
+    get_frhoe(frhoe[si], state[si], grids[i]);
   }
 }
 
@@ -1660,7 +1658,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
   const BoxArray& grids = fkp.boxArray();
   for (MFIter si(state); si.isValid(); ++si) {
     int i = si.index();
-    get_planck_and_temp(fkp[i], temp[i], state[i], grids[i],
+    get_planck_and_temp(fkp[si], temp[si], state[si], grids[i],
 			igroup, delta_t);
   }
 }
@@ -1685,16 +1683,15 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
   FillPatchIterator fpi(*castro, S_new, 1, time, State_Type, 0, nstate);
   for( ; fpi.isValid(); ++fpi) {
-    int i = fpi.index();
 
     FArrayBox &state = fpi();
 
-    const Box& reg = kappa_r[i].box();
+    const Box& reg = kappa_r[fpi].box();
 
     Fab temp(reg);
     get_frhoe(temp, state, reg);
 
-    get_rosseland_and_temp(kappa_r[i], temp, state, reg, igroup);
+    get_rosseland_and_temp(kappa_r[fpi], temp, state, reg, igroup);
   }
 }
 
@@ -1714,7 +1711,7 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   const BoxArray& grids = kappa_r.boxArray();
   for (MFIter si(state); si.isValid(); ++si) {
     int i = si.index();
-    get_rosseland_from_temp(kappa_r[i], temp[i], state[i], grids[i], igroup);
+    get_rosseland_from_temp(kappa_r[si], temp[si], state[si], grids[i], igroup);
   }
 
   kappa_r.FillBoundary();
@@ -1901,8 +1898,8 @@ void Radiation::sync_solve(int crse_level)
       for (MFIter mfi(Er_new); mfi.isValid(); ++mfi) {
 	int i = mfi.index();
 
-	//Er_new[i].plus(Ecorr[i]);
-	Er_new[i].plus(Ecorr[i],0,igroup,1);
+	//Er_new[mfi].plus(Ecorr[mfi]);
+	Er_new[mfi].plus(Ecorr[mfi],0,igroup,1);
 
 	const Box& reg  = grids[i];
 
@@ -1910,11 +1907,11 @@ void Radiation::sync_solve(int crse_level)
 	int indx2 = igroup;
 	if(igroup == 0) indx1 = 0;
 	
-	FORT_SSUP((ptemp[indx2][level])[i].dataPtr(),
-		  (ptemp[indx1][level])[i].dataPtr(),
-		  dimlist(reg), Ecorr[i].dataPtr(),
-		  eta[i].dataPtr(), etainv[i].dataPtr(),
-		  fkp[i].dataPtr(), c, delta_t);
+	FORT_SSUP((ptemp[indx2][level])[mfi].dataPtr(),
+		  (ptemp[indx1][level])[mfi].dataPtr(),
+		  dimlist(reg), Ecorr[mfi].dataPtr(),
+		  eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+		  fkp[mfi].dataPtr(), c, delta_t);
 	
       }
     } // loop over levels
@@ -1946,9 +1943,8 @@ void Radiation::sync_solve(int crse_level)
     MultiFab& S_new = castro->get_new_data(State_Type);
 
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      S_new[i].plus((ptemp[finalIndex][level])[i],0,Eden,1);
-      S_new[i].plus((ptemp[finalIndex][level])[i],0,Eint,1);
+      S_new[mfi].plus((ptemp[finalIndex][level])[mfi],0,Eden,1);
+      S_new[mfi].plus((ptemp[finalIndex][level])[mfi],0,Eint,1);
     }
 
   }
@@ -2205,10 +2201,10 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
                 const int        i        = mfi.index();
                 const int        ncomp    = 1;
                 const Box&       ovlp     = coarsened_grids[i];
-                FArrayBox&       crse_fab = crse_data[i];
-                const FArrayBox& crse_vol = crse_volume[i];
-                const FArrayBox& fine_fab = flev_data[i];
-                const FArrayBox& fine_vol = flev_volume[i];
+                FArrayBox&       crse_fab = crse_data[mfi];
+                const FArrayBox& crse_vol = crse_volume[mfi];
+                const FArrayBox& fine_fab = flev_data[mfi];
+                const FArrayBox& fine_vol = flev_volume[mfi];
 
                 BL_FORT_PROC_CALL(CA_AVGDOWN,ca_avgdown)
                   (BL_TO_FORTRAN(crse_fab), ncomp,
@@ -2307,24 +2303,22 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
           for (FabSetIter fsi(ref_sync_flux[lo_face]);
                fsi.isValid(); ++fsi) {
-            int i = fsi.index();
-            const Box& fbox = ref_sync_flux[lo_face][i].box();
-            const Box& cbox = crse_sync_flux[lo_face][i].box();
-            FORT_RFFACE(ref_sync_flux[lo_face][i].dataPtr(),
+            const Box& fbox = ref_sync_flux[lo_face][fsi].box();
+            const Box& cbox = crse_sync_flux[lo_face][fsi].box();
+            FORT_RFFACE(ref_sync_flux[lo_face][fsi].dataPtr(),
                         dimlist(fbox),
-                        crse_sync_flux[lo_face][i].dataPtr(indx),
+                        crse_sync_flux[lo_face][fsi].dataPtr(indx),
                         dimlist(cbox),
                         dir, ref_rat.getVect());
           }
 
           for (FabSetIter fsi(ref_sync_flux[hi_face]);
                fsi.isValid(); ++fsi) {
-            int i = fsi.index();
-            const Box& fbox = ref_sync_flux[hi_face][i].box();
-            const Box& cbox = crse_sync_flux[hi_face][i].box();
-            FORT_RFFACE(ref_sync_flux[hi_face][i].dataPtr(),
+            const Box& fbox = ref_sync_flux[hi_face][fsi].box();
+            const Box& cbox = crse_sync_flux[hi_face][fsi].box();
+            FORT_RFFACE(ref_sync_flux[hi_face][fsi].dataPtr(),
                         dimlist(fbox),
-                        crse_sync_flux[hi_face][i].dataPtr(indx),
+                        crse_sync_flux[hi_face][fsi].dataPtr(indx),
                         dimlist(cbox),
                         dir, ref_rat.getVect());
           }
@@ -2385,8 +2379,8 @@ void Radiation::scaledGradient(int level,
       for (MFIter mfi(Erbtmp); mfi.isValid(); ++mfi) {
 	int i = mfi.index();
 	const Box &bx = grids[i];
-	Erbtmp[i].setVal(-1.0);
-	Erbtmp[i].copy(Er[i], bx, igroup, bx, 0, 1);
+	Erbtmp[mfi].setVal(-1.0);
+	Erbtmp[mfi].copy(Er[mfi], bx, igroup, bx, 0, 1);
       }
       // Values in ghost cells are set to -1, indicating that one-sided
       // differences should be used in computing the gradient term for
@@ -2411,25 +2405,25 @@ void Radiation::scaledGradient(int level,
 
     for (MFIter mfi(Er); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      const Box &rbox = R[idim][i].box();
+      const Box &rbox = R[idim][mfi].box();
       const Box &reg  = grids[i];
-      const Box &kbox = kappa_r[i].box();
+      const Box &kbox = kappa_r[mfi].box();
 
       if (limiter == 0) {
-        R[idim][i].setVal(0.0);
+        R[idim][mfi].setVal(0.0);
       }
       else if (limiter%10 == 1) {
-        FORT_SCGRD1(R[idim][i].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-                    Erborder[i].dataPtr(Ercomp), dx);
+        FORT_SCGRD1(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+                    Erborder[mfi].dataPtr(Ercomp), dx);
       }
       else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
         Fab dtmp(kbox, BL_SPACEDIM - 1);
 #endif
-        FORT_SCGRD2(R[idim][i].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-                    D_DECL(Erborder[i].dataPtr(Ercomp),
+        FORT_SCGRD2(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+                    D_DECL(Erborder[mfi].dataPtr(Ercomp),
                            dtmp.dataPtr(0), dtmp.dataPtr(1)),
                     dx);
       }
@@ -2437,9 +2431,9 @@ void Radiation::scaledGradient(int level,
 #if (BL_SPACEDIM >= 2)
         Fab dtmp(kbox, BL_SPACEDIM - 1);
 #endif
-        FORT_SCGRD3(R[idim][i].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-                    D_DECL(Erborder[i].dataPtr(Ercomp),
+        FORT_SCGRD3(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+                    D_DECL(Erborder[mfi].dataPtr(Ercomp),
                            dtmp.dataPtr(0), dtmp.dataPtr(1)),
                     dx);
       }
@@ -2461,10 +2455,10 @@ void Radiation::fluxLimiter(int level,
 
     for (MFIter mfi(lambda[idim]); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      const Box &rbox = lambda[idim][i].box();
+      const Box &rbox = lambda[idim][mfi].box();
       const Box &reg  = grids[i];
 
-      FORT_FLXLIM(lambda[idim][i].dataPtr(lamcomp), dimlist(rbox),
+      FORT_FLXLIM(lambda[idim][mfi].dataPtr(lamcomp), dimlist(rbox),
                   dimlist(reg), limiter, idim);
     }
   }
@@ -2492,11 +2486,9 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
   for(FillPatchIterator fpi(*castro, Er, 1, time, State_Type, 0, nstate); 
       fpi.isValid(); ++fpi) {
 
-    int i = fpi.index();
-
     FArrayBox &state = fpi();
 
-    const Box& reg = kappa_r[i].box();
+    const Box& reg = kappa_r[fpi].box();
 
     Fab temp(reg);
     get_frhoe(temp, state, reg);
@@ -2520,10 +2512,10 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     // compute rosseland
     if (use_opacity_table_module) {
       BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[i]), BL_TO_FORTRAN(state));
+	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[fpi]), BL_TO_FORTRAN(state));
     }
     else if (const_scattering[0] > 0.0) {
-      FORT_ROSSE1S(kappa_r[i].dataPtr(igroup), dimlist(reg), dimlist(reg),
+      FORT_ROSSE1S(kappa_r[fpi].dataPtr(igroup), dimlist(reg), dimlist(reg),
 		   const_kappa_r.dataPtr(),
 		   kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
 		   kappa_r_exp_p.dataPtr(), 
@@ -2535,7 +2527,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		   temp.dataPtr(), state.dataPtr(), dimlist(reg));
     }
     else {
-      FORT_ROSSE1(kappa_r[i].dataPtr(igroup), dimlist(reg), dimlist(reg),
+      FORT_ROSSE1(kappa_r[fpi].dataPtr(igroup), dimlist(reg), dimlist(reg),
 		  const_kappa_r.dataPtr(),
 		  kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
 		  kappa_r_exp_p.dataPtr(), nugroup[igroup],
@@ -2570,16 +2562,16 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     temp.plus(-dT, 0, 1);
     
     BL_FORT_PROC_CALL(CA_GET_V_DCF, ca_get_v_dcf)
-      (BL_TO_FORTRAN(Er[i]),
+      (BL_TO_FORTRAN(Er[fpi]),
        BL_TO_FORTRAN(state),
        BL_TO_FORTRAN(temp),
        BL_TO_FORTRAN(c_v),
-       BL_TO_FORTRAN(kappa_r[i]),
+       BL_TO_FORTRAN(kappa_r[fpi]),
        BL_TO_FORTRAN(kp),
        BL_TO_FORTRAN(kp2),
        &dT, &delta_t, &sigma, &c,
-       BL_TO_FORTRAN(v[i]),
-       BL_TO_FORTRAN(dcf[i]));
+       BL_TO_FORTRAN(v[fpi]),
+       BL_TO_FORTRAN(dcf[fpi]));
   }
 }
 
@@ -2587,12 +2579,11 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 			   const Geometry& geom)
 {
   for (MFIter mfi(dcf); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
     BL_FORT_PROC_CALL(CA_UPDATE_DCF, ca_update_dcf)
-      (BL_TO_FORTRAN(dcf[i]),
-       BL_TO_FORTRAN(etainv[i]),
-       BL_TO_FORTRAN(kp[i]),
-       BL_TO_FORTRAN(kr[i]));
+      (BL_TO_FORTRAN(dcf[mfi]),
+       BL_TO_FORTRAN(etainv[mfi]),
+       BL_TO_FORTRAN(kp[mfi]),
+       BL_TO_FORTRAN(kr[mfi]));
   }
 
   dcf.FillBoundary();
@@ -2701,23 +2692,23 @@ void Radiation::computeTemp(MultiFab& State, int resetEint)
 
     if (do_real_eos == 0) {
       BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-	(BL_TO_FORTRAN(State[i]),
+	(BL_TO_FORTRAN(State[mfi]),
 	 bx.loVect(), bx.hiVect(),verbose);
 
       FArrayBox temp(bx);
-      temp.copy(State[i],Eint,0,1);
+      temp.copy(State[mfi],Eint,0,1);
 
       BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
 	(bx.loVect(), bx.hiVect(), 
 	 BL_TO_FORTRAN(temp), 
-	 BL_TO_FORTRAN(State[i]),
+	 BL_TO_FORTRAN(State[mfi]),
 	 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 
-      State[i].copy(temp,0,Temp,1);
+      State[mfi].copy(temp,0,Temp,1);
     }
     else {
       BL_FORT_PROC_CALL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
-	(bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[i]),
+	(bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]),
 	 &resetEint, &relative, &absolute);
     }
   }
@@ -2756,7 +2747,6 @@ void Radiation::filter_prim(int level, MultiFab& State)
   for (FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,
 			     0,ncomp); fpi.isValid(); ++fpi) {
 
-    const int i  = fpi.index();
     const Box bx = fpi.validbox();
 
     FArrayBox &Sborder = fpi();
@@ -2765,7 +2755,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
     RealBox gridloc = RealBox(bx, dx, prob_lo);
     const Real* xlo = gridloc.lo();
 
-    FArrayBox& mask_fab = mask[i];
+    FArrayBox& mask_fab = mask[fpi];
     const Box& mask_box = mask_fab.box();
 
     if (level < parent->finestLevel()) {
@@ -2779,7 +2769,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
     BL_FORT_PROC_CALL(CA_FILT_PRIM, ca_filt_prim)
       (bx.loVect(), bx.hiVect(), 
        BL_TO_FORTRAN(Sborder),
-       BL_TO_FORTRAN(State[i]),
+       BL_TO_FORTRAN(State[fpi]),
        BL_TO_FORTRAN(mask_fab),
        &filter_prim_T, &filter_prim_S,
        domain_lo, domain_hi,

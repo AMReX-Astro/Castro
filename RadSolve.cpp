@@ -170,7 +170,7 @@ void RadSolve::levelInit(int level)
 {
   BL_PROFILE("RadSolve::levelInit");
   const BoxArray& grids = parent->boxArray(level);
-  const Real *dx = parent->Geom(level).CellSize();
+//  const Real *dx = parent->Geom(level).CellSize();
 
   if (use_hypre_level) {
     if (level_solver_flag < 100) {
@@ -259,7 +259,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
 
-    FORT_MULTRS(cc[i].dataPtr(), dimlist(reg), dimlist(reg),
+    FORT_MULTRS(cc[mfi].dataPtr(), dimlist(reg), dimlist(reg),
                 r.dataPtr(), s.dataPtr());
   }
 }
@@ -358,7 +358,7 @@ void RadSolve::levelACoeffs(int level,
 
   for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box &abox = acoefs[i].box();
+    const Box &abox = acoefs[mfi].box();
     const Box &reg  = grids[i];
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -375,8 +375,8 @@ void RadSolve::levelACoeffs(int level,
       const Real *dx = parent->Geom(level).CellSize();
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
-    FORT_LACOEF(acoefs[i].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[i].dataPtr(), eta[i].dataPtr(), etainv[i].dataPtr(),
+    FORT_LACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+		fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
 		r.dataPtr(), s.dataPtr(), c, delta_t, theta);
   }
 
@@ -405,9 +405,9 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 
   for (MFIter mfi(bcoefs); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box &bbox = bcoefs[i].box();
+    const Box &bbox = bcoefs[mfi].box();
     const Box &reg  = grids[i];
-    const Box &kbox = kappa_r[i].box();
+    const Box &kbox = kappa_r[mfi].box();
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
       q.resize(reg.length(0)+1, 1);
@@ -438,32 +438,32 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
       FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
     }
     if (limiter == 0) {
-      FORT_BCLIM0(bcoefs[i].dataPtr(), dimlist(bbox), dimlist(reg),
-		  idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
+      FORT_BCLIM0(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
+		  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
 		  q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx);
     }
     else if (limiter%10 == 1) {
-      FORT_BCLIM1(bcoefs[i].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-                  Erborder[i].dataPtr(igroup),
+      FORT_BCLIM1(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
+                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+                  Erborder[mfi].dataPtr(igroup),
                   q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
     }
     else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
       Fab dtmp(kbox, BL_SPACEDIM - 1);
 #endif
-      FORT_BCLIM2(bcoefs[i].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-        D_DECL(Erborder[i].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
+      FORT_BCLIM2(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
+                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+        D_DECL(Erborder[mfi].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
                   q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
     }
     else {
 #if (BL_SPACEDIM >= 2)
       Fab dtmp(kbox, BL_SPACEDIM - 1);
 #endif
-      FORT_BCLIM3(bcoefs[i].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
-        D_DECL(Erborder[i].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
+      FORT_BCLIM3(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
+                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+        D_DECL(Erborder[mfi].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
                   q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
     }
   }
@@ -481,7 +481,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
     int i = mfi.index();
     const Box& reg  = grids[i]; 
     
-    spa[i].setVal(1.e210);
+    spa[mfi].setVal(1.e210);
     
     bool nexttoboundary=false;
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
@@ -499,10 +499,10 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
     
     if (nexttoboundary) {
       BL_FORT_PROC_CALL(CA_SPALPHA, ca_spalpha)
-	(BL_TO_FORTRAN(spa[i]),
-	 D_DECL(BL_TO_FORTRAN(lambda[0][i]),
-		BL_TO_FORTRAN(lambda[1][i]),
-		BL_TO_FORTRAN(lambda[2][i])),
+	(BL_TO_FORTRAN(spa[mfi]),
+	 D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+		BL_TO_FORTRAN(lambda[1][mfi]),
+		BL_TO_FORTRAN(lambda[2][mfi])),
 	 &igroup);
     }
   }
@@ -539,9 +539,9 @@ void RadSolve::levelBCoeffs(int level,
 
     for (MFIter mfi(lambda[idim]); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      const Box &bbox = lambda[idim][i].box();
+      const Box &bbox = lambda[idim][mfi].box();
       const Box &reg  = grids[i];
-      const Box &kbox = kappa_r[i].box();
+      const Box &kbox = kappa_r[mfi].box();
 
       const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
       if (Geometry::IsCartesian()) {
@@ -563,9 +563,9 @@ void RadSolve::levelBCoeffs(int level,
         FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
       }
 
-      FORT_BCLIM(bcoefs[i].dataPtr(), lambda[idim][i].dataPtr(lamcomp),
+      FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[idim][mfi].dataPtr(lamcomp),
                  dimlist(bbox), dimlist(reg),
-                 idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
+                 idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
                  r.dataPtr(), s.dataPtr(), c, dx);
     }
 
@@ -600,9 +600,8 @@ void RadSolve::levelBCoeffs(int level,
   if (limiter > 0) {
     Erborder.define(grids,1,1,Fab_allocate);
     for (MFIter mfi(Erborder); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      Erborder[i].setVal(-1.0);
-      Erborder[i].copy(Er[i], igroup, 0, 1);
+      Erborder[mfi].setVal(-1.0);
+      Erborder[mfi].copy(Er[mfi], igroup, 0, 1);
     }
     // Values in ghost cells are set to -1, indicating that one-sided
     // differences should be used in computing the gradient term for
@@ -685,13 +684,13 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 	parent->Geom(level).GetEdgeLoc(r, reg, 0);
 	parent->Geom(level).GetCellLoc(s, reg, I);
 	const Real *dx = parent->Geom(level).CellSize();
-	const Box &dbox = dcoefs[i].box();
+	const Box &dbox = dcoefs[mfi].box();
 	FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(dbox), dx);
       }
 
       BL_FORT_PROC_CALL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
-    	(BL_TO_FORTRAN(dcoefs[i]), BL_TO_FORTRAN(lambda[idim][i]),
-    	 BL_TO_FORTRAN(vel[i]), BL_TO_FORTRAN(dcf[i]), 
+    	(BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
+    	 BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
 	 r.dataPtr(), &idim);
     }
 
@@ -733,8 +732,8 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
 
   for (MFIter ri(rhs); ri.isValid(); ++ri) {
     int i = ri.index();
-    const Box &rbox = rhs[i].box();
-    const Box &ebox = Er_old[i].box();
+    const Box &rbox = rhs[ri].box();
+    const Box &ebox = Er_old[ri].box();
     const Box &reg  = grids[i];
     const Real *dx  = parent->Geom(level).CellSize();
 
@@ -753,13 +752,13 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
 
-    FORT_LRHS(rhs[i].dataPtr(), dimlist(rbox), dimlist(reg),
-	      temp[i].dataPtr(),
-	      fkp[i].dataPtr(), eta[i].dataPtr(), etainv[i].dataPtr(),
-	      rhoem[i].dataPtr(), rhoes[i].dataPtr(),
-	      dflux_old[i].dataPtr(),
-	      Er_old[i].dataPtr(0), dimlist(ebox),
-	      Edot[i].dataPtr(),
+    FORT_LRHS(rhs[ri].dataPtr(), dimlist(rbox), dimlist(reg),
+	      temp[ri].dataPtr(),
+	      fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
+	      rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
+	      dflux_old[ri].dataPtr(),
+	      Er_old[ri].dataPtr(0), dimlist(ebox),
+	      Edot[ri].dataPtr(),
 	      r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
   }
 }
@@ -770,7 +769,7 @@ void RadSolve::levelSolve(int level,
                           Real sync_absres_factor)
 {
   BL_PROFILE("RadSolve::levelSolve");
-  const BoxArray& grids = parent->boxArray(level);
+//  const BoxArray& grids = parent->boxArray(level);
 
   // Set coeffs, build solver, solve
   if (hd) {
@@ -869,7 +868,7 @@ void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Fl
     for (MFIter mfi(flx); mfi.isValid(); ++mfi) {
       int i = mfi.index();
 
-      const Box &Fbox = Flux[idim][i].box();
+      const Box &Fbox = Flux[idim][mfi].box();
       const int* Flo = Fbox.loVect();
       const int* Fhi = Fbox.hiVect();
 
@@ -907,8 +906,8 @@ void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Fl
       }
 
       BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
-	(BL_TO_FORTRAN(flx[i]),
-	 BL_TO_FORTRAN(Flux[idim][i]),
+	(BL_TO_FORTRAN(flx[mfi]),
+	 BL_TO_FORTRAN(Flux[idim][mfi]),
 	 r.dataPtr(), &rlo, &rhi, 
 	 &nflx, &idim, &igroup);
     }
@@ -932,7 +931,7 @@ void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,
     for (MFIter mfi(flx); mfi.isValid(); ++mfi) {
       int i = mfi.index();
 
-      const Box &Fbox = Flux[idim][i].box();
+      const Box &Fbox = Flux[idim][mfi].box();
       const int* Flo = Fbox.loVect();
       const int* Fhi = Fbox.hiVect();
 
@@ -970,13 +969,13 @@ void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,
       }
 
       BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX_LAB, ca_test_type_flux_lab)
-	(BL_TO_FORTRAN(flx[i]),
-	 BL_TO_FORTRAN(Flux[idim][i]),
-	 D_DECL(BL_TO_FORTRAN(lambda[0][i]),
-		BL_TO_FORTRAN(lambda[1][i]),
-		BL_TO_FORTRAN(lambda[2][i])),
-	 BL_TO_FORTRAN(Er[i]),
-	 BL_TO_FORTRAN(state[i]),
+	(BL_TO_FORTRAN(flx[mfi]),
+	 BL_TO_FORTRAN(Flux[idim][mfi]),
+	 D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+		BL_TO_FORTRAN(lambda[1][mfi]),
+		BL_TO_FORTRAN(lambda[2][mfi])),
+	 BL_TO_FORTRAN(Er[mfi]),
+	 BL_TO_FORTRAN(state[mfi]),
 	 r.dataPtr(), &rlo, &rhi, 
 	 &nflx, &idim);
     }
@@ -994,8 +993,7 @@ void RadSolve::levelFlux(int level,
   MultiFab Erborder(grids, 1, 1);
   Erborder.setVal(0.0);
   for (MFIter ei(Er); ei.isValid(); ++ei) {
-    int i = ei.index();
-    Erborder[i].copy(Er[i], igroup, 0, 1);
+    Erborder[ei].copy(Er[ei], igroup, 0, 1);
   }
 
   if (hd || hm) {
@@ -1008,7 +1006,7 @@ void RadSolve::levelFlux(int level,
   const Real* dx = parent->Geom(level).CellSize();
 
   for (int n = 0; n < BL_SPACEDIM; n++) {
-    const MultiFab *bp, *cp;
+      const MultiFab *bp; //, *cp;
     if (hd) {
       bp = &hd->bCoefficients(n);
     }
@@ -1025,13 +1023,12 @@ void RadSolve::levelFlux(int level,
     MultiFab &bcoef = *(MultiFab*)bp;
     //    MultiFab &ccoef = *(MultiFab*)cp;
     for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-      int i = fi.index();
       FORT_SET_ABEC_FLUX(&n,
-                         Erborder[i].dataPtr(), dimlist(Erborder[i].box()),
-                         bcoef[i].dataPtr(),    dimlist(bcoef[i].box()),
+                         Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
+                         bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
                          &beta,
                          dx,
-                         Flux[n][i].dataPtr(),  dimlist(Flux[n][i].box()));
+                         Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
     }
   }
 
@@ -1082,7 +1079,7 @@ void RadSolve::levelFluxReg(int level,
       const Real scale = volume / dx[n];
       for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
         int i = fi.index();
-        flux_out->FineAdd(Flux[n][i], n, i, 0, igroup, 1, scale);
+        flux_out->FineAdd(Flux[n][fi], n, i, 0, igroup, 1, scale);
       }
     }
   }
@@ -1105,8 +1102,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   MultiFab Erborder(grids, 1, 1);
   Erborder.setVal(0.0);
   for (MFIter ei(Er); ei.isValid(); ++ei) {
-    int i = ei.index();
-    Erborder[i].copy(Er[i], igroup, 0, 1);
+    Erborder[ei].copy(Er[ei], igroup, 0, 1);
   }
 
   Erborder.FillBoundary(); // zeroes left in off-level boundaries
@@ -1123,12 +1119,10 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
     MultiFab &dcoef = *(MultiFab*)dp;
 
     for (MFIter fi(dcoef); fi.isValid(); ++fi) {
-      int i = fi.index();
-
       BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
-	(BL_TO_FORTRAN(Erborder[i]),
-	 BL_TO_FORTRAN(dcoef[i]), 
-	 BL_TO_FORTRAN(Dterm_face[n][i]), 
+	(BL_TO_FORTRAN(Erborder[fi]),
+	 BL_TO_FORTRAN(dcoef[fi]), 
+	 BL_TO_FORTRAN(Dterm_face[n][fi]), 
 	 dx, &n);
     }
   }
@@ -1144,13 +1138,13 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       parent->Geom(level).GetEdgeLoc(re, reg, 0);
       parent->Geom(level).GetCellLoc(rc, reg, 0);
       parent->Geom(level).GetCellLoc(s, reg, 0);
-      const Box &dbox = Dterm_face[0][i].box();
+      const Box &dbox = Dterm_face[0][fi].box();
       FORT_SPHE(re.dataPtr(), s.dataPtr(), 0, dimlist(dbox), dx);
 
       BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][i]),
-	      BL_TO_FORTRAN(Dterm_face[1][i]),
-	      BL_TO_FORTRAN(Dterm_face[2][i])),
+      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+	      BL_TO_FORTRAN(Dterm_face[1][fi]),
+	      BL_TO_FORTRAN(Dterm_face[2][fi])),
        re.dataPtr(), rc.dataPtr());
     }
   }
@@ -1162,20 +1156,19 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       parent->Geom(level).GetCellLoc(rc, reg, 0);
 
       BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][i]),
-	      BL_TO_FORTRAN(Dterm_face[1][i]),
-	      BL_TO_FORTRAN(Dterm_face[2][i])),
+      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+	      BL_TO_FORTRAN(Dterm_face[1][fi]),
+	      BL_TO_FORTRAN(Dterm_face[2][fi])),
        re.dataPtr(), rc.dataPtr());
     }
   }
 
   for (MFIter fi(Dterm); fi.isValid(); ++fi) {
-    int i = fi.index();
     BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][i]),
-	      BL_TO_FORTRAN(Dterm_face[1][i]),
-	      BL_TO_FORTRAN(Dterm_face[2][i])),
-       BL_TO_FORTRAN(Dterm[i]));
+      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+	      BL_TO_FORTRAN(Dterm_face[1][fi]),
+	      BL_TO_FORTRAN(Dterm_face[2][fi])),
+       BL_TO_FORTRAN(Dterm[fi]));
   }
 }
 
@@ -1283,7 +1276,7 @@ void RadSolve::multilevelACoeffs(int level, MultiFab& fkp, Real c)
 
   for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box& abox = acoefs[i].box();
+    const Box& abox = acoefs[mfi].box();
     const Box& reg  = grids[i];
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -1300,8 +1293,8 @@ void RadSolve::multilevelACoeffs(int level, MultiFab& fkp, Real c)
       const Real *dx = parent->Geom(level).CellSize();
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
-    FORT_MACOEF(acoefs[i].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[i].dataPtr(), r.dataPtr(), s.dataPtr(), c);
+    FORT_MACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+		fkp[mfi].dataPtr(), r.dataPtr(), s.dataPtr(), c);
   }
 
   if (use_hypre_multilevel == 1) {
@@ -1316,7 +1309,7 @@ void RadSolve::multilevelRhs(int level, MultiFab& temp,
                              MultiFab& fkp, MultiFab& Ert, Real sigma)
 {
   BL_PROFILE("RadSolve::multilevelRhs");
-  int i, nf = fkp.nComp();
+  int i;
   const BoxArray& grids = parent->boxArray(level);
 
   int Ncomp  = 1;
@@ -1328,7 +1321,7 @@ void RadSolve::multilevelRhs(int level, MultiFab& temp,
 
   for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
     i = mfi.index();
-    const Box &rbox = rhs[i].box();
+    const Box &rbox = rhs[mfi].box();
     const Box &reg  = grids[i];
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -1345,9 +1338,9 @@ void RadSolve::multilevelRhs(int level, MultiFab& temp,
       const Real *dx = parent->Geom(level).CellSize();
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
-    FORT_MRHS(rhs[i].dataPtr(), dimlist(rbox), dimlist(reg),
-	      temp[i].dataPtr(), fkp[i].dataPtr(),
-	      Ert[i].dataPtr(), r.dataPtr(), s.dataPtr(),
+    FORT_MRHS(rhs[mfi].dataPtr(), dimlist(rbox), dimlist(reg),
+	      temp[mfi].dataPtr(), fkp[mfi].dataPtr(),
+	      Ert[mfi].dataPtr(), r.dataPtr(), s.dataPtr(),
 	      sigma);
   }
 
@@ -1543,10 +1536,10 @@ void RadSolve::multilevelFlux(int level, MultiFab& dflux,
       Array<Real> r;
       for (MFIter di(dflux); di.isValid(); ++di) {
         int i = di.index();
-        const Box &dbox = dflux[i].box();
+        const Box &dbox = dflux[di].box();
         const Box &reg  = grids[i];
         parent->Geom(level).GetCellLoc(r, dbox, 0);
-        FORT_DIVR(dflux[i].dataPtr(), dimlist(dbox), dimlist(reg),
+        FORT_DIVR(dflux[di].dataPtr(), dimlist(dbox), dimlist(reg),
                   r.dataPtr());
       }
     }
@@ -1555,13 +1548,13 @@ void RadSolve::multilevelFlux(int level, MultiFab& dflux,
       Array<Real> r, s;
       for (MFIter di(dflux); di.isValid(); ++di) {
         int i = di.index();
-        const Box &dbox = dflux[i].box();
+        const Box &dbox = dflux[di].box();
         const Box &reg  = grids[i];
         parent->Geom(level).GetCellLoc(r, dbox, 0);
         parent->Geom(level).GetCellLoc(s, dbox, I);
         const Real *dx = parent->Geom(level).CellSize();
         FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(dbox), dx);
-        FORT_DIVRS(dflux[i].dataPtr(), dimlist(dbox), dimlist(reg),
+        FORT_DIVRS(dflux[di].dataPtr(), dimlist(dbox), dimlist(reg),
                    r.dataPtr(), s.dataPtr());
       }
     }
@@ -1586,7 +1579,7 @@ void RadSolve::syncACoeffs(int level,
 
   for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box &abox = acoefs[i].box();
+    const Box &abox = acoefs[mfi].box();
     const Box &reg  = grids[i];
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -1603,8 +1596,8 @@ void RadSolve::syncACoeffs(int level,
       const Real *dx = parent->Geom(level).CellSize();
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
-    FORT_SACOEF(acoefs[i].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[i].dataPtr(), etainv[i].dataPtr(),
+    FORT_SACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+		fkp[mfi].dataPtr(), etainv[mfi].dataPtr(),
 		r.dataPtr(), s.dataPtr(), c, delta_t);
   }
 
@@ -1665,9 +1658,9 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 
   for (MFIter mfi(lambda); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box &bbox = lambda[i].box();
+    const Box &bbox = lambda[mfi].box();
     const Box &reg  = grids[i];
-    const Box &kbox = kappa_r[i].box();
+    const Box &kbox = kappa_r[mfi].box();
 
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -1689,9 +1682,9 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
       FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
     }
     
-    FORT_BCLIM(bcoefs[i].dataPtr(), lambda[i].dataPtr(lamcomp),
+    FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[mfi].dataPtr(lamcomp),
 	       dimlist(bbox), dimlist(reg),
-	       idim, kappa_r[i].dataPtr(kcomp), dimlist(kbox),
+	       idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
 	       r.dataPtr(), s.dataPtr(), c, dx);
   }
 }
@@ -1713,7 +1706,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 
   for (MFIter mfi(kpp); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box &abox = acoefs[i].box();
+    const Box &abox = acoefs[mfi].box();
     const Box &reg = grids[i];
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -1731,10 +1724,10 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
       FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
     }
 
-    const Box &kbox = kpp[i].box();
+    const Box &kbox = kpp[mfi].box();
     Real dt_ptc = delta_t/(1.0+ptc_tau);
-    FORT_LACOEFMGFLD(acoefs[i].dataPtr(), dimlist(abox), dimlist(reg),
-		     kpp[i].dataPtr(igroup), dimlist(kbox),
+    FORT_LACOEFMGFLD(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+		     kpp[mfi].dataPtr(igroup), dimlist(kbox),
 		     r.dataPtr(), s.dataPtr(), dt_ptc, c);
   }
 
@@ -1759,8 +1752,8 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
   const BoxArray& grids = parent->boxArray(level);
-  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  Real time = castro->get_state_data(Rad_Type).curTime();
+//  Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+//  Real time = castro->get_state_data(Rad_Type).curTime();
   
   Array<Real> r, s;
 
@@ -1773,14 +1766,14 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
     parent->Geom(level).GetCellLoc(r, reg, 0);
 
     BL_FORT_PROC_CALL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
-      (BL_TO_FORTRAN(rhs[i]),
-       BL_TO_FORTRAN(jg[i]),
-       BL_TO_FORTRAN(mugT[i]),
-       BL_TO_FORTRAN(coupT[i]),
-       BL_TO_FORTRAN(etaT[i]),
-       BL_TO_FORTRAN(Er_step[i]),
-       BL_TO_FORTRAN(rhoe_step[i]),
-       BL_TO_FORTRAN(rhoe_star[i]),
+      (BL_TO_FORTRAN(rhs[ri]),
+       BL_TO_FORTRAN(jg[ri]),
+       BL_TO_FORTRAN(mugT[ri]),
+       BL_TO_FORTRAN(coupT[ri]),
+       BL_TO_FORTRAN(etaT[ri]),
+       BL_TO_FORTRAN(Er_step[ri]),
+       BL_TO_FORTRAN(rhoe_step[ri]),
+       BL_TO_FORTRAN(rhoe_star[ri]),
        r.dataPtr(), 
        &time, &delta_t, &igroup);
 
@@ -1804,35 +1797,35 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
 #ifdef NEUTRINO
     BL_FORT_PROC_CALL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
-      (BL_TO_FORTRAN(rhs[i]),
-       BL_TO_FORTRAN(jg[i]),
-       BL_TO_FORTRAN(mugT[i]),
-       BL_TO_FORTRAN(mugY[i]),
-       BL_TO_FORTRAN(coupT[i]),
-       BL_TO_FORTRAN(coupY[i]),
-       BL_TO_FORTRAN(etaT[i]),
-       BL_TO_FORTRAN(etaY[i]),
-       BL_TO_FORTRAN(thetaT[i]),
-       BL_TO_FORTRAN(thetaY[i]),
-       BL_TO_FORTRAN(Er_step[i]),
-       BL_TO_FORTRAN(rhoe_step[i]),
-       BL_TO_FORTRAN(rhoYe_step[i]),
-       BL_TO_FORTRAN(Er_star[i]),
-       BL_TO_FORTRAN(rhoe_star[i]),
-       BL_TO_FORTRAN(rhoYe_star[i]),
+      (BL_TO_FORTRAN(rhs[ri]),
+       BL_TO_FORTRAN(jg[ri]),
+       BL_TO_FORTRAN(mugT[ri]),
+       BL_TO_FORTRAN(mugY[ri]),
+       BL_TO_FORTRAN(coupT[ri]),
+       BL_TO_FORTRAN(coupY[ri]),
+       BL_TO_FORTRAN(etaT[ri]),
+       BL_TO_FORTRAN(etaY[ri]),
+       BL_TO_FORTRAN(thetaT[ri]),
+       BL_TO_FORTRAN(thetaY[ri]),
+       BL_TO_FORTRAN(Er_step[ri]),
+       BL_TO_FORTRAN(rhoe_step[ri]),
+       BL_TO_FORTRAN(rhoYe_step[ri]),
+       BL_TO_FORTRAN(Er_star[ri]),
+       BL_TO_FORTRAN(rhoe_star[ri]),
+       BL_TO_FORTRAN(rhoYe_star[ri]),
        r.dataPtr(), 
        &delta_t, &igroup, &ptc_tau);
 #else
     BL_FORT_PROC_CALL(CA_COMPUTE_RHS, ca_compute_rhs)
-      (BL_TO_FORTRAN(rhs[i]),
-       BL_TO_FORTRAN(jg[i]),
-       BL_TO_FORTRAN(mugT[i]),
-       BL_TO_FORTRAN(coupT[i]),
-       BL_TO_FORTRAN(etaT[i]),
-       BL_TO_FORTRAN(Er_step[i]),
-       BL_TO_FORTRAN(rhoe_step[i]),
-       BL_TO_FORTRAN(Er_star[i]),
-       BL_TO_FORTRAN(rhoe_star[i]),
+      (BL_TO_FORTRAN(rhs[ri]),
+       BL_TO_FORTRAN(jg[ri]),
+       BL_TO_FORTRAN(mugT[ri]),
+       BL_TO_FORTRAN(coupT[ri]),
+       BL_TO_FORTRAN(etaT[ri]),
+       BL_TO_FORTRAN(Er_step[ri]),
+       BL_TO_FORTRAN(rhoe_step[ri]),
+       BL_TO_FORTRAN(Er_star[ri]),
+       BL_TO_FORTRAN(rhoe_star[ri]),
        r.dataPtr(), 
        &delta_t, &igroup, &ptc_tau);
 #endif

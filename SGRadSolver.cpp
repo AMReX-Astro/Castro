@@ -66,8 +66,8 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   for (MFIter mfi(frhoem); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box& reg = grids[i];
-    get_frhoe(frhoem[i], S_new[i], reg);
-    frhoes[i].copy(frhoem[i]);
+    get_frhoe(frhoem[mfi], S_new[mfi], reg);
+    frhoes[mfi].copy(frhoem[mfi]);
   }
 
   // Rosseland mean in grid interiors can be updated within the loop,
@@ -91,8 +91,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab kh_cell(grids,1,1);
 
   for (MFIter mfi(kh_cell); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    kh_cell[i].copy(kappa_r[i]);
+    kh_cell[mfi].copy(kappa_r[mfi]);
   }
 
   MultiFab eta(grids,1,0);
@@ -182,8 +181,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       update_rosseland_from_temp(kappa_r, temp, S_new, castro->Geom());
 
       for (MFIter mfi(kh_cell); mfi.isValid(); ++mfi) {
-        int i = mfi.index();
-        kh_cell[i].copy(kappa_r[i]);
+        kh_cell[mfi].copy(kappa_r[mfi]);
       }
     }
 
@@ -191,16 +189,14 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       MultiFab& Test = castro->get_new_data(Test_Type);
       if (Test.nComp() > 0) {
 	for (MFIter ti(Test); ti.isValid(); ++ti) {
-	  int i = ti.index();
-	  Test[i].copy(kappa_r[i], 0, 0, 1);
+	  Test[ti].copy(kappa_r[ti], 0, 0, 1);
 	}
       }
       if (Test.nComp() > 1) {
 	for (MFIter ti(Test); ti.isValid(); ++ti) {
-	  int i = ti.index();
-	  Test[i].copy(fkp[i], 0, 1, 1);
-	  //Test[i].copy(temp[i]);
-	  //Test[i].copy(eta[i]);
+	  Test[ti].copy(fkp[ti], 0, 1, 1);
+	  //Test[ti].copy(temp[ti]);
+	  //Test[ti].copy(eta[ti]);
 	}
       }
     }
@@ -412,8 +408,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   // update dflux[level] (== dflux_old)
   for (MFIter doi(dflux_old); doi.isValid(); ++doi) {
-    int i = doi.index();
-    dflux_old[i].copy(dflux_new[i]);
+    dflux_old[doi].copy(dflux_new[doi]);
   }
 
   if (Test_Type_lambda) {
@@ -422,12 +417,11 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     int ilambda = nTest;
     if (nTest > 0) {
       for (MFIter ti(Test); ti.isValid(); ++ti) {
-	int i = ti.index();
 	BL_FORT_PROC_CALL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
-	  (BL_TO_FORTRAN(Test[i]), &nTest, &ilambda,
-	   D_DECL(BL_TO_FORTRAN(lambda[0][i]),
-		  BL_TO_FORTRAN(lambda[1][i]),
-		  BL_TO_FORTRAN(lambda[2][i])));
+	  (BL_TO_FORTRAN(Test[ti]), &nTest, &ilambda,
+	   D_DECL(BL_TO_FORTRAN(lambda[0][ti]),
+		  BL_TO_FORTRAN(lambda[1][ti]),
+		  BL_TO_FORTRAN(lambda[2][ti])));
       }
     }
   }

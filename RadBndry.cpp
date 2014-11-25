@@ -39,11 +39,11 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
 	int igrid = bi.index();
         if (domain[face] == boxes()[igrid][face] &&
             !geom.isPeriodic(face.coordDir())) {
-	  const Box& face_box = bndry[face][igrid].box();
+	  const Box& face_box = bndry[face][bi].box();
 	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(bndry[face][igrid].dataPtr(), dimlist(face_box),
+          FORT_RADBNDRY2(bndry[face][bi].dataPtr(), dimlist(face_box),
                          bctypearray[face][igrid].dataPtr(),
                          dimlist(domain), dx, xlo, time);
 #endif
@@ -251,7 +251,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	  }
 	  exit(2);
 
-	  Fab& bnd_fab = bndry[face][i];
+	  Fab& bnd_fab = bndry[face][bi];
 	  const Box& bnd_box = bnd_fab.box();
 	  BaseFab<int>& tfab = bctypearray[face][i];
 #if 0
@@ -278,8 +278,7 @@ void RadBndry::setHomogValues(const BCRec& bc, IntVect& ratio)
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
     for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
-      int grd = bi.index();
-      FArrayBox& bnd_fab = bndry[face][grd];
+      FArrayBox& bnd_fab = bndry[face][bi];
       bnd_fab.setVal(0.0);
     }
   }

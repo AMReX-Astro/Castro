@@ -1129,7 +1129,7 @@ void HypreMultiABec::buildMatrixStructure()
            i = entry.nextLocal(i)) {
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
-        const Mask &msk = bd[level].bndryMasks(ori)[i];
+//        const Mask &msk = bd[level].bndryMasks(ori)[i];
         for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
 #if (0 && !defined(NDEBUG))
           if (msk(v+vin) == RadBndryData::not_covered &&
@@ -1346,8 +1346,7 @@ void HypreMultiABec::aCoefficients(int level, const MultiFab &a)
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs[level].boxArray() );
   for (MFIter ai(a); ai.isValid(); ++ai) {
-    int k = ai.index();
-    acoefs[level][k].copy(a[k]);
+    acoefs[level][ai].copy(a[ai]);
   }
 }
  
@@ -1356,8 +1355,7 @@ void HypreMultiABec::bCoefficients(int level, const MultiFab &b, int dir)
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == bcoefs[level][dir].boxArray() );
   for (MFIter bi(b); bi.isValid(); ++bi) {
-    int k = bi.index();
-    bcoefs[level][dir][k].copy(b[k]);
+    bcoefs[level][dir][bi].copy(b[bi]);
   }
 }
 
@@ -1369,8 +1367,7 @@ void HypreMultiABec::SPalpha(int level, const MultiFab& a)
     BL_ASSERT( a.boxArray() == SPa[level].boxArray() );
   }
   for (MFIter ai(a); ai.isValid(); ++ai) {
-    int k = ai.index();
-    SPa[level][k].copy(a[k]);
+    SPa[level][ai].copy(a[ai]);
   }  
 }
 
@@ -1428,13 +1425,13 @@ void HypreMultiABec::loadMatrix()
 
       // build matrix interior
 
-      const Box &abox = acoefs[level][i].box();
-      FORT_HMAC(mat, acoefs[level][i].dataPtr(),
+      const Box &abox = acoefs[level][mfi].box();
+      FORT_HMAC(mat, acoefs[level][mfi].dataPtr(),
 		dimlist(abox), dimlist(reg), alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
-	const Box &bbox = bcoefs[level][idim][i].box();
-	FORT_HMBC(mat, bcoefs[level][idim][i].dataPtr(),
+	const Box &bbox = bcoefs[level][idim][mfi].box();
+	FORT_HMBC(mat, bcoefs[level][idim][mfi].dataPtr(),
 		  dimlist(bbox), dimlist(reg), beta,
 		  geom[level].CellSize(), idim);
       }
@@ -1449,7 +1446,7 @@ void HypreMultiABec::loadMatrix()
 	const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 	const Real      &bcl = bd[level].bndryLocs(oitr())[i];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-	const Box &bbox = bcoefs[level][idim][i].box();
+	const Box &bbox = bcoefs[level][idim][mfi].box();
 	const Box &msb  = msk.box();
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
 
@@ -1464,12 +1461,12 @@ void HypreMultiABec::loadMatrix()
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            const Box &fsb = bd[level].bndryValues(oitr())[i].box();
+            const Box &fsb = bd[level].bndryValues(oitr())[mfi].box();
 	    Real* pSPa;
 	    Box SPabox; 
 	    if (SPa.defined(level)) {
-	      pSPa = SPa[level][i].dataPtr();
-	      SPabox = SPa[level][i].box();
+	      pSPa = SPa[level][mfi].dataPtr();
+	      SPabox = SPa[level][mfi].box();
 	    }
 	    else {
 	      pSPa = &foo;
@@ -1479,7 +1476,7 @@ void HypreMultiABec::loadMatrix()
             FORT_HMMAT3(mat, dimlist(reg),
                         cdir, bctype, tfp, bho, bcl,
                         dimlist(fsb), msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                         beta, geom[level].CellSize(),
                         flux_factor, r.dataPtr(),
 			pSPa, dimlist(SPabox));
@@ -1488,7 +1485,7 @@ void HypreMultiABec::loadMatrix()
             FORT_HMMAT(mat, dimlist(reg),
                        cdir, bct, bho, bcl,
                        msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                        beta, geom[level].CellSize());
           }
         }
@@ -1502,7 +1499,7 @@ void HypreMultiABec::loadMatrix()
 	  FORT_HMMAT(mat, dimlist(reg),
 		     cdir, bct_coarse, bho, bcl,
 		     msk.dataPtr(), dimlist(msb),
-		     bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+		     bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
 		     beta, geom[level].CellSize());
         }
       }
@@ -1574,7 +1571,7 @@ void HypreMultiABec::loadMatrix()
            i = cintrp[level].nextLocal(i)) {
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
-        const Mask &msk = bd[level].bndryMasks(ori)[i];
+//        const Mask &msk = bd[level].bndryMasks(ori)[i];
         for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori)[i](v).empty() &&
               !entry(ori)[i](v).slave()) {
@@ -1783,19 +1780,19 @@ void HypreMultiABec::loadLevelVectors(int level,
     FArrayBox *f;
     int fcomp;
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
-      f = &dest[i];
+      f = &dest[mfi];
       fcomp = icomp;
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(dest[i], icomp, 0, 1);
+      f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
 
-    f->copy(rhs[i], 0, fcomp, 1);
+    f->copy(rhs[mfi], 0, fcomp, 1);
 
     // add b.c.'s to rhs
 
@@ -1806,9 +1803,9 @@ void HypreMultiABec::loadLevelVectors(int level,
 	int idim = oitr().coordDir();
 	const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 	const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-	const Fab       &fs  = bd[level].bndryValues(oitr())[i];
+	const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-	const Box &bbox = bcoefs[level][idim][i].box();
+	const Box &bbox = bcoefs[level][idim][mfi].box();
 	const Box &fsb  =  fs.box();
 	const Box &msb  = msk.box();
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
@@ -1829,7 +1826,7 @@ void HypreMultiABec::loadLevelVectors(int level,
                         cdir, bctype, tfp, bho, bcl,
                         fs.dataPtr(bdcomp), dimlist(fsb),
                         msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                         beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
@@ -1837,7 +1834,7 @@ void HypreMultiABec::loadLevelVectors(int level,
                        cdir, bct, bho, bcl,
                        fs.dataPtr(bdcomp), dimlist(fsb),
                        msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                        beta, geom[level].CellSize());
           }
         }
@@ -1869,12 +1866,12 @@ void HypreMultiABec::loadLevelVectorX(int level,
     FArrayBox *f;
     int fcomp;
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
-      f = &dest[i];
+      f = &dest[mfi];
       fcomp = icomp;
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(dest[i], icomp, 0, 1);
+      f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
     Real* vec = f->dataPtr(fcomp);
@@ -1901,11 +1898,11 @@ void HypreMultiABec::loadLevelVectorB(int level,
 
     FArrayBox *f;
     if (rhs.nGrow() == 0) { // need a temporary if rhs is the wrong size
-      f = &rhs[i];
+      f = &rhs[mfi];
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(rhs[i]);
+      f->copy(rhs[mfi]);
     }
     Real* vec = f->dataPtr();
 
@@ -1918,9 +1915,9 @@ void HypreMultiABec::loadLevelVectorB(int level,
 	int idim = oitr().coordDir();
 	const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 	const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-	const Fab       &fs  = bd[level].bndryValues(oitr())[i];
+	const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-	const Box &bbox = bcoefs[level][idim][i].box();
+	const Box &bbox = bcoefs[level][idim][mfi].box();
 	const Box &fsb  =  fs.box();
 	const Box &msb  = msk.box();
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
@@ -1941,7 +1938,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
                         cdir, bctype, tfp, bho, bcl,
                         fs.dataPtr(bdcomp), dimlist(fsb),
                         msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                         beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
@@ -1949,7 +1946,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
                        cdir, bct, bho, bcl,
                        fs.dataPtr(bdcomp), dimlist(fsb),
                        msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                        beta, geom[level].CellSize());
           }
         }
@@ -3035,7 +3032,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
     FArrayBox *f;
     int fcomp;
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
-      f = &dest[i];
+      f = &dest[mfi];
       fcomp = icomp;
     }
     else {
@@ -3046,7 +3043,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
     vectorGetBoxValues(x, part, reg, subgrids[level][i], *f, fcomp);
 
     if (dest.nGrow() != 0) {
-      dest[i].copy(*f, 0, icomp, 1);
+      dest[mfi].copy(*f, 0, icomp, 1);
       delete f;
     }
   }
@@ -3140,13 +3137,13 @@ void HypreMultiABec::boundaryFlux(int level,
       int idim = oitr().coordDir();
       const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
       const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-      const Fab       &fs  = bd[level].bndryValues(oitr())[i];
+      const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
       const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-      const Box &fbox = Flux[idim][i].box();
-      const Box &sbox = Soln[i].box();
+      const Box &fbox = Flux[idim][mfi].box();
+      const Box &sbox = Soln[mfi].box();
       const Box &fsb  =  fs.box();
       const Box &msb  = msk.box();
-      const Box &bbox = bcoefs[level][idim][i].box();
+      const Box &bbox = bcoefs[level][idim][mfi].box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
@@ -3162,31 +3159,31 @@ void HypreMultiABec::boundaryFlux(int level,
 	Real* pSPa;
 	Box SPabox; 
 	if (SPa.defined(level)) {
-	  pSPa = SPa[level][i].dataPtr();
-	  SPabox = SPa[level][i].box();
+	  pSPa = SPa[level][mfi].dataPtr();
+	  SPabox = SPa[level][mfi].box();
 	}
 	else {
 	  pSPa = &foo;
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom[level]);
-        FORT_HBFLX3(Flux[idim][i].dataPtr(), dimlist(fbox),
-                    Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        FORT_HBFLX3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+                    Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
                     cdir, bctype, tfp, bho, bcl,
                     fs.dataPtr(bdcomp), dimlist(fsb),
                     msk.dataPtr(), dimlist(msb),
-                    bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                    bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                     beta, geom[level].CellSize(),
                     flux_factor, r.dataPtr(), inhom,
 		    pSPa, dimlist(SPabox));
       }
       else {
-        FORT_HBFLX(Flux[idim][i].dataPtr(), dimlist(fbox),
-                   Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        FORT_HBFLX(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+                   Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
                    cdir, bct, bho, bcl,
                    fs.dataPtr(bdcomp), dimlist(fsb),
                    msk.dataPtr(), dimlist(msb),
-                   bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                    beta, geom[level].CellSize(), inhom);
       }
     }
@@ -3225,12 +3222,12 @@ void HypreMultiABec::initializeApplyLevel(int level,
     FArrayBox *f;
     int fcomp;
     if (vector.nGrow() == 0) {
-      f = &vector[i];
+      f = &vector[mfi];
       fcomp = icomp;
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(vector[i], icomp, 0, 1);
+      f->copy(vector[mfi], icomp, 0, 1);
       fcomp = 0;
     }
 
@@ -3242,21 +3239,21 @@ void HypreMultiABec::initializeApplyLevel(int level,
 
     // initialize product (to temporarily hold the boundary contribution):
 
-    product[i].setVal(0.0);
-    vec = product[i].dataPtr();
+    product[mfi].setVal(0.0);
+    vec = product[mfi].dataPtr();
 
     int volume = reg.numPts();
     mat = hypre_CTAlloc(double, size*volume);
 
     // build matrix interior
 
-    const Box &abox = acoefs[level][i].box();
-    FORT_HMAC(mat, acoefs[level][i].dataPtr(),
+    const Box &abox = acoefs[level][mfi].box();
+    FORT_HMAC(mat, acoefs[level][mfi].dataPtr(),
 	      dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      const Box &bbox = bcoefs[level][idim][i].box();
-      FORT_HMBC(mat, bcoefs[level][idim][i].dataPtr(),
+      const Box &bbox = bcoefs[level][idim][mfi].box();
+      FORT_HMBC(mat, bcoefs[level][idim][mfi].dataPtr(),
 		dimlist(bbox), dimlist(reg), beta,
 		geom[level].CellSize(), idim);
     }
@@ -3271,7 +3268,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
       const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
       const Real      &bcl = bd[level].bndryLocs(oitr())[i];
       const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-      const Box &bbox = bcoefs[level][idim][i].box();
+      const Box &bbox = bcoefs[level][idim][mfi].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
@@ -3281,13 +3278,13 @@ void HypreMultiABec::initializeApplyLevel(int level,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-	const Fab &fs  = bd[level].bndryValues(oitr())[i];
+	const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Box &fsb = fs.box();
 	Real* pSPa;
 	Box SPabox; 
 	if (SPa.defined(level)) {
-	  pSPa = SPa[level][i].dataPtr();
-	  SPabox = SPa[level][i].box();
+	  pSPa = SPa[level][mfi].dataPtr();
+	  SPabox = SPa[level][mfi].box();
 	}
 	else {
 	  pSPa = &foo;
@@ -3297,7 +3294,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
         FORT_HMMAT3(mat, dimlist(reg),
                     cdir, bctype, tfp, bho, bcl,
                     dimlist(fsb), msk.dataPtr(), dimlist(msb),
-                    bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+                    bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
                     beta, geom[level].CellSize(),
                     flux_factor, r.dataPtr(),
 		    pSPa, dimlist(SPabox));
@@ -3306,7 +3303,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 		      cdir, bctype, tfp, bho, bcl,
 		      fs.dataPtr(bdcomp), dimlist(fsb),
                       msk.dataPtr(), dimlist(msb),
-		      bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+		      bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
 		      beta, geom[level].CellSize(), r.dataPtr());
 	}
       }
@@ -3314,16 +3311,16 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	FORT_HMMAT(mat, dimlist(reg),
 		   cdir, bct, bho, bcl,
 		   msk.dataPtr(), dimlist(msb),
-		   bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
 		   beta, geom[level].CellSize());
 	if (inhom) {
-	  const Fab &fs  = bd[level].bndryValues(oitr())[i];
+	  const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
 	  const Box &fsb = fs.box();
 	  FORT_HBVEC(vec, dimlist(reg),
 		     cdir, bct, bho, bcl,
 		     fs.dataPtr(bdcomp), dimlist(fsb),
                      msk.dataPtr(), dimlist(msb),
-		     bcoefs[level][idim][i].dataPtr(), dimlist(bbox),
+		     bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
 		     beta, geom[level].CellSize());
 	}
       }

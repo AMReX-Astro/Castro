@@ -255,8 +255,7 @@ void HypreABec::aCoefficients(const MultiFab &a)
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs->boxArray() );
   for (MFIter ai(a); ai.isValid(); ++ai) {
-    int k = ai.index();
-    (*acoefs)[k].copy(a[k]);
+    (*acoefs)[ai].copy(a[ai]);
   }
 }
  
@@ -265,8 +264,7 @@ void HypreABec::bCoefficients(const MultiFab &b, int dir)
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == bcoefs[dir]->boxArray() );
   for (MFIter bi(b); bi.isValid(); ++bi) {
-    int k = bi.index();
-    (*bcoefs[dir])[k].copy(b[k]);
+    (*bcoefs[dir])[bi].copy(b[bi]);
   }
 }
 
@@ -278,8 +276,7 @@ void HypreABec::SPalpha(const MultiFab& a)
     SPa = new MultiFab(grids,1,0);
   }
   for (MFIter ai(a); ai.isValid(); ++ai) {
-    int k = ai.index();
-    (*SPa)[k].copy(a[k]);
+    (*SPa)[ai].copy(a[ai]);
   }  
 }
 
@@ -314,12 +311,12 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
     FArrayBox *f;
     int fcomp;
     if (vector.nGrow() == 0) {
-      f = &vector[i];
+      f = &vector[vi];
       fcomp = icomp;
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(vector[i], icomp, 0, 1);
+      f->copy(vector[vi], icomp, 0, 1);
       fcomp = 0;
     }
 
@@ -332,21 +329,21 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 
     // initialize product (to temporarily hold the boundary contribution):
 
-    product[i].setVal(0.0);
-    vec = product[i].dataPtr();
+    product[vi].setVal(0.0);
+    vec = product[vi].dataPtr();
 
     int volume = reg.numPts();
     mat = hypre_CTAlloc(double, size*volume);
 
     // build matrix interior
 
-    const Box &abox = (*acoefs)[i].box();
-    FORT_HACOEF(mat, (*acoefs)[i].dataPtr(),
+    const Box &abox = (*acoefs)[vi].box();
+    FORT_HACOEF(mat, (*acoefs)[vi].dataPtr(),
 		dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      const Box &bbox = (*bcoefs[idim])[i].box();
-      FORT_HBCOEF(mat, (*bcoefs[idim])[i].dataPtr(),
+      const Box &bbox = (*bcoefs[idim])[vi].box();
+      FORT_HBCOEF(mat, (*bcoefs[idim])[vi].dataPtr(),
 		  dimlist(bbox), dimlist(reg), beta, dx, idim);
     }
 
@@ -361,7 +358,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
       const Mask      &msk = bd.bndryMasks(oitr())[i];
-      const Box &bbox = (*bcoefs[idim])[i].box();
+      const Box &bbox = (*bcoefs[idim])[vi].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
@@ -371,13 +368,13 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-	const Fab &fs  = bd.bndryValues(oitr())[i];
+	const Fab &fs  = bd.bndryValues(oitr())[vi];
 	const Box &fsb = fs.box();
 	Real* pSPa;
 	Box SPabox; 
 	if (SPa != 0) {
-	  pSPa = (*SPa)[i].dataPtr();
-	  SPabox = (*SPa)[i].box();
+	  pSPa = (*SPa)[vi].dataPtr();
+	  SPabox = (*SPa)[vi].box();
 	}
 	else {
 	  pSPa = &foo;
@@ -387,7 +384,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 	FORT_HBMAT3(mat, dimlist(reg),
 		    cdir, bctype, tfp, bcl,
 		    dimlist(fsb), msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		    (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
 		    beta, dx, flux_factor, r.dataPtr(),
 		    pSPa, dimlist(SPabox));
 	if (inhom) {
@@ -395,7 +392,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 		      cdir, bctype, tfp, bho, bcl,
 		      fs.dataPtr(bdcomp), dimlist(fsb),
                       msk.dataPtr(), dimlist(msb),
-		      (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		      (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
 		      beta, dx, r.dataPtr());
 	}
       }
@@ -403,16 +400,16 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 	FORT_HBMAT(mat, dimlist(reg),
 		   cdir, bct, bcl,
 		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		   (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
 		   beta, dx);
 	if (inhom) {
-	  const Fab &fs  = bd.bndryValues(oitr())[i];
+	  const Fab &fs  = bd.bndryValues(oitr())[vi];
 	  const Box &fsb = fs.box();
 	  FORT_HBVEC(vec, dimlist(reg),
 		     cdir, bct, bho, bcl,
 		     fs.dataPtr(bdcomp), dimlist(fsb),
 		     msk.dataPtr(), dimlist(msb),
-		     (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		     (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
 		     beta, dx);
 	}
       }
@@ -450,7 +447,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
     i = vi.index();
     const Box &reg = grids[i];
 
-    vec = product[i].dataPtr();
+    vec = product[vi].dataPtr();
     HYPRE_StructVectorGetBoxValues(b, loV(reg), hiV(reg),
 				   vec);
   }
@@ -476,13 +473,13 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
       int idim = oitr().coordDir();
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Fab       &fs  = bd.bndryValues(oitr())[i];
+      const Fab       &fs  = bd.bndryValues(oitr())[si];
       const Mask      &msk = bd.bndryMasks(oitr())[i];
-      const Box &fbox = Flux[idim][i].box();
-      const Box &sbox = Soln[i].box();
+      const Box &fbox = Flux[idim][si].box();
+      const Box &sbox = Soln[si].box();
       const Box &fsb  =  fs.box();
       const Box &msb  = msk.box();
-      const Box &bbox = (*bcoefs[idim])[i].box();
+      const Box &bbox = (*bcoefs[idim])[si].box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
@@ -498,30 +495,30 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 	Real* pSPa;
 	Box SPabox; 
 	if (SPa != 0) {
-	  pSPa = (*SPa)[i].dataPtr();
-	  SPabox = (*SPa)[i].box();
+	  pSPa = (*SPa)[si].dataPtr();
+	  SPabox = (*SPa)[si].box();
 	}
 	else {
 	  pSPa = &foo;
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom);
-	FORT_HBFLX3(Flux[idim][i].dataPtr(), dimlist(fbox),
-		    Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+	FORT_HBFLX3(Flux[idim][si].dataPtr(), dimlist(fbox),
+		    Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
 		    cdir, bctype, tfp, bho, bcl,
 		    fs.dataPtr(bdcomp), dimlist(fsb),
 		    msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		    (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
 		    beta, dx, flux_factor, r.dataPtr(), inhom,
 		    pSPa, dimlist(SPabox));
       }
       else {
-	FORT_HBFLX(Flux[idim][i].dataPtr(), dimlist(fbox),
-		   Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+	FORT_HBFLX(Flux[idim][si].dataPtr(), dimlist(fbox),
+		   Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
 		   cdir, bct, bho, bcl,
 		   fs.dataPtr(bdcomp), dimlist(fsb),
 		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		   (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
 		   beta, dx, inhom);
       }
     }
@@ -590,13 +587,13 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     // build matrix interior
 
-    const Box &abox = (*acoefs)[i].box();
-    FORT_HACOEF(mat, (*acoefs)[i].dataPtr(),
+    const Box &abox = (*acoefs)[ai].box();
+    FORT_HACOEF(mat, (*acoefs)[ai].dataPtr(),
 		dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      const Box &bbox = (*bcoefs[idim])[i].box();
-      FORT_HBCOEF(mat, (*bcoefs[idim])[i].dataPtr(),
+      const Box &bbox = (*bcoefs[idim])[ai].box();
+      FORT_HBCOEF(mat, (*bcoefs[idim])[ai].dataPtr(),
 		  dimlist(bbox), dimlist(reg), beta, dx, idim);
     }
 
@@ -611,7 +608,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
       const Mask      &msk = bd.bndryMasks(oitr())[i];
-      const Box &bbox = (*bcoefs[idim])[i].box();
+      const Box &bbox = (*bcoefs[idim])[ai].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
@@ -621,12 +618,12 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
           tfp = tf.dataPtr();
           bctype = -1;
         }
-        const Box &fsb = bd.bndryValues(oitr())[i].box();
+        const Box &fsb = bd.bndryValues(oitr())[ai].box();
 	Real* pSPa;
 	Box SPabox; 
 	if (SPa != 0) {
-	  pSPa = (*SPa)[i].dataPtr();
-	  SPabox = (*SPa)[i].box();
+	  pSPa = (*SPa)[ai].dataPtr();
+	  SPabox = (*SPa)[ai].box();
 	}
 	else {
 	  pSPa = &foo;
@@ -636,7 +633,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 	FORT_HBMAT3(mat, dimlist(reg),
 		    cdir, bctype, tfp, bcl,
 		    dimlist(fsb), msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		    (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
 		    beta, dx, flux_factor, r.dataPtr(),
 		    pSPa, dimlist(SPabox));
       }
@@ -644,7 +641,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 	FORT_HBMAT(mat, dimlist(reg),
 		   cdir, bct, bcl,
 		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		   (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
 		   beta, dx);
       }
     }
@@ -874,19 +871,19 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     FArrayBox *f;
     int fcomp;
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
-      f = &dest[i];
+      f = &dest[di];
       fcomp = icomp;
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(dest[i], icomp, 0, 1);
+      f->copy(dest[di], icomp, 0, 1);
       fcomp = 0;
     }
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg), vec);
 
-    f->copy(rhs[i], 0, fcomp, 1);
+    f->copy(rhs[di], 0, fcomp, 1);
 
     // add b.c.'s to rhs
 
@@ -898,9 +895,9 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 	idim = oitr().coordDir();
 	const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 	const Real      &bcl = bd.bndryLocs(oitr())[i];
-	const Fab       &fs  = bd.bndryValues(oitr())[i];
+	const Fab       &fs  = bd.bndryValues(oitr())[di];
 	const Mask      &msk = bd.bndryMasks(oitr())[i];
-	const Box &bbox = (*bcoefs[idim])[i].box();
+	const Box &bbox = (*bcoefs[idim])[di].box();
 	const Box &fsb  =  fs.box();
 	const Box &msb  = msk.box();
         if (reg[oitr()] == domain[oitr()]) {
@@ -916,7 +913,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 		      cdir, bctype, tfp, bho, bcl,
 		      fs.dataPtr(bdcomp), dimlist(fsb),
 		      msk.dataPtr(), dimlist(msb),
-		      (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		      (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
 		      beta, dx, r.dataPtr());
 	}
 	else {
@@ -924,7 +921,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 		     cdir, bct, bho, bcl,
 		     fs.dataPtr(bdcomp), dimlist(fsb),
 		     msk.dataPtr(), dimlist(msb),
-		     (*bcoefs[idim])[i].dataPtr(), dimlist(bbox),
+		     (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
 		     beta, dx);
 	}
       }
@@ -1000,7 +997,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     FArrayBox *f;
     int fcomp;
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
-      f = &dest[i];
+      f = &dest[di];
       fcomp = icomp;
     }
     else {
@@ -1013,7 +1010,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 				   vec);
 
     if (dest.nGrow() != 0) {
-      dest[i].copy(*f, 0, icomp, 1);
+      dest[di].copy(*f, 0, icomp, 1);
       delete f;
     }
   }

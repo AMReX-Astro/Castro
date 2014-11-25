@@ -48,14 +48,14 @@ void HypreExtMultiABec::boundaryXi(int level, const MultiFab &Xi, int dir)
           boundary_Xi[level][ori].resize(grids[level].size(), PArrayManage);
         }
         if (!boundary_Xi[level][ori].defined(i)) {
-          Box b = BoxLib::bdryNode(Xi[i].box(), ori);
+          Box b = BoxLib::bdryNode(Xi[mfi].box(), ori);
           boundary_Xi[level][ori].set(i, new FArrayBox(b));
         }
         // should work whether Xi is cell or face based:
-        Box srcbox = Xi[i].box();
+        Box srcbox = Xi[mfi].box();
         srcbox.setRange(dir, srcbox[ori], 1);
         const Box& destbox = boundary_Xi[level][ori][i].box();
-        boundary_Xi[level][ori][i].copy(Xi[i], srcbox, 0, destbox, 0, 1);
+        boundary_Xi[level][ori][i].copy(Xi[mfi], srcbox, 0, destbox, 0, 1);
       }
     }        
   }
@@ -81,8 +81,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
   BL_ASSERT( a2.boxArray() == a2coefs[level][dir].boxArray() );
 
   for (MFIter mfi(a2); mfi.isValid(); ++mfi) {
-    int k = mfi.index();
-    a2coefs[level][dir][k].copy(a2[k]);
+    a2coefs[level][dir][mfi].copy(a2[mfi]);
   }
 }
  
@@ -106,8 +105,7 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
   BL_ASSERT( c.boxArray() == ccoefs[level][dir].boxArray() );
 
   for (MFIter mfi(c); mfi.isValid(); ++mfi) {
-    int k = mfi.index();
-    ccoefs[level][dir][k].copy(c[k]);
+    ccoefs[level][dir][mfi].copy(c[mfi]);
   }
 }
 
@@ -129,8 +127,7 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
   BL_ASSERT( d1.boxArray() == d1coefs[level][dir].boxArray() );
 
   for (MFIter mfi(d1); mfi.isValid(); ++mfi) {
-    int k = mfi.index();
-    d1coefs[level][dir][k].copy(d1[k]);
+    d1coefs[level][dir][mfi].copy(d1[mfi]);
   }
 }
  
@@ -154,8 +151,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
   BL_ASSERT( d2.boxArray() == d2coefs[level][dir].boxArray() );
 
   for (MFIter mfi(d2); mfi.isValid(); ++mfi) {
-    int k = mfi.index();
-    d2coefs[level][dir][k].copy(d2[k]);
+    d2coefs[level][dir][mfi].copy(d2[mfi]);
   }
 }
 
@@ -252,8 +248,8 @@ void HypreExtMultiABec::loadMatrix()
 
       if (a2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = a2coefs[level][idim][i].box();
-          FORT_HMA2C(mat, a2coefs[level][idim][i].dataPtr(),
+          const Box &bbox = a2coefs[level][idim][mfi].box();
+          FORT_HMA2C(mat, a2coefs[level][idim][mfi].dataPtr(),
                      dimlist(bbox), dimlist(reg), alpha2,
                      idim);
         }
@@ -261,8 +257,8 @@ void HypreExtMultiABec::loadMatrix()
 
       if (ccoefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = ccoefs[level][idim][i].box();
-          FORT_HMCC(mat, ccoefs[level][idim][i].dataPtr(),
+          const Box &bbox = ccoefs[level][idim][mfi].box();
+          FORT_HMCC(mat, ccoefs[level][idim][mfi].dataPtr(),
                     dimlist(bbox), dimlist(reg), gamma,
                     geom[level].CellSize(), idim);
         }
@@ -270,8 +266,8 @@ void HypreExtMultiABec::loadMatrix()
 
       if (d1coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &abox = d1coefs[level][idim][i].box();
-          FORT_HMD1C(mat, d1coefs[level][idim][i].dataPtr(),
+          const Box &abox = d1coefs[level][idim][mfi].box();
+          FORT_HMD1C(mat, d1coefs[level][idim][mfi].dataPtr(),
                      dimlist(abox), dimlist(reg), delta1,
                      geom[level].CellSize(), idim);
         }
@@ -279,8 +275,8 @@ void HypreExtMultiABec::loadMatrix()
 
       if (d2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = d2coefs[level][idim][i].box();
-          FORT_HMD2C(mat, d2coefs[level][idim][i].dataPtr(),
+          const Box &bbox = d2coefs[level][idim][mfi].box();
+          FORT_HMD2C(mat, d2coefs[level][idim][mfi].dataPtr(),
                      dimlist(bbox), dimlist(reg), delta2,
                      geom[level].CellSize(), idim);
         }
@@ -350,8 +346,8 @@ void HypreExtMultiABec::loadMatrix()
           // bct may be changed below if this is a mixed boundary
           const Real      &bcl = bd[level].bndryLocs(ori)[i];
           const Mask      &msk = bd[level].bndryMasks(ori)[i];
-          const Box &bbox = bcoefs[level][idir][i].box();
-          const Box &msb  = msk.box();
+//          const Box &bbox = bcoefs[level][idir][i].box();
+//          const Box &msb  = msk.box();
 
           // Treat an exposed grid edge here as a boundary condition
           // for the linear solver:
@@ -551,7 +547,7 @@ void HypreExtMultiABec::loadMatrix()
            i = entry.nextLocal(i)) {
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
-        const Mask &msk = bd[level].bndryMasks(ori)[i];
+//        const Mask &msk = bd[level].bndryMasks(ori)[i];
         for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori)[i](v).empty() &&
               !entry(ori)[i](v).slave()) {
@@ -847,11 +843,11 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
 
     FArrayBox *f;
     if (rhs.nGrow() == 0) { // need a temporary if rhs is the wrong size
-      f = &rhs[i];
+      f = &rhs[mfi];
     }
     else {
       f = new FArrayBox(reg);
-      f->copy(rhs[i]);
+      f->copy(rhs[mfi]);
     }
     Real* vec = f->dataPtr();
 
@@ -890,10 +886,10 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
         RadBoundCond     bct = bd[level].bndryConds(ori)[i];
         // bct may be changed below if this is a mixed boundary
         const Real      &bcl = bd[level].bndryLocs(ori)[i];
-        const Fab       &fs  = bd[level].bndryValues(ori)[i];
+        const Fab       &fs  = bd[level].bndryValues(ori)[mfi];
         const Mask      &msk = bd[level].bndryMasks(ori)[i];
-        const Box &bbox = bcoefs[level][idir][i].box();
-        const Box &msb  = msk.box();
+//        const Box &bbox = bcoefs[level][idir][i].box();
+//        const Box &msb  = msk.box();
 
         // Treat an exposed grid edge here as a boundary condition
         // for the linear solver:
@@ -918,18 +914,18 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
               }
               if (bcoefs.defined(level)) {
                 Real tmp = ((dfac / h) * fs(v+vin,bdcomp) *
-                            beta * bcoefs[level][idir][i](v+ves));
+                            beta * bcoefs[level][idir][mfi](v+ves));
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
               if (a2coefs.defined(level)) {
                 Real tmp = ((-0.5 * vfac) * fs(v+vin,bdcomp) *
-                            alpha2 * a2coefs[level][idir][i](v+ves));
+                            alpha2 * a2coefs[level][idir][mfi](v+ves));
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
               if (ccoefs.defined(level)) {
                 // This was the centered difference version:
                 //Real tmp = ((-vfac / h) * fs(v+vin,bdcomp) *
-                //            gamma * ofac * ccoefs[level][idir][i](v+ves));
+                //            gamma * ofac * ccoefs[level][idir][mfi](v+ves));
 
                 // For upwinding, vfac is not the correct interpolation factor.
                 // If we're upwinding from the interior, ignore the bndry val.
@@ -941,21 +937,21 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
 
                 Real fac = gamma * ofh;
                 int  i0  = ori.isLow();
-                int  i1  = ori.isHigh();
+//                int  i1  = ori.isHigh();
                 // upwinding from exterior is i1 direction:
                 Real tmp = (-fac * (2.0 * h2) / (bcl + h2) * fs(v+vin,bdcomp)
-                            * ccoefs[level][idir][i](v+ves,i0));
+                            * ccoefs[level][idir][mfi](v+ves,i0));
 
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
               if (d1coefs.defined(level)) {
                 Real tmp = ((-0.5 * dfac) * fs(v+vin,bdcomp) *
-                            delta1 * ofac * d1coefs[level][idir][i](v));
+                            delta1 * ofac * d1coefs[level][idir][mfi](v));
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
               if (d2coefs.defined(level)) {
                 Real tmp = ((-0.5 * dfac) * fs(v+vin,bdcomp) *
-                            delta2 * ofac * d2coefs[level][idir][i](v+ves));
+                            delta2 * ofac * d2coefs[level][idir][mfi](v+ves));
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
             }
@@ -999,13 +995,13 @@ void HypreExtMultiABec::boundaryDterm(int level,
       int idim = oitr().coordDir();
       const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
       const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-      const Fab       &bcv  = bd[level].bndryValues(oitr())[i];
+      const Fab       &bcv  = bd[level].bndryValues(oitr())[mfi];
       const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-      const Box &dtbox = Dterm[idim][i].box(); 
-      const Box &sbox = Soln[i].box();
+      const Box &dtbox = Dterm[idim][mfi].box(); 
+      const Box &sbox = Soln[mfi].box();
       const Box &bcvb  =  bcv.box();
       const Box &msb  = msk.box();
-      const Box &dcbox = d2coefs[level][idim][i].box();
+      const Box &dcbox = d2coefs[level][idim][mfi].box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
@@ -1014,21 +1010,21 @@ void HypreExtMultiABec::boundaryDterm(int level,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-        FORT_HDTERM3(Dterm[idim][i].dataPtr(), dimlist(dtbox),
-		     Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        FORT_HDTERM3(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
+		     Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
 		     cdir, bctype, tfp, bcl,
 		     bcv.dataPtr(bdcomp), dimlist(bcvb),
 		     msk.dataPtr(), dimlist(msb),
-		     d2coefs[level][idim][i].dataPtr(), dimlist(dcbox),
+		     d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
 		     geom[level].CellSize());
       }
       else {
-        FORT_HDTERM(Dterm[idim][i].dataPtr(), dimlist(dtbox),
-		    Soln[i].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        FORT_HDTERM(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
+		    Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
 		    cdir, bct, bcl,
 		    bcv.dataPtr(bdcomp), dimlist(bcvb),
 		    msk.dataPtr(), dimlist(msb),
-		    d2coefs[level][idim][i].dataPtr(), dimlist(dcbox),
+		    d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
 		    geom[level].CellSize());
       }
     }

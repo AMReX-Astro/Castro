@@ -133,29 +133,28 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 #endif
 
   for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
 
-    rho[i].copy(S_new[i],Density,0,1);
+    rho[mfi].copy(S_new[mfi],Density,0,1);
 
-    rhoe_new[i].copy(S_new[i],Eint,0,1);
-    temp_new[i].copy(S_new[i],Temp,0,1);
+    rhoe_new[mfi].copy(S_new[mfi],Eint,0,1);
+    temp_new[mfi].copy(S_new[mfi],Temp,0,1);
     
-    rhoe_old[i].copy(rhoe_new[i]);
+    rhoe_old[mfi].copy(rhoe_new[mfi]);
 
 #ifdef NEUTRINO
     if (castro->NumAux > 0) {
-      rhoYe_new[i].copy(S_new[i],FirstAux,0,1);
-      Ye_new[i].copy(S_new[i],FirstAux,0,1); // not Ye yet
+      rhoYe_new[mfi].copy(S_new[mfi],FirstAux,0,1);
+      Ye_new[mfi].copy(S_new[mfi],FirstAux,0,1); // not Ye yet
     }
     else {
-      rhoYe_new[i].copy(S_new[i],Density,0,1);
-      Ye_new[i].copy(S_new[i],Density,0,1); 
+      rhoYe_new[mfi].copy(S_new[mfi],Density,0,1);
+      Ye_new[mfi].copy(S_new[mfi],Density,0,1); 
     }
-    rhoYe_old[i].copy(rhoYe_new[i]);
+    rhoYe_old[mfi].copy(rhoYe_new[mfi]);
 
 #else
     if (castro->NumAux > 0) {
-      Ye_new[i].copy(S_new[i],FirstAux,0,1); // not Ye yet
+      Ye_new[mfi].copy(S_new[mfi],FirstAux,0,1); // not Ye yet
     }
 #endif
   }
@@ -273,12 +272,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
 
     for (MFIter mfi(rhoe_star); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      rhoe_star[i].copy(rhoe_new[i]);
-      temp_star[i].copy(temp_new[i]);
+      rhoe_star[mfi].copy(rhoe_new[mfi]);
+      temp_star[mfi].copy(temp_new[mfi]);
 #ifdef NEUTRINO
-      rhoYe_star[i].copy(rhoYe_new[i]);
-      Ye_star[i].copy(Ye_new[i]);
+      rhoYe_star[mfi].copy(rhoYe_new[mfi]);
+      Ye_star[mfi].copy(Ye_new[mfi]);
 #endif
     }
 
