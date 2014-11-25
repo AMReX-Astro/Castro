@@ -63,8 +63,7 @@ EdgeVar::EdgeVar (const EdgeVar & ev )   // Copy constructor
 
       Edge[dim].define(bedge, ncomp, 0, Fab_allocate );
       for (MFIter ei(Edge[dim]); ei.isValid(); ++ei) {
-	int i = ei.index();
-	Edge[dim][i].copy(ev.Edge[dim][i]);
+	Edge[dim][ei].copy(ev.Edge[dim][ei]);
       }
     }
   }
@@ -77,53 +76,11 @@ EdgeVar::~EdgeVar()
    }
 }
 
-#if 0
-
-// Removed from pBoxlib version
-
-// Insertation overload
-
-ostream& operator<< (ostream& os, const EdgeVar& l)
-{
-#if BL_SPACEDIM == 2
-   os << "-------------- EdgeVar -------------" << endl 
-      << "Number of variables = " << l.ncomp  << endl
-      << "Normal grow factor = " << l.ngrow_norm << endl
-      << "Transverse grow factor = " << l.ngrow_tran << endl ;
-      if (  (&(l.Edge)[0]) && (&(l.Edge)[1])  ) {
-         os  << "X-normal MultiFab --- " << endl << (l.Edge)[0] 
-             << "Y-normal MultiFab --- " << endl << (l.Edge)[1]  ;
-      }
-      else {
-         os << "No MultiFab's Allocated" << endl ;
-      }
-      os << "-------------------------------" << endl ;
-#endif
-#if BL_SPACEDIM == 3
-   os << "-------------- EdgeVar -------------" << endl 
-      << "Number of variables = " << ncomp  << endl
-      << "Normal grow factor = " << ngrow_norm << endl
-      << "Transverse grow factor = " << ngrow_tran << endl ;
-      if ((&(l.Edge[0]) && (&(l.Edge)[1]) && (&(l.Edge)[2]) ) {
-         os << "X-normal MultiFab --- " << endl << (l.Edge)[0] 
-            << "Y-normal MultiFab --- " << endl << (l.Edge)[1]
-            << "Z-normal MultiFab --- " << endl << (l.Edge)[2] ;
-      }
-      else {
-         os << "No MultiFab's Allocated" << endl ;
-      }
-      os << "-------------------------------" << endl ;
-#endif
-   return os ;
-}
-#endif
-
 void EdgeVar::setVal(Real val)
 {
    for (int i = 0 ; i < BL_SPACEDIM ; i++) {
      for (MFIter ei(Edge[i]); ei.isValid(); ++ei) {
-       int j = ei.index();
-       Edge[i][j].setVal(val) ;
+       Edge[i][ei].setVal(val) ;
      }
    }
 }
@@ -138,8 +95,7 @@ void EdgeVar::Extensive(const Real* dx, Real factor)
    factor *= volume ;
    for( int n = 0 ; n < BL_SPACEDIM ; n++ ) {
       for (MFIter ei(Edge[n]); ei.isValid(); ++ei) {
-	 int i = ei.index();
-         Edge[n][i] *= (factor/dx[n]) ;
+         Edge[n][ei] *= (factor/dx[n]) ;
       }
    }
 }
@@ -153,8 +109,7 @@ void EdgeVar::Intensive(const Real* dx, Real factor)
    }
    for( int n = 0 ; n < BL_SPACEDIM ; n++ ) {
       for (MFIter ei(Edge[n]); ei.isValid(); ++ei) {
-	 int i = ei.index();
-         Edge[n][i] *= ((factor*dx[n])/volume) ;
+         Edge[n][ei] *= ((factor*dx[n])/volume) ;
       }
    }
 }
@@ -165,8 +120,7 @@ EdgeVar& EdgeVar::operator*=(Real fact)
    int nghost = 0 ;
    for(int i = 0 ; i < BL_SPACEDIM ; i++) {
      for (MFIter ei(Edge[i]); ei.isValid(); ++ei) {
-       int j = ei.index();
-       Edge[i][j].mult(fact,nghost) ;
+       Edge[i][ei].mult(fact,nghost) ;
      }
    }
    return *this ;
@@ -179,8 +133,7 @@ EdgeVar& EdgeVar::operator*=(const EdgeVar& factor)
 
    for(int n = 0 ; n < BL_SPACEDIM ; n++) {
       for (MFIter ei(Edge[n]); ei.isValid(); ++ei) {
-	 int i = ei.index();
-         Edge[n][i] *= factor[n][i] ;
+         Edge[n][ei] *= factor[n][ei] ;
       }
    }
    return *this ;
@@ -193,8 +146,7 @@ EdgeVar& EdgeVar::operator/=(const EdgeVar& factor)
 
    for(int n = 0 ; n < BL_SPACEDIM ; n++) {
       for (MFIter ei(Edge[n]); ei.isValid(); ++ei) {
-	 int i = ei.index();
-         Edge[n][i] /= factor[n][i] ;
+         Edge[n][ei] /= factor[n][ei] ;
       }
    }
    return *this ;
@@ -205,8 +157,7 @@ EdgeVar& EdgeVar::operator+=(const EdgeVar& val)
 {
    for(int i = 0 ; i < BL_SPACEDIM ; i++) {
      for (MFIter ei(Edge[i]); ei.isValid(); ++ei) {
-       int j = ei.index();
-       Edge[i][j].plus(val[i][j], 0, 0, ncomp) ;
+       Edge[i][ei].plus(val[i][ei], 0, 0, ncomp) ;
      }
    }
    return *this ;
@@ -220,12 +171,9 @@ EdgeVar& EdgeVar::operator=(const EdgeVar& val)
    BL_ASSERT( val.ba == ba ) ;
    BL_ASSERT( val.ncomp == ncomp ) ;
 
-   int ngrid = val.ba.size() ;
-
    for(int n = 0 ; n < BL_SPACEDIM ; n++) {
       for (MFIter ei(Edge[n]); ei.isValid(); ++ei) {
-         int j = ei.index();
-         Edge[n][j].copy(val[n][j]) ;
+         Edge[n][ei].copy(val[n][ei]) ;
       }
    }
 
@@ -274,59 +222,38 @@ void EdgeVar::AvgDown(const EdgeVar & Fine, IntVect & nref)
 
 void EdgeVar::Interp(const EdgeVar & Crse, IntVect nref)
 {
-
-   int ncoarse = Crse.ba.size() ;
-   int nfine = (*this).ba.size() ;
-
    BoxArray fine_box( Crse.Boxes() ) ;
    fine_box.refine(nref) ;
    EdgeVar Fine(fine_box,ncomp) ;
 
    for (MFIter mfi(Crse[0]); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
 #if (BL_SPACEDIM == 1)
       FORT_EDGE_INTERP(
-         Crse[0][i].dataPtr(), dimlist(Crse[0][i].box()),
+         Crse[0][mfi].dataPtr(), dimlist(Crse[0][mfi].box()),
          nref.getVect(),
-         Fine[0][i].dataPtr(), dimlist(Fine[0][i].box()));
+         Fine[0][mfi].dataPtr(), dimlist(Fine[0][mfi].box()));
 #elif (BL_SPACEDIM == 2)
       FORT_EDGE_INTERP(
-         Crse[0][i].dataPtr(), dimlist(Crse[0][i].box()),
-         Crse[1][i].dataPtr(), dimlist(Crse[1][i].box()),
+         Crse[0][mfi].dataPtr(), dimlist(Crse[0][mfi].box()),
+         Crse[1][mfi].dataPtr(), dimlist(Crse[1][mfi].box()),
          nref.getVect(),
-         Fine[0][i].dataPtr(), dimlist(Fine[0][i].box()),
-         Fine[1][i].dataPtr(), dimlist(Fine[1][i].box()));
+         Fine[0][mfi].dataPtr(), dimlist(Fine[0][mfi].box()),
+         Fine[1][mfi].dataPtr(), dimlist(Fine[1][mfi].box()));
 #elif (BL_SPACEDIM == 3)
       FORT_EDGE_INTERP(
-         Crse[0][i].dataPtr(), dimlist(Crse[0][i].box()),
-         Crse[1][i].dataPtr(), dimlist(Crse[1][i].box()),
-         Crse[2][i].dataPtr(), dimlist(Crse[2][i].box()),
+         Crse[0][mfi].dataPtr(), dimlist(Crse[0][mfi].box()),
+         Crse[1][mfi].dataPtr(), dimlist(Crse[1][mfi].box()),
+         Crse[2][mfi].dataPtr(), dimlist(Crse[2][mfi].box()),
          nref.getVect(),
-         Fine[0][i].dataPtr(), dimlist(Fine[0][i].box()),
-         Fine[1][i].dataPtr(), dimlist(Fine[1][i].box()),
-         Fine[2][i].dataPtr(), dimlist(Fine[2][i].box()));
+         Fine[0][mfi].dataPtr(), dimlist(Fine[0][mfi].box()),
+         Fine[1][mfi].dataPtr(), dimlist(Fine[1][mfi].box()),
+         Fine[2][mfi].dataPtr(), dimlist(Fine[2][mfi].box()));
 #endif
    }
 
    for (int n = 0 ; n < BL_SPACEDIM ; n++ ) {
       (*this)[n].copy(Fine[n]);
    }
-#if 0
-   for ( int i=0 ; i < ncoarse ; i++ ) {
-      FORT_EDGE_INTERP(
-         Crse[0][i].dataPtr(), dimlist(Crse[0][i].box()),
-         Crse[1][i].dataPtr(), dimlist(Crse[1][i].box()),
-         nref.getVect(),
-         Fine[0][i].dataPtr(), dimlist(Fine[0][i].box()),
-         Fine[1][i].dataPtr(), dimlist(Fine[1][i].box()));
-
-      for (int j = 0 ; j < nfine ; j++ ) {
-         for (int n = 0 ; n < BL_SPACEDIM ; n++ ) {
-            ((*this)[n][j]).copy(Fine[n][i]) ;
-         }
-      }
-   }
-#endif
 }
 
 void 

@@ -66,34 +66,6 @@ ostream& operator << (ostream& os, const RadBndryData &mgb)
     return os;
 }
 
-// RadBndryData&
-// RadBndryData::operator = (const RadBndryData& src)
-// {
-//       // got to save the geometric info
-//     geom = src.geom;
-   
-//       // redefine grids and bndry array
-//     BndryRegister::operator = ( (BndryRegister) src);
-//     int ngrd = grids.size();
-//     clear_masks();
-//     for (int i = 0; i < 2*BL_SPACEDIM; i++) {
-// 	bcond[i].resize(ngrd);
-// 	bcloc[i].resize(ngrd);
-// 	masks[i].resize(ngrd);
-// 	//for (int grd = 0; grd < ngrd; grd++) {
-//         for (FabSetIter bi(bndry[i]); bi.isValid(); ++bi) {
-//             int grd = bi.index();
-// 	    bcond[i][grd] = src.bcond[i][grd];
-// 	    bcloc[i][grd] = src.bcloc[i][grd];
-// 	    const Mask& src_mask = src.masks[i][grd];
-// 	    Mask *m = new Mask(src_mask.box(),src_mask.nComp());
-// 	    m->copy(src_mask);
-// 	    masks[i].set(grd,m);
-// 	}
-//     }
-//     return *this;
-// }
-
 void
 RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _geom)
 {

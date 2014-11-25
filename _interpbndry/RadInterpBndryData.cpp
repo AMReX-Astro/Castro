@@ -74,7 +74,6 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
     IntVect ref_ratio = IntVect::TheUnitVector();
     setBndryConds(bc, geom, ref_ratio);
 
-    int ngrd = grids.size();
     //for (int grd = 0; grd < ngrd; grd++) {
     for(MFIter mfi(mf); mfi.isValid(); ++mfi) {
         BL_ASSERT(grids[mfi.index()] == mfi.validbox());
@@ -84,8 +83,8 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
 	    Orientation face(fi());
 	    if (bx[face] == geom.Domain()[face]) {
 		  // physical bndry, copy from grid
-                FArrayBox& bnd_fab = bndry[face][grd];
-		bnd_fab.copy(mf[grd],mf_start,bnd_start,num_comp);
+                FArrayBox& bnd_fab = bndry[face][mfi];
+		bnd_fab.copy(mf[mfi],mf_start,bnd_start,num_comp);
 	    }
 	}
     }
@@ -119,8 +118,6 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
       // set bndry types and bclocs
     setBndryConds(bc, geom, ratio);
 
-    int ngrd = grids.size();
-
       // first interpolate from coarse to fine on bndry
     const Box& fine_domain = geom.Domain();
       // mask turned off if covered by fine grid
@@ -149,7 +146,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
         }
 	const int* lo = fine_bx.loVect();
 	const int* hi = fine_bx.hiVect();
-	const FArrayBox& fine_grd = fine[grd];
+	const FArrayBox& fine_grd = fine[mfi];
 
 	for (OrientationIter fi; fi; ++fi) {
 	    Orientation face(fi());
@@ -162,12 +159,12 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
                 const int* mhi = mask.hiVect();
                 const int* mdat = mask.dataPtr();
 
-                const FArrayBox& crse_fab = crse[face][grd];
+                const FArrayBox& crse_fab = crse[face][mfi];
                 const int* clo = crse_fab.loVect();
                 const int* chi = crse_fab.hiVect();
                 const Real* cdat = crse_fab.dataPtr(c_start);
 
-                FArrayBox& bnd_fab = bndry[face][grd];
+                FArrayBox& bnd_fab = bndry[face][mfi];
                 const int* blo = bnd_fab.loVect();
                 const int* bhi = bnd_fab.hiVect();
                 Real* bdat = bnd_fab.dataPtr(bnd_start);
@@ -181,7 +178,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
             } else {
 		  // physical bndry, copy from ghost region of
 		  // corresponding grid
-                FArrayBox& bnd_fab = bndry[face][grd];
+                FArrayBox& bnd_fab = bndry[face][mfi];
 		bnd_fab.copy(fine_grd,f_start,bnd_start,num_comp);
 	    }
 	}

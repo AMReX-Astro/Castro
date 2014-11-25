@@ -65,18 +65,9 @@ CompSolverLevel::CompSolverLevel(const BoxArray &         _grids,
   for (OrientationIter fi; fi; ++fi) {
     Orientation face = fi();
     for (FabSetIter bi((*Bd)[face]); bi.isValid(); ++bi) {
-      int i = bi.index();
-      (*Bd)[face][i].setVal(0.0);
+      (*Bd)[face][bi].setVal(0.0);
     }
   }
-#if 0
-  for( int i=0; i<grids.size(); i++ ) {
-    for( int n=0; n<BL_SPACEDIM; n++ ) {
-      Bd->setValue(Orientation(n, Orientation::low), i, 0.0);
-      Bd->setValue(Orientation(n, Orientation::high), i, 0.0);
-    }
-  }
-#endif
 
   if (use_hypre) {
     if (solverflag < 100) {
@@ -163,8 +154,7 @@ CompSolverLevel::BuildSecondarySolver()
     for (OrientationIter fi; fi; ++fi) {
       Orientation face = fi();
       for (FabSetIter bi((*Bd2)[face]); bi.isValid(); ++bi) {
-	int i = bi.index();
-	(*Bd2)[face][i].setVal(0.0);
+	(*Bd2)[face][bi].setVal(0.0);
       }
     }
 
@@ -447,13 +437,12 @@ CompSolverLevel::GetFlux(
       }
       MultiFab &bcoef = *(MultiFab*)bp;
       for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-	i = fi.index();
 	FORT_SET_ABEC_FLUX(&n,
-			   solution[i].dataPtr(), dimlist(solution[i].box()),
-			   bcoef[i].dataPtr(),    dimlist(bcoef[i].box()),
+			   solution[fi].dataPtr(), dimlist(solution[fi].box()),
+			   bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
 			   &beta,
 			   dx,
-			   Flux[n][i].dataPtr(),  dimlist(Flux[n][i].box()));
+			   Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
       }
     }
 
@@ -472,29 +461,17 @@ CompSolverLevel::GetFlux(
 
     if (flux_in) {
       flux_in->setVal(0.0);
-#if 0
-      // Old (Fab) version:
-      for (n = 0; n < BL_SPACEDIM; n++) {
-	for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-	  i = fi.index();
-	  flux_in->CrseInit(Flux[n][i], (Flux[n][i]).box(), n,
-			    0, 0, 1, 1.0);
-	}
-      }
-      flux_in->CrseInitFinish();
-#else
       // New (MultiFab) version, supposed to be more efficient:
       for (n = 0; n < BL_SPACEDIM; n++) {
         flux_in->CrseInit(Flux[n], n, 0, 0, 1, 1.0);
       }
-#endif
     }
     if (flux_out) {
       flux_out->setVal(0.0);
       for (n = 0; n < BL_SPACEDIM; n++) {
 	for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
 	  i = fi.index();
-	  flux_out->FineAdd(Flux[n][i], n, i, 0, 0, 1, 1.0);
+	  flux_out->FineAdd(Flux[n][fi], n, i, 0, 0, 1, 1.0);
 	}
       }
     }
@@ -524,7 +501,6 @@ CompSolverLevel::SetRegs(
      }
   }
   const Real* dx = geom.CellSize();
-  int ngrids = grids.size() ;
 
   if (use_hypre) {
     Phi.FillBoundary(); // junk left in off-level boundaries (must be floats)
@@ -545,14 +521,12 @@ CompSolverLevel::SetRegs(
     }
     MultiFab &bcoef = *(MultiFab*)bp;
     for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-      int i = fi.index();
-
       FORT_SET_ABEC_FLUX(&n,
-			 Phi[i].dataPtr(),     dimlist(Phi[i].box()),
-			 bcoef[i].dataPtr(),   dimlist(bcoef[i].box()),
+			 Phi[fi].dataPtr(),     dimlist(Phi[fi].box()),
+			 bcoef[fi].dataPtr(),   dimlist(bcoef[fi].box()),
 			 &beta,
 			 dx,
-			 Flux[n][i].dataPtr(), dimlist(Flux[n][i].box()));
+			 Flux[n][fi].dataPtr(), dimlist(Flux[n][fi].box()));
     }
   }
 
@@ -565,22 +539,10 @@ CompSolverLevel::SetRegs(
     //  Initialize fine flux register
     Register->setVal(0.0);
 
-#if 0
-    // Old (Fab) version:
-    for( int n=0; n<BL_SPACEDIM; n++ ) {
-      for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-	int i = fi.index();
-	Register->CrseInit(Flux[n][i], (Flux[n][i]).box(), n,
-			   0, 0, 1, -1.0 );
-      }
-    }
-    Register->CrseInitFinish();
-#else
     // New (MultiFab) version, supposed to be more efficient:
     for( int n=0; n<BL_SPACEDIM; n++ ) {
       Register->CrseInit(Flux[n], n, 0, 0, 1, -1.0 );
     }
-#endif
   }
 
   if( SolveDirection == DownSolve ) {
@@ -619,7 +581,7 @@ CompSolverLevel::SetRegs(
     for( int n=0; n<BL_SPACEDIM; n++ ) {
       for (MFIter fi(FineFlux[n]); fi.isValid(); ++fi) {
 	int i = fi.index();
-	Register->FineAdd( FineFlux[n][i], n, i, 0, 0, 1, 1.0 );
+	Register->FineAdd( FineFlux[n][fi], n, i, 0, 0, 1, 1.0 );
       }
     }
   }
@@ -900,43 +862,25 @@ static void clear_internal_borders(FluxRegister& fr)
   for (int dir = 0; dir < BL_SPACEDIM; dir++) {
     Orientation lo(dir, Orientation::low);
     Orientation hi(dir, Orientation::high);
-#if 1
     const BoxArray& grids = fr.boxes();
     for (int j = 0; j < grids.size(); j++) {
       Box jbox = BoxLib::bdryHi(grids[j], dir);
       for (FabSetIter fsi(fr[lo]); fsi.isValid(); ++fsi) {
-	int i = fsi.index();
-	Box ibox = fr[lo][i].box();
+	Box ibox = fr[lo][fsi].box();
 	ibox &= jbox;
 	if (ibox.ok()) {
-	  fr[lo][i].setVal(0.0, ibox, 0);
+	  fr[lo][fsi].setVal(0.0, ibox, 0);
 	}
       }
       jbox = BoxLib::bdryLo(grids[j], dir);
       for (FabSetIter fsi(fr[hi]); fsi.isValid(); ++fsi) {
-	int i = fsi.index();
-	Box ibox = fr[hi][i].box();
+	Box ibox = fr[hi][fsi].box();
 	ibox &= jbox;
 	if (ibox.ok()) {
-	  fr[hi][i].setVal(0.0, ibox, 0);
+	  fr[hi][fsi].setVal(0.0, ibox, 0);
 	}
       }
     }
-#endif
-#if 0
-    int i, j;
-    for (i = 0; i < fr.length(); i++) {
-      const Box& ibox = fr[lo][i].box();
-      for (j = 0; j < fr.length(); j++) {
-	Box jbox = fr[hi][j].box();
-	jbox &= ibox;
-	if (jbox.ok()) {
-	  fr[lo][i].setVal(0.0, jbox, 0);
-	  fr[hi][j].setVal(0.0, jbox, 0);
-	}
-      }
-    }
-#endif
   }
 }
 
@@ -985,8 +929,7 @@ CompSolverLevel::CompositeResidualNorm(
     // in the physical ghost cells.
     MultiFab phiTemp(grids,1,1);
     for (MFIter mfi(phiTemp); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      phiTemp[i].copy(phi[i]);
+      phiTemp[mfi].copy(phi[mfi]);
     }
 
     if (use_hypre) {
@@ -1000,9 +943,8 @@ CompSolverLevel::CompositeResidualNorm(
         Hm->getProduct(0, R); // one amr level, level = 0
       }
       for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	R[i].minus(rho[i]);
-	R[i].negate();
+	R[mfi].minus(rho[mfi]);
+	R[mfi].negate();
       }
     }
 
@@ -1013,7 +955,7 @@ CompSolverLevel::CompositeResidualNorm(
       Box CopyBox(grids[i]);
       CopyBox.grow(1);
       CopyBox &= dbox;
-      phi[i].copy(phiTemp[i],CopyBox);
+      phi[mfi].copy(phiTemp[mfi],CopyBox);
     }
 
     // Reflux the residual from the next finer AMR level
@@ -1032,9 +974,8 @@ CompSolverLevel::CompositeResidualNorm(
       MultiFab MF( FineResidual->boxArray(), FineResidual->nComp(),
 		   1, Fab_allocate );
       for (MFIter mfi(MF); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	MF[i].setVal(0.);
-	MF[i].copy((*FineResidual)[i]);
+	MF[mfi].setVal(0.);
+	MF[mfi].copy((*FineResidual)[mfi]);
       }
       Restrict( MF, R, *FineRatio, restrict_order );
     }
@@ -1042,23 +983,6 @@ CompSolverLevel::CompositeResidualNorm(
       Restrict( *FineResidual, R, *FineRatio, restrict_order );
     }
   }
-
-#if 0
-  // begin temporary
-  Real TmpResidualNorm = 0.;
-  for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    Real tnorm = R[i].norm(0,0,1);
-    if( tnorm > TmpResidualNorm ) TmpResidualNorm = tnorm;
-  }
-
-  ParallelDescriptor::ReduceRealMax(TmpResidualNorm);
-
-  cout << "TmpResidualNorm  on level " << CompLevel
-       << " is " << TmpResidualNorm << endl;
-
-  // end temporary
-#endif
 
   Real ResidualNorm = 0.;
 
@@ -1104,8 +1028,7 @@ CompSolverLevel::CompositeResidualNorm(
 
   // Max the residuals on the current and coarser levels
   for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    Real tnorm = R[i].norm(0,0,1);
+    Real tnorm = R[mfi].norm(0,0,1);
     if( tnorm > ResidualNorm ) ResidualNorm = tnorm;
   }
 
@@ -1159,8 +1082,7 @@ CompSolverLevel::CompositeResidualNorm2(
     // in the physical ghost cells.
     MultiFab phiTemp(grids,1,1);
     for (MFIter mfi(phiTemp); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      phiTemp[i].copy(phi[i]);
+      phiTemp[mfi].copy(phi[mfi]);
     }
 
     if (use_hypre) {
@@ -1174,9 +1096,8 @@ CompSolverLevel::CompositeResidualNorm2(
         Hm->getProduct(0, R); // one amr level, level = 0
       }
       for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	R[i].minus(rho[i]);
-	R[i].negate();
+	R[mfi].minus(rho[mfi]);
+	R[mfi].negate();
       }
     }
 
@@ -1187,7 +1108,7 @@ CompSolverLevel::CompositeResidualNorm2(
       Box CopyBox(grids[i]);
       CopyBox.grow(1);
       CopyBox &= dbox;
-      phi[i].copy(phiTemp[i],CopyBox);
+      phi[mfi].copy(phiTemp[mfi],CopyBox);
     }
 
     // Reflux the residual from the next finer AMR level
@@ -1198,8 +1119,7 @@ CompSolverLevel::CompositeResidualNorm2(
   if ( AmrLevelFlag ) {
     Real TmpResidualNorm = 0.;
     for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      Real tnorm = R[i].norm(0,0,1);
+      Real tnorm = R[mfi].norm(0,0,1);
       if( tnorm > TmpResidualNorm ) TmpResidualNorm = tnorm;
     }
 
@@ -1226,31 +1146,6 @@ CompSolverLevel::CompositeResidualNorm2(
     R.setVal(0.0);
   }
 
-#if 0
-  // begin temporary
-  if ( AmrLevelFlag ) {
-    Real TmpResidualNorm = 0.;
-    for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      Real tnorm = R[i].norm(0,0,1);
-      if( tnorm > TmpResidualNorm ) TmpResidualNorm = tnorm;
-    }
-
-    ParallelDescriptor::ReduceRealMax(TmpResidualNorm);
-
-    int oldprec = cout.precision(20);
-    cout << "TmpResidualNorm2 on level " << CompLevel
-	 << " is " << TmpResidualNorm << endl;
-    cout.precision(oldprec);
-    if (CompLevel == 0) {
-      //printRange(R[0],3,3,20,45,0);
-      //printRange(R[0],0,10,38,38,0);
-    }
-  }
-
-  // end temporary
-#endif
-
   Real ResidualNorm = 0.;
 
   // Get residual norm from the coarser levels
@@ -1274,8 +1169,7 @@ CompSolverLevel::CompositeResidualNorm2(
 
     // Max the residuals on the current and coarser AMR levels
     for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      Real tnorm = R[i].norm(0,0,1);
+      Real tnorm = R[mfi].norm(0,0,1);
       if( tnorm > ResidualNorm ) ResidualNorm = tnorm;
     }
 
@@ -1302,8 +1196,6 @@ CompSolverLevel::Relax2(
   cout << "MG_BOTTOM must be defined in CompSolverLevel::Relax2" << endl;
   exit(1);
 #endif
-
-  int ngrids = grids.size();
 
   MultiFab & e = correction;
   MultiFab & R = residual;
@@ -1396,22 +1288,19 @@ CompSolverLevel::Relax2(
            }
 
 	  for (MFIter mfi(TempR); mfi.isValid(); ++mfi) {
-	    int i = mfi.index();
-	    TempR[i].minus(R[i]);
-	    TempR[i].negate();
+	    TempR[mfi].minus(R[mfi]);
+	    TempR[mfi].negate();
 	  }
 	}
 
 	for (MFIter mfi(eTempSave); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  eTempSave[i].copy(eTemp[i]);
+	  eTempSave[mfi].copy(eTemp[mfi]);
 	}
       }
       else {
 
 	for (MFIter mfi(TempR); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  TempR[i].copy(R[i]);
+	  TempR[mfi].copy(R[mfi]);
 	}
       }
 
@@ -1504,11 +1393,10 @@ CompSolverLevel::Relax2(
 	}
 
 	for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  solution[i] += eTemp[i];
-	  R[i] -= TempR[i];
-	  e[i] += eTemp[i];
-	  eTemp[i] -= eTempSave[i];
+	  solution[mfi] += eTemp[mfi];
+	  R[mfi] -= TempR[mfi];
+	  e[mfi] += eTemp[mfi];
+	  eTemp[mfi] -= eTempSave[mfi];
 	}
 
 	SetRegs( FluxReg, eTemp, DownSolve, UnitRatio );
@@ -1516,8 +1404,7 @@ CompSolverLevel::Relax2(
       else {
 
 	for (MFIter mfi(e); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  e[i] += eTemp[i];
+	  e[mfi] += eTemp[mfi];
 	}
       }
     }
@@ -1559,8 +1446,7 @@ CompSolverLevel::Relax2(
     }
 
     for (MFIter mfi(e); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      e[i].copy(DPTemp[i]);
+      e[mfi].copy(DPTemp[mfi]);
     }
 
     if (use_hypre) {
@@ -1577,8 +1463,8 @@ CompSolverLevel::Relax2(
 
     for (MFIter mfi(R); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      solution[i].plus(e[i],grids[i],0,0,1);
-      R[i] -= DPTemp[i];
+      solution[mfi].plus(e[mfi],grids[i],0,0,1);
+      R[mfi] -= DPTemp[mfi];
     }
 
     // a FillBoundary has been done on this MultiFab before, when
@@ -1599,8 +1485,6 @@ void
 CompSolverLevel::Relax(
                        FluxRegister * FineRegister)
 {
-  int ngrids = grids.size();
-
   MultiFab & e = correction;
   MultiFab & R = residual;
 
@@ -1690,22 +1574,19 @@ CompSolverLevel::Relax(
             Hm->getProduct(0, TempR);
           }
 	  for (MFIter mfi(TempR); mfi.isValid(); ++mfi) {
-	    int i = mfi.index();
-	    TempR[i].minus(R[i]);
-	    TempR[i].negate();
+	    TempR[mfi].minus(R[mfi]);
+	    TempR[mfi].negate();
 	  }
 	}
 
 	for (MFIter mfi(eTempSave); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  eTempSave[i].copy(eTemp[i]);
+	  eTempSave[mfi].copy(eTemp[mfi]);
 	}
       }
       else {
 
 	for (MFIter mfi(TempR); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  TempR[i].copy(R[i]);
+	  TempR[mfi].copy(R[mfi]);
 	}
       }
 
@@ -1796,11 +1677,10 @@ CompSolverLevel::Relax(
           }
 	}
 	for (MFIter mfi(R); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  solution[i] += eTemp[i];
-	  R[i] -= TempR[i];
-	  e[i] += eTemp[i];
-	  eTemp[i] -= eTempSave[i];
+	  solution[mfi] += eTemp[mfi];
+	  R[mfi] -= TempR[mfi];
+	  e[mfi] += eTemp[mfi];
+	  eTemp[mfi] -= eTempSave[mfi];
 	}
 
 	SetRegs( FluxReg, eTemp, DownSolve, UnitRatio );
@@ -1810,8 +1690,7 @@ CompSolverLevel::Relax(
 	//ZeroPhysBndry( eTemp ); // LHH: unnecessary?
 
 	for (MFIter mfi(e); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  e[i] += eTemp[i];
+	  e[mfi] += eTemp[mfi];
 	}
       }
     }
@@ -1860,8 +1739,7 @@ CompSolverLevel::Relax(
 #endif
 
     for (MFIter mfi(e); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      e[i].copy(DPTemp[i]);
+      e[mfi].copy(DPTemp[mfi]);
     }
     // LHH: unnecessary since apply will do it?
     //e.FillBoundary();
@@ -1880,8 +1758,8 @@ CompSolverLevel::Relax(
 
     for (MFIter mfi(R); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      solution[i].plus(e[i],grids[i],0,0,1);
-      R[i] -= DPTemp[i];
+      solution[mfi].plus(e[mfi],grids[i],0,0,1);
+      R[mfi] -= DPTemp[mfi];
     }
 
     // a FillBoundary has been done on this MultiFab before, when
@@ -1891,29 +1769,6 @@ CompSolverLevel::Relax(
     if (geom.isAnyPeriodic()) {
       geom.FillPeriodicBoundary(solution, false);
     }
-
-#if 0
-    static int first = 1;
-    if (first) {
-      gopen(5);
-      black();
-      first = 0;
-    }
-    else if( CompLevel == 0 ) {
-      fit(Geom().Domain());
-      //Array<IntVect> a(2);
-      //a.set(0, IntVect(2,2));
-      //PArray<MultiFab> PR(2);
-      //PR.set(0, &residual);
-      //PR.set(1, &NextFinerAmrLevel->residual);
-      //PR.set(0, &solution);
-      //PR.set(1, &NextFinerAmrLevel->solution);
-      contour(correction, unitvect, 11, 0);
-      //contour(PR, a, 101, 0);
-      //cout << CompLevel << " " << mfnorm(R) << endl;
-      cin.get();
-    }
-#endif
   }
 
   if( FineRegister && AmrLevelFlag ) {
@@ -1970,13 +1825,13 @@ CompSolverLevel::CGAtimes(
 void
 CompSolverLevel::CGDiagPrecond(MultiFab & MF)
 {
-  const Real * dx = geom.CellSize();
+//  const Real * dx = geom.CellSize();
 
-  for( int i=0; i<grids.size(); i++ ) {
+//  for( int i=0; i<grids.size(); i++ ) {
     //FORT_INVERT_DIAG( BOXARG(grids[i]), FAA((Op->aCoefficients())[i]),
     //		      FAA((Op->bCoefficients(0))[i]),
     //		      FAA((Op->bCoefficients(1))[i]), dx, FAA(MF[i]) );
-  }
+//  }
 }
 
 // Interpolates conservatively from c to f using centered slopes.
@@ -2007,33 +1862,12 @@ ConservInterp(MultiFab &f, MultiFab &c,
   for (MFIter mfi(f); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box& ovlp = coarseGrids[i];
-    FORT_CONS_INTERP(f[i].dataPtr(),        dimlist(f[i].box()),
-		     CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+    FORT_CONS_INTERP(f[mfi].dataPtr(),        dimlist(f[mfi].box()),
+		     CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 		     ovlp.loVect(), ovlp.hiVect(),
 		     ratio.getVect(),
 		     cdom.loVect(), cdom.hiVect());
   }
-#if 0
-  BL_ASSERT(c.nGrow() >= 1);
-  c.FillBoundary(); // would need periodic support added
-
-  for( int fn=0; fn<f.size(); fn++ ) {
-    BOX fbox(f.boxArray().get(fn));
-    fbox.coarsen(ratio);
-
-    for( int cn=0; cn<c.size(); cn++ ) {
-      BOX ovlp(fbox);
-      ovlp &= c.boxArray().get(cn);
-      if( ovlp.ok() ) {
-	FORT_CONS_INTERP(f[fn].dataPtr(), dimlist(f[fn].box()),
-			 c[cn].dataPtr(), dimlist(c[cn].box()),
-			 ovlp.loVect(), ovlp.hiVect(),
-			 ratio.getVect(),
-			 cdom.loVect(), cdom.hiVect());
-      }
-    }
-  }
-#endif
 }
 
 static void
@@ -2058,15 +1892,15 @@ InterpolateAdd(MultiFab &f, const MultiFab &c, IntVect & ratio,
       {
       case 0:  // Piecewise constant interpolation
 
-	FORT_PC_INTERP(f[i].dataPtr(),        dimlist(f[i].box()),
-		       CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+	FORT_PC_INTERP(f[mfi].dataPtr(),        dimlist(f[mfi].box()),
+		       CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 		       ovlp.loVect(), ovlp.hiVect(),
 		       ratio.getVect() );
 	break;
       case 1:  // Piecewise linear interpolation
 
-	FORT_PL_INTERP(f[i].dataPtr(),        dimlist(f[i].box()),
-		       CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+	FORT_PL_INTERP(f[mfi].dataPtr(),        dimlist(f[mfi].box()),
+		       CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 		       ovlp.loVect(), ovlp.hiVect(),
 		       ratio.getVect() );
 	break;
@@ -2074,39 +1908,6 @@ InterpolateAdd(MultiFab &f, const MultiFab &c, IntVect & ratio,
 	BoxLib::Error("Illegal order passed to InterpolateAdd()");
       }
   }
-#if 0
-  for( int fn=0; fn<f.size(); fn++ ) {
-    BOX fbox(f.boxArray().get(fn));
-    fbox.coarsen(ratio);
-
-    for( int cn=0; cn<c.size(); cn++ ) {
-      BOX ovlp(fbox);
-      ovlp &= c.boxArray().get(cn);
-      if( ovlp.ok() ) {
-
-	switch( order )
-	  {
-	  case 0:  // Piecewise constant interpolation
-
-	    FORT_PC_INTERP(f[fn].dataPtr(), dimlist(f[fn].box()),
-			   c[cn].dataPtr(), dimlist(c[cn].box()),
-			   ovlp.loVect(), ovlp.hiVect(),
-			   ratio.getVect() );
-	    break;
-	  case 1:  // Piecewise linear interpolation
-
-	    FORT_PL_INTERP(f[fn].dataPtr(), dimlist(f[fn].box()),
-			   c[cn].dataPtr(), dimlist(c[cn].box()),
-			   ovlp.loVect(), ovlp.hiVect(),
-			   ratio.getVect() );
-	    break;
-	  default:
-	    BoxLib::Error("Illegal order passed to InterpolateAdd()");
-	  }
-      }
-    }
-  }
-#endif
   f.FillBoundary();
   if (fgeom.isAnyPeriodic()) {
     fgeom.FillPeriodicBoundary(f, false);
@@ -2132,15 +1933,15 @@ Restrict( const MultiFab &f, MultiFab &c, const IntVect & ratio, int order )
       {
       case 0:  // Piecewise constant restriction
 
-	FORT_PC_RESTRICT(f[i].dataPtr(),        dimlist(f[i].box()),
-			 CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+	FORT_PC_RESTRICT(f[mfi].dataPtr(),        dimlist(f[mfi].box()),
+			 CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 			 ovlp.loVect(), ovlp.hiVect(),
 			 ratio.getVect() );
 	break;
       case 1:  // Piecewise linear restriction
 
-	FORT_PL_RESTRICT(f[i].dataPtr(),        dimlist(f[i].box()),
-			 CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+	FORT_PL_RESTRICT(f[mfi].dataPtr(),        dimlist(f[mfi].box()),
+			 CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 			 ovlp.loVect(), ovlp.hiVect(),
 			 ratio.getVect() );
 	break;
@@ -2149,40 +1950,6 @@ Restrict( const MultiFab &f, MultiFab &c, const IntVect & ratio, int order )
       }
   }
   c.copy(CoarseMF);
-
-#if 0
-  for( int cn=0; cn<c.size(); cn++ ) {
-    BOX cbox(c.boxArray().get(cn));
-
-    for( int fn=0; fn<f.size(); fn++ ) {
-      BOX ovlp(f.boxArray().get(fn));
-      ovlp.coarsen(ratio);
-      ovlp &= cbox;
-      if( ovlp.ok() ) {
-
-	switch( order )
-	  {
-	  case 0:  // Piecewise constant restriction
-
-	    FORT_PC_RESTRICT(f[fn].dataPtr(), dimlist(f[fn].box()),
-			     c[cn].dataPtr(), dimlist(c[cn].box()),
-			     ovlp.loVect(), ovlp.hiVect(),
-			     ratio.getVect() );
-	    break;
-	  case 1:  // Piecewise linear restriction
-
-	    FORT_PL_RESTRICT(f[fn].dataPtr(), dimlist(f[fn].box()),
-			     c[cn].dataPtr(), dimlist(c[cn].box()),
-			     ovlp.loVect(), ovlp.hiVect(),
-			     ratio.getVect() );
-	    break;
-	  default:
-	    BoxLib::Error("Illegal order passed to Restrict()");
-	  }
-      }
-    }
-  }
-#endif
 }
 
 // This copyToAll uses only the valid region of src but fills all
@@ -2223,14 +1990,13 @@ void copyToAll(MultiFab&       dest,
 
       for (MFIter mfi(src); mfi.isValid(); ++mfi) {
 	int i = mfi.index();
-	psrc[i].copy(src[i], src.box(i), src_comp, src.box(i), 0, num_comp);
+	psrc[mfi].copy(src[mfi], src.box(i), src_comp, src.box(i), 0, num_comp);
       }
       psrc.FillBoundary();
       geom.FillPeriodicBoundary(psrc, false);
 
       for (MFIter mfi(src); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	gsrc[i].copy(psrc[i]);
+	gsrc[mfi].copy(psrc[mfi]);
       }
     }
 
@@ -2263,7 +2029,7 @@ void copyToAll(FabArray<FAB>&       dest,
       Box intersect = dest.fabbox(i) & src.box(i);
 
       if (intersect.ok()) {
-	dest[i].copy(src[i],
+	dest[fai].copy(src[fai],
 		     intersect,
 		     src_comp,
 		     intersect,

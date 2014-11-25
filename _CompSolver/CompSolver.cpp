@@ -396,9 +396,6 @@ CompSolver::EdgeAvgDown(int               dir,
 			MultiFab &       Crse,
 			IntVect &        nref)
 {
-  int nfine = Fine.size();
-  int ncoarse = Crse.size();
-
   BoxArray crse_box( Fine.boxArray() ) ;
   crse_box.enclosedCells(dir);
   crse_box.coarsen(nref) ;
@@ -420,8 +417,6 @@ CompSolver::EdgeHarmAvg(int               dir,
 			MultiFab &       Crse,
 			IntVect &        nref)
 {
-  int nfine = Fine.size();
-  int ncoarse = Crse.size();
   const BoxArray & fine_ba = Fine.boxArray();
 
   BoxArray crse_ba( fine_ba ) ;
@@ -523,9 +518,9 @@ CompSolver::CellAvgDown(const MultiFab & Fine,
     const Box& ovlp = coarseGrids[i];
     const int* ovlo = ovlp.loVect();
     const int* ovhi = ovlp.hiVect();
-    FORT_AVG_DOWN (CoarseMF[i].dataPtr(), dimlist(CoarseMF[i].box()),
+    FORT_AVG_DOWN (CoarseMF[mfi].dataPtr(), dimlist(CoarseMF[mfi].box()),
 		   &nscal,
-		   Fine[i].dataPtr(),     dimlist(Fine[i].box()),
+		   Fine[mfi].dataPtr(),     dimlist(Fine[mfi].box()),
 		   ovlo,ovhi,
 		   nref.getVect());
   }
@@ -672,13 +667,8 @@ CompSolver::Solve(Real        reltol,
     }
 
     if( Current.AmrLevel() ) {
-      const BoxArray & grids = Current.Grids();
-      int ngrids = grids.size();
-
-      //for( int i=0; i<ngrids; i++ ) {
       for(MFIter mfi(Rhs); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	Real tnorm = Rhs[i].norm(0,0,1);
+	Real tnorm = Rhs[mfi].norm(0,0,1);
 	if( tnorm > RHSnorm ) RHSnorm = tnorm;
       }
     }
