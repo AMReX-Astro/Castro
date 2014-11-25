@@ -236,8 +236,7 @@ CompSolver::SetRhs(int             AmrLevel,
   MultiFab & rhs = CompLevel[AmrLevelIndex[AmrLevel]].Rhs();
 
   for(MFIter mfi(rhs); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    rhs[i].copy(Amr_rhs[i]);
+    rhs[mfi].copy(Amr_rhs[mfi]);
   }
 }
 
@@ -256,11 +255,10 @@ CompSolver::SetInitialGuess(int              AmrLevel,
   MultiFab & solution = CompLevel[AmrLevelIndex[AmrLevel]].Solution();
 
   for(MFIter mfi(solution); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
     if (solution.nGrow() > AmrGuess.nGrow()) {
-      solution[i].setVal(0.0);
+      solution[mfi].setVal(0.0);
     }
-    solution[i].copy(AmrGuess[i]);
+    solution[mfi].copy(AmrGuess[mfi]);
   }
 
   // Average down initial guess to intermediate levels
@@ -287,8 +285,7 @@ CompSolver::GetSolution(int           AmrLevel,
   MultiFab & solution = CompLevel[level].Solution();
 
   for(MFIter mfi(solution); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    AmrSolution[i].copy(solution[i]);
+    AmrSolution[mfi].copy(solution[mfi]);
   }
 }
 
@@ -300,8 +297,7 @@ CompSolver::GetFineCorrection(int       AmrLevel,
   MultiFab & solution = CompLevel[CurrentAmrIndex].Solution();
 
   for(MFIter mfi(solution); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    AmrDiff[i].copy(solution[i]);
+    AmrDiff[mfi].copy(solution[mfi]);
   }
 
   if (CurrentAmrIndex < CompLevel.size() - 1) {
@@ -315,8 +311,7 @@ CompSolver::GetFineCorrection(int       AmrLevel,
   }
 
   for(MFIter mfi(solution); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    AmrDiff[i].minus(solution[i]);
+    AmrDiff[mfi].minus(solution[mfi]);
   }
 }
 
@@ -353,15 +348,13 @@ CompSolver::AvgDownCoefs(int AmrBaseLevel)
 
       const MultiFab & Acoef = Current.Acoef();
       for(MFIter mfi(acoef); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	acoef[i].copy(Acoef[i]);
+	acoef[mfi].copy(Acoef[mfi]);
       }
 
       for( int n=0; n<BL_SPACEDIM; n++ ) {
 	const MultiFab & Bcoef = Current.Bcoef(n);
 	for(MFIter mfi(bcoef[n]); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
-	  bcoef[n][i].copy(Bcoef[i]);
+	  bcoef[n][mfi].copy(Bcoef[mfi]);
 	}
       }
     }
@@ -413,24 +406,12 @@ CompSolver::EdgeAvgDown(int               dir,
   MultiFab Coarse(crse_box,1,0) ;
 
   for (MFIter mfi(Coarse); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
     FORT_EDGE_AVG_DOWN(&dir,
-		       Fine[i].dataPtr(),   dimlist(Fine[i].box()),
+		       Fine[mfi].dataPtr(),   dimlist(Fine[mfi].box()),
 		       nref.getVect(),
-		       Coarse[i].dataPtr(), dimlist(Coarse[i].box()) );
+		       Coarse[mfi].dataPtr(), dimlist(Coarse[mfi].box()) );
   }
   Crse.copy(Coarse) ;
-#if 0
-  for ( int i=0; i<nfine; i++ ) {
-    FORT_EDGE_AVG_DOWN(&dir,
-		       Fine[i].dataPtr(),   dimlist(Fine[i].box()),
-		       nref.getVect(),
-		       Coarse[i].dataPtr(), dimlist(Coarse[i].box()) );
-    for( int j=0; j<ncoarse; j++ ) {
-      Crse[j].copy(Coarse[i]) ;
-    }
-  }
-#endif
 }
 
 void
@@ -462,12 +443,12 @@ CompSolver::EdgeHarmAvg(int               dir,
     // Fill ghost edges with valid data reflected from the
     // first interior edge
     FArrayBox Temp(fine_ba[i]);
-    Temp.copy(Fine[i]);
+    Temp.copy(Fine[mfi]);
 
     Temp.shift( dir, -2 );
-    GrownFine[i].copy(Temp);
+    GrownFine[mfi].copy(Temp);
     Temp.shift( dir, 4 );
-    GrownFine[i].copy(Temp);
+    GrownFine[mfi].copy(Temp);
   }
 
   // Fill ghost edges with valid data from other fine grids
@@ -480,12 +461,10 @@ CompSolver::EdgeHarmAvg(int               dir,
   GrownFine.copy(Fine);
 
   for (MFIter mfi(Fine); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-
     FORT_EDGE_HARM_AVG(&dir,
-		       GrownFine[i].dataPtr(), dimlist(GrownFine[i].box()),
+		       GrownFine[mfi].dataPtr(), dimlist(GrownFine[mfi].box()),
 		       nref.getVect(),
-		       Coarse[i].dataPtr(),    dimlist(Coarse[i].box()) );
+		       Coarse[mfi].dataPtr(),    dimlist(Coarse[mfi].box()) );
   }
 
   Crse.copy(Coarse);
