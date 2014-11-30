@@ -67,7 +67,7 @@ contains
                SrV = rho * grav(i,j,k,2)
                SrW = rho * grav(i,j,k,3)
 
-               if (grav_source_type .ne. 4) then
+               if (grav_source_type .lt. 4) then
 
                   uout(i,j,k,UMX)   = uout(i,j,k,UMX) + SrU * dt
                   uout(i,j,k,UMY)   = uout(i,j,k,UMY) + SrV * dt
@@ -89,7 +89,7 @@ contains
                                      uout(i,j,k,URHO) 
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
 
-               else if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
+               else if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5 .or. grav_source_type .eq. 6) then
                   ! Do nothing here, for the conservative gravity option
 
                else 
@@ -190,12 +190,29 @@ end module grav_sources_module
       ! 1: Original version ("does work")
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
+      ! 4: Conservative gravity approach of Jiang et al. (2013)
+      ! 5: Same as 4, but with different form of the gravitational energy
+      ! 6: Conservative gravity approach from AREPO code paper, Springel (2010)
 
       flux1 = ZERO
       flux2 = ZERO
       flux3 = ZERO
 
       gtens = ZERO
+
+      phi  = HALF * (pnew + pold)
+      grav(:,:,:,:) = HALF * (gnew(:,:,:,:) + gold(:,:,:,:))
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
+               phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))
+               dpdt(i,j,k)   = (pnew(i,j,k) - pold(i,j,k)) / dt
+               dgdt(i,j,k,:) = (gnew(i,j,k,:) - gold(i,j,k,:)) / dt
+            enddo
+         enddo
+      enddo
 
       if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
 
@@ -210,12 +227,6 @@ end module grav_sources_module
 
          rho_E_added = ZERO
          flux_added  = ZERO
-
-         phi  = HALF * (pnew + pold)
-         dpdt = (pnew - pold) / dt
-
-         grav = HALF * (gnew + gold)
-         dgdt = (gnew - gold) / dt
 
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
@@ -304,6 +315,10 @@ end module grav_sources_module
             enddo
          enddo
 
+      endif
+
+      if (grav_source_type .ge. 4) then
+
          do k = lo(3), hi(3) + 1
             do j = lo(2), hi(2) + 1
                do i = lo(1), hi(1) + 1
@@ -377,7 +392,7 @@ end module grav_sources_module
                                         (SrW_new * Wpn - SrW_old * Wpo) )
                end if
 
-               if (grav_source_type .ne. 4) then
+               if (grav_source_type .lt. 4) then
 
                   ! Correct state with correction terms
                   unew(i,j,k,UMX)   = unew(i,j,k,UMX)   + SrUcorr*dt
@@ -444,6 +459,35 @@ end module grav_sources_module
 
                   endif
 
+               else if (grav_source_type .eq. 6) then
+
+                  SrUcorr = ( gtens(i,j,k,1,1) - gtens(i+1,j,k,1,1) ) &
+                          + ( gtens(i,j,k,1,2) - gtens(i,j+1,k,1,2) ) &
+                          + ( gtens(i,j,k,1,3) - gtens(i,j,k+1,1,3) )
+
+                  SrVcorr = ( gtens(i,j,k,2,1) - gtens(i+1,j,k,2,1) ) &
+                          + ( gtens(i,j,k,2,2) - gtens(i,j+1,k,2,2) ) &
+                          + ( gtens(i,j,k,2,3) - gtens(i,j,k+1,2,3) )
+
+                  SrWcorr = ( gtens(i,j,k,3,1) - gtens(i+1,j,k,3,1) ) &
+                          + ( gtens(i,j,k,3,2) - gtens(i,j+1,k,3,2) ) &
+                          + ( gtens(i,j,k,3,3) - gtens(i,j,k+1,3,3) )
+
+                  SrEcorr = HALF * old_flux1(i  ,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i-1,j,k)) &
+                          + HALF * old_flux1(i+1,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i+1,j,k)) &
+                          + HALF * old_flux2(i,j  ,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j-1,k)) &
+                          + HALF * old_flux2(i,j+1,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j+1,k)) &
+                          + HALF * old_flux3(i,j,k  ,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k-1)) &
+                          + HALF * old_flux3(i,j,k+1,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k+1))
+
+                  unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr
+
+                  unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr
+
+                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr
+
+                  unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
+
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
                end if
@@ -454,9 +498,6 @@ end module grav_sources_module
                                  unew(i,j,k,URHO) 
                new_rhoeint = unew(i,j,k,UEDEN) - new_ke
                E_added =  E_added + unew(i,j,k,UEDEN) - old_re
-               E_added_fluxes = E_added_fluxes + ( flux1(i,j,k) - flux1(i+1,j,k)  &
-                                               +   flux2(i,j,k) - flux2(i,j+1,k)  &
-                                               +   flux3(i,j,k) - flux3(i,j,k+1))
                xmom_added = xmom_added + unew(i,j,k,UMX) - old_xmom
                ymom_added = ymom_added + unew(i,j,k,UMY) - old_ymom
                zmom_added = zmom_added + unew(i,j,k,UMZ) - old_zmom
