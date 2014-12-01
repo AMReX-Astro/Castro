@@ -1352,10 +1352,10 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
            BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
                (bx.loVect(), bx.hiVect(),
                 lo_bc, hi_bc, &symmetry_type,
-                BL_TO_FORTRAN(grav_vector[i]),
-                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][i]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][1][i]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][2][i])),
+                BL_TO_FORTRAN(grav_vector[mfi]),
+                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
+                       BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
+                       BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
                        dx,problo,&coord_type);
        }
        grav_vector.FillBoundary();
@@ -1380,8 +1380,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        for (FillPatchIterator fpi(*amrlev,G_old,ng,time,Gravity_Type,0,BL_SPACEDIM); 
          fpi.isValid(); ++fpi) 
          {
-            int i = fpi.index();
-            grav_vector[i].copy(fpi());
+            grav_vector[fpi].copy(fpi());
          }
     }
 #endif
@@ -1471,10 +1470,10 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
               (bx.loVect(), bx.hiVect(),
                lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grav_vector[i]),
-               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][i]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][1][i]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][2][i])),
+               BL_TO_FORTRAN(grav_vector[mfi]),
+               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
+                      BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
+                      BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
                       dx,problo,&coord_type);
        }
        grav_vector.FillBoundary();
@@ -1499,8 +1498,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        for (FillPatchIterator fpi(*amrlev,G_new,ng,time,Gravity_Type,0,BL_SPACEDIM);
          fpi.isValid(); ++fpi)
          {
-            int i = fpi.index();
-            grav_vector[i].copy(fpi());
+            grav_vector[fpi].copy(fpi());
          }
     }
 #endif
@@ -1822,8 +1820,8 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
     {
         const int        i        = mfi.index();
         const Box&       ovlp     = crse_fine_BA[i];
-        FArrayBox&       crse_fab = crse_fine[i];
-        const FArrayBox& fine_fab = fine[i];
+        FArrayBox&       crse_fab = crse_fine[mfi];
+        const FArrayBox& fine_fab = fine[mfi];
 
 	BL_FORT_PROC_CALL(CA_AVGDOWN_PHI,ca_avgdown_phi)
             (BL_TO_FORTRAN(crse_fab), 
@@ -2145,7 +2143,7 @@ Gravity::fill_ec_grow (int level,
             // on fine edges overlaying coarse edges.
             //
             const int  nComp = 1;
-            const Box& fbox  = fine_src[mfi.index()].box();
+            const Box& fbox  = fine_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_EDGE_INTERP,ca_edge_interp)
                 (fbox.loVect(), fbox.hiVect(), &nComp, rat, &n,

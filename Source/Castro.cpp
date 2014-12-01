@@ -785,27 +785,27 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Rad_new[i].setVal(0.0);
+	  Rad_new[mfi].setVal(0.0);
 
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, lo, hi, Radiation::nGroups,
-	       BL_TO_FORTRAN(Rad_new[i]),dx,
+	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
 	       gridloc.lo(),gridloc.hi());
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver
-            Rad_new[i].mult(Radiation::Etorad, 
+            Rad_new[mfi].mult(Radiation::Etorad, 
                             0, Radiation::nGroups);
 	  }
 
           if (Rad_new.nComp() > Radiation::nGroups) {
             // Initialize flux components to 0
-            Rad_new[i].setVal(0.0, box, Radiation::nGroups,
+            Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
                               Rad_new.nComp() - Radiation::nGroups);
           }
 
           if (Test_new.nComp() > 0) {
-            Test_new[i].setVal(0.0);
+            Test_new[mfi].setVal(0.0);
           }
       }
     }
@@ -847,7 +847,7 @@ Castro::initData ()
 
         BL_FORT_PROC_CALL(CA_INITPHI,ca_initphi)
 	  (level, cur_time, lo, hi, 1,
-	   BL_TO_FORTRAN(LS_new[mfi.index()]),
+	   BL_TO_FORTRAN(LS_new[mfi]),
 	   BL_TO_FORTRAN(type),
 	   dx,gridloc.lo(),gridloc.hi());
       }
@@ -929,7 +929,7 @@ Castro::init (AmrLevel &old)
     for (FillPatchIterator fpi(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
 	 fpi.isValid(); ++fpi)
       {
-	LS_new[fpi.index()].copy(fpi());
+	LS_new[fpi].copy(fpi());
       }
     
     // FIXME: Assumes that interpolated coarse data should rather just be setvald
@@ -1039,10 +1039,10 @@ Castro::estTimeStep (Real dt_old)
 	  Real dt = estdt;
 	  
 	  FArrayBox gPr(box);
-	  radiation->estimate_gamrPr(stateMF[i], radMF[i], gPr, dx, box);
+	  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, box);
 
 	  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
-	    (BL_TO_FORTRAN(stateMF[i]),
+	    (BL_TO_FORTRAN(stateMF[mfi]),
 	     BL_TO_FORTRAN(gPr),
 	     box.loVect(),box.hiVect(),dx,&dt);
 	  
@@ -1389,12 +1389,11 @@ Castro::post_timestep (int iteration)
 
                 // Compute sync source
                 sync_src.resize(bx,BL_SPACEDIM+1);
-                int i = mfi.index();
                 BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
                     (bx.loVect(), bx.hiVect(),
-                     BL_TO_FORTRAN(grad_phi_cc[i]),
-                     BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][i]),
-                     BL_TO_FORTRAN(S_new_lev[i]),
+                     BL_TO_FORTRAN(grad_phi_cc[mfi]),
+                     BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][mfi]),
+                     BL_TO_FORTRAN(S_new_lev[mfi]),
                      BL_TO_FORTRAN(dstate),
                      BL_TO_FORTRAN(sync_src),
                      dt_lev);
@@ -2071,9 +2070,9 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
              BL_TO_FORTRAN_N(sgs_mf[Old_fpi],2),
              dx,&old_time,&dt);
 
-        sgs_fluxes[0][Old_fpi.index()].copy(fluxx,0,0,NUM_STATE);
-        sgs_fluxes[1][Old_fpi.index()].copy(fluxy,0,0,NUM_STATE);
-        sgs_fluxes[2][Old_fpi.index()].copy(fluxz,0,0,NUM_STATE);
+        sgs_fluxes[0][Old_fpi].copy(fluxx,0,0,NUM_STATE);
+        sgs_fluxes[1][Old_fpi].copy(fluxy,0,0,NUM_STATE);
+        sgs_fluxes[2][Old_fpi].copy(fluxz,0,0,NUM_STATE);
    }
    geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
 }
@@ -2195,9 +2194,9 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
         int i = fpi.index();
         BL_FORT_PROC_CALL(CA_DEFINE_TAU,ca_define_tau)
                  (bx.loVect(), bx.hiVect(),
-                  BL_TO_FORTRAN(tau_diff[i]),
+                  BL_TO_FORTRAN(tau_diff[fpi]),
                   BL_TO_FORTRAN(fpi()),
-                  BL_TO_FORTRAN(grav_vector[i]),
+                  BL_TO_FORTRAN(grav_vector[fpi]),
                   dx_fine);
    }
 }
@@ -2249,11 +2248,11 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
                 (bx.loVect(), bx.hiVect(),
                  BL_TO_FORTRAN(fpi()),
 #ifdef TAU
-                 BL_TO_FORTRAN((*tau)[i]),
+                 BL_TO_FORTRAN((*tau)[fpi]),
 #endif
-                 D_DECL(BL_TO_FORTRAN(coeffs[0][i]),
-                        BL_TO_FORTRAN(coeffs[1][i]),
-                        BL_TO_FORTRAN(coeffs[2][i])),
+                 D_DECL(BL_TO_FORTRAN(coeffs[0][fpi]),
+                        BL_TO_FORTRAN(coeffs[1][fpi]),
+                        BL_TO_FORTRAN(coeffs[2][fpi])),
                  dx_fine);
    }
 
@@ -2398,10 +2397,10 @@ Castro::avgDown (int state_indx)
     {
         const int        i        = mfi.index();
         const Box&       ovlp     = crse_S_fine_BA[i];
-        FArrayBox&       crse_fab = crse_S_fine[i];
-        const FArrayBox& crse_vol = crse_fvolume[i];
-        const FArrayBox& fine_fab = S_fine[i];
-        const FArrayBox& fine_vol = fvolume[i];
+        FArrayBox&       crse_fab = crse_S_fine[mfi];
+        const FArrayBox& crse_vol = crse_fvolume[mfi];
+        const FArrayBox& fine_fab = S_fine[mfi];
+        const FArrayBox& fine_vol = fvolume[mfi];
 
 	BL_FORT_PROC_CALL(CA_AVGDOWN,ca_avgdown)
             (BL_TO_FORTRAN(crse_fab), ncomp,
@@ -2453,10 +2452,10 @@ Castro::errorEst (TagBoxArray& tags,
         {
             int         idx     = mfi.index();
             RealBox     gridloc = RealBox(grids[idx],geom.CellSize(),geom.ProbLo());
-            itags               = tags[idx].tags();
+            itags               = tags[mfi].tags();
             int*        tptr    = itags.dataPtr();
-            const int*  tlo     = tags[idx].box().loVect();
-            const int*  thi     = tags[idx].box().hiVect();
+            const int*  tlo     = tags[mfi].box().loVect();
+            const int*  thi     = tags[mfi].box().hiVect();
             const int*  lo      = mfi.validbox().loVect();
             const int*  hi      = mfi.validbox().hiVect();
             const Real* xlo     = gridloc.lo();
@@ -2474,9 +2473,9 @@ Castro::errorEst (TagBoxArray& tags,
             //
             if (allow_untagging == 1) 
             {
-               tags[idx].tags_and_untags(itags);
+               tags[mfi].tags_and_untags(itags);
             } else {
-               tags[idx].tags(itags);
+               tags[mfi].tags(itags);
             }
         }
 
@@ -2761,7 +2760,7 @@ Castro::SyncInterp (MultiFab&      CrseSync,
             if (interpolater == &protected_interp)
             {
               cdata.mult(dt_clev);
-              FArrayBox& fine_state = (*fine_stateMF)[i];
+              FArrayBox& fine_state = (*fine_stateMF)[mfi];
               interpolater->protect(cdata,0,fdata,0,fine_state,state_comp,
                                     num_comp,fgrids[i],ratio,
                                     cgeom,fgeom,bc_interp);
@@ -2769,11 +2768,11 @@ Castro::SyncInterp (MultiFab&      CrseSync,
               cdata.mult(dt_clev_inv);
             }
             
-            FineSync[i].plus(fdata,0,dest_comp,num_comp);
+            FineSync[mfi].plus(fdata,0,dest_comp,num_comp);
         }
         else
         {
-            FineSync[i].copy(fdata,0,dest_comp,num_comp);
+            FineSync[mfi].copy(fdata,0,dest_comp,num_comp);
         }
     }
 
