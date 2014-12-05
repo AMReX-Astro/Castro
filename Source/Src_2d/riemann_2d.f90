@@ -327,7 +327,9 @@ contains
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol
+                                   cg_maxiter, cg_tol, &
+                                   npassive, upass_map, qpass_map
+    
 
     double precision, parameter:: small = 1.d-8
 
@@ -351,7 +353,7 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2)
     double precision :: gegdnv(gg_l1:gg_h1,gg_l2:gg_h2)
 
-    integer :: i,j,ilo,jlo,ihi,jhi
+    integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -763,9 +765,10 @@ contains
           uflx(i,j,UEINT) = ugdnv(i,j)*pgdnv(i,j)/(gamgdnv - ONE)
 
           ! advected quantities -- only the contact matters
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
              else if (ustar .lt. ZERO) then
@@ -775,35 +778,7 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-          
-          ! species -- only the contact matters
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          ! auxillary quantities -- only the contact matters
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
+                   
        enddo
     enddo
 
@@ -874,7 +849,8 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-                                   small_dens, small_pres
+                                   small_dens, small_pres, &
+                                   npassive, upass_map, qpass_map    
 
     implicit none
 
@@ -902,7 +878,7 @@ contains
     
     integer :: ilo,ihi,jlo,jhi
     integer :: iadv, ispec, iaux, n, nq
-    integer :: i, j
+    integer :: i, j, ipassive
 
     double precision :: rgd, vgd, regd, ustar
     double precision :: rl, ul, vl, pl, rel
@@ -1086,9 +1062,10 @@ contains
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*regd
           
-          do iadv = 1, nadv
-             n = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
              else if (ustar .lt. ZERO) then
@@ -1098,33 +1075,7 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-          
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
+                    
        enddo
     enddo
   end subroutine riemannus
@@ -1133,7 +1084,7 @@ contains
  
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-                                   small_dens, small_pres
+                                   small_dens, small_pres, npassive, upass_map, qpass_map
 
     use network, only : nspec, naux
 
@@ -1147,7 +1098,9 @@ contains
     double precision :: fl_tmp, fr_tmp
     double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
     integer :: iadv, iaux, ispec, n, nq
-    
+
+    integer :: ipassive
+
     double precision, parameter :: small = 1.d-10
 
     if (idir == 1) then
@@ -1242,39 +1195,16 @@ contains
     f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
 
 
-    ! advected scalar fluxes
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! passively-advected scalar fluxes
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
 
        fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
        fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
 
        f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
     enddo
-
-    ! species 
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-
-       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
-
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
-    enddo
-
-    ! auxillary quantities -- only the contact matters
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-
-       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
-
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
-    enddo
-
 
   end subroutine HLL
 
