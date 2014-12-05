@@ -240,7 +240,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
-
+                qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
              endif
 
           endif
@@ -311,6 +311,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
+                qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
 
              end if
           
@@ -528,6 +529,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
              
           endif
 
@@ -638,6 +640,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -876,6 +879,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
+                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
                 
              endif
 
@@ -947,6 +951,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
+                qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
 
              endif
 
@@ -1165,6 +1170,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -1276,6 +1282,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -1568,6 +1575,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
+                qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -1638,6 +1646,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
+                qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -1709,6 +1718,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
+             qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
 
           endif
 
@@ -1778,7 +1788,8 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
-
+                qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
+                
              endif
 
           endif
@@ -2097,6 +2108,7 @@ contains
 
              ! and compute the p edge state from this and (rho e)
              qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
+             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -2167,6 +2179,7 @@ contains
                  
              ! and compute the p edge state from this and (rho e)
              qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
+             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -2465,6 +2478,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -2538,6 +2552,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
+                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
 
              endif
 
@@ -2839,6 +2854,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              end if
 
@@ -2911,6 +2927,7 @@ contains
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
+                qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
 
              end if
 
