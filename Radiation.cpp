@@ -2688,7 +2688,7 @@ void Radiation::computeTemp(MultiFab& State, int resetEint)
 
   for (MFIter mfi(State); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box bx = mfi.validbox();
+    const Box& bx = mfi.validbox();
 
     if (do_real_eos == 0) {
       BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
@@ -2747,7 +2747,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
   for (FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,
 			     0,ncomp); fpi.isValid(); ++fpi) {
 
-    const Box bx = fpi.validbox();
+    const Box& bx = fpi.validbox();
 
     FArrayBox &Sborder = fpi();
 

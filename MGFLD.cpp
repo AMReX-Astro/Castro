@@ -289,7 +289,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 
   for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box bx = BoxLib::grow(grids[i], ngrow);
+    const Box& bx = BoxLib::grow(grids[i], ngrow);
     
 #ifdef NEUTRINO
     if (radiation_type == Neutrino) {
@@ -406,7 +406,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   MultiFab spec(grids, nGroups, 1); 
   for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
     int i = mfi.index();
-    const Box bx = grids[i];
+    const Box& bx = grids[i];
 #ifdef NEUTRINO
     BL_FORT_PROC_CALL(CA_ACCEL_SPEC_NEUT, ca_accel_spec_neut) 
       (bx.loVect(), bx.hiVect(),
