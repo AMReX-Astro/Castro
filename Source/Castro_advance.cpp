@@ -736,7 +736,7 @@ Castro::advance_hydro (Real time,
 	     point_mass += mass_change_at_center;
 	     for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
              {
-		const Box bx = mfi.validbox();
+		const Box& bx = mfi.validbox();
 		BL_FORT_PROC_CALL(PM_FIX_SOLUTION,pm_fix_solution)
 		  (bx.loVect(), bx.hiVect(),
 		   BL_TO_FORTRAN(S_old[mfi]), BL_TO_FORTRAN(S_new[mfi]),
@@ -930,7 +930,7 @@ Castro::advance_hydro (Real time,
         Real E_added = 0.;
 	for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	  {
-	    const Box bx = mfi.validbox();
+	    const Box& bx = mfi.validbox();
 	    
 	    BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 	      (bx.loVect(), bx.hiVect(),

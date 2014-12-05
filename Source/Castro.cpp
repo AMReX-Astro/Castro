@@ -1379,7 +1379,7 @@ Castro::post_timestep (int iteration)
 
               for (MFIter mfi(S_new_lev); mfi.isValid(); ++mfi)
               {
-                const Box bx = mfi.validbox();
+                const Box& bx = mfi.validbox();
                 dstate.resize(bx,BL_SPACEDIM+1);
                 if (lev == level) {
                    dstate.copy(drho_and_drhoU[mfi]);
@@ -2344,7 +2344,7 @@ Castro::enforce_nonnegative_species (MultiFab& S_new)
 {
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
     {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.validbox();
        BL_FORT_PROC_CALL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
            (BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
     }
@@ -2825,7 +2825,7 @@ Castro::reset_old_sgs(Real dt)
 
    for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
    {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.validbox();
 
        BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
            (BL_TO_FORTRAN(S_old[mfi]),
@@ -2845,7 +2845,7 @@ Castro::reset_new_sgs(Real dt)
 
    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
    {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.validbox();
 
        BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
            (BL_TO_FORTRAN(S_new[mfi]),
@@ -2871,7 +2871,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     // Synchronize (rho e) and (rho E) so they are consistent with each other
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.validbox();
 
         BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
             (BL_TO_FORTRAN(S_new[mfi]),
@@ -2899,7 +2899,7 @@ Castro::computeTemp(MultiFab& State)
     reset_internal_energy(State);
 
     for (MFIter mfi(State); mfi.isValid(); ++mfi)
-    { const Box bx = mfi.validbox();
+    { const Box& bx = mfi.validbox();
 	BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
 	  (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]));
     }

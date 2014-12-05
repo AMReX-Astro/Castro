@@ -821,7 +821,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // Average phi_curr from fine to coarse level
     for (int lev = fine_level-1; lev >= crse_level; lev--)
     {
-       const IntVect ratio = parent->refRatio(lev);
+       const IntVect& ratio = parent->refRatio(lev);
        avgDown(phi_curr[lev],phi_curr[lev+1],ratio);
     } 
 
@@ -923,7 +923,7 @@ Gravity::GetCrseGradPhi(int level,
     for (int i=0; i<BL_SPACEDIM; ++i)
     {
         BL_ASSERT(!grad_phi_crse.defined(i));
-        const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
+        const BoxArray& eba = BoxArray(grids[level-1]).surroundingNodes(i);
         grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
         FArrayBox GradPhiCrseTemp;
         for (MFIter mfi(grad_phi_crse[i]); mfi.isValid(); ++mfi)
@@ -958,7 +958,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_curr[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
+           const BoxArray& eba = BoxArray(grids[lev]).surroundingNodes(n);
            grad_phi_curr[lev].set(n,new MultiFab(eba,1,1));
        }
     }
@@ -981,7 +981,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_prev[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
+           const BoxArray& eba = BoxArray(grids[lev]).surroundingNodes(n);
            grad_phi_prev[lev].set(n,new MultiFab(eba,1,1));
        }
     }
@@ -1251,7 +1251,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     // Average phi from fine to coarse level
     for (int lev = finest_level; lev > level; lev--)
     {
-       const IntVect ratio = parent->refRatio(lev-1);
+       const IntVect& ratio = parent->refRatio(lev-1);
        if (is_new == 1)
        {
            avgDown(phi_curr[lev-1],phi_curr[lev],ratio);
@@ -1546,7 +1546,7 @@ Gravity::test_level_grad_phi_prev(int level)
 
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.validbox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
@@ -1614,7 +1614,7 @@ Gravity::test_level_grad_phi_curr(int level)
 
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.validbox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
@@ -1753,7 +1753,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     PArray<MultiFab> crse_gphi_fine(BL_SPACEDIM,PArrayManage);
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
-        const BoxArray eba = BoxArray(crse_gphi_fine_BA).surroundingNodes(n);
+        const BoxArray& eba = BoxArray(crse_gphi_fine_BA).surroundingNodes(n);
         crse_gphi_fine.set(n,new MultiFab(eba,1,0));
     }
 
@@ -1989,7 +1989,7 @@ Gravity::test_composite_phi (int level)
         // Average residual from fine to coarse level before printing the norm
         for (int lev = nlevs-2; lev >= 0; lev--)
         {
-           const IntVect ratio = parent->refRatio(lev);
+           const IntVect& ratio = parent->refRatio(lev);
            avgDown(*Res_p[lev],*Res_p[lev+1],ratio);
         } 
 
@@ -2119,7 +2119,7 @@ Gravity::fill_ec_grow (int level,
         for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
         {
             const int  nComp = 1;
-            const Box  box   = crse_src[mfi].box();
+            const Box& box   = crse_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
                 (box.loVect(), box.hiVect(), &nComp, rat, &n,
@@ -2567,7 +2567,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
     int coord_type = Geometry::Coord();
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.validbox();
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
@@ -2587,7 +2587,7 @@ Gravity::unweight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc); mfi.isValid(); ++mfi)
     {
         int index = mfi.index();
-        const Box bx = grids[level][index];
+        const Box& bx = grids[level][index];
         BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
             (bx.loVect(), bx.hiVect(),
              BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
@@ -2602,7 +2602,7 @@ Gravity::unweight_edges(int level, PArray<MultiFab>& edges)
     for (MFIter mfi(edges[0]); mfi.isValid(); ++mfi)
     {
         int index = mfi.index();
-        const Box bx = grids[level][index];
+        const Box& bx = grids[level][index];
         BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
             (bx.loVect(), bx.hiVect(),
              D_DECL(BL_TO_FORTRAN(edges[0][mfi]),
@@ -3036,7 +3036,7 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
 
         for (int lev = finest_level - 1 - base_level; lev >= 0; lev--)
         {
-            const IntVect ratio = parent->refRatio(lev+base_level);
+            const IntVect& ratio = parent->refRatio(lev+base_level);
             avgDown(PartMF[lev], PartMF[lev+1], ratio);
         }
 

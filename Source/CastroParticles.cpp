@@ -317,7 +317,7 @@ Castro::ParticleDerive(const std::string& name,
 
       for (int lev = parent->finestLevel()-1; lev >= 0; lev--)
       {
-         const IntVect ratio = parent->refRatio(lev);
+         const IntVect& ratio = parent->refRatio(lev);
          Gravity::avgDown(partmf[lev],partmf[lev+1],ratio);
       }
 
