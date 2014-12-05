@@ -630,7 +630,9 @@ contains
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map
+    
     use flatten_module
     use bl_constants_module
 
@@ -663,6 +665,8 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
+
+    integer :: ipassive
 
     type (eos_t) :: eos_state
 
@@ -705,36 +709,11 @@ contains
        enddo
     enddo
 
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n = UFA + iadv - 1
-       nq = QFA + iadv - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-      
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-      
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
+    ! Load passively-advected quatities, c, into q, assuming they 
+    ! arrived in uin as rho.c
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
        do k = loq(3),hiq(3)
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
@@ -749,9 +728,7 @@ contains
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
              
-             pt_index(1) = i
-             pt_index(2) = j
-             pt_index(3) = k
+             pt_index(:) = (/i, j, k/)
 
              eos_state % T   = q(i,j,k,QTEMP)
              eos_state % rho = q(i,j,k,QRHO)
@@ -824,23 +801,23 @@ contains
              if (QESGS .gt. -1) &
                   srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)/q(i,j,k,QRHO) - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
 
-             do ispec = 1,nspec
-                srcQ(i,j,k,QFS+ispec-1) = ( src(i,j,k,UFS+ispec-1) - q(i,j,k,QFS+ispec-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-
-             do iaux = 1,naux
-                srcQ(i,j,k,QFX+iaux-1) = ( src(i,j,k,UFX+iaux-1) - q(i,j,k,QFX+iaux-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
-             do iadv = 1,nadv
-                srcQ(i,j,k,QFA+iadv-1) = ( src(i,j,k,UFA+iadv-1) - q(i,j,k,QFA+iadv-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
           enddo
        enddo
+    enddo
+
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do k = lo(3)-1, hi(3)+1
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
+                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
+                     q(i,j,k,QRHO)
+             enddo
+          enddo
+       enddo
+
     enddo
 
     ! Compute running max of Courant number over grids
