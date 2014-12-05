@@ -282,7 +282,8 @@ contains
                                    UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
                                    QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map
     use flatten_module
     use bl_constants_module
 
@@ -315,6 +316,8 @@ contains
     integer          :: iadv, ispec, iaux, n, nq
     double precision :: courx, coury, courmx, courmy
 
+    integer :: ipassive
+
     type (eos_t) :: eos_state
     
     allocate(     dpdrho(q_l1:q_h1,q_l2:q_h2))
@@ -325,7 +328,7 @@ contains
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
-    
+
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
     ! call and will be overwritten
@@ -348,10 +351,12 @@ contains
        enddo
     enddo
     
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! Load passively-advected quatities, c, into q, assuming they
+    ! arrived in uin as rho.c 
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
              q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
@@ -359,27 +364,6 @@ contains
        enddo
     enddo
     
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
-    
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
 
     ! Get gamc, p, T, c, csml using q state 
     do j = loq(2), hiq(2)
@@ -454,19 +438,20 @@ contains
 !                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
 !                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
 
-          do ispec = 1,nspec
-             srcQ(i,j,QFS+ispec-1) = ( src(i,j,UFS+ispec-1) - q(i,j,QFS+ispec-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
+       enddo
+    enddo
 
-          do iaux = 1,naux
-             srcQ(i,j,QFX+iaux-1) = ( src(i,j,UFX+iaux-1) - q(i,j,QFX+iaux-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
+    ! and the passive advective quantities sources
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
+             srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
-          
-          do iadv = 1,nadv
-             srcQ(i,j,QFA+iadv-1) = ( src(i,j,UFA+iadv-1) - q(i,j,QFA+iadv-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
-          
-       end do
+       enddo
+
     end do
 
     ! Compute running max of Courant number over grids
