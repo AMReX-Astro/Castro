@@ -171,7 +171,8 @@ contains
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UESGS, UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol
+                                   cg_maxiter, cg_tol, &
+                                   npassive, upass_map, qpass_map
     use bl_constants_module
 
     double precision, parameter:: small = 1.d-8
@@ -201,7 +202,7 @@ contains
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
-    integer :: i,j,kc,kflux,k3d
+    integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -660,37 +661,10 @@ contains
           end if
 
           ! advected quantities -- only the contact matters
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          ! species -- only the contact matters
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          ! auxillary quantities -- only the contact matters
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
              else if (ustar .lt. ZERO) then
@@ -770,7 +744,7 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
-                                     nadv, small_dens, small_pres
+                                     nadv, small_dens, small_pres, npassive, upass_map, qpass_map
     use bl_constants_module
 
     implicit none
@@ -801,7 +775,7 @@ contains
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
-    integer :: i,j,kc,kflux,k3d
+    integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -1027,9 +1001,10 @@ contains
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
           
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
              else if (ustar .lt. ZERO) then
@@ -1039,33 +1014,7 @@ contains
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-          
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
+                    
        enddo
     enddo
     
