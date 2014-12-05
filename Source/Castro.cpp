@@ -2044,7 +2044,7 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
    //   needs to have a layer of ghost cells for fluxes
    FArrayBox fluxx, fluxy, fluxz;
 
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp);
+   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
                           Old_fpi.isValid();++Old_fpi)
    {
         const Box& bx = grids[Old_fpi.index()];
@@ -2094,7 +2094,7 @@ Castro::getNewSource (Real new_time, Real dt, MultiFab& ext_src, MultiFab* sgs_f
    for (int dir = 0; dir < BL_SPACEDIM; dir++) 
        sgs_fluxes[dir].setVal(0.0);
 
-   for (FillPatchIterator New_fpi(*this,S_new,4,new_time,State_Type,Density,ncomp);
+   for (FillPatchIterator New_fpi(*this,S_new,NUM_GROW,new_time,State_Type,Density,ncomp);
                           New_fpi.isValid();++New_fpi)
    {
         const Box& bx = grids[New_fpi.index()];
@@ -2134,7 +2134,7 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
    for (int i = 0; i < BL_SPACEDIM ; i++)
        geom.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
 
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp);
+   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
                           Old_fpi.isValid();++Old_fpi)
    {
         const Box& bx = grids[Old_fpi.index()];
@@ -2159,8 +2159,8 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
 
    ext_src.setVal(0.0,ext_src.nGrow());
 
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp),
-                          New_fpi(*this,S_old,4,new_time,State_Type,Density,ncomp);
+   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp),
+                          New_fpi(*this,S_old,NUM_GROW,new_time,State_Type,Density,ncomp);
                           Old_fpi.isValid() && New_fpi.isValid();++Old_fpi,++New_fpi)
    {
         const Box& bx = grids[Old_fpi.index()];
@@ -2940,12 +2940,12 @@ Castro::get_numpts ()
 #elif (BL_SPACEDIM == 2)
      int ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;  
 #elif (BL_SPACEDIM == 3)
      int ny = bx.size()[1];
      int nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif 
 
      if (verbose && ParallelDescriptor::IOProcessor())

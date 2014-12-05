@@ -209,7 +209,7 @@ Castro::advance_hydro (Real time,
                gravity->swapTimeLevels(lev);
        }
 
-       grav_vec_old.define(grids,BL_SPACEDIM,4,Fab_allocate); 
+       grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
@@ -362,13 +362,13 @@ Castro::advance_hydro (Real time,
 #endif
     
     // Define the gravity vector so we can pass this to ca_umdrv.
-    MultiFab grav_vector(grids,BL_SPACEDIM,4);
+    MultiFab grav_vector(grids,BL_SPACEDIM,NUM_GROW);
     grav_vector.setVal(0.);
     
 #ifdef GRAVITY
     if (do_grav) {
-      // Copy the gravity vector (including 4 ghost cells) for passing to umdrv.
-      MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,4);
+      // Copy the gravity vector (including NUM_GROW ghost cells) for passing to umdrv.
+      MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,NUM_GROW);
       grav_vector.FillBoundary();
       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
     }
@@ -440,7 +440,7 @@ Castro::advance_hydro (Real time,
 	  
 	  const Box &bx = grids[mfiindex];
 	  
-	  Box bx_g4(BoxLib::grow(bx,4));
+	  Box bx_g4(BoxLib::grow(bx,NUM_GROW));
 
 	  // Create FAB for extended grid values (including boundaries) and fill.
 	  FArrayBox &state = Sborder[mfi];
@@ -590,7 +590,7 @@ Castro::advance_hydro (Real time,
 	  
 	  Box bx(fpi.UngrownBox());
 	  
-	  Box bx_g4(BoxLib::grow(bx,4));
+	  Box bx_g4(BoxLib::grow(bx,NUM_GROW));
 	  // Create FAB for extended grid values (including boundaries) and fill.
 	  FArrayBox &state = fpi();
 	  FArrayBox &stateout = S_new[fpi];
@@ -1060,7 +1060,7 @@ Castro::advance_no_hydro (Real time,
 
        gravity->swapTimeLevels(level);
 
-       grav_vec_old.define(grids,BL_SPACEDIM,4,Fab_allocate); 
+       grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
