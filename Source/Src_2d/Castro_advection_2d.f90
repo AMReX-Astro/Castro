@@ -348,36 +348,25 @@ contains
           q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
           q(i,j,QREINT ) = uin(i,j,UEINT)/q(i,j,QRHO)
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
-       enddo
-    enddo
-    
-    ! Load passively-advected quatities, c, into q, assuming they
-    ! arrived in uin as rho.c 
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
 
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
+          ! Load passively-advected quatities, c, into q, assuming they
+          ! arrived in uin as rho.c 
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
           enddo
-       enddo
-    enddo
-    
 
-    ! Get gamc, p, T, c, csml using q state 
-    do j = loq(2), hiq(2)
-       do i = loq(1), hiq(1)
-
-          pt_index(1) = i
-          pt_index(2) = j
+          ! Get gamc, p, T, c, csml using q state 
+          pt_index(:) = (/i, j/)
 
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
 
-          ! If necessary, reset the energy using small_temp
+          ! if necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then
              q(i,j,QTEMP) = small_temp
              eos_state % T = q(i,j,QTEMP)
@@ -408,16 +397,10 @@ contains
           gamc(i,j)   = eos_state % gam1
 
           csml(i,j) = max(small, small * c(i,j))
-       end do
-    end do
 
-    ! Make this "rho e" instead of "e"
-    do j = loq(2),hiq(2)
-       do i = loq(1),hiq(1)
+          ! Make this "rho e" instead of "e"
           q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
-
           q(i,j,QGAME) = q(i,j,QPRES)/q(i,j,QREINT) + ONE
-
        enddo
     enddo
     
