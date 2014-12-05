@@ -11,8 +11,8 @@ module meth_params_module
   double precision, save :: difmag        ! used only in consup to weight the divu contribution
   integer         , save :: iorder        ! used only in uslope 
 
+  ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
-  integer, parameter     :: MAXADV  = 2
 
   ! NTHERM: number of thermodynamic variables
   integer         , save :: NTHERM, NVAR
