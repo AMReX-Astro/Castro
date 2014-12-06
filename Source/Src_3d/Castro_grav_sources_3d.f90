@@ -474,11 +474,11 @@ end module grav_sources_module
                           + ( gtens(i,j,k,3,3) - gtens(i,j,k+1,3,3) )
 
                   SrEcorr = HALF * old_flux1(i  ,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i-1,j,k)) &
-                          + HALF * old_flux1(i+1,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i+1,j,k)) &
+                          - HALF * old_flux1(i+1,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i+1,j,k)) &
                           + HALF * old_flux2(i,j  ,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j-1,k)) &
-                          + HALF * old_flux2(i,j+1,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j+1,k)) &
+                          - HALF * old_flux2(i,j+1,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j+1,k)) &
                           + HALF * old_flux3(i,j,k  ,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k-1)) &
-                          + HALF * old_flux3(i,j,k+1,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k+1))
+                          - HALF * old_flux3(i,j,k+1,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k+1))
 
                   unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr
 
