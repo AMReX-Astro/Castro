@@ -923,7 +923,7 @@ Gravity::GetCrseGradPhi(int level,
     for (int i=0; i<BL_SPACEDIM; ++i)
     {
         BL_ASSERT(!grad_phi_crse.defined(i));
-        const BoxArray& eba = BoxArray(grids[level-1]).surroundingNodes(i);
+        const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
         grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
         FArrayBox GradPhiCrseTemp;
         for (MFIter mfi(grad_phi_crse[i]); mfi.isValid(); ++mfi)
@@ -958,7 +958,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_curr[lev].clear(n);
-           const BoxArray& eba = BoxArray(grids[lev]).surroundingNodes(n);
+           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
            grad_phi_curr[lev].set(n,new MultiFab(eba,1,1));
        }
     }
@@ -981,7 +981,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_prev[lev].clear(n);
-           const BoxArray& eba = BoxArray(grids[lev]).surroundingNodes(n);
+           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
            grad_phi_prev[lev].set(n,new MultiFab(eba,1,1));
        }
     }
@@ -1753,7 +1753,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     PArray<MultiFab> crse_gphi_fine(BL_SPACEDIM,PArrayManage);
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
-        const BoxArray& eba = BoxArray(crse_gphi_fine_BA).surroundingNodes(n);
+        const BoxArray eba = BoxArray(crse_gphi_fine_BA).surroundingNodes(n);
         crse_gphi_fine.set(n,new MultiFab(eba,1,0));
     }
 
