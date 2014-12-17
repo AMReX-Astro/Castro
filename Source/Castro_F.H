@@ -66,7 +66,11 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Outflow_value, const int& Symmetry_value, 
-     const int& SlipWall_value, const int& NoSlipWall_value, const int& coord_type);
+     const int& SlipWall_value, const int& NoSlipWall_value,
+     const int& coord_type,
+     const Real& xmin, const Real& xmax,
+     const Real& ymin, const Real& ymax,
+     const Real& zmin, const Real& zmax);
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const Real& time, 

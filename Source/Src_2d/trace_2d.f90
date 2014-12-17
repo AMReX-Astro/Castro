@@ -75,6 +75,7 @@ contains
     allocate(dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
     allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
 
+    iorder = -2
     
     ! Compute slopes
     if (iorder == 1) then

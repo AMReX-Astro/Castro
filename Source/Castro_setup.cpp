@@ -228,8 +228,28 @@ Castro::variableSetUp ()
         std::cout << "\nTime in set_method_params: " << run_stop << '\n' ;
 
     int coord_type = Geometry::Coord();
+
+    Real xmin = Geometry::ProbLo(0);
+    Real xmax = Geometry::ProbHi(0);
+#if (BL_SPACEDIM >= 2)
+    Real ymin = Geometry::ProbLo(1);
+    Real ymax = Geometry::ProbHi(1);
+#else
+    Real ymin = 0.0;
+    Real ymax = 0.0;
+#endif
+#if (BL_SPACEDIM == 3)
+    Real zmin = Geometry::ProbLo(2);
+    Real zmax = Geometry::ProbHi(2);
+#else
+    Real zmin = 0.0;
+    Real zmax = 0.0;
+#endif
+    
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
-         (dm,phys_bc.lo(),phys_bc.hi(),Outflow,Symmetry,SlipWall,NoSlipWall,coord_type);
+         (dm,phys_bc.lo(),phys_bc.hi(),
+	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+	  xmin,xmax,ymin,ymax,zmin,zmax);
 
     Interpolater* interp = &cell_cons_interp;
 

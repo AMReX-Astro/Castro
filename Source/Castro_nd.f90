@@ -500,8 +500,9 @@
 ! ::: 
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                    Outflow_in,Symmetry_in,SlipWall_in,NoSlipWall_in, &
-                                    coord_type_in)
+                                    Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                    coord_type_in, &
+                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in)
 
         ! Passing data from C++ into f90
 
@@ -513,6 +514,7 @@
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
+        double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))
@@ -527,6 +529,15 @@
 
         coord_type = coord_type_in
 
+        xmin = xmin_in
+        xmax = xmax_in
+
+        ymin = ymin_in
+        ymax = ymax_in
+
+        zmin = zmin_in
+        zmax = zmax_in
+        
       end subroutine set_problem_params
 
 ! ::: 
