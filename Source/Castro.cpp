@@ -2372,9 +2372,12 @@ Castro::enforce_nonnegative_species (MultiFab& S_new)
 void
 Castro::enforce_consistent_e (MultiFab& S)
 {
-    for (MFIter mfi(S); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
     {
-        const Box& box     = mfi.validbox();
+        const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
         BL_FORT_PROC_CALL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
@@ -2412,10 +2415,12 @@ Castro::avgDown (int state_indx)
 
     crse_fvolume.copy(volume);
 
-    for (MFIter mfi(S_fine); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(crse_S_fine,true); mfi.isValid(); ++mfi)
     {
-        const int        i        = mfi.index();
-        const Box&       ovlp     = crse_S_fine_BA[i];
+        const Box&       ovlp     = mfi.tilebox();
         FArrayBox&       crse_fab = crse_S_fine[mfi];
         const FArrayBox& crse_vol = crse_fvolume[mfi];
         const FArrayBox& fine_fab = S_fine[mfi];
@@ -2574,6 +2579,9 @@ Castro::sumDerive (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -2888,9 +2896,12 @@ Castro::reset_internal_energy(MultiFab& S_new)
     }
 
     // Synchronize (rho e) and (rho E) so they are consistent with each other
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
 
         BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
             (BL_TO_FORTRAN(S_new[mfi]),
@@ -2917,8 +2928,11 @@ Castro::computeTemp(MultiFab& State)
 #else
     reset_internal_energy(State);
 
-    for (MFIter mfi(State); mfi.isValid(); ++mfi)
-    { const Box& bx = mfi.validbox();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+    { const Box& bx = mfi.tilebox();
 	BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
 	  (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]));
     }

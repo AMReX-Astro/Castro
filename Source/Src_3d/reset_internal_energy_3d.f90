@@ -23,7 +23,6 @@
       ! Reset internal energy
       if (allow_negative_energy .eq. 0) then
 
-         !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index,Up,Vp,Wp,ke,rho_eint,eint_new)
          do k = lo(3),hi(3)
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -76,12 +75,10 @@
          enddo
          enddo
          enddo
-         !$OMP END PARALLEL DO
 
       ! If (allow_negative_energy .eq. 1) then just reset (rho e) from (rho E)
       else
 
-         !$OMP PARALLEL DO PRIVATE(i,j,k,Up,Vp,Wp,ke)
          do k = lo(3),hi(3)
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -96,8 +93,6 @@
          enddo
          enddo
          enddo
-         !$OMP END PARALLEL DO
-
 
       endif
       

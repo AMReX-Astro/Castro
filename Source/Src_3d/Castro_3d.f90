@@ -515,7 +515,6 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      ! Sum fine data.
      !
      do koff = 0, lratz-1
-        !$OMP PARALLEL DO PRIVATE(i,j,k,ic,jc,kc,ioff,joff)
         do kc = lo(3),hi(3)
            k = kc*lratz + koff
            do joff = 0, lraty-1
@@ -530,12 +529,10 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
      enddo
      !
      ! Divide out by volume weight.
      !
-     !$OMP PARALLEL DO PRIVATE(ic,jc,kc)
      do kc = lo(3), hi(3)
         do jc = lo(2), hi(2)
            do ic = lo(1), hi(1)
@@ -543,7 +540,6 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO
      
   enddo
 
