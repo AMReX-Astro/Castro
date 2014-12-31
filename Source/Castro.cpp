@@ -1733,9 +1733,12 @@ Castro::advance_aux(Real time, Real dt)
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
 
-    for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
     {
-        const Box& box = mfi.validbox();
+        const Box& box = mfi.tilebox();
         FArrayBox& old_fab = S_old[mfi];
         FArrayBox& new_fab = S_new[mfi];
 	BL_FORT_PROC_CALL(CA_AUXUPDATE,ca_auxupdate)
@@ -2355,9 +2358,12 @@ Castro::avgDown ()
 void
 Castro::enforce_nonnegative_species (MultiFab& S_new)
 {
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.validbox();
+       const Box& bx = mfi.tilebox();
        BL_FORT_PROC_CALL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
            (BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
     }
