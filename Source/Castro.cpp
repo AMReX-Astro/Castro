@@ -1052,18 +1052,28 @@ Castro::estTimeStep (Real dt_old)
       else 
       {
 #endif
-       for (MFIter mfi(stateMF); mfi.isValid(); ++mfi)
-       {
-           const Box& box = mfi.validbox();
-           Real dt = estdt;
 
-   	      BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
-                  (BL_TO_FORTRAN(stateMF[mfi]),
-                   box.loVect(),box.hiVect(),
-                   dx,&dt);
-   
-           estdt = std::min(estdt,dt);
-       }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  {
+	      Real dt = estdt;
+	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+	      {
+		  const Box& box = mfi.tilebox();
+
+		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+		       box.loVect(),box.hiVect(),
+		       dx,&dt);
+	      }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt)	      
+#endif
+	      {
+		  estdt = std::min(estdt,dt);
+	      }
+	  }
 
 #ifdef RADIATION
       }
@@ -1346,8 +1356,7 @@ Castro::post_timestep (int iteration)
 #ifdef GRAVITY
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-           for (MFIter mfi(drho_and_drhoU); mfi.isValid(); ++mfi)
-              drho_and_drhoU[mfi].plus(S_new_crse[mfi],Density,0,BL_SPACEDIM+1);
+	    MultiFab::Add(drho_and_drhoU, S_new_crse, Density, 0, BL_SPACEDIM+1, 0);
 
             MultiFab dphi(grids,1,0,Fab_allocate);
             dphi.setVal(0.);
@@ -1363,10 +1372,6 @@ Castro::post_timestep (int iteration)
             }
             gravity->gravity_sync(level,finest_level,drho_and_drhoU,dphi,grad_delta_phi_cc);
 
-            // Create sync src terms at coarser level (i.e. "level")
-            FArrayBox grad_phi_cc, sync_src;
-            FArrayBox dstate;
-
             for (int lev = level; lev <= finest_level; lev++)  
             {
               Real dt_lev = parent->dtLevel(lev);
@@ -1377,31 +1382,39 @@ Castro::post_timestep (int iteration)
               MultiFab grad_phi_cc(ba,BL_SPACEDIM,0,Fab_allocate);
               gravity->get_new_grav_vector(lev,grad_phi_cc,cur_time);
 
-              for (MFIter mfi(S_new_lev); mfi.isValid(); ++mfi)
-              {
-                const Box& bx = mfi.validbox();
-                dstate.resize(bx,BL_SPACEDIM+1);
-                if (lev == level) {
-                   dstate.copy(drho_and_drhoU[mfi]);
-                } else {
-                   dstate.setVal(0.); 
-                }
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif
+	      {
+		  FArrayBox sync_src;
+		  FArrayBox dstate;
 
-                // Compute sync source
-                sync_src.resize(bx,BL_SPACEDIM+1);
-                BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
-                    (bx.loVect(), bx.hiVect(),
-                     BL_TO_FORTRAN(grad_phi_cc[mfi]),
-                     BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][mfi]),
-                     BL_TO_FORTRAN(S_new_lev[mfi]),
-                     BL_TO_FORTRAN(dstate),
-                     BL_TO_FORTRAN(sync_src),
-                     dt_lev);
+		  for (MFIter mfi(S_new_lev,true); mfi.isValid(); ++mfi)
+		  {
+		      const Box& bx = mfi.tilebox();
+		      dstate.resize(bx,BL_SPACEDIM+1);
+		      if (lev == level) {
+			  dstate.copy(drho_and_drhoU[mfi],bx);
+		      } else {
+			  dstate.setVal(0.); 
+		      }
+		      
+		      // Compute sync source
+		      sync_src.resize(bx,BL_SPACEDIM+1);
+		      BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
+			  (bx.loVect(), bx.hiVect(),
+			   BL_TO_FORTRAN(grad_phi_cc[mfi]),
+			   BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][mfi]),
+			   BL_TO_FORTRAN(S_new_lev[mfi]),
+			   BL_TO_FORTRAN(dstate),
+			   BL_TO_FORTRAN(sync_src),
+			   dt_lev);
 
-                sync_src.mult(0.5*dt_lev);
-                S_new_lev[mfi].plus(sync_src,0,Xmom,BL_SPACEDIM);
-                S_new_lev[mfi].plus(sync_src,0,Eden,1);
-              }
+		      sync_src.mult(0.5*dt_lev);
+		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,BL_SPACEDIM);
+		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+		  }
+	      }
             }
 
             // Check the whole hierarchy after the syncs

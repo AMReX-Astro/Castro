@@ -150,10 +150,6 @@ end module grav_sources_module
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoo,Upo,Vpo,Wpo,SrU_old,SrV_old,SrW_old,rhon,Upn,Vpn,Wpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr,rhooinv,rhoninv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added) 
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -236,7 +232,6 @@ end module grav_sources_module
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_corrgsrc
 
@@ -277,7 +272,6 @@ end module grav_sources_module
      double precision :: rho_pre, rhoU_pre, rhoV_pre, rhoW_pre
      double precision :: gx, gy, gz, dgx, dgy, dgz, SrU, SrV, SrW, SrE
 
-     !$OMP PARALLEL DO PRIVATE(i,j,k,rho_pre,rhoU_pre,rhoV_pre,rhoW_pre,gx,gy,gz,dgx,dgy,dgz,SrU,SrV,SrW,SrE)
      do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -311,6 +305,5 @@ end module grav_sources_module
             enddo
          enddo
      enddo
-     !$OMP END PARALLEL DO
 
      end subroutine ca_syncgsrc

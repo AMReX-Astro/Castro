@@ -928,9 +928,12 @@ Castro::advance_hydro (Real time,
 	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
 	
         Real E_added = 0.;
-	for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:E_added)	
+#endif
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	  {
-	    const Box& bx = mfi.validbox();
+	    const Box& bx = mfi.tilebox();
 	    
 	    BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 	      (bx.loVect(), bx.hiVect(),
@@ -1148,9 +1151,7 @@ Castro::advance_no_hydro (Real time,
     Real cur_time = state[State_Type].curTime();
         
     // Copy old data into new data.
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-        S_new[mfi].copy(S_old[mfi]);
-    }
+    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, NUM_GROW);
         
     if (add_ext_src) {
            MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);
