@@ -353,7 +353,6 @@
       integer          :: i,j,k
       double precision :: lapphi
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,lapphi) 
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
@@ -364,7 +363,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
  
       end subroutine ca_test_residual
 

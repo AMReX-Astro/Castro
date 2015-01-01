@@ -1,5 +1,9 @@
 #include <cmath>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <ParmParse.H>
 #include "Gravity.H"
 #include "Castro.H"
@@ -386,8 +390,7 @@ Gravity::solve_for_old_phi (int               level,
     // This is a correction for fully periodic domains only
     if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
-       Rhs[mfi].plus(-mass_offset);
+    Rhs.plus(-mass_offset,0,1,0);
 
     solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior);
 }
@@ -413,8 +416,7 @@ Gravity::solve_for_new_phi (int               level,
     // This is a correction for fully periodic domains only
     if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
-       Rhs[mfi].plus(-mass_offset);
+    Rhs.plus(-mass_offset,0,1,0);
     
     Real time = LevelData[level].get_state_data(State_Type).curTime();
 
@@ -766,16 +768,19 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     const Box&    crse_domain = crse_geom.Domain();
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
        Real local_correction = 0.0;
-       for (MFIter mfi(CrseRhs); mfi.isValid(); ++mfi)
-           local_correction += CrseRhs[mfi].sum(mfi.validbox(),0,1);
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+       for (MFIter mfi(CrseRhs,true); mfi.isValid(); ++mfi) {
+           local_correction += CrseRhs[mfi].sum(mfi.tilebox(),0,1);
+       }
        ParallelDescriptor::ReduceRealSum(local_correction);
        
        local_correction = local_correction / grids[crse_level].numPts();
 
        if (verbose && ParallelDescriptor::IOProcessor())
           std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << std::endl;
-       for (MFIter mfi(CrseRhs); mfi.isValid(); ++mfi) 
-          CrseRhs[mfi].plus(-local_correction);
+       CrseRhs.plus(-local_correction,1,0,0);
     }
 
     // delta_phi needs a ghost cell for the solve
@@ -798,15 +803,19 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // In the all-periodic case we enforce that delta_phi averages to zero.
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
        Real local_correction = 0.0;
-       for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi)
-           local_correction += delta_phi[0][mfi].sum(mfi.validbox(),0,1);
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+       for (MFIter mfi(delta_phi[0],true); mfi.isValid(); ++mfi) {
+           local_correction += delta_phi[0][mfi].sum(mfi.tilebox(),0,1);
+       }
        ParallelDescriptor::ReduceRealSum(local_correction);
 
        local_correction = local_correction / grids[crse_level].numPts();
 
-       for (int lev = crse_level; lev <= fine_level; lev++) 
-          for (MFIter mfi(delta_phi[lev-crse_level]); mfi.isValid(); ++mfi)
-             delta_phi[lev-crse_level][mfi].plus(-local_correction);
+       for (int lev = crse_level; lev <= fine_level; lev++) {
+	   delta_phi[lev-crse_level].plus(-local_correction,0,1,1);
+       }
     }
 
     // Add delta_phi to phi_curr, and grad(delta_phi) to grad(delta_phi_curr) on each level
@@ -885,21 +894,28 @@ Gravity::GetCrsePhi(int level,
     const Real t_old = LevelData[level-1].get_state_data(State_Type).prevTime();
     const Real t_new = LevelData[level-1].get_state_data(State_Type).curTime();
     Real alpha = (time - t_old)/(t_new - t_old);
+    Real omalpha = 1.0 - alpha;
 
     phi_crse.clear();
     phi_crse.define(grids[level-1], 1, 1, Fab_allocate); // BUT NOTE we don't trust phi's ghost cells.
-    FArrayBox PhiCrseTemp;
-    for (MFIter mfi(phi_crse); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp    
+#endif
     {
-       PhiCrseTemp.resize(phi_crse[mfi].box(),1);
-
-       PhiCrseTemp.copy(phi_prev[level-1][mfi]);
-       Real omalpha = 1.0 - alpha;
-       PhiCrseTemp.mult(omalpha);
-
-       phi_crse[mfi].copy(phi_curr[level-1][mfi]);
-       phi_crse[mfi].mult(alpha);
-       phi_crse[mfi].plus(PhiCrseTemp);
+	FArrayBox PhiCrseTemp;
+	for (MFIter mfi(phi_crse,true); mfi.isValid(); ++mfi)
+        {
+	    const Box& gtbx = mfi.growntilebox();
+	    
+	    PhiCrseTemp.resize(gtbx,1);
+	    
+	    PhiCrseTemp.copy(phi_prev[level-1][mfi]);
+	    PhiCrseTemp.mult(omalpha);
+	    
+	    phi_crse[mfi].copy(phi_curr[level-1][mfi], gtbx);
+	    phi_crse[mfi].mult(alpha, gtbx);
+	    phi_crse[mfi].plus(PhiCrseTemp);
+	}
     }
 
     phi_crse.FillBoundary();
@@ -918,6 +934,7 @@ Gravity::GetCrseGradPhi(int level,
     const Real t_old = LevelData[level-1].get_state_data(State_Type).prevTime();
     const Real t_new = LevelData[level-1].get_state_data(State_Type).curTime();
     Real alpha = (time - t_old)/(t_new - t_old);
+    Real omalpha = 1.0 - alpha;
 
     BL_ASSERT(grad_phi_crse.size() == BL_SPACEDIM);
     for (int i=0; i<BL_SPACEDIM; ++i)
@@ -925,19 +942,26 @@ Gravity::GetCrseGradPhi(int level,
         BL_ASSERT(!grad_phi_crse.defined(i));
         const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
         grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
-        FArrayBox GradPhiCrseTemp;
-        for (MFIter mfi(grad_phi_crse[i]); mfi.isValid(); ++mfi)
-        {
-            GradPhiCrseTemp.resize(mfi.validbox(),1);
+#ifdef _OPENMP
+#pragma omp	
+#endif
+	{
+	    FArrayBox GradPhiCrseTemp;
+	    for (MFIter mfi(grad_phi_crse[i],true); mfi.isValid(); ++mfi)
+            {
+		const Box& tbx =mfi.tilebox();
+		    
+		GradPhiCrseTemp.resize(tbx,1);
             
-            GradPhiCrseTemp.copy(grad_phi_prev[level-1][i][mfi]);
-            Real omalpha = 1.0 - alpha;
-            GradPhiCrseTemp.mult(omalpha);
+		GradPhiCrseTemp.copy(grad_phi_prev[level-1][i][mfi]);
+		GradPhiCrseTemp.mult(omalpha);
             
-            grad_phi_crse[i][mfi].copy(grad_phi_curr[level-1][i][mfi]);
-            grad_phi_crse[i][mfi].mult(alpha);
-            grad_phi_crse[i][mfi].plus(GradPhiCrseTemp);
+		grad_phi_crse[i][mfi].copy(grad_phi_curr[level-1][i][mfi], tbx);
+		grad_phi_crse[i][mfi].mult(alpha, tbx);
+		grad_phi_crse[i][mfi].plus(GradPhiCrseTemp);
+	    }
         }
+	
         grad_phi_crse[i].FillBoundary();
 
         const Geometry& geom = parent->Geom(level-1);
@@ -1143,9 +1167,9 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
           std::cout << " ... subtracting average density " << mass_offset << 
                        " from RHS at each level " << std::endl;
 
-       for (int lev = 0; lev < nlevs; lev++) 
-          for (MFIter mfi(*(Rhs_p[lev])); mfi.isValid(); ++mfi) 
-             (*Rhs_p[lev])[mfi].plus(-mass_offset);
+       for (int lev = 0; lev < nlevs; lev++) {
+	   (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
+       }
     }
 #endif
      
@@ -1526,8 +1550,7 @@ Gravity::test_level_grad_phi_prev(int level)
        if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS at level ... " 
                     << level << " " << mass_offset << std::endl;
-       for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
-          Rhs[mfi].plus(-mass_offset);
+       Rhs.plus(-mass_offset,0,1,0);
     }
 
     Rhs.mult(Ggravity);
@@ -1544,9 +1567,12 @@ Gravity::test_level_grad_phi_prev(int level)
     const Real* problo = parent->Geom(level).ProbLo();
     int coord_type     = Geometry::Coord();
 
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
