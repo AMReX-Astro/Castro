@@ -18,17 +18,23 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
   OldRotationTerms.setVal(0.);
 
   if (do_rotation == 1) {
-    for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-	 Old_fpi.isValid();++Old_fpi)
-      {
-	const Box& bx = grids[Old_fpi.index()];
-
-	BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(Old_fpi()),
-	   BL_TO_FORTRAN(OldRotationTerms[Old_fpi]),
-	   prob_lo, dx);
-      }
+    {
+	FillPatchIterator old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
+	MultiFab& old_state = old_fpi.get_mf();
+#ifdef _OPENMP
+#pragma omp parallel	  
+#endif
+	for (MFIter mfi(OldRotationTerms,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	    
+	    BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(old_state[mfi]),
+		 BL_TO_FORTRAN(OldRotationTerms[mfi]),
+		 prob_lo, dx);
+	}
+    }
 
     // Add the source terms to ext_src_old
     MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,0);
@@ -49,17 +55,23 @@ void Castro::time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerms, R
   const int ncomp = S_new.nComp();
 
   if (do_rotation == 1) {
-    for (FillPatchIterator New_fpi(*this,S_new,NUM_GROW,cur_time,State_Type,Density,ncomp);
-	 New_fpi.isValid();++New_fpi)
-      {
-	const Box& bx = grids[New_fpi.index()];
+    {
+	FillPatchIterator New_fpi(*this,S_new,NUM_GROW,cur_time,State_Type,Density,ncomp);
+	MultiFab& new_state = New_fpi.get_mf();
+#ifdef _OPENMP
+#pragma omp parallel	  
+#endif
+	for (MFIter mfi(NewRotationTerms,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
 	
-	BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(New_fpi()),
-	   BL_TO_FORTRAN(NewRotationTerms[New_fpi]),
-	   prob_lo, dx);
-      }
+	    BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(new_state[mfi]),
+		 BL_TO_FORTRAN(NewRotationTerms[mfi]),
+		 prob_lo, dx);
+	}
+    }
 
     NewRotationTerms.mult( 0.5*dt);
     OldRotationTerms.mult(-0.5*dt);
