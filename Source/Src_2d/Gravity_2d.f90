@@ -329,50 +329,46 @@
 ! ::
 
       subroutine ca_average_ec ( &
-           fx, fxl1, fxl2, fxh1, fxh2, &
-           fy, fyl1, fyl2, fyh1, fyh2, &
-           cx, cxl1, cxl2, cxh1, cxh2, &
-           cy, cyl1, cyl2, cyh1, cyh2, &
-           lo, hi, rr)
+           f, fl1, fl2, fh1, fh2, &
+           c, cl1, cl2, ch1, ch2, &
+           lo, hi, rr, idir)
 
       use bl_constants_module
       
       implicit none
 
       integer lo(2),hi(2)
-      integer fxl1, fxl2, fxh1, fxh2
-      integer fyl1, fyl2, fyh1, fyh2
-      integer cxl1, cxl2, cxh1, cxh2
-      integer cyl1, cyl2, cyh1, cyh2
-      double precision fx(fxl1:fxh1,fxl2:fxh2)
-      double precision fy(fyl1:fyh1,fyl2:fyh2)
-      double precision cx(cxl1:cxh1,cxl2:cxh2)
-      double precision cy(cyl1:cyh1,cyl2:cyh2)
-      integer rr(2)
+      integer fl1, fl2, fh1, fh2
+      integer cl1, cl2, ch1, ch2
+      double precision f(fl1:fh1,fl2:fh2)
+      double precision c(cl1:ch1,cl2:ch2)
+      integer rr(2), idir
       integer i,j,n,facx,facy
 
       facx = rr(1)
       facy = rr(2)
 
-      do j = lo(2), hi(2)
-         do i = lo(1), hi(1)+1
-            cx(i,j) = ZERO
-            do n = 0,facy-1
-              cx(i,j) = cx(i,j) + fx(facx*i,facy*j+n)
+      if (idir .eq. 0) then
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               c(i,j) = ZERO
+               do n = 0,facy-1
+                  c(i,j) = c(i,j) + f(facx*i,facy*j+n)
+               end do
+               c(i,j) = c(i,j) / facy
             end do
-            cx(i,j) = cx(i,j) / facy
          end do
-      end do
-
-      do i = lo(1), hi(1)
-         do j = lo(2), hi(2)+1
-            cy(i,j) = ZERO
-            do n = 0,facx-1
-              cy(i,j) = cy(i,j) + fy(facx*i+n,facy*j)
+      else 
+         do i = lo(1), hi(1)
+            do j = lo(2), hi(2)
+               c(i,j) = ZERO
+               do n = 0,facx-1
+                  c(i,j) = c(i,j) + f(facx*i+n,facy*j)
+               end do
+               c(i,j) = c(i,j) / facx
             end do
-            cy(i,j) = cy(i,j) / facx
          end do
-      end do
+      end if
 !
       end subroutine ca_average_ec
 

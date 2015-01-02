@@ -31,13 +31,9 @@ BL_FORT_PROC_DECL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
      const Real* dx, const Real* problo, const int* coord_type);
 
 BL_FORT_PROC_DECL(CA_AVERAGE_EC,ca_average_ec)
-    (D_DECL(const BL_FORT_FAB_ARG(xgrad_fine),
-            const BL_FORT_FAB_ARG(ygrad_fine),
-            const BL_FORT_FAB_ARG(zgrad_fine)),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad_crse),
-            const BL_FORT_FAB_ARG(ygrad_crse),
-            const BL_FORT_FAB_ARG(zgrad_crse)),
-            const int ovlo[], const int ovhi[], const int rat[]);
+    (const BL_FORT_FAB_ARG(grad_fine),
+           BL_FORT_FAB_ARG(grad_crse),
+     const int lo[], const int hi[], const int rat[], const int& idir);
 
 BL_FORT_PROC_DECL(CA_TEST_RESIDUAL,ca_test_residual)
     (const int* lo, const int* hi,

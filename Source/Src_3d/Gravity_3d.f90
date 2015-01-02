@@ -371,32 +371,20 @@
 ! ::: 
 
       subroutine ca_average_ec ( &
-           fx, fxl1, fxl2, fxl3, fxh1, fxh2, fxh3, &
-           fy, fyl1, fyl2, fyl3, fyh1, fyh2, fyh3, &
-           fz, fzl1, fzl2, fzl3, fzh1, fzh2, fzh3, &
-           cx, cxl1, cxl2, cxl3, cxh1, cxh2, cxh3, &
-           cy, cyl1, cyl2, cyl3, cyh1, cyh2, cyh3, &
-           cz, czl1, czl2, czl3, czh1, czh2, czh3, &
-           lo, hi, rr)
+           f, fl1, fl2, fl3, fh1, fh2, fh3, &
+           c, cl1, cl2, cl3, ch1, ch2, ch3, &
+           lo, hi, rr, idir)
 
       use bl_constants_module
 
       implicit none
 
       integer lo(3),hi(3)
-      integer fxl1, fxl2, fxl3, fxh1, fxh2, fxh3
-      integer fyl1, fyl2, fyl3, fyh1, fyh2, fyh3
-      integer fzl1, fzl2, fzl3, fzh1, fzh2, fzh3
-      integer cxl1, cxl2, cxl3, cxh1, cxh2, cxh3
-      integer cyl1, cyl2, cyl3, cyh1, cyh2, cyh3
-      integer czl1, czl2, czl3, czh1, czh2, czh3
-      double precision fx(fxl1:fxh1,fxl2:fxh2,fxl3:fxh3)
-      double precision fy(fyl1:fyh1,fyl2:fyh2,fyl3:fyh3)
-      double precision fz(fzl1:fzh1,fzl2:fzh2,fzl3:fzh3)
-      double precision cx(cxl1:cxh1,cxl2:cxh2,cxl3:cxh3)
-      double precision cy(cyl1:cyh1,cyl2:cyh2,cyl3:cyh3)
-      double precision cz(czl1:czh1,czl2:czh2,czl3:czh3)
-      integer rr(3)
+      integer fl1, fl2, fl3, fh1, fh2, fh3
+      integer cl1, cl2, cl3, ch1, ch2, ch3
+      double precision f(fl1:fh1,fl2:fh2,fl3:fh3)
+      double precision c(cl1:ch1,cl2:ch2,cl3:ch3)
+      integer rr(3), idir
 
       integer i,j,k,n,m,facx,facy,facz
 
@@ -404,55 +392,49 @@
       facy = rr(2)
       facz = rr(3)
 
-      !$OMP PARALLEL PRIVATE(i,j,k,m,n)
-      !$OMP DO
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)+1
-               cx(i,j,k) = ZERO
-               do n = 0,facy-1
-                  do m = 0,facz-1
-                     cx(i,j,k) = cx(i,j,k) + fx(facx*i,facy*j+n,facz*k+m)
+      if (idir .eq. 0) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facy-1
+                     do m = 0,facz-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i,facy*j+n,facz*k+m)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facy*facz)
                end do
-               cx(i,j,k) = cx(i,j,k) / (facy*facz)
             end do
          end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)+1
-            do i = lo(1), hi(1)
-               cy(i,j,k) = ZERO
-               do n = 0,facx-1
-                  do m = 0,facz-1
-                     cy(i,j,k) = cy(i,j,k) + fy(facx*i+n,facy*j,facz*k+m)
+      else if (idir .eq. 1) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facx-1
+                     do m = 0,facz-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j,facz*k+m)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facx*facz)
                end do
-               cy(i,j,k) = cy(i,j,k) / (facx*facz)
             end do
          end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k = lo(3), hi(3)+1
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
-               cz(i,j,k) = ZERO
-               do n = 0,facx-1
-                  do m = 0,facy-1
-                     cz(i,j,k) = cz(i,j,k) + fz(facx*i+n,facy*j+m,facz*k)
+      else
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facx-1
+                     do m = 0,facy-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j+m,facz*k)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facx*facy)
                end do
-               cz(i,j,k) = cz(i,j,k) / (facx*facy)
             end do
          end do
-      end do
-      !$OMP END DO
-      !$OMP END PARALLEL
+      end if
 
       end subroutine ca_average_ec
 

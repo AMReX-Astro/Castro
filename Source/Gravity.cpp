@@ -1791,43 +1791,43 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     if (is_new == 1)
     {
-       for (MFIter mfi(grad_phi_curr[level+1][0]); mfi.isValid(); ++mfi)
-       {
-           const int        i        = mfi.index();
-           const Box&       ovlp     = crse_gphi_fine_BA[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	for (int n=0; n<BL_SPACEDIM; ++n) {
+	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
+	    {
+		const Box& tbx = mfi.tilebox();
+
+   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
+		    (BL_TO_FORTRAN(grad_phi_curr[level+1][n][mfi]),
+		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
+		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
+	    }
+	}
    
-           BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-               (D_DECL(BL_TO_FORTRAN(grad_phi_curr[level+1][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_curr[level+1][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_curr[level+1][2][mfi])),
-                D_DECL(BL_TO_FORTRAN(crse_gphi_fine[0][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[1][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[2][mfi])),
-                ovlp.loVect(),ovlp.hiVect(),fine_ratio.getVect());
-       }
-   
-       for (int n=0; n<BL_SPACEDIM; ++n)
-         grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
+	for (int n=0; n<BL_SPACEDIM; ++n)
+	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
     }
     else if (is_new == 0)
     {
-       for (MFIter mfi(grad_phi_prev[level+1][0]); mfi.isValid(); ++mfi)
-       {
-           const int        i        = mfi.index();
-           const Box&       ovlp     = crse_gphi_fine_BA[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	for (int n=0; n<BL_SPACEDIM; ++n) {
+	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
+            {
+		const Box& tbx = mfi.tilebox();
+
+   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
+		    (BL_TO_FORTRAN(grad_phi_prev[level+1][n][mfi]),
+		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
+		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
+	    }
+	}
    
-           BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-               (D_DECL(BL_TO_FORTRAN(grad_phi_prev[level+1][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level+1][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level+1][2][mfi])),
-                D_DECL(BL_TO_FORTRAN(crse_gphi_fine[0][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[1][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[2][mfi])),
-                ovlp.loVect(),ovlp.hiVect(),fine_ratio.getVect());
-       }
-   
-       for (int n=0; n<BL_SPACEDIM; ++n)
-         grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
+	for (int n=0; n<BL_SPACEDIM; ++n)
+	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
     }
 }
 
@@ -2146,21 +2146,19 @@ Gravity::fill_ec_grow (int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi(ecCG,true); mfi.isValid(); ++mfi) {
-		const Box& tbx = mfi.tilebox();
-                ecCG[mfi].copy(ecC[n][mfi], tbx);
-	    }
+            for (MFIter mfi(ecC[n]); mfi.isValid(); ++mfi) {
+                ecCG[mfi].copy(ecC[n][mfi]);
 
             crse_src.copy(ecCG);
         }
 
-	//#ifdef _OPENMP
-	//#paragma omp parallel
-	//#endif
-        for (MFIter mfi(crse_src,true); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#paragma omp parallel
+#endif
+        for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
         {
             const int  nComp = 1;
-            const Box& box   = mfi.tilebox();
+            const Box& box   = crse_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
                 (box.loVect(), box.hiVect(), &nComp, rat, &n,
@@ -2176,6 +2174,9 @@ Gravity::fill_ec_grow (int level,
         //
         fine_src.copy(ecF[n]); // parallel copy
         
+#ifdef _OPENMP
+#paragma omp parallel
+#endif
         for (MFIter mfi(fine_src); mfi.isValid(); ++mfi)
         {
             //
@@ -2201,6 +2202,9 @@ Gravity::fill_ec_grow (int level,
         ecFG.copy(fine_src); // Parallel copy
         ecFG.copy(ecF[n]);   // Parallel copy
 
+#ifdef _OPENMP
+#paragma omp parallel
+#endif
         for (MFIter mfi(ecF[n]); mfi.isValid(); ++mfi)
             ecF[n][mfi].copy(ecFG[mfi]);
     }

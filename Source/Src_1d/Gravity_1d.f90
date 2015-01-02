@@ -254,7 +254,7 @@
       subroutine ca_average_ec ( &
            fx, fxl1, fxh1, &
            cx, cxl1, cxh1, &
-           lo, hi, rr)
+           lo, hi, rr, idir)
  
       implicit none
       integer lo(1),hi(1)
@@ -262,12 +262,13 @@
       integer cxl1, cxh1
       double precision fx(fxl1:fxh1)
       double precision cx(cxl1:cxh1)
-      integer rr(1)
+      integer rr(1), idir
  
       integer i,facx
       facx = rr(1)
 
-      do i = lo(1), hi(1)+1
+      ! lo(1)..hi(1) are edge base indice
+      do i = lo(1), hi(1)
          cx(i) = fx(facx*i)
       end do
  
