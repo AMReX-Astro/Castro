@@ -899,7 +899,7 @@ Gravity::GetCrsePhi(int level,
     phi_crse.clear();
     phi_crse.define(grids[level-1], 1, 1, Fab_allocate); // BUT NOTE we don't trust phi's ghost cells.
 #ifdef _OPENMP
-#pragma omp    
+#pragma omp parallel
 #endif
     {
 	FArrayBox PhiCrseTemp;
@@ -943,7 +943,7 @@ Gravity::GetCrseGradPhi(int level,
         const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
         grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
 #ifdef _OPENMP
-#pragma omp	
+#pragma omp parallel
 #endif
 	{
 	    FArrayBox GradPhiCrseTemp;
@@ -1620,8 +1620,7 @@ Gravity::test_level_grad_phi_curr(int level)
     {
        if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-       for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
-          Rhs[mfi].plus(-mass_offset);
+       Rhs.plus(-mass_offset,0,1,0);
     }
 
     Rhs.mult(Ggravity);
@@ -1638,9 +1637,12 @@ Gravity::test_level_grad_phi_curr(int level)
     const Real* problo = parent->Geom(level).ProbLo();
     int coord_type     = Geometry::Coord();
 
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
@@ -1738,11 +1740,15 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
             ba.surroundingNodes(n);
             MultiFab fluxes(ba, 1, 0);
 
-            for (MFIter mfi(phi_curr[level]); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(fluxes,true); mfi.isValid(); ++mfi)
             {
+		const Box& tbx = mfi.tilebox();
                 FArrayBox& gphi_flux = fluxes[mfi];
-                gphi_flux.copy(grad_phi_curr[level][n][mfi]);
-                gphi_flux.mult(area[level][n][mfi]);
+                gphi_flux.copy(grad_phi_curr[level][n][mfi], tbx);
+                gphi_flux.mult(area[level][n][mfi], tbx, 0, 0, 1);
             }
 
             phi_fine->CrseInit(fluxes,n,0,0,1,-1);
@@ -1842,10 +1848,12 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
 
     MultiFab crse_fine(crse_fine_BA,1,0);
 
-    for (MFIter mfi(fine); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(crse_fine,true); mfi.isValid(); ++mfi)
     {
-        const int        i        = mfi.index();
-        const Box&       ovlp     = crse_fine_BA[i];
+        const Box&       ovlp     = mfi.tilebox();
         FArrayBox&       crse_fab = crse_fine[mfi];
         const FArrayBox& fine_fab = fine[mfi];
 
@@ -1931,8 +1939,7 @@ Gravity::test_composite_phi (int level)
           if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
              std::cout << " ... subtracting average density from RHS in solve at level ... " 
                        << level+lev << " " << mass_offset << std::endl;
-          for (MFIter mfi((*Rhs_p[lev])); mfi.isValid(); ++mfi)
-             (*Rhs_p[lev])[mfi].plus(-mass_offset);
+	  (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
        }
 
        Rhs_p[lev]->mult(Ggravity,0,1);
@@ -2136,16 +2143,24 @@ Gravity::fill_ec_grow (int level,
 
             MultiFab ecCG(edge_grids,1,0);
 
-            for (MFIter mfi(ecC[n]); mfi.isValid(); ++mfi)
-                ecCG[mfi].copy(ecC[n][mfi]);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(ecCG,true); mfi.isValid(); ++mfi) {
+		const Box& tbx = mfi.tilebox();
+                ecCG[mfi].copy(ecC[n][mfi], tbx);
+	    }
 
             crse_src.copy(ecCG);
         }
 
-        for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
+	//#ifdef _OPENMP
+	//#paragma omp parallel
+	//#endif
+        for (MFIter mfi(crse_src,true); mfi.isValid(); ++mfi)
         {
             const int  nComp = 1;
-            const Box& box   = crse_src[mfi].box();
+            const Box& box   = mfi.tilebox();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
                 (box.loVect(), box.hiVect(), &nComp, rat, &n,
