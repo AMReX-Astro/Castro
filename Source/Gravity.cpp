@@ -2153,7 +2153,7 @@ Gravity::fill_ec_grow (int level,
         }
 
 #ifdef _OPENMP
-#paragma omp parallel
+#pragma omp parallel
 #endif
         for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
         {
@@ -2175,7 +2175,7 @@ Gravity::fill_ec_grow (int level,
         fine_src.copy(ecF[n]); // parallel copy
         
 #ifdef _OPENMP
-#paragma omp parallel
+#pragma omp parallel
 #endif
         for (MFIter mfi(fine_src); mfi.isValid(); ++mfi)
         {
@@ -2203,7 +2203,7 @@ Gravity::fill_ec_grow (int level,
         ecFG.copy(ecF[n]);   // Parallel copy
 
 #ifdef _OPENMP
-#paragma omp parallel
+#pragma omp parallel
 #endif
         for (MFIter mfi(ecF[n]); mfi.isValid(); ++mfi)
             ecF[n][mfi].copy(ecFG[mfi]);
