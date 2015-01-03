@@ -289,13 +289,11 @@
           vol = TWO * M_PI * dx(1) * dx(2)
        endif
  
-       !$OMP PARALLEL DO PRIVATE(i,j) REDUCTION(+:product)
        do i = lo(1), hi(1)
            do j = lo(2), hi(2)
              product = product + f1(i,j)*f2(i,j)
            enddo
        enddo
-       !$OMP END PARALLEL DO
 
        product = product * vol
 
