@@ -3,7 +3,7 @@
 ! ::
        subroutine pm_add_to_grav(point_mass,&
                                  grav,grav_l1,grav_l2,grav_h1,grav_h2,&
-                                 problo,dx)
+                                 problo,dx,lo,hi)
 
        use fundamental_constants_module, only : Gconst
        use probdata_module             , only : center
@@ -11,6 +11,7 @@
 
        implicit none
 
+       integer         , intent(in   ) :: lo(2), hi(2)
        integer         , intent(in   ) :: grav_l1,grav_l2,grav_h1,grav_h2
        double precision, intent(in   ) :: point_mass
        double precision, intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,2)
@@ -23,9 +24,9 @@
        !    or this doesn't make sense
 
 !      This computes radial gravity due to a point mass at center().
-       do j = grav_l2, grav_h2
+       do j = lo(2), hi(2)
           y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
-          do i = grav_l1, grav_h1
+          do i = lo(1), hi(1)
              x = problo(1) + abs(dble(i)+HALF) * dx(1) - center(1)
 
              rsq = x*x + y*y

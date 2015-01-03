@@ -2769,11 +2769,15 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
 {
    const Real* dx     = parent->Geom(level).CellSize();
    const Real* problo = parent->Geom(level).ProbLo();
-   for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+   for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
    {
-        BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
-            (&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
-             problo,dx);
+       const Box& bx = mfi.growntilebox();
+       BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
+	   (&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
+	    problo,dx,bx.loVect(),bx.hiVect());
    }
 }
 #endif
