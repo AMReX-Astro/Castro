@@ -2387,7 +2387,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 #endif
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),

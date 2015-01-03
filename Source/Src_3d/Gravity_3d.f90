@@ -706,7 +706,7 @@
         ! Note that when we interpolate into the ghost cells we use the
         ! location of the edge, not the cell center
         !
-        do k = p_l3,p_h3
+        do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
            else if (k .lt. domlo(3)) then
@@ -715,7 +715,7 @@
               z = problo(3) + (dble(k  )+HALF) * dx(3) - center(3)
            end if
 
-           do j = p_l2,p_h2
+           do j = lo(2), hi(2)
               if (j .gt. domhi(2)) then
                  y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
               else if (j .lt. domlo(2)) then
@@ -724,7 +724,7 @@
                  y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
               end if
 
-              do i = p_l1,p_h1
+              do i = lo(1), hi(1)
                  if (i .gt. domhi(1)) then
                     x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
                  else if (i .lt. domlo(1)) then
