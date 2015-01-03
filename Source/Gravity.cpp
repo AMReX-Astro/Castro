@@ -2272,6 +2272,9 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
 
    ParallelDescriptor::Bcast(grav_fab.dataPtr(),grav_fab.box().numPts(),whichProc);
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif   
    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi) 
    {
         grav_vector[mfi].copy(grav_fab);
@@ -2289,11 +2292,12 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
 
-
-
-    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif   
+    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
-       Box bx(mfi.validbox());
+       const Box& bx = mfi.tilebox();
        BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
            (bx.loVect(), bx.hiVect(), dx,
             BL_TO_FORTRAN(grav_vector[mfi]),
@@ -2320,9 +2324,12 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / double(drdxfac);
 
-    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
-       Box bx(mfi.validbox());
+       const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
            (bx.loVect(), bx.hiVect(),dx,&dr,
             BL_TO_FORTRAN(grav_vector[mfi]),
@@ -2375,9 +2382,12 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
         (radial_mass.dataPtr(),radial_grav.dataPtr(),radial_phi.dataPtr(),&dr,&n1d);
 
     Box domain(parent->Geom(level).Domain());
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx = mfi.tilebox();
         BL_FORT_PROC_CALL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),

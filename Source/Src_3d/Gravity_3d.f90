@@ -607,14 +607,13 @@
       ! Note that we are interpolating onto the entire range of grav,
       ! including the ghost cells.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r,index,cen,xi,slope,mag_grav,ghi,gmd,glo,minvar,maxvar)
-      do k = g_l3,g_h3
+      do k = lo(3), hi(3)
          z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
 
-         do j = g_l2,g_h2
+         do j = lo(2), hi(2)
             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
-            do i = g_l1,g_h1
+            do i = lo(1), hi(1)
                x     = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                r     = sqrt(x**2 + y**2 + z**2)
                index = int(r/dr)
@@ -672,7 +671,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_put_radial_grav
 
@@ -957,7 +955,7 @@
         double precision :: x,y,z,r,cosTheta,phiAngle
 
         double precision :: volumeFactor, parityFactor
-        double precision :: edgeTolerance = 1.0d-2
+        double precision, parameter :: edgeTolerance = 1.0d-2
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
         double precision :: rho_r_to_l
