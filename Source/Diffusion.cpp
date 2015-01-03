@@ -296,9 +296,18 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
+	D_TERM(const Box xbx = mfi.fluxbox(0);,
+	       const Box ybx = mfi.fluxbox(1);,
+	       const Box zbx = mfi.fluxbox(2);)
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
+	     D_DECL(xbx.loVect(),
+		    ybx.loVect(),
+		    zbx.loVect()),
+	     D_DECL(xbx.hiVect(),
+		    ybx.hiVect(),
+		    zbx.hiVect()),
              BL_TO_FORTRAN(Rhs[mfi]),
              D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
                     BL_TO_FORTRAN(coeffs[1][mfi]),

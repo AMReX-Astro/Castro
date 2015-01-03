@@ -46,6 +46,8 @@ BL_FORT_PROC_DECL(CA_TEST_RESIDUAL,ca_test_residual)
 
 BL_FORT_PROC_DECL(CA_APPLY_METRIC,ca_apply_metric)
     (const int* lo, const int* hi,
+     D_DECL(const int* xlo, const int *ylo, const int *zlo),
+     D_DECL(const int* xhi, const int *yhi, const int *zhi),
      BL_FORT_FAB_ARG(cc),
      D_DECL(const BL_FORT_FAB_ARG(xedge),
             const BL_FORT_FAB_ARG(yedge),

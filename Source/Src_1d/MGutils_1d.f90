@@ -1,10 +1,11 @@
 
       subroutine ca_apply_metric(lo, hi, &
+                                 xlo, xhi, &
                                  rhs, rl1, rh1,  &
                                  ecx, ecxl1, ecxh1, dx, coord_type)
 
       implicit none
-      integer lo(1),hi(1)
+      integer lo(1),hi(1),xlo(1),xhi(1)
       integer rl1, rh1
       integer ecxl1, ecxh1
       integer coord_type
@@ -25,7 +26,7 @@
          enddo
 
          ! On edges
-         do i=lo(1),hi(1)+1
+         do i=xlo(1),xhi(1)
             r = dble(i)*dx(1)
             ecx(i) = ecx(i) * r
          enddo
@@ -46,7 +47,7 @@
          !                                 = r^2 + dr^2 / 12
 
          ! On edges
-         do i=lo(1),hi(1)+1
+         do i=xlo(1),xhi(1)
             r = dble(i)*dx(1)
             ecx(i) = ecx(i) * r**2
          enddo
