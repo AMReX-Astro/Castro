@@ -101,12 +101,12 @@
 !-----------------------------------------------------------------------
 
       subroutine ca_unweight_edges(lo, hi, &
-                                   ecx, ecxl1, ecxh1, dx, coord_type)
+                                   ecx, ecxl1, ecxh1, dx, coord_type, idir)
 
       implicit none
       integer lo(1),hi(1)
       integer ecxl1, ecxh1
-      integer coord_type
+      integer coord_type, idir
       double precision ecx(ecxl1:ecxh1)
       double precision dx(1)
 
@@ -117,7 +117,7 @@
       if (coord_type .eq. 1) then
 
          ! On edges
-         do i=lo(1),hi(1)+1
+         do i=lo(1),hi(1)
             r = abs(dble(i))*dx(1)
             if (i.ne.0) ecx(i) = ecx(i) / r
          enddo
@@ -126,7 +126,7 @@
       else if (coord_type .eq. 2) then
 
          ! On edges
-         do i=lo(1),hi(1)+1
+         do i=lo(1),hi(1)
             r = dble(i)*dx(1)
             if (i.ne.0) ecx(i) = ecx(i) / r**2
          enddo

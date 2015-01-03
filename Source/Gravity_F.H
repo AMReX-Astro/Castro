@@ -61,10 +61,8 @@ BL_FORT_PROC_DECL(CA_UNWEIGHT_CC,ca_unweight_cc)
 
 BL_FORT_PROC_DECL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
     (const int* lo, const int* hi,
-     D_DECL(const BL_FORT_FAB_ARG(xedge),
-            const BL_FORT_FAB_ARG(yedge),
-            const BL_FORT_FAB_ARG(zedge)), 
-     const Real* dx, const int* coord_type);
+     BL_FORT_FAB_ARG(edge),
+     const Real* dx, const int* coord_type, const int* idir);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
     (const BL_FORT_FAB_ARG(den),

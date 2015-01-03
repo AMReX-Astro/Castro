@@ -2626,9 +2626,9 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-	D_TERM(const Box xbx = mfi.nodalbox(0);,
-	       const Box ybx = mfi.nodalbox(1);,
-	       const Box zbx = mfi.nodalbox(2);)
+	D_TERM(const Box& xbx = mfi.nodalbox(0);,
+	       const Box& ybx = mfi.nodalbox(1);,
+	       const Box& zbx = mfi.nodalbox(2););
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
@@ -2651,10 +2651,12 @@ Gravity::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(cc); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
-        int index = mfi.index();
-        const Box& bx = grids[level][index];
+        const Box& bx = mfi.tilebox();
         BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
             (bx.loVect(), bx.hiVect(),
              BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
@@ -2666,16 +2668,18 @@ Gravity::unweight_edges(int level, PArray<MultiFab>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(edges[0]); mfi.isValid(); ++mfi)
-    {
-        int index = mfi.index();
-        const Box& bx = grids[level][index];
-        BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
-            (bx.loVect(), bx.hiVect(),
-             D_DECL(BL_TO_FORTRAN(edges[0][mfi]),
-                    BL_TO_FORTRAN(edges[1][mfi]),
-                    BL_TO_FORTRAN(edges[2][mfi])),
-             dx,&coord_type);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (int idir=0; idir<BL_SPACEDIM; ++idir) {
+	for (MFIter mfi(edges[idir],true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(edges[idir][mfi]),
+		 dx,&coord_type,&idir);
+	}
     }
 }
 #endif
