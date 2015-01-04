@@ -2804,6 +2804,9 @@ Gravity::computeAvg (int level, MultiFab* mf)
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];

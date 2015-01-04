@@ -29,7 +29,6 @@
         vol  = dx(1)*dx(2)*dx(3)
         mass = ZERO
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k) reduction(+:mass)
         do k = lo(3), hi(3)
            do i = lo(1), hi(1)
               do j = lo(2), hi(2)
@@ -37,7 +36,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
         mass = mass * vol
 
