@@ -28,6 +28,9 @@ Castro::volWgtSum (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -41,8 +44,17 @@ Castro::volWgtSum (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
-        Real s = 0.0;
-        const Box& box  = mfi.validbox();
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+
+	Real s = 0.0;
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
@@ -95,6 +107,9 @@ Castro::volWgtSquaredSum (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -108,8 +123,17 @@ Castro::volWgtSquaredSum (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
@@ -163,6 +187,9 @@ Castro::locWgtSum (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -176,8 +203,17 @@ Castro::locWgtSum (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
@@ -238,6 +274,9 @@ Castro::locWgtSum2D (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -251,8 +290,17 @@ Castro::locWgtSum2D (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
@@ -295,12 +343,15 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
 
     BoxArray baf;
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3) 
@@ -350,7 +401,6 @@ Castro::volWgtSumOneSide (const std::string& name,
     MultiFab*   mf      = derive(name,time,0);
     const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect();
-    bool doSum;
 
     BL_ASSERT(mf != 0);
 
@@ -362,6 +412,9 @@ Castro::volWgtSumOneSide (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -375,8 +428,17 @@ Castro::volWgtSumOneSide (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
@@ -406,7 +468,7 @@ Castro::volWgtSumOneSide (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
         
-        doSum = false;
+        bool doSum = false;
         if ( side == 0 && *(lo + bdir) <= *(hiLeftPtr + bdir) ) {
           doSum = true;
           if ( *(hi + bdir) <= *(hiLeftPtr + bdir) ) {
@@ -470,7 +532,6 @@ Castro::locWgtSumOneSide (const std::string& name,
     MultiFab*   mf      = derive(name,time,0); 
     const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect(); 
-    bool doSum;
 
     BL_ASSERT(mf != 0);
 
@@ -482,6 +543,9 @@ Castro::locWgtSumOneSide (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -495,8 +559,17 @@ Castro::locWgtSumOneSide (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif        
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
@@ -524,7 +597,7 @@ Castro::locWgtSumOneSide (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         // 
 
-        doSum = false;
+        bool doSum = false;
         if ( side == 0 && *(lo + bdir) <= *(hiLeftPtr + bdir) ) {
           doSum = true;
           if ( *(hi + bdir) <= *(hiLeftPtr + bdir) ) {
@@ -613,10 +686,12 @@ Castro::volProductSum (const std::string& name1,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf1); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab1 = (*mf1)[mfi];
-        FArrayBox& fab2 = (*mf2)[mfi];
 
         if (level < parent->finestLevel())
         {
@@ -627,8 +702,18 @@ Castro::volProductSum (const std::string& name1,
                 fab1.setVal(0,isects[ii].second,0,fab1.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf1,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab1 = (*mf1)[mfi];
+        FArrayBox& fab2 = (*mf2)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
@@ -670,6 +755,9 @@ Castro::locSquaredSum (const std::string& name,
         baf.coarsen(fine_ratio);
     }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
     for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
@@ -683,8 +771,17 @@ Castro::locSquaredSum (const std::string& name,
                 fab.setVal(0,isects[ii].second,0,fab.nComp());
             }
         }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*mf)[mfi];
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
