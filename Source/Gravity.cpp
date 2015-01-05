@@ -2297,12 +2297,13 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
 #endif   
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.tilebox();
+       const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
            (bx.loVect(), bx.hiVect(), dx,
             BL_TO_FORTRAN(grav_vector[mfi]),
             geom.ProbLo());
     }
+
     if (verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
