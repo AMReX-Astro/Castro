@@ -550,7 +550,7 @@ Castro::advance_hydro (Real time,
       }
 
       if (radiation->verbose>=1) {
-	ParallelDescriptor::ReduceIntMax(nstep_fsp);
+	  ParallelDescriptor::ReduceIntMax(nstep_fsp, ParallelDescriptor::IOProcessorNumber());
 	if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
 	  std::cout << "Radiation f-space advection on level " << level 
 		    << " takes as many as " << nstep_fsp;
@@ -932,25 +932,28 @@ Castro::advance_hydro (Real time,
 #pragma omp parallel reduction(+:E_added)	
 #endif
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	  {
+	{
 	    const Box& bx = mfi.tilebox();
-	    
+	
+	    Real E_added_local = 0.0;
 	    BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 	      (bx.loVect(), bx.hiVect(),
 	       BL_TO_FORTRAN(grav_vec_old[mfi]),
 	       BL_TO_FORTRAN(grav_vec_new[mfi]),
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
-	       dt,E_added);
-	  }
-
-        ParallelDescriptor::ReduceRealSum(E_added);
+	       dt,E_added_local);
+	    if (print_energy_diagnostics) E_added += E_added_local;	    
+	}
 
         if (print_energy_diagnostics)
         {
-           const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-           if (ParallelDescriptor::IOProcessor()) 
-               std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
+	    ParallelDescriptor::ReduceRealSum(E_added, ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor()) {
+		const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+		std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
+	    }
         }
 
 	computeTemp(S_new);
