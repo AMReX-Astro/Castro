@@ -1401,11 +1401,9 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       for (FillPatchIterator fpi(*amrlev,G_old,ng,time,Gravity_Type,0,BL_SPACEDIM); 
-         fpi.isValid(); ++fpi) 
-         {
-            grav_vector[fpi].copy(fpi());
-         }
+       FillPatchIterator fpi(*amrlev,G_old,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+       const MultiFab& mf_fp = fpi.get_mf();
+       MultiFab::Copy(grav_vector, mf_fp, 0, 0, BL_SPACEDIM, ng);
     }
 #endif
 
@@ -1519,11 +1517,9 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       for (FillPatchIterator fpi(*amrlev,G_new,ng,time,Gravity_Type,0,BL_SPACEDIM);
-         fpi.isValid(); ++fpi)
-         {
-            grav_vector[fpi].copy(fpi());
-         }
+       FillPatchIterator fpi(*amrlev,G_new,ng,time,Gravity_Type,0,BL_SPACEDIM);
+       const MultiFab& mf_fp = fpi.get_mf();
+       MultiFab::Copy(grav_vector, mf_fp, 0, 0, BL_SPACEDIM, ng);
     }
 #endif
 

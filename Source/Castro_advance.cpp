@@ -414,16 +414,16 @@ Castro::advance_hydro (Real time,
       MultiFab Erborder(grids, Radiation::nGroups, NUM_GROW); 
       MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
 
-      for (FillPatchIterator fpi(*this, Sborder, NUM_GROW, time, State_Type, 
-				 0, NUM_STATE); 
-	   fpi.isValid(); ++fpi) {
-	Sborder[fpi].copy(fpi());
+      {
+	  FillPatchIterator fpi(*this, Sborder, NUM_GROW, time, State_Type, 0, NUM_STATE); 
+	  const MultiFab& Sfp = fpi.get_mf();
+	  MultiFab::Copy(Sborder, Sfp, 0, 0, NUM_STATE, NUM_GROW);
       }
 
-      for (FillPatchIterator fpi(*this, Erborder, NUM_GROW, time, Rad_Type, 
-				 0, Radiation::nGroups);
-	   fpi.isValid(); ++fpi) {
-	Erborder[fpi].copy(fpi());
+      {
+	  FillPatchIterator fpi(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+	  const MultiFab& Erfp = fpi.get_mf();
+	  MultiFab::Copy(Erborder, Erfp, 0, 0, Radiation::nGroups, NUM_GROW);
       }
 
       if (radiation->pure_hydro) {

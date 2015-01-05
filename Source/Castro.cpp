@@ -889,11 +889,10 @@ Castro::init (AmrLevel &old)
 
     MultiFab& S_new = get_new_data(State_Type);
     
-    for (FillPatchIterator fpi(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
-          fpi.isValid();
-          ++fpi)
     {
-        S_new[fpi].copy(fpi());
+	FillPatchIterator fpi(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
+	const MultiFab& S_old = fpi.get_mf();
+	MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, 0);
     }
 
     // Set E in terms of e + kinetic energy
@@ -903,26 +902,22 @@ Castro::init (AmrLevel &old)
     if (do_radiation) {
       MultiFab& Er_new = get_new_data(Rad_Type);
       int ncomp = Er_new.nComp();
-      
-      for (FillPatchIterator fpi(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
-          fpi.isValid();
-          ++fpi)
-      {
-        Er_new[fpi].copy(fpi());
-      }
+
+      FillPatchIterator fpi(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
+      const MultiFab &Er_old = fpi.get_mf();
+      MultiFab::Copy(Er_new, Er_old, 0, 0, ncomp, 0);
     }
 #endif
 
 #ifdef REACTIONS
-    MultiFab& React_new = get_new_data(Reactions_Type);
-    int ncomp = React_new.nComp();
-      
-      for (FillPatchIterator fpi(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
-          fpi.isValid();
-          ++fpi)
-      {
-        React_new[fpi].copy(fpi());
-      }
+    {
+	MultiFab& React_new = get_new_data(Reactions_Type);
+	int ncomp = React_new.nComp();
+
+        FillPatchIterator fpi(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
+	const MultiFab& React_old = fpi.get_mf();
+	MultiFab::Copy(React_new, React_old, 0, 0, ncomp, 0);
+    }
 
 #endif
 
@@ -930,11 +925,11 @@ Castro::init (AmrLevel &old)
     MultiFab& LS_new = get_new_data(LS_State_Type);
     int nGrowRegrid = 0;
     
-    for (FillPatchIterator fpi(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
-	 fpi.isValid(); ++fpi)
-      {
-	LS_new[fpi].copy(fpi());
-      }
+    {
+	FillPatchIterator fpi(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
+	const MultiFab& LS_old = fpi.get_mf();
+	MultiFab::Copy(LS_new, LS_old, 0, 0, ncomp, 0);
+    }
     
     // FIXME: Assumes that interpolated coarse data should rather just be setvald
     LStype.setVal(3); // This means we don't care about these points
@@ -3070,9 +3065,10 @@ Castro::define_new_center(MultiFab& S, Real time)
     int owner = mf.DistributionMap()[0];
 
     // Define a cube 3-on-a-side around the point with the maximum density
-    for (FillPatchIterator fpi(*this,mf,0,time,State_Type,Density,1); fpi.isValid(); ++fpi)
     {
-        mf[fpi].copy(fpi());
+	FillPatchIterator fpi(*this,mf,0,time,State_Type,Density,1);
+	const MultiFab& mf_fp = fpi.get_mf();
+	MultiFab::Copy(mf, mf_fp, 0, 0, 1, 0);
     }
 
     int mi[BL_SPACEDIM];
