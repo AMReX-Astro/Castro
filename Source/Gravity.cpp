@@ -2796,33 +2796,21 @@ Gravity::computeAvg (int level, MultiFab* mf)
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        IntVect fine_ratio = parent->refRatio(level);
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	const MultiFab* mask = fine_level->build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);	
     }
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[level][mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
         Real s;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
@@ -2852,7 +2840,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     // This is just here in case we need to debug ...
     int do_diag = 0;
 
-    BoxArray baf;
     Real sum_over_levels = 0.;
 
     for (int lev = 0; lev <= level; lev++)
@@ -2860,12 +2847,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
         const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
-
-        if (lev < level)
-        {
-            baf = parent->boxArray(lev+1);
-            baf.coarsen(parent->refRatio(lev));
-        }
 
         // Create MultiFab with one component and no grow cells
         MultiFab S(grids[lev],1,0);
@@ -2904,6 +2885,13 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
       	    BoxLib::Abort("Problem in Gravity::make_radial_gravity");
         }  
 
+        if (lev < level)
+        {
+	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	    const MultiFab* mask = fine_level->build_fine_mask();
+	    MultiFab::Multiply(S, *mask, 0, 0, 1, 0);	
+        }
+
         int n1d = radial_mass[lev].size();
 
 #ifdef GR_GRAV
@@ -2920,12 +2908,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         {
            Box bx(mfi.validbox());
            FArrayBox& fab = S[mfi];
-           if (lev < level)
-           {
-               std::vector< std::pair<int,Box> > isects = baf.intersections(grids[lev][mfi.index()]);
-               for (int ii = 0; ii < isects.size(); ii++)
-                   fab.setVal(0,isects[ii].second,0,fab.nComp());
-           }
 
            BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
                (bx.loVect(), bx.hiVect(), dx, &dr,

@@ -9,6 +9,38 @@
 #endif
 
 Real
+Castro::sumDerive (const std::string& name,
+                   Real           time)
+{
+    Real sum     = 0.0;
+    MultiFab* mf = derive(name, time, 0);
+
+    BL_ASSERT(!(mf == 0));
+
+    if (level < parent->finestLevel())
+    {
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif
+    {
+	for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	{
+	    sum += (*mf)[mfi].sum(mfi.tilebox(),0);
+	}
+    }
+
+    delete mf;
+
+    ParallelDescriptor::ReduceRealSum(sum);
+
+    return sum;
+}
+
+Real
 Castro::volWgtSum (const std::string& name,
                    Real               time)
 {
@@ -20,30 +52,10 @@ Castro::volWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -99,30 +111,10 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -179,30 +171,10 @@ Castro::locWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -266,30 +238,10 @@ Castro::locWgtSum2D (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -340,8 +292,6 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
     const Real* dx      = geom.CellSize();
 
     BL_ASSERT(mf != 0);
-
-    BoxArray baf;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
@@ -404,30 +354,10 @@ Castro::volWgtSumOneSide (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -535,30 +465,10 @@ Castro::locWgtSumOneSide (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -678,30 +588,10 @@ Castro::volProductSum (const std::string& name1,
     BL_ASSERT(mf1 != 0);
     BL_ASSERT(mf2 != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf1); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab1 = (*mf1)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab1.setVal(0,isects[ii].second,0,fab1.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf1, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -747,30 +637,10 @@ Castro::locSquaredSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP

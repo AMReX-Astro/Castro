@@ -510,6 +510,7 @@ Castro::Castro ()
 #ifdef RADIATION
     rad_flux_reg = 0;
 #endif
+    fine_mask = 0;
 }
 
 Castro::Castro (Amr&            papa,
@@ -546,6 +547,8 @@ Castro::Castro (Amr&            papa,
       rad_flux_reg->setVal(0.0);
     }
 #endif
+
+    fine_mask = 0;
 
 #ifdef GRAVITY
 
@@ -622,6 +625,7 @@ Castro::~Castro ()
       radiation->close(level);
     }
 #endif
+    delete fine_mask;
 }
 
 
@@ -1587,6 +1591,8 @@ Castro::post_regrid (int lbase,
     }
 #endif
 
+    delete fine_mask;
+    fine_mask = 0;
 }
 
 void
@@ -2562,50 +2568,6 @@ Castro::derive (const std::string& name,
     AmrLevel::derive(name,time,mf,dcomp);
 }
 
-Real
-Castro::sumDerive (const std::string& name,
-                   Real           time)
-{
-    Real sum     = 0.0;
-    MultiFab* mf = derive(name, time, 0);
-
-    BL_ASSERT(!(mf == 0));
-
-    BoxArray baf;
-
-    if (level < parent->finestLevel())
-    {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
-#endif
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0);
-            }
-        }
-
-        sum += fab.sum(0);
-    }
-
-    delete mf;
-
-    ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
-}
-
 //
 // Helper function for Castro::SyncInterp().
 //
@@ -3180,4 +3142,37 @@ Castro::getCPUTime()
     previousCPUTimeUsed;
 
   return T;
+}
+
+
+MultiFab*
+Castro::build_fine_mask()
+{
+    BL_ASSERT(level > 0); // because we are building a mask for the coarser level
+
+    if (fine_mask != 0) return fine_mask;
+
+    BoxArray baf = parent->boxArray(level);
+    baf.coarsen(crse_ratio);
+
+    const BoxArray& bac = parent->boxArray(level-1);
+    fine_mask = new MultiFab(bac,1,0);
+    fine_mask->setVal(1.0);
+    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(*fine_mask); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*fine_mask)[mfi];
+
+	std::vector< std::pair<int,Box> > isects = baf.intersections(fab.box());
+
+	for (int ii = 0; ii < isects.size(); ii++)
+	{
+	    fab.setVal(0.0,isects[ii].second,0);
+	}
+    }
+
+    return fine_mask;
 }
