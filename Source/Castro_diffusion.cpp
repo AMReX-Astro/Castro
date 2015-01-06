@@ -27,7 +27,6 @@ Castro::add_diffusion_to_old_source (MultiFab& ext_src_old, MultiFab& OldTempDif
       MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eden,1,0);
       MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eint,1,0);
     }
-    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE);
 }
 
 void

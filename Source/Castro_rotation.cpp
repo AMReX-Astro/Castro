@@ -26,7 +26,7 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
 #endif
 	for (MFIter mfi(OldRotationTerms,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx = mfi.tilebox();
+	    const Box& bx = mfi.growntilebox();
 	    
 	    BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
 		(bx.loVect(), bx.hiVect(),
@@ -37,10 +37,9 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
     }
 
     // Add the source terms to ext_src_old
-    MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,0);
-    MultiFab::Add(ext_src_old,OldRotationTerms,BL_SPACEDIM,Eden,1,0);
-
-    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE);
+    const int nghost = OldRotationTerms.nGrow();
+    MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,nghost);
+    MultiFab::Add(ext_src_old,OldRotationTerms,BL_SPACEDIM,Eden,1,nghost);
   }
 }
 
