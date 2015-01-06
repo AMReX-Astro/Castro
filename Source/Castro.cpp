@@ -2132,7 +2132,7 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
    MultiFab& S_old = get_old_data(State_Type);
    const int ncomp = S_old.nComp();
 
-   ext_src.setVal(0.0,ext_src.nGrow());
+   ext_src.setVal(0.0);
 
    MultiFab levelArea[BL_SPACEDIM];
    for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -2171,9 +2171,8 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
    // So we don't need to call FillPatch for coarse-fine boundaries.
    const MultiFab& S_old = get_old_data(State_Type);
    const MultiFab& S_new = get_new_data(State_Type);
-   const int ncomp = S_old.nComp();
 
-   ext_src.setVal(0.0,ext_src.nGrow());
+   ext_src.setVal(0.0);
 
    {
 #ifdef _OPENMP
@@ -2184,8 +2183,8 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
 	   const Box& bx = mfi.tilebox();
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(S_old()),
-		BL_TO_FORTRAN(S_new()),
+		BL_TO_FORTRAN(S_old[mfi]),
+		BL_TO_FORTRAN(S_new[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&new_time,&dt);
        }

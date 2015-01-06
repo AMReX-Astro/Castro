@@ -415,8 +415,8 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
 #else
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(new_state),
+     const BL_FORT_FAB_ARG(old_state),
+     const BL_FORT_FAB_ARG(new_state),
      BL_FORT_FAB_ARG(ext_src),
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
