@@ -2135,21 +2135,28 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
    ext_src.setVal(0.0,ext_src.nGrow());
 
    MultiFab levelArea[BL_SPACEDIM];
-   for (int i = 0; i < BL_SPACEDIM ; i++)
+   for (int i = 0; i < BL_SPACEDIM ; i++) {
        geom.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
-
-   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-                          Old_fpi.isValid();++Old_fpi)
-   {
-        const Box& bx = grids[Old_fpi.index()];
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(ext_src[Old_fpi]),
-             prob_lo,dx,&old_time,&dt);
    }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
+
+   {
+       FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
+       const MultiFab& S_old = Old_fpi.get_mf();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.growntilebox();
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(S_old[mfi]),
+		BL_TO_FORTRAN(S_old[mfi]),
+		BL_TO_FORTRAN(ext_src[mfi]),
+		prob_lo,dx,&old_time,&dt);
+       }
+   }
 }
 
 void
@@ -2163,19 +2170,27 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
 
    ext_src.setVal(0.0,ext_src.nGrow());
 
-   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp),
-                          New_fpi(*this,S_old,NUM_GROW,new_time,State_Type,Density,ncomp);
-                          Old_fpi.isValid() && New_fpi.isValid();++Old_fpi,++New_fpi)
    {
-        const Box& bx = grids[Old_fpi.index()];
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(  New_fpi()),
-             BL_TO_FORTRAN(ext_src[Old_fpi]),
-             prob_lo,dx,&new_time,&dt);
+       FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
+       FillPatchIterator New_fpi(*this,S_old,NUM_GROW,new_time,State_Type,Density,ncomp);
+
+       const MultiFab& S_old = Old_fpi.get_mf();
+       const MultiFab& S_new = New_fpi.get_mf();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.tilebox();
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(S_old()),
+		BL_TO_FORTRAN(S_new()),
+		BL_TO_FORTRAN(ext_src[mfi]),
+		prob_lo,dx,&new_time,&dt);
+       }
    }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
 }
 
 #endif
