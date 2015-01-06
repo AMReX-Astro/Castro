@@ -2141,7 +2141,7 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
 
    {
        FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-       const MultiFab& S_old = Old_fpi.get_mf();
+       const MultiFab& S_old_fp = Old_fpi.get_mf();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2151,8 +2151,8 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
 	   const Box& bx = mfi.growntilebox();
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(S_old[mfi]),
-		BL_TO_FORTRAN(S_old[mfi]),
+		BL_TO_FORTRAN(S_old_fp[mfi]),
+		BL_TO_FORTRAN(S_old_fp[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&old_time,&dt);
        }
@@ -2165,18 +2165,17 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
    const Real* dx = geom.CellSize();
    const Real* prob_lo   = geom.ProbLo();
 
-   MultiFab& S_old = get_old_data(State_Type);
+   BL_ASSERT(ext_src.nGrow() == 0);
+
+   // Unlike getOldSource, there are no ghost cells in ext_src.
+   // So we don't need to call FillPatch for coarse-fine boundaries.
+   const MultiFab& S_old = get_old_data(State_Type);
+   const MultiFab& S_new = get_new_data(State_Type);
    const int ncomp = S_old.nComp();
 
    ext_src.setVal(0.0,ext_src.nGrow());
 
    {
-       FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-       FillPatchIterator New_fpi(*this,S_old,NUM_GROW,new_time,State_Type,Density,ncomp);
-
-       const MultiFab& S_old = Old_fpi.get_mf();
-       const MultiFab& S_new = New_fpi.get_mf();
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
