@@ -888,12 +888,7 @@ Castro::init (AmrLevel &old)
     setTimeLevel(cur_time,dt_old,dt_new);
 
     MultiFab& S_new = get_new_data(State_Type);
-    
-    {
-	FillPatchIterator fpi(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
-	const MultiFab& S_old = fpi.get_mf();
-	MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, 0);
-    }
+    FillPatch(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
 
     // Set E in terms of e + kinetic energy
     // enforce_consistent_e(S_new);
@@ -903,9 +898,7 @@ Castro::init (AmrLevel &old)
       MultiFab& Er_new = get_new_data(Rad_Type);
       int ncomp = Er_new.nComp();
 
-      FillPatchIterator fpi(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
-      const MultiFab &Er_old = fpi.get_mf();
-      MultiFab::Copy(Er_new, Er_old, 0, 0, ncomp, 0);
+      FillPatch(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
     }
 #endif
 
@@ -914,9 +907,7 @@ Castro::init (AmrLevel &old)
 	MultiFab& React_new = get_new_data(Reactions_Type);
 	int ncomp = React_new.nComp();
 
-        FillPatchIterator fpi(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
-	const MultiFab& React_old = fpi.get_mf();
-	MultiFab::Copy(React_new, React_old, 0, 0, ncomp, 0);
+        FillPatch(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
     }
 
 #endif
@@ -925,11 +916,7 @@ Castro::init (AmrLevel &old)
     MultiFab& LS_new = get_new_data(LS_State_Type);
     int nGrowRegrid = 0;
     
-    {
-	FillPatchIterator fpi(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
-	const MultiFab& LS_old = fpi.get_mf();
-	MultiFab::Copy(LS_new, LS_old, 0, 0, ncomp, 0);
-    }
+    FillPatch(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
     
     // FIXME: Assumes that interpolated coarse data should rather just be setvald
     LStype.setVal(3); // This means we don't care about these points
@@ -3065,11 +3052,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     int owner = mf.DistributionMap()[0];
 
     // Define a cube 3-on-a-side around the point with the maximum density
-    {
-	FillPatchIterator fpi(*this,mf,0,time,State_Type,Density,1);
-	const MultiFab& mf_fp = fpi.get_mf();
-	MultiFab::Copy(mf, mf_fp, 0, 0, 1, 0);
-    }
+    FillPatch(*this,mf,0,time,State_Type,Density,1);
 
     int mi[BL_SPACEDIM];
     for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
