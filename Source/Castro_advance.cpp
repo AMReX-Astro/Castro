@@ -369,8 +369,6 @@ Castro::advance_hydro (Real time,
     if (do_grav) {
       // Copy the gravity vector (including NUM_GROW ghost cells) for passing to umdrv.
       MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,NUM_GROW);
-      grav_vector.FillBoundary();
-      geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
     }
 #endif
     

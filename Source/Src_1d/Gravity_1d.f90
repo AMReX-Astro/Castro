@@ -176,13 +176,6 @@
 
       end if
 
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do i=lo(1),-1
-            cc(i) = -cc(-i-1)
-         enddo
-      endif
-
       end subroutine ca_avg_ec_to_cc
 
 ! :::

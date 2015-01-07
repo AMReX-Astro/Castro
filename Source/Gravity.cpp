@@ -866,10 +866,12 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 
        const Real* dx = parent->Geom(lev).CellSize();
 
-       for (MFIter mfi(S); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif
+       for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
        {
-          int index = mfi.index();
-          const Box& bx = grids[lev][index];
+          const Box& bx = mfi.tilebox();
 
           // Average edge-centered gradients of crse dPhi to cell centers
           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
@@ -1365,13 +1367,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        const Real*     dx = parent->Geom(level).CellSize();
        const Real* problo = parent->Geom(level).ProbLo();
 
-       // Average edge-centered gradients to cell centers, including grow cells
-       //   Grow cells are filled either by physical bc's in AVG_EC_TO_CC or
-       //   by FillBoundary call to grav_vector afterwards.
-       for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi) {
- 
-           int i = mfi.index();
-           const Box& bx = grids[level][i];
+       // Average edge-centered gradients to cell centers, excluding grow cells
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi) 
+       {
+           const Box& bx = mfi.tilebox();
  
            BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
                (bx.loVect(), bx.hiVect(),
@@ -1382,9 +1384,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
                        BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
                        dx,problo,&coord_type);
        }
-       grav_vector.FillBoundary();
-       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
- 
     } else {
        BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
     }
@@ -1418,6 +1417,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     BL_PROFILE("Gravity::get_new_grav_vector()");
 
     int ng = grav_vector.nGrow();
+
+    BL_ASSERT(ng == 0);
 
     if (gravity_type == "ConstantGrav") {
 
@@ -1479,13 +1480,13 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        const Real*     dx = parent->Geom(level).CellSize();
        const Real* problo = parent->Geom(level).ProbLo();
 
-      // Average edge-centered gradients to cell centers, including grow cells
-      //   Grow cells are filled either by physical bc's in AVG_EC_TO_CC or
-      //   by FillBoundary call to grav_vector afterwards.
-       for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+      // Average edge-centered gradients to cell centers, excluding grow cells
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
        {
-          int i = mfi.index();
-          const Box& bx = grids[level][i];
+	  const Box& bx = mfi.tilebox();
 
           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
               (bx.loVect(), bx.hiVect(),
@@ -1496,9 +1497,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
                       BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
                       dx,problo,&coord_type);
        }
-       grav_vector.FillBoundary();
-       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
-
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
     }
@@ -1507,17 +1505,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill G_new from grav_vector
     MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
-
-#if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav") {
-
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
-
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
-    }
-#endif
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));

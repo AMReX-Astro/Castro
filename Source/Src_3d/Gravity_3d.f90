@@ -266,8 +266,6 @@
       ! Local variables
       integer          :: i,j,k
 
-      !$OMP PARALLEL PRIVATE(i,j,k)
-      !$OMP DO
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
@@ -277,50 +275,6 @@
             enddo
          enddo
       enddo
-      !$OMP END DO
-      !$OMP END PARALLEL
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do k=lo(3),hi(3)
-            do j=lo(2),hi(2)
-               do i=lo(1),-1
-                  cc(i,j,k,1) = -cc(-i-1,j,k,1)
-                  cc(i,j,k,2) =  cc(-i-1,j,k,2)
-                  cc(i,j,k,3) =  cc(-i-1,j,k,3)
-               enddo
-            enddo
-         enddo
-      endif
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl2 .lt. 0 .and. bc_lo(2) .eq. symmetry_type) then
-         do k=lo(3),hi(3)
-            do j=lo(2),-1
-               do i=lo(1),hi(1)
-                  cc(i,j,k,1) =  cc(i,-j-1,k,1)
-                  cc(i,j,k,2) = -cc(i,-j-1,k,2)
-                  cc(i,j,k,3) =  cc(i,-j-1,k,3)
-               enddo
-            enddo
-         enddo
-      endif
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl3 .lt. 0 .and. bc_lo(3) .eq. symmetry_type) then
-         do k=lo(3),-1
-            do j=lo(2),hi(2)
-               do i=lo(1),hi(1)
-                  cc(i,j,k,1) =  cc(i,j,-k-1,1)
-                  cc(i,j,k,2) =  cc(i,j,-k-1,2)
-                  cc(i,j,k,3) = -cc(i,j,-k-1,3)
-               enddo
-            enddo
-         enddo
-      endif
          
       end subroutine ca_avg_ec_to_cc
 

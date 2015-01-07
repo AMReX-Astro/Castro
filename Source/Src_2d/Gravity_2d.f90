@@ -234,27 +234,6 @@
 
       end if
 
-
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do j=lo(2),hi(2)
-         do i=lo(1),-1
-            cc(i,j,1) = -cc(-i-1,j,1)
-            cc(i,j,2) =  cc(-i-1,j,2)
-         enddo
-         enddo
-      endif
-
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl2 .lt. 0 .and. bc_lo(2) .eq. symmetry_type) then
-         do i=lo(1),hi(1)
-         do j=lo(2),-1
-            cc(i,j,1) =  cc(i,-j-1,1)
-            cc(i,j,2) = -cc(i,-j-1,2)
-         enddo
-         enddo
-      endif
-
       end subroutine ca_avg_ec_to_cc
 
 ! ::
