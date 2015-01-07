@@ -11,21 +11,21 @@ using std::string;
 
 void
 #ifdef TAU
-Castro::add_diffusion_to_old_source (MultiFab& ext_src_old, MultiFab& OldTempDiffTerm, Real prev_time, MultiFab& tau_diff)
+Castro::add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t, MultiFab& tau_diff)
 #else
-Castro::add_diffusion_to_old_source (MultiFab& ext_src_old, MultiFab& OldTempDiffTerm, Real prev_time)
+Castro::add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t)
 #endif
 {
     // Define an explicit temperature update.
-    OldTempDiffTerm.setVal(0.);
+    TempDiffTerm.setVal(0.);
     if (diffuse_temp == 1) {
 #ifdef TAU
-       getTempDiffusionTerm(prev_time,OldTempDiffTerm,&tau_diff);
+       getTempDiffusionTerm(t,TempDiffTerm,&tau_diff);
 #else
-       getTempDiffusionTerm(prev_time,OldTempDiffTerm);
+       getTempDiffusionTerm(t,TempDiffTerm);
 #endif
-      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eden,1,1);
-      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eint,1,1);
+      MultiFab::Add(ext_src,TempDiffTerm,0,Eden,1,1);
+      MultiFab::Add(ext_src,TempDiffTerm,0,Eint,1,1);
     }
 }
 

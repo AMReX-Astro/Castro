@@ -392,16 +392,16 @@ Castro::advance_hydro (Real time,
 #ifdef DIFFUSION
     MultiFab OldTempDiffTerm(grids,1,1);
 #ifdef TAU
-    add_diffusion_to_old_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
 #else
-    add_diffusion_to_old_source(ext_src_old,OldTempDiffTerm,prev_time);
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
 #endif
 #endif
 
 #ifdef ROTATION
     // OldRotationTerms will hold the source terms for momentum + EDEN
     MultiFab OldRotationTerms(grids,BL_SPACEDIM+1,1);
-    add_rotation_to_old_source(ext_src_old,OldRotationTerms,prev_time);
+    add_rotation_to_source(ext_src_old,OldRotationTerms,prev_time);
 #endif
 
     ext_src_old.FillBoundary();
@@ -809,8 +809,6 @@ Castro::advance_hydro (Real time,
                   }
               }
 	  }
-#else
-	getOldSource(prev_time,dt,ext_src_old);
 #endif
 	// Must compute new temperature in case it is needed in the source term evaluation
 	computeTemp(S_new);
@@ -858,7 +856,21 @@ Castro::advance_hydro (Real time,
 	  }
 #else
 	getNewSource(prev_time,cur_time,dt,ext_src_new);
+
+#ifdef DIFFUSION
+	MultiFab& NewTempDiffTerm = OldTempDiffTerm;
+#ifdef TAU
+	add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
+#else
+	add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
 #endif
+#endif
+
+#ifdef ROTATION
+	MultiFab& NewRotationTerms = OldRotationTerms;
+	add_rotation_to_source(ext_src_new,NewRotationTerms,cur_time);
+#endif
+#endif  // else of ifdef SGS
 
         time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
 	
@@ -950,6 +962,7 @@ Castro::advance_hydro (Real time,
       }
 #endif
     
+#ifdef SGS  // for non-SGS, diffusion and rotataion have been time-centered.
 #ifdef DIFFUSION
 #ifdef TAU
     time_center_diffusion(S_new, OldTempDiffTerm, cur_time, dt, tau_diff);
@@ -961,7 +974,9 @@ Castro::advance_hydro (Real time,
 #ifdef ROTATION
     time_center_rotation(S_new, OldRotationTerms, cur_time, dt);
 #endif
-    
+#endif    
+
+
     reset_internal_energy(S_new);
     
 #ifdef REACTIONS

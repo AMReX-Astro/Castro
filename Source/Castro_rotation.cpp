@@ -7,7 +7,7 @@ using std::string;
 
 #ifdef ROTATION
 
-void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRotationTerms, Real old_time)
+void Castro::add_rotation_to_source(MultiFab& ext_src, MultiFab& RotationTerms, Real t)
 {
   const Real* dx = geom.CellSize();
   const Real* prob_lo = geom.ProbLo();
@@ -15,30 +15,30 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
   MultiFab& S_old = get_old_data(State_Type);
   const int ncomp = S_old.nComp();
 
-  OldRotationTerms.setVal(0.);
+  RotationTerms.setVal(0.);
 
   if (do_rotation == 1) {
     {
-	FillPatchIterator old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-	MultiFab& old_state = old_fpi.get_mf();
+	FillPatchIterator fpi(*this,S_old,NUM_GROW,t,State_Type,0,ncomp);
+	MultiFab& state = fpi.get_mf();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
-	for (MFIter mfi(OldRotationTerms,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(RotationTerms,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.growntilebox();
 	    
 	    BL_FORT_PROC_CALL(CA_ROTATE,ca_rotate)
 		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(old_state[mfi]),
-		 BL_TO_FORTRAN(OldRotationTerms[mfi]),
+		 BL_TO_FORTRAN(state[mfi]),
+		 BL_TO_FORTRAN(RotationTerms[mfi]),
 		 prob_lo, dx);
 	}
     }
 
-    // Add the source terms to ext_src_old
-    MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,1);
-    MultiFab::Add(ext_src_old,OldRotationTerms,BL_SPACEDIM,Eden,1,1);
+    // Add the source terms to ext_src
+    MultiFab::Add(ext_src,RotationTerms,0,Xmom,BL_SPACEDIM,1);
+    MultiFab::Add(ext_src,RotationTerms,BL_SPACEDIM,Eden,1,1);
   }
 }
 
