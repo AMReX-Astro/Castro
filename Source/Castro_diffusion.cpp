@@ -24,8 +24,8 @@ Castro::add_diffusion_to_old_source (MultiFab& ext_src_old, MultiFab& OldTempDif
 #else
        getTempDiffusionTerm(prev_time,OldTempDiffTerm);
 #endif
-      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eden,1,0);
-      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eint,1,0);
+      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eden,1,1);
+      MultiFab::Add(ext_src_old,OldTempDiffTerm,0,Eint,1,1);
     }
 }
 

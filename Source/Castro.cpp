@@ -2236,14 +2236,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
      std::cerr << "ERROR:tau must == 0 if USE_TAU = FALSE " << std::endl;
 #endif
 
-   // Fill temperature at this level.
-   MultiFab Temperature(grids,1,1,Fab_allocate);
-   for (FillPatchIterator fpi(*this,S_old,1,time,State_Type,Temp,1);
-                          fpi.isValid();++fpi)
-   {
-       Temperature[fpi].copy(fpi(),fpi().box());
-   }
-
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
@@ -2256,21 +2248,33 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());
    const Real*       dx_fine = fine_geom.CellSize();
 
-   for (FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
-                          fpi.isValid();++fpi)
+   // Fill temperature at this level.
+   MultiFab Temperature(grids,1,1,Fab_allocate);
+
    {
-       Box bx(fpi.validbox());
-       int i = fpi.index();
-       BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-                (bx.loVect(), bx.hiVect(),
-                 BL_TO_FORTRAN(fpi()),
-#ifdef TAU
-                 BL_TO_FORTRAN((*tau)[fpi]),
+       FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+       MultiFab& state_old = fpi.get_mf();
+       
+       MultiFab::Copy(Temperature, state_old, Temp, 0, 1, 1);
+
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-                 D_DECL(BL_TO_FORTRAN(coeffs[0][fpi]),
-                        BL_TO_FORTRAN(coeffs[1][fpi]),
-                        BL_TO_FORTRAN(coeffs[2][fpi])),
-                 dx_fine);
+       for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = grids[mfi.index()];
+
+	   BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(state_old[mfi]),
+#ifdef TAU
+		BL_TO_FORTRAN((*tau)[mfi]),
+#endif
+		D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
+		       BL_TO_FORTRAN(coeffs[1][mfi]),
+		       BL_TO_FORTRAN(coeffs[2][mfi])),
+		dx_fine);
+       }
    }
 
    if (Geometry::isAnyPeriodic())
@@ -2283,12 +2287,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
       // Fill temperature at next coarser level, if it exists.
       const BoxArray& crse_grids = getLevel(level-1).boxArray();
       MultiFab CrseTemp(crse_grids,1,1,Fab_allocate);
-      for (FillPatchIterator fpi(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
-          fpi.isValid();
-          ++fpi)
-      {
-        CrseTemp[fpi].copy(fpi());
-      }
+      FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
       diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
    }
 }

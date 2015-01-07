@@ -37,9 +37,8 @@ void Castro::add_rotation_to_old_source(MultiFab& ext_src_old, MultiFab& OldRota
     }
 
     // Add the source terms to ext_src_old
-    const int nghost = OldRotationTerms.nGrow();
-    MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,nghost);
-    MultiFab::Add(ext_src_old,OldRotationTerms,BL_SPACEDIM,Eden,1,nghost);
+    MultiFab::Add(ext_src_old,OldRotationTerms,0,Xmom,BL_SPACEDIM,1);
+    MultiFab::Add(ext_src_old,OldRotationTerms,BL_SPACEDIM,Eden,1,1);
   }
 }
 
