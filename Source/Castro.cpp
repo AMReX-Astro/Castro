@@ -2290,6 +2290,20 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
       diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
    }
+
+   // Extrapolate to ghost cells
+   if (TempDiffTerm.nGrow() > 0) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(TempDiffTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(TempDiffTerm[mfi]));
+       }
+   }
 }
 #endif
 

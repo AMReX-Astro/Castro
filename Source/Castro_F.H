@@ -432,6 +432,10 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
 #endif
      const Real& time, const Real& dt_react);
 
+BL_FORT_PROC_DECL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(TempDiffTerm));
+
 BL_FORT_PROC_DECL(COMPUTE_TEMP,compute_temp)
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG(state));

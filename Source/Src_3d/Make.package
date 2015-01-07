@@ -45,3 +45,8 @@ endif
 ifeq ($(USE_ROTATION), TRUE)
 f90EXE_sources += Rotate_$(DIM)d.f90
 endif
+
+ifeq ($(USE_DIFFUSION), TRUE)
+f90EXE_sources += Diffusion_$(DIM)d.f90
+endif
+

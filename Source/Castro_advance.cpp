@@ -405,7 +405,7 @@ Castro::advance_hydro (Real time,
 #endif
 
     ext_src_old.FillBoundary();
-    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE);
+    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
     
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
