@@ -37,8 +37,9 @@ void Castro::add_rotation_to_source(MultiFab& ext_src, MultiFab& RotationTerms, 
     }
 
     // Add the source terms to ext_src
-    MultiFab::Add(ext_src,RotationTerms,0,Xmom,BL_SPACEDIM,1);
-    MultiFab::Add(ext_src,RotationTerms,BL_SPACEDIM,Eden,1,1);
+    int ng = std::min(ext_src.nGrow(),RotationTerms.nGrow());
+    MultiFab::Add(ext_src,RotationTerms,0,Xmom,BL_SPACEDIM,ng);
+    MultiFab::Add(ext_src,RotationTerms,BL_SPACEDIM,Eden,1,ng);
   }
 }
 

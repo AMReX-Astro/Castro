@@ -24,8 +24,9 @@ Castro::add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real
 #else
        getTempDiffusionTerm(t,TempDiffTerm);
 #endif
-      MultiFab::Add(ext_src,TempDiffTerm,0,Eden,1,1);
-      MultiFab::Add(ext_src,TempDiffTerm,0,Eint,1,1);
+       int ng = std::min(ext_src.nGrow(),TempDiffTerm.nGrow());
+       MultiFab::Add(ext_src,TempDiffTerm,0,Eden,1,ng);
+       MultiFab::Add(ext_src,TempDiffTerm,0,Eint,1,ng);
     }
 }
 

@@ -379,6 +379,19 @@ Castro::advance_hydro (Real time,
     MultiFab ext_src_old(grids,NUM_STATE,1,Fab_allocate);
     ext_src_old.setVal(0.0);
     
+    MultiFab ext_src_new;
+    bool have_source_terms = add_ext_src;
+#ifdef ROTATION
+    have_source_terms = true;
+#endif
+#ifdef DIFFUSION
+    have_source_terms = true;
+#endif
+    if (have_source_terms) {
+	ext_src_new.define(grids,NUM_STATE,0,Fab_allocate);
+	ext_src_new.setVal(0.0);
+    }
+
 #ifdef SGS
     if (add_ext_src) {
       reset_old_sgs(dt);
@@ -812,10 +825,8 @@ Castro::advance_hydro (Real time,
 #endif
 	// Must compute new temperature in case it is needed in the source term evaluation
 	computeTemp(S_new);
-	
+
 	// Compute source at new time (no ghost cells needed)
-	MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
-	ext_src_new.setVal(0.0);
 	
 #if (BL_SPACEDIM > 1)
 	// We need to make the new radial data now so that we can use it when we
@@ -856,30 +867,37 @@ Castro::advance_hydro (Real time,
 	  }
 #else
 	getNewSource(prev_time,cur_time,dt,ext_src_new);
+#endif
+      }
 
-#ifdef DIFFUSION
-	MultiFab& NewTempDiffTerm = OldTempDiffTerm;
-#ifdef TAU
-	add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
+#ifdef SGS
+// old way: time-centering for ext_src, diffusion and rotation are separated.
+    if (add_ext_src) {
+	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
+	reset_new_sgs(dt);
+	computeTemp(S_new);
+    }
 #else
-	add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
+// New way for non-SGS: time-centering for ext_src, diffusion and rotation are merged.
+#ifdef DIFFUSION
+    MultiFab& NewTempDiffTerm = OldTempDiffTerm;
+#ifdef TAU
+    add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
+#else
+    add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
 #endif
 #endif
 
 #ifdef ROTATION
-	MultiFab& NewRotationTerms = OldRotationTerms;
-	add_rotation_to_source(ext_src_new,NewRotationTerms,cur_time);
+    MultiFab& NewRotationTerms = OldRotationTerms;
+    add_rotation_to_source(ext_src_new,NewRotationTerms,cur_time);
 #endif
-#endif  // else of ifdef SGS
-
-        time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
-	
-#ifdef SGS
-	reset_new_sgs(dt);
 #endif
-	
+    
+    if (have_source_terms) {
+	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
 	computeTemp(S_new);
-      }
+    }
     
 #ifdef GRAVITY
     if (do_grav)
