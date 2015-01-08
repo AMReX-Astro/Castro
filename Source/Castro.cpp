@@ -2478,7 +2478,6 @@ Castro::errorEst (TagBoxArray& tags,
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
-    Array<int>  itags;
 
     for (int j = 0; j < err_list.size(); j++)
     {
@@ -2486,36 +2485,63 @@ Castro::errorEst (TagBoxArray& tags,
 
         BL_ASSERT(!(mf == 0));
 
-        for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-        {
-            int         idx     = mfi.index();
-            RealBox     gridloc = RealBox(grids[idx],geom.CellSize(),geom.ProbLo());
-            itags               = tags[mfi].tags();
-            int*        tptr    = itags.dataPtr();
-            const int*  tlo     = tags[mfi].box().loVect();
-            const int*  thi     = tags[mfi].box().hiVect();
-            const int*  lo      = mfi.validbox().loVect();
-            const int*  hi      = mfi.validbox().hiVect();
-            const Real* xlo     = gridloc.lo();
-            Real*       dat     = (*mf)[mfi].dataPtr();
-            const int*  dlo     = (*mf)[mfi].box().loVect();
-            const int*  dhi     = (*mf)[mfi].box().hiVect();
-            const int   ncomp   = (*mf)[mfi].nComp();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	{
+	    Array<int>  itags;
 
-            err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
-				  &clearval, dat, ARLIM(dlo), ARLIM(dhi),
-				  lo,hi, &ncomp, domain_lo, domain_hi,
-				  dx, xlo, prob_lo, &time, &level);
-            //
-            // Don't forget to set the tags in the TagBox.
-            //
-            if (allow_untagging == 1) 
-            {
-               tags[mfi].tags_and_untags(itags);
-            } else {
-               tags[mfi].tags(itags);
-            }
-        }
+	    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	    {
+		// FABs
+		FArrayBox&  datfab  = (*mf)[mfi];
+		TagBox&     tagfab  = tags[mfi];
+
+		// Box in physical space
+		int         idx     = mfi.index();
+		RealBox     gridloc = RealBox(grids[idx],geom.CellSize(),geom.ProbLo());
+
+		// tile box
+		const Box&  tilebx  = mfi.tilebox();
+
+		//fab boxes
+		const Box&  datbox  = datfab.box();
+		const Box&  tagbox  = tagfab.box();
+
+		// We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+		// So we are going to get a temporary integer array.
+		tagfab.get_itags(itags, tilebx);
+
+		// data pointer and index space
+		int*        tptr    = itags.dataPtr();
+		const int*  tlo     = tagbox.loVect();
+		const int*  thi     = tagbox.hiVect();
+		//
+		const int*  lo      = tilebx.loVect();
+		const int*  hi      = tilebx.hiVect();
+		//
+		const Real* xlo     = gridloc.lo();
+		//
+		Real*       dat     = datfab.dataPtr();
+		const int*  dlo     = datbox.loVect();
+		const int*  dhi     = datbox.hiVect();
+		const int   ncomp   = datfab.nComp();
+		
+		err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
+				      &clearval, dat, ARLIM(dlo), ARLIM(dhi),
+				      lo,hi, &ncomp, domain_lo, domain_hi,
+				      dx, xlo, prob_lo, &time, &level);
+		//
+		// Don't forget to set the tags in the TagBox.
+		//
+		if (allow_untagging == 1) 
+		{
+		    tagfab.tags_and_untags(itags, tilebx);
+		} else {
+		    tagfab.tags(itags, tilebx);
+		}
+	    }
+	}
 
         delete mf;
     }
