@@ -2504,9 +2504,8 @@ Castro::errorEst (TagBoxArray& tags,
 		// tile box
 		const Box&  tilebx  = mfi.tilebox();
 
-		//fab boxes
+		//fab box
 		const Box&  datbox  = datfab.box();
-		const Box&  tagbox  = tagfab.box();
 
 		// We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
 		// So we are going to get a temporary integer array.
@@ -2514,11 +2513,11 @@ Castro::errorEst (TagBoxArray& tags,
 
 		// data pointer and index space
 		int*        tptr    = itags.dataPtr();
-		const int*  tlo     = tagbox.loVect();
-		const int*  thi     = tagbox.hiVect();
+		const int*  tlo     = tilebx.loVect();
+		const int*  thi     = tilebx.hiVect();
 		//
-		const int*  lo      = tilebx.loVect();
-		const int*  hi      = tilebx.hiVect();
+		const int*  lo      = tlo;
+		const int*  hi      = thi;
 		//
 		const Real* xlo     = gridloc.lo();
 		//
