@@ -323,10 +323,9 @@ contains
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
-                                   QPRES, QREINT, QFA, QFS, &
+                                   QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres, small_temp, &
+                                   small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, &
                                    npassive, upass_map, qpass_map
     
@@ -355,7 +354,6 @@ contains
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nq
-    integer :: iadv, ispec, iaux
     
     double precision :: rgdnv,vgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, pl, rel
@@ -847,8 +845,8 @@ contains
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map    
 
@@ -877,7 +875,7 @@ contains
     double precision :: gegdnv(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
     
     integer :: ilo,ihi,jlo,jhi
-    integer :: iadv, ispec, iaux, n, nq
+    integer :: n, nq
     integer :: i, j, ipassive
 
     double precision :: rgd, vgd, regd, ustar
@@ -1082,9 +1080,9 @@ contains
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
  
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-                                   small_dens, small_pres, npassive, upass_map, qpass_map
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, &
+                                   npassive, upass_map, qpass_map
 
     use network, only : nspec, naux
 
@@ -1097,7 +1095,7 @@ contains
     double precision :: cavg, uavg
     double precision :: fl_tmp, fr_tmp
     double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
-    integer :: iadv, iaux, ispec, n, nq
+    integer :: n, nq
 
     integer :: ipassive
 
