@@ -35,7 +35,7 @@ subroutine ca_ext_src(lo,hi, &
      firstCall = .false.
   endif
 
-  src = 0.d0
+  src(lo(1):hi(1),lo(2):hi(2),:) = 0.d0
   H_max = 0.d0
 
   y_layer = 1.25d8
