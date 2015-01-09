@@ -279,10 +279,9 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
-                                   UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
-                                   QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   QFS, QFX, &
+                                   allow_negative_energy, small_temp, use_flattening, &
                                    npassive, upass_map, qpass_map
     use flatten_module
     use bl_constants_module
@@ -313,7 +312,7 @@ contains
     integer          :: i, j
     integer          :: pt_index(2)
     integer          :: ngp, ngf, loq(2), hiq(2)
-    integer          :: iadv, ispec, iaux, n, nq
+    integer          :: n, nq
     double precision :: courx, coury, courmx, courmy
 
     integer :: ipassive
@@ -506,7 +505,7 @@ contains
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
     use bl_constants_module
