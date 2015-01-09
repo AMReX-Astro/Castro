@@ -1,62 +1,6 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derlapvar(var,var_l1,var_h1,nv, &
-                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
-                              domhi,delta,xlo,time,dt,bc,level,grid_no)
-!
-!     This routine will derive the weighted-Laplacian of the variable for
-!       the purposes of error estimation
-!
-      implicit none
-
-      integer          lo(1), hi(1)
-      integer          var_l1,var_h1,nv
-      integer          dat_l1,dat_h1,nc
-      integer          domlo(1), domhi(1)
-      integer          bc(1,2,nc)
-      double precision delta(1), xlo(1), time, dt
-      double precision var(var_l1:var_h1,nv)
-      double precision dat(dat_l1:dat_h1,nc)
-      integer    level, grid_no
- 
-      ! added for my routine
-      double precision ::  delu(var_l1:var_h1)
-      double precision :: delua(var_l1:var_h1)
-      double precision :: delu2, delu3, delu4
-      double precision :: num, denom
-      integer          :: i
-
-      ! This value is taken from FLASH
-      double precision, parameter:: epsil=0.02
-
-      ! adapted from ref_marking.f90 in FLASH2.5
-
-      ! d/dx
-      do i=lo(1)-1,hi(1)+1
-         delu(i)  =     dat(i+1,1)  -     dat(i-1,1) 
-         delua(i) = abs(dat(i+1,1)) + abs(dat(i-1,1))
-      end do
-
-      ! d/dxdx
-      do i = lo(1),hi(1)
-
-         delu2 =     delu(i+1)  -     delu(i-1)
-         delu3 = abs(delu(i+1)) + abs(delu(i-1))
-         delu4 =    delua(i+1)  +    delua(i-1)
-
-         ! compute the error
-         num   = abs(delu2)
-         denom = abs(delu3 + (epsil*delu4+1.d-99))
-
-         var(i,1) = num/denom
-
-      end do
- 
-      end subroutine ca_derlapvar
-
-!-----------------------------------------------------------------------
-
       subroutine ca_derstate(state,state_l1,state_h1,nv, &
                              dat,dat_l1,dat_h1,nc,lo,hi,domlo, &
                              domhi,delta,xlo,time,dt,bc,level,grid_no)
