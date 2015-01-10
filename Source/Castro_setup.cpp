@@ -11,6 +11,8 @@
 # include "RAD_F.H"
 #endif
 
+#include "buildInfo.H"
+
 using std::string;
 
 static Box the_same_box (const Box& b) { return b; }
@@ -113,6 +115,21 @@ Castro::variableSetUp ()
   // initialize the start time for our CPU-time tracker
   startCPUTime = ParallelDescriptor::second();
 
+
+    // Output the git commit hashes used to build the executable.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+	const char* castro_hash = buildInfoGetGitHash(1);
+	const char* boxlib_hash = buildInfoGetGitHash(2);
+	if (strlen(castro_hash) > 0) {
+	  std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+	}
+	if (strlen(boxlib_hash) > 0) {
+	  std::cout << "BoxLib git hash: " << boxlib_hash << "\n\n";
+	}
+
+    }
 
     BL_ASSERT(desc_lst.size() == 0);
 
