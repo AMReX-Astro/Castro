@@ -13,6 +13,9 @@ EXTERN_CORE :=
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 
+# Castro uses a coarse grained OMP approach
+DEFINES += -DCRSEGRNDOMP
+
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
 endif

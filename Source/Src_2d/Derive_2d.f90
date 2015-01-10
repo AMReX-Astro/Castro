@@ -307,8 +307,6 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
-
 !     Compute soundspeed from the EOS
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -327,6 +325,10 @@
                call eos(eos_input_re, eos_state)
 
                c(i,j,1) = eos_state % cs
+
+            else
+               
+               c(i,j,1) = zero
 
             endif
          enddo
@@ -361,8 +363,6 @@
 
       type (eos_t) :: eos_state
 
-      mach = ZERO
-
 !     Compute Mach number of the flow
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -380,6 +380,8 @@
 
                call eos(eos_input_re, eos_state)
                mach(i,j,1) = sqrt(ux**2 + uy**2) / eos_state % cs
+            else
+               mach(i,j,1) = zero
             end if
 
          enddo
@@ -415,8 +417,6 @@
 
       type (eos_t) :: eos_state
 
-      s = ZERO
-
 !     Compute entropy from the EOS
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -432,6 +432,8 @@
 
                call eos(eos_input_re, eos_state)
                s(i,j,1) = eos_state % s
+            else
+               s(i,j,1) = zero
             endif
          enddo
       enddo
@@ -548,34 +550,27 @@
       integer          bc(2,2,nc)
       double precision delta(2), xlo(2), time, dt
       double precision vort(  v_l1:  v_h1,  v_l2:  v_h2,nv)
-      double precision  dat(dat_l1:dat_h1,dat_l2:dat_h2,nc)
+      double precision, intent(in) :: dat(dat_l1:dat_h1,dat_l2:dat_h2,nc)
       integer    level, grid_no
 
       integer          :: i,j
       double precision :: vx,uy
+      double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2:3)
 
       ! Convert momentum to velocity
       do j = lo(2)-1, hi(2)+1
       do i = lo(1)-1, hi(1)+1
-        dat(i,j,2) = dat(i,j,2) / dat(i,j,1)
-        dat(i,j,3) = dat(i,j,3) / dat(i,j,1)
+        ldat(i,j,2) = dat(i,j,2) / dat(i,j,1)
+        ldat(i,j,3) = dat(i,j,3) / dat(i,j,1)
       end do
       end do
 
       ! Calculate vorticity
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
-         vx = HALF * (dat(i+1,j,3) - dat(i-1,j,3)) / delta(1) 
-         uy = HALF * (dat(i,j+1,2) - dat(i,j-1,2)) / delta(2) 
+         vx = HALF * (ldat(i+1,j,3) - ldat(i-1,j,3)) / delta(1) 
+         uy = HALF * (ldat(i,j+1,2) - ldat(i,j-1,2)) / delta(2) 
          vort(i,j,1) = abs(vx - uy)
-      end do
-      end do
-
-      ! Convert velocity back to momentum 
-      do j = lo(2)-1, hi(2)+1
-      do i = lo(1)-1, hi(1)+1
-        dat(i,j,2) = dat(i,j,2) * dat(i,j,1)
-        dat(i,j,3) = dat(i,j,3) * dat(i,j,1)
       end do
       end do
 

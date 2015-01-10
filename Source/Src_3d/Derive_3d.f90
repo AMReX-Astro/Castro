@@ -26,7 +26,6 @@
           call bl_error('Error:: Derive_3d.f90 :: ca_derstate')
       end if
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -45,7 +44,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derstate
 
@@ -71,7 +69,6 @@
  
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k) 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -79,7 +76,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_dervel
 
@@ -105,7 +101,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -115,7 +110,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagvel
 
@@ -141,7 +135,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -151,7 +144,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermaggrav
 
@@ -181,7 +173,6 @@
       integer          :: i,j,k
       double precision :: x,y,z,r
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r)
       do k = lo(3), hi(3)
          z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
          do j = lo(2), hi(2)
@@ -195,7 +186,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derradialvel
 
@@ -221,7 +211,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -229,7 +218,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagmom
 
@@ -263,7 +251,6 @@
       !
       ! Compute pressure from the EOS
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -287,7 +274,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derpres
 
@@ -315,7 +301,6 @@
       !
       ! Compute internal energy from (rho E).
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -327,7 +312,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dereint1
 
@@ -353,7 +337,6 @@
       !
       ! Compute internal energy from (rho e).
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -361,7 +344,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dereint2
 
@@ -393,11 +375,9 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
       !
       ! Compute soundspeed from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -416,12 +396,15 @@
 
                   c(i,j,k,1) = eos_state % cs
 
+               else
+
+                  c(i,j,k,1) = zero
+
                end if
 
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dersoundspeed
 
@@ -453,11 +436,9 @@
 
       type (eos_t) :: eos_state
 
-      mach = ZERO
       !
       ! Compute Mach number of the flow.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -476,12 +457,16 @@
 
                   call eos(eos_input_re, eos_state, .false.)
                   mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
+
+               else
+
+                  mach(i,j,k,1) = zero
+
                end if
 
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermachnumber
 
@@ -513,11 +498,9 @@
 
       type (eos_t) :: eos_state
 
-      s = ZERO
       !
       ! Compute entropy from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -533,11 +516,12 @@
 
                   call eos(eos_input_re, eos_state, .false.)
                   s(i,j,k,1) = eos_state % s
+               else
+                  s(i,j,k,1) = zero
                end if
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derentropy
 
@@ -563,7 +547,6 @@
  
       integer i,j,k
  
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -571,7 +554,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derspec
 
@@ -593,7 +575,6 @@
  
       integer    i,j,k
  
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -601,7 +582,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derlogden
 
@@ -625,37 +605,35 @@
       integer          bc(3,2,nc)
       double precision delta(3), xlo(3), time, dt
       double precision vort(  v_l1:  v_h1,  v_l2:  v_h2,  v_l3:  v_h3,nv)
-      double precision  dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
+      double precision, intent(in) :: dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
 
       integer          :: i,j,k
       double precision :: uy,uz,vx,vz,wx,wy,v1,v2,v3
+      double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
       !
       ! Convert momentum to velocity.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3)-1, hi(3)+1
          do j = lo(2)-1, hi(2)+1
             do i = lo(1)-1, hi(1)+1
-               dat(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,1)
-               dat(i,j,k,3) = dat(i,j,k,3) / dat(i,j,k,1)
-               dat(i,j,k,4) = dat(i,j,k,4) / dat(i,j,k,1)
+               ldat(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,1)
+               ldat(i,j,k,3) = dat(i,j,k,3) / dat(i,j,k,1)
+               ldat(i,j,k,4) = dat(i,j,k,4) / dat(i,j,k,1)
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
       !
       ! Calculate vorticity.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,uy,uz,vx,vz,wx,wy,v1,v2,v3)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               uy = HALF * (dat(i,j+1,k,2) - dat(i,j-1,k,2)) / delta(2)
-               uz = HALF * (dat(i,j,k+1,2) - dat(i,j,k-1,2)) / delta(3)
-               vx = HALF * (dat(i+1,j,k,3) - dat(i-1,j,k,3)) / delta(1)
-               vz = HALF * (dat(i,j,k+1,3) - dat(i,j,k-1,3)) / delta(3)
-               wx = HALF * (dat(i+1,j,k,4) - dat(i-1,j,k,4)) / delta(1)
-               wy = HALF * (dat(i,j+1,k,4) - dat(i,j-1,k,4)) / delta(2)
+               uy = HALF * (ldat(i,j+1,k,2) - ldat(i,j-1,k,2)) / delta(2)
+               uz = HALF * (ldat(i,j,k+1,2) - ldat(i,j,k-1,2)) / delta(3)
+               vx = HALF * (ldat(i+1,j,k,3) - ldat(i-1,j,k,3)) / delta(1)
+               vz = HALF * (ldat(i,j,k+1,3) - ldat(i,j,k-1,3)) / delta(3)
+               wx = HALF * (ldat(i+1,j,k,4) - ldat(i-1,j,k,4)) / delta(1)
+               wy = HALF * (ldat(i,j+1,k,4) - ldat(i,j-1,k,4)) / delta(2)
                v1 = wy - vz
                v2 = uz - wx
                v3 = vx - uy
@@ -663,21 +641,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
-      !
-      ! Convert velocity back to momentum
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
-      do k = lo(3)-1, hi(3)+1
-         do j = lo(2)-1, hi(2)+1
-            do i = lo(1)-1, hi(1)+1
-               dat(i,j,k,2) = dat(i,j,k,2) * dat(i,j,k,1)
-               dat(i,j,k,3) = dat(i,j,k,3) * dat(i,j,k,1)
-               dat(i,j,k,4) = dat(i,j,k,4) * dat(i,j,k,1)
-            end do
-         end do
-      end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagvort
 
@@ -707,7 +670,6 @@
       integer          :: i,j,k
       double precision :: ulo,uhi,vlo,vhi,wlo,whi
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,ulo,uhi,vlo,vhi,wlo,whi)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -723,7 +685,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derdivu
 
@@ -752,7 +713,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -762,7 +722,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derkineng
 

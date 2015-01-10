@@ -257,8 +257,6 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
-
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
 
@@ -277,6 +275,10 @@
             call eos(eos_input_re, eos_state)
  
             c(i,1) = eos_state % cs 
+
+         else
+
+            c(i,1) = zero
 
          end if
 
@@ -311,8 +313,6 @@
 
       type (eos_t) :: eos_state
 
-      mach = ZERO
-
 !     Compute Mach number of the flow
       do i = lo(1),hi(1)
          rhoInv = ONE / u(i,URHO)
@@ -329,6 +329,8 @@
             call eos(eos_input_re, eos_state)
 
             mach(i,1) = abs(ux) / eos_state % cs
+         else
+            mach(i,1) = zero
          end if 
 
       enddo
@@ -362,8 +364,6 @@
       integer          :: i
 
       type (eos_t) :: eos_state
-
-      c = ZERO
 
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
@@ -415,8 +415,6 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
-
 !     Compute soundspeed from the EOS
       do i = lo(1),hi(1)
 
@@ -467,8 +465,6 @@
 
       type (eos_t) :: eos_state
 
-      s = ZERO
-
 !     Compute entropy from the EOS
       do i = lo(1),hi(1)
 
@@ -483,6 +479,8 @@
 
             call eos(eos_input_re, eos_state)
             s(i,1) = eos_state % s
+         else
+            s(i,1) = zero
          end if
 
       enddo
