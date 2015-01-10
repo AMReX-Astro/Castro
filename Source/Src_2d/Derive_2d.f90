@@ -126,9 +126,9 @@
       double precision :: x,y,r
 
       do j = lo(2), hi(2)
-         y = xlo(2) + (dble(j-vel_l2)+HALF) * delta(2) - center(2)
+         y = xlo(2) + (dble(j-lo(2))+HALF) * delta(2) - center(2)
          do i = lo(1), hi(1)
-            x = xlo(1) + (dble(i-vel_l1)+HALF) * delta(1) - center(1)
+            x = xlo(1) + (dble(i-lo(1))+HALF) * delta(1) - center(1)
             r = sqrt(x*x+y*y)
             radvel(i,j,1) = dat(i,j,2)/dat(i,j,1) * (x/r) + dat(i,j,3)/dat(i,j,1) * (y/r)
          end do
