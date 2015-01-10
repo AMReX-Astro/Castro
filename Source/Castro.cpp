@@ -2497,12 +2497,11 @@ Castro::errorEst (TagBoxArray& tags,
 		FArrayBox&  datfab  = (*mf)[mfi];
 		TagBox&     tagfab  = tags[mfi];
 
-		// Box in physical space
-		int         idx     = mfi.index();
-		RealBox     gridloc = RealBox(grids[idx],geom.CellSize(),geom.ProbLo());
-
 		// tile box
 		const Box&  tilebx  = mfi.tilebox();
+
+		// physical tile box
+		const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
 
 		//fab box
 		const Box&  datbox  = datfab.box();
@@ -2519,7 +2518,7 @@ Castro::errorEst (TagBoxArray& tags,
 		const int*  lo      = tlo;
 		const int*  hi      = thi;
 		//
-		const Real* xlo     = gridloc.lo();
+		const Real* xlo     = pbx.lo();
 		//
 		Real*       dat     = datfab.dataPtr();
 		const int*  dlo     = datbox.loVect();

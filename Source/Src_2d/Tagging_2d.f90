@@ -4,7 +4,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! :::
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: var       => array of data
@@ -12,7 +12,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -106,7 +106,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: den       => density array
@@ -114,7 +114,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -172,7 +172,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: temp      => temperature array
@@ -180,7 +180,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -239,7 +239,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: press     => pressure array
@@ -247,7 +247,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -307,7 +307,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: vel       => velocity array
@@ -315,7 +315,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -363,7 +363,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: rad       => radiation array
@@ -371,7 +371,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
