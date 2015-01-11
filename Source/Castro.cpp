@@ -2291,9 +2291,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 
    // Extrapolate to ghost cells
    if (TempDiffTerm.nGrow() > 0) {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
        for (MFIter mfi(TempDiffTerm); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.validbox();
