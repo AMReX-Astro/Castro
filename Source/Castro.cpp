@@ -1038,12 +1038,13 @@ Castro::estTimeStep (Real dt_old)
       else 
       {
 #endif
-	  Real dt = estdt;
 	  
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(dt)
+#pragma omp parallel
 #endif
 	  {
+	      Real dt = 1.e200;
+	      
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 	      {
 		  const Box& box = mfi.tilebox();
