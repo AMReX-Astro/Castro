@@ -2258,9 +2258,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        
        MultiFab::Copy(Temperature, state_old, Temp, 0, 1, 1);
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
        for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = grids[mfi.index()];
