@@ -2975,15 +2975,15 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
 		    (bx.loVect(), bx.hiVect(), dx, &dr,
                      BL_TO_FORTRAN(fab), 
-                     priv_radial_mass[lev].dataPtr(), 
-                     priv_radial_vol[lev].dataPtr(), 
+                     priv_radial_mass.dataPtr(), 
+                     priv_radial_vol.dataPtr(), 
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 		
 #ifdef GR_GRAV
 		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
 		    (bx.loVect(), bx.hiVect(),dx,&dr,
                      BL_TO_FORTRAN(fab),
-                     priv_radial_pres[lev].dataPtr(),
+                     priv_radial_pres.dataPtr(),
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
 	    }
