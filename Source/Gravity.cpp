@@ -2331,28 +2331,43 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     int n1d = drdxfac*numpts_at_level;
 
-    Array<Real> radial_mass(n1d,0);
-    Array<Real> radial_vol(n1d,0);
-    Array<Real> radial_phi(n1d,0);
-    Array<Real> radial_grav(n1d+1,0);
+    Array<Real> radial_mass(n1d,0.0);
+    Array<Real> radial_vol(n1d,0.0);
+    Array<Real> radial_phi(n1d,0.0);
+    Array<Real> radial_grav(n1d+1,0.0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
     Real dr = dx[0] / double(drdxfac);
 
-    for (int i = 0; i < n1d; i++) radial_mass[i] = 0.;
-    for (int i = 0; i < n1d; i++) radial_vol[i] = 0.;
-
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-            (bx.loVect(), bx.hiVect(),dx,&dr,
-             BL_TO_FORTRAN(Rhs[mfi]), 
-             radial_mass.dataPtr(), radial_vol.dataPtr(),
-             geom.ProbLo(),&n1d,&drdxfac,&level);
+	Array<Real> private_radial_mass(n1d,0.0);
+	Array<Real> private_radial_vol (n1d,0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx =mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
+		(bx.loVect(), bx.hiVect(),dx,&dr,
+		 BL_TO_FORTRAN(Rhs[mfi]), 
+		 private_radial_mass.dataPtr(), private_radial_vol.dataPtr(),
+		 geom.ProbLo(),&n1d,&drdxfac,&level);
+	}
+
+#ifdef _OPENMP
+#pragma omp critical (ca_compute_radia_mass)
+#endif
+	{
+	    for (int i=0; i<n1d; i++) {
+		radial_mass[i] += private_radial_mass[i];
+		radial_vol [i] += private_radial_vol [i];		
+	    }
+	}
     }
    
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
@@ -2436,7 +2451,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 
     int symmetry_type = Symmetry;
 
-    Box domain(parent->Geom(level).Domain());
+    const Box& domain = parent->Geom(level).Domain();
     for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
     {
         Box bx(mfi.validbox());

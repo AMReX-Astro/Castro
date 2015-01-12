@@ -402,8 +402,6 @@
                                          n1d,drdxfac,level)
       use bl_constants_module
       use probdata_module
-      use meth_params_module, only : deterministic
-      use omp_module
 
       implicit none
 
@@ -424,7 +422,6 @@
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
       double precision :: vol_frac, drinv
       double precision :: lo_i,lo_j,lo_k
-      double precision, allocatable :: mass(:), vol(:)
 
       if (( abs(center(1) - problo(1)) .lt. 1.d-2 * dx(1) ) .and. &
           ( abs(center(2) - problo(2)) .lt. 1.d-2 * dx(2) ) .and. &
@@ -443,14 +440,6 @@
 
       vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
 
-      !$omp parallel private(i,j,k,xc,yc,zc,mass,vol,r,index,lo_i,lo_j,lo_k) &
-      !$omp private(ii,jj,kk,xx,yy,zz,xxsq,yysq,zzsq,tid,nthreads)
-
-      allocate(mass(0:n1d-1),vol(0:n1d-1))
-      mass = ZERO
-      vol = ZERO
-
-      !$omp do
       do k = lo(3), hi(3)
          zc = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
          lo_k =  problo(3) + dble(k)*dx(3) - center(3)
@@ -492,8 +481,8 @@
                            index = int(r*drinv)
 
                            if (index .le. n1d-1) then
-                              mass(index) = mass(index) + vol_frac * rho(i,j,k)
-                              vol (index) = vol (index) + vol_frac
+                              radial_mass(index) = radial_mass(index) + vol_frac * rho(i,j,k)
+                              radial_vol (index) = radial_vol (index) + vol_frac
                            end if
                         end do
                      end do
@@ -503,31 +492,6 @@
             enddo
          enddo
       enddo
-      !$omp end do
-
-      if (deterministic) then
-         tid = omp_get_thread_num()
-         nthreads = omp_get_num_threads()
-         do j = 0, nthreads-1
-            if (j .eq. tid) then
-               do i = 0, n1d-1
-                  radial_mass(i) = radial_mass(i) + mass(i) 
-                  radial_vol(i) = radial_vol(i) + vol(i) 
-               end do
-            end if
-            !$omp barrier
-         end do
-      else
-         do i = 0, n1d-1
-            !$omp atomic
-            radial_mass(i) = radial_mass(i) + mass(i) 
-            !$omp atomic
-            radial_vol(i) = radial_vol(i) + vol(i) 
-         end do
-      end if
-
-      deallocate(mass,vol)
-      !$omp end parallel
 
       end subroutine ca_compute_radial_mass
 
