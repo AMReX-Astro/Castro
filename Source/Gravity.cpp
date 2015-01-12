@@ -2934,10 +2934,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 	    {
 	        for (int i=0; i<n1d; i++) {
 #ifdef GR_GRAV
-	            radial_pres[i] += private_radial_pres[i];
+	            radial_pres[lev][i] += private_radial_pres[i];
 #endif
-	            radial_mass[i] += private_radial_mass[i];
-		    radial_vol [i] += private_radial_vol [i];		
+	            radial_mass[lev][i] += private_radial_mass[i];
+		    radial_vol [lev][i] += private_radial_vol [i];		
 		}
 	    }
 	}
