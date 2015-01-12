@@ -2346,8 +2346,8 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 #pragma omp parallel
 #endif
     {
-	Array<Real> private_radial_mass(n1d,0.0);
-	Array<Real> private_radial_vol (n1d,0.0);
+	Array<Real> priv_radial_mass(n1d,0.0);
+	Array<Real> priv_radial_vol (n1d,0.0);
 
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
@@ -2355,7 +2355,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 	    BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
 		(bx.loVect(), bx.hiVect(),dx,&dr,
 		 BL_TO_FORTRAN(Rhs[mfi]), 
-		 private_radial_mass.dataPtr(), private_radial_vol.dataPtr(),
+		 priv_radial_mass.dataPtr(), priv_radial_vol.dataPtr(),
 		 geom.ProbLo(),&n1d,&drdxfac,&level);
 	}
 
@@ -2364,8 +2364,8 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 #endif
 	{
 	    for (int i=0; i<n1d; i++) {
-		radial_mass[i] += private_radial_mass[i];
-		radial_vol [i] += private_radial_vol [i];		
+		radial_mass[i] += priv_radial_mass[i];
+		radial_vol [i] += priv_radial_vol [i];		
 	    }
 	}
     }
@@ -2450,16 +2450,38 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     }
 
     int symmetry_type = Symmetry;
-
     const Box& domain = parent->Geom(level).Domain();
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
-	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
-             &symmetry_type,lo_bc,hi_bc,
-             dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
-             &lnum,q0.dataPtr(),qC.dataPtr(),qS.dataPtr());
+	FArrayBox priv_q0(boxq0);
+	FArrayBox priv_qC(boxqC);
+	FArrayBox priv_qS(boxqS);
+
+	priv_q0.setVal(0.0);
+	priv_qC.setVal(0.0);
+	priv_qS.setVal(0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
+		(bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
+		 &symmetry_type,lo_bc,hi_bc,
+		 dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
+		 &lnum,priv_q0.dataPtr(),priv_qC.dataPtr(),priv_qS.dataPtr());
+	}
+
+#ifdef _OPENMP
+#pragma omp critical(ca_compute_multipole_moments)
+#endif
+	{
+	    q0.plus(priv_q0);
+	    qC.plus(priv_qC);
+	    qS.plus(priv_qS);
+	}
     }
 
     // Now, do a global reduce over all processes.
@@ -2472,9 +2494,12 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // complete multipole moments, for all points on the
     // boundary that are held on this process.
 
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx = mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),
@@ -2564,17 +2589,48 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 
     int symmetry_type = Symmetry;
     
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
-	    (bx.loVect(), bx.hiVect(), domlo, domhi, 
-             &symmetry_type,lo_bc,hi_bc,
-             dx,BL_TO_FORTRAN(Rhs[mfi]),
-             geom.ProbLo(),geom.ProbHi(),
-             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-             bcYZLo.dataPtr(), bcYZHi.dataPtr());
+	FArrayBox priv_bcXYLo(boxXY);
+	FArrayBox priv_bcXYHi(boxXY);
+	FArrayBox priv_bcXZLo(boxXZ);
+	FArrayBox priv_bcXZHi(boxXZ);
+	FArrayBox priv_bcYZLo(boxYZ);
+	FArrayBox priv_bcYZHi(boxYZ);
+	
+	priv_bcXYLo.setVal(0.0);
+	priv_bcXYHi.setVal(0.0);
+	priv_bcXZLo.setVal(0.0);
+	priv_bcXZHi.setVal(0.0);
+	priv_bcYZLo.setVal(0.0);
+	priv_bcYZHi.setVal(0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
+		(bx.loVect(), bx.hiVect(), domlo, domhi, 
+		 &symmetry_type,lo_bc,hi_bc,
+		 dx,BL_TO_FORTRAN(Rhs[mfi]),
+		 geom.ProbLo(),geom.ProbHi(),
+		 priv_bcXYLo.dataPtr(), priv_bcXYHi.dataPtr(),
+		 priv_bcXZLo.dataPtr(), priv_bcXZHi.dataPtr(),
+		 priv_bcYZLo.dataPtr(), priv_bcYZHi.dataPtr());
+	}
+
+#ifdef _OPENMP
+#pragma omp critical(ca_compute_direct_sum_bc)
+#endif
+	{
+	    bcXYLo.plus(priv_bcXYLo);
+	    bcXYHi.plus(priv_bcXYHi);
+	    bcXZLo.plus(priv_bcXZLo);
+	    bcXZHi.plus(priv_bcXZHi);
+	    bcYZLo.plus(priv_bcYZLo);
+	    bcYZHi.plus(priv_bcYZHi);
+	}
     }
 
     ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
@@ -2584,9 +2640,12 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), nPtsYZ);
     ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), nPtsYZ);
     
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx= mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
             (bx.loVect(), bx.hiVect(), domlo, domhi,
              BL_TO_FORTRAN(phi[mfi]),
@@ -2903,10 +2962,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 #endif
 	{
 #ifdef GR_GRAV
-	    Array<Real> private_radial_pres(n1d,0.0);
+	    Array<Real> priv_radial_pres(n1d,0.0);
 #endif
-	    Array<Real> private_radial_mass(n1d,0.0);
-	    Array<Real> private_radial_vol (n1d,0.0);
+	    Array<Real> priv_radial_mass(n1d,0.0);
+	    Array<Real> priv_radial_vol (n1d,0.0);
 	
 	    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
 	    {
@@ -2916,15 +2975,15 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
 		    (bx.loVect(), bx.hiVect(), dx, &dr,
                      BL_TO_FORTRAN(fab), 
-                     radial_mass[lev].dataPtr(), 
-                     radial_vol[lev].dataPtr(), 
+                     priv_radial_mass[lev].dataPtr(), 
+                     priv_radial_vol[lev].dataPtr(), 
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 		
 #ifdef GR_GRAV
 		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
 		    (bx.loVect(), bx.hiVect(),dx,&dr,
                      BL_TO_FORTRAN(fab),
-                     radial_pres[lev].dataPtr(),
+                     priv_radial_pres[lev].dataPtr(),
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
 	    }
@@ -2934,10 +2993,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 	    {
 	        for (int i=0; i<n1d; i++) {
 #ifdef GR_GRAV
-	            radial_pres[lev][i] += private_radial_pres[i];
+	            radial_pres[lev][i] += priv_radial_pres[i];
 #endif
-	            radial_mass[lev][i] += private_radial_mass[i];
-		    radial_vol [lev][i] += private_radial_vol [i];		
+	            radial_mass[lev][i] += priv_radial_mass[i];
+		    radial_vol [lev][i] += priv_radial_vol [i];		
 		}
 	    }
 	}

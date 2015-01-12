@@ -745,8 +745,7 @@
 
         rmax = rmax * sqrt(THREE) / TWO
         
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr,r_to_mlm1)
-        do k = p_l3,p_h3
+        do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )     ) * dx(3) - center(3)
            else if (k .lt. domlo(3)) then
@@ -757,7 +756,7 @@
 
            z = z / rmax
 
-           do j = p_l2,p_h2
+           do j = lo(2), hi(2)
               if (j .gt. domhi(2)) then
                  y = problo(2) + (dble(j  )     ) * dx(2) - center(2)
               else if (j .lt. domlo(2)) then
@@ -768,7 +767,7 @@
 
               y = y / rmax
 
-              do i = p_l1,p_h1
+              do i = lo(1), hi(1)
                  if (i .gt. domhi(1)) then
                     x = problo(1) + (dble(i  )     ) * dx(1) - center(1)
                  else if (i .lt. domlo(1)) then
@@ -833,7 +832,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_put_multipole_bc
 
@@ -865,7 +863,6 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: ilo, ihi, jlo, jhi, klo, khi
         integer          :: l,m,b
 
         double precision :: factorial
@@ -964,45 +961,6 @@
 
         enddo
 
-
-        ! Don't add to multipole moments if we're outside the physical domain
-
-        if ( p_l3 .lt. domlo(3) ) then
-          klo = domlo(3)
-        else
-          klo = p_l3
-        endif
-
-        if ( p_h3 .gt. domhi(3) ) then
-          khi = domhi(3)
-        else
-          khi = p_h3
-        endif
-
-        if ( p_l2 .lt. domlo(2) ) then
-          jlo = domlo(2)
-        else
-          jlo = p_l2
-        endif
-
-        if ( p_h2 .gt. domhi(2) ) then
-          jhi = domhi(2)
-        else
-          jhi = p_h2
-        endif
-
-        if ( p_l1 .lt. domlo(1) ) then
-          ilo = domlo(1)
-        else
-          ilo = p_l1
-        endif
-
-        if ( p_h1 .gt. domhi(1) ) then
-          ihi = domhi(1)
-        else
-          ihi = p_h1
-        endif
-
         ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l, 
         ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
         ! we will normalize all distances to the maximum possible physical distance from the center,
@@ -1032,16 +990,13 @@
           call bl_error("Error: Gravity_3d.f90: ca_compute_multipole_moments")
         endif
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,legPolyArr,assocLegPolyArr) &
-        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor,rho_r_to_l) &
-        !$OMP REDUCTION(+:q0,qC,qS) if (.not.deterministic)
-        do k = klo, khi
+        do k = lo(3), hi(3)
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
-           do j = jlo, jhi
+           do j = lo(2), hi(2)
               y = ( problo(2) + (dble(j)+HALF) * dx(2) - center(2) ) / rmax
  
-              do i = ilo, ihi
+              do i = lo(1), hi(1)
                  x = ( problo(1) + (dble(i)+HALF) * dx(1) - center(1) ) / rmax
 
                  r = sqrt( x**2 + y**2 + z**2 )
@@ -1091,7 +1046,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_compute_multipole_moments
 
@@ -1365,7 +1319,6 @@
         use probdata_module
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
-        use meth_params_module, only : deterministic
 
         implicit none
 
@@ -1388,7 +1341,6 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k,l,m,n,b
-        integer          :: ilo,ihi,jlo,jhi,klo,khi
         double precision :: r
         double precision :: loc(3), locb(3), dx2, dy2, dz2
 
@@ -1415,54 +1367,13 @@
           endif
         enddo
 
-        ! We only contribute to the BCs if we're inside the physical domain.
-        
-        if ( p_l3 .lt. domlo(3) ) then
-          klo = domlo(3)
-        else
-          klo = p_l3
-        endif
-
-        if ( p_h3 .gt. domhi(3) ) then
-          khi = domhi(3)
-        else
-          khi = p_h3
-        endif
-
-        if ( p_l2 .lt. domlo(2) ) then
-          jlo = domlo(2)
-        else
-          jlo = p_l2
-        endif
-
-        if ( p_h2 .gt. domhi(2) ) then
-          jhi = domhi(2)
-        else
-          jhi = p_h2
-        endif
-
-        if ( p_l1 .lt. domlo(1) ) then
-          ilo = domlo(1)
-        else
-          ilo = p_l1
-        endif
-
-        if ( p_h1 .gt. domhi(1) ) then
-          ihi = domhi(1)
-        else
-          ihi = p_h1
-        endif
-
- 
-        !$OMP PARALLEL DO PRIVATE(i,j,k,loc,locb,dx2,dy2,dz2,r,l,m,n) &
-        !$OMP REDUCTION(+:bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) if(.not.deterministic)
-        do k = klo, khi
+        do k = lo(3), hi(3)
            loc(3) = problo(3) + (dble(k)+HALF) * dx(3)
 
-           do j = jlo, jhi
+           do j = lo(2), hi(2)
               loc(2) = problo(2) + (dble(j)+HALF) * dx(2)
 
-              do i = ilo, ihi
+              do i = lo(1), hi(1)
                  loc(1) = problo(1) + (dble(i)+HALF) * dx(1)
         
                    ! Do xy interfaces first.
@@ -1662,7 +1573,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_compute_direct_sum_bc
 
@@ -1691,44 +1601,59 @@
 
         integer          :: i,j,k
 
-    
-        !$OMP PARALLEL DO PRIVATE(i,j,k)
-        do k = p_l3,p_h3
+        i = lo(1)
+        if (i .eq. domlo(1)-1) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 phi(i,j,k) = bcYZLo(j,k)
+              end do
+           end do
+        end if
 
-           do j = p_l2,p_h2
+        i = hi(1)
+        if (i .eq. domhi(1)+1) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 phi(i,j,k) = bcYZHi(j,k)
+              end do
+           end do
+        end if
 
-              do i = p_l1,p_h1
+        j = lo(2)
+        if (j .eq. domlo(2)-1) then
+           do k = lo(3), hi(3)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXZLo(i,k)
+              end do
+           end do
+        end if
 
-                 if     ( k .lt. domlo(3) ) then
+        j = hi(2)
+        if (j .eq. domhi(2)+1) then
+           do k = lo(3), hi(3)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXZHi(i,k)
+              end do
+           end do
+        end if
 
-                   phi(i,j,k) = bcXYLo(i,j)
+        k = lo(3)
+        if (k .eq. domlo(3)-1) then
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXYLo(i,j)
+              end do
+           end do
+        end if
 
-                 elseif ( k .gt. domhi(3) ) then
- 
-                   phi(i,j,k) = bcXYHi(i,j)
-
-                 elseif ( j .lt. domlo(2) ) then
-
-                   phi(i,j,k) = bcXZLo(i,k)
-
-                 elseif ( j .gt. domhi(2) ) then
-
-                   phi(i,j,k) = bcXZHi(i,k)
-
-                 elseif ( i .lt. domlo(1) ) then
-
-                   phi(i,j,k) = bcYZLo(j,k)
-
-                 elseif ( i .gt. domhi(1) ) then
-
-                   phi(i,j,k) = bcYZHi(j,k)
-
-                endif
-
-              enddo
-           enddo
-        enddo
-        !$OMP END PARALLEL DO
+        k = hi(3)
+        if (k .eq. domhi(3)+1) then
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXYHi(i,j)
+              end do
+           end do
+        end if
 
       end subroutine ca_put_direct_sum_bc
 
