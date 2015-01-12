@@ -2898,26 +2898,49 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real* dx   = geom.CellSize();
         Real dr = dx[0] / double(drdxfac);
 
-        for (MFIter mfi(S); mfi.isValid(); ++mfi)
-        {
-           Box bx(mfi.validbox());
-           FArrayBox& fab = S[mfi];
-
-           BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-               (bx.loVect(), bx.hiVect(), dx, &dr,
-                BL_TO_FORTRAN(fab), 
-                radial_mass[lev].dataPtr(), 
-                radial_vol[lev].dataPtr(), 
-                geom.ProbLo(),&n1d,&drdxfac,&lev);
-
-#ifdef GR_GRAV
-           BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
-               (bx.loVect(), bx.hiVect(),dx,&dr,
-                BL_TO_FORTRAN(fab),
-                radial_pres[lev].dataPtr(),
-                geom.ProbLo(),&n1d,&drdxfac,&lev);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-        }
+	{
+#ifdef GR_GRAV
+	    Array<Real> private_radial_pres(n1d,0.0);
+#endif
+	    Array<Real> private_radial_mass(n1d,0.0);
+	    Array<Real> private_radial_vol (n1d,0.0);
+	
+	    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
+	    {
+	        const Box& bx = mfi.tilebox();
+		FArrayBox& fab = S[mfi];
+		
+		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
+		    (bx.loVect(), bx.hiVect(), dx, &dr,
+                     BL_TO_FORTRAN(fab), 
+                     radial_mass[lev].dataPtr(), 
+                     radial_vol[lev].dataPtr(), 
+                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+		
+#ifdef GR_GRAV
+		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
+		    (bx.loVect(), bx.hiVect(),dx,&dr,
+                     BL_TO_FORTRAN(fab),
+                     radial_pres[lev].dataPtr(),
+                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+#endif
+	    }
+#ifdef _OPENMP
+#pragma omp critical (ca_compute_radia_mass_2)
+#endif
+	    {
+	        for (int i=0; i<n1d; i++) {
+#ifdef GR_GRAV
+	            radial_pres[i] += private_radial_pres[i];
+#endif
+	            radial_mass[i] += private_radial_mass[i];
+		    radial_vol [i] += private_radial_vol [i];		
+		}
+	    }
+	}
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
