@@ -630,7 +630,9 @@ contains
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map
+    
     use flatten_module
     use bl_constants_module
 
@@ -650,7 +652,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision :: srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR)
     double precision :: dx, dy, dz, dt, courno
 
     double precision, allocatable:: dpdrho(:,:,:)
@@ -663,6 +665,8 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
+
+    integer :: ipassive
 
     type (eos_t) :: eos_state
 
@@ -678,7 +682,6 @@ contains
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    !$OMP PARALLEL DO PRIVATE(i,j,k)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
@@ -705,13 +708,12 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(iadv,n,nq,i,j,k) IF(nadv.gt.1)
-    do iadv = 1, nadv
-       n = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! Load passively-advected quatities, c, into q, assuming they 
+    ! arrived in uin as rho.c
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
        do k = loq(3),hiq(3)
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
@@ -720,47 +722,13 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
-      
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(ispec,n,nq,i,j,k) IF(nspec.gt.1)
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-      
-    ! Load auxiliary variables which are needed in the EOS
-    !$OMP PARALLEL DO PRIVATE(iaux,n,nq,i,j,k) IF(naux.gt.1)
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
 
     ! Get gamc, p, T, c, csml using q state
-    !$OMP PARALLEL DO PRIVATE(i,j,k,eos_state,pt_index)
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
              
-             pt_index(1) = i
-             pt_index(2) = j
-             pt_index(3) = k
+             pt_index(:) = (/i, j, k/)
 
              eos_state % T   = q(i,j,k,QTEMP)
              eos_state % rho = q(i,j,k,QRHO)
@@ -808,10 +776,8 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
 
     ! compute srcQ terms
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ispec,iaux,iadv)
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -835,31 +801,29 @@ contains
              if (QESGS .gt. -1) &
                   srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)/q(i,j,k,QRHO) - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
 
-             do ispec = 1,nspec
-                srcQ(i,j,k,QFS+ispec-1) = ( src(i,j,k,UFS+ispec-1) - q(i,j,k,QFS+ispec-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-
-             do iaux = 1,naux
-                srcQ(i,j,k,QFX+iaux-1) = ( src(i,j,k,UFX+iaux-1) - q(i,j,k,QFX+iaux-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
-             do iadv = 1,nadv
-                srcQ(i,j,k,QFA+iadv-1) = ( src(i,j,k,UFA+iadv-1) - q(i,j,k,QFA+iadv-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
+
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do k = lo(3)-1, hi(3)+1
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
+                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
+                     q(i,j,k,QRHO)
+             enddo
+          enddo
+       enddo
+
+    enddo
 
     ! Compute running max of Courant number over grids
     courmx = courno
     courmy = courno
     courmz = courno
-    !$OMP PARALLEL DO PRIVATE(i,j,k,courx,coury,courz) REDUCTION(max:courmx,courmy,courmz)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -902,7 +866,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     courno = max( courmx, courmy, courmz )
 
@@ -989,8 +952,6 @@ contains
           
        else
 
-          !$OMP PARALLEL PRIVATE(i,j,k,div1)
-          !$OMP DO
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
@@ -1001,8 +962,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
@@ -1013,8 +973,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1025,8 +984,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO
-          !$OMP END PARALLEL
           
        endif
 
@@ -1052,7 +1009,6 @@ contains
           enddo
        else 
           ! update everything else with fluxes and source terms
-          !$OMP PARALLEL DO PRIVATE(i,j,k)
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1075,7 +1031,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        endif
          
     enddo
@@ -1104,7 +1059,6 @@ contains
     integer          :: i, j, k
     double precision :: ux, vy, wz
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ux,vy,wz)
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
@@ -1132,7 +1086,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine divu
 
@@ -1166,9 +1119,6 @@ contains
     integer          :: i,j,k,n
     double precision :: sum,fac
     
-    !$OMP PARALLEL PRIVATE(i,j,k,sum,n,fac)
-
-    !$OMP DO
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -1187,9 +1137,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
@@ -1208,9 +1156,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1229,9 +1175,6 @@ contains
           end do
        end do
     end do
-    !$OMP END DO
-    
-    !$OMP END PARALLEL
 
   end subroutine normalize_species_fluxes
 
@@ -1280,7 +1223,6 @@ contains
 
     min_dens = ZERO
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1332,9 +1274,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1367,7 +1307,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
     ! When enabled with OpenMP sometimes there is a small numerical error
     ! in (final_mass - initial_mass) even if no cells have been reset.
@@ -1403,7 +1342,6 @@ contains
     integer          :: i,j,k,n
     double precision :: fac,sum
     
-    !$OMP PARALLEL DO PRIVATE(i,j,k,sum,n,fac)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1422,7 +1360,6 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
     
   end subroutine normalize_new_species
 

@@ -9,5 +9,6 @@ module prob_params_module
   integer         , save, allocatable :: physbc_hi(:)
   integer         , save :: Outflow, Symmetry, SlipWall, NoSlipWall
   integer         , save :: coord_type
-
+  double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
+  
 end module prob_params_module

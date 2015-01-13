@@ -51,6 +51,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& ppm_reference_edge_limit, 
      const int& ppm_flatten_before_integrals,
      const int& ppm_reference_eigenvectors,
+     const int& hybrid_riemann, 
      const int& use_colglaz, const int& use_flattening,
      const int& transverse_use_eos, const int& transverse_reset_density, const int& transverse_reset_rhoe,
      const int& cg_maxiter, const Real& cg_tol,
@@ -58,13 +59,18 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
-     const Real& rotational_period, const Real& const_grav);
+     const Real& rotational_period, const Real& const_grav,
+     const int& deterministic);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Outflow_value, const int& Symmetry_value, 
-     const int& SlipWall_value, const int& NoSlipWall_value, const int& coord_type);
+     const int& SlipWall_value, const int& NoSlipWall_value,
+     const int& coord_type,
+     const Real& xmin, const Real& xmax,
+     const Real& ymin, const Real& ymax,
+     const Real& zmin, const Real& zmax);
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const Real& time, 
@@ -415,8 +421,8 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
 #else
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(new_state),
+     const BL_FORT_FAB_ARG(old_state),
+     const BL_FORT_FAB_ARG(new_state),
      BL_FORT_FAB_ARG(ext_src),
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
@@ -431,6 +437,10 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
      const BL_FORT_FAB_ARG(Tau),
 #endif
      const Real& time, const Real& dt_react);
+
+BL_FORT_PROC_DECL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(TempDiffTerm));
 
 BL_FORT_PROC_DECL(COMPUTE_TEMP,compute_temp)
     (const int lo[], const int hi[],

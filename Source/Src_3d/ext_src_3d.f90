@@ -48,7 +48,8 @@ subroutine ca_ext_src(lo,hi,&
                                         src_l3:src_h3,NVAR)
   double precision,intent(in   ) :: problo(3),dx(3),time,dt
   
-  src = ZERO
+  ! lo and hi specify work region
+  src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO ! Fill work region only
  
 end subroutine ca_ext_src
 

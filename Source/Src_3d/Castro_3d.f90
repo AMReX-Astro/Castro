@@ -21,10 +21,241 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     courno,verbose,mass_added,eint_added,eden_added,&
                     E_added_flux,E_added_grav)
 
+  use meth_params_module, only : NVAR
+  use threadbox_module, only : build_threadbox_3d, get_lo_hi
+  use omp_module, only : omp_get_max_threads
+
+  ! This is used for IsoTurb only
+  ! use probdata_module   , only : radiative_cooling_type
+
+  implicit none
+
+  integer is_finest_level
+  integer lo(3),hi(3),verbose
+  integer domlo(3),domhi(3)
+  integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
+  integer uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
+  integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
+  integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
+  integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
+  integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+  integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+  integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+  integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
+  integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
+  integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
+  integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
+  integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+  integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+  double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
+  double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
+  double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
+  double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
+  double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
+  double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
+  double precision  grav( gv_l1:gv_h1,  gv_l2:gv_h2,   gv_l3:gv_h3,    3)
+  double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
+  double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
+  double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
+  double precision area1(area1_l1:area1_h1,area1_l2:area1_h2, area1_l3:area1_h3)
+  double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
+  double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
+  double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+  double precision mass_added,eint_added,eden_added
+
+  integer, parameter :: xblksize=2048, yblksize=2048, zblksize=2048
+  integer, parameter :: blocksize_min = 4
+
+  integer :: nthreads
+  integer :: iblock, nblocks, nblocksxy, iblockxy, i,j,k,n, ib, jb, kb, nb(3), boxsize(3)
+  integer :: fxlo(3),fxhi(3),fylo(3),fyhi(3),fzlo(3),fzhi(3),tlo(3),thi(3)
+  integer, allocatable :: bxlo(:), bxhi(:), bylo(:), byhi(:), bzlo(:), bzhi(:)
+  double precision, allocatable :: bxflx(:,:,:,:), byflx(:,:,:,:), bzflx(:,:,:,:)
+  double precision, allocatable :: bxugd(:,:,:), byugd(:,:,:), bzugd(:,:,:)
+
+  boxsize = hi-lo+1
+
+  nthreads = omp_get_max_threads()
+
+  if (nthreads > 1) then
+     call build_threadbox_3d(nthreads, boxsize, blocksize_min, nb)
+     if (nb(1).eq.0) then
+        nb = boxsize/blocksize_min
+     end if
+  else
+     nb(1) = max(boxsize(1)/xblksize, 1)
+     nb(2) = max(boxsize(2)/yblksize, 1)
+     nb(3) = max(boxsize(3)/zblksize, 1)
+  end if
+
+  allocate(bxlo(0:nb(1)-1))
+  allocate(bxhi(0:nb(1)-1))
+  allocate(bylo(0:nb(2)-1))
+  allocate(byhi(0:nb(2)-1))
+  allocate(bzlo(0:nb(3)-1))
+  allocate(bzhi(0:nb(3)-1))
+
+  call get_lo_hi(boxsize(1), nb(1), bxlo, bxhi)
+  call get_lo_hi(boxsize(2), nb(2), bylo, byhi)
+  call get_lo_hi(boxsize(3), nb(3), bzlo, bzhi)
+
+  nblocksxy = nb(1)*nb(2)
+  nblocks   = nb(1)*nb(2)*nb(3)
+
+  !$omp parallel private(i,j,k,n,ib,jb,kb,fxlo,fxhi,fylo,fyhi,fzlo,fzhi,tlo,thi) &
+  !$omp private(iblock,iblockxy,bxflx,byflx,bzflx,bxugd,byugd,bzugd) &
+  !$omp reduction(+:E_added_flux,E_added_grav,mass_added,eint_added,eden_added) &
+  !$omp reduction(max:courno)
+  !$omp do
+  do iblock = 0, nblocks-1
+
+     kb = iblock / nblocksxy
+     iblockxy = iblock - kb*nblocksxy
+     jb = iblockxy / nb(1)
+     ib = iblockxy - jb*nb(1)
+
+     tlo(1) = lo(1) + bxlo(ib)
+     thi(1) = lo(1) + bxhi(ib)
+     
+     tlo(2) = lo(2) + bylo(jb)
+     thi(2) = lo(2) + byhi(jb)
+     
+     tlo(3) = lo(3) + bzlo(kb)
+     thi(3) = lo(3) + bzhi(kb)
+     
+     fxlo = tlo
+     fxhi(1) = thi(1)+1
+     fxhi(2) = thi(2)
+     fxhi(3) = thi(3)
+     
+     fylo = tlo
+     fyhi(1) = thi(1)
+     fyhi(2) = thi(2)+1
+     fyhi(3) = thi(3)
+     
+     fzlo = tlo
+     fzhi(1) = thi(1)
+     fzhi(2) = thi(2)
+     fzhi(3) = thi(3)+1
+     
+     allocate(bxflx(fxlo(1):fxhi(1),fxlo(2):fxhi(2),fxlo(3):fxhi(3),NVAR))
+     allocate(byflx(fylo(1):fyhi(1),fylo(2):fyhi(2),fylo(3):fyhi(3),NVAR))
+     allocate(bzflx(fzlo(1):fzhi(1),fzlo(2):fzhi(2),fzlo(3):fzhi(3),NVAR))
+     
+     allocate(bxugd(fxlo(1)-1:fxhi(1)+1,fxlo(2)-1:fxhi(2)+1,fxlo(3)-1:fxhi(3)+1))
+     allocate(byugd(fylo(1)-1:fyhi(1)+1,fylo(2)-1:fyhi(2)+1,fylo(3)-1:fyhi(3)+1))
+     allocate(bzugd(fzlo(1)-1:fzhi(1)+1,fzlo(2)-1:fzhi(2)+1,fzlo(3)-1:fzhi(3)+1))
+     
+     call umdrv_tile(is_finest_level,time,tlo,thi,domlo,domhi, &
+          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+          bxugd,fxlo(1)-1,fxlo(2)-1,fxlo(3)-1,fxhi(1)+1,fxhi(2)+1,fxhi(3)+1, &
+          byugd,fylo(1)-1,fylo(2)-1,fylo(3)-1,fyhi(1)+1,fyhi(2)+1,fyhi(3)+1, &
+          bzugd,fzlo(1)-1,fzlo(2)-1,fzlo(3)-1,fzhi(1)+1,fzhi(2)+1,fzhi(3)+1, &
+          src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+          grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+          delta,dt, &
+          bxflx,fxlo(1),fxlo(2),fxlo(3),fxhi(1),fxhi(2),fxhi(3), &
+          byflx,fylo(1),fylo(2),fylo(3),fyhi(1),fyhi(2),fyhi(3), &
+          bzflx,fzlo(1),fzlo(2),fzlo(3),fzhi(1),fzhi(2),fzhi(3), &
+          area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
+          area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
+          area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
+          vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+          courno,verbose,mass_added,eint_added,eden_added,&
+          E_added_flux,E_added_grav)
+     
+     ! Note that fluxes are on faces.  To avoid race conditions, ...
+     if (thi(1) .ne. hi(1)) fxhi(1) = fxhi(1) - 1
+     if (thi(2) .ne. hi(2)) fyhi(2) = fyhi(2) - 1
+     if (thi(3) .ne. hi(3)) fzhi(3) = fzhi(3) - 1
+     
+     do n=1,NVAR
+        do       k=fxlo(3),fxhi(3)
+           do    j=fxlo(2),fxhi(2)
+              do i=fxlo(1),fxhi(1)
+                 flux1(i,j,k,n) = bxflx(i,j,k,n)
+              end do
+           end do
+        end do
+        
+        do       k=fylo(3),fyhi(3)
+           do    j=fylo(2),fyhi(2)
+              do i=fylo(1),fyhi(1)
+                 flux2(i,j,k,n) = byflx(i,j,k,n)
+              end do
+           end do
+        end do
+        
+        do       k=fzlo(3),fzhi(3)
+           do    j=fzlo(2),fzhi(2)
+              do i=fzlo(1),fzhi(1)
+                 flux3(i,j,k,n) = bzflx(i,j,k,n)
+              end do
+           end do
+        end do
+     end do
+     
+     do       k=fxlo(3),fxhi(3)
+        do    j=fxlo(2),fxhi(2)
+           do i=fxlo(1),fxhi(1)
+              ugdnvx_out(i,j,k) = bxugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     do       k=fylo(3),fyhi(3)
+        do    j=fylo(2),fyhi(2)
+           do i=fylo(1),fyhi(1)
+              ugdnvy_out(i,j,k) = byugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     do       k=fzlo(3),fzhi(3)
+        do    j=fzlo(2),fzhi(2)
+           do i=fzlo(1),fzhi(1)
+              ugdnvz_out(i,j,k) = bzugd(i,j,k)
+           end do
+        end do
+     end do
+     
+     deallocate(bxflx,byflx,bzflx,bxugd,byugd,bzugd)
+     
+  end do
+  !$omp end do
+  !$omp end parallel
+
+end subroutine ca_umdrv
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
+                    uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                    uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                    ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+                    ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+                    ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+                    src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                    grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                    delta,dt, &
+                    flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                    flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                    flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                    area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
+                    area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
+                    area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
+                    vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+                    courno,verbose,mass_added,eint_added,eden_added,&
+                    E_added_flux,E_added_grav)
+
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                  normalize_species
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
-                               normalize_new_species
+       normalize_new_species
   use sponge_module, only : sponge
   use grav_sources_module, only : add_grav_source
 
@@ -79,24 +310,32 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   double precision dx,dy,dz
   integer ngq,ngf
-  
-  allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QVAR))
-  allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+  integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
+
+  ngq = NHYP
+  ngf = 1
+    
+  q_l1 = lo(1)-NHYP
+  q_l2 = lo(2)-NHYP
+  q_l3 = lo(3)-NHYP
+  q_h1 = hi(1)+NHYP
+  q_h2 = hi(2)+NHYP
+  q_h3 = hi(3)+NHYP
+
+  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR))
+  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
   allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
-  allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR))
+  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
   
   dx = delta(1)
   dy = delta(2)
   dz = delta(3)
-  
-  ngq = NHYP
-  ngf = 1
   
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
@@ -104,14 +343,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !    and set to correspond to coordinates of (lo:hi)
   ! 3) Translate source terms
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+               q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
-
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+  call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
@@ -123,7 +361,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                pdivu, domlo, domhi)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+  call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
             dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
 
   ! Conservative update
@@ -138,7 +376,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
               vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
               div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
-
+  
   ! Add the radiative cooling -- for SGS only.
   ! if (radiative_cooling_type.eq.2) then
   !    call post_step_radiative_cooling(lo,hi,dt, &
@@ -149,7 +387,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
                                uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                lo,hi,mass_added,eint_added,eden_added,verbose)
-  
+
   ! Enforce species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                                       uout_h1,uout_h2,uout_h3,lo,hi)
@@ -174,7 +412,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
 
-end subroutine ca_umdrv
+end subroutine umdrv_tile
 
 ! ::
 ! :: ----------------------------------------------------------
@@ -277,7 +515,6 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      ! Sum fine data.
      !
      do koff = 0, lratz-1
-        !$OMP PARALLEL DO PRIVATE(i,j,k,ic,jc,kc,ioff,joff)
         do kc = lo(3),hi(3)
            k = kc*lratz + koff
            do joff = 0, lraty-1
@@ -292,12 +529,10 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
      enddo
      !
      ! Divide out by volume weight.
      !
-     !$OMP PARALLEL DO PRIVATE(ic,jc,kc)
      do kc = lo(3), hi(3)
         do jc = lo(2), hi(2)
            do ic = lo(1), hi(1)
@@ -305,7 +540,6 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO
      
   enddo
 
@@ -395,11 +629,11 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   use bl_constants_module
   
   implicit none
-
+  
   integer          :: lo(3), hi(3)
   integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
   double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-
+  
   ! Local variables
   integer          :: i,j,k,n
   integer          :: int_dom_spec
@@ -408,7 +642,6 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   
   double precision, parameter :: eps = -1.0d-16
   
-  !$OMP PARALLEL DO PRIVATE(i,j,k,n,dom_spec,int_dom_spec,any_negative,x)
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -488,8 +721,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
         enddo
      enddo
   enddo
-  !$OMP END PARALLEL DO
-
+  
 end subroutine ca_enforce_nonnegative_species
 
 ! :::

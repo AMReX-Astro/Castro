@@ -46,8 +46,6 @@ contains
 
 
       ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,rho,SrU,SrV,SrE,rhoInv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added)
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
@@ -96,7 +94,6 @@ contains
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine add_grav_source
 
@@ -147,10 +144,6 @@ end module grav_sources_module
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-
-      !$OMP PARALLEL DO PRIVATE(i,j,rhoo,Upo,Vpo,SrU_old,SrV_old,rhon,Upn,Vpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrUcorr,SrVcorr,SrEcorr,rhooinv,rhoninv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added) 
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
@@ -224,7 +217,6 @@ end module grav_sources_module
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_corrgsrc
 

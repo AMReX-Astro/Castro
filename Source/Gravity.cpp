@@ -1,5 +1,9 @@
 #include <cmath>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <ParmParse.H>
 #include "Gravity.H"
 #include "Castro.H"
@@ -386,8 +390,7 @@ Gravity::solve_for_old_phi (int               level,
     // This is a correction for fully periodic domains only
     if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
-       Rhs[mfi].plus(-mass_offset);
+    Rhs.plus(-mass_offset,0,1,0);
 
     solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior);
 }
@@ -413,8 +416,7 @@ Gravity::solve_for_new_phi (int               level,
     // This is a correction for fully periodic domains only
     if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
        std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi) 
-       Rhs[mfi].plus(-mass_offset);
+    Rhs.plus(-mass_offset,0,1,0);
     
     Real time = LevelData[level].get_state_data(State_Type).curTime();
 
@@ -766,16 +768,19 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     const Box&    crse_domain = crse_geom.Domain();
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
        Real local_correction = 0.0;
-       for (MFIter mfi(CrseRhs); mfi.isValid(); ++mfi)
-           local_correction += CrseRhs[mfi].sum(mfi.validbox(),0,1);
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+       for (MFIter mfi(CrseRhs,true); mfi.isValid(); ++mfi) {
+           local_correction += CrseRhs[mfi].sum(mfi.tilebox(),0,1);
+       }
        ParallelDescriptor::ReduceRealSum(local_correction);
        
        local_correction = local_correction / grids[crse_level].numPts();
 
        if (verbose && ParallelDescriptor::IOProcessor())
           std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << std::endl;
-       for (MFIter mfi(CrseRhs); mfi.isValid(); ++mfi) 
-          CrseRhs[mfi].plus(-local_correction);
+       CrseRhs.plus(-local_correction,1,0,0);
     }
 
     // delta_phi needs a ghost cell for the solve
@@ -798,15 +803,19 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // In the all-periodic case we enforce that delta_phi averages to zero.
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
        Real local_correction = 0.0;
-       for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi)
-           local_correction += delta_phi[0][mfi].sum(mfi.validbox(),0,1);
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+       for (MFIter mfi(delta_phi[0],true); mfi.isValid(); ++mfi) {
+           local_correction += delta_phi[0][mfi].sum(mfi.tilebox(),0,1);
+       }
        ParallelDescriptor::ReduceRealSum(local_correction);
 
        local_correction = local_correction / grids[crse_level].numPts();
 
-       for (int lev = crse_level; lev <= fine_level; lev++) 
-          for (MFIter mfi(delta_phi[lev-crse_level]); mfi.isValid(); ++mfi)
-             delta_phi[lev-crse_level][mfi].plus(-local_correction);
+       for (int lev = crse_level; lev <= fine_level; lev++) {
+	   delta_phi[lev-crse_level].plus(-local_correction,0,1,1);
+       }
     }
 
     // Add delta_phi to phi_curr, and grad(delta_phi) to grad(delta_phi_curr) on each level
@@ -821,7 +830,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // Average phi_curr from fine to coarse level
     for (int lev = fine_level-1; lev >= crse_level; lev--)
     {
-       const IntVect ratio = parent->refRatio(lev);
+       const IntVect& ratio = parent->refRatio(lev);
        avgDown(phi_curr[lev],phi_curr[lev+1],ratio);
     } 
 
@@ -857,10 +866,12 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 
        const Real* dx = parent->Geom(lev).CellSize();
 
-       for (MFIter mfi(S); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif
+       for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
        {
-          int index = mfi.index();
-          const Box& bx = grids[lev][index];
+          const Box& bx = mfi.tilebox();
 
           // Average edge-centered gradients of crse dPhi to cell centers
           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
@@ -885,21 +896,28 @@ Gravity::GetCrsePhi(int level,
     const Real t_old = LevelData[level-1].get_state_data(State_Type).prevTime();
     const Real t_new = LevelData[level-1].get_state_data(State_Type).curTime();
     Real alpha = (time - t_old)/(t_new - t_old);
+    Real omalpha = 1.0 - alpha;
 
     phi_crse.clear();
     phi_crse.define(grids[level-1], 1, 1, Fab_allocate); // BUT NOTE we don't trust phi's ghost cells.
-    FArrayBox PhiCrseTemp;
-    for (MFIter mfi(phi_crse); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-       PhiCrseTemp.resize(phi_crse[mfi].box(),1);
-
-       PhiCrseTemp.copy(phi_prev[level-1][mfi]);
-       Real omalpha = 1.0 - alpha;
-       PhiCrseTemp.mult(omalpha);
-
-       phi_crse[mfi].copy(phi_curr[level-1][mfi]);
-       phi_crse[mfi].mult(alpha);
-       phi_crse[mfi].plus(PhiCrseTemp);
+	FArrayBox PhiCrseTemp;
+	for (MFIter mfi(phi_crse,true); mfi.isValid(); ++mfi)
+        {
+	    const Box& gtbx = mfi.growntilebox();
+	    
+	    PhiCrseTemp.resize(gtbx,1);
+	    
+	    PhiCrseTemp.copy(phi_prev[level-1][mfi]);
+	    PhiCrseTemp.mult(omalpha);
+	    
+	    phi_crse[mfi].copy(phi_curr[level-1][mfi], gtbx);
+	    phi_crse[mfi].mult(alpha, gtbx);
+	    phi_crse[mfi].plus(PhiCrseTemp);
+	}
     }
 
     phi_crse.FillBoundary();
@@ -918,6 +936,7 @@ Gravity::GetCrseGradPhi(int level,
     const Real t_old = LevelData[level-1].get_state_data(State_Type).prevTime();
     const Real t_new = LevelData[level-1].get_state_data(State_Type).curTime();
     Real alpha = (time - t_old)/(t_new - t_old);
+    Real omalpha = 1.0 - alpha;
 
     BL_ASSERT(grad_phi_crse.size() == BL_SPACEDIM);
     for (int i=0; i<BL_SPACEDIM; ++i)
@@ -925,19 +944,26 @@ Gravity::GetCrseGradPhi(int level,
         BL_ASSERT(!grad_phi_crse.defined(i));
         const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
         grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
-        FArrayBox GradPhiCrseTemp;
-        for (MFIter mfi(grad_phi_crse[i]); mfi.isValid(); ++mfi)
-        {
-            GradPhiCrseTemp.resize(mfi.validbox(),1);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	{
+	    FArrayBox GradPhiCrseTemp;
+	    for (MFIter mfi(grad_phi_crse[i],true); mfi.isValid(); ++mfi)
+            {
+		const Box& tbx =mfi.tilebox();
+		    
+		GradPhiCrseTemp.resize(tbx,1);
             
-            GradPhiCrseTemp.copy(grad_phi_prev[level-1][i][mfi]);
-            Real omalpha = 1.0 - alpha;
-            GradPhiCrseTemp.mult(omalpha);
+		GradPhiCrseTemp.copy(grad_phi_prev[level-1][i][mfi]);
+		GradPhiCrseTemp.mult(omalpha);
             
-            grad_phi_crse[i][mfi].copy(grad_phi_curr[level-1][i][mfi]);
-            grad_phi_crse[i][mfi].mult(alpha);
-            grad_phi_crse[i][mfi].plus(GradPhiCrseTemp);
+		grad_phi_crse[i][mfi].copy(grad_phi_curr[level-1][i][mfi], tbx);
+		grad_phi_crse[i][mfi].mult(alpha, tbx);
+		grad_phi_crse[i][mfi].plus(GradPhiCrseTemp);
+	    }
         }
+	
         grad_phi_crse[i].FillBoundary();
 
         const Geometry& geom = parent->Geom(level-1);
@@ -1094,15 +1120,15 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 
        if ( (level == 0) && (lev == 0) && !Geometry::isAllPeriodic() ) 
        {
-         if (verbose && ParallelDescriptor::IOProcessor()) 
-             std::cout << " ... Making bc's for phi at level 0 " << std::endl;
+	   if (verbose && ParallelDescriptor::IOProcessor()) 
+	       std::cout << " ... Making bc's for phi at level 0 " << std::endl;
 
-             int fill_interior = 1;
-             make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
+	   int fill_interior = 1;
+	   make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
 #if (BL_SPACEDIM == 3)
-             if ( direct_sum_bcs )
+	   if ( direct_sum_bcs )
                fill_direct_sum_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
-             else
+	   else
                // Note that the ghost cells of phi are zero'd out before being filled
                //      so the previous values from make_radial_phi will be forgotten
                fill_multipole_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
@@ -1143,9 +1169,9 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
           std::cout << " ... subtracting average density " << mass_offset << 
                        " from RHS at each level " << std::endl;
 
-       for (int lev = 0; lev < nlevs; lev++) 
-          for (MFIter mfi(*(Rhs_p[lev])); mfi.isValid(); ++mfi) 
-             (*Rhs_p[lev])[mfi].plus(-mass_offset);
+       for (int lev = 0; lev < nlevs; lev++) {
+	   (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
+       }
     }
 #endif
      
@@ -1251,7 +1277,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     // Average phi from fine to coarse level
     for (int lev = finest_level; lev > level; lev--)
     {
-       const IntVect ratio = parent->refRatio(lev-1);
+       const IntVect& ratio = parent->refRatio(lev-1);
        if (is_new == 1)
        {
            avgDown(phi_curr[lev-1],phi_curr[lev],ratio);
@@ -1341,26 +1367,23 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        const Real*     dx = parent->Geom(level).CellSize();
        const Real* problo = parent->Geom(level).ProbLo();
 
-       // Average edge-centered gradients to cell centers, including grow cells
-       //   Grow cells are filled either by physical bc's in AVG_EC_TO_CC or
-       //   by FillBoundary call to grav_vector afterwards.
-       for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi) {
- 
-           int i = mfi.index();
-           const Box& bx = grids[level][i];
+       // Average edge-centered gradients to cell centers, excluding grow cells
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi) 
+       {
+           const Box& bx = mfi.tilebox();
  
            BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
                (bx.loVect(), bx.hiVect(),
                 lo_bc, hi_bc, &symmetry_type,
-                BL_TO_FORTRAN(grav_vector[i]),
-                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][i]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][1][i]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][2][i])),
+                BL_TO_FORTRAN(grav_vector[mfi]),
+                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
+                       BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
+                       BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
                        dx,problo,&coord_type);
        }
-       grav_vector.FillBoundary();
-       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
- 
     } else {
        BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
     }
@@ -1377,12 +1400,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       for (FillPatchIterator fpi(*amrlev,G_old,ng,time,Gravity_Type,0,BL_SPACEDIM); 
-         fpi.isValid(); ++fpi) 
-         {
-            int i = fpi.index();
-            grav_vector[i].copy(fpi());
-         }
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -1399,6 +1417,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     BL_PROFILE("Gravity::get_new_grav_vector()");
 
     int ng = grav_vector.nGrow();
+
+    BL_ASSERT(ng == 0);
 
     if (gravity_type == "ConstantGrav") {
 
@@ -1460,26 +1480,23 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        const Real*     dx = parent->Geom(level).CellSize();
        const Real* problo = parent->Geom(level).ProbLo();
 
-      // Average edge-centered gradients to cell centers, including grow cells
-      //   Grow cells are filled either by physical bc's in AVG_EC_TO_CC or
-      //   by FillBoundary call to grav_vector afterwards.
-       for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+      // Average edge-centered gradients to cell centers, excluding grow cells
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
        {
-          int i = mfi.index();
-          const Box& bx = grids[level][i];
+	  const Box& bx = mfi.tilebox();
 
           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
               (bx.loVect(), bx.hiVect(),
                lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grav_vector[i]),
-               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][i]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][1][i]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][2][i])),
+               BL_TO_FORTRAN(grav_vector[mfi]),
+               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
+                      BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
+                      BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
                       dx,problo,&coord_type);
        }
-       grav_vector.FillBoundary();
-       geom.FillPeriodicBoundary(grav_vector,0,BL_SPACEDIM);
-
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
     }
@@ -1488,22 +1505,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill G_new from grav_vector
     MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
-
-#if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav") {
-
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
-
-       for (FillPatchIterator fpi(*amrlev,G_new,ng,time,Gravity_Type,0,BL_SPACEDIM);
-         fpi.isValid(); ++fpi)
-         {
-            int i = fpi.index();
-            grav_vector[i].copy(fpi());
-         }
-    }
-#endif
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
@@ -1528,8 +1529,7 @@ Gravity::test_level_grad_phi_prev(int level)
        if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS at level ... " 
                     << level << " " << mass_offset << std::endl;
-       for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
-          Rhs[mfi].plus(-mass_offset);
+       Rhs.plus(-mass_offset,0,1,0);
     }
 
     Rhs.mult(Ggravity);
@@ -1546,9 +1546,12 @@ Gravity::test_level_grad_phi_prev(int level)
     const Real* problo = parent->Geom(level).ProbLo();
     int coord_type     = Geometry::Coord();
 
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
@@ -1596,8 +1599,7 @@ Gravity::test_level_grad_phi_curr(int level)
     {
        if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
-       for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
-          Rhs[mfi].plus(-mass_offset);
+       Rhs.plus(-mass_offset,0,1,0);
     }
 
     Rhs.mult(Ggravity);
@@ -1614,9 +1616,12 @@ Gravity::test_level_grad_phi_curr(int level)
     const Real* problo = parent->Geom(level).ProbLo();
     int coord_type     = Geometry::Coord();
 
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
@@ -1714,11 +1719,15 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
             ba.surroundingNodes(n);
             MultiFab fluxes(ba, 1, 0);
 
-            for (MFIter mfi(phi_curr[level]); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(fluxes,true); mfi.isValid(); ++mfi)
             {
+		const Box& tbx = mfi.tilebox();
                 FArrayBox& gphi_flux = fluxes[mfi];
-                gphi_flux.copy(grad_phi_curr[level][n][mfi]);
-                gphi_flux.mult(area[level][n][mfi]);
+                gphi_flux.copy(grad_phi_curr[level][n][mfi], tbx);
+                gphi_flux.mult(area[level][n][mfi], tbx, 0, 0, 1);
             }
 
             phi_fine->CrseInit(fluxes,n,0,0,1,-1);
@@ -1761,43 +1770,43 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     if (is_new == 1)
     {
-       for (MFIter mfi(grad_phi_curr[level+1][0]); mfi.isValid(); ++mfi)
-       {
-           const int        i        = mfi.index();
-           const Box&       ovlp     = crse_gphi_fine_BA[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	for (int n=0; n<BL_SPACEDIM; ++n) {
+	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
+	    {
+		const Box& tbx = mfi.tilebox();
+
+   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
+		    (BL_TO_FORTRAN(grad_phi_curr[level+1][n][mfi]),
+		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
+		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
+	    }
+	}
    
-           BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-               (D_DECL(BL_TO_FORTRAN(grad_phi_curr[level+1][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_curr[level+1][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_curr[level+1][2][mfi])),
-                D_DECL(BL_TO_FORTRAN(crse_gphi_fine[0][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[1][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[2][mfi])),
-                ovlp.loVect(),ovlp.hiVect(),fine_ratio.getVect());
-       }
-   
-       for (int n=0; n<BL_SPACEDIM; ++n)
-         grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
+	for (int n=0; n<BL_SPACEDIM; ++n)
+	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
     }
     else if (is_new == 0)
     {
-       for (MFIter mfi(grad_phi_prev[level+1][0]); mfi.isValid(); ++mfi)
-       {
-           const int        i        = mfi.index();
-           const Box&       ovlp     = crse_gphi_fine_BA[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	for (int n=0; n<BL_SPACEDIM; ++n) {
+	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
+            {
+		const Box& tbx = mfi.tilebox();
+
+   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
+		    (BL_TO_FORTRAN(grad_phi_prev[level+1][n][mfi]),
+		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
+		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
+	    }
+	}
    
-           BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-               (D_DECL(BL_TO_FORTRAN(grad_phi_prev[level+1][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level+1][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level+1][2][mfi])),
-                D_DECL(BL_TO_FORTRAN(crse_gphi_fine[0][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[1][mfi]),
-                       BL_TO_FORTRAN(crse_gphi_fine[2][mfi])),
-                ovlp.loVect(),ovlp.hiVect(),fine_ratio.getVect());
-       }
-   
-       for (int n=0; n<BL_SPACEDIM; ++n)
-         grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
+	for (int n=0; n<BL_SPACEDIM; ++n)
+	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
     }
 }
 
@@ -1818,12 +1827,14 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
 
     MultiFab crse_fine(crse_fine_BA,1,0);
 
-    for (MFIter mfi(fine); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(crse_fine,true); mfi.isValid(); ++mfi)
     {
-        const int        i        = mfi.index();
-        const Box&       ovlp     = crse_fine_BA[i];
-        FArrayBox&       crse_fab = crse_fine[i];
-        const FArrayBox& fine_fab = fine[i];
+        const Box&       ovlp     = mfi.tilebox();
+        FArrayBox&       crse_fab = crse_fine[mfi];
+        const FArrayBox& fine_fab = fine[mfi];
 
 	BL_FORT_PROC_CALL(CA_AVGDOWN_PHI,ca_avgdown_phi)
             (BL_TO_FORTRAN(crse_fab), 
@@ -1907,8 +1918,7 @@ Gravity::test_composite_phi (int level)
           if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
              std::cout << " ... subtracting average density from RHS in solve at level ... " 
                        << level+lev << " " << mass_offset << std::endl;
-          for (MFIter mfi((*Rhs_p[lev])); mfi.isValid(); ++mfi)
-             (*Rhs_p[lev])[mfi].plus(-mass_offset);
+	  (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
        }
 
        Rhs_p[lev]->mult(Ggravity,0,1);
@@ -1991,7 +2001,7 @@ Gravity::test_composite_phi (int level)
         // Average residual from fine to coarse level before printing the norm
         for (int lev = nlevs-2; lev >= 0; lev--)
         {
-           const IntVect ratio = parent->refRatio(lev);
+           const IntVect& ratio = parent->refRatio(lev);
            avgDown(*Res_p[lev],*Res_p[lev+1],ratio);
         } 
 
@@ -2112,16 +2122,22 @@ Gravity::fill_ec_grow (int level,
 
             MultiFab ecCG(edge_grids,1,0);
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
             for (MFIter mfi(ecC[n]); mfi.isValid(); ++mfi)
                 ecCG[mfi].copy(ecC[n][mfi]);
 
             crse_src.copy(ecCG);
         }
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
         for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
         {
             const int  nComp = 1;
-            const Box  box   = crse_src[mfi].box();
+            const Box& box   = crse_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
                 (box.loVect(), box.hiVect(), &nComp, rat, &n,
@@ -2137,6 +2153,9 @@ Gravity::fill_ec_grow (int level,
         //
         fine_src.copy(ecF[n]); // parallel copy
         
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
         for (MFIter mfi(fine_src); mfi.isValid(); ++mfi)
         {
             //
@@ -2145,7 +2164,7 @@ Gravity::fill_ec_grow (int level,
             // on fine edges overlaying coarse edges.
             //
             const int  nComp = 1;
-            const Box& fbox  = fine_src[mfi.index()].box();
+            const Box& fbox  = fine_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
             BL_FORT_PROC_CALL(CA_EDGE_INTERP,ca_edge_interp)
                 (fbox.loVect(), fbox.hiVect(), &nComp, rat, &n,
@@ -2162,6 +2181,9 @@ Gravity::fill_ec_grow (int level,
         ecFG.copy(fine_src); // Parallel copy
         ecFG.copy(ecF[n]);   // Parallel copy
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
         for (MFIter mfi(ecF[n]); mfi.isValid(); ++mfi)
             ecF[n][mfi].copy(ecFG[mfi]);
     }
@@ -2229,6 +2251,9 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
 
    ParallelDescriptor::Bcast(grav_fab.dataPtr(),grav_fab.box().numPts(),whichProc);
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif   
    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi) 
    {
         grav_vector[mfi].copy(grav_fab);
@@ -2246,16 +2271,18 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
 
-
-
-    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif   
+    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
-       Box bx(mfi.validbox());
+       const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
            (bx.loVect(), bx.hiVect(), dx,
             BL_TO_FORTRAN(grav_vector[mfi]),
             geom.ProbLo());
     }
+
     if (verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
@@ -2277,9 +2304,12 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / double(drdxfac);
 
-    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
-       Box bx(mfi.validbox());
+       const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
            (bx.loVect(), bx.hiVect(),dx,&dr,
             BL_TO_FORTRAN(grav_vector[mfi]),
@@ -2301,28 +2331,43 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     int n1d = drdxfac*numpts_at_level;
 
-    Array<Real> radial_mass(n1d,0);
-    Array<Real> radial_vol(n1d,0);
-    Array<Real> radial_phi(n1d,0);
-    Array<Real> radial_grav(n1d+1,0);
+    Array<Real> radial_mass(n1d,0.0);
+    Array<Real> radial_vol(n1d,0.0);
+    Array<Real> radial_phi(n1d,0.0);
+    Array<Real> radial_grav(n1d+1,0.0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
     Real dr = dx[0] / double(drdxfac);
 
-    for (int i = 0; i < n1d; i++) radial_mass[i] = 0.;
-    for (int i = 0; i < n1d; i++) radial_vol[i] = 0.;
-
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-            (bx.loVect(), bx.hiVect(),dx,&dr,
-             BL_TO_FORTRAN(Rhs[mfi]), 
-             radial_mass.dataPtr(), radial_vol.dataPtr(),
-             geom.ProbLo(),&n1d,&drdxfac,&level);
+	Array<Real> priv_radial_mass(n1d,0.0);
+	Array<Real> priv_radial_vol (n1d,0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx =mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
+		(bx.loVect(), bx.hiVect(),dx,&dr,
+		 BL_TO_FORTRAN(Rhs[mfi]), 
+		 priv_radial_mass.dataPtr(), priv_radial_vol.dataPtr(),
+		 geom.ProbLo(),&n1d,&drdxfac,&level);
+	}
+
+#ifdef _OPENMP
+#pragma omp critical (ca_compute_radia_mass)
+#endif
+	{
+	    for (int i=0; i<n1d; i++) {
+		radial_mass[i] += priv_radial_mass[i];
+		radial_vol [i] += priv_radial_vol [i];		
+	    }
+	}
     }
    
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
@@ -2332,9 +2377,12 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
         (radial_mass.dataPtr(),radial_grav.dataPtr(),radial_phi.dataPtr(),&dr,&n1d);
 
     Box domain(parent->Geom(level).Domain());
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx = mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),
@@ -2402,16 +2450,38 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     }
 
     int symmetry_type = Symmetry;
+    const Box& domain = parent->Geom(level).Domain();
 
-    Box domain(parent->Geom(level).Domain());
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
-	    (bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
-             &symmetry_type,lo_bc,hi_bc,
-             dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
-             &lnum,q0.dataPtr(),qC.dataPtr(),qS.dataPtr());
+	FArrayBox priv_q0(boxq0);
+	FArrayBox priv_qC(boxqC);
+	FArrayBox priv_qS(boxqS);
+
+	priv_q0.setVal(0.0);
+	priv_qC.setVal(0.0);
+	priv_qS.setVal(0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
+		(bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
+		 &symmetry_type,lo_bc,hi_bc,
+		 dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
+		 &lnum,priv_q0.dataPtr(),priv_qC.dataPtr(),priv_qS.dataPtr());
+	}
+
+#ifdef _OPENMP
+#pragma omp critical(ca_compute_multipole_moments)
+#endif
+	{
+	    q0.plus(priv_q0);
+	    qC.plus(priv_qC);
+	    qS.plus(priv_qS);
+	}
     }
 
     // Now, do a global reduce over all processes.
@@ -2424,9 +2494,12 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // complete multipole moments, for all points on the
     // boundary that are held on this process.
 
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx = mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
             (bx.loVect(), bx.hiVect(),
              domain.loVect(), domain.hiVect(),
@@ -2516,17 +2589,48 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 
     int symmetry_type = Symmetry;
     
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     {
-        Box bx(mfi.validbox());
-        BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
-	    (bx.loVect(), bx.hiVect(), domlo, domhi, 
-             &symmetry_type,lo_bc,hi_bc,
-             dx,BL_TO_FORTRAN(Rhs[mfi]),
-             geom.ProbLo(),geom.ProbHi(),
-             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-             bcYZLo.dataPtr(), bcYZHi.dataPtr());
+	FArrayBox priv_bcXYLo(boxXY);
+	FArrayBox priv_bcXYHi(boxXY);
+	FArrayBox priv_bcXZLo(boxXZ);
+	FArrayBox priv_bcXZHi(boxXZ);
+	FArrayBox priv_bcYZLo(boxYZ);
+	FArrayBox priv_bcYZHi(boxYZ);
+	
+	priv_bcXYLo.setVal(0.0);
+	priv_bcXYHi.setVal(0.0);
+	priv_bcXZLo.setVal(0.0);
+	priv_bcXZHi.setVal(0.0);
+	priv_bcYZLo.setVal(0.0);
+	priv_bcYZHi.setVal(0.0);
+
+	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	{
+	    const Box bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
+		(bx.loVect(), bx.hiVect(), domlo, domhi, 
+		 &symmetry_type,lo_bc,hi_bc,
+		 dx,BL_TO_FORTRAN(Rhs[mfi]),
+		 geom.ProbLo(),geom.ProbHi(),
+		 priv_bcXYLo.dataPtr(), priv_bcXYHi.dataPtr(),
+		 priv_bcXZLo.dataPtr(), priv_bcXZHi.dataPtr(),
+		 priv_bcYZLo.dataPtr(), priv_bcYZHi.dataPtr());
+	}
+
+#ifdef _OPENMP
+#pragma omp critical(ca_compute_direct_sum_bc)
+#endif
+	{
+	    bcXYLo.plus(priv_bcXYLo);
+	    bcXYHi.plus(priv_bcXYHi);
+	    bcXZLo.plus(priv_bcXZLo);
+	    bcXZHi.plus(priv_bcXZHi);
+	    bcYZLo.plus(priv_bcYZLo);
+	    bcYZHi.plus(priv_bcYZHi);
+	}
     }
 
     ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
@@ -2536,9 +2640,12 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), nPtsYZ);
     ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), nPtsYZ);
     
-    for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
-        Box bx(mfi.validbox());
+        const Box& bx= mfi.growntilebox();
         BL_FORT_PROC_CALL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
             (bx.loVect(), bx.hiVect(), domlo, domhi,
              BL_TO_FORTRAN(phi[mfi]),
@@ -2567,12 +2674,24 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
+	D_TERM(const Box& xbx = mfi.nodalbox(0);,
+	       const Box& ybx = mfi.nodalbox(1);,
+	       const Box& zbx = mfi.nodalbox(2););
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
+	     D_DECL(xbx.loVect(),
+		    ybx.loVect(),
+		    zbx.loVect()),
+	     D_DECL(xbx.hiVect(),
+		    ybx.hiVect(),
+		    zbx.hiVect()),
              BL_TO_FORTRAN(Rhs[mfi]),
              D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
                     BL_TO_FORTRAN(coeffs[1][mfi]),
@@ -2586,10 +2705,12 @@ Gravity::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(cc); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
-        int index = mfi.index();
-        const Box bx = grids[level][index];
+        const Box& bx = mfi.tilebox();
         BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
             (bx.loVect(), bx.hiVect(),
              BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
@@ -2601,16 +2722,18 @@ Gravity::unweight_edges(int level, PArray<MultiFab>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(edges[0]); mfi.isValid(); ++mfi)
-    {
-        int index = mfi.index();
-        const Box bx = grids[level][index];
-        BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
-            (bx.loVect(), bx.hiVect(),
-             D_DECL(BL_TO_FORTRAN(edges[0][mfi]),
-                    BL_TO_FORTRAN(edges[1][mfi]),
-                    BL_TO_FORTRAN(edges[2][mfi])),
-             dx,&coord_type);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (int idir=0; idir<BL_SPACEDIM; ++idir) {
+	for (MFIter mfi(edges[idir],true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	    BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(edges[idir][mfi]),
+		 dx,&coord_type,&idir);
+	}
     }
 }
 #endif
@@ -2700,11 +2823,15 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
 {
    const Real* dx     = parent->Geom(level).CellSize();
    const Real* problo = parent->Geom(level).ProbLo();
-   for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+   for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
    {
-        BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
-            (&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
-             problo,dx);
+       const Box& bx = mfi.growntilebox();
+       BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
+	   (&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
+	    problo,dx,bx.loVect(),bx.hiVect());
    }
 }
 #endif
@@ -2722,30 +2849,21 @@ Gravity::computeAvg (int level, MultiFab* mf)
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        IntVect fine_ratio = parent->refRatio(level);
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	const MultiFab* mask = fine_level->build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);	
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[level][mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
         Real s;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
@@ -2775,7 +2893,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     // This is just here in case we need to debug ...
     int do_diag = 0;
 
-    BoxArray baf;
     Real sum_over_levels = 0.;
 
     for (int lev = 0; lev <= level; lev++)
@@ -2783,12 +2900,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real t_old = LevelData[lev].get_state_data(State_Type).prevTime();
         const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
-
-        if (lev < level)
-        {
-            baf = parent->boxArray(lev+1);
-            baf.coarsen(parent->refRatio(lev));
-        }
 
         // Create MultiFab with one component and no grow cells
         MultiFab S(grids[lev],1,0);
@@ -2827,6 +2938,13 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
       	    BoxLib::Abort("Problem in Gravity::make_radial_gravity");
         }  
 
+        if (lev < level)
+        {
+	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	    const MultiFab* mask = fine_level->build_fine_mask();
+	    MultiFab::Multiply(S, *mask, 0, 0, 1, 0);	
+        }
+
         int n1d = radial_mass[lev].size();
 
 #ifdef GR_GRAV
@@ -2839,32 +2957,49 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real* dx   = geom.CellSize();
         Real dr = dx[0] / double(drdxfac);
 
-        for (MFIter mfi(S); mfi.isValid(); ++mfi)
-        {
-           Box bx(mfi.validbox());
-           FArrayBox& fab = S[mfi];
-           if (lev < level)
-           {
-               std::vector< std::pair<int,Box> > isects = baf.intersections(grids[lev][mfi.index()]);
-               for (int ii = 0; ii < isects.size(); ii++)
-                   fab.setVal(0,isects[ii].second,0,fab.nComp());
-           }
-
-           BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-               (bx.loVect(), bx.hiVect(), dx, &dr,
-                BL_TO_FORTRAN(fab), 
-                radial_mass[lev].dataPtr(), 
-                radial_vol[lev].dataPtr(), 
-                geom.ProbLo(),&n1d,&drdxfac,&lev);
-
-#ifdef GR_GRAV
-           BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
-               (bx.loVect(), bx.hiVect(),dx,&dr,
-                BL_TO_FORTRAN(fab),
-                radial_pres[lev].dataPtr(),
-                geom.ProbLo(),&n1d,&drdxfac,&lev);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-        }
+	{
+#ifdef GR_GRAV
+	    Array<Real> priv_radial_pres(n1d,0.0);
+#endif
+	    Array<Real> priv_radial_mass(n1d,0.0);
+	    Array<Real> priv_radial_vol (n1d,0.0);
+	
+	    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
+	    {
+	        const Box& bx = mfi.tilebox();
+		FArrayBox& fab = S[mfi];
+		
+		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
+		    (bx.loVect(), bx.hiVect(), dx, &dr,
+                     BL_TO_FORTRAN(fab), 
+                     priv_radial_mass.dataPtr(), 
+                     priv_radial_vol.dataPtr(), 
+                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+		
+#ifdef GR_GRAV
+		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
+		    (bx.loVect(), bx.hiVect(),dx,&dr,
+                     BL_TO_FORTRAN(fab),
+                     priv_radial_pres.dataPtr(),
+                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+#endif
+	    }
+#ifdef _OPENMP
+#pragma omp critical (ca_compute_radia_mass_2)
+#endif
+	    {
+	        for (int i=0; i<n1d; i++) {
+#ifdef GR_GRAV
+	            radial_pres[lev][i] += priv_radial_pres[i];
+#endif
+	            radial_mass[lev][i] += priv_radial_mass[i];
+		    radial_vol [lev][i] += priv_radial_vol [i];		
+		}
+	    }
+	}
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
@@ -3038,7 +3173,7 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
 
         for (int lev = finest_level - 1 - base_level; lev >= 0; lev--)
         {
-            const IntVect ratio = parent->refRatio(lev+base_level);
+            const IntVect& ratio = parent->refRatio(lev+base_level);
             avgDown(PartMF[lev], PartMF[lev+1], ratio);
         }
 

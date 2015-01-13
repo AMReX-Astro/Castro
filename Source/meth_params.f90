@@ -9,10 +9,10 @@ module meth_params_module
   implicit none
 
   double precision, save :: difmag        ! used only in consup to weight the divu contribution
-  integer         , save :: iorder        ! used only in uslope and uflaten
+  integer         , save :: iorder        ! used only in uslope 
 
+  ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
-  integer, parameter     :: MAXADV  = 2
 
   ! NTHERM: number of thermodynamic variables
   integer         , save :: NTHERM, NVAR
@@ -42,6 +42,7 @@ module meth_params_module
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_flatten_before_integrals
   integer         , save :: ppm_reference_eigenvectors
+  integer         , save :: hybrid_riemann
   integer         , save :: use_colglaz
   integer         , save :: use_flattening
   integer         , save :: transverse_use_eos
@@ -70,5 +71,7 @@ module meth_params_module
 
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
+
+  logical, save :: deterministic   ! set this to true for regression tests
 
 end module meth_params_module

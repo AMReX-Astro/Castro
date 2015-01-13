@@ -54,7 +54,7 @@
 !        enddo
 !     enddo
 
-      grav = ZERO
+      grav(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
       end subroutine ca_prescribe_grav
 

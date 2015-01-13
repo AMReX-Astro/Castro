@@ -78,7 +78,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -100,14 +99,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
 
-
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrry,rury,rvry,rwry,ekenry,rery,rrly,ruly,rvly,rwly,ekenly,rely) &
-    !$OMP PRIVATE(rrnewry,runewry,rvnewry,rwnewry,renewry,rrnewly,runewly,rvnewly,rwnewly,renewly) &
-    !$OMP PRIVATE(dup,pav,du,dge,uav,geav,pnewry) &
-    !$OMP PRIVATE(pnewly,rhoekenry,rhoekenly,eos_state)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -243,12 +235,12 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qypo(i,j,kc,QGAME) = qypo(i,j,kc,QGAME) + &
-                     cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
-
+                qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
              endif
 
           endif
@@ -314,18 +306,18 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
-                qymo(i,j+1,kc,QGAME) = qymo(i,j+1,kc,QGAME) + &
-                     cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
+                qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
 
              end if
           
           endif
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transx1
 
@@ -397,7 +389,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -421,13 +412,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz) &
-    !$OMP PRIVATE(relz,rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav) &
-    !$OMP PRIVATE(du,pnewrz,pnewlz,rhoekenrz,rhoekenlz,eos_state)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
           
@@ -539,11 +524,12 @@ contains
           else
 
              ! Update gammae with its transverse terms
-             qzpo(i,j,kc,QGAME) = qzpo(i,j,kc,QGAME) + &
-                  cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
+                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
              
           endif
 
@@ -649,17 +635,17 @@ contains
           else
 
              ! Update gammae with its transverse terms
-             qzmo(i,j,kc,QGAME) = qzmo(i,j,kc,QGAME) + &
-                  cdtdx*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
+                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
              qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
 
           endif
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transx2
 
@@ -731,7 +717,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -753,13 +738,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrlx,rulx,rvlx,rwlx,ekenlx,relx) &
-    !$OMP PRIVATE(rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrx) &
-    !$OMP PRIVATE(pnewlx,rhoekenrx,rhoekenlx,eos_state)
+
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -895,11 +874,12 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qxpo(i,j,kc,QGAME) = qxpo(i,j,kc,QGAME) + &
-                     cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME) + &
+                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
+                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
                 
              endif
 
@@ -966,11 +946,12 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qxmo(i+1,j,kc,QGAME) = qxmo(i+1,j,kc,QGAME) + &
-                     cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME) + &
+                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
+                qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
 
              endif
 
@@ -978,7 +959,6 @@ contains
           
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
   end subroutine transy1
 
@@ -1050,7 +1030,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1074,13 +1053,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrz,rurz,rvrz,rwrz,ekenrz,rerz,rrlz,rulz,rvlz,rwlz,ekenlz,relz) &
-    !$OMP PRIVATE(rrnewrz,runewrz,rvnewrz,rwnewrz,renewrz,rrnewlz,runewlz,rvnewlz,rwnewlz,renewlz) &
-    !$OMP PRIVATE(dge,uav,geav,dup,pav,du,pnewrz) &
-    !$OMP PRIVATE(pnewlz,rhoekenrz,rhoekenlz,eos_state)
+
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -1192,11 +1165,12 @@ contains
           else
 
              ! Update gammae with its transverse terms
-             qzpo(i,j,kc,QGAME) = qzpo(i,j,kc,QGAME) + &
-                  cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
+                  cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
-              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+             qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -1303,17 +1277,17 @@ contains
           else
 
              ! Update gammae with its transverse terms
-             qzmo(i,j,kc,QGAME) = qzmo(i,j,kc,QGAME) + &
-                  cdtdy*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
+                  cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
              qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
 
           endif
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine transy2
 
@@ -1390,7 +1364,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,compn,rr,rrnew,compu,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1422,16 +1395,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgp,pgm,ugp,ugm,gegp,gegm) &
-    !$OMP PRIVATE(rrrx,rurx,rvrx,rwrx,ekenrx,rerx,rrry,rury) &
-    !$OMP PRIVATE(rvry,rwry,ekenry,rery,rrlx,rulx,rvlx,rwlx,ekenlx,relx,rrly,ruly,rvly,rwly,ekenly)&
-    !$OMP PRIVATE(rely,rrnewrx,runewrx,rvnewrx,rwnewrx,renewrx,rrnewry,runewry,rvnewry,rwnewry)&
-    !$OMP PRIVATE(renewry,rrnewlx,runewlx,rvnewlx,rwnewlx,renewlx,rrnewly,runewly,rvnewly,rwnewly)&
-    !$OMP PRIVATE(renewly,dup,pav,du,dge,uav,geav) &
-    !$OMP PRIVATE(pnewrx,pnewlx,pnewry,pnewly,rhoekenrx,rhoekenry,rhoekenlx,rhoekenly)&
-    !$OMP PRIVATE(eos_state)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -1606,11 +1570,12 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qxpo(i,j,km,QGAME) = qxpo(i,j,km,QGAME) + &
-                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME) + &
+                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
+                qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -1676,11 +1641,12 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qypo(i,j,km,QGAME) = qypo(i,j,km,QGAME) + &
-                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME) + &
+                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
+                qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -1747,11 +1713,12 @@ contains
           else
 
              ! Update gammae with its transverse terms             
-             qxmo(i+1,j,km,QGAME) = qxmo(i+1,j,km,QGAME) + &
-                  cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+             qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
+                  cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
              ! and compute the p edge state from this and (rho e)
              qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
+             qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
 
           endif
 
@@ -1816,19 +1783,19 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qymo(i,j+1,km,QGAME) = qymo(i,j+1,km,QGAME) + &
-                     cdtdz*( (geav+ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME) + &
+                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
-
+                qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
+                
              endif
 
           endif
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
   end subroutine transz
 
@@ -1911,7 +1878,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq,ipassive) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1940,15 +1906,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgyp,pgym,ugyp,ugym,pgxpm,pgxmm,ugxpm)&
-    !$OMP PRIVATE(gegxp,gegxm,gegyp,gegym,gegxpm,gegxmm,gegypm,gegymm) &
-    !$OMP PRIVATE(ugxmm,pgypm,pgymm,ugypm,ugymm,rrr,rur,rvr,rwr,ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel)&
-    !$OMP PRIVATE(rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,duxp,pxav)&
-    !$OMP PRIVATE(dux,pxnew,duxpm,pxavm,duxm,pxnewm,duyp,pyav,duy,pynew,duypm,pyavm,duym,pynewm)&
-    !$OMP PRIVATE(uxav,gexav,dgex,uyav,geyav,dgey,uxavm,gexavm,dgexm,uyavm,geyavm,dgeym) &
-    !$OMP PRIVATE(pnewr,pnewl,rhoekenr,rhoekenl,eos_state,gexnew,gexnewm,geynew,geynewm)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2054,7 +2012,7 @@ contains
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav+ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
 
           duxpm = pgxpm*ugxpm - pgxmm*ugxmm
           pxavm = HALF*(pgxpm+pgxmm)
@@ -2063,7 +2021,7 @@ contains
           duxm = ugxpm-ugxmm
           dgexm = gegxpm-gegxmm
           pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
-          gexnewm = cdtdx*( (gexavm+ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
+          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
           
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
@@ -2072,7 +2030,7 @@ contains
           duy = ugyp-ugym
           dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav+ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
+          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
 
           duypm = pgypm*ugypm - pgymm*ugymm
           pyavm = HALF*(pgypm+pgymm)
@@ -2081,7 +2039,7 @@ contains
           duym = ugypm-ugymm
           dgeym = gegypm-gegymm
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
-          geynewm = cdtdy*( (geyavm+ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
+          geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
 
 
           !-------------------------------------------------------------------
@@ -2146,10 +2104,11 @@ contains
           else
              
              ! Update gammae with its transverse terms
-             qpo(i,j,kc,QGAME) = qpo(i,j,kc,QGAME) + gexnew + geynew
+             qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
 
              ! and compute the p edge state from this and (rho e)
              qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
+             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
 
           endif
 
@@ -2216,16 +2175,16 @@ contains
           else
 
              ! Update gammae with its transverse terms
-             qmo(i,j,kc,QGAME) = qmo(i,j,kc,QGAME) + gexnewm + geynewm
+             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
                  
              ! and compute the p edge state from this and (rho e)
              qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
+             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
 
           endif
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
@@ -2322,7 +2281,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2351,13 +2309,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
 
-    !$OMP PARALLEL DO PRIVATE(i,j,pgxp,pgxm,ugxp,ugxm,pgzp,pgzm,gegxp,gegxm,gegzp,gegzm) &
-    !$OMP PRIVATE(ugzp,ugzm,rrr,rur,rvr,rwr)&
-    !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
-    !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duxp,pxav,dux,pxnew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uxav, gexav, dgex, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,gexnew,geznew)
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2445,7 +2397,7 @@ contains
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav+ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
 
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
@@ -2454,7 +2406,7 @@ contains
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
-          geznew = cdtdz*( (gezav+ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+          geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
 
 
           !-------------------------------------------------------------------
@@ -2522,10 +2474,11 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
-                qpo(i,j,km,QGAME) = qpo(i,j,km,QGAME) + gexnew + geznew
+                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              endif
 
@@ -2595,10 +2548,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qmo(i,j+1,km,QGAME) = qmo(i,j+1,km,QGAME) + gexnew + geznew
+                qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
+                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
 
              endif
 
@@ -2606,7 +2560,6 @@ contains
           
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
@@ -2702,7 +2655,6 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$OMP parallel do private(i,j,ipassive,rrr,rrl,compr,compl,rrnewr,rrnewl,compnr,compnl,n,nq) IF(npassive .gt. 1)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2731,13 +2683,7 @@ contains
           enddo
        enddo
     enddo
-    !$OMP end parallel do
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,pgyp,pgym,ugyp,ugym,pgzp,pgzm,ugzp,ugzm) &
-    !$OMP PRIVATE(gegyp,gegym,gegzp,gegzm,rrr,rur,rvr,rwr)&
-    !$OMP PRIVATE(ekenr,rer,rrl,rul,rvl,rwl,ekenl,rel,rrnewr,runewr,rvnewr,rwnewr,renewr,rrnewl)&
-    !$OMP PRIVATE(runewl,rvnewl,rwnewl,renewl,duyp,pyav,duy,pynew,duzp,pzav,duz,pznew,pnewr,pnewl)&
-    !$OMP PRIVATE(uyav, geyav, dgey, uzav, gezav, dgez,rhoekenr,rhoekenl,eos_state,geynew,geznew)
+
     do j = jlo, jhi 
        do i = ilo, ihi 
 
@@ -2828,7 +2774,7 @@ contains
           duy = ugyp-ugym
           dgey = gegyp-gegym
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav+ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
+          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
           
           duzp = pgzp*ugzp - pgzm*ugzm
           pzav = HALF*(pgzp+pgzm)
@@ -2837,7 +2783,7 @@ contains
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
-          geznew = cdtdz*( (gezav+ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+          geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
 
 
           !-------------------------------------------------------------------
@@ -2904,10 +2850,11 @@ contains
              else
 
                 ! Update gammae with its transverse terms
-                qpo(i,j,km,QGAME) = qpo(i,j,km,QGAME) + geynew + geznew
+                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              end if
 
@@ -2976,10 +2923,11 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
-                qmo(i+1,j,km,QGAME) = qmo(i+1,j,km,QGAME) + geynew + geznew
+                qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
+                qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
 
              end if
 
@@ -2987,7 +2935,6 @@ contains
 
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states

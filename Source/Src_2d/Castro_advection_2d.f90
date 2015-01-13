@@ -47,11 +47,11 @@ contains
                      domlo, domhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, ppm_type
+    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
-    use riemann_module, only: cmpflx
+    use riemann_module, only: cmpflx, shock
     use bl_constants_module
 
     implicit none
@@ -93,13 +93,15 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
 
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable:: dq(:,:,:),  qm(:,:,:),   qp(:,:,:)
-    double precision, allocatable::qxm(:,:,:),qym(:,:,:)
-    double precision, allocatable::qxp(:,:,:),qyp(:,:,:)
+    double precision, allocatable::  qm(:,:,:),   qp(:,:,:)
+    double precision, allocatable:: qxm(:,:,:), qym(:,:,:)
+    double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
     
-    ! Work arrays to hold 3 planes of riemann state and conservative fluxes
-    double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable::   pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    ! Work arrays to hold riemann state and conservative fluxes
+    double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
+    double precision, allocatable ::  pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+    double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
     double precision :: dtdx
@@ -108,21 +110,39 @@ contains
 
     allocate ( pgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2))
     allocate ( ugdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+
+    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( fx(ilo1:ihi1+1,ilo2-1:ihi2+1,NVAR))
-    allocate ( fy(ilo1-1:ihi1+1,ilo2:ihi2+1,NVAR))
+    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NVAR))
+    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NVAR))
+
+    allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+
 
     ! Local constants
     dtdx = dt/dx
     hdtdx = HALF*dtdx
     hdtdy = HALF*dt/dy
     hdt = HALF*dt
+
+
+    ! multidimensional shock detection -- this will be used to do the
+    ! hybrid Riemann solver
+    if (hybrid_riemann == 1) then
+       call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+                  shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
+                  ilo1,ilo2,ihi1,ihi2,dx,dy)
+    else
+       shk(:,:) = ZERO
+    endif
+
     
     ! NOTE: Geometry terms need to be punched through
 
@@ -132,7 +152,7 @@ contains
     if (ppm_type .eq. 0) then
        call trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                  dq,qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
+                  qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                   grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     else
@@ -150,7 +170,9 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
@@ -159,7 +181,9 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
@@ -169,6 +193,7 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -182,7 +207,9 @@ contains
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
     ! Correct the y-interface states (qym, qyp) by adding the
@@ -192,6 +219,7 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
@@ -207,7 +235,9 @@ contains
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
 
@@ -222,9 +252,10 @@ contains
        end do
     end do
 
-    deallocate(dq,qm,qp,qxm,qxp,qym,qyp)
+    deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
-    deallocate(pgdxtmp,ugdxtmp)
+    deallocate(shk)
+    deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
     
   end subroutine umeth2d
 
@@ -248,10 +279,10 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
-                                   UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
-                                   QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   QFS, QFX, &
+                                   allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map
     use flatten_module
     use bl_constants_module
 
@@ -281,8 +312,10 @@ contains
     integer          :: i, j
     integer          :: pt_index(2)
     integer          :: ngp, ngf, loq(2), hiq(2)
-    integer          :: iadv, ispec, iaux, n, nq
+    integer          :: n, nq
     double precision :: courx, coury, courmx, courmy
+
+    integer :: ipassive
 
     type (eos_t) :: eos_state
     
@@ -294,7 +327,7 @@ contains
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
-    
+
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
     ! call and will be overwritten
@@ -314,55 +347,25 @@ contains
           q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
           q(i,j,QREINT ) = uin(i,j,UEINT)/q(i,j,QRHO)
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
-       enddo
-    enddo
-    
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
-    
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
-    
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
 
-    ! Get gamc, p, T, c, csml using q state 
-    do j = loq(2), hiq(2)
-       do i = loq(1), hiq(1)
+          ! Load passively-advected quatities, c, into q, assuming they
+          ! arrived in uin as rho.c 
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
 
-          pt_index(1) = i
-          pt_index(2) = j
+             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
+          enddo
+
+          ! Get gamc, p, T, c, csml using q state 
+          pt_index(:) = (/i, j/)
 
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
 
-          ! If necessary, reset the energy using small_temp
+          ! if necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then
              q(i,j,QTEMP) = small_temp
              eos_state % T = q(i,j,QTEMP)
@@ -393,16 +396,10 @@ contains
           gamc(i,j)   = eos_state % gam1
 
           csml(i,j) = max(small, small * c(i,j))
-       end do
-    end do
 
-    ! Make this "rho e" instead of "e"
-    do j = loq(2),hiq(2)
-       do i = loq(1),hiq(1)
+          ! Make this "rho e" instead of "e"
           q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
-
           q(i,j,QGAME) = q(i,j,QPRES)/q(i,j,QREINT) + ONE
-
        enddo
     enddo
     
@@ -423,19 +420,20 @@ contains
 !                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
 !                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
 
-          do ispec = 1,nspec
-             srcQ(i,j,QFS+ispec-1) = ( src(i,j,UFS+ispec-1) - q(i,j,QFS+ispec-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
+       enddo
+    enddo
 
-          do iaux = 1,naux
-             srcQ(i,j,QFX+iaux-1) = ( src(i,j,UFX+iaux-1) - q(i,j,QFX+iaux-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
+    ! and the passive advective quantities sources
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
+             srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
-          
-          do iadv = 1,nadv
-             srcQ(i,j,QFA+iadv-1) = ( src(i,j,UFA+iadv-1) - q(i,j,QFA+iadv-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
-          
-       end do
+       enddo
+
     end do
 
     ! Compute running max of Courant number over grids
@@ -507,7 +505,7 @@ contains
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
     use bl_constants_module

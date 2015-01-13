@@ -266,79 +266,15 @@
       ! Local variables
       integer          :: i,j,k
 
-      !$OMP PARALLEL PRIVATE(i,j,k)
-      !$OMP DO
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
                cc(i,j,k,1) = HALF * ( ecx(i+1,j,k) + ecx(i,j,k) )
-            enddo
-         enddo
-      enddo
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
                cc(i,j,k,2) = HALF * ( ecy(i,j+1,k) + ecy(i,j,k) )
-            enddo
-         enddo
-      enddo
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
                cc(i,j,k,3) = HALF * ( ecz(i,j,k+1) + ecz(i,j,k) )
             enddo
          enddo
       enddo
-      !$OMP END DO
-      !$OMP END PARALLEL
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do k=lo(3),hi(3)
-            do j=lo(2),hi(2)
-               do i=lo(1),-1
-                  cc(i,j,k,1) = -cc(-i-1,j,k,1)
-                  cc(i,j,k,2) =  cc(-i-1,j,k,2)
-                  cc(i,j,k,3) =  cc(-i-1,j,k,3)
-               enddo
-            enddo
-         enddo
-      endif
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl2 .lt. 0 .and. bc_lo(2) .eq. symmetry_type) then
-         do k=lo(3),hi(3)
-            do i=lo(1),hi(1)
-               do j=lo(2),-1
-                  cc(i,j,k,1) =  cc(i,-j-1,k,1)
-                  cc(i,j,k,2) = -cc(i,-j-1,k,2)
-                  cc(i,j,k,3) =  cc(i,-j-1,k,3)
-               enddo
-            enddo
-         enddo
-      endif
-      !
-      ! Note this assumes the lo end of the domain is 0.
-      !
-      if (ccl3 .lt. 0 .and. bc_lo(3) .eq. symmetry_type) then
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               do k=lo(3),-1
-                  cc(i,j,k,1) =  cc(i,j,-k-1,1)
-                  cc(i,j,k,2) =  cc(i,j,-k-1,2)
-                  cc(i,j,k,3) = -cc(i,j,-k-1,3)
-               enddo
-            enddo
-         enddo
-      endif
          
       end subroutine ca_avg_ec_to_cc
 
@@ -371,7 +307,6 @@
       integer          :: i,j,k
       double precision :: lapphi
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,lapphi) 
       do k=lo(3),hi(3)
          do j=lo(2),hi(2)
             do i=lo(1),hi(1)
@@ -382,7 +317,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
  
       end subroutine ca_test_residual
 
@@ -391,32 +325,20 @@
 ! ::: 
 
       subroutine ca_average_ec ( &
-           fx, fxl1, fxl2, fxl3, fxh1, fxh2, fxh3, &
-           fy, fyl1, fyl2, fyl3, fyh1, fyh2, fyh3, &
-           fz, fzl1, fzl2, fzl3, fzh1, fzh2, fzh3, &
-           cx, cxl1, cxl2, cxl3, cxh1, cxh2, cxh3, &
-           cy, cyl1, cyl2, cyl3, cyh1, cyh2, cyh3, &
-           cz, czl1, czl2, czl3, czh1, czh2, czh3, &
-           lo, hi, rr)
+           f, fl1, fl2, fl3, fh1, fh2, fh3, &
+           c, cl1, cl2, cl3, ch1, ch2, ch3, &
+           lo, hi, rr, idir)
 
       use bl_constants_module
 
       implicit none
 
       integer lo(3),hi(3)
-      integer fxl1, fxl2, fxl3, fxh1, fxh2, fxh3
-      integer fyl1, fyl2, fyl3, fyh1, fyh2, fyh3
-      integer fzl1, fzl2, fzl3, fzh1, fzh2, fzh3
-      integer cxl1, cxl2, cxl3, cxh1, cxh2, cxh3
-      integer cyl1, cyl2, cyl3, cyh1, cyh2, cyh3
-      integer czl1, czl2, czl3, czh1, czh2, czh3
-      double precision fx(fxl1:fxh1,fxl2:fxh2,fxl3:fxh3)
-      double precision fy(fyl1:fyh1,fyl2:fyh2,fyl3:fyh3)
-      double precision fz(fzl1:fzh1,fzl2:fzh2,fzl3:fzh3)
-      double precision cx(cxl1:cxh1,cxl2:cxh2,cxl3:cxh3)
-      double precision cy(cyl1:cyh1,cyl2:cyh2,cyl3:cyh3)
-      double precision cz(czl1:czh1,czl2:czh2,czl3:czh3)
-      integer rr(3)
+      integer fl1, fl2, fl3, fh1, fh2, fh3
+      integer cl1, cl2, cl3, ch1, ch2, ch3
+      double precision f(fl1:fh1,fl2:fh2,fl3:fh3)
+      double precision c(cl1:ch1,cl2:ch2,cl3:ch3)
+      integer rr(3), idir
 
       integer i,j,k,n,m,facx,facy,facz
 
@@ -424,55 +346,49 @@
       facy = rr(2)
       facz = rr(3)
 
-      !$OMP PARALLEL PRIVATE(i,j,k,m,n)
-      !$OMP DO
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)+1
-               cx(i,j,k) = ZERO
-               do n = 0,facy-1
-                  do m = 0,facz-1
-                     cx(i,j,k) = cx(i,j,k) + fx(facx*i,facy*j+n,facz*k+m)
+      if (idir .eq. 0) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facy-1
+                     do m = 0,facz-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i,facy*j+n,facz*k+m)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facy*facz)
                end do
-               cx(i,j,k) = cx(i,j,k) / (facy*facz)
             end do
          end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do k = lo(3), hi(3)
-         do i = lo(1), hi(1)
-            do j = lo(2), hi(2)+1
-               cy(i,j,k) = ZERO
-               do n = 0,facx-1
-                  do m = 0,facz-1
-                     cy(i,j,k) = cy(i,j,k) + fy(facx*i+n,facy*j,facz*k+m)
+      else if (idir .eq. 1) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facx-1
+                     do m = 0,facz-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j,facz*k+m)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facx*facz)
                end do
-               cy(i,j,k) = cy(i,j,k) / (facx*facz)
             end do
          end do
-      end do
-      !$OMP END DO NOWAIT
-
-      !$OMP DO
-      do j = lo(2), hi(2)
-         do i = lo(1), hi(1)
-            do k = lo(3), hi(3)+1
-               cz(i,j,k) = ZERO
-               do n = 0,facx-1
-                  do m = 0,facy-1
-                     cz(i,j,k) = cz(i,j,k) + fz(facx*i+n,facy*j+m,facz*k)
+      else
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  c(i,j,k) = ZERO
+                  do n = 0,facx-1
+                     do m = 0,facy-1
+                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j+m,facz*k)
+                     end do
                   end do
+                  c(i,j,k) = c(i,j,k) / (facx*facy)
                end do
-               cz(i,j,k) = cz(i,j,k) / (facx*facy)
             end do
          end do
-      end do
-      !$OMP END DO
-      !$OMP END PARALLEL
+      end if
 
       end subroutine ca_average_ec
 
@@ -500,21 +416,22 @@
       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
-      integer          :: i,j,k,index
+      integer          :: i,j,k,index,tid,nthreads
       integer          :: ii,jj,kk
       double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
       double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
-      double precision :: vol_frac
+      double precision :: vol_frac, drinv
       double precision :: lo_i,lo_j,lo_k
 
-      if (( abs(center(1) - problo(1)) .lt. 1.e-2 * dx(1) ) .and. &
-          ( abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2) ) .and. &
-          ( abs(center(3) - problo(3)) .lt. 1.e-2 * dx(3) ) ) then
+      if (( abs(center(1) - problo(1)) .lt. 1.d-2 * dx(1) ) .and. &
+          ( abs(center(2) - problo(2)) .lt. 1.d-2 * dx(2) ) .and. &
+          ( abs(center(3) - problo(3)) .lt. 1.d-2 * dx(3) ) ) then
          octant_factor = EIGHT
       else
          octant_factor = ONE
       end if
 
+      drinv = ONE/dr
 
       fac     = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -522,20 +439,21 @@
       dz_frac = dx(3) / fac
 
       vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
-      !
-      ! Don't OMP this.
-      !
+
       do k = lo(3), hi(3)
          zc = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+         lo_k =  problo(3) + dble(k)*dx(3) - center(3)
 
          do j = lo(2), hi(2)
             yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+            lo_j =  problo(2) + dble(j)*dx(2) - center(2)
 
             do i = lo(1), hi(1)
                xc  = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+               lo_i =  problo(1) + dble(i)*dx(1) - center(1)
 
                r = sqrt(xc**2 + yc**2 + zc**2)
-               index = int(r/dr)
+               index = int(r*drinv)
 
                if (index .gt. n1d-1) then
 
@@ -549,10 +467,6 @@
 
                else
 
-                  lo_i =  problo(1) + dble(i)*dx(1) - center(1)
-                  lo_j =  problo(2) + dble(j)*dx(2) - center(2)
-                  lo_k =  problo(3) + dble(k)*dx(3) - center(3)
-
                   do kk = 0,drdxfac-1
                      zz   = lo_k + (dble(kk)+HALF)*dz_frac
                      zzsq = zz*zz
@@ -564,7 +478,7 @@
                            xx    = lo_i + (dble(ii)+HALF)*dx_frac
                            xxsq  = xx*xx
                            r     = sqrt(xxsq  + yysq + zzsq)
-                           index = int(r/dr)
+                           index = int(r*drinv)
 
                            if (index .le. n1d-1) then
                               radial_mass(index) = radial_mass(index) + vol_frac * rho(i,j,k)
@@ -611,14 +525,13 @@
       ! Note that we are interpolating onto the entire range of grav,
       ! including the ghost cells.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r,index,cen,xi,slope,mag_grav,ghi,gmd,glo,minvar,maxvar)
-      do k = g_l3,g_h3
+      do k = lo(3), hi(3)
          z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
 
-         do j = g_l2,g_h2
+         do j = lo(2), hi(2)
             y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
 
-            do i = g_l1,g_h1
+            do i = lo(1), hi(1)
                x     = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                r     = sqrt(x**2 + y**2 + z**2)
                index = int(r/dr)
@@ -676,7 +589,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_put_radial_grav
 
@@ -712,7 +624,7 @@
         ! Note that when we interpolate into the ghost cells we use the
         ! location of the edge, not the cell center
         !
-        do k = p_l3,p_h3
+        do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
            else if (k .lt. domlo(3)) then
@@ -721,7 +633,7 @@
               z = problo(3) + (dble(k  )+HALF) * dx(3) - center(3)
            end if
 
-           do j = p_l2,p_h2
+           do j = lo(2), hi(2)
               if (j .gt. domhi(2)) then
                  y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
               else if (j .lt. domlo(2)) then
@@ -730,7 +642,7 @@
                  y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
               end if
 
-              do i = p_l1,p_h1
+              do i = lo(1), hi(1)
                  if (i .gt. domhi(1)) then
                     x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
                  else if (i .lt. domlo(1)) then
@@ -833,8 +745,7 @@
 
         rmax = rmax * sqrt(THREE) / TWO
         
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,x,y,z,r,cosTheta,phiAngle,legPolyArr,assocLegPolyArr,r_to_mlm1)
-        do k = p_l3,p_h3
+        do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
               z = problo(3) + (dble(k  )     ) * dx(3) - center(3)
            else if (k .lt. domlo(3)) then
@@ -845,7 +756,7 @@
 
            z = z / rmax
 
-           do j = p_l2,p_h2
+           do j = lo(2), hi(2)
               if (j .gt. domhi(2)) then
                  y = problo(2) + (dble(j  )     ) * dx(2) - center(2)
               else if (j .lt. domlo(2)) then
@@ -856,7 +767,7 @@
 
               y = y / rmax
 
-              do i = p_l1,p_h1
+              do i = lo(1), hi(1)
                  if (i .gt. domhi(1)) then
                     x = problo(1) + (dble(i  )     ) * dx(1) - center(1)
                  else if (i .lt. domlo(1)) then
@@ -921,7 +832,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_put_multipole_bc
 
@@ -934,6 +844,7 @@
                                                problo,probhi,lnum,q0,qC,qS)
         use probdata_module
         use bl_constants_module
+        use meth_params_module, only : deterministic
 
         implicit none
 
@@ -952,7 +863,6 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k
-        integer          :: ilo, ihi, jlo, jhi, klo, khi
         integer          :: l,m,b
 
         double precision :: factorial
@@ -960,7 +870,7 @@
         double precision :: x,y,z,r,cosTheta,phiAngle
 
         double precision :: volumeFactor, parityFactor
-        double precision :: edgeTolerance = 1.0d-2
+        double precision, parameter :: edgeTolerance = 1.0d-2
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
         double precision :: rho_r_to_l
@@ -1051,45 +961,6 @@
 
         enddo
 
-
-        ! Don't add to multipole moments if we're outside the physical domain
-
-        if ( p_l3 .lt. domlo(3) ) then
-          klo = domlo(3)
-        else
-          klo = p_l3
-        endif
-
-        if ( p_h3 .gt. domhi(3) ) then
-          khi = domhi(3)
-        else
-          khi = p_h3
-        endif
-
-        if ( p_l2 .lt. domlo(2) ) then
-          jlo = domlo(2)
-        else
-          jlo = p_l2
-        endif
-
-        if ( p_h2 .gt. domhi(2) ) then
-          jhi = domhi(2)
-        else
-          jhi = p_h2
-        endif
-
-        if ( p_l1 .lt. domlo(1) ) then
-          ilo = domlo(1)
-        else
-          ilo = p_l1
-        endif
-
-        if ( p_h1 .gt. domhi(1) ) then
-          ihi = domhi(1)
-        else
-          ihi = p_h1
-        endif
-
         ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l, 
         ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
         ! we will normalize all distances to the maximum possible physical distance from the center,
@@ -1119,16 +990,13 @@
           call bl_error("Error: Gravity_3d.f90: ca_compute_multipole_moments")
         endif
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k,l,m,legPolyArr,assocLegPolyArr) &
-        !$OMP PRIVATE(x,y,z,r,cosTheta,phiAngle,parityFactor,rho_r_to_l) &
-        !$OMP REDUCTION(+:q0,qC,qS)
-        do k = klo, khi
+        do k = lo(3), hi(3)
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
-           do j = jlo, jhi
+           do j = lo(2), hi(2)
               y = ( problo(2) + (dble(j)+HALF) * dx(2) - center(2) ) / rmax
  
-              do i = ilo, ihi
+              do i = lo(1), hi(1)
                  x = ( problo(1) + (dble(i)+HALF) * dx(1) - center(1) ) / rmax
 
                  r = sqrt( x**2 + y**2 + z**2 )
@@ -1178,7 +1046,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_compute_multipole_moments
 
@@ -1474,7 +1341,6 @@
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
         integer          :: i,j,k,l,m,n,b
-        integer          :: ilo,ihi,jlo,jhi,klo,khi
         double precision :: r
         double precision :: loc(3), locb(3), dx2, dy2, dz2
 
@@ -1501,54 +1367,13 @@
           endif
         enddo
 
-        ! We only contribute to the BCs if we're inside the physical domain.
-        
-        if ( p_l3 .lt. domlo(3) ) then
-          klo = domlo(3)
-        else
-          klo = p_l3
-        endif
-
-        if ( p_h3 .gt. domhi(3) ) then
-          khi = domhi(3)
-        else
-          khi = p_h3
-        endif
-
-        if ( p_l2 .lt. domlo(2) ) then
-          jlo = domlo(2)
-        else
-          jlo = p_l2
-        endif
-
-        if ( p_h2 .gt. domhi(2) ) then
-          jhi = domhi(2)
-        else
-          jhi = p_h2
-        endif
-
-        if ( p_l1 .lt. domlo(1) ) then
-          ilo = domlo(1)
-        else
-          ilo = p_l1
-        endif
-
-        if ( p_h1 .gt. domhi(1) ) then
-          ihi = domhi(1)
-        else
-          ihi = p_h1
-        endif
-
- 
-        !$OMP PARALLEL DO PRIVATE(i,j,k,loc,locb,dx2,dy2,dz2,r,l,m,n) &
-        !$OMP REDUCTION(+:bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
-        do k = klo, khi
+        do k = lo(3), hi(3)
            loc(3) = problo(3) + (dble(k)+HALF) * dx(3)
 
-           do j = jlo, jhi
+           do j = lo(2), hi(2)
               loc(2) = problo(2) + (dble(j)+HALF) * dx(2)
 
-              do i = ilo, ihi
+              do i = lo(1), hi(1)
                  loc(1) = problo(1) + (dble(i)+HALF) * dx(1)
         
                    ! Do xy interfaces first.
@@ -1748,7 +1573,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
       end subroutine ca_compute_direct_sum_bc
 
@@ -1777,44 +1601,59 @@
 
         integer          :: i,j,k
 
-    
-        !$OMP PARALLEL DO PRIVATE(i,j,k)
-        do k = p_l3,p_h3
+        i = lo(1)
+        if (i .eq. domlo(1)-1) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 phi(i,j,k) = bcYZLo(j,k)
+              end do
+           end do
+        end if
 
-           do j = p_l2,p_h2
+        i = hi(1)
+        if (i .eq. domhi(1)+1) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 phi(i,j,k) = bcYZHi(j,k)
+              end do
+           end do
+        end if
 
-              do i = p_l1,p_h1
+        j = lo(2)
+        if (j .eq. domlo(2)-1) then
+           do k = lo(3), hi(3)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXZLo(i,k)
+              end do
+           end do
+        end if
 
-                 if     ( k .lt. domlo(3) ) then
+        j = hi(2)
+        if (j .eq. domhi(2)+1) then
+           do k = lo(3), hi(3)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXZHi(i,k)
+              end do
+           end do
+        end if
 
-                   phi(i,j,k) = bcXYLo(i,j)
+        k = lo(3)
+        if (k .eq. domlo(3)-1) then
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXYLo(i,j)
+              end do
+           end do
+        end if
 
-                 elseif ( k .gt. domhi(3) ) then
- 
-                   phi(i,j,k) = bcXYHi(i,j)
-
-                 elseif ( j .lt. domlo(2) ) then
-
-                   phi(i,j,k) = bcXZLo(i,k)
-
-                 elseif ( j .gt. domhi(2) ) then
-
-                   phi(i,j,k) = bcXZHi(i,k)
-
-                 elseif ( i .lt. domlo(1) ) then
-
-                   phi(i,j,k) = bcYZLo(j,k)
-
-                 elseif ( i .gt. domhi(1) ) then
-
-                   phi(i,j,k) = bcYZHi(j,k)
-
-                endif
-
-              enddo
-           enddo
-        enddo
-        !$OMP END PARALLEL DO
+        k = hi(3)
+        if (k .eq. domhi(3)+1) then
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)
+                 phi(i,j,k) = bcXYHi(i,j)
+              end do
+           end do
+        end if
 
       end subroutine ca_put_direct_sum_bc
 

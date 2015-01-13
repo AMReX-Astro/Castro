@@ -135,14 +135,14 @@ contains
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     else
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
     endif
 
     deallocate(smallc,cavg,gamcm,gamcp)
@@ -157,7 +157,7 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -171,7 +171,8 @@ contains
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UESGS, UFA, UFS, UFX, &
                                    nadv, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol
+                                   cg_maxiter, cg_tol, &
+                                   npassive, upass_map, qpass_map
     use bl_constants_module
 
     double precision, parameter:: small = 1.d-8
@@ -194,7 +195,14 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
-    integer :: i,j,kc,kflux
+    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+    !         it should be used for print statements or tests against domlo, domhi, etc
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so in this routine 
+    !             it takes values only of  1 or 2 
+    !         kflux is used for indexing into the uflx array -- in the initial calls to
+    !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
+    !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
+    integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -236,19 +244,6 @@ contains
 
     allocate (pstar_hist(iter_max))
 
-    !$OMP PARALLEL DO PRIVATE(i,j) &
-    !$OMP PRIVATE(rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,gcl,gcr) &
-    !$OMP PRIVATE(taul,taur,clsql,clsqr,gamel,gamer,gmin,gmax) &
-    !$OMP PRIVATE(game_bar,gamc_bar,gdot,csmall,wsmall,wl,wr) &
-    !$OMP PRIVATE(pstar,gamstar,wlsq,wrsq,pstnm1) &
-    !$OMP PRIVATE(ustarp,ustarm,converged,iter,ustnm1,ustnp1) &
-    !$OMP PRIVATE(dpditer,zp,zm,denom,err,ustar) &
-    !$OMP PRIVATE(ro,uo,po,tauo,gamco,gameo,co,clsq,wosq,sgnm,wo,dpjmp) &
-    !$OMP PRIVATE(rstar,cstar,spout,spin,ushock,scr,frac) &
-    !$OMP PRIVATE(v1gdnv,v2gdnv,rgdnv,gamgdnv) &
-    !$OMP PRIVATE(rhoetot,n,nq,qavg,rho_K_contrib,iadv,ispec,iaux) &
-    !$OMP PRIVATE(pstar_hist) &
-    !$OMP PRIVATE(eos_state)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -602,11 +597,11 @@ contains
                   ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
-             if (kflux.eq.domlo(3) .and. &
+             if (k3d.eq.domlo(3) .and. &
                  (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
-             if (kflux.eq.domhi(3)+1 .and. &
+             if (k3d.eq.domhi(3)+1 .and. &
                  (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
@@ -666,37 +661,10 @@ contains
           end if
 
           ! advected quantities -- only the contact matters
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          ! species -- only the contact matters
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          ! auxillary quantities -- only the contact matters
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
              else if (ustar .lt. ZERO) then
@@ -770,13 +738,13 @@ contains
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                       idir,ilo,ihi,jlo,jhi,kc,kflux,domlo,domhi)
+                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
                                      QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
-                                     nadv, small_dens, small_pres
+                                     nadv, small_dens, small_pres, npassive, upass_map, qpass_map
     use bl_constants_module
 
     implicit none
@@ -800,7 +768,14 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     
-    integer :: i,j,kc,kflux
+    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+    !         it should be used for print statements or tests against domlo, domhi, etc
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so takes values
+    !             only of 1 or 2
+    !         kflux is used for indexing into the uflx array -- in the initial calls to
+    !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
+    !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
+    integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
     
@@ -814,9 +789,6 @@ contains
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
     
-    !$OMP PARALLEL DO PRIVATE(i,j,rl,ul,v1l,v2l,pl,rel,rr,ur,v1r,v2r,pr,rer,csmall,wsmall,wl,wr,pstar,ustar,ro,uo) &
-    !$OMP PRIVATE(po,reo,gamco,co,entho,rstar,estar,cstar,sgnm,spout,spin,ushock,scr,frac,v1gdnv,v2gdnv,rgdnv,regdnv) &
-    !$OMP PRIVATE(rhoetot,iadv,n,nq,qavg,ispec,iaux,rho_K_contrib)
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -970,11 +942,11 @@ contains
                   ugdnv(i,j,kc) = ZERO
           end if
           if (idir .eq. 3) then
-             if (kflux.eq.domlo(3) .and. &
+             if (k3d.eq.domlo(3) .and. &
                   (physbc_lo(3) .eq. Symmetry .or.  physbc_lo(3) .eq. SlipWall .or. &
                   physbc_lo(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
-             if (kflux.eq.domhi(3)+1 .and. &
+             if (k3d.eq.domhi(3)+1 .and. &
                   (physbc_hi(3) .eq. Symmetry .or.  physbc_hi(3) .eq. SlipWall .or. &
                   physbc_hi(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
@@ -1029,9 +1001,10 @@ contains
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
           
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
              else if (ustar .lt. ZERO) then
@@ -1041,36 +1014,9 @@ contains
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-          
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             endif
-          enddo
-          
+                    
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine riemannus
 

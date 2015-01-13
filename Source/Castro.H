@@ -389,18 +389,18 @@ public:
     void getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau = 0);
 #ifdef TAU
     void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
-    void add_diffusion_to_old_source (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real prev_time, MultiFab& tau_diff);
+    void add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t, MultiFab& tau_diff);
     void time_center_diffusion       (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
     void full_diffusion_update       (MultiFab& S_new, Real prev_time, Real cur_time, Real dt, MultiFab& tau_diff);
 #else
-    void add_diffusion_to_old_source (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real prev_time);
+    void add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t);
     void time_center_diffusion       (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt);
     void full_diffusion_update       (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
 #endif
 #endif
 
 #ifdef ROTATION
-  void add_rotation_to_old_source(MultiFab& old_ext_src, MultiFab& OldRotationTerm, Real old_time);
+  void add_rotation_to_source(MultiFab& ext_src, MultiFab& RotationTerm, Real old_time);
   void time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerm, Real cur_time, Real dt);
 #endif
 
@@ -455,6 +455,15 @@ public:
 
     FluxRegister& getFluxReg ();
     FluxRegister& getFluxReg (int lev);
+
+    //
+    // This MultiFab is on the coarser level.  This is useful for the coarser level
+    // to mask out the finer level.  We only build this when it is needed.
+    // This coarse MultiFab has to live on the fine level because it must be updated
+    // even when only the fine level changes.
+    //
+    MultiFab* fine_mask;
+    MultiFab* build_fine_mask();
 
 protected:
 
@@ -582,6 +591,7 @@ protected:
     static int       ppm_reference_edge_limit;
     static int       ppm_flatten_before_integrals;
     static int       ppm_reference_eigenvectors;
+    static int       hybrid_riemann;
     static int       use_colglaz;
     static int       use_flattening;
     static int       transverse_use_eos;
@@ -692,6 +702,9 @@ protected:
   static int do_rotation;
   static Real rotational_period;
 #endif
+
+    // set it to true to make OMP deterministic
+    static int deterministic;  
 
 /* problem-specific includes */
 #include <Problem.H>

@@ -1,138 +1,3 @@
-
-      subroutine ca_derlapvar(var,var_l1,var_l2,var_l3,var_h1,var_h2,var_h3,nv, &
-                              dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
-                              domhi,delta,xlo,time,dt,bc,level,grid_no)
-      !
-      ! This routine will derive the weighted-Laplacian of the variable for
-      ! the purposes of error estimation
-      !
-      implicit none
-
-      integer          lo(3), hi(3)
-      integer          var_l1,var_l2,var_l3,var_h1,var_h2,var_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision var(var_l1:var_h1,var_l2:var_h2,var_l3:var_h3,nv)
-      double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
-
-      double precision ::  delu(3,var_l1:var_h1,var_l2:var_h2,var_l3:var_h3)
-      double precision :: delua(3,var_l1:var_h1,var_l2:var_h2,var_l3:var_h3)
-      double precision :: delu2(9), delu3(9), delu4(9)
-      double precision :: num, denom
-      integer          :: i,j,k
-
-      ! This value is taken from FLASH
-      double precision, parameter:: epsil=0.02
-
-      ! adapted from ref_marking.f90 in FLASH2.5
-
-      ! d/dx
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(1,i,j,k) =     dat(i+1,j,k,1) -      dat(i-1,j,k,1) 
-         delua(1,i,j,k) = abs(dat(i+1,j,k,1)) + abs(dat(i-1,j,k,1))
-      end do
-      end do
-      end do
-
-      ! d/dy
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(2,i,j,k) =     dat(i,j+1,k,1)  -     dat(i,j-1,k,1) 
-         delua(2,i,j,k) = abs(dat(i,j+1,k,1)) + abs(dat(i,j-1,k,1))
-      end do
-      end do
-      end do
-
-      ! d/dz
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(3,i,j,k) =     dat(i,j,k+1,1)  -     dat(i,j,k-1,1)
-         delua(3,i,j,k) = abs(dat(i,j,k+1,1)) + abs(dat(i,j,k-1,1))
-      end do
-      end do
-      end do
-
-      do k = lo(3),hi(3)
-      do j = lo(2),hi(2)
-      do i = lo(1),hi(1)
-         
-
-         ! d/dxdx
-          delu2(1) =     delu(1,i+1,j,k)  -     delu(1,i-1,j,k)
-          delu3(1) = abs(delu(1,i+1,j,k)) + abs(delu(1,i-1,j,k))
-          delu4(1) =    delua(1,i+1,j,k)  +    delua(1,i-1,j,k)
-
-          ! d/dydx
-          delu2(2) =     delu(1,i,j+1,k)  -     delu(1,i,j-1,k)
-          delu3(2) = abs(delu(1,i,j+1,k)) + abs(delu(1,i,j-1,k))
-          delu4(2) =    delua(1,i,j+1,k)  +    delua(1,i,j-1,k)
-
-          ! d/dxdy
-          delu2(3) =     delu(2,i+1,j,k)  -     delu(2,i-1,j,k)
-          delu3(3) = abs(delu(2,i+1,j,k)) + abs(delu(2,i-1,j,k))
-          delu4(3) =    delua(2,i+1,j,k)  +    delua(2,i-1,j,k)
-
-          ! d/dydy
-          delu2(4) =     delu(2,i,j+1,k)  -     delu(2,i,j-1,k)
-          delu3(4) = abs(delu(2,i,j+1,k)) + abs(delu(2,i,j-1,k))
-          delu4(4) =    delua(2,i,j+1,k)  +    delua(2,i,j-1,k)
-
-          ! d/dzdx
-          delu2(5) =     delu(1,i,j,k+1)  -     delu(1,i,j,k-1)
-          delu3(5) = abs(delu(1,i,j,k+1)) + abs(delu(1,i,j,k-1))
-          delu4(5) =    delua(1,i,j,k+1)  +    delua(1,i,j,k-1)
-
-          ! d/dzdy
-          delu2(6) =     delu(2,i,j,k+1)  -     delu(2,i,j,k-1)
-          delu3(6) = abs(delu(2,i,j,k+1)) + abs(delu(2,i,j,k-1))
-          delu4(6) =    delua(2,i,j,k+1)  +    delua(2,i,j,k-1)
-
-          ! d/dxdz
-          delu2(7) =     delu(3,i+1,j,k)  -     delu(3,i-1,j,k)
-          delu3(7) = abs(delu(3,i+1,j,k)) + abs(delu(3,i-1,j,k))
-          delu4(7) =    delua(3,i+1,j,k)  +    delua(3,i-1,j,k)
-
-          ! d/dydz
-          delu2(8) =     delu(3,i,j+1,k)  -     delu(3,i,j-1,k)
-          delu3(8) = abs(delu(3,i,j+1,k)) + abs(delu(3,i,j-1,k))
-          delu4(8) =    delua(3,i,j+1,k)  +    delua(3,i,j-1,k)
-
-          ! d/dzdz
-          delu2(9) =     delu(3,i,j,k+1)  -     delu(3,i,j,k-1)
-          delu3(9) = abs(delu(3,i,j,k+1)) + abs(delu(3,i,j,k-1))
-          delu4(9) =    delua(3,i,j,k+1)  +    delua(3,i,j,k-1)
-
-         ! compute the error
-         num   =  delu2(1)**2 + delu2(2)**2 + delu2(3)**2 + delu2(4)**2 &
-                 +delu2(5)**2 + delu2(6)**2 + delu2(7)**2 + delu2(8)**2 &
-                 +delu2(9)**2
-
-         denom = (delu3(1) + (epsil*delu4(1)+1.d-99))**2 + &
-                 (delu3(2) + (epsil*delu4(2)+1.d-99))**2 + &
-                 (delu3(3) + (epsil*delu4(3)+1.d-99))**2 + &
-                 (delu3(4) + (epsil*delu4(4)+1.d-99))**2 + &
-                 (delu3(5) + (epsil*delu4(5)+1.d-99))**2 + &
-                 (delu3(6) + (epsil*delu4(6)+1.d-99))**2 + &
-                 (delu3(7) + (epsil*delu4(7)+1.d-99))**2 + &
-                 (delu3(8) + (epsil*delu4(8)+1.d-99))**2 + &
-                 (delu3(9) + (epsil*delu4(9)+1.d-99))**2
-
-         var(i,j,k,1) = sqrt(num/denom)
-
-      end do
-      end do
-      end do
-
-
-      end subroutine ca_derlapvar
-
 !-----------------------------------------------------------------------
 
       subroutine ca_derstate(state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3,nv, &
@@ -161,7 +26,6 @@
           call bl_error('Error:: Derive_3d.f90 :: ca_derstate')
       end if
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -180,7 +44,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derstate
 
@@ -206,7 +69,6 @@
  
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k) 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -214,7 +76,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_dervel
 
@@ -240,7 +101,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -250,7 +110,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagvel
 
@@ -276,7 +135,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -286,7 +144,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermaggrav
 
@@ -316,7 +173,6 @@
       integer          :: i,j,k
       double precision :: x,y,z,r
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z,r)
       do k = lo(3), hi(3)
          z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
          do j = lo(2), hi(2)
@@ -330,7 +186,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derradialvel
 
@@ -356,7 +211,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -364,7 +218,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagmom
 
@@ -398,7 +251,6 @@
       !
       ! Compute pressure from the EOS
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -422,7 +274,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derpres
 
@@ -450,7 +301,6 @@
       !
       ! Compute internal energy from (rho E).
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -462,7 +312,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dereint1
 
@@ -488,7 +337,6 @@
       !
       ! Compute internal energy from (rho e).
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -496,7 +344,6 @@
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dereint2
 
@@ -528,11 +375,9 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
       !
       ! Compute soundspeed from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -551,12 +396,15 @@
 
                   c(i,j,k,1) = eos_state % cs
 
+               else
+
+                  c(i,j,k,1) = zero
+
                end if
 
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dersoundspeed
 
@@ -588,11 +436,9 @@
 
       type (eos_t) :: eos_state
 
-      mach = ZERO
       !
       ! Compute Mach number of the flow.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -611,12 +457,16 @@
 
                   call eos(eos_input_re, eos_state, .false.)
                   mach(i,j,k,1) = sqrt(ux**2 + uy**2 + uz**2) / eos_state % cs
+
+               else
+
+                  mach(i,j,k,1) = zero
+
                end if
 
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermachnumber
 
@@ -648,11 +498,9 @@
 
       type (eos_t) :: eos_state
 
-      s = ZERO
       !
       ! Compute entropy from the EOS.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -668,11 +516,12 @@
 
                   call eos(eos_input_re, eos_state, .false.)
                   s(i,j,k,1) = eos_state % s
+               else
+                  s(i,j,k,1) = zero
                end if
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derentropy
 
@@ -698,7 +547,6 @@
  
       integer i,j,k
  
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -706,7 +554,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derspec
 
@@ -728,7 +575,6 @@
  
       integer    i,j,k
  
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -736,7 +582,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
  
       end subroutine ca_derlogden
 
@@ -760,37 +605,35 @@
       integer          bc(3,2,nc)
       double precision delta(3), xlo(3), time, dt
       double precision vort(  v_l1:  v_h1,  v_l2:  v_h2,  v_l3:  v_h3,nv)
-      double precision  dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
+      double precision, intent(in) :: dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
 
       integer          :: i,j,k
       double precision :: uy,uz,vx,vz,wx,wy,v1,v2,v3
+      double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
       !
       ! Convert momentum to velocity.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3)-1, hi(3)+1
          do j = lo(2)-1, hi(2)+1
             do i = lo(1)-1, hi(1)+1
-               dat(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,1)
-               dat(i,j,k,3) = dat(i,j,k,3) / dat(i,j,k,1)
-               dat(i,j,k,4) = dat(i,j,k,4) / dat(i,j,k,1)
+               ldat(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,1)
+               ldat(i,j,k,3) = dat(i,j,k,3) / dat(i,j,k,1)
+               ldat(i,j,k,4) = dat(i,j,k,4) / dat(i,j,k,1)
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
       !
       ! Calculate vorticity.
       !
-      !$OMP PARALLEL DO PRIVATE(i,j,k,uy,uz,vx,vz,wx,wy,v1,v2,v3)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               uy = HALF * (dat(i,j+1,k,2) - dat(i,j-1,k,2)) / delta(2)
-               uz = HALF * (dat(i,j,k+1,2) - dat(i,j,k-1,2)) / delta(3)
-               vx = HALF * (dat(i+1,j,k,3) - dat(i-1,j,k,3)) / delta(1)
-               vz = HALF * (dat(i,j,k+1,3) - dat(i,j,k-1,3)) / delta(3)
-               wx = HALF * (dat(i+1,j,k,4) - dat(i-1,j,k,4)) / delta(1)
-               wy = HALF * (dat(i,j+1,k,4) - dat(i,j-1,k,4)) / delta(2)
+               uy = HALF * (ldat(i,j+1,k,2) - ldat(i,j-1,k,2)) / delta(2)
+               uz = HALF * (ldat(i,j,k+1,2) - ldat(i,j,k-1,2)) / delta(3)
+               vx = HALF * (ldat(i+1,j,k,3) - ldat(i-1,j,k,3)) / delta(1)
+               vz = HALF * (ldat(i,j,k+1,3) - ldat(i,j,k-1,3)) / delta(3)
+               wx = HALF * (ldat(i+1,j,k,4) - ldat(i-1,j,k,4)) / delta(1)
+               wy = HALF * (ldat(i,j+1,k,4) - ldat(i,j-1,k,4)) / delta(2)
                v1 = wy - vz
                v2 = uz - wx
                v3 = vx - uy
@@ -798,21 +641,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
-      !
-      ! Convert velocity back to momentum
-      !
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
-      do k = lo(3)-1, hi(3)+1
-         do j = lo(2)-1, hi(2)+1
-            do i = lo(1)-1, hi(1)+1
-               dat(i,j,k,2) = dat(i,j,k,2) * dat(i,j,k,1)
-               dat(i,j,k,3) = dat(i,j,k,3) * dat(i,j,k,1)
-               dat(i,j,k,4) = dat(i,j,k,4) * dat(i,j,k,1)
-            end do
-         end do
-      end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_dermagvort
 
@@ -842,7 +670,6 @@
       integer          :: i,j,k
       double precision :: ulo,uhi,vlo,vhi,wlo,whi
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,ulo,uhi,vlo,vhi,wlo,whi)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -858,7 +685,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derdivu
 
@@ -887,7 +713,6 @@
 
       integer i,j,k
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k)
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
@@ -897,7 +722,6 @@
             end do
          end do
       end do
-      !$OMP END PARALLEL DO
 
       end subroutine ca_derkineng
 

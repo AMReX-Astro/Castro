@@ -265,13 +265,13 @@
                                    ppm_reference_edge_limit_in, &
                                    ppm_flatten_before_integrals_in, &
                                    ppm_reference_eigenvectors_in, &
-                                   use_colglaz_in, use_flattening_in, &
+                                   hybrid_riemann_in, use_colglaz_in, use_flattening_in, &
                                    transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in, &
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   rot_period_in, const_grav_in)
+                                   rot_period_in, const_grav_in, deterministic_in)
 !                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
@@ -292,7 +292,7 @@
         integer, intent(in) :: ppm_reference_edge_limit_in
         integer, intent(in) :: ppm_flatten_before_integrals_in
         integer, intent(in) :: ppm_reference_eigenvectors_in
-        integer, intent(in) :: use_colglaz_in, use_flattening_in
+        integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
         integer, intent(in) :: use_pslope_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
@@ -304,6 +304,7 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_period_in, const_grav_in
+        integer, intent(in) :: deterministic_in
         integer :: iadv, ispec
 
         integer             :: QLAST
@@ -460,10 +461,11 @@
         ppm_trace_grav             = ppm_trace_grav_in
         ppm_temp_fix               = ppm_temp_fix_in
         ppm_tau_in_tracing         = ppm_tau_in_tracing_in
-        ppm_predict_gammae         = ppm_predict_gammae
+        ppm_predict_gammae         = ppm_predict_gammae_in
         ppm_reference_edge_limit   = ppm_reference_edge_limit_in
         ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
         ppm_reference_eigenvectors = ppm_reference_eigenvectors_in
+        hybrid_riemann             = hybrid_riemann_in
         use_colglaz                = use_colglaz_in
         use_flattening             = use_flattening_in
         transverse_use_eos         = transverse_use_eos_in
@@ -479,7 +481,8 @@
         fix_mass_flux              = fix_mass_flux_in
         rot_period                 = rot_period_in
         const_grav                 = const_grav_in
-        
+        deterministic              = deterministic_in.ne.0
+
 
 !       allocate(outflow_bc_lo(dm))
 !       allocate(outflow_bc_hi(dm))
@@ -497,8 +500,9 @@
 ! ::: 
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                    Outflow_in,Symmetry_in,SlipWall_in,NoSlipWall_in, &
-                                    coord_type_in)
+                                    Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                    coord_type_in, &
+                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in)
 
         ! Passing data from C++ into f90
 
@@ -510,6 +514,7 @@
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
+        double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))
@@ -524,6 +529,15 @@
 
         coord_type = coord_type_in
 
+        xmin = xmin_in
+        xmax = xmax_in
+
+        ymin = ymin_in
+        ymax = ymax_in
+
+        zmin = zmin_in
+        zmax = zmax_in
+        
       end subroutine set_problem_params
 
 ! ::: 

@@ -17,7 +17,6 @@
      ! 
      ! Make sure to enforce (rho E) = (rho e) + 1/2 rho (u^2 +_ v^2 + w^2)
      !
-     !$OMP PARALLEL DO PRIVATE(i,j,k,u,v,w)
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -32,7 +31,6 @@
            end do
         end do
      end do
-     !$OMP END PARALLEL DO
 
    end subroutine ca_enforce_consistent_e
 

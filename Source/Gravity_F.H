@@ -31,13 +31,9 @@ BL_FORT_PROC_DECL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
      const Real* dx, const Real* problo, const int* coord_type);
 
 BL_FORT_PROC_DECL(CA_AVERAGE_EC,ca_average_ec)
-    (D_DECL(const BL_FORT_FAB_ARG(xgrad_fine),
-            const BL_FORT_FAB_ARG(ygrad_fine),
-            const BL_FORT_FAB_ARG(zgrad_fine)),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad_crse),
-            const BL_FORT_FAB_ARG(ygrad_crse),
-            const BL_FORT_FAB_ARG(zgrad_crse)),
-            const int ovlo[], const int ovhi[], const int rat[]);
+    (const BL_FORT_FAB_ARG(grad_fine),
+           BL_FORT_FAB_ARG(grad_crse),
+     const int lo[], const int hi[], const int rat[], const int& idir);
 
 BL_FORT_PROC_DECL(CA_TEST_RESIDUAL,ca_test_residual)
     (const int* lo, const int* hi,
@@ -50,6 +46,8 @@ BL_FORT_PROC_DECL(CA_TEST_RESIDUAL,ca_test_residual)
 
 BL_FORT_PROC_DECL(CA_APPLY_METRIC,ca_apply_metric)
     (const int* lo, const int* hi,
+     D_DECL(const int* xlo, const int *ylo, const int *zlo),
+     D_DECL(const int* xhi, const int *yhi, const int *zhi),
      BL_FORT_FAB_ARG(cc),
      D_DECL(const BL_FORT_FAB_ARG(xedge),
             const BL_FORT_FAB_ARG(yedge),
@@ -63,10 +61,8 @@ BL_FORT_PROC_DECL(CA_UNWEIGHT_CC,ca_unweight_cc)
 
 BL_FORT_PROC_DECL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
     (const int* lo, const int* hi,
-     D_DECL(const BL_FORT_FAB_ARG(xedge),
-            const BL_FORT_FAB_ARG(yedge),
-            const BL_FORT_FAB_ARG(zedge)), 
-     const Real* dx, const int* coord_type);
+     BL_FORT_FAB_ARG(edge),
+     const Real* dx, const int* coord_type, const int* idir);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
     (const BL_FORT_FAB_ARG(den),
@@ -174,7 +170,7 @@ BL_FORT_PROC_DECL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)
     (const Real* point_mass, BL_FORT_FAB_ARG(grav_vector),
-     const Real* problo, const Real* dx);
+     const Real* problo, const Real* dx, const int* lo, const int* hi);
 #endif
 
 #endif

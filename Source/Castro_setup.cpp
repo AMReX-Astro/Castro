@@ -11,6 +11,8 @@
 # include "RAD_F.H"
 #endif
 
+#include "buildInfo.H"
+
 using std::string;
 
 static Box the_same_box (const Box& b) { return b; }
@@ -114,6 +116,21 @@ Castro::variableSetUp ()
   startCPUTime = ParallelDescriptor::second();
 
 
+    // Output the git commit hashes used to build the executable.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+	const char* castro_hash = buildInfoGetGitHash(1);
+	const char* boxlib_hash = buildInfoGetGitHash(2);
+	if (strlen(castro_hash) > 0) {
+	  std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+	}
+	if (strlen(boxlib_hash) > 0) {
+	  std::cout << "BoxLib git hash: " << boxlib_hash << "\n\n";
+	}
+
+    }
+
     BL_ASSERT(desc_lst.size() == 0);
 
     // Initialize the runtime parameters for any of the external
@@ -212,13 +229,13 @@ Castro::variableSetUp ()
 	 ppm_reference_edge_limit,
 	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
-	 use_colglaz, use_flattening, 
+	 hybrid_riemann, use_colglaz, use_flattening, 
          transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
          cg_maxiter, cg_tol,
          use_pslope, 
 	 grav_source_type, do_sponge,
          normalize_species,fix_mass_flux,use_sgs,rotational_period,
-	 const_grav);
+	 const_grav, deterministic);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
@@ -228,8 +245,28 @@ Castro::variableSetUp ()
         std::cout << "\nTime in set_method_params: " << run_stop << '\n' ;
 
     int coord_type = Geometry::Coord();
+
+    Real xmin = Geometry::ProbLo(0);
+    Real xmax = Geometry::ProbHi(0);
+#if (BL_SPACEDIM >= 2)
+    Real ymin = Geometry::ProbLo(1);
+    Real ymax = Geometry::ProbHi(1);
+#else
+    Real ymin = 0.0;
+    Real ymax = 0.0;
+#endif
+#if (BL_SPACEDIM == 3)
+    Real zmin = Geometry::ProbLo(2);
+    Real zmax = Geometry::ProbHi(2);
+#else
+    Real zmin = 0.0;
+    Real zmax = 0.0;
+#endif
+    
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
-         (dm,phys_bc.lo(),phys_bc.hi(),Outflow,Symmetry,SlipWall,NoSlipWall,coord_type);
+         (dm,phys_bc.lo(),phys_bc.hi(),
+	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+	  xmin,xmax,ymin,ymax,zmin,zmax);
 
     Interpolater* interp = &cell_cons_interp;
 

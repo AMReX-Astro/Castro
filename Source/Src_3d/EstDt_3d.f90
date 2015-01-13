@@ -24,7 +24,6 @@
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
      ! Translate to primitive variables, compute sound speed (call eos)
-     !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ux,uy,uz,c,sqrtK,eos_state,pt_index,dt1,dt2,dt3,dt4) REDUCTION(min:dt)
      do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -85,6 +84,5 @@
             enddo
          enddo
      enddo
-     !$OMP END PARALLEL DO
 
      end subroutine ca_estdt

@@ -4,7 +4,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! :::
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: var       => array of data
@@ -12,7 +12,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -34,8 +34,8 @@
       double precision :: delta(3), xlo(3), problo(3), time
       integer          :: i,j,k
 
-      double precision ::  delu(3,varl1:varh1,varl2:varh2,varl3:varh3)
-      double precision :: delua(3,varl1:varh1,varl2:varh2,varl3:varh3)
+      double precision ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
+      double precision :: delua(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
       double precision :: delu2(9), delu3(9), delu4(9)
       double precision :: num, denom, error
 
@@ -49,8 +49,8 @@
       do k=lo(3)-1,hi(3)+1
       do j=lo(2)-1,hi(2)+1
       do i=lo(1)-1,hi(1)+1
-          delu(1,i,j,k) =     var(i+1,j,k) -      var(i-1,j,k) 
-         delua(1,i,j,k) = abs(var(i+1,j,k)) + abs(var(i-1,j,k))
+          delu(i,j,k,1) =     var(i+1,j,k)  -     var(i-1,j,k) 
+         delua(i,j,k,1) = abs(var(i+1,j,k)) + abs(var(i-1,j,k))
       end do
       end do
       end do
@@ -59,8 +59,8 @@
       do k=lo(3)-1,hi(3)+1
       do j=lo(2)-1,hi(2)+1
       do i=lo(1)-1,hi(1)+1
-          delu(2,i,j,k) =     var(i,j+1,k)  -     var(i,j-1,k) 
-         delua(2,i,j,k) = abs(var(i,j+1,k)) + abs(var(i,j-1,k))
+          delu(i,j,k,2) =     var(i,j+1,k)  -     var(i,j-1,k) 
+         delua(i,j,k,2) = abs(var(i,j+1,k)) + abs(var(i,j-1,k))
       end do
       end do
       end do
@@ -69,8 +69,8 @@
       do k=lo(3)-1,hi(3)+1
       do j=lo(2)-1,hi(2)+1
       do i=lo(1)-1,hi(1)+1
-          delu(3,i,j,k) =     var(i,j,k+1)  -     var(i,j,k-1)
-         delua(3,i,j,k) = abs(var(i,j,k+1)) + abs(var(i,j,k-1))
+          delu(i,j,k,3) =     var(i,j,k+1)  -     var(i,j,k-1)
+         delua(i,j,k,3) = abs(var(i,j,k+1)) + abs(var(i,j,k-1))
       end do
       end do
       end do
@@ -81,49 +81,49 @@
          
 
          ! d/dxdx
-          delu2(1) =     delu(1,i+1,j,k)  -     delu(1,i-1,j,k)
-          delu3(1) = abs(delu(1,i+1,j,k)) + abs(delu(1,i-1,j,k))
-          delu4(1) =    delua(1,i+1,j,k)  +    delua(1,i-1,j,k)
+          delu2(1) =     delu(i+1,j,k,1)  -     delu(i-1,j,k,1)
+          delu3(1) = abs(delu(i+1,j,k,1)) + abs(delu(i-1,j,k,1))
+          delu4(1) =    delua(i+1,j,k,1)  +    delua(i-1,j,k,1)
 
           ! d/dydx
-          delu2(2) =     delu(1,i,j+1,k)  -     delu(1,i,j-1,k)
-          delu3(2) = abs(delu(1,i,j+1,k)) + abs(delu(1,i,j-1,k))
-          delu4(2) =    delua(1,i,j+1,k)  +    delua(1,i,j-1,k)
+          delu2(2) =     delu(i,j+1,k,1)  -     delu(i,j-1,k,1)
+          delu3(2) = abs(delu(i,j+1,k,1)) + abs(delu(i,j-1,k,1))
+          delu4(2) =    delua(i,j+1,k,1)  +    delua(i,j-1,k,1)
 
           ! d/dxdy
-          delu2(3) =     delu(2,i+1,j,k)  -     delu(2,i-1,j,k)
-          delu3(3) = abs(delu(2,i+1,j,k)) + abs(delu(2,i-1,j,k))
-          delu4(3) =    delua(2,i+1,j,k)  +    delua(2,i-1,j,k)
-
-          ! d/dydy
-          delu2(4) =     delu(2,i,j+1,k)  -     delu(2,i,j-1,k)
-          delu3(4) = abs(delu(2,i,j+1,k)) + abs(delu(2,i,j-1,k))
-          delu4(4) =    delua(2,i,j+1,k)  +    delua(2,i,j-1,k)
-
-          ! d/dzdx
-          delu2(5) =     delu(1,i,j,k+1)  -     delu(1,i,j,k-1)
-          delu3(5) = abs(delu(1,i,j,k+1)) + abs(delu(1,i,j,k-1))
-          delu4(5) =    delua(1,i,j,k+1)  +    delua(1,i,j,k-1)
-
-          ! d/dzdy
-          delu2(6) =     delu(2,i,j,k+1)  -     delu(2,i,j,k-1)
-          delu3(6) = abs(delu(2,i,j,k+1)) + abs(delu(2,i,j,k-1))
-          delu4(6) =    delua(2,i,j,k+1)  +    delua(2,i,j,k-1)
-
-          ! d/dxdz
-          delu2(7) =     delu(3,i+1,j,k)  -     delu(3,i-1,j,k)
-          delu3(7) = abs(delu(3,i+1,j,k)) + abs(delu(3,i-1,j,k))
-          delu4(7) =    delua(3,i+1,j,k)  +    delua(3,i-1,j,k)
-
-          ! d/dydz
-          delu2(8) =     delu(3,i,j+1,k)  -     delu(3,i,j-1,k)
-          delu3(8) = abs(delu(3,i,j+1,k)) + abs(delu(3,i,j-1,k))
-          delu4(8) =    delua(3,i,j+1,k)  +    delua(3,i,j-1,k)
-
-          ! d/dzdz
-          delu2(9) =     delu(3,i,j,k+1)  -     delu(3,i,j,k-1)
-          delu3(9) = abs(delu(3,i,j,k+1)) + abs(delu(3,i,j,k-1))
-          delu4(9) =    delua(3,i,j,k+1)  +    delua(3,i,j,k-1)
+          delu2(3) =     delu(i+1,j,k,2)  -     delu(i-1,j,k,2)
+          delu3(3) = abs(delu(i+1,j,k,2)) + abs(delu(i-1,j,k,2))
+          delu4(3) =    delua(i+1,j,k,2)  +    delua(i-1,j,k,2)
+                                       
+          ! d/dydy                     
+          delu2(4) =     delu(i,j+1,k,2)  -     delu(i,j-1,k,2)
+          delu3(4) = abs(delu(i,j+1,k,2)) + abs(delu(i,j-1,k,2))
+          delu4(4) =    delua(i,j+1,k,2)  +    delua(i,j-1,k,2)
+                                                              
+          ! d/dzdx                                            
+          delu2(5) =     delu(i,j,k+1,1)  -     delu(i,j,k-1,1)
+          delu3(5) = abs(delu(i,j,k+1,1)) + abs(delu(i,j,k-1,1))
+          delu4(5) =    delua(i,j,k+1,1)  +    delua(i,j,k-1,1)
+                                                              
+          ! d/dzdy                                            
+          delu2(6) =     delu(i,j,k+1,2)  -     delu(i,j,k-1,2)
+          delu3(6) = abs(delu(i,j,k+1,2)) + abs(delu(i,j,k-1,2))
+          delu4(6) =    delua(i,j,k+1,2)  +    delua(i,j,k-1,2)
+                                                              
+          ! d/dxdz                                            
+          delu2(7) =     delu(i+1,j,k,3)  -     delu(i-1,j,k,3)
+          delu3(7) = abs(delu(i+1,j,k,3)) + abs(delu(i-1,j,k,3))
+          delu4(7) =    delua(i+1,j,k,3)  +    delua(i-1,j,k,3)
+                                                              
+          ! d/dydz                                            
+          delu2(8) =     delu(i,j+1,k,3)  -     delu(i,j-1,k,3)
+          delu3(8) = abs(delu(i,j+1,k,3)) + abs(delu(i,j-1,k,3))
+          delu4(8) =    delua(i,j+1,k,3)  +    delua(i,j-1,k,3)
+                                                              
+          ! d/dzdz                                            
+          delu2(9) =     delu(i,j,k+1,3)  -     delu(i,j,k-1,3)
+          delu3(9) = abs(delu(i,j,k+1,3)) + abs(delu(i,j,k-1,3))
+          delu4(9) =    delua(i,j,k+1,3)  +    delua(i,j,k-1,3)
 
          ! compute the error
          num   =  delu2(1)**2 + delu2(2)**2 + delu2(3)**2 + delu2(4)**2 &
@@ -156,7 +156,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: den       => density array
@@ -164,7 +164,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -228,7 +228,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: temp      => temperature array
@@ -236,7 +236,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -304,7 +304,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: press     => pressure array
@@ -312,7 +312,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -379,7 +379,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: vel       => velocity array
@@ -387,7 +387,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -440,7 +440,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: rad       => radiation array
@@ -448,7 +448,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array

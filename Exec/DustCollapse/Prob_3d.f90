@@ -66,6 +66,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
+  !$OMP PARALLEL
+  r_old_s = r_old
+  !$OMP END PARALLEL
+
   ! in 3-d, we center the sphere at (center_x, center_y, center_z)
   center(1) = center_x
   center(2) = center_y
