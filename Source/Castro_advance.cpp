@@ -1177,7 +1177,7 @@ Castro::advance_no_hydro (Real time,
     Real cur_time = state[State_Type].curTime();
         
     // Copy old data into new data.
-    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, NUM_GROW);
+    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, S_new.nGrow());
         
     if (add_ext_src) {
            MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);
