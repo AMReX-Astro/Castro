@@ -1418,8 +1418,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
-    BL_ASSERT(ng == 0);
-
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
@@ -1505,6 +1503,17 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill G_new from grav_vector
     MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
+
+#if (BL_SPACEDIM > 1)
+    if (gravity_type != "ConstantGrav" && ng>0) {
+ 
+       // This is a hack-y way to fill the ghost cell values of grav_vector
+       //   before returning it
+       AmrLevel* amrlev = &parent->getLevel(level) ;
+
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+    }
+#endif
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
