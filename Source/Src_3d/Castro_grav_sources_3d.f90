@@ -175,9 +175,6 @@ end module grav_sources_module
       double precision flux1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
       double precision flux2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,NVAR)
       double precision flux3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,NVAR)
-      double precision gtens1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,3)
-      double precision gtens2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,3)
-      double precision gtens3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,3)      
       double precision gedge1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,3)
       double precision gedge2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,3)
       double precision gedge3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,3)      
@@ -367,13 +364,13 @@ end module grav_sources_module
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1) + 1
-                  gtens1(i,j,k,1) = gedge1(i,j,k,1) * gedge1(i,j,k,1)
-                  gtens1(i,j,k,2) = gedge1(i,j,k,1) * gedge1(i,j,k,2)
-                  gtens1(i,j,k,3) = gedge1(i,j,k,1) * gedge1(i,j,k,3)
+                  flux1(i,j,k,UMX) = gedge1(i,j,k,1) * gedge1(i,j,k,1)
+                  flux1(i,j,k,UMY) = gedge1(i,j,k,1) * gedge1(i,j,k,2)
+                  flux1(i,j,k,UMZ) = gedge1(i,j,k,1) * gedge1(i,j,k,3)
 
-                  gtens1(i,j,k,1) = gtens1(i,j,k,1) - HALF * (gedge1(i,j,k,1)**2 + gedge1(i,j,k,2)**2 + gedge1(i,j,k,3)**2)
+                  flux1(i,j,k,UMX) = flux1(i,j,k,1) - HALF * (gedge1(i,j,k,1)**2 + gedge1(i,j,k,2)**2 + gedge1(i,j,k,3)**2)
 
-                  gtens1(i,j,k,:) = gtens1(i,j,k,:) * dt / dx(1) / (FOUR * M_PI * Gconst)
+                  flux1(i,j,k,:) = flux1(i,j,k,:) * dt / dx(1) / (FOUR * M_PI * Gconst)
 
                enddo
             enddo
@@ -383,13 +380,13 @@ end module grav_sources_module
             do j = lo(2), hi(2) + 1
                do i = lo(1), hi(1)
 
-                  gtens2(i,j,k,1) = gedge2(i,j,k,2) * gedge2(i,j,k,1)
-                  gtens2(i,j,k,2) = gedge2(i,j,k,2) * gedge2(i,j,k,2)
-                  gtens2(i,j,k,3) = gedge2(i,j,k,2) * gedge2(i,j,k,3)
+                  flux2(i,j,k,UMX) = gedge2(i,j,k,2) * gedge2(i,j,k,1)
+                  flux2(i,j,k,UMY) = gedge2(i,j,k,2) * gedge2(i,j,k,2)
+                  flux2(i,j,k,UMZ) = gedge2(i,j,k,2) * gedge2(i,j,k,3)
                   
-                  gtens2(i,j,k,2) = gtens2(i,j,k,2) - HALF * (gedge2(i,j,k,1)**2 + gedge2(i,j,k,2)**2 + gedge2(i,j,k,3)**2)
+                  flux2(i,j,k,UMY) = flux2(i,j,k,2) - HALF * (gedge2(i,j,k,1)**2 + gedge2(i,j,k,2)**2 + gedge2(i,j,k,3)**2)
 
-                  gtens2(i,j,k,:) = gtens2(i,j,k,:) * dt / dx(2) / (FOUR * M_PI * Gconst)
+                  flux2(i,j,k,:) = flux2(i,j,k,:) * dt / dx(2) / (FOUR * M_PI * Gconst)
 
                enddo
             enddo
@@ -399,21 +396,19 @@ end module grav_sources_module
             do j = lo(2), hi(2) 
                do i = lo(1), hi(1)
 
-                  gtens3(i,j,k,1) = gedge3(i,j,k,3) * gedge3(i,j,k,1)
-                  gtens3(i,j,k,2) = gedge3(i,j,k,3) * gedge3(i,j,k,2)
-                  gtens3(i,j,k,3) = gedge3(i,j,k,3) * gedge3(i,j,k,3)
+                  flux3(i,j,k,UMX) = gedge3(i,j,k,3) * gedge3(i,j,k,1)
+                  flux3(i,j,k,UMY) = gedge3(i,j,k,3) * gedge3(i,j,k,2)
+                  flux3(i,j,k,UMZ) = gedge3(i,j,k,3) * gedge3(i,j,k,3)
 
-                  gtens3(i,j,k,3) = gtens3(i,j,k,3) - HALF * (gedge3(i,j,k,1)**2 + gedge3(i,j,k,2)**2 + gedge3(i,j,k,3)**2)
+                  flux3(i,j,k,UMZ) = flux3(i,j,k,3) - HALF * (gedge3(i,j,k,1)**2 + gedge3(i,j,k,2)**2 + gedge3(i,j,k,3)**2)
 
-                  gtens3(i,j,k,:) = gtens3(i,j,k,:) * dt / dx(3) / (FOUR * M_PI * Gconst)
+                  flux3(i,j,k,:) = flux3(i,j,k,:) * dt / dx(3) / (FOUR * M_PI * Gconst)
 
                enddo
             enddo
          enddo
 
-      endif
-
-      if (grav_source_type .eq. 6) then
+      else if (grav_source_type .eq. 6) then
 
          do k = lo(3), hi(3)
             do j = lo(2), hi(2) 
@@ -540,17 +535,17 @@ end module grav_sources_module
                    unew(i,j,k,UEDEN) = old_rhoeint + new_ke
                else if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
 
-                  SrUcorr = ( gtens1(i,j,k,1) - gtens1(i+1,j,k,1) ) &
-                          + ( gtens2(i,j,k,1) - gtens2(i,j+1,k,1) ) &
-                          + ( gtens3(i,j,k,1) - gtens3(i,j,k+1,1) )
+                  SrUcorr = ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) ) &
+                          + ( flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) ) &
+                          + ( flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
 
-                  SrVcorr = ( gtens1(i,j,k,2) - gtens1(i+1,j,k,2) ) &
-                          + ( gtens2(i,j,k,2) - gtens2(i,j+1,k,2) ) &
-                          + ( gtens3(i,j,k,2) - gtens3(i,j,k+1,2) )
+                  SrVcorr = ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) ) &
+                          + ( flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) ) &
+                          + ( flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
 
-                  SrWcorr = ( gtens1(i,j,k,3) - gtens1(i+1,j,k,3) ) &
-                          + ( gtens2(i,j,k,3) - gtens2(i,j+1,k,3) ) &
-                          + ( gtens3(i,j,k,3) - gtens3(i,j,k+1,3) )
+                  SrWcorr = ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) ) &
+                          + ( flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) ) &
+                          + ( flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
 
                   SrEcorr = ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) &
                           +   flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) &
