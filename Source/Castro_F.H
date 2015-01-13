@@ -325,6 +325,13 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      BL_FORT_FAB_ARG(S_new),
      const BL_FORT_FAB_ARG(phi_old),
      const BL_FORT_FAB_ARG(phi_new),
+     const BL_FORT_FAB_ARG(ugdnvx),
+#if (BL_SPACEDIM >= 2)
+     const BL_FORT_FAB_ARG(ugdnvy),
+#endif
+#if (BL_SPACEDIM == 3)
+     const BL_FORT_FAB_ARG(ugdnvz),
+#endif
      BL_FORT_FAB_ARG(xflux),
      BL_FORT_FAB_ARG(yflux),
      BL_FORT_FAB_ARG(zflux),

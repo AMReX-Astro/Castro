@@ -123,6 +123,9 @@ end module grav_sources_module
                              unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
                              pold,pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3, &
                              pnew,pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3, &
+                             ugdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+                             ugdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+                             ugdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                              old_flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                              old_flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                              old_flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
@@ -142,6 +145,9 @@ end module grav_sources_module
       integer unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
       integer pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3
       integer pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3
+      integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
+      integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
+      integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
       integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
       integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
       integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
@@ -157,12 +163,18 @@ end module grav_sources_module
       double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
       double precision   phi(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
       double precision  dpdt(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
+      double precision ugdnvx(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
+      double precision ugdnvy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
+      double precision ugdnvz(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
+      double precision rhox(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
+      double precision rhoy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
+      double precision rhoz(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
       double precision old_flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
       double precision old_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
       double precision old_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-      double precision flux1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3)
-      double precision flux2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3)
-      double precision flux3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1)
+      double precision flux1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
+      double precision flux2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,NVAR)
+      double precision flux3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,NVAR)
       double precision gtens1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,3)
       double precision gtens2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,3)
       double precision gtens3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,3)      
@@ -194,21 +206,13 @@ end module grav_sources_module
       ! 3: Puts all gravitational work into KE, not (rho e)
       ! 4: Conservative gravity approach of Jiang et al. (2013)
       ! 5: Same as 4, but with different form of the gravitational energy
-      ! 6: Conservative gravity approach from AREPO code paper, Springel (2010)
+      ! 6: Conservative gravity similar to the approach from the AREPO code paper, Springel (2010)
 
-      flux1 = ZERO
-      flux2 = ZERO
-      flux3 = ZERO
-
-      gtens1 = ZERO
-      gtens2 = ZERO
-      gtens3 = ZERO
-
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
+      do k = lo(3)-1, hi(3)+1
+         do j = lo(2)-1, hi(2)+1
+            do i = lo(1)-1, hi(1)+1
                grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-               phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))
+               phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
                dpdt(i,j,k)   = (pnew(i,j,k) - pold(i,j,k)) / dt
                dgdt(i,j,k,:) = (gnew(i,j,k,:) - gold(i,j,k,:)) / dt
             enddo
@@ -241,18 +245,18 @@ end module grav_sources_module
 
                   if (grav_source_type .eq. 4) then
                   
-                     flux1(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                     mom_av * phi_av
+                     flux1(i,j,k,UEDEN) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                          mom_av * phi_av
 
                   else if (grav_source_type .eq. 5) then
 
-                     flux1(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+                     flux1(i,j,k,UEDEN) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
 
                   endif
 
-                  flux1(i,j,k) = flux1(i,j,k) * dt / dx(1)
+                  flux1(i,j,k,UEDEN) = flux1(i,j,k,UEDEN) * dt / dx(1)
 
-                  old_flux1(i,j,k,UEDEN) = old_flux1(i,j,k,UEDEN) + flux1(i,j,k)
+                  old_flux1(i,j,k,UEDEN) = old_flux1(i,j,k,UEDEN) + flux1(i,j,k,UEDEN)
 
                enddo
             enddo
@@ -270,18 +274,18 @@ end module grav_sources_module
 
                   if (grav_source_type .eq. 4) then
 
-                     flux2(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                     mom_av * phi_av
+                     flux2(i,j,k,UEDEN) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                          mom_av * phi_av
 
                   else if (grav_source_type .eq. 5) then
 
-                     flux2(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+                     flux2(i,j,k,UEDEN) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
 
                   endif
 
-                  flux2(i,j,k) = flux2(i,j,k) * dt / dx(2)
+                  flux2(i,j,k,UEDEN) = flux2(i,j,k,UEDEN) * dt / dx(2)
 
-                  old_flux2(i,j,k,UEDEN) = old_flux2(i,j,k,UEDEN) + flux2(i,j,k)
+                  old_flux2(i,j,k,UEDEN) = old_flux2(i,j,k,UEDEN) + flux2(i,j,k,UEDEN)
 
                enddo
             enddo
@@ -299,18 +303,18 @@ end module grav_sources_module
 
                   if (grav_source_type .eq. 4) then
 
-                     flux3(i,j,k) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
-                                     mom_av * phi_av
+                     flux3(i,j,k,UEDEN) = ( phi_av * dgdt_av - dpdt_av * grav_av ) / (EIGHT * M_PI * Gconst) - &
+                                          mom_av * phi_av
 
                   else if (grav_source_type .eq. 5) then
 
-                     flux3(i,j,k) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
+                     flux3(i,j,k,UEDEN) = - (dpdt_av * grav_av) / (FOUR * M_PI * Gconst) - mom_av * phi_av
 
                   endif
 
-                  flux3(i,j,k) = flux3(i,j,k) * dt / dx(3)
+                  flux3(i,j,k,UEDEN) = flux3(i,j,k,UEDEN) * dt / dx(3)
 
-                  old_flux3(i,j,k,UEDEN) = old_flux3(i,j,k,UEDEN) + flux3(i,j,k)
+                  old_flux3(i,j,k,UEDEN) = old_flux3(i,j,k,UEDEN) + flux3(i,j,k,UEDEN)
 
                enddo
             enddo
@@ -356,6 +360,10 @@ end module grav_sources_module
             enddo
          enddo
 
+      endif
+
+      if (grav_source_type .eq. 4 .or. grav_source_type .eq. 5) then
+
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1) + 1
@@ -398,6 +406,55 @@ end module grav_sources_module
                   gtens3(i,j,k,3) = gtens3(i,j,k,3) - HALF * (gedge3(i,j,k,1)**2 + gedge3(i,j,k,2)**2 + gedge3(i,j,k,3)**2)
 
                   gtens3(i,j,k,:) = gtens3(i,j,k,:) * dt / dx(3) / (FOUR * M_PI * Gconst)
+
+               enddo
+            enddo
+         enddo
+
+      endif
+
+      if (grav_source_type .eq. 6) then
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2) 
+               do i = lo(1), hi(1) + 1
+                  rhox(i,j,k) = old_flux1(i,j,k,URHO) / ugdnvx(i,j,k)
+
+                  flux1(i,j,k,UMX) = SIXTH * rhox(i,j,k) * gedge1(i,j,k,1) * dx(1)
+                  flux1(i,j,k,UMY) = SIXTH * rhox(i,j,k) * gedge1(i,j,k,2) * dx(1)
+                  flux1(i,j,k,UMZ) = SIXTH * rhox(i,j,k) * gedge1(i,j,k,3) * dx(1)
+
+                  flux1(i,j,k,UEDEN) = HALF * old_flux1(i,j,k,URHO) * gedge1(i,j,k,1) * dx(1)
+
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2) + 1
+               do i = lo(1), hi(1)
+                  rhoy(i,j,k) = old_flux2(i,j,k,URHO) / ugdnvy(i,j,k)
+
+                  flux2(i,j,k,UMX) = SIXTH * rhoy(i,j,k) * gedge2(i,j,k,1) * dx(2)
+                  flux2(i,j,k,UMY) = SIXTH * rhoy(i,j,k) * gedge2(i,j,k,2) * dx(2)
+                  flux2(i,j,k,UMZ) = SIXTH * rhoy(i,j,k) * gedge2(i,j,k,3) * dx(2)
+
+                  flux2(i,j,k,UEDEN) = HALF * old_flux2(i,j,k,URHO) * gedge2(i,j,k,2) * dx(2)
+
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3) + 1
+            do j = lo(2), hi(2) 
+               do i = lo(1), hi(1)
+                  rhoz(i,j,k) = old_flux3(i,j,k,URHO) / ugdnvz(i,j,k)
+
+                  flux3(i,j,k,UMX) = SIXTH * rhoz(i,j,k) * gedge3(i,j,k,1) * dx(3)
+                  flux3(i,j,k,UMY) = SIXTH * rhoz(i,j,k) * gedge3(i,j,k,2) * dx(3)
+                  flux3(i,j,k,UMZ) = SIXTH * rhoz(i,j,k) * gedge3(i,j,k,3) * dx(3)
+
+                  flux3(i,j,k,UEDEN) = HALF * old_flux3(i,j,k,URHO) * gedge3(i,j,k,3) * dx(3)
 
                enddo
             enddo
@@ -495,10 +552,10 @@ end module grav_sources_module
                           + ( gtens2(i,j,k,3) - gtens2(i,j+1,k,3) ) &
                           + ( gtens3(i,j,k,3) - gtens3(i,j,k+1,3) )
 
-                  SrEcorr = ( flux1(i,j,k) - flux1(i+1,j,k) &
-                          +   flux2(i,j,k) - flux2(i,j+1,k) &
-                          +   flux3(i,j,k) - flux3(i,j,k+1) )
-                  
+                  SrEcorr = ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) &
+                          +   flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) &
+                          +   flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
+
                   unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr
 
                   unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr
@@ -525,24 +582,27 @@ end module grav_sources_module
 
                else if (grav_source_type .eq. 6) then
 
-                  SrUcorr = ( gtens1(i,j,k,1) - gtens1(i+1,j,k,1) ) &
-                          + ( gtens2(i,j,k,1) - gtens2(i,j+1,k,1) ) &
-                          + ( gtens3(i,j,k,1) - gtens3(i,j,k+1,1) )
+                  SrUcorr = ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) + &
+                              flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) + &
+                              flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
 
-                  SrVcorr = ( gtens1(i,j,k,2) - gtens1(i+1,j,k,2) ) &
-                          + ( gtens2(i,j,k,2) - gtens2(i,j+1,k,2) ) &
-                          + ( gtens3(i,j,k,2) - gtens3(i,j,k+1,2) )
+                  SrVcorr = ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) + &
+                              flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) + &
+                              flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
 
-                  SrWcorr = ( gtens1(i,j,k,3) - gtens1(i+1,j,k,3) ) &
-                          + ( gtens2(i,j,k,3) - gtens2(i,j+1,k,3) ) &
-                          + ( gtens3(i,j,k,3) - gtens3(i,j,k+1,3) )
+                  SrWcorr = ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) + &
+                              flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) + &
+                              flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
 
-                  SrEcorr = HALF * old_flux1(i  ,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i-1,j,k)) &
-                          - HALF * old_flux1(i+1,j,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i+1,j,k)) &
-                          + HALF * old_flux2(i,j  ,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j-1,k)) &
-                          - HALF * old_flux2(i,j+1,k,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j+1,k)) &
-                          + HALF * old_flux3(i,j,k  ,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k-1)) &
-                          - HALF * old_flux3(i,j,k+1,URHO) / (dx(1)*dx(2)*dx(3)) * (phi(i,j,k) - phi(i,j,k+1))
+                  SrEcorr = ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) + &
+                              flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) + &
+                              flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
+
+                  SrUcorr = SrUcorr / (dx(1)*dx(2)*dx(3))
+                  SrVcorr = SrVcorr / (dx(1)*dx(2)*dx(3))
+                  SrWcorr = SrWcorr / (dx(1)*dx(2)*dx(3))
+
+                  SrEcorr = SrEcorr / (dx(1)*dx(2)*dx(3))
 
                   unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr
 
