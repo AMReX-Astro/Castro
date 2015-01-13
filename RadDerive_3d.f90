@@ -28,7 +28,6 @@
 
         n = current_group
 
-        !$omp parallel do private(i,j,k)
         do k = lo(3),hi(3)
         do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -38,7 +37,6 @@
         enddo
         enddo
         enddo
-        !$omp end parallel do
 
       end subroutine ca_derneut
 
@@ -68,7 +66,6 @@
 
         fac = radtoE / (hplanck * avogadro)
 
-        !$omp parallel do private(i,j,k,n)
         do k = lo(3),hi(3)
         do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -84,7 +81,6 @@
         enddo
         enddo
         enddo
-        !$omp end parallel do
 
       end subroutine ca_derrhoyl
 
@@ -114,7 +110,6 @@
 
         fac = radtoE / (hplanck * avogadro)
 
-        !$omp parallel do private(i,j,k,n)
         do k = lo(3),hi(3)
         do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -131,7 +126,6 @@
         enddo
         enddo
         enddo
-        !$omp end parallel do
 
       end subroutine ca_deryl
 
@@ -161,7 +155,6 @@
 
         fac = radtoE / (hplanck * avogadro)
 
-        !$omp parallel do private(i,j,k,n)
         do k = lo(3),hi(3)
         do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -175,7 +168,6 @@
         enddo
         enddo
         enddo
-        !$omp end parallel do
 
       end subroutine ca_derynue
 
@@ -205,7 +197,6 @@
 
         fac = radtoE / (hplanck * avogadro)
 
-        !$omp parallel do private(i,j,k,n)
         do k = lo(3),hi(3)
         do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -219,7 +210,6 @@
         enddo
         enddo
         enddo
-        !$omp end parallel do
 
       end subroutine ca_derynuae
 
@@ -243,8 +233,6 @@
       
         integer :: i, j, k, g
 
-        !$omp parallel private(i,j,k,g)
-        !$omp do
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -252,10 +240,8 @@
               end do
            end do
         end do
-        !$omp end do nowait
 
         do g = 1, ncomp_Er
-           !$omp do
            do k = lo(3), hi(3)
               do j = lo(2), hi(2)
                  do i = lo(1), hi(1)
@@ -263,9 +249,7 @@
                  end do
               end do
            end do
-           !$omp end do nowait
         end do
-        !$omp end parallel
 
       end subroutine ca_derertot
 
@@ -292,8 +276,6 @@
       
         integer :: i, j, k, g
 
-        !$omp parallel private(i,j,k,g)
-        !$omp do
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -301,10 +283,8 @@
               end do
            end do
         end do
-        !$omp end do nowait
 
         do g = 1, ng0
-           !$omp do
            do k = lo(3), hi(3)
            do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -312,9 +292,7 @@
            end do
            end do
            end do
-           !$omp end do nowait
         end do
-        !$omp end parallel
 
       end subroutine ca_derenue
 
@@ -341,8 +319,6 @@
       
         integer :: i, j, k, g
 
-        !$omp parallel private(i,j,k,g)
-        !$omp do
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -350,10 +326,8 @@
               end do
            end do
         end do
-        !$omp end do nowait
         
         do g = ng0+1, ng0+ng1
-           !$omp do
            do k = lo(3), hi(3)
            do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -361,9 +335,7 @@
            end do
            end do
            end do
-           !$omp end do nowait
         end do
-        !$omp end parallel
 
       end subroutine ca_derenuae
 
