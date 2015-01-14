@@ -2949,7 +2949,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 
         if (lev < level)
         {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 	    const MultiFab* mask = fine_level->build_fine_mask();
 	    MultiFab::Multiply(S, *mask, 0, 0, 1, 0);	
         }
