@@ -608,6 +608,7 @@ protected:
     static Real      small_dens;
     static Real      small_temp;
     static Real      small_pres;
+    static Real      small_ener;
 
     static std::string      job_name;
 

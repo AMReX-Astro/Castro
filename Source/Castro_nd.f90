@@ -257,7 +257,7 @@
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
-                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, &
+                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, small_ener_in, &
                                    allow_negative_energy_in, &
                                    ppm_type_in,ppm_reference_in, &
                                    ppm_trace_grav_in, ppm_temp_fix_in, &
@@ -299,7 +299,7 @@
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
         double precision, intent(in) :: difmag_in
-        double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in
+        double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in, small_ener_in
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
@@ -449,6 +449,12 @@
         else
           small_pres = 1.d-8
         end if
+
+        if (small_ener_in > 0.d0) then
+           small_ener = small_ener_in
+        else
+           small_ener = 1.d-8
+        endif
 
         call eos_init(small_dens=small_dens_in, small_temp=small_temp_in)
 

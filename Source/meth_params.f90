@@ -29,7 +29,7 @@ module meth_params_module
 
   integer         , save :: nadv
 
-  double precision, save :: small_dens, small_temp, small_pres  
+  double precision, save :: small_dens, small_temp, small_pres, small_ener
 
   integer         , save :: allow_negative_energy
 

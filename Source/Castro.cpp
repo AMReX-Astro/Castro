@@ -99,6 +99,7 @@ Real         Castro::difmag        = 0.1;
 Real         Castro::small_dens    = -1.e200;
 Real         Castro::small_temp    = -1.e200;
 Real         Castro::small_pres    = -1.e200;
+Real         Castro::small_ener    = -1.e200;
 
 int          Castro::do_hydro = -1;
 int          Castro::do_react = -1;
@@ -254,6 +255,7 @@ Castro::read_params ()
     pp.query("small_dens",small_dens);
     pp.query("small_temp",small_temp);
     pp.query("small_pres",small_pres);
+    pp.query("small_ener",small_ener);
 
 #ifdef POINTMASS
     pp.get("point_mass",point_mass);

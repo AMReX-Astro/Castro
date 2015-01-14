@@ -223,7 +223,7 @@ Castro::variableSetUp ()
 
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-         NumAdv, difmag, small_dens, small_temp, small_pres, 
+         NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
          allow_negative_energy,ppm_type,ppm_reference,
 	 ppm_trace_grav,ppm_temp_fix,ppm_tau_in_tracing,ppm_predict_gammae,
 	 ppm_reference_edge_limit,
