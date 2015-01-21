@@ -17,8 +17,8 @@
 \ChNameVar{\LARGE}
 \ChTitleVar{\LARGE\sl}
 
-% part page style                                                                                     
-% see http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec            
+% part page style see
+% http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec
 \usepackage{titlesec}
 
 \titleformat{\part}[display]
@@ -28,7 +28,7 @@
    {\hrule}
 
 
-% hyperlinks -- load after fncychap                                                                   
+% hyperlinks -- load after fncychap
 \usepackage{hyperref}
 
 % color package
@@ -39,7 +39,8 @@
 \newcommand{\MarginPar}[1]{\marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
 \hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
 
-% to increase the likelihood that floats will occur "here" when you want them to
+% to increase the likelihood that floats will occur "here" when you
+% want them to
 \renewcommand{\floatpagefraction}{1.0}
 \renewcommand{\topfraction}{1.0}
 \renewcommand{\bottomfraction}{1.0}
@@ -49,22 +50,22 @@
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 
-% custom hrule for title page                                                                         
+% custom hrule for title page
 \newcommand{\HRule}{\rule{\linewidth}{0.125mm}}
 
 
-% short table of contents                                                                             
+% short table of contents
 \usepackage{shorttoc}
 
-% spacing in the table of contents                                                                    
+% spacing in the table of contents
 \usepackage[titles]{tocloft}
 
 \setlength{\cftbeforechapskip}{2ex}
 \setlength{\cftbeforesecskip}{0.25ex}
 
-% don't put a header on blank pages, see                                                              
-% http://www.latex-community.org/forum/viewtopic.php?f=4&p=51559                                      
-% change ``plain'' to ``empty'' to eliminate the page number                                          
+% don't put a header on blank pages, see
+% http://www.latex-community.org/forum/viewtopic.php?f=4&p=51559
+% change ``plain'' to ``empty'' to eliminate the page number
 \makeatletter
 \renewcommand*\cleardoublepage{\clearpage\if@twoside
 \ifodd\c@page\else
@@ -75,17 +76,17 @@
 \makeatother
 
 
-% don't make the chapter/section headings uppercase.  See the fancyhdr                                
-% documentation (section 9)                                                                           
+% don't make the chapter/section headings uppercase.  See the fancyhdr
+% documentation (section 9)
 \usepackage{fancyhdr}
-\renewcommand{\chaptermark}[1]{%                                                                      
+\renewcommand{\chaptermark}[1]{%
  \markboth{\chaptername
 \ \thechapter.\ #1}{}}
 
 \renewcommand{\sectionmark}[1]{\markright{\thesection---#1}}
 
 
-% skip a bit of space between paragraphs, to enhance readability                                      
+% skip a bit of space between paragraphs, to enhance readability
 \usepackage{parskip}
 
 
@@ -199,7 +200,7 @@
 
 \begin{titlepage}
 \begin{center}
-\ \\[2in]
+\ \\[3in]
 {\sf \Huge CASTRO} 
 
 \begin{minipage}{5.5in}
