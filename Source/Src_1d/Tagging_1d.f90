@@ -36,8 +36,8 @@
       integer          :: i
 
       double precision :: error, num, denom
-      double precision ::  delu(lo(1)-1:hi(1)-1)
-      double precision :: delua(lo(1)-1:hi(1)-1)
+      double precision ::  delu(lo(1)-1:hi(1)+1)
+      double precision :: delua(lo(1)-1:hi(1)+1)
       double precision :: delu2, delu3, delu4
 
       double precision, parameter :: ctore=0.8

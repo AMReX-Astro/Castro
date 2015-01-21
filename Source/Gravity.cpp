@@ -1418,8 +1418,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
-    BL_ASSERT(ng == 0);
-
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
@@ -1505,6 +1503,17 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill G_new from grav_vector
     MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
+
+#if (BL_SPACEDIM > 1)
+    if (gravity_type != "ConstantGrav" && ng>0) {
+ 
+       // This is a hack-y way to fill the ghost cell values of grav_vector
+       //   before returning it
+       AmrLevel* amrlev = &parent->getLevel(level) ;
+
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+    }
+#endif
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
@@ -2680,9 +2689,9 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-	D_TERM(const Box& xbx = mfi.nodalbox(0);,
-	       const Box& ybx = mfi.nodalbox(1);,
-	       const Box& zbx = mfi.nodalbox(2););
+	D_TERM(const Box& xbx = mfi.nodaltilebox(0);,
+	       const Box& ybx = mfi.nodaltilebox(1);,
+	       const Box& zbx = mfi.nodaltilebox(2););
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
@@ -2940,7 +2949,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 
         if (lev < level)
         {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 	    const MultiFab* mask = fine_level->build_fine_mask();
 	    MultiFab::Multiply(S, *mask, 0, 0, 1, 0);	
         }
