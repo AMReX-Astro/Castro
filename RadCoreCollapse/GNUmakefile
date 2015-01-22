@@ -16,6 +16,7 @@ USE_NEUTRINO = TRUE
 
 USE_GRAV     = TRUE
 
+# data in the following directories are not public available 
 EOS_dir     := collapse
 Network_dir := collapse
 Opacity_dir := burrows
