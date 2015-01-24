@@ -304,7 +304,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2)
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
-    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,NVAR)
+    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt, courno
     
     double precision, allocatable :: dpdrho(:,:)
