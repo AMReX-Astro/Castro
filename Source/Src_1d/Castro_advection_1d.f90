@@ -58,7 +58,7 @@ contains
     double precision  csml(   qd_l1:qd_h1)
     double precision     c(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
-    double precision  srcQ(src_l1  :src_h1,NVAR)
+    double precision  srcQ(src_l1  :src_h1,QVAR)
     double precision  grav(gv_l1   :gv_h1)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
     double precision ugdnv(ugdnv_l1:ugdnv_h1)
