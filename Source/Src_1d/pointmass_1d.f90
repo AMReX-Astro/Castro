@@ -65,7 +65,6 @@
           do ii = 0, box_size-1
              delta_mass = delta_mass + vol(ii) * (uout(ii,URHO)-uin(ii,URHO))
           end do
-          delta_mass = max(ZERO, delta_mass)
       end if
 
       end subroutine pm_compute_delta_mass

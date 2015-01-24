@@ -102,8 +102,6 @@
       end do
       end do
 
-      delta_mass = max(ZERO, delta_mass)
-
       end subroutine pm_compute_delta_mass
 
 ! ::: 
