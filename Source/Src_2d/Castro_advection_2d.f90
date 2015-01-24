@@ -78,7 +78,7 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
+    double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
