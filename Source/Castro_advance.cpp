@@ -628,7 +628,7 @@ Castro::advance_hydro (Real time,
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 		    flux[i].resize(bxtmp,NUM_STATE);
-		    ugdn[i].resize(bxtmp,1);
+		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		}
 	  
 		BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
@@ -656,17 +656,13 @@ Castro::advance_hydro (Real time,
 		     mass_added, eint_added, eden_added, 
 		     E_added_flux, E_added_grav);
 	  
-		Box facebox[BL_SPACEDIM];
-
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    // these face boxes are non-overlapping, therefore threadsafe
-		    facebox[i] = mfi.nodaltilebox(i);
-		    u_gdnv[i][mfi].copy(ugdn[i],facebox[i]);
+		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
 		if (do_reflux && fine) {
 		    for (int i = 0; i < BL_SPACEDIM ; i++)
-			fluxes[i][mfi].copy(flux[i],facebox[i]);
+			fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 		}
 	  
 #ifdef POINTMASS
