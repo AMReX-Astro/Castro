@@ -849,7 +849,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 				const MultiFab &Erborder,
 				MultiFab &lamborder)
 { // it works for both single- and multi-group
-  int ngrow = Sborder.nGrow();
+  int ngrow = lamborder.nGrow();
 
   if (filter_lambda_T) {
     BL_ASSERT(ngrow == 4);
