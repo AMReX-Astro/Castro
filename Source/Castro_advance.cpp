@@ -434,7 +434,7 @@ Castro::advance_hydro (Real time,
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
 
-	FillPatchIterator fpi_rad(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+	FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 	MultiFab& Erborder = fpi_rad.get_mf();
 
 	MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
