@@ -313,15 +313,7 @@ Castro::advance_hydro (Real time,
     
     MultiFab levelArea[BL_SPACEDIM];
     for (int i = 0; i < BL_SPACEDIM ; i++)
-      g.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
-    
-    // Integrate, looping through the grids.
-    FArrayBox divu, grid_volume;
-    FArrayBox dloga, area[BL_SPACEDIM];
-    FArrayBox flux[BL_SPACEDIM];
-#ifdef RADIATION
-    FArrayBox rad_flux[BL_SPACEDIM];
-#endif
+	g.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
     
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
@@ -329,14 +321,14 @@ Castro::advance_hydro (Real time,
     MultiFab fluxes[BL_SPACEDIM];
     
     if (do_reflux && fine)
-      {
+    {
 	for (int j = 0; j < BL_SPACEDIM; j++)
-	  {
+	{
 	    BoxArray ba = S_new.boxArray();
 	    ba.surroundingNodes(j);
 	    fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
-	  }
-      }
+	}
+    }
     
 #ifdef SGS
     // We need these even if we are single-level because they are used in the source construction.
@@ -419,274 +411,291 @@ Castro::advance_hydro (Real time,
 
     ext_src_old.FillBoundary();
     geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
+
+    FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
+    MultiFab& Sborder = fpi.get_mf();
     
+#ifdef REACTIONS
+    // Make sure to zero these even if do_react == 0.
+    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
+    MultiFab& ReactMF     = get_new_data(Reactions_Type);
+    ReactMF_old.setVal(0.);
+    ReactMF.setVal(0.);
+
+    for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
+#ifdef TAU
+	react_first_half_dt(S_fp[mfi],ReactMF[mfi],tau_diff[mfi],time,dt);
+#else
+	react_first_half_dt(S_fp[mfi],ReactMF[mfi],time,dt);
+#endif
+    }
+#endif
+      
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-      MultiFab  Sborder(grids, NUM_STATE, NUM_GROW);
-      MultiFab Erborder(grids, Radiation::nGroups, NUM_GROW); 
-      MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
 
-      FillPatch(*this, Sborder, NUM_GROW, time, State_Type, 0, NUM_STATE); 
-      FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+	FillPatchIterator fpi_rad(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+	MultiFab& Erborder = fpi_rad.get_mf();
 
-      if (radiation->pure_hydro) {
-	  lamborder.setVal(0.0, NUM_GROW);
-      }
-      else {
-	  radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
-      }
+	MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+	if (radiation->pure_hydro) {
+	    lamborder.setVal(0.0, NUM_GROW);
+	}
+	else {
+	    radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+	}
 
-      int nstep_fsp = -1;
+	int nstep_fsp = -1;
 
-      for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-	  int mfiindex = mfi.index();
+	FArrayBox grid_volume, dloga, area[BL_SPACEDIM], flux[BL_SPACEDIM];
+	FArrayBox rad_flux[BL_SPACEDIM];
+
+	const int*  domain_lo = geom.Domain().loVect();
+	const int*  domain_hi = geom.Domain().hiVect();
 	  
-	  const Box &bx = grids[mfiindex];
-	  
-	  Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-
-	  // Create FAB for extended grid values (including boundaries) and fill.
-	  FArrayBox &state = Sborder[mfi];
-	  FArrayBox &stateout = S_new[mfi];
-
-	  FArrayBox &Er = Erborder[mfi];
-	  FArrayBox &lam = lamborder[mfi];
-	  FArrayBox &Erout = Er_new[mfi];
-	  
-	  grid_volume.resize(bx_g4,1);
-	  grid_volume.copy(levelVolume[mfi]);
+	for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+	    int mfiindex = mfi.index();
 	    
-	  for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-	    area[i].copy(levelArea[i][mfi]);
-	  }
-          
+	    const Box &bx = grids[mfiindex];
+	    
+	    Box bx_g4(BoxLib::grow(bx,NUM_GROW));
+	    
+	    // Create FAB for extended grid values (including boundaries) and fill.
+	    FArrayBox &state = Sborder[mfi];
+	    FArrayBox &stateout = S_new[mfi];
+	    
+	    FArrayBox &Er = Erborder[mfi];
+	    FArrayBox &lam = lamborder[mfi];
+	    FArrayBox &Erout = Er_new[mfi];
+	    
+	    grid_volume.resize(bx_g4,1);
+	    grid_volume.copy(levelVolume[mfi]);
+	    
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
+		area[i].copy(levelArea[i][mfi]);
+	    }
+	    
 #if (BL_SPACEDIM <=2)
-	  dloga.resize(bx_g4);
-	  dloga.copy(dLogArea[0][mfi]);
+	    dloga.resize(bx_g4);
+	    dloga.copy(dLogArea[0][mfi]);
 #endif
 
-	  // Allocate fabs for fluxes.
-	  for (int i = 0; i < BL_SPACEDIM ; i++)  
-	    flux[i].resize(BoxLib::surroundingNodes(bx,i),NUM_STATE);
-
-	  for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
-	  }
-	  
-	  const int*  domain_lo = geom.Domain().loVect();
-	  const int*  domain_hi = geom.Domain().hiVect();
-	  
-	  Real cflLoc = -1.0e+200;
-	  int is_finest_level = 0;
-	  if (level == finest_level) is_finest_level = 1;
-
-	  BL_FORT_PROC_CALL(CA_UMDRV_RAD,ca_umdrv_rad)
-	    (&is_finest_level,&time,
-	     bx.loVect(), bx.hiVect(),
-	     domain_lo, domain_hi,
-	     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-	     BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
-	     BL_TO_FORTRAN(Erout), 
-	     BL_TO_FORTRAN(u_gdnv[0][mfi]),
+	    // Allocate fabs for fluxes.
+	    for (int i = 0; i < BL_SPACEDIM ; i++)  
+		flux[i].resize(BoxLib::surroundingNodes(bx,i),NUM_STATE);
+	    
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
+	    }
+	    
+	    Real cflLoc = -1.0e+200;
+	    int is_finest_level = 0;
+	    if (level == finest_level) is_finest_level = 1;
+	    
+	    BL_FORT_PROC_CALL(CA_UMDRV_RAD,ca_umdrv_rad)
+		(&is_finest_level,&time,
+		 bx.loVect(), bx.hiVect(),
+		 domain_lo, domain_hi,
+		 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+		 BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
+		 BL_TO_FORTRAN(Erout), 
+		 BL_TO_FORTRAN(u_gdnv[0][mfi]),
 #if (BL_SPACEDIM >= 2)
-	     BL_TO_FORTRAN(u_gdnv[1][mfi]),
+		 BL_TO_FORTRAN(u_gdnv[1][mfi]),
 #endif
 #if (BL_SPACEDIM == 3)
-	     BL_TO_FORTRAN(u_gdnv[2][mfi]),
+		 BL_TO_FORTRAN(u_gdnv[2][mfi]),
 #endif
-	     BL_TO_FORTRAN(ext_src_old[mfi]),
-	     BL_TO_FORTRAN(grav_vector[mfi]), 
-	     dx, &dt,
-	     D_DECL(BL_TO_FORTRAN(flux[0]), 
-		    BL_TO_FORTRAN(flux[1]), 
-		    BL_TO_FORTRAN(flux[2])), 
-	     D_DECL(BL_TO_FORTRAN(rad_flux[0]), 
-		    BL_TO_FORTRAN(rad_flux[1]), 
-		    BL_TO_FORTRAN(rad_flux[2])), 
-	     D_DECL(BL_TO_FORTRAN(area[0]), 
-		    BL_TO_FORTRAN(area[1]), 
-		    BL_TO_FORTRAN(area[2])), 
+		 BL_TO_FORTRAN(ext_src_old[mfi]),
+		 BL_TO_FORTRAN(grav_vector[mfi]), 
+		 dx, &dt,
+		 D_DECL(BL_TO_FORTRAN(flux[0]), 
+			BL_TO_FORTRAN(flux[1]), 
+			BL_TO_FORTRAN(flux[2])), 
+		 D_DECL(BL_TO_FORTRAN(rad_flux[0]), 
+			BL_TO_FORTRAN(rad_flux[1]), 
+			BL_TO_FORTRAN(rad_flux[2])), 
+		 D_DECL(BL_TO_FORTRAN(area[0]), 
+			BL_TO_FORTRAN(area[1]), 
+			BL_TO_FORTRAN(area[2])), 
 #if (BL_SPACEDIM < 3) 
-	     BL_TO_FORTRAN(dloga), 
+		 BL_TO_FORTRAN(dloga), 
 #endif
-	     BL_TO_FORTRAN(grid_volume), 
-	     &cflLoc, verbose, 
-	     &nstep_fsp, &Radiation::fspace_advection_type,
-	     &radiation->comoving);
+		 BL_TO_FORTRAN(grid_volume), 
+		 &cflLoc, verbose, 
+		 &nstep_fsp, &Radiation::fspace_advection_type,
+		 &radiation->comoving);
 
-	  if (do_reflux) 
+	    if (do_reflux) 
 	    {
-	      if (fine)
+		if (fine)
 		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][mfi].copy(flux[i]);
+		    for (int i = 0; i < BL_SPACEDIM ; i++)
+			fluxes[i][mfi].copy(flux[i]);
 		}
-	      if (current)
+		if (current)
 		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    current->FineAdd(flux[i],i,mfiindex,0,0,NUM_STATE,1);
+		    for (int i = 0; i < BL_SPACEDIM ; i++)
+			current->FineAdd(flux[i],i,mfiindex,0,0,NUM_STATE,1);
 		}
-
-	      if (rad_fine)
+		
+		if (rad_fine)
 		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    rad_fluxes[i][mfi].copy(rad_flux[i]);
+		    for (int i = 0; i < BL_SPACEDIM ; i++)
+			rad_fluxes[i][mfi].copy(rad_flux[i]);
 		}
-	      if (rad_current)
+		if (rad_current)
 		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    rad_current->FineAdd(rad_flux[i],i,mfiindex,0,0,Radiation::nGroups,1);
+		    for (int i = 0; i < BL_SPACEDIM ; i++)
+			rad_current->FineAdd(rad_flux[i],i,mfiindex,0,0,Radiation::nGroups,1);
 		}
 	    }
-	  
-	  courno = std::max(courno,cflLoc);
-	  
+	    
+	    courno = std::max(courno,cflLoc);
+	    
 #ifdef POINTMASS
-	  if (level == finest_level)
-	    BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
-	      (&mass_change_at_center, bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-	       BL_TO_FORTRAN(grid_volume),
-	       geom.ProbLo(), dx, &time, &dt);
+	    if (level == finest_level)
+		BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
+		    (&mass_change_at_center, bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+		     BL_TO_FORTRAN(grid_volume),
+		     geom.ProbLo(), dx, &time, &dt);
 #endif	
-      }
-
-      if (radiation->verbose>=1) {
-	  ParallelDescriptor::ReduceIntMax(nstep_fsp, ParallelDescriptor::IOProcessorNumber());
-	if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
-	  std::cout << "Radiation f-space advection on level " << level 
-		    << " takes as many as " << nstep_fsp;
-	  if (nstep_fsp == 1) {
-	    std::cout<< " substep.\n";
-	  }
-	  else {
-	    std::cout<< " substeps.\n";
-	  }
 	}
-      }
-	  
+
+	if (radiation->verbose>=1) {
+	    ParallelDescriptor::ReduceIntMax(nstep_fsp, ParallelDescriptor::IOProcessorNumber());
+	    if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
+		std::cout << "Radiation f-space advection on level " << level 
+			  << " takes as many as " << nstep_fsp;
+		if (nstep_fsp == 1) {
+		    std::cout<< " substep.\n";
+		}
+		else {
+		    std::cout<< " substeps.\n";
+		}
+	    }
+	}
+	
     }
     else {
 #endif
+	Real E_added_grav = 0.;
+	Real E_added_flux = 0.;
+	Real mass_added = 0.;
+	Real eint_added = 0.;
+	Real eden_added = 0.;
 
-#ifdef REACTIONS
-      // Make sure to zero these even if do_react == 0.
-      MultiFab& ReactMF_old = get_old_data(Reactions_Type);
-      MultiFab& ReactMF     = get_new_data(Reactions_Type);
-      ReactMF_old.setVal(0.);
-      ReactMF.setVal(0.);
+	BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:E_added_grav,E_added_flux,mass_added,eint_added,eden_added)
+#pragma omp reduction(+:mass_change_at_center)
 #endif
-      
-      Real E_added_grav = 0.;
-      Real E_added_flux = 0.;
-      Real mass_added = 0.;
-      Real eint_added = 0.;
-      Real eden_added = 0.;
+	{
+	    FArrayBox grid_volume, dloga, area[BL_SPACEDIM], flux[BL_SPACEDIM];
+	    FArrayBox ugdn[BL_SPACEDIM];
 
-      for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
-				 time, State_Type, 0, NUM_STATE);
-	   fpi.isValid();
-	   ++fpi)
-        {
-	  int mfiindex = fpi.index();
+	    Real cflLoc = -1.0e+200;
+	    int is_finest_level = (level == finest_level) ? 1 : 0;
+	    const int*  domain_lo = geom.Domain().loVect();
+	    const int*  domain_hi = geom.Domain().hiVect();
+
+	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx  = mfi.tilebox();
+		const Box& bx_g4 = BoxLib::grow(bx,NUM_GROW);
+
+		// Create FAB for extended grid values (including boundaries) and fill.
+		FArrayBox &state = Sborder[mfi];
+		FArrayBox &stateout = S_new[mfi];
 	  
-	  Box bx(fpi.UngrownBox());
-	  
-	  Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-	  // Create FAB for extended grid values (including boundaries) and fill.
-	  FArrayBox &state = fpi();
-	  FArrayBox &stateout = S_new[fpi];
-	  
-	  grid_volume.resize(bx_g4,1);
-	  grid_volume.copy(levelVolume[fpi]);
+		grid_volume.resize(bx_g4,1);
+		grid_volume.copy(levelVolume[mfi]);
 	    
-	  for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-	    area[i].copy(levelArea[i][fpi]);
-	  }
+		for (int i = 0; i < BL_SPACEDIM ; i++) {
+		    area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
+		    area[i].copy(levelArea[i][mfi]);
+		}
           
 #if (BL_SPACEDIM <=2)
-	  dloga.resize(bx_g4);
-	  dloga.copy(dLogArea[0][fpi]);
+		dloga.resize(bx_g4);
+		dloga.copy(dLogArea[0][fpi]);
 #endif
 
-	  // Allocate fabs for fluxes.
-	  for (int i = 0; i < BL_SPACEDIM ; i++)  
-	    flux[i].resize(BoxLib::surroundingNodes(bx,i),NUM_STATE);
+		// Allocate fabs for fluxes and Godunov velocities.
+		for (int i = 0; i < BL_SPACEDIM ; i++) {
+		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
+		    flux[i].resize(bxtmp,NUM_STATE);
+		    ugdn[i].resize(bxtmp,1);
+		}
 	  
-	  const int*  domain_lo = geom.Domain().loVect();
-	  const int*  domain_hi = geom.Domain().hiVect();
-	  
-	  Real cflLoc = -1.0e+200;
-	  int is_finest_level = 0;
-	  if (level == finest_level) is_finest_level = 1;
- 
-#ifdef REACTIONS
-#ifdef TAU
-          react_first_half_dt(state,ReactMF[fpi],tau_diff[fpi],time,dt);
-#else
-          react_first_half_dt(state,ReactMF[fpi],time,dt);
-#endif
-#endif
-	  
-  BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
-	  BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
-	    (&is_finest_level,&time,
-	     bx.loVect(), bx.hiVect(),
-	     domain_lo, domain_hi,
-	     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-	     BL_TO_FORTRAN(u_gdnv[0][fpi]),
-#if (BL_SPACEDIM >= 2)
-	     BL_TO_FORTRAN(u_gdnv[1][fpi]),
-#endif
-#if (BL_SPACEDIM == 3)
-	     BL_TO_FORTRAN(u_gdnv[2][fpi]),
-#endif
-	     BL_TO_FORTRAN(ext_src_old[fpi]),
-	     BL_TO_FORTRAN(grav_vector[fpi]), 
-	     dx, &dt,
-	     D_DECL(BL_TO_FORTRAN(flux[0]), 
-		    BL_TO_FORTRAN(flux[1]), 
-		    BL_TO_FORTRAN(flux[2])), 
-	     D_DECL(BL_TO_FORTRAN(area[0]), 
-		    BL_TO_FORTRAN(area[1]), 
-		    BL_TO_FORTRAN(area[2])), 
+		BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
+		    (&is_finest_level,&time,
+		     bx.loVect(), bx.hiVect(),
+		     domain_lo, domain_hi,
+		     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+		     D_DECL(BL_TO_FORTRAN(ugdn[0]), 
+			    BL_TO_FORTRAN(ugdn[1]), 
+			    BL_TO_FORTRAN(ugdn[2])), 
+		     BL_TO_FORTRAN(ext_src_old[mfi]),
+		     BL_TO_FORTRAN(grav_vector[mfi]), 
+		     dx, &dt,
+		     D_DECL(BL_TO_FORTRAN(flux[0]), 
+			    BL_TO_FORTRAN(flux[1]), 
+			    BL_TO_FORTRAN(flux[2])), 
+		     D_DECL(BL_TO_FORTRAN(area[0]), 
+			    BL_TO_FORTRAN(area[1]), 
+			    BL_TO_FORTRAN(area[2])), 
 #if (BL_SPACEDIM < 3) 
-	     BL_TO_FORTRAN(dloga), 
+		     BL_TO_FORTRAN(dloga), 
 #endif
-	     BL_TO_FORTRAN(grid_volume), 
-	     &cflLoc, verbose, 
-	     mass_added, eint_added, eden_added, 
-	     E_added_flux, E_added_grav);
-  BL_PROFILE_VAR_STOP(CA_UMDRV);
+		     BL_TO_FORTRAN(grid_volume), 
+		     &cflLoc, verbose, 
+		     mass_added, eint_added, eden_added, 
+		     E_added_flux, E_added_grav);
 	  
-	  if (do_reflux)
-	    {
-	      if (fine)
-		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][fpi].copy(flux[i]);
+		Box facebox[BL_SPACEDIM];
+
+		for (int i = 0; i < BL_SPACEDIM ; i++) {
+		    // these face boxes are non-overlapping, therefore threadsafe
+		    facebox[i] = mfi.nodaltilebox(i);
+		    u_gdnv[i][mfi].copy(ugdn[i],facebox[i]);
 		}
-	      if (current)
-		{
-		  for (int i = 0; i < BL_SPACEDIM ; i++)
-		    current->FineAdd(flux[i],i,mfiindex,0,0,NUM_STATE,1);
+
+		if (do_reflux && fine) {
+		    for (int i = 0; i < BL_SPACEDIM ; i++)
+			fluxes[i][mfi].copy(flux[i],facebox[i]);
 		}
-	    }
-	  
-	  courno = std::max(courno,cflLoc);
 	  
 #ifdef POINTMASS
-	  if (level == finest_level)
-	    BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
-	      (&mass_change_at_center, bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-	       BL_TO_FORTRAN(grid_volume),
-	       geom.ProbLo(), dx, &time, &dt);
+		if (level == finest_level)
+		    BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
+			(&mass_change_at_center, 
+			 bx.loVect(), bx.hiVect(),
+			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+			 BL_TO_FORTRAN(grid_volume),
+			 geom.ProbLo(), dx, &time, &dt);
 #endif
-	  
-	}  // end for(fpi...)
+	    }
+
+#ifdef _OPENMP
+#pragma omp critical (hydro_courno)
+#endif
+	    {
+		courno = std::max(courno,cflLoc);
+	    }
+	}  // end of omp parallel region
+
+	BL_PROFILE_VAR_STOP(CA_UMDRV);
+
+	if (do_reflux && current)
+	{
+	    for (int i = 0; i < BL_SPACEDIM ; i++)
+		current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
+	}
+
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);

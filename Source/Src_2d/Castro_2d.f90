@@ -76,13 +76,23 @@
 
       double precision dx,dy
 
-      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,QVAR))
-      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2))
+      integer q_l1, q_l2, q_h1, q_h2
 
-      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR))
+      ngq = NHYP
+      ngf = 1
+
+      q_l1 = lo(1)-NHYP
+      q_l2 = lo(2)-NHYP
+      q_h1 = hi(1)+NHYP
+      q_h2 = hi(2)+NHYP
+
+      allocate(     q(q_l1:q_h1,q_l2:q_h2,QVAR))
+      allocate(  gamc(q_l1:q_h1,q_l2:q_h2))
+      allocate( flatn(q_l1:q_h1,q_l2:q_h2))
+      allocate(     c(q_l1:q_h1,q_l2:q_h2))
+      allocate(  csml(q_l1:q_h1,q_l2:q_h2))
+
+      allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,QVAR))
 
       allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
       allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
@@ -92,20 +102,18 @@
       dx = delta(1)
       dy = delta(2)
 
-      ngq = NHYP
-      ngf = 1
-
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
 !       and set to correspond to coordinates of (lo:hi)
       call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+                   q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+                   src,src_l1,src_l2,src_h1,src_h2, &
+                   srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    courno,dx,dy,dt,ngq,ngf)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
-      call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   srcQ, src_l1, src_l2, src_h1, src_h2,  &
+      call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+                   srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
@@ -122,7 +130,7 @@
 
       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
       ! this is used for the artifical viscosity
-      call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
+      call divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2, &
                 delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
 !     Conservative update

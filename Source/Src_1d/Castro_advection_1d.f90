@@ -107,7 +107,8 @@ contains
 
   subroutine ctoprim(lo,hi,uin,uin_l1,uin_h1, &
                      q,c,gamc,csml,flatn,q_l1,q_h1,&
-                     src,srcQ,src_l1,src_h1, &
+                     src,src_l1,src_h1, &
+                     srcQ,srQ_l1,srQ_h1, &
                      courno,dx,dt,ngp,ngf)
     
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
@@ -135,6 +136,7 @@ contains
     integer          :: uin_l1,uin_h1
     integer          :: q_l1,q_h1
     integer          ::  src_l1,src_h1
+    integer          ::  srQ_l1,srQ_h1
     double precision ::   uin(uin_l1:uin_h1,NVAR)
     double precision ::     q(  q_l1:  q_h1,QVAR)
     double precision ::     c(  q_l1:  q_h1)
@@ -142,7 +144,7 @@ contains
     double precision ::  csml(  q_l1:  q_h1)
     double precision :: flatn(  q_l1:  q_h1)
     double precision ::   src(src_l1:src_h1,NVAR)
-    double precision ::  srcQ(src_l1:src_h1,QVAR)
+    double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
     double precision :: dx, dt, courno
     
     integer          :: i
