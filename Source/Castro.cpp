@@ -404,6 +404,9 @@ Castro::read_params ()
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
 
+    pp.query("dual_energy_update_E_from_e",dual_energy_update_E_from_e);
+    pp.query("dual_energy_eta",dual_energy_eta);
+
     pp.query("show_center_of_mass",show_center_of_mass);
     pp.query("print_energy_diagnostics",print_energy_diagnostics);
     pp.query("print_fortran_warnings",print_fortran_warnings);
