@@ -1007,13 +1007,6 @@ Castro::advance_hydro (Real time,
 	       BL_TO_FORTRAN(S_new[mfi]),
 	       BL_TO_FORTRAN((*gravity->get_phi_prev(level))[mfi]),
 	       BL_TO_FORTRAN((*gravity->get_phi_curr(level))[mfi]),
-	       BL_TO_FORTRAN(u_gdnv[0][mfi]),
-#if (BL_SPACEDIM >= 2)
-	       BL_TO_FORTRAN(u_gdnv[1][mfi]),
-#endif
-#if (BL_SPACEDIM == 3)
-	       BL_TO_FORTRAN(u_gdnv[2][mfi]),
-#endif
 	       BL_TO_FORTRAN(fluxes[0][mfi]),
 	       BL_TO_FORTRAN(fluxes[1][mfi]),
 	       BL_TO_FORTRAN(fluxes[2][mfi]),
