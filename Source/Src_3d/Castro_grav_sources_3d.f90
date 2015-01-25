@@ -15,7 +15,7 @@ contains
     subroutine add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                                uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                               lo,hi,dt,E_added)
+                               lo,hi,dt,E_added,xmom_added,ymom_added,zmom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
@@ -31,12 +31,13 @@ contains
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
       double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,  gv_l3:  gv_h3,3)
       double precision dt
-      double precision E_added
+      double precision E_added, xmom_added, ymom_added, zmom_added
 
       double precision :: rho
       double precision :: SrU, SrV, SrW, SrE
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
+      double precision :: old_xmom, old_ymom, old_zmom
       integer          :: i, j, k
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -56,6 +57,9 @@ contains
                old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                  uout(i,j,k,URHO) 
                old_rhoeint = uout(i,j,k,UEDEN) - old_ke
+               old_xmom = uout(i,j,k,UMX)
+               old_ymom = uout(i,j,k,UMY)
+               old_zmom = uout(i,j,k,UMZ)
                ! ****   End Diagnostics ****
 
                rho    = uin(i,j,k,URHO)
@@ -102,6 +106,10 @@ contains
                new_rhoeint = uout(i,j,k,UEDEN) - new_ke
  
                E_added =  E_added + uout(i,j,k,UEDEN) - old_re
+
+               xmom_added = xmom_added + uout(i,j,k,UMX) - old_xmom
+               ymom_added = ymom_added + uout(i,j,k,UMY) - old_ymom
+               zmom_added = zmom_added + uout(i,j,k,UMZ) - old_zmom
                ! ****   End Diagnostics ****
 
             enddo
@@ -131,7 +139,7 @@ end module grav_sources_module
                              old_flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
                              dx,dt,E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, grav_source_type
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
@@ -368,7 +376,7 @@ end module grav_sources_module
                   flux1(i,j,k,UMY) = gedge1(i,j,k,1) * gedge1(i,j,k,2)
                   flux1(i,j,k,UMZ) = gedge1(i,j,k,1) * gedge1(i,j,k,3)
 
-                  flux1(i,j,k,UMX) = flux1(i,j,k,1) - HALF * (gedge1(i,j,k,1)**2 + gedge1(i,j,k,2)**2 + gedge1(i,j,k,3)**2)
+                  flux1(i,j,k,UMX) = flux1(i,j,k,UMX) - HALF * (gedge1(i,j,k,1)**2 + gedge1(i,j,k,2)**2 + gedge1(i,j,k,3)**2)
 
                   flux1(i,j,k,:) = flux1(i,j,k,:) * dt / dx(1) / (FOUR * M_PI * Gconst)
 
@@ -384,7 +392,7 @@ end module grav_sources_module
                   flux2(i,j,k,UMY) = gedge2(i,j,k,2) * gedge2(i,j,k,2)
                   flux2(i,j,k,UMZ) = gedge2(i,j,k,2) * gedge2(i,j,k,3)
                   
-                  flux2(i,j,k,UMY) = flux2(i,j,k,2) - HALF * (gedge2(i,j,k,1)**2 + gedge2(i,j,k,2)**2 + gedge2(i,j,k,3)**2)
+                  flux2(i,j,k,UMY) = flux2(i,j,k,UMY) - HALF * (gedge2(i,j,k,1)**2 + gedge2(i,j,k,2)**2 + gedge2(i,j,k,3)**2)
 
                   flux2(i,j,k,:) = flux2(i,j,k,:) * dt / dx(2) / (FOUR * M_PI * Gconst)
 
@@ -400,7 +408,7 @@ end module grav_sources_module
                   flux3(i,j,k,UMY) = gedge3(i,j,k,3) * gedge3(i,j,k,2)
                   flux3(i,j,k,UMZ) = gedge3(i,j,k,3) * gedge3(i,j,k,3)
 
-                  flux3(i,j,k,UMZ) = flux3(i,j,k,3) - HALF * (gedge3(i,j,k,1)**2 + gedge3(i,j,k,2)**2 + gedge3(i,j,k,3)**2)
+                  flux3(i,j,k,UMZ) = flux3(i,j,k,UMZ) - HALF * (gedge3(i,j,k,1)**2 + gedge3(i,j,k,2)**2 + gedge3(i,j,k,3)**2)
 
                   flux3(i,j,k,:) = flux3(i,j,k,:) * dt / dx(3) / (FOUR * M_PI * Gconst)
 
@@ -596,7 +604,6 @@ end module grav_sources_module
                   SrUcorr = SrUcorr / (dx(1)*dx(2)*dx(3))
                   SrVcorr = SrVcorr / (dx(1)*dx(2)*dx(3))
                   SrWcorr = SrWcorr / (dx(1)*dx(2)*dx(3))
-
                   SrEcorr = SrEcorr / (dx(1)*dx(2)*dx(3))
 
                   unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr

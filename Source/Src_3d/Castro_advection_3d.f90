@@ -903,7 +903,8 @@ contains
                     area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                    div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
+                    div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux,&
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
     use network, only : nspec, naux
     use eos_module
@@ -937,7 +938,8 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision dx, dy, dz, dt, E_added_flux
+    double precision dx, dy, dz, dt
+    double precision E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
     double precision :: div1
     integer          :: i, j, k, n
@@ -1022,6 +1024,21 @@ contains
                    !
                    if (n .eq. UEINT) then
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                   else if (n .eq. UMX) then
+                      xmom_added_flux = xmom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                   else if (n .eq. UMY) then
+                      ymom_added_flux = ymom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                   else if (n .eq. UMZ) then
+                      zmom_added_flux = zmom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
                    else if (n .eq. UEDEN) then
                       E_added_flux = E_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
