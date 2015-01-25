@@ -5,7 +5,7 @@
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
                                      small_temp, allow_negative_energy, &
-                                     dual_energy_eta, dual_energy_update_E_from_e
+                                     dual_energy_eta2, dual_energy_update_E_from_e
       use bl_constants_module
 
       implicit none
@@ -36,7 +36,7 @@
               rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
               ! Reset (e from e) if it's greater than eta * E.
-              if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta) then
+              if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
 
                   u(i,j,k,UEINT) = rho_eint
 

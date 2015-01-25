@@ -271,7 +271,7 @@
                                    use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   dual_energy_eta_in,  dual_energy_update_E_from_E_in, &
+                                   dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
                                    rot_period_in, const_grav_in, deterministic_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -296,7 +296,7 @@
         integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
         integer, intent(in) :: dual_energy_update_E_from_e_in
-        double precision, intent(in) :: dual_energy_eta_in
+        double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in
         integer, intent(in) :: use_pslope_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
@@ -464,36 +464,37 @@
         call eos_get_small_dens(small_dens)
         call eos_get_small_temp(small_temp)
 
-        allow_negative_energy      = allow_negative_energy_in
-        ppm_type                   = ppm_type_in
-        ppm_reference              = ppm_reference_in
-        ppm_trace_grav             = ppm_trace_grav_in
-        ppm_temp_fix               = ppm_temp_fix_in
-        ppm_tau_in_tracing         = ppm_tau_in_tracing_in
-        ppm_predict_gammae         = ppm_predict_gammae_in
-        ppm_reference_edge_limit   = ppm_reference_edge_limit_in
+        allow_negative_energy        = allow_negative_energy_in
+        ppm_type                     = ppm_type_in
+        ppm_reference                = ppm_reference_in
+        ppm_trace_grav               = ppm_trace_grav_in
+        ppm_temp_fix                 = ppm_temp_fix_in
+        ppm_tau_in_tracing           = ppm_tau_in_tracing_in
+        ppm_predict_gammae           = ppm_predict_gammae_in
+        ppm_reference_edge_limit     = ppm_reference_edge_limit_in
         ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
-        ppm_reference_eigenvectors = ppm_reference_eigenvectors_in
-        hybrid_riemann             = hybrid_riemann_in
-        use_colglaz                = use_colglaz_in
-        use_flattening             = use_flattening_in
-        transverse_use_eos         = transverse_use_eos_in
-        transverse_reset_density   = transverse_reset_density_in
-        transverse_reset_rhoe      = transverse_reset_rhoe_in
+        ppm_reference_eigenvectors   = ppm_reference_eigenvectors_in
+        hybrid_riemann               = hybrid_riemann_in
+        use_colglaz                  = use_colglaz_in
+        use_flattening               = use_flattening_in
+        transverse_use_eos           = transverse_use_eos_in
+        transverse_reset_density     = transverse_reset_density_in
+        transverse_reset_rhoe        = transverse_reset_rhoe_in
 
-        cg_tol                     = cg_tol_in
-        cg_maxiter                 = cg_maxiter_in
-        use_pslope                 = use_pslope_in
-        grav_source_type           = grav_source_type_in
-        do_sponge                  = do_sponge_in
-        normalize_species          = normalize_species_in
-        fix_mass_flux              = fix_mass_flux_in
-        rot_period                 = rot_period_in
-        const_grav                 = const_grav_in
-        deterministic              = deterministic_in.ne.0
+        cg_tol                       = cg_tol_in
+        cg_maxiter                   = cg_maxiter_in
+        use_pslope                   = use_pslope_in
+        grav_source_type             = grav_source_type_in
+        do_sponge                    = do_sponge_in
+        normalize_species            = normalize_species_in
+        fix_mass_flux                = fix_mass_flux_in
+        rot_period                   = rot_period_in
+        const_grav                   = const_grav_in
+        deterministic                = deterministic_in .ne. 0
 
-        dual_energy_eta             = dual_energy_eta_in
-        dual_energy_update_E_from_e = dual_energy_update_E_from_e_in .ne. 0
+        dual_energy_eta1             = dual_energy_eta1_in
+        dual_energy_eta2             = dual_energy_eta2_in
+        dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
 
 !       allocate(outflow_bc_lo(dm))

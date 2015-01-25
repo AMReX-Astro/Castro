@@ -282,7 +282,7 @@ contains
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
                                    allow_negative_energy, small_temp, use_flattening, &
-                                   npassive, upass_map, qpass_map
+                                   npassive, upass_map, qpass_map, dual_energy_eta1
     use flatten_module
     use bl_constants_module
 
@@ -314,6 +314,7 @@ contains
     integer          :: ngp, ngf, loq(2), hiq(2)
     integer          :: n, nq
     double precision :: courx, coury, courmx, courmy
+    double precision :: kineng
 
     integer :: ipassive
 
@@ -345,7 +346,21 @@ contains
           q(i,j,QRHO) = uin(i,j,URHO)
           q(i,j,QU) = uin(i,j,UMX)/uin(i,j,URHO)
           q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
-          q(i,j,QREINT ) = uin(i,j,UEINT)/q(i,j,QRHO)
+
+          ! Get the internal energy, which we'll use for determining the pressure.
+          ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+          ! then we risk serious numerical truncation error in the internal energy.
+          ! Therefore we'll use the result of the separately updated internal energy equation.
+          ! Otherwise, we'll set e = E - K.
+
+          kineng = HALF * q(i,j,QRHO) * (q(i,j,QU)**2 + q(i,j,QV)**2)
+
+          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
+             q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
+          else
+             q(i,j,QREINT) = uin(i,j,UEINT) / q(i,j,QRHO)
+          endif
+
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
 
           ! Load passively-advected quatities, c, into q, assuming they

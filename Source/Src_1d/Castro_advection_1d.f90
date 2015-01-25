@@ -123,7 +123,8 @@ contains
                                    UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QREINT, QPRES, QTEMP, QGAME, &
                                    QFA, QFS, QFX, &
-                                   nadv, small_temp, allow_negative_energy, use_flattening
+                                   nadv, small_temp, allow_negative_energy, use_flattening, &
+                                   dual_energy_eta1
     use flatten_module
     use bl_constants_module
 
@@ -151,6 +152,7 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, courmx
+    double precision :: kineng
     
     double precision, allocatable :: dpdrho(:), dpde(:) !, dpdX_er(:,:)
     
@@ -178,10 +180,23 @@ contains
        
        q(i,QRHO) = uin(i,URHO)
        q(i,QU) = uin(i,UMX)/uin(i,URHO)
-       !        eken = HALF*q(i,QU)**2
-       !        q(i,QREINT) = uin(i,UEDEN)/q(i,QRHO) - eken
-       q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
+
+       ! Get the internal energy, which we'll use for determining the pressure.
+       ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+       ! then we risk serious numerical truncation error in the internal energy.
+       ! Therefore we'll use the result of the separately updated internal energy equation.
+       ! Otherwise, we'll set e = E - K.
+
+       kineng = HALF * q(i,QRHO) * q(i,QU)**2
+
+       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .lt. dual_energy_eta1) then
+          q(i,QREINT) = (uin(i,UEDEN) - kineng) / q(i,QRHO)
+       else
+          q(i,QREINT) = uin(i,UEINT) / q(i,QRHO)
+       endif
+
        q(i,QTEMP ) = uin(i,UTEMP)
+
     enddo
     
     ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c

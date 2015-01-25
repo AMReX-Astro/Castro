@@ -60,7 +60,8 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
-     const Real& dual_energy_eta,
+     const Real& dual_energy_eta1,
+     const Real& dual_energy_eta2,
      const int& dual_energy_update_E_from_e,
      const Real& rotational_period, const Real& const_grav,
      const int& deterministic);

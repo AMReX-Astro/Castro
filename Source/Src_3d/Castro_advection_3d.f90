@@ -631,7 +631,7 @@ contains
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, use_flattening, &
-                                   npassive, upass_map, qpass_map
+                                   npassive, upass_map, qpass_map, dual_energy_eta1
     
     use flatten_module
     use bl_constants_module
@@ -665,6 +665,7 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
+    double precision :: kineng
 
     integer :: ipassive
 
@@ -697,9 +698,22 @@ contains
              q(i,j,k,QU) = uin(i,j,k,UMX)/uin(i,j,k,URHO)
              q(i,j,k,QV) = uin(i,j,k,UMY)/uin(i,j,k,URHO)
              q(i,j,k,QW) = uin(i,j,k,UMZ)/uin(i,j,k,URHO)
-             ! convert "rho e" to "e"
-             q(i,j,k,QREINT ) = uin(i,j,k,UEINT)/q(i,j,k,QRHO)
-             q(i,j,k,QTEMP  ) = uin(i,j,k,UTEMP)
+
+             ! Get the internal energy, which we'll use for determining the pressure.
+             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+             ! then we risk serious numerical truncation error in the internal energy.
+             ! Therefore we'll use the result of the separately updated internal energy equation.
+             ! Otherwise, we'll set e = E - K.
+
+             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
+
+             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .lt. dual_energy_eta1) then
+                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) / q(i,j,k,QRHO)
+             else
+                q(i,j,k,QREINT) = uin(i,j,k,UEINT) / q(i,j,k,QRHO)
+             endif
+
+             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
              
              ! convert "rho K" to "K"
              if (QESGS .gt. -1) &
