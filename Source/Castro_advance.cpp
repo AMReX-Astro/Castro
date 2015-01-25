@@ -210,14 +210,14 @@ Castro::advance_hydro (Real time,
            for (int lev = level; lev <= finest_level; lev++)
                gravity->swapTimeLevels(lev);
        }
-
+       
        grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
-
+       
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
 
        gravity->get_old_grav_vector(level,grav_vec_old,time);
-
+       
        if (gravity->get_gravity_type() == "PoissonGrav" &&
            gravity->test_results_of_solves() == 1)
           gravity->test_level_grad_phi_prev(level);
@@ -585,6 +585,12 @@ Castro::advance_hydro (Real time,
       Real mass_added = 0.;
       Real eint_added = 0.;
       Real eden_added = 0.;
+      Real xmom_added_flux = 0.;
+      Real ymom_added_flux = 0.;
+      Real zmom_added_flux = 0.;
+      Real xmom_added_grav = 0.;
+      Real ymom_added_grav = 0.;
+      Real zmom_added_grav = 0.;
 
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
@@ -660,7 +666,9 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(grid_volume), 
 	     &cflLoc, verbose, 
 	     mass_added, eint_added, eden_added, 
-	     E_added_flux, E_added_grav);
+	     E_added_flux, E_added_grav, 
+	     xmom_added_flux, ymom_added_flux, zmom_added_flux,
+	     xmom_added_grav, ymom_added_grav, zmom_added_grav);
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
           // Since we need the fluxes for the conservative gravity, we'll copy them
@@ -693,8 +701,10 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-	   Real foo[5] = {mass_added, eint_added, eden_added, E_added_flux, E_added_grav};
-	   ParallelDescriptor::ReduceRealSum(foo, 5, ParallelDescriptor::IOProcessorNumber());
+	   Real foo[11] = {mass_added, eint_added, eden_added, E_added_flux, E_added_grav, 
+			  xmom_added_flux, ymom_added_flux, zmom_added_flux,
+	                  xmom_added_grav, ymom_added_grav, zmom_added_grav};
+	   ParallelDescriptor::ReduceRealSum(foo, 11, ParallelDescriptor::IOProcessorNumber());
            if (ParallelDescriptor::IOProcessor()) 
            {
 	       mass_added = foo[0];
@@ -702,6 +712,12 @@ Castro::advance_hydro (Real time,
 	       eden_added = foo[2];
 	       E_added_flux = foo[3];
 	       E_added_grav = foo[4];
+	       xmom_added_flux = foo[5];
+	       ymom_added_flux = foo[6];
+	       zmom_added_flux = foo[7];
+	       xmom_added_grav = foo[8];
+	       ymom_added_grav = foo[9];
+	       zmom_added_grav = foo[10];
                if (std::abs(mass_added) != 0)
                {
                   std::cout << "   Mass added from negative density correction : " << 
@@ -711,12 +727,29 @@ Castro::advance_hydro (Real time,
                   std::cout << "(rho E) added from negative density correction : " << 
                                 eden_added*cell_vol << std::endl;
                }
-               std::cout << "(rho E) added from fluxes                      : " << 
-                             E_added_flux*cell_vol << std::endl;
+	       if (print_energy_diagnostics)
+	       {
+		  std::cout << "(rho E) added from fluxes                      : " << 
+				E_added_flux*cell_vol << std::endl;
+		  std::cout << "xmom added from fluxes                      : " << 
+				xmom_added_flux*cell_vol << std::endl;
+		  std::cout << "ymom added from fluxes                      : " << 
+				ymom_added_flux*cell_vol << std::endl;
+		  std::cout << "zmom added from fluxes                      : " << 
+				zmom_added_flux*cell_vol << std::endl;
+	       }
 #ifdef GRAVITY
-               if (do_grav) 
+               if (do_grav && print_energy_diagnostics) 
+	       {	 
                   std::cout << "(rho E) added from grav. source terms          : " << 
                                 E_added_grav*cell_vol << std::endl;
+		  std::cout << "xmom added from grav. source terms             : " << 
+		                xmom_added_grav*cell_vol << std::endl;
+                  std::cout << "ymom added from grav. source terms             : " << 
+                                ymom_added_grav*cell_vol << std::endl;
+                  std::cout << "zmom added from grav. source terms             : " << 
+                                zmom_added_grav*cell_vol << std::endl;
+	       }
 #endif
            }
         }
@@ -951,12 +984,11 @@ Castro::advance_hydro (Real time,
 	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
 
         Real E_added = 0.;
-	Real E_added_fluxes  = 0.;
 	Real xmom_added      = 0.;
 	Real ymom_added      = 0.;
 	Real zmom_added      = 0.;
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
+#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
@@ -989,8 +1021,7 @@ Castro::advance_hydro (Real time,
 	       xmom_added_local,ymom_added_local,zmom_added_local);
 
  	    if (print_energy_diagnostics) {
-	      E_added += E_added_local;
-	      E_added_fluxes += E_added_fluxes_local;
+	      E_added    += E_added_local;
 	      xmom_added += xmom_added_local;
 	      ymom_added += ymom_added_local;
 	      zmom_added += zmom_added_local;
@@ -1000,7 +1031,6 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
 	   ParallelDescriptor::ReduceRealSum(E_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(E_added_fluxes, ParallelDescriptor::IOProcessorNumber());
            ParallelDescriptor::ReduceRealSum(xmom_added, ParallelDescriptor::IOProcessorNumber());
            ParallelDescriptor::ReduceRealSum(ymom_added, ParallelDescriptor::IOProcessorNumber());
            ParallelDescriptor::ReduceRealSum(zmom_added, ParallelDescriptor::IOProcessorNumber());	
@@ -1009,10 +1039,9 @@ Castro::advance_hydro (Real time,
 	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 
                std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
-	       std::cout << "(rho E) added from gravitational fluxes        : " << E_added_fluxes*cell_vol << std::endl;
-	       std::cout << "xmom added from gravitational fluxes           : " << xmom_added*cell_vol << std::endl;
-	       std::cout << "ymom added from gravitational fluxes           : " << ymom_added*cell_vol << std::endl;
-	       std::cout << "zmom added from gravitational fluxes           : " << zmom_added*cell_vol << std::endl;
+	       std::cout << "xmom added from grav. corr. terms              : " << xmom_added*cell_vol << std::endl;
+	       std::cout << "ymom added from grav. corr. terms              : " << ymom_added*cell_vol << std::endl;
+	       std::cout << "zmom added from grav. corr. terms              : " << zmom_added*cell_vol << std::endl;
 	   }
         }	
 
@@ -1217,7 +1246,7 @@ Castro::advance_no_hydro (Real time,
     Real cur_time = state[State_Type].curTime();
         
     // Copy old data into new data.
-    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, NUM_GROW);
+    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, S_new.nGrow());
         
     if (add_ext_src) {
            MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);

@@ -277,7 +277,13 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const Real& eint_added,
      const Real& eden,
      const Real& E_added_flux,
-     const Real& E_added_grav);
+     const Real& E_added_grav,
+     const Real& xmom_added_flux,
+     const Real& ymom_added_flux,
+     const Real& zmom_added_flux,
+     const Real& xmom_added_grav,
+     const Real& ymom_added_grav,
+     const Real& zmom_added_grav);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
