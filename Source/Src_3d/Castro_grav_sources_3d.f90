@@ -129,9 +129,9 @@ end module grav_sources_module
                              unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
                              pold,pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3, &
                              pnew,pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3, &
-                             old_flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                             old_flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                             old_flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                             flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                             flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                             flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
                              dx,dt,E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, grav_source_type
@@ -162,12 +162,9 @@ end module grav_sources_module
       double precision  pold(pold_l1:pold_h1,pold_l2:pold_h2,pold_l3:pold_h3)
       double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
       double precision   phi(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
-      double precision old_flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
-      double precision old_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
-      double precision old_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-      double precision flux1(unew_l1:unew_h1+1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
-      double precision flux2(unew_l1:unew_h1,unew_l2:unew_h2+1,unew_l3:unew_h3,NVAR)
-      double precision flux3(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3+1,NVAR)
+      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
+      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
+      double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
       double precision  dx(3),dt,E_added,E_added_fluxes
 
       integer i,j,k
@@ -191,42 +188,14 @@ end module grav_sources_module
       ! 3: Puts all gravitational work into KE, not (rho e)
       ! 4: Conservative gravity approach from the AREPO code paper (Springel 2010).
 
-      if (grav_source_type .eq. 4) then
-
-         do k = lo(3)-1, hi(3)+1
-            do j = lo(2)-1, hi(2)+1
-               do i = lo(1)-1, hi(1)+1
-                  grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-                  phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
-               enddo
+      do k = lo(3)-1, hi(3)+1
+         do j = lo(2)-1, hi(2)+1
+            do i = lo(1)-1, hi(1)+1
+               grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
+               phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
             enddo
          enddo
-
-         do k = lo(3), hi(3)
-            do j = lo(2), hi(2) 
-               do i = lo(1), hi(1) + 1
-                  flux1(i,j,k,UEDEN) = HALF * old_flux1(i,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k))
-               enddo
-            enddo
-         enddo
-
-         do k = lo(3), hi(3)
-            do j = lo(2), hi(2) + 1
-               do i = lo(1), hi(1)
-                  flux2(i,j,k,UEDEN) = HALF * old_flux2(i,j,k,URHO) * (phi(i,j,k) - phi(i,j-1,k))
-               enddo
-            enddo
-         enddo
-
-         do k = lo(3), hi(3) + 1
-            do j = lo(2), hi(2) 
-               do i = lo(1), hi(1)
-                  flux3(i,j,k,UEDEN) = HALF * old_flux3(i,j,k,URHO) * (phi(i,j,k) - phi(i,j,k-1))
-               enddo
-            enddo
-         enddo
-
-      endif
+      enddo
 
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
@@ -271,8 +240,8 @@ end module grav_sources_module
 
                if (grav_source_type .eq. 1) then
                    SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
-                                        (SrV_new * Vpn - SrV_old * Vpo) + &
-                                        (SrW_new * Wpn - SrW_old * Wpo) )
+                                       (SrV_new * Vpn - SrV_old * Vpo) + &
+                                       (SrW_new * Wpn - SrW_old * Wpo) )
                end if
 
                ! Correct state with correction terms
@@ -284,6 +253,7 @@ end module grav_sources_module
 
                    ! Note SrEcorr was constructed before updating unew
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
+
                else if (grav_source_type .eq. 2) then
 
                    ! Note SrEcorr  is constructed  after updating unew
@@ -305,9 +275,12 @@ end module grav_sources_module
 
                else if (grav_source_type .eq. 4) then
 
-                  SrEcorr = ( flux1(i,j,k,UEDEN) + flux1(i+1,j,k,UEDEN) + &
-                              flux2(i,j,k,UEDEN) + flux2(i,j+1,k,UEDEN) + &
-                              flux3(i,j,k,UEDEN) + flux3(i,j,k+1,UEDEN) )
+                  SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) - phi(i-1,j,k)) + &
+                            HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) - phi(i  ,j,k)) + &
+                            HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) - phi(i,j-1,k)) + &
+                            HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) - phi(i,j  ,k)) + &
+                            HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) - phi(i,j,k-1)) + &
+                            HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) - phi(i,j,k  ))
 
                   SrEcorr = SrEcorr / (dx(1)*dx(2)*dx(3))
 
