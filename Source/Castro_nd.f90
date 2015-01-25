@@ -271,6 +271,7 @@
                                    use_pslope_in, &
                                    grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
+                                   dual_energy_eta_in,  dual_energy_update_E_from_E_in, &
                                    rot_period_in, const_grav_in, deterministic_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -294,6 +295,8 @@
         integer, intent(in) :: ppm_reference_eigenvectors_in
         integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
+        integer, intent(in) :: dual_energy_update_E_from_e_in
+        double precision, intent(in) :: dual_energy_eta_in
         integer, intent(in) :: use_pslope_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
@@ -488,6 +491,9 @@
         rot_period                 = rot_period_in
         const_grav                 = const_grav_in
         deterministic              = deterministic_in.ne.0
+
+        dual_energy_eta             = dual_energy_eta_in
+        dual_energy_update_E_from_e = dual_energy_update_E_from_e_in .ne. 0
 
 
 !       allocate(outflow_bc_lo(dm))

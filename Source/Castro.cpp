@@ -162,6 +162,9 @@ int          Castro::transverse_use_eos = 0;
 int          Castro::transverse_reset_density = 0;
 int          Castro::transverse_reset_rhoe = 0;
 
+Real         Castro::dual_energy_eta = 1.0e-4;
+int          Castro::dual_energy_update_E_from_e = 0;
+
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;

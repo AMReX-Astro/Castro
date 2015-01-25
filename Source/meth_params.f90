@@ -59,6 +59,9 @@ module meth_params_module
 
   integer         , save :: numpts_1d
 
+  double precision, save :: dual_energy_eta
+  logical, save :: dual_energy_update_E_from_e
+
   double precision, save, allocatable :: outflow_data_old(:,:)
   double precision, save, allocatable :: outflow_data_new(:,:)
   double precision, save :: outflow_data_old_time

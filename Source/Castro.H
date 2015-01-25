@@ -598,6 +598,9 @@ protected:
     static int       transverse_reset_density;
     static int       transverse_reset_rhoe;
 
+    static Real      dual_energy_eta;
+    static int       dual_energy_update_E_from_e;
+
     static int       cg_maxiter;
     static Real      cg_tol;
     static int       use_pslope;
