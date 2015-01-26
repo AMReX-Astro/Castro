@@ -320,7 +320,7 @@ Castro::advance_hydro (Real time,
     
     MultiFab fluxes[BL_SPACEDIM];
     
-    if (do_reflux && fine)
+    if (do_reflux)
     {
 	for (int j = 0; j < BL_SPACEDIM; j++)
 	{
@@ -660,7 +660,7 @@ Castro::advance_hydro (Real time,
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		    }
 
-		    if (do_reflux && fine) {
+		    if (do_reflux) {
 			for (int i = 0; i < BL_SPACEDIM ; i++)
 			    fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 		    }
@@ -688,6 +688,7 @@ Castro::advance_hydro (Real time,
 
 	    if (do_reflux && current)
 	    {
+		// After we update RADIATION, we could move this to where crseinit is called
 		for (int i = 0; i < BL_SPACEDIM ; i++)
 		    current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
 	    }
