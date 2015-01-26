@@ -621,7 +621,7 @@ Castro::advance_hydro (Real time,
           
 #if (BL_SPACEDIM <=2)
 		dloga.resize(bx_g4);
-		dloga.copy(dLogArea[0][fpi]);
+		dloga.copy(dLogArea[0][mfi]);
 #endif
 
 		// Allocate fabs for fluxes and Godunov velocities.
