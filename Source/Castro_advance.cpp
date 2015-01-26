@@ -590,8 +590,11 @@ Castro::advance_hydro (Real time,
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 	    
 #ifdef _OPENMP
+	    bool tiling = true;
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,mass_added,eint_added,eden_added)
 #pragma omp reduction(+:mass_change_at_center)
+#else
+	    bool tiling = false;
 #endif
 	    {
 		FArrayBox grid_volume, dloga, area[BL_SPACEDIM], flux[BL_SPACEDIM];
@@ -602,7 +605,7 @@ Castro::advance_hydro (Real time,
 		const int*  domain_lo = geom.Domain().loVect();
 		const int*  domain_hi = geom.Domain().hiVect();
 		
-		for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+		for (MFIter mfi(S_new,tiling); mfi.isValid(); ++mfi)
 		{
 		    const Box& bx  = mfi.tilebox();
 		    const Box& bx_g4 = BoxLib::grow(bx,NUM_GROW);
