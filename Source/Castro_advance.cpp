@@ -425,9 +425,9 @@ Castro::advance_hydro (Real time,
 	
 	for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
 #ifdef TAU
-	    react_first_half_dt(S_fp[mfi],ReactMF[mfi],tau_diff[mfi],time,dt);
+	    react_first_half_dt(Sborder[mfi],ReactMF[mfi],tau_diff[mfi],time,dt);
 #else
-	    react_first_half_dt(S_fp[mfi],ReactMF[mfi],time,dt);
+	    react_first_half_dt(Sborder[mfi],ReactMF[mfi],time,dt);
 #endif
 	}
 #endif
