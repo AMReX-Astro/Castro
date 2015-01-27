@@ -349,7 +349,6 @@ Castro::volWgtSumOneSide (const std::string& name,
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
-    const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect();
 
     BL_ASSERT(mf != 0);
@@ -460,7 +459,6 @@ Castro::locWgtSumOneSide (const std::string& name,
     Real sum            = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0); 
-    const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect(); 
 
     BL_ASSERT(mf != 0);

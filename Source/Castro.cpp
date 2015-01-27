@@ -1019,7 +1019,6 @@ Castro::estTimeStep (Real dt_old)
       if (Radiation::rad_hydro_combined) {
 	const MultiFab& radMF = get_new_data(Rad_Type);
 	for (MFIter mfi(stateMF); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
 
 	  const Box& box = mfi.validbox();
 	  Real dt = estdt;
