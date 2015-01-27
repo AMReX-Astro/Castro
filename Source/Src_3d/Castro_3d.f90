@@ -268,6 +268,7 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
        normalize_new_species
   use sponge_module, only : sponge
   use grav_sources_module, only : add_grav_source
+  use rot_sources_module, only : add_rot_source
 
   ! This is used for IsoTurb only
   ! use probdata_module   , only : radiative_cooling_type
@@ -416,6 +417,11 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
                        grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
                        lo,hi,dt,E_added_grav,&
                        xmom_added_grav,ymom_added_grav,zmom_added_grav)
+
+  call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                      uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                      lo,hi,(/dx,dy,dz/),dt,E_added_grav, &
+                      xmom_added_grav,ymom_added_grav,zmom_added_grav)
   
   ! Impose sponge
   if (do_sponge .eq. 1) then

@@ -383,9 +383,6 @@ Castro::advance_hydro (Real time,
     
     MultiFab ext_src_new;
     bool have_source_terms = add_ext_src;
-#ifdef ROTATION
-    have_source_terms = true;
-#endif
 #ifdef DIFFUSION
     have_source_terms = true;
 #endif
@@ -411,12 +408,6 @@ Castro::advance_hydro (Real time,
 #else
     add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
 #endif
-#endif
-
-#ifdef ROTATION
-    // OldRotationTerms will hold the source terms for momentum + EDEN
-    MultiFab OldRotationTerms(grids,BL_SPACEDIM+1,1);
-    add_rotation_to_source(ext_src_old,OldRotationTerms,prev_time);
 #endif
 
     ext_src_old.FillBoundary();
@@ -907,14 +898,14 @@ Castro::advance_hydro (Real time,
       }
 
 #ifdef SGS
-// old way: time-centering for ext_src, diffusion and rotation are separated.
+// old way: time-centering for ext_src, diffusion are separated.
     if (add_ext_src) {
 	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
 	reset_new_sgs(dt);
 	computeTemp(S_new);
     }
-#else
-// New way for non-SGS: time-centering for ext_src, diffusion and rotation are merged.
+ #else
+// New way for non-SGS: time-centering for ext_src, diffusion are merged.
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;
 #ifdef TAU
@@ -924,16 +915,68 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
-#ifdef ROTATION
-    MultiFab& NewRotationTerms = OldRotationTerms;
-    add_rotation_to_source(ext_src_new,NewRotationTerms,cur_time);
 #endif
-#endif
-    
+
     if (have_source_terms) {
 	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
 	computeTemp(S_new);
     }
+
+#ifdef ROTATION
+    if (do_rotation)
+      {
+	// Now do corrector part of rotation source term update
+
+        Real E_added = 0.;
+	Real xmom_added      = 0.;
+	Real ymom_added      = 0.;
+	Real zmom_added      = 0.;
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
+#endif
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& bx = mfi.tilebox();
+	
+	    Real E_added_local = 0.0;
+	    Real xmom_added_local = 0.0;
+	    Real ymom_added_local = 0.0;
+	    Real zmom_added_local = 0.0;
+	    BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(S_old[mfi]),
+	       BL_TO_FORTRAN(S_new[mfi]),
+	       dx,dt,E_added_local,
+	       xmom_added_local,ymom_added_local,zmom_added_local);
+
+ 	    if (print_energy_diagnostics) {
+	      E_added    += E_added_local;
+	      xmom_added += xmom_added_local;
+	      ymom_added += ymom_added_local;
+	      zmom_added += zmom_added_local;
+	    }
+	}
+
+        if (print_energy_diagnostics)
+        {
+	   ParallelDescriptor::ReduceRealSum(E_added, ParallelDescriptor::IOProcessorNumber());
+           ParallelDescriptor::ReduceRealSum(xmom_added, ParallelDescriptor::IOProcessorNumber());
+           ParallelDescriptor::ReduceRealSum(ymom_added, ParallelDescriptor::IOProcessorNumber());
+           ParallelDescriptor::ReduceRealSum(zmom_added, ParallelDescriptor::IOProcessorNumber());	
+
+           if (ParallelDescriptor::IOProcessor()) {
+	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+
+               std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
+	       std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
+	       std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
+	       std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
+	   }
+        }	
+
+	computeTemp(S_new);
+      }
+#endif
     
 #ifdef GRAVITY
     if (do_grav)
@@ -1019,7 +1062,7 @@ Castro::advance_hydro (Real time,
 	      ymom_added += ymom_added_local;
 	      zmom_added += zmom_added_local;
 	    }
-	  }
+        }
 
         if (print_energy_diagnostics)
         {
@@ -1042,7 +1085,7 @@ Castro::advance_hydro (Real time,
       }
 #endif
     
-#ifdef SGS  // for non-SGS, diffusion and rotataion have been time-centered.
+#ifdef SGS  // for non-SGS, diffusion has been time-centered.
 #ifdef DIFFUSION
 #ifdef TAU
     time_center_diffusion(S_new, OldTempDiffTerm, cur_time, dt, tau_diff);
@@ -1050,12 +1093,7 @@ Castro::advance_hydro (Real time,
     time_center_diffusion(S_new, OldTempDiffTerm, cur_time, dt);
 #endif
 #endif
-
-#ifdef ROTATION
-    time_center_rotation(S_new, OldRotationTerms, cur_time, dt);
 #endif
-#endif    
-
 
     reset_internal_energy(S_new);
     

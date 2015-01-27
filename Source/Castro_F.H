@@ -341,6 +341,13 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const Real dx[], const Real& dt, const Real& E_added, const Real& E_added_fluxes,
      const Real& xmom_added, const Real& ymom_added, const Real& zmom_added);
 
+BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(S_old),
+     BL_FORT_FAB_ARG(S_new),
+     const Real dx[], const Real& dt, const Real& E_added,
+     const Real& xmom_added, const Real& ymom_added, const Real& zmom_added);
+
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
     (BL_FORT_FAB_ARG(S_new), 
      const int lo[], const int hi[], 
