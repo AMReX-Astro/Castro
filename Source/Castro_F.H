@@ -349,6 +349,9 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG(S_old),
      BL_FORT_FAB_ARG(S_new),
+     BL_FORT_FAB_ARG(xflux),
+     BL_FORT_FAB_ARG(yflux),
+     BL_FORT_FAB_ARG(zflux),
      const Real dx[], const Real& dt, const Real& E_added,
      const Real& xmom_added, const Real& ymom_added, const Real& zmom_added);
 

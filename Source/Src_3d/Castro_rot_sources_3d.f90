@@ -157,6 +157,9 @@ end module rot_sources_module
   subroutine ca_corrrsrc(lo,hi, &
                          uold,uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3, &
                          unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
+                         flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                         flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                         flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
                          dx,dt,E_added,xmom_added,ymom_added,zmom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
@@ -173,8 +176,16 @@ end module rot_sources_module
     integer :: uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3
     integer :: unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
 
+    integer :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+    integer :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+    integer :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+
     double precision :: uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
     double precision :: unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
+
+    double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
+    double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
+    double precision :: flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
 
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
@@ -187,6 +198,8 @@ end module rot_sources_module
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
+
+    double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     if (coord_type == 0) then
        ! If rot_period is zero, that means rotation is disabled, and so we should effectively
@@ -202,7 +215,27 @@ end module rot_sources_module
     endif
 
     omega2 = dot_product(omega,omega)
-    
+
+    if (rot_source_type == 4) then
+
+       do k = lo(3)-1, hi(3)+1
+          z = zmin + dx(3)*(float(k)+HALF) - center(3)
+          do j = lo(2)-1, hi(2)+1
+             y = ymin + dx(2)*(float(j)+HALF) - center(2)
+             do i = lo(1)-1, hi(1)+1
+                x = xmin + dx(1)*(float(i)+HALF) - center(1)
+                
+                r = (/ x, y, z /)
+                omegacrossr = cross_product(omega,r)
+
+                phi(i,j,k) = - HALF * dot_product(omegacrossr,omegacrossr)
+
+             enddo
+          enddo
+       enddo
+
+    endif
+
     do k = lo(3), hi(3)
        z = zmin + dx(3)*(float(k)+HALF) - center(3)
        do j = lo(2), hi(2)
@@ -222,8 +255,7 @@ end module rot_sources_module
 
              r = (/ x, y, z /)
 
-             omegacrossr = cross_product(omega,r)
-             omegadotr   = dot_product(omega,r)
+             omegadotr = dot_product(omega,r)
 
              ! Define old source terms
 
@@ -297,14 +329,25 @@ end module rot_sources_module
                 ! we simply set the total energy equal to the old internal
                 ! energy plus the new kinetic energy.
 
-                 new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
-                                  unew(i,j,k,URHO) 
+                new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+                                 unew(i,j,k,URHO) 
 
-                 unew(i,j,k,UEDEN) = old_rhoeint + new_ke
+                unew(i,j,k,UEDEN) = old_rhoeint + new_ke
 
              else if (rot_source_type == 4) then
 
-                ! Fill this in with the conservative energy formulation.
+                ! Conservative energy formulation.
+
+                SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) - phi(i-1,j,k)) + &
+                          HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) - phi(i  ,j,k)) + &
+                          HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) - phi(i,j-1,k)) + &
+                          HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) - phi(i,j  ,k)) + &
+                          HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) - phi(i,j,k-1)) + &
+                          HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) - phi(i,j,k  ))
+
+                SrEcorr = SrEcorr / (dx(1) * dx(2) * dx(3))
+
+                unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 
              else 
                 call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")

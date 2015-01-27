@@ -1086,6 +1086,9 @@ Castro::advance_hydro (Real time,
 	      (bx.loVect(), bx.hiVect(),
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
+	       BL_TO_FORTRAN(fluxes[0][mfi]),
+	       BL_TO_FORTRAN(fluxes[1][mfi]),
+	       BL_TO_FORTRAN(fluxes[2][mfi]),
 	       dx,dt,E_added_local,
 	       xmom_added_local,ymom_added_local,zmom_added_local);
 
