@@ -163,7 +163,7 @@ end module rot_sources_module
     double precision :: x,y,z,r(3)
     double precision :: vnew(3),vold(3),omega(3)
     double precision :: Sr_old(3), Sr_new(3), SrUcorr, SrVcorr, SrWcorr, SrEcorr, SrE_old, SrE_new
-    double precision :: rhoo, rhon
+    double precision :: rhoo, rhon, rhooinv, rhoninv
     double precision :: omegadotr,omegacrossr(3),omega2
     double precision :: omegacrossvold(3),omegacrossvnew(3)
 
@@ -211,22 +211,25 @@ end module rot_sources_module
              ! Define old source terms
 
              rhoo = uold(i,j,k,URHO)
+             rhooinv = ONE / uold(i,j,k,URHO)
 
-             vold = (/ uold(i,j,k,UMX)/rhoo, &
-                       uold(i,j,k,UMY)/rhoo, &
-                       uold(i,j,k,UMZ)/rhoo /)
+             vold = (/ uold(i,j,k,UMX) * rhooinv, &
+                       uold(i,j,k,UMY) * rhooinv, &
+                       uold(i,j,k,UMZ) * rhooinv /)
 
              omegacrossvold = cross_product(omega,vold)
 
              Sr_old = -TWO * rhoo * omegacrossvold(:) - rhoo * (omegadotr * omega(:) - omega2 * r(:))
+             SrE_old = dot_product(vold, Sr_old)
 
              ! Define new source terms
 
              rhon = unew(i,j,k,URHO)
+             rhoninv = ONE / unew(i,j,k,URHO)
              
-             vnew = (/ unew(i,j,k,UMX)/rhon, &
-                       unew(i,j,k,UMY)/rhon, &
-                       unew(i,j,k,UMZ)/rhon /)
+             vnew = (/ unew(i,j,k,UMX) * rhoninv, &
+                       unew(i,j,k,UMY) * rhoninv, &
+                       unew(i,j,k,UMZ) * rhoninv /)
 
              omegacrossvnew = cross_product(omega,vnew)
 
@@ -242,14 +245,47 @@ end module rot_sources_module
 
              unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr * dt
              unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
-             unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt             
+             unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
 
-             SrE_old = dot_product(vold, Sr_old)
-             SrE_new = dot_product(vnew, Sr_new)
+             if (rot_source_type .eq. 1) then
 
-             SrEcorr = HALF * (SrE_new - SrE_old)
+               ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
 
-             unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
+                SrE_new = dot_product(vnew, Sr_new)
+                SrEcorr = HALF * (SrE_new - SrE_old)
+
+                unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
+
+             else if (rot_source_type .eq. 2) then
+
+                ! For this source type, we first update the momenta
+                ! before we calculate the energy source term.
+
+                vnew(1) = unew(i,j,k,UMX) * rhoninv
+                vnew(2) = unew(i,j,k,UMY) * rhoninv
+                vnew(3) = unew(i,j,k,UMZ) * rhoninv
+
+                omegacrossvnew = cross_product(omega,vnew)
+
+                Sr_new = -TWO * rhon * omegacrossvnew(:) - rhon * (omegadotr * omega(:) - omega2 * r(:))
+                SrE_new = dot_product(vnew, Sr_new)
+
+                SrEcorr = HALF * (SrE_new - SrE_old)
+
+                unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
+
+             else if (rot_source_type .eq. 3) then
+
+                ! Instead of calculating the energy source term explicitly,
+                ! we simply set the total energy equal to the old internal
+                ! energy plus the new kinetic energy.
+
+                 new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+                                  unew(i,j,k,URHO) 
+
+                 unew(i,j,k,UEDEN) = old_rhoeint + new_ke
+
+             endif
 
              ! **** Start Diagnostics ****
              ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
