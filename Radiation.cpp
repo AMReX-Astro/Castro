@@ -200,7 +200,7 @@ void Radiation::read_static_params()
     //    BL_ASSERT(Radiation::nGroups > 1); 
 #endif
   }
-  else if (Radiation::SolverType != Radiation::SingleGroupSolver ||
+  else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       BoxLib::Error("Unknown Radiation::SolverType");    
   }
