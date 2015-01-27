@@ -416,9 +416,6 @@ protected:
   int n_bisect;  // Bisection after n_bisect iterations
   Real dedT_fac, dedY_fac; // Make dedT and dedY larger for safety in Newton iteration
 
-  int iter_ptc;
-  Real ptc_dec_fac, ptc_small, ptc_big;
-
   int inner_convergence_check; 
 
   Real delta_e_rat_dt_tol; // energy change tolerance for adjusting timestep
@@ -438,7 +435,6 @@ protected:
                             // Stop updating limiter after ? inner iterations
                             // 0 means lagging by one outer iteration
   Real dT;               // temperature step for derivative estimate
-  int linear_sync;       // 0 = old style, no approx to implicit coupling
   int surface_average;   // 0 = arithmetic, 1 = harmonic, 2 = surface formula
 
   Real underfac;         // factor controlling progressive underrelaxation
@@ -464,7 +460,6 @@ protected:
 
   // arrays of flux registers 
   // flux_cons[level] is a FluxRegister, which contains fluxes for all groups
-  PArray <FluxRegister> flux_corr;
   PArray <FluxRegister> flux_cons;
   PArray <FluxRegister> flux_cons_old;
   PArray <FluxRegister> flux_trial;
@@ -474,9 +469,6 @@ protected:
 
   // divergence of flux
   PArray<MultiFab> dflux;
-
-  // estimate to finer-level correction
-  PArray<MultiFab> edot;
 
   Array<Real> xnu, nugroup, dnugroup;
   std::string group_units;

@@ -208,9 +208,10 @@ void Radiation::read_static_params()
 
 Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   : parent(Parent),
-    flux_corr(PArrayManage), flux_cons(PArrayManage),
-    flux_cons_old(PArrayManage), flux_trial(PArrayManage),
-    dflux(PArrayManage), edot(PArrayManage)
+    flux_cons(PArrayManage),
+    flux_cons_old(PArrayManage), 
+    flux_trial(PArrayManage),
+    dflux(PArrayManage)
 {
   // castro is passed in, rather than obtained from parent, because this
   // routine will be called in some cases before any AmrLevels have
@@ -298,7 +299,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("update_limiter", update_limiter);
 
   dT  = 1.0;                 pp.query("delta_temp", dT);
-  linear_sync = 1;           pp.query("linear_sync", linear_sync);
   surface_average = 2;       pp.query("surface_average", surface_average);
 
   // for inner iterations of neutrino J equation
@@ -325,15 +325,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   dedY_fac = 1.0;
   pp.query("dedT_fac", dedT_fac);
   pp.query("dedY_fac", dedY_fac);
-
-  iter_ptc = 1000;
-  pp.query("iter_ptc", iter_ptc);
-  ptc_dec_fac = 0.5;
-  pp.query("ptc_dec_fac", ptc_dec_fac);
-  ptc_small = 0.01;
-  pp.query("ptc_small", ptc_small);
-  ptc_big = 100.;
-  pp.query("ptc_big", ptc_big);
 
   inner_convergence_check = 2;
   pp.query("inner_convergence_check", inner_convergence_check);
@@ -530,7 +521,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     cout << "update_planck    = " << update_planck << endl;
     cout << "update_rosseland = " << update_rosseland << endl;
     cout << "delta_temp = " << dT << endl;
-    cout << "linear_sync   = " << linear_sync << endl;
     cout << "surface_average = " << surface_average << endl;
     cout << "underfac = " << underfac << endl;
     cout << "do_real_eos = " << do_real_eos << endl;
@@ -606,13 +596,11 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   int levels = parent->maxLevel() + 1; // maximum allowable number of levels
 
-  flux_corr.resize(levels);
   flux_cons.resize(levels);
   flux_cons_old.resize(levels);
   flux_trial.resize(levels);
 
   dflux.resize(levels);
-  edot.resize(levels);
 
   delta_t_old.resize(levels, 0.0);
 
@@ -687,8 +675,6 @@ void Radiation::close(int level)
       cout << "Clearing radiation object at level " << level
             << "..." << endl;
     }
-    if (flux_corr.defined(level))
-      delete flux_corr.remove(level);
     if (flux_cons.defined(level))
       delete flux_cons.remove(level);
     if (flux_trial.defined(level))
@@ -699,8 +685,6 @@ void Radiation::close(int level)
 
     if (dflux.defined(level))
       delete dflux.remove(level);
-    if (edot.defined(level))
-      delete edot.remove(level);
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       cout << "                                       done" << endl;
     }
