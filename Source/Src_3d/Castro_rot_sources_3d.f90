@@ -4,16 +4,43 @@ module rot_sources_module
 
   private
 
-  public add_rot_source, cross_product, fill_rotation_field
+  public add_rot_source, cross_product, fill_rotation_field, get_omega
 
 contains
+
+  function get_omega() result(omega)
+
+    use prob_params_module, only: coord_type
+    use meth_params_module, only: rot_period
+    use bl_constants_module, only: ZERO, TWO, M_PI
+
+    implicit none
+
+    double precision :: omega(3)
+
+    if (coord_type == 0) then
+       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
+       ! shut off the source term by setting omega = 0.
+
+       if (rot_period > ZERO) then
+          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
+       else
+          omega = (/ ZERO, ZERO, ZERO /)
+       endif
+    else
+       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
+    endif
+
+  end function
+
+
 
   subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
                                  q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
 
-    use meth_params_module, only: QVAR, QU, QV, QW, rot_period
+    use meth_params_module, only: QVAR, QU, QV, QW
     use probdata_module, only: center
-    use prob_params_module, only: coord_type, xmin, ymin, zmin
+    use prob_params_module, only: xmin, ymin, zmin
     use bl_constants_module
 
     implicit none
@@ -31,18 +58,7 @@ contains
     double precision :: v(3),omega(3)
     double precision :: omegadotr,omegacrossr(3),omegacrossv(3)
 
-    if (coord_type == 0) then
-       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
-       ! shut off the source term by setting omega = 0.
-
-       if (rot_period > ZERO) then
-          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
-       else
-          omega = (/ ZERO, ZERO, ZERO /)
-       endif
-    else
-       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
-    endif
+    omega = get_omega()
 
     do k = lo(3)-1, hi(3)+1
        z = zmin + dx(3)*(float(k)+HALF) - center(3)
@@ -99,18 +115,7 @@ contains
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
-    if (coord_type == 0) then
-       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
-       ! shut off the source term by setting omega = 0.
-
-       if (rot_period > ZERO) then
-          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
-       else
-          omega = (/ ZERO, ZERO, ZERO /)
-       endif
-    else
-       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
-    endif
+    omega = get_omega()
 
     omega2 = dot_product(omega,omega)
     
@@ -229,7 +234,7 @@ end module rot_sources_module
     use probdata_module, only: center
     use prob_params_module, only: coord_type, xmin, ymin, zmin
     use bl_constants_module
-    use rot_sources_module, only: cross_product
+    use rot_sources_module, only: cross_product, get_omega
 
     implicit none
 
@@ -264,18 +269,7 @@ end module rot_sources_module
 
     double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
-    if (coord_type == 0) then
-       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
-       ! shut off the source term by setting omega = 0.
-
-       if (rot_period > ZERO) then
-          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
-       else
-          omega = (/ ZERO, ZERO, ZERO /)
-       endif
-    else
-       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
-    endif
+    omega = get_omega()
 
     omega2 = dot_product(omega,omega)
 
