@@ -51,7 +51,7 @@ Castro::do_energy_diagnostics()
             r += getLevel(lev).volWgtSum(rad_name, prev_time + dt);
           }
         }
-        if (Radiation::do_deferred_sync && lev < finest_level) {
+        if (lev < finest_level) {
           // If using deferred sync, also include flux register energy
           FluxRegister* sync_flux = radiation->consRegister(lev + 1);
           if (sync_flux) {

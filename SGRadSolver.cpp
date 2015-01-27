@@ -237,10 +237,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
       // If there is a sync source from the next finer level,
       // reflux it in:
-
-      if (do_deferred_sync) {
-      	deferred_sync(level, rhs, 0);
-      }
+      deferred_sync(level, rhs, 0);
 
       solver.levelSolve(level, Er_new, 0, rhs, 0.01);
 
@@ -370,7 +367,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     }
   }
 
-  if (do_deferred_sync && level == fine_level && iteration == 1) {
+  if (level == fine_level && iteration == 1) {
 
     // We've now advanced the finest level, so we've just passed the
     // last time we might want to reflux from any existing flux_cons_old

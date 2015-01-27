@@ -34,7 +34,6 @@ int Radiation::do_multigroup = 0;
 int Radiation::nGroups = 1;
 int Radiation::nNeutrinoSpecies = 0;
 Array<int> Radiation::nNeutrinoGroups(0);
-int Radiation::do_deferred_sync = 0;
 int Radiation::plot_neutrino_group_energies_per_MeV = 1;
 int Radiation::plot_neutrino_group_energies_total   = 0;
 int Radiation::accelerate = 1;
@@ -161,15 +160,7 @@ void Radiation::read_static_params()
     }
   }
 
-  if (Radiation::SolverType == Radiation::SingleGroupSolver) { 
-    // default, can be changed in inputs: both options implemented
-    Radiation::do_deferred_sync = 0;
-  }
-  else if (Radiation::SolverType == Radiation::SGFLDSolver) {
-    // default, can be changed in inputs: both options implemented
-    Radiation::do_deferred_sync = 1;
-  }
-  else if (Radiation::SolverType == Radiation::MGFLDSolver) {
+  if (Radiation::SolverType == Radiation::MGFLDSolver) {
 
 #ifdef NEUTRINO
     radiation_type = Neutrino;
@@ -208,19 +199,10 @@ void Radiation::read_static_params()
     pp.query("nGroups", Radiation::nGroups);
     //    BL_ASSERT(Radiation::nGroups > 1); 
 #endif
-
-    // deferred sync is only option implemented for neutrinos
-    Radiation::do_deferred_sync = 1;
   }
-  else {
-    BoxLib::Error("Unknown Radiation::SolverType");    
-  }
-
-  pp.query("do_deferred_sync", Radiation::do_deferred_sync);
-
-  if (! do_deferred_sync && SolverType == SGFLDSolver
-      && Er_Lorentz_term) {
-    BoxLib::Error("Radiation::do_deferred_sync must be 1 when D coefficients exist");
+  else if (Radiation::SolverType != Radiation::SingleGroupSolver ||
+	   Radiation::SolverType != Radiation::SGFLDSolver) {
+      BoxLib::Error("Unknown Radiation::SolverType");    
   }
 }
 
@@ -236,7 +218,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   ParmParse pp("radiation");
 
-  do_multilevel_sync = 9; pp.query("do_multilevel_sync", do_multilevel_sync);
   do_sync = 1; pp.query("do_sync", do_sync);
 
   use_analytic_solution = 0;
@@ -529,9 +510,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
     cout << "processors = " << ParallelDescriptor::NProcs() << endl;
-    cout << "do_multilevel_sync = " << do_multilevel_sync << endl;
     cout << "do_sync            = " << do_sync << endl;
-    cout << "do_deferred_sync   = " << do_deferred_sync << endl;
     cout << "use_analytic_solution = " << use_analytic_solution << endl;
 
     cout << "c        = " << c << endl;
@@ -629,17 +608,13 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   flux_corr.resize(levels);
   flux_cons.resize(levels);
-  if (do_deferred_sync) {
-    flux_cons_old.resize(levels);
-  }
+  flux_cons_old.resize(levels);
   flux_trial.resize(levels);
 
   dflux.resize(levels);
   edot.resize(levels);
 
-  if (do_deferred_sync) {
-    delta_t_old.resize(levels, 0.0);
-  }
+  delta_t_old.resize(levels, 0.0);
 
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
@@ -758,9 +733,6 @@ void Radiation::restart(int level,
   //
   // With the deferred sync option, we have to restart the rad flux register
   //
-  if (do_deferred_sync == 0) {
-    return;
-  }
 
   std::string Path, aString;
 
@@ -815,9 +787,6 @@ void Radiation::checkPoint(int level,
   //
   // With the deferred sync option, we have to restart the rad flux register
   //
-  if (do_deferred_sync == 0) {
-    return;
-  }
 
   char buf[64];
 
@@ -974,7 +943,7 @@ void Radiation::pre_timestep(int level)
   int ncycle     = parent->nCycle(level);
 
   static int done = 0;
-  if (level < fine_level && do_deferred_sync) {
+  if (level < fine_level) {
       // For deferred sync, we may have moved flux_cons into flux_cons_old
       // and not rebuilt flux_cons, so check for that here.
       
@@ -1717,244 +1686,6 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   kappa_r.FillBoundary();
   if (geom.isAnyPeriodic()) {
     geom.FillPeriodicBoundary(kappa_r, false);
-  }
-}
-
-void Radiation::sync_solve(int crse_level)
-{
-  BL_PROFILE("Radiation::sync_solve");
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "Radiation sync solve from level " << crse_level << "..." << endl;
-  }
-
-  if(do_multigroup) {
-      BoxLib::Abort("sync_solve: does not support multigroup");    
-      // MGRadBndry::setCorrection();
-  }
-
-  RadBndry::setCorrection(); // must be unset manually at end of routine
-
-  int level;
-  int fine_level = parent->finestLevel();
-
-  int fine_active_level = crse_level + do_multilevel_sync;
-  fine_active_level =
-    (fine_active_level < fine_level) ? fine_active_level : fine_level;
-
-  RadSolve solver(parent);
-
-  // array for partial temperature sync solve (ptemp[group][level])
-  PArray< PArray <MultiFab> > ptemp(nGroups, PArrayManage);
-
-  // set partial temperature for all groups/levels to zero
-  for (int group = 0; group < nGroups; group++) {
-    PArray<MultiFab>* ptr = new PArray<MultiFab>(fine_level+1, PArrayManage);
-    ptemp.set(group, ptr);
-
-    for (level = crse_level; level <= fine_level; level++) {
-      Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-      const BoxArray& grids = castro->boxArray();
-
-      ptemp[group].set(level, new MultiFab(grids,1,0));
-      ptemp[group][level].setVal(0.0);
-    }
-  }
-
-  {
-    Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(crse_level));
-    Real time = castro->get_state_data(Rad_Type).curTime();
-
-    solver.multilevelInit(crse_level, fine_level, rad_bc, time);
-
-    RadBndry& bd = solver.multilevelCrseBndryData();
-    IntVect rat = IntVect::TheUnitVector();
-    bd.setHomogValues(rad_bc, rat);
-
-    // The default b.c. that will be used at the interface to
-    // crse_level - 1 is homogeneous Dirichlet at a distance of
-    // half a crse_level cell past the boundary.  This is not
-    // quite the same as an interpolated boundary condition from
-    // the level crse_level - 1 grid, as that would be half a
-    // crse_level - 1 cell past the boundary.  There doesn't seem to
-    // be a strong reason to favor one over the other.  The fluxes
-    // will be computed conservatively whatever distance is chosen.
-  }
-
-  Real delta_t = parent->dtLevel(crse_level);
-
-  int lag_planck = (update_planck == 0);
-
-  // Slightly better performance comes from averaging down finer
-  // coefficients.  Finer guess and rhs will not be used.
-
-  // for each group, do all levels
-  for(int igroup = 0; igroup < Radiation::nGroups; igroup++) {
-
-    //for (level = crse_level; level <= fine_active_level; level++) {
-    for (level = crse_level; level <= fine_level; level++) {
-      Castro *castro      = dynamic_cast<Castro*>(&parent->getLevel(level));
-      const BoxArray& grids = castro->boxArray();
-
-      // can this be eliminated?
-      MultiFab rhse(grids,1,0);
-
-      // note: ghost cells need filling
-      MultiFab kappa_r(grids,Radiation::nGroups,1);
-
-      {
-	MultiFab& S_new = castro->get_new_data(State_Type);
-
-	MultiFab temp(grids,1,0);
-	MultiFab fkp(grids,1,0);
-
-	get_frhoe(temp, S_new);
-
-	get_planck_and_temp(fkp, temp, S_new, igroup);
-
-	MultiFab etainv(grids,1,0);
-	if (linear_sync) {
-	  MultiFab eta(grids,1,0);
-	  MultiFab& Er_new = castro->get_new_data(Rad_Type);
-	  compute_eta(eta, etainv, S_new, temp, fkp, Er_new,
-		      delta_t, c, 1.0, lag_planck, igroup);
-	}
-	else {
-	  etainv.setVal(1.0);
-	}
-
-	// fills everywhere, including ghost cells
-	get_rosseland(kappa_r, castro, igroup);
-
-	solver.syncACoeffs(level, fkp, etainv, c, delta_t);
-
-      }
-
-      {
-
-	MultiFab& Er_new = castro->get_new_data(Rad_Type);
-
-	solver.multilevelBCoeffs(level, kappa_r, igroup, Er_new, igroup,
-                                 c, limiter);
-
-	MultiFab guess(grids,1,1); // LHH check this (ghost cell, sharing)
-	guess.setVal(0.0);
-	solver.multilevelGuess(level, guess);
-      }
-
-      FluxRegister* sync_flux =
-	(level == crse_level) ? &flux_cons[level+1] : NULL;
-
-      if (sync_flux && level == fine_active_level && igroup == 0) {
-	// Clean up fine-fine interfaces, since there are no finer
-	// levels to overwrite them.  Only do this for first group
-        // because one call does all groups.
-	clear_internal_borders(*sync_flux);
-      }
-
-      Real scale = 1.0;
-      if(!do_sync) scale = 0.0;
-
-      solver.syncRhs(level, sync_flux, scale, igroup);
-
-    } // loop over levels
-
-    // will interpolate solution up to fine_level even if active level is less:
-    solver.multilevelSolve(crse_level, fine_active_level, 1);
-
-    // We need to update fluid energy and Er_new here:
-    for (level = crse_level; level <= fine_level; level++) {
-      Castro *castro      = dynamic_cast<Castro*>(&parent->getLevel(level));
-      const BoxArray& grids = castro->boxArray();
-
-      MultiFab& S_new   = castro->get_new_data(State_Type);
-      MultiFab& Er_new  = castro->get_new_data(Rad_Type);
-
-      MultiFab kappa_r(grids,Radiation::nGroups,1);
-      get_rosseland(kappa_r, castro, igroup);
-
-      MultiFab temp(grids,1,0);
-      MultiFab fkp(grids,1,0);
-
-      get_frhoe(temp, S_new);
-
-      get_planck_and_temp(fkp, temp, S_new, igroup);
-
-      MultiFab eta(grids,1,0);
-      MultiFab etainv(grids,1,0);
-
-      if (linear_sync) {
-	compute_eta(eta, etainv, S_new, temp, fkp, Er_new,
-		    delta_t, c, 1.0, lag_planck, igroup);
-      }
-      else {
-	eta.setVal(0.0);
-	etainv.setVal(1.0);
-      }
-
-      // get the correction to Er_new for the current group
-      MultiFab Ecorr(grids,1,0);
-      solver.multilevelSolution(level, Ecorr);
-
-      for (MFIter mfi(Er_new); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-
-	//Er_new[mfi].plus(Ecorr[mfi]);
-	Er_new[mfi].plus(Ecorr[mfi],0,igroup,1);
-
-	const Box& reg  = grids[i];
-
-	int indx1 = igroup -1;
-	int indx2 = igroup;
-	if(igroup == 0) indx1 = 0;
-	
-	FORT_SSUP((ptemp[indx2][level])[mfi].dataPtr(),
-		  (ptemp[indx1][level])[mfi].dataPtr(),
-		  dimlist(reg), Ecorr[mfi].dataPtr(),
-		  eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		  fkp[mfi].dataPtr(), c, delta_t);
-	
-      }
-    } // loop over levels
-
-    if (crse_level > 0) {
-      level = crse_level;
-      FluxRegister* flux_out = &flux_trial[level];
-
-      // dflux here is a dummy---values will never be used
-      solver.multilevelFlux(level, dflux[level],
-                            NULL, flux_out, igroup, rad_bc);
-
-      Real factor = 1.0;
-      int ncycle = parent->nCycle(level);
-      for (OrientationIter face; face; ++face) {
-	Orientation ori = face();
-	flux_cons[level][ori].linComb(1.0, factor / ncycle,
-                                      (*flux_out)[ori], igroup, igroup, 1);
-      }
-    }
-
-  } // loop over groups
-
-  // update energy using correction from last group
-  int finalIndex = Radiation::nGroups - 1;
-  for(level = crse_level; level <= fine_level; level++) {
-    Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-
-    MultiFab& S_new = castro->get_new_data(State_Type);
-
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-      S_new[mfi].plus((ptemp[finalIndex][level])[mfi],0,Eden,1);
-      S_new[mfi].plus((ptemp[finalIndex][level])[mfi],0,Eint,1);
-    }
-
-  }
-
-  solver.multilevelClear();
-
-  RadBndry::unsetCorrection();
-
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "                                    done" << endl;
   }
 }
 

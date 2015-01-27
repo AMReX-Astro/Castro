@@ -1,6 +1,11 @@
 
 #include <iomanip>
 #include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using std::cout;                     
 using std::cin;                     
 using std::endl;                     

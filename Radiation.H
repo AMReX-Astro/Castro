@@ -37,7 +37,6 @@ public:
   static int nGroups;
   static int nNeutrinoSpecies;
   static Array<int> nNeutrinoGroups;
-  static int do_deferred_sync;
   static int plot_neutrino_group_energies_per_MeV;
   static int plot_neutrino_group_energies_total;
 
@@ -141,8 +140,6 @@ public:
   void pre_timestep(int level);
 
   void init_flux(int level, int ncycle);
-
-  void sync_solve(int level);
 
   void deferred_sync_setup(int level);
 
@@ -446,7 +443,6 @@ protected:
 
   Real underfac;         // factor controlling progressive underrelaxation
 
-  int do_multilevel_sync;    // use multilevel solver for sync solve
   int do_sync;               // perform sync (if false zero out sync source)
 
   int use_analytic_solution; // compare against an analytic solution
@@ -473,7 +469,7 @@ protected:
   PArray <FluxRegister> flux_cons_old;
   PArray <FluxRegister> flux_trial;
 
-  // for deferred sync in neutrino solve
+  // for deferred sync
   Array<Real> delta_t_old;
 
   // divergence of flux
