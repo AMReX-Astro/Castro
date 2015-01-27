@@ -1811,6 +1811,7 @@ contains
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                     rot, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -1821,7 +1822,7 @@ contains
                                    npassive, upass_map, qpass_map, &            
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav
+                                   ppm_type, ppm_trace_grav, rot_period
     use eos_module
 
     implicit none
@@ -1851,6 +1852,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision hdt,cdtdx,cdtdy
     
     integer i, j
@@ -2202,6 +2204,22 @@ contains
           enddo
        enddo
     endif
+
+    ! Add the rotation source term
+
+    if (rot_period > ZERO) then
+       do j = jlo, jhi
+          do i = ilo, ihi
+             qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
+             qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*rot(i,j,k3d,2)
+             qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*rot(i,j,k3d,3)
+
+             qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*rot(i,j,k3d-1,1)
+             qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*rot(i,j,k3d-1,2)
+             qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*rot(i,j,k3d-1,3)
+          enddo
+       enddo
+    endif
     
   end subroutine transxy
 
@@ -2217,6 +2235,7 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                     rot, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2227,7 +2246,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav
+                                   ppm_type, ppm_trace_grav, rot_period
     use eos_module
 
     implicit none      
@@ -2257,6 +2276,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision hdt,cdtdx,cdtdz
     
     integer i, j
@@ -2576,6 +2596,22 @@ contains
           enddo
        enddo
     endif
+
+    ! Add the rotation source term
+
+    if (rot_period > ZERO) then
+       do j = jlo, jhi 
+          do i = ilo, ihi 
+             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
+             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
+             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
+             
+             qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*rot(i,j,k3d,1)
+             qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*rot(i,j,k3d,2)
+             qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*rot(i,j,k3d,3)
+          enddo
+       enddo
+    endif
     
   end subroutine transxz
 
@@ -2591,6 +2627,7 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                     rot, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2601,7 +2638,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav
+                                   ppm_type, ppm_trace_grav, rot_period
     use eos_module
 
     implicit none
@@ -2631,6 +2668,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision hdt,cdtdy,cdtdz
     
     integer i, j
@@ -2948,6 +2986,22 @@ contains
              qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*grav(i,j,k3d,1)
              qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*grav(i,j,k3d,2)
              qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*grav(i,j,k3d,3)
+          enddo
+       enddo
+    endif
+
+    ! Add the rotation source term
+
+    if (rot_period > ZERO) then
+       do j = jlo, jhi 
+          do i = ilo, ihi 
+             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
+             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
+             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
+             
+             qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*rot(i,j,k3d,1)
+             qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*rot(i,j,k3d,2)
+             qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*rot(i,j,k3d,3)
           enddo
        enddo
     endif

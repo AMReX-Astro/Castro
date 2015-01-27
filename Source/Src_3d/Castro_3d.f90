@@ -272,7 +272,7 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
        normalize_new_species
   use sponge_module, only : sponge
   use grav_sources_module, only : add_grav_source
-  use rot_sources_module, only : add_rot_source
+  use rot_sources_module, only : add_rot_source, fill_rotation_field
 
   ! This is used for IsoTurb only
   ! use probdata_module   , only : radiative_cooling_type
@@ -316,6 +316,8 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
   double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
 
+  double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:,:)
   double precision, allocatable:: gamc(:,:,:)
@@ -354,7 +356,7 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
   dx = delta(1)
   dy = delta(2)
   dz = delta(3)
-  
+
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
   !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
@@ -365,10 +367,17 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
                src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
+  ! Compute the rotation field, which depends on position and velocity
+
+  call fill_rotation_field(rot,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                           q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+                           lo,hi,delta)
+
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+               rot, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &

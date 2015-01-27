@@ -35,6 +35,7 @@ contains
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
                      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
                      grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                     rot, &
                      ilo1, ilo2, ilo3, ihi1, ihi2, ihi3, dx, dy, dz, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
                      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
@@ -83,6 +84,7 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision   rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
     double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
@@ -465,6 +467,7 @@ contains
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                       rot,&
                        hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
@@ -523,6 +526,7 @@ contains
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                          rot,&
                           hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
 
              ! Compute U''_y at km (k3d-1)
@@ -534,6 +538,7 @@ contains
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                          rot,&
                           hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
              ! Compute F^x at km (k3d-1)

@@ -4,9 +4,72 @@ module rot_sources_module
 
   private
 
-  public add_rot_source, cross_product
+  public add_rot_source, cross_product, fill_rotation_field
 
 contains
+
+  subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
+                                 q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
+
+    use meth_params_module, only: QVAR, QU, QV, QW, rot_period
+    use probdata_module, only: center
+    use prob_params_module, only: coord_type, xmin, ymin, zmin
+    use bl_constants_module
+
+    implicit none
+
+    integer         , intent(in   ) :: lo(3), hi(3)
+    integer         , intent(in   ) :: rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3
+    integer         , intent(in   ) :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+
+    double precision, intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3,3)
+    double precision, intent(in   ) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    double precision, intent(in   ) :: dx(3)
+
+    integer          :: i,j,k
+    double precision :: x,y,z,r(3)
+    double precision :: v(3),omega(3)
+    double precision :: omegadotr,omegacrossr(3),omegacrossv(3),omega2
+
+    if (coord_type == 0) then
+       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
+       ! shut off the source term by setting omega = 0.
+
+       if (rot_period > ZERO) then
+          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
+       else
+          omega = (/ ZERO, ZERO, ZERO /)
+       endif
+    else
+       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
+    endif
+
+    omega2 = dot_product(omega,omega)
+    
+    do k = lo(3)-1, hi(3)+1
+       z = zmin + dx(3)*(float(k)+HALF) - center(3)
+       do j = lo(2)-1, hi(2)+1
+          y = ymin + dx(2)*(float(j)+HALF) - center(2)
+          do i = lo(1)-1, hi(1)+1
+             x = xmin + dx(1)*(float(i)+HALF) - center(1)
+
+             r = (/ x, y, z /)
+
+             omegacrossr = cross_product(omega,r)
+
+             v = (/ q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW) /)
+
+             omegacrossv = cross_product(omega,v)
+
+             rot(i,j,k,:) = -TWO * omegacrossv - cross_product(omega,omegacrossr)
+             
+          enddo
+       enddo
+    enddo
+
+  end subroutine fill_rotation_field
+
+
 
   subroutine add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                             uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
