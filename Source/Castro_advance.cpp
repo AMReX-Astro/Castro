@@ -592,7 +592,9 @@ Castro::advance_hydro (Real time,
 #ifdef _OPENMP
 	    bool tiling = true;
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,mass_added,eint_added,eden_added)
+#ifdef POINTMASS
 #pragma omp reduction(+:mass_change_at_center)
+#endif
 #else
 	    bool tiling = false;
 #endif
