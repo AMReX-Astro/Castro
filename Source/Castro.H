@@ -706,6 +706,7 @@ protected:
 #ifdef ROTATION
   static int do_rotation;
   static Real rotational_period;
+  static int rot_source_type;
 #endif
 
     // set it to true to make OMP deterministic

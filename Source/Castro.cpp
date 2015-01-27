@@ -128,6 +128,7 @@ Radiation*   Castro::radiation = 0;
 #ifdef ROTATION
 int          Castro::do_rotation = -1;
 Real         Castro::rotational_period = 0.0;
+int          Castro::rot_source_type = 1;
 #endif
 
 int          Castro::deterministic = 0;

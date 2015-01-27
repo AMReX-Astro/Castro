@@ -71,6 +71,8 @@ module meth_params_module
   double precision, save :: max_dist
 
   double precision, save :: rot_period
+  integer, save :: rot_source_type
+
   double precision, save :: const_grav
 
   integer, save :: npassive

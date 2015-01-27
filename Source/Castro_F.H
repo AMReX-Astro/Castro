@@ -63,8 +63,8 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const Real& dual_energy_eta1,
      const Real& dual_energy_eta2,
      const int& dual_energy_update_E_from_e,
-     const Real& rotational_period, const Real& const_grav,
-     const int& deterministic);
+     const int& rot_source_type, const Real& rotational_period, 
+     const Real& const_grav, const int& deterministic);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,
