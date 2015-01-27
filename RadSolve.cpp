@@ -819,11 +819,9 @@ void RadSolve::levelFlux(int level,
     Erborder[ei].copy(Er[ei], igroup, 0, 1);
   }
 
-  if (hd || hm) {
-    Erborder.FillBoundary(); // zeroes left in off-level boundaries
-    if (parent->Geom(level).isAnyPeriodic()) {
+  Erborder.FillBoundary(); // zeroes left in off-level boundaries
+  if (parent->Geom(level).isAnyPeriodic()) {
       parent->Geom(level).FillPeriodicBoundary(Erborder, true);
-    }
   }
 
   const Real* dx = parent->Geom(level).CellSize();

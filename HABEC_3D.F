@@ -2281,6 +2281,7 @@ c from the interior stencil which must be removed at the boundary.
      &     dx,
      &     flux, dims(flux))
 
+      implicit none
       integer dimdec(density)
       integer dimdec(dcoef)
       integer dimdec(flux)
@@ -2299,9 +2300,9 @@ c...     x-direction
 
          fac = - beta / dx(1)
 
-         do k = fluxloi3,fluxhii3
-            do j = fluxloi2,fluxhii2
-               do i = fluxloi1,fluxhii1
+         do k = fluxl2,fluxh2
+            do j = fluxl1,fluxh1
+               do i = fluxl0,fluxh0
                   flux(i,j,k) = dcoef(i,j,k) *
      &               (density(i,j,k) - density(i-1,j,k)) * fac
                end do
@@ -2314,9 +2315,9 @@ c...     y-direction
 
          fac = - beta / dx(2)
 
-         do k = fluxloi3,fluxhii3
-            do j = fluxloi2,fluxhii2
-               do i = fluxloi1,fluxhii1
+         do k = fluxl2,fluxh2
+            do j = fluxl1,fluxh1
+               do i = fluxl0,fluxh0
                   flux(i,j,k) = dcoef(i,j,k) *
      &               (density(i,j,k) - density(i,j-1,k)) * fac
                end do
@@ -2329,9 +2330,9 @@ c...     z-direction
 
          fac = - beta / dx(3)
 
-         do k = fluxloi3,fluxhii3
-            do j = fluxloi2,fluxhii2
-               do i = fluxloi1,fluxhii1
+         do k = fluxl2,fluxh2
+            do j = fluxl1,fluxh1
+               do i = fluxl0,fluxh0
                   flux(i,j,k) = dcoef(i,j,k) *
      &               (density(i,j,k) - density(i,j,k-1)) * fac
                end do

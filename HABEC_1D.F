@@ -1013,6 +1013,7 @@ c Right face of grid
      &     dx,
      &     flux, dims(flux))
 
+      implicit none
       integer dimdec(density)
       integer dimdec(dcoef)
       integer dimdec(flux)
@@ -1030,7 +1031,7 @@ c...     x-direction
 
          fac = - beta / dx(1)
 
-         do i = fluxloi1,fluxhii1
+         do i = fluxl0,fluxh0
             flux(i) = dcoef(i) * (density(i) - density(i-1)) * fac
          end do
 
