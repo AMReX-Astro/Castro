@@ -1202,7 +1202,6 @@ subroutine ca_accel_ccoe(  &
      h1 = 1.d0/dx(3)
   end if
 
-  !$omp parallel do private(i,j,k,grad_spec,foo)
   do k = ccoe_l3, ccoe_h3
   do j = ccoe_l2, ccoe_h2
   do i = ccoe_l1, ccoe_h1
@@ -1213,7 +1212,6 @@ subroutine ca_accel_ccoe(  &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_accel_ccoe
 
@@ -1400,7 +1398,6 @@ subroutine ca_spalpha( &
   integer :: i,j,k
   double precision :: lam
 
-  !$omp parallel do private(i,j,k,lam)
   do k = spa_l3, spa_h3
   do j = spa_l2, spa_h2
   do i = spa_l1, spa_h1
@@ -1415,7 +1412,6 @@ subroutine ca_spalpha( &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_spalpha
 

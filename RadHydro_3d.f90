@@ -90,14 +90,9 @@ subroutine ctoprim_rad(lo,hi, &
      hiq(i) = hi(i)+ngp
   enddo
 
-  !$omp parallel private(i,j,k,g,n,nq,iadv,ispec,iaux,eos_state) &
-  !$omp private(courx,coury,courz,courmx,courmy,courmz,csrad2,prad,Eddf,gamr) &
-  !$omp reduction(max:courno)
-
   ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
   ! The temperature is used as an initial guess for the eos call and will be overwritten.
   !
-  !$omp do
   do k = loq(3),hiq(3)
      do j = loq(2),hiq(2)
         do i = loq(1),hiq(1)
@@ -120,13 +115,11 @@ subroutine ctoprim_rad(lo,hi, &
         enddo
      enddo
   enddo
-  !$omp end do nowait
 
   ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
-     !$omp do
      do k = loq(3),hiq(3)
         do j = loq(2),hiq(2)
            do i = loq(1),hiq(1)
@@ -134,14 +127,12 @@ subroutine ctoprim_rad(lo,hi, &
            enddo
         enddo
      enddo
-     !$omp end do nowait
   end do
       
   ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
   do ispec = 1, nspec
      n  = UFS + ispec - 1
      nq = QFS + ispec - 1
-     !$omp do
      do k = loq(3),hiq(3)
         do j = loq(2),hiq(2)
            do i = loq(1),hiq(1)
@@ -149,14 +140,12 @@ subroutine ctoprim_rad(lo,hi, &
            enddo
         enddo
      enddo
-     !$omp end do nowait
   enddo
       
   ! Load auxiliary variables which are needed in the EOS
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
-     !$omp do
      do k = loq(3),hiq(3)
         do j = loq(2),hiq(2)
            do i = loq(1),hiq(1)
@@ -164,13 +153,9 @@ subroutine ctoprim_rad(lo,hi, &
            enddo
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
   ! Get gamc, p, T, c, csml using q state
-  !$omp do
   do k = loq(3), hiq(3)
      do j = loq(2), hiq(2)
         do i = loq(1), hiq(1)
@@ -233,10 +218,8 @@ subroutine ctoprim_rad(lo,hi, &
         end do
      end do
   end do
-  !$omp end do
 
   ! compute srcQ terms
-  !$omp do
   do k = lo(3)-1, hi(3)+1
      do j = lo(2)-1, hi(2)+1
         do i = lo(1)-1, hi(1)+1
@@ -275,13 +258,11 @@ subroutine ctoprim_rad(lo,hi, &
         enddo
      enddo
   enddo
-  !$omp end do
 
   ! Compute running max of Courant number over grids
   courmx = courno
   courmy = courno
   courmz = courno
-  !$omp do
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -324,11 +305,8 @@ subroutine ctoprim_rad(lo,hi, &
         enddo
      enddo
   enddo
-  !$omp end do
 
   courno = max( courmx, courmy, courmz )
-
-  !$omp end parallel
 
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
@@ -1082,14 +1060,7 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      call bl_error("Error:: RadHydro_3d.f90 :: tracexy_ppm_rad")
   end if
 
-  !$omp parallel private(i,j,g,n,iadv,ns,ispec,iaux,er,der,alphar,qrtmp,hr) &
-  !$omp private(lam0,lamp,lamm,cc,csq,rho,u,v,w,p,ptot,rhoe,enth,cgassq) &
-  !$omp private(dum,dvm,dptotm,drho,du,dv,dw,drhoe,dptot,dup,dvp,dptotp) &
-  !$omp private(alpham,alphap,alpha0,alphae,alphau,alphav,alphaw,rhoe_g) &
-  !$omp private(h_g,alphae_g,drhoe_g,er_foo)
-
 ! Trace to left and right edges using upwind PPM
-  !$omp do
   do j = ilo2-1, ihi2+1
      do i = ilo1-1, ihi1+1
 
@@ -1293,12 +1264,10 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         end if
      end do
   end do
-  !$omp end do
 
   ! Now do the passively advected quantities
   do iadv = 1, nadv
      n = QFA + iadv - 1
-     !$omp do
      do j = ilo2-1, ihi2+1
         
         ! plus state on face i
@@ -1330,13 +1299,11 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
   
   do ispec = 1, nspec
      ns = QFS + ispec - 1
      
-     !$omp do
      do j = ilo2-1, ihi2+1
         
         ! plus state on face i
@@ -1368,12 +1335,10 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
   
   do iaux = 1, naux
      ns = QFX + iaux - 1
-     !$omp do
      do j = ilo2-1, ihi2+1
         
         ! plus state on face i
@@ -1405,11 +1370,9 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
 
   ! Trace to bottom and top edges using upwind PPM
-  !$omp do
   do j = ilo2-1, ihi2+1
      do i = ilo1-1, ihi1+1
 
@@ -1613,12 +1576,10 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         end if
      end do
   end do
-  !$omp end do
 
   ! Now do the passively advected quantities
   do iadv = 1, nadv
      n = QFA + iadv - 1
-     !$omp do
      do i = ilo1-1, ihi1+1
         
         ! plus state on face j
@@ -1650,12 +1611,10 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
 
   do ispec = 1, nspec
      ns = QFS + ispec - 1
-     !$omp do
      do i = ilo1-1, ihi1+1
         
         ! plus state on face j
@@ -1687,12 +1646,10 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
 
   do iaux = 1, naux
      ns = QFX + iaux - 1
-     !$omp do
      do i = ilo1-1, ihi1+1
         
         ! plus state on face j
@@ -1724,10 +1681,7 @@ subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         enddo
         
      enddo
-     !$omp end do
   enddo
-
-  !$omp end parallel
 
 end subroutine tracexy_ppm_rad
 
@@ -1792,20 +1746,11 @@ subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      call bl_error("Error:: RadHydro_3d.f90 :: tracez_ppm_rad")
   end if
 
-  !$omp parallel private(i,j,g,n,iadv,ns,ispec,iaux,er,der) &
-  !$omp private(alphar,qrtmp,hr,lam0,lamp,lamm,cc,csq,rho) &
-  !$omp private(u,v,w,p,ptot,rhoe,enth,cgassq,dwm,dptotm) &
-  !$omp private(drho,du,dv,drhoe,dptot,dwp,dptotp,alpham) &
-  !$omp private(alphap,alpha0,alphae,alphau,alphav,rhoe_g) &
-  !$omp private(h_g,alphae_g,drhoe_g,er_foo)
-
-
 !!!!!!!!!!!!!!!
 ! PPM CODE
 !!!!!!!!!!!!!!!
 
   ! Trace to left and right edges using upwind PPM
-  !$omp do
   do j = ilo2-1, ihi2+1
      do i = ilo1-1, ihi1+1
 
@@ -2032,12 +1977,10 @@ subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         end if
      end do
   end do
-  !$omp end do
 
   ! Now do the passively advected quantities
   do iadv = 1, nadv
      n = QFA + iadv - 1
-     !$omp do
      do j = ilo2-1, ihi2+1
         do i = ilo1-1, ihi1+1
            
@@ -2067,12 +2010,10 @@ subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do
   enddo
 
   do ispec = 1, nspec
      ns = QFS + ispec - 1
-     !$omp do
      do j = ilo2-1, ihi2+1
         do i = ilo1-1, ihi1+1
            
@@ -2102,12 +2043,10 @@ subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do
   enddo
 
   do iaux = 1, naux
      ns = QFX + iaux - 1
-     !$omp do
      do j = ilo2-1, ihi2+1
         do i = ilo1-1, ihi1+1
            
@@ -2137,11 +2076,8 @@ subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do
   enddo
   
-  !$omp end parallel
-
 end subroutine tracez_ppm_rad
 
 ! ::: 
@@ -2327,13 +2263,6 @@ subroutine riemannus_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   double precision, dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
   double precision :: eddf, f1
 
-  !$omp parallel do private(i,j,g,n,nq,iadv,ispec,iaux,qavg) &
-  !$omp private(rgdnv,ustar,erl,err,rl,ul,v1l,v2l,pl,rel,pl_g,rel_g,wl) &
-  !$omp private(rr,ur,v1r,v2r,pr,rer,pr_g,rer_g,wr,rstar,cstar,pstar) &
-  !$omp private(ro,uo,po,reo,co,gamco,reo_g,po_g,co_g,gamco_g,sgnm,spin) &
-  !$omp private(spout,ushock,frac,rhoetot,scr,wsmall,csmall,regdnv_g) &
-  !$omp private(pgdnv_g,pgdnv_t,drho,estar_g,pstar_g,lambda,laml,lamr) &
-  !$omp private(reo_r,po_r,estar_r,regdnv_r,eddf,f1)
   do j = jlo, jhi
      do i = ilo, ihi
 
@@ -2599,7 +2528,6 @@ subroutine riemannus_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        
     enddo
  enddo
- !$omp end parallel do
 
 end subroutine riemannus_rad
 
@@ -2676,19 +2604,10 @@ subroutine transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        lamge, luge, der
   double precision eddf, f1, ugc
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrnew,rr) &
-  !$omp private(compn,compu,compsn,comps,rrrx,rrlx,rurx,rulx) &
-  !$omp private(rvrx,rvlx,rwrx,rwlx,ekenrx,ekenlx,rerx,relx,rrnewrx,rrnewlx) &
-  !$omp private(runewrx,runewlx,rvnewrx,rvnewlx,rwnewrx,rwnewlx,renewrx,renewlx) &
-  !$omp private(pnewrx,pnewlx,rhoekenrx,rhoekenlx,ugp,ugm,dup,pav,du) &
-  !$omp private(pggp,pggm,dre,dmom,lambda,ergp,ergm,err,erl,ernewr,ernewl) &
-  !$omp private(lamge,luge,der,eddf,f1,ugc)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -2706,14 +2625,12 @@ subroutine transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec 
      n  = UFS + ispec - 1
      nq = QFS + ispec - 1
 
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -2731,14 +2648,12 @@ subroutine transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait     
   enddo
 
   do iaux = 1, naux 
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
      
-     !$omp do    
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -2756,12 +2671,8 @@ subroutine transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait     
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi
      do i = ilo, ihi
 
@@ -2867,9 +2778,6 @@ subroutine transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-
-  !$omp end parallel
 
 end subroutine transy1_rad
 
@@ -2948,17 +2856,9 @@ subroutine transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
   ! NOTE: it is better *not* to protect against small density in this routine
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrnew,rr,rrry,rrly) &
-  !$omp private(rury,ruly,rvry,rvly,rwry,rwly,ekenry,ekenly,rery,rely,rrnewry,rrnewly) &
-  !$omp private(runewry,runewly,rvnewry,rvnewly,rwnewry,rwnewly,renewry,renewly) &
-  !$omp private(pnewry,pnewly,rhoekenry,rhoekenly,compn,compu,compsn,comps) &
-  !$omp private(ugp,ugm,dup,pav,du,pggp,pggm,dre,dmom,lambda,ergp,ergm,err,erl) &
-  !$omp private(ernewr,ernewl,lamge,luge,der,eddf,f1,ugc)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -2976,13 +2876,11 @@ subroutine transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
   
   do ispec = 1, nspec
      n  = UFS + ispec - 1
      nq = QFS + ispec - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3000,13 +2898,11 @@ subroutine transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3024,12 +2920,8 @@ subroutine transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
         
@@ -3134,9 +3026,6 @@ subroutine transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-
-  !$omp end parallel
 
 end subroutine transx1_rad
 
@@ -3213,19 +3102,10 @@ subroutine transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        lamge, luge, der
   double precision eddf, f1, ugc
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrnew,rr) &
-  !$omp private(compn,compu,compsn,comps,rrrz,rrlz,rurz,rulz) &
-  !$omp private(rvrz,rvlz,rwrz,rwlz,ekenrz,ekenlz,rerz,relz) &
-  !$omp private(rrnewrz,rrnewlz,runewrz,runewlz,rvnewrz,rvnewlz) &
-  !$omp private(rwnewrz,rwnewlz,renewrz,renewlz,pnewrz,pnewlz) &
-  !$omp private(rhoekenrz,rhoekenlz,ugp,ugm,dup,pav,du,pggp,pggm,dre,dmom) &
-  !$omp private(lambda,ergp,ergm,err,erl,ernewr,ernewl,lamge,luge,der,eddf,f1,ugc)
-
   do iadv = 1, nadv
      n  = UFA + iadv - 1
      nq = QFA + iadv - 1
 
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3245,14 +3125,12 @@ subroutine transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec 
      n  = UFS + ispec - 1
      nq = QFS + ispec - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3272,14 +3150,12 @@ subroutine transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux 
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3299,12 +3175,8 @@ subroutine transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi
      do i = ilo, ihi
 
@@ -3446,9 +3318,6 @@ subroutine transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-  
-  !$omp end parallel
 
 end subroutine transy2_rad
 
@@ -3525,19 +3394,9 @@ subroutine transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        lamge, luge, der
   double precision eddf, f1, ugc
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrnew,rr) &
-  !$omp private(rrrz,rrlz,rurz,rulz,rvrz,rvlz,rwrz,rwlz,ekenrz,ekenlz) &
-  !$omp private(rerz,relz,rrnewrz,rrnewlz,runewrz,runewlz,rvnewrz,rvnewlz) &
-  !$omp private(rwnewrz,rwnewlz,renewrz,renewlz,pnewrz,pnewlz,rhoekenrz) &
-  !$omp private(rhoekenlz,compn,compu,compsn,comps,ugp,ugm,dup,pav,du) &
-  !$omp private(pggp,pggm,dre,dmom,lambda,ergp,ergm,err,erl,ernewr,ernewl) &
-  !$omp private(lamge,luge,der,eddf,f1,ugc)
-
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3557,13 +3416,11 @@ subroutine transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec
      n  = UFS + ispec - 1
      nq = QFS + ispec - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3583,13 +3440,11 @@ subroutine transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3609,12 +3464,8 @@ subroutine transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
 
@@ -3755,9 +3606,6 @@ subroutine transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-  
-  !$omp end parallel
 
 end subroutine transx2_rad
 
@@ -3847,22 +3695,11 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
   double precision eddf, f1
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrr,rur,rvr,rwr,rer) &
-  !$omp private(ekenr,rhoekenr,rrl,rul,rvl,rwl,rel,ekenl,rhoekenl,rrnewr) &
-  !$omp private(runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl) &
-  !$omp private(pnewr,pnewl,ugxp,ugxm,duxp,pxav,dux,pxnew,ugyp,ugym,duyp,pyav) &
-  !$omp private(duy,pynew,ugxpm,ugxmm,duxpm,pxavm,duxm,pxnewm,ugypm,ugymm,duypm) &
-  !$omp private(pyavm,duym,pynewm,compr,compl,compnr,compnl,rhotmp,dmx,dmy,dre) &
-  !$omp private(pggxp,pggyp,pggxm,pggym,pggxpm,pggypm,pggxmm,pggymm,der,lamc,lamm) &
-  !$omp private(lugex,lugey,lgex,lgey,err,ernewr,erl,ernewl,ergxp,ergyp,ergxm) &
-  !$omp private(ergym,ergxpm,ergypm,ergxmm,ergymm,eddf,f1)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
 
-     !$omp do
-     do j = jlo, jhi 
+
         do i = ilo, ihi 
            
            rrr = qp(i,j,kc,QRHO)
@@ -3886,14 +3723,12 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec
      n = UFS + ispec - 1
      nq = QFS + ispec - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
 
@@ -3918,14 +3753,12 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -3950,12 +3783,8 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
         
@@ -4147,9 +3976,6 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-
-  !$omp end parallel
 
 end subroutine transxy_rad
 
@@ -4231,23 +4057,10 @@ subroutine transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
   double precision eddf, f1
 
-  !$omp parallel private(n,nq,iadv,ispec,iaux,i,j,g,rrnew,rr) &
-  !$omp private(compn,compu,compsn,comps,rrrx,rrry,rrlx,rrly) &
-  !$omp private(rurx,rury,rulx,ruly,rvrx,rvry,rvlx,rvly,rwrx,rwry,rwlx,rwly) &
-  !$omp private(ekenrx,ekenry,ekenlx,ekenly,rerx,rery,relx,rely) &
-  !$omp private(rrnewrx,rrnewry,rrnewlx,rrnewly,runewrx,runewry,runewlx) &
-  !$omp private(runewly,rvnewrx,rvnewry,rvnewlx,rvnewly,rwnewrx,rwnewry) &
-  !$omp private(rwnewlx,rwnewly,renewrx,renewry,renewlx,renewly) &
-  !$omp private(pnewrx,pnewry,pnewlx,pnewly,rhoekenrx,rhoekenry,rhoekenlx) &
-  !$omp private(rhoekenly,ugp,ugm,dup,pav,du,dmz,dre,pggp,pggm) &
-  !$omp private(der,lambda,luge,lamge,ergp,errx,ernewrx,erry,ernewry,ergm) &
-  !$omp private(erlx,ernewlx,erly,ernewly,eddf,f1)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
 
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4275,14 +4088,12 @@ subroutine transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec 
      n = UFS + ispec - 1
      nq = QFS + ispec  - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4310,14 +4121,12 @@ subroutine transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux 
      n  = UFX + iaux - 1
      nq = QFX + iaux  - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4345,12 +4154,8 @@ subroutine transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
         
@@ -4519,9 +4324,6 @@ subroutine transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-
-  !$omp end parallel
 
 end subroutine transz_rad
 
@@ -4608,19 +4410,10 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
   double precision eddf, f1
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrr,rur,rvr,rwr,rer) &
-  !$omp private(ekenr,rhoekenr,rrl,rul,rvl,rwl,rel,ekenl,rhoekenl,rrnewr) &
-  !$omp private(runewr,rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl) &
-  !$omp private(pnewr,pnewl,ugyp,ugym,duyp,pyav,duy,pynew,ugzp,ugzm,duzp,pzav) &
-  !$omp private(duz,pznew,compr,compl,compnr,compnl,rhotmp,dmy,dmz,dre,pggzp) &
-  !$omp private(pggzm,pggyp,pggym,der,lambda,lugey,lugez,lgey,lgez,err,ernewr) &
-  !$omp private(erl,ernewl,ergzp,ergyp,ergzm,ergym,eddf,f1)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
 
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4645,14 +4438,12 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec
      n = UFS + ispec - 1
      nq = QFS + ispec - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4677,14 +4468,12 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4709,12 +4498,8 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
         
@@ -4853,9 +4638,6 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         qmo(i+1,j,km,qreitot) = sum(qmo(i+1,j,km,qrad:qradhi)) + qmo(i+1,j,km,QREINT)
      enddo
   enddo
-  !$omp end do
-  
-  !$omp end parallel
 
 end subroutine transyz_rad
 
@@ -4942,19 +4724,10 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm 
   double precision eddf, f1
 
-  !$omp parallel private(i,j,g,n,nq,iadv,ispec,iaux,rrr,rur,rvr,rwr,rer) &
-  !$omp private(ekenr,rhoekenr,rrl,rul,rvl,rwl,rel,ekenl,rhoekenl,rrnewr,runewr) &
-  !$omp private(rvnewr,rwnewr,renewr,rrnewl,runewl,rvnewl,rwnewl,renewl,pnewr) &
-  !$omp private(pnewl,ugxp,ugxm,duxp,pxav,dux,pxnew,ugzp,ugzm,duzp,pzav,duz,pznew) &
-  !$omp private(compr,compl,compnr,compnl,rhotmp,dmx,dmz,dre,pggxp,pggxm,pggzp) &
-  !$omp private(pggzm,der,lambda,lugex,lugez,lgex,lgez,err,ernewr,erl,ernewl) &
-  !$omp private(ergzp,ergxp,ergzm,ergxm,eddf,f1)
-
   do iadv = 1, nadv
      n = UFA + iadv - 1
      nq = QFA + iadv -1 
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -4979,14 +4752,12 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do ispec = 1, nspec
      n = UFS + ispec - 1
      nq = QFS + ispec - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -5011,14 +4782,12 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
   do iaux = 1, naux
      n  = UFX + iaux - 1
      nq = QFX + iaux - 1
      
-     !$omp do
      do j = jlo, jhi 
         do i = ilo, ihi 
            
@@ -5043,12 +4812,8 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
            
         enddo
      enddo
-     !$omp end do nowait
   enddo
 
-  !$omp barrier
-  
-  !$omp do
   do j = jlo, jhi 
      do i = ilo, ihi 
 
@@ -5186,9 +4951,6 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
      enddo
   enddo
-  !$omp end do
-
-  !$omp end parallel
 
 end subroutine transxz_rad
 
@@ -5304,12 +5066,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
   double precision :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
   double precision :: dprdx, dprdy, dprdz, ek1, ek2, dek  
 
-  !$omp parallel private(div1,rho,Up,Vp,Wp,SrU,SrV,SrW,SrE,i,j,k,n,g,Erscale) &
-  !$omp private(ustar,af,Eddf,Eddfxm,Eddfxp,Eddfym,Eddfyp,Eddfzm,Eddfzp,f1,f2) &
-  !$omp private(f1xm,f1xp,f1ym,f1yp,f1zm,f1zp,Gf1E,ux,uy,uz,divu,lamc,Egdc) &
-  !$omp private(dudx,dudy,dudz,nhat,GnDotu,nnColonDotGu,dprdx,dprdy,dprdz) &
-  !$omp private(ek1,ek2,dek) reduction(max:nstep_fsp)
-
   if (ngroups .gt. 1) then
      if (fspace_type .eq. 1) then
         Erscale = dlognu
@@ -5328,7 +5084,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
         
      else
         
-        !$omp do
         do k = lo(3),hi(3)
            do j = lo(2),hi(2)
               do i = lo(1),hi(1)+1
@@ -5339,9 +5094,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
               enddo
            enddo
         enddo
-        !$omp end do nowait
 
-        !$omp do
         do k = lo(3),hi(3)
            do j = lo(2),hi(2)+1
               do i = lo(1),hi(1)
@@ -5352,9 +5105,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
               enddo
            enddo
         enddo
-        !$omp end do nowait
 
-        !$omp do
         do k = lo(3),hi(3)+1
            do j = lo(2),hi(2)
               do i = lo(1),hi(1)
@@ -5365,15 +5116,11 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
               enddo
            enddo
         enddo
-        !$omp end do nowait
         
      endif
      
   enddo
 
-  !$omp barrier
-
-  !$omp do
   do g=0,ngroups-1
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
@@ -5386,9 +5133,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      enddo
   enddo
   enddo
-  !$omp end do nowait
 
-  !$omp do
   do g=0,ngroups-1
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)+1
@@ -5401,9 +5146,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      enddo
   enddo
   enddo
-  !$omp end do nowait
 
-  !$omp do
   do g=0,ngroups-1
   do k = lo(3),hi(3)+1
      do j = lo(2),hi(2)
@@ -5416,7 +5159,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      enddo
   enddo
   enddo
-  !$omp end do
 
   if (normalize_species .eq. 1) &
        call normalize_species_fluxes( &
@@ -5438,7 +5180,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
         enddo
      else 
         ! update everything else with fluxes and source terms
-        !$omp do
         do k = lo(3),hi(3)
            do j = lo(2),hi(2)
               do i = lo(1),hi(1)
@@ -5456,15 +5197,11 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
               enddo
            enddo
         enddo
-        !$omp end do nowait
      endif
      
   enddo
 
-  !$omp barrier
-
   ! update everything else with fluxes
-  !$omp do
   do g=0,ngroups-1
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
@@ -5477,10 +5214,8 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      enddo
   enddo
   enddo
-  !$omp end do nowait
 
   ! Add gravitational source terms
-  !$omp do
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -5512,10 +5247,8 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
         enddo
      enddo
   enddo
-  !$omp end do
 
   ! add radiation force terms
-  !$omp do
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -5549,11 +5282,9 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
         end do
      end do
   end do
-  !$omp end do
 
   ! Add radiation source terms
   if (comoving) then
-     !$omp do
      do k = lo(3),hi(3)
      do j = lo(2),hi(2)
      do i = lo(1),hi(1)
@@ -5634,10 +5365,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      enddo
      enddo
      enddo
-     !$omp end do
   endif
-
-  !$omp end parallel
 
 end subroutine consup_rad
 
@@ -5653,7 +5381,6 @@ subroutine ppflaten(lof, hif, &
 
   integer :: i,j,k
 
-  !$omp parallel do private(i,j,k)
   do k=lof(3),hif(3)
   do j=lof(2),hif(2)
   do i=lof(1),hif(1)
@@ -5666,7 +5393,6 @@ subroutine ppflaten(lof, hif, &
   end do
   end do
   end do
-  !$omp end parallel do
 end subroutine ppflaten
 
 end module rad_advection_module

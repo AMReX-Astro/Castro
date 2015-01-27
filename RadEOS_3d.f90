@@ -21,26 +21,24 @@ subroutine ca_compute_c_v(lo, hi, &
   double precision :: rhoInv
   type(eos_t) :: eos_state
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-        rhoInv = 1.d0 / state(i,j,k,URHO)
-        eos_state % rho = state(i,j,k,URHO)
-        eos_state % T   =  temp(i,j,k)
-        eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-        eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
-
-        call eos(eos_input_rt, eos_state)
-
-        cv(i,j,k) = eos_state % cv
-
+           rhoInv = 1.d0 / state(i,j,k,URHO)
+           eos_state % rho = state(i,j,k,URHO)
+           eos_state % T   =  temp(i,j,k)
+           eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+           eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+           
+           call eos(eos_input_rt, eos_state)
+           
+           cv(i,j,k) = eos_state % cv
+           
+        enddo
      enddo
   enddo
-enddo
-!$OMP END PARALLEL DO
-
+  
 end subroutine ca_compute_c_v
 
 
@@ -66,25 +64,23 @@ subroutine ca_get_rhoe(lo, hi, &
   double precision :: rhoInv
   type(eos_t) :: eos_state  
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-        rhoInv = 1.d0 / state(i,j,k,URHO)
-        eos_state % rho = state(i,j,k,URHO)
-        eos_state % T   =  temp(i,j,k)
-        eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-        eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
-
-        call eos(eos_input_rt, eos_state)
-
-        rhoe(i,j,k) = eos_state % rho * eos_state % e
-
+           rhoInv = 1.d0 / state(i,j,k,URHO)
+           eos_state % rho = state(i,j,k,URHO)
+           eos_state % T   =  temp(i,j,k)
+           eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+           eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+           
+           call eos(eos_input_rt, eos_state)
+           
+           rhoe(i,j,k) = eos_state % rho * eos_state % e
+           
+        enddo
      enddo
   enddo
-enddo
-!$OMP END PARALLEL DO
 
 end subroutine ca_get_rhoe
 
@@ -108,7 +104,6 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   double precision :: rhoInv
   type (eos_t) :: eos_state
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
   do k = lo(3),hi(3)
   do j = lo(2),hi(2)
   do i = lo(1),hi(1)
@@ -129,7 +124,6 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   enddo
   enddo
   enddo
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_temp_given_rhoe
 
@@ -154,7 +148,6 @@ subroutine ca_compute_temp_given_cv(lo,hi,  &
 
   ex = 1.d0 / (1.d0 - c_v_exp_n)
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,alpha,rhoal,teff)
   do k=lo(3), hi(3)
      do j=lo(2), hi(2)
         do i=lo(1), hi(1)
@@ -173,7 +166,6 @@ subroutine ca_compute_temp_given_cv(lo,hi,  &
         end do
      end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_temp_given_cv
 
@@ -197,7 +189,6 @@ subroutine reset_eint_compute_temp( lo, hi, &
   double precision :: rhoInv,  ek, e1, e2, T1, T2, diff, rdiff
   type(eos_t) :: eos_state
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,ek,e1,e2,T1,T2,diff,rdiff,eos_state)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -272,7 +263,6 @@ subroutine reset_eint_compute_temp( lo, hi, &
   end do
   end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine reset_eint_compute_temp
 
@@ -307,7 +297,6 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   double precision :: rhoInv
   type (eos_t) :: eos_state
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoInv,eos_state)
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -340,7 +329,6 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
         enddo
      enddo
   enddo
-  !$OMP END PARALLEL DO
 end subroutine ca_compute_temp_given_reye
 
 
@@ -372,7 +360,6 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
   double precision :: rhoInv
   type (eos_t) :: eos_state
 
-  !$OMP PARALLEL DO PRIVATE(i, j, k, rhoInv, eos_state)
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -394,7 +381,6 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
         enddo
      enddo
   enddo
-  !$OMP END PARALLEL DO
 end subroutine ca_compute_reye_given_ty
 
 

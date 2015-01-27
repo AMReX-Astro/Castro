@@ -33,7 +33,6 @@ subroutine ca_accel_acoe_neut(   &
 
   dt1 = (1.d0+tau)/dt
 
-  !$omp parallel do private(i,j,k,g,kbar,kybar,H1,Theta,foo)
   do k = aco_l3, aco_h3
   do j = aco_l2, aco_h2
   do i = aco_l1, aco_h1
@@ -52,7 +51,6 @@ subroutine ca_accel_acoe_neut(   &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_accel_acoe_neut
 
@@ -96,7 +94,6 @@ subroutine ca_accel_rhs_neut(  &
   integer :: i, j, k, g
   double precision :: rt, ry, H, Theta, foo
 
-  !$omp parallel do private(i,j,k,g,rt, ry, H, Theta, foo)
   do k = rhs_l3, rhs_h3
   do j = rhs_l2, rhs_h2
   do i = rhs_l1, rhs_h1
@@ -115,7 +112,6 @@ subroutine ca_accel_rhs_neut(  &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_accel_rhs_neut
 
@@ -172,8 +168,6 @@ subroutine ca_accel_spec_neut( lo, hi, &
 
   cdt1 = 1.d0/(clight*dt)
 
-  !$omp parallel do private(i,j,k,g,rt,ry,p,q,r,s,foo,sumeps) &
-  !$omp private (Hg,Tg,epsilon,kapt,kk)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -208,7 +202,6 @@ subroutine ca_accel_spec_neut( lo, hi, &
   end do
   end do
   end do
-  !$omp end parallel do
   
 end subroutine ca_accel_spec_neut
 
@@ -275,8 +268,6 @@ subroutine ca_check_conv_neut( lo, hi, &
 
   cdt = clight*dt
 
-  !$omp parallel do private(i,j,k,chg,relchg,FT,FY,FTdenom,FYdenom,dTe,dYe) &
-  !$omp reduction(max:rel_re,abs_re,rel_FT,abs_FT,rel_T,abs_T,rel_FY,abs_FY,rel_Y,abs_Y)
   do k=lo(3),hi(3)
   do j=lo(2),hi(2)
   do i=lo(1),hi(1)
@@ -311,7 +302,6 @@ subroutine ca_check_conv_neut( lo, hi, &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_check_conv_neut
 
@@ -361,8 +351,6 @@ subroutine ca_check_conv_er_neut( lo, hi,  &
   double precision :: chg, tot, cdt, der, kdeT, kdeY, err_T, err_Y, err
 
   cdt = clight * dt
-  !$omp parallel do private(i,j,k,g,chg,tot,der,kdeT,kdeY,err_T,err_Y,err) &
-  !$omp reduction(max:rela, abso, errr)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -387,7 +375,6 @@ subroutine ca_check_conv_er_neut( lo, hi,  &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_check_conv_er_neut
 
@@ -417,9 +404,6 @@ subroutine ca_compute_coupty(  &
   integer :: i, j, k, g
   double precision :: foo
 
-  !$omp parallel private(i,j,k,g,foo)
-
-  !$omp do
   do k=cpt_l3, cpt_h3
      do j=cpt_l2, cpt_h2
         do i=cpt_l1, cpt_h1
@@ -428,10 +412,8 @@ subroutine ca_compute_coupty(  &
         end do
      end do
   end do
-  !$omp end do nowait
 
   do g=0, ngroups-1
-     !$omp do
      do k=cpt_l3, cpt_h3
      do j=cpt_l2, cpt_h2
      do i=cpt_l1, cpt_h1
@@ -441,10 +423,7 @@ subroutine ca_compute_coupty(  &
      end do
      end do
      end do
-     !$omp end do nowait
   end do
-
-  !$omp end parallel
 
 end subroutine ca_compute_coupty
 
@@ -487,7 +466,6 @@ subroutine ca_compute_dedx(  &
   double precision :: dT, dYe, T1, T2, Ye1, Ye2
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,rhoinv,eos_state,dT,dYe,T1,T2,Ye1,Ye2,e1,e2)
   do k=dedT_l3, dedT_h3
   do j=dedT_l2, dedT_h2
   do i=dedT_l1, dedT_h1
@@ -544,7 +522,6 @@ subroutine ca_compute_dedx(  &
   end do
   end do
   end do
-  !$OMP END PARALLEL DO 
 
 end subroutine ca_compute_dedx
 
@@ -626,8 +603,6 @@ subroutine ca_compute_eta_the( lo, hi, &
   sigma = 1.d0 + tau
   cdt = clight * dt
 
-  !$omp parallel do private(i,j,k,det,et,ey,tt,ty,dZdT,dZdY,sumdZdT,sumdZdY) &
-  !$omp private(fooT,fooY,barT,barY)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -673,7 +648,6 @@ subroutine ca_compute_eta_the( lo, hi, &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_compute_eta_the
 
@@ -746,7 +720,6 @@ subroutine ca_compute_rhs_neut(  &
   double precision :: Hg, thetag, dt1
 
   dt1 = 1.d0/dt
-  !$omp parallel do private(i,j,k,Hg,thetag)
   do k=rhs_l3, rhs_h3
   do j=rhs_l2, rhs_h2
   do i=rhs_l1, rhs_h1
@@ -760,7 +733,6 @@ subroutine ca_compute_rhs_neut(  &
    end do
    end do
    end do
-   !$omp end parallel do
 
 end subroutine ca_compute_rhs_neut
 
@@ -813,7 +785,6 @@ subroutine ca_local_accel_neut( lo, hi,  &
 
   cdt1 = 1.d0/(clight*dt)
 
-  !$omp parallel do private(i,j,k,rt,ry,p,q,r,s ,Hg,Tg,epsilon,kapt,kk)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -838,7 +809,6 @@ subroutine ca_local_accel_neut( lo, hi,  &
   end do
   end do
   end do
-  !$omp end parallel do
   
 end subroutine ca_local_accel_neut
 
@@ -907,10 +877,6 @@ subroutine ca_opac_emis_neut( lo, hi,  &
   logical :: comp_ab, comp_sc, comp_eta
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  !$OMP PARALLEL DO PRIVATE(i,j,k,g,rho,temp,dT,dYe,inu,er,der,comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(ab ,sc ,delta ,eta ,Bg ) &
-  !$OMP PRIVATE(ab1,sc1,delta1,eta1,Bg1) &
-  !$OMP PRIVATE(ab2,sc2,delta2,eta2,Bg2)
   do k=lo(3), hi(3)
   do j=lo(2), hi(2)
   do i=lo(1), hi(1)
@@ -1010,7 +976,6 @@ subroutine ca_opac_emis_neut( lo, hi,  &
   end do
   end do
   end do
-  !$OMP END PARALLEL DO 
 
 end subroutine ca_opac_emis_neut
 
@@ -1044,7 +1009,6 @@ subroutine ca_state_update_neut( lo, hi, &
   integer :: i, j, k
   double precision :: ei, ek, Told, Yeold
 
-  !$omp parallel do private(i,j,k,ei,ek,Told,Yeold) reduction(max:derat,dTrat,dye)
   do k=lo(3), hi(3)
   do j=lo(2), hi(2)
   do i=lo(1), hi(1)
@@ -1064,7 +1028,6 @@ subroutine ca_state_update_neut( lo, hi, &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_state_update_neut
 
@@ -1153,7 +1116,6 @@ subroutine ca_update_matter_neut( lo, hi,  &
   double precision :: dkEE, dkEEY, foo, chg, chgY
 
   cdt = clight * dt
-  !$omp parallel do private(i,j,k,g,H1,Theta,Thbar1,Hbar,dkEE,dkEEY,foo,chg,chgY)
   do k = lo(3), hi(3)
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
@@ -1190,7 +1152,6 @@ subroutine ca_update_matter_neut( lo, hi,  &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_update_matter_neut
 
@@ -1254,7 +1215,6 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
    double precision, parameter :: fac = 0.01d0
 
    cdt1 = 1.d0 / (clight * dt)
-   !$omp parallel do private(i,j,k,g,cpT,cpY,foo,scrch_re,scrch_rY,dTemp,dYe)
    do k = lo(3), hi(3)
    do j = lo(2), hi(2)
    do i = lo(1), hi(1)
@@ -1287,7 +1247,6 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
   end do
   end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_ncupdate_matter_neut
 
@@ -1317,8 +1276,6 @@ subroutine ca_compute_rosseland_neut( lo, hi, &
   comp_sc = .true.
   comp_eta = .false.
 
-  !$OMP PARALLEL DO SHARED(comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(g,inu,er,der,i,j,k,rho,temp,Ye,ab,sc,delta,eta)
   do g=0, ngroups-1
 
      call prep_opacity(g, inu, er, der)
@@ -1340,7 +1297,6 @@ subroutine ca_compute_rosseland_neut( lo, hi, &
      end do
      end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_rosseland_neut
 
@@ -1370,8 +1326,6 @@ subroutine ca_compute_planck_neut( lo, hi,  &
   comp_sc = .false.
   comp_eta = .false.
 
-  !$OMP PARALLEL DO SHARED(comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(g,inu,er,der,i,j,k,rho,temp,Ye,ab,sc,delta,eta)
   do g=0, ngroups-1
 
      call prep_opacity(g, inu, er, der)
@@ -1393,6 +1347,5 @@ subroutine ca_compute_planck_neut( lo, hi,  &
      end do
      end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_planck_neut

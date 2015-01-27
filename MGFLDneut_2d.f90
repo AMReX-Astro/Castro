@@ -434,7 +434,6 @@ subroutine ca_compute_dedx(  &
   double precision :: dT, dYe, T1, T2, Ye1, Ye2
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  !$OMP PARALLEL DO PRIVATE(i,j,rhoinv,eos_state,dT,dYe,T1,T2,Ye1,Ye2,e1,e2)
   do j=dedT_l2, dedT_h2
   do i=dedT_l1, dedT_h1
 
@@ -489,7 +488,6 @@ subroutine ca_compute_dedx(  &
 
   end do
   end do
-  !$OMP END PARALLEL DO 
 
 end subroutine ca_compute_dedx
 
@@ -819,10 +817,6 @@ subroutine ca_opac_emis_neut( lo, hi,  &
   logical :: comp_ab, comp_sc, comp_eta
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  !$OMP PARALLEL DO PRIVATE(i,j,g,rho,temp,dT,dYe,inu,er,der,comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(ab ,sc ,delta ,eta ,Bg ) &
-  !$OMP PRIVATE(ab1,sc1,delta1,eta1,Bg1) &
-  !$OMP PRIVATE(ab2,sc2,delta2,eta2,Bg2)
   do j=lo(2), hi(2)
   do i=lo(1), hi(1)
      
@@ -920,7 +914,6 @@ subroutine ca_opac_emis_neut( lo, hi,  &
      end do
   end do
   end do
-  !$OMP END PARALLEL DO 
 
 end subroutine ca_opac_emis_neut
 
@@ -1205,8 +1198,6 @@ subroutine ca_compute_rosseland_neut( lo, hi,  &
   comp_sc = .true.
   comp_eta = .false.
 
-  !$OMP PARALLEL DO SHARED(comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(g,inu,er,der,i,j,rho,temp,Ye,ab,sc,delta,eta)
   do g=0, ngroups-1
 
      call prep_opacity(g, inu, er, der)
@@ -1226,7 +1217,6 @@ subroutine ca_compute_rosseland_neut( lo, hi,  &
      end do
      end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_rosseland_neut
 
@@ -1255,8 +1245,6 @@ subroutine ca_compute_planck_neut( lo, hi,  &
   comp_sc = .false.
   comp_eta = .false.
 
-  !$OMP PARALLEL DO SHARED(comp_ab,comp_sc,comp_eta) &
-  !$OMP PRIVATE(g,inu,er,der,i,j,rho,temp,Ye,ab,sc,delta,eta)
   do g=0, ngroups-1
 
      call prep_opacity(g, inu, er, der)
@@ -1276,6 +1264,5 @@ subroutine ca_compute_planck_neut( lo, hi,  &
      end do
      end do
   end do
-  !$OMP END PARALLEL DO
 
 end subroutine ca_compute_planck_neut

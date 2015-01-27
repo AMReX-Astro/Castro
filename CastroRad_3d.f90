@@ -278,13 +278,10 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   reg_h2 = lam_h2 - ngrow
   reg_h3 = lam_h3 - ngrow
 
-  !$omp parallel if (ngroups>1) private(g,i,j,k,r,r1,r2,r3,lamfil)
-
   if (filter_T .gt. 0) then
      allocate(lamfil(reg_l1:reg_h1,lam_l2:lam_h2,lam_l3:lam_h3))
   end if
 
-  !$omp do
   do g = 0, ngroups-1
 
   do k=lam_l3, lam_h3
@@ -1164,13 +1161,10 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   end do
 
   end do ! do g=
-  !$omp end do
 
   if (filter_T .gt. 0) then
      deallocate(lamfil)
   end if
-
-  !$omp end parallel
 
   return
 end subroutine ca_compute_lamborder
@@ -1400,7 +1394,6 @@ subroutine ca_face2center(  &
 
   integer :: i,j,k
 
-  !$omp parallel do private(i,j,k)
   do k=fooc_l3,fooc_h3
      do j=fooc_l2,fooc_h2
         do i=fooc_l1,fooc_h1
@@ -1410,7 +1403,6 @@ subroutine ca_face2center(  &
         end do
      end do
   end do
-  !$omp end parallel do
 
 end subroutine ca_face2center
 
@@ -1457,8 +1449,6 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
   type(eos_t) :: eos_state
 
   ! Translate to primitive variables, compute sound speed (call eos)
-  !$omp parallel do private(rhoInv,ux,uy,uz,dt1,dt2,dt3,i,j,k,eos_state,c) &
-  !$omp reduction(min:dt)
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -1493,7 +1483,6 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
         enddo
      enddo
   enddo
-  !$omp end parallel do
   
 end subroutine ca_estdt_rad
 
@@ -1512,9 +1501,6 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
 
   integer :: i, j, k, ig
 
-  !$omp parallel private(i,j,k,ig)
-
-  !$omp do
   do k = gPr_l3, gPr_h3
      do j = gPr_l2, gPr_h2
         do i = gPr_l1, gPr_h1
@@ -1522,10 +1508,8 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
         end do
      end do
   end do
-  !$omp end do nowait
 
   do ig = 0, ngroups-1
-     !$omp do
      do k = gPr_l3, gPr_h3
         do j = gPr_l2, gPr_h2
            do i = gPr_l1, gPr_h1
@@ -1533,10 +1517,7 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
            end do
         end do
      end do
-     !$omp end do nowait
   end do
-
-  !$omp end parallel
 
 end subroutine ca_est_gpr0
 

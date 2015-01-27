@@ -474,11 +474,9 @@ c construct coefficients:
       real*8 kavg
       integer i, j, k
       real*8 kap, par, lambda, FLDlambda
-!$omp parallel private(i,j,k,kap,par,lambda)
       if (n .eq. 0) then
 c x faces:
 c y and z derivatives:
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
                do i = regl0 - 1, regh0 + 1
@@ -498,9 +496,7 @@ c check y derivatives at regl1 - 1 and regh1 + 1:
                endif
             enddo
          enddo
-!$omp end do
 c check z derivatives at regl2 - 1 and regh2 + 1:
-!$omp do
          do j = regl1, regh1
             do i = regl0 - 1, regh0 + 1
                k = regl2
@@ -513,8 +509,6 @@ c check z derivatives at regl2 - 1 and regh2 + 1:
                endif
             enddo
          enddo
-!$omp end do
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
 c check y derivatives at regl0 - 1 and regh0 + 1:
@@ -579,11 +573,9 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       elseif (n .eq. 1) then
 c y faces:
 c x and z derivatives:
-!$omp do
          do k = regl2, regh2
             do j = regl1 - 1, regh1 + 1
                do i = regl0, regh0
@@ -601,9 +593,7 @@ c check x derivatives at regl0 - 1 and regh0 + 1:
                endif
             enddo
          enddo
-!$omp end do
 c check z derivatives at regl2 - 1 and regh2 + 1
-!$omp do
          do j = regl1 - 1, regh1 + 1
             do i = regl0, regh0
                k = regl2
@@ -616,8 +606,6 @@ c check z derivatives at regl2 - 1 and regh2 + 1
                endif
             enddo
          enddo
-!$omp end do
-!$omp do
          do k = regl2, regh2
             do i = regl0, regh0
 c check x derivatives at regl1 - 1 and regh1 + 1:
@@ -688,11 +676,9 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       else
 c z faces:
 c x and y derivatives:
-!$omp do
          do k = regl2 - 1, regh2 + 1
             do j = regl1, regh1
                do i = regl0, regh0
@@ -721,8 +707,6 @@ c check y derivatives at regl1 - 1 and regh1 + 1:
                endif
             enddo
          enddo
-!$omp end do
-!$omp do
          do j = regl1, regh1
             do i = regl0, regh0
 c check x derivatives at regl2 - 1 and regh2 + 1:
@@ -755,9 +739,7 @@ c (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 c z derivatives, gradient assembly:
-!$omp do
          do k = regl2, regh2 + 1
             do j = regl1, regh1
                do i = regl0, regh0
@@ -769,8 +751,6 @@ c z derivatives, gradient assembly:
                enddo
             enddo
          enddo
-!$omp end do
-!$omp do
          do j = regl1, regh1
             do i = regl0, regh0
                k = regl2
@@ -791,9 +771,7 @@ c z derivatives, gradient assembly:
                endif
             enddo
          enddo
-!$omp end do
 c construct coefficients:
-!$omp do
          do k = regl2, regh2 + 1
             do j = regl1, regh1
                do i = regl0, regh0
@@ -805,9 +783,7 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       endif
-!$omp end parallel
       end
 
       subroutine bclim3(b,
@@ -1175,9 +1151,7 @@ c construct coefficients:
       real*8 kavg
       integer i, j, k
       real*8 kap
-!$omp parallel private(i,j,k,kap)
       if (n .eq. 0) then
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
                do i = regl0, regh0 + 1
@@ -1186,9 +1160,7 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       else if (n .eq. 1) then
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1 + 1
                do i = regl0, regh0
@@ -1197,9 +1169,7 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       else 
-!$omp do
          do k = regl2, regh2 + 1
             do j = regl1, regh1 
                do i = regl0, regh0
@@ -1208,9 +1178,7 @@ c construct coefficients:
                enddo
             enddo
          enddo
-!$omp end do
       endif
-!$omp end parallel
       end
 
       subroutine flxlim(lambda,
@@ -1228,7 +1196,6 @@ c construct coefficients:
       dir(1) = 0
       dir(2) = 0
       dir(n) = 1
-!$omp parallel do private(i,j,k,r)
       do k = regl2, regh2 + dir(2)
          do j = regl1, regh1 + dir(1)
             do i = regl0, regh0 + dir(0)
@@ -1237,7 +1204,6 @@ c construct coefficients:
             enddo
          enddo
       enddo
-!$omp end parallel do
       end
 
       subroutine eddfac(efact,
@@ -1255,7 +1221,6 @@ c construct coefficients:
       dir(1) = 0
       dir(2) = 0
       dir(n) = 1
-!$omp parallel do private(i,j,k,r,lambda)
       do k = regl2, regh2 + dir(2)
          do j = regl1, regh1 + dir(1)
             do i = regl0, regh0 + dir(0)
@@ -1265,7 +1230,6 @@ c construct coefficients:
             enddo
          enddo
       enddo
-!$omp end parallel do
       end
 
       subroutine scgrd1(r,
@@ -1388,10 +1352,8 @@ c construct coefficients:
       real*8 kavg
       integer i, j, k
       real*8 kap
-!$omp parallel private(i,j,k,kap)
       if (n .eq. 0) then
 c     y & z derivatives:
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
                do i = regl0 - 1, regh0 + 1
@@ -1400,10 +1362,8 @@ c     y & z derivatives:
                enddo
             enddo
          enddo                  
-!$omp end do nowait
 
 c     check y derivatives
-!$omp do
          do k = regl2, regh2
             do i = regl0 - 1, regh0 + 1
                j = regl1
@@ -1431,10 +1391,8 @@ c     (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
                endif
             enddo
          enddo                  
-!$omp end do
 
 c     check z derivatives
-!$omp do
          do j = regl1, regh1
             do i = regl0-1, regh0 + 1
                k = regl2
@@ -1447,8 +1405,6 @@ c     check z derivatives
                endif
             enddo
          enddo
-!$omp end do
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
                i = regl0 - 1
@@ -1466,9 +1422,7 @@ c     (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 c     x derivatives 
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1
                do i = regl0, regh0 + 1
@@ -1498,10 +1452,8 @@ c     construct scaled gradient
                enddo
             enddo
          enddo
-!$omp end do
       else if (n .eq. 1) then
 c     x & z derivatives:
-!$omp do
          do k = regl2, regh2
             do j = regl1-1, regh1+1
                do i = regl0, regh0
@@ -1510,10 +1462,8 @@ c     x & z derivatives:
                enddo
             enddo
          enddo
-!$omp end do nowait
 
 c     check x derivatives
-!$omp do
          do k = regl2, regh2
             do j = regl1-1, regh1+1
                i = regl0
@@ -1541,10 +1491,8 @@ c     (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 
 c     check z derivatives
-!$omp do
          do j = regl1-1, regh1+1
             do i = regl0, regh0
                k = regl2
@@ -1557,8 +1505,6 @@ c     check z derivatives
                endif               
             enddo
          enddo
-!$omp end do
-!$omp do
          do k = regl2, regh2
             do i = regl0, regh0
                j = regl1-1
@@ -1576,10 +1522,8 @@ c     (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 
 c     y derivatives 
-!$omp do
          do k = regl2, regh2
             do j = regl1, regh1 + 1
                do i = regl0, regh0
@@ -1613,10 +1557,8 @@ c     construct scaled gradient
                enddo
             enddo
          enddo
-!$omp end do
       else
 c     x & y derivatives
-!$omp do
          do k = regl2-1, regh2+1
             do j = regl1, regh1
                do i = regl0, regh0
@@ -1625,10 +1567,8 @@ c     x & y derivatives
                enddo
             enddo
          enddo                  
-!$omp end do nowait
 
 c     check x derivatives
-!$omp do
          do k = regl2-1, regh2+1
             do j = regl1, regh1
                i = regl0
@@ -1641,8 +1581,6 @@ c     check x derivatives
                endif
             enddo
          enddo     
-!$omp end do
-!$omp do
          do j = regl1, regh1
             do i = regl0, regh0
                k = regl2 - 1
@@ -1660,10 +1598,8 @@ c     (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 
 c     check y derivative
-!$omp do
          do k = regl2-1, regh2+1
             do i = regl0, regh0
                j = regl1
@@ -1676,8 +1612,6 @@ c     check y derivative
                endif
             enddo
          enddo
-!$omp end do
-!$omp do
          do j = regl1, regh1
             do i = regl0, regh0
                k = regl2 - 1
@@ -1695,10 +1629,8 @@ c     (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
                endif
             enddo
          enddo
-!$omp end do
 
 c z derivatives
-!$omp do
          do k = regl2, regh2+1
             do j = regl1, regh1
                do i = regl0, regh0 
@@ -1710,8 +1642,7 @@ c z derivatives
                enddo
             enddo
          enddo
-!$omp end do
-!$omp do
+
          do j = regl1, regh1
             do i = regl0, regh0 
                k = regl2
@@ -1728,10 +1659,8 @@ c z derivatives
                endif
             enddo
          enddo
-!$omp end do
 
 c     gradient assembly
-!$omp do
          do k = regl2, regh2+1
             do j = regl1, regh1
                do i = regl0, regh0 
@@ -1741,9 +1670,7 @@ c     gradient assembly
                enddo
             enddo
          enddo
-!$omp end do
       endif
-!$omp end parallel
       end
 
       subroutine scgrd3(r,
@@ -1791,7 +1718,6 @@ c     gradient assembly
       integer i, j, k
       real*8 dtm, ek, bs, es, ekt
       dtm = 1.d0 / dt
-!$omp parallel do private(i,j,k,ek,bs,es,ekt)
       do k = regl2, regh2
          do j = regl1, regh1
             do i = regl0, regh0
@@ -1808,7 +1734,6 @@ c     gradient assembly
             enddo
          enddo
       enddo
-!$omp end parallel do
       end
 
       subroutine anatw2(test,
@@ -1955,7 +1880,6 @@ c exch contains temp on input:
       real*8 fkp(dimv(reg))
       real*8 sigma, c
       integer i, j, k
-!$omp parallel do private(i,j,k)
       do k = regl2, regh2
          do j = regl1, regh1
             do i = regl0, regh0
@@ -1965,7 +1889,6 @@ c exch contains temp on input:
             enddo
          enddo
       enddo
-!$omp end parallel do
       end
 
       subroutine extrp1(frhoes,
@@ -2511,7 +2434,6 @@ c *********************************
 
       integer i, j, k
 
-!$omp parallel do private(i,j,k)
       do k = regl2, regh2
       do j = regl1, regh1
       do i = regl0, regh0
@@ -2519,7 +2441,6 @@ c *********************************
       enddo
       enddo
       enddo
-!$omp end parallel do
 
       end
 
