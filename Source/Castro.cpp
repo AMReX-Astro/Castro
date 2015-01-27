@@ -403,6 +403,7 @@ Castro::read_params ()
     pp.query("cg_tol",cg_tol);
     pp.query("use_pslope",use_pslope);
     pp.query("grav_source_type",grav_source_type);
+    pp.query("rot_source_type",rot_source_type);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
 
