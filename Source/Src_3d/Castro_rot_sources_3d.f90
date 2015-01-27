@@ -96,12 +96,29 @@ contains
              uout(i,j,k,UMY) = uout(i,j,k,UMY) + SrV * dt
              uout(i,j,k,UMZ) = uout(i,j,k,UMZ) + SrW * dt
 
-             ! kinetic energy source: this is v . the momentum
-             ! force -- note that the Coriolis term drops out
+             ! Kinetic energy source: this is v . the momentum source.
+             ! We don't apply in the case of the conservative energy
+             ! formulation.
 
-             SrE = dot_product(v, Sr)
+             if (rot_source_type == 1 .or. rot_source_type == 2) then
 
-             uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + SrE * dt
+               SrE = dot_product(v, Sr)
+
+               uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + SrE * dt
+
+             else if (rot_source_type .eq. 3) then
+
+                new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+                                  uout(i,j,k,URHO) 
+                uout(i,j,k,UEDEN) = old_rhoeint + new_ke
+
+             else if (rot_source_type .eq. 4) then
+
+                ! Do nothing here, for the conservative gravity option.
+
+             else 
+                call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+             end if
 
              ! **** Start Diagnostics ****
              new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
@@ -247,7 +264,7 @@ end module rot_sources_module
              unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
              unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
 
-             if (rot_source_type .eq. 1) then
+             if (rot_source_type == 1) then
 
                ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
 
@@ -256,7 +273,7 @@ end module rot_sources_module
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
 
-             else if (rot_source_type .eq. 2) then
+             else if (rot_source_type == 2) then
 
                 ! For this source type, we first update the momenta
                 ! before we calculate the energy source term.
@@ -274,7 +291,7 @@ end module rot_sources_module
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
 
-             else if (rot_source_type .eq. 3) then
+             else if (rot_source_type == 3) then
 
                 ! Instead of calculating the energy source term explicitly,
                 ! we simply set the total energy equal to the old internal
@@ -285,7 +302,13 @@ end module rot_sources_module
 
                  unew(i,j,k,UEDEN) = old_rhoeint + new_ke
 
-             endif
+             else if (rot_source_type == 4) then
+
+                ! Fill this in with the conservative energy formulation.
+
+             else 
+                call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+             end if
 
              ! **** Start Diagnostics ****
              ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
