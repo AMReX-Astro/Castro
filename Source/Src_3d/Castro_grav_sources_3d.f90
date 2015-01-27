@@ -148,9 +148,6 @@ end module grav_sources_module
       integer unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
       integer pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3
       integer pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3
-      integer ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
-      integer ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
-      integer ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
       integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
       integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
       integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3

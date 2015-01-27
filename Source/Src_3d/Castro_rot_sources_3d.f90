@@ -29,7 +29,7 @@ contains
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
     double precision :: v(3),omega(3)
-    double precision :: omegadotr,omegacrossr(3),omegacrossv(3),omega2
+    double precision :: omegadotr,omegacrossr(3),omegacrossv(3)
 
     if (coord_type == 0) then
        ! If rot_period is zero, that means rotation is disabled, and so we should effectively
@@ -44,8 +44,6 @@ contains
        call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
     endif
 
-    omega2 = dot_product(omega,omega)
-    
     do k = lo(3)-1, hi(3)+1
        z = zmin + dx(3)*(float(k)+HALF) - center(3)
        do j = lo(2)-1, hi(2)+1
@@ -203,6 +201,8 @@ contains
   end subroutine add_rot_source
 
   function cross_product(x,y) result(r)
+
+    implicit none
 
     double precision :: x(3), y(3)
     double precision :: r(3)
