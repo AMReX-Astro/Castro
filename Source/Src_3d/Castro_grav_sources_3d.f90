@@ -132,7 +132,7 @@ end module grav_sources_module
                              flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                              flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                              flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                             dx,dt,E_added,E_added_fluxes,xmom_added,ymom_added,zmom_added)
+                             dx,dt,E_added,xmom_added,ymom_added,zmom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, grav_source_type
       use bl_constants_module
@@ -165,7 +165,7 @@ end module grav_sources_module
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
       double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-      double precision  dx(3),dt,E_added,E_added_fluxes
+      double precision  dx(3),dt,E_added
 
       integer i,j,k
 

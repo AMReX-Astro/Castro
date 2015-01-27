@@ -279,12 +279,16 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const Real& eden,
      const Real& E_added_flux,
      const Real& E_added_grav,
+     const Real& E_added_rot,
      const Real& xmom_added_flux,
      const Real& ymom_added_flux,
      const Real& zmom_added_flux,
      const Real& xmom_added_grav,
      const Real& ymom_added_grav,
-     const Real& zmom_added_grav);
+     const Real& zmom_added_grav,
+     const Real& xmom_added_rot,
+     const Real& ymom_added_rot,
+     const Real& zmom_added_rot);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -338,7 +342,7 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      BL_FORT_FAB_ARG(xflux),
      BL_FORT_FAB_ARG(yflux),
      BL_FORT_FAB_ARG(zflux),
-     const Real dx[], const Real& dt, const Real& E_added, const Real& E_added_fluxes,
+     const Real dx[], const Real& dt, const Real& E_added,
      const Real& xmom_added, const Real& ymom_added, const Real& zmom_added);
 
 BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)

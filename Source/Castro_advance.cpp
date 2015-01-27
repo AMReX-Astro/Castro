@@ -573,6 +573,7 @@ Castro::advance_hydro (Real time,
       
       Real E_added_grav = 0.;
       Real E_added_flux = 0.;
+      Real E_added_rot = 0.;
       Real mass_added = 0.;
       Real eint_added = 0.;
       Real eden_added = 0.;
@@ -582,6 +583,9 @@ Castro::advance_hydro (Real time,
       Real xmom_added_grav = 0.;
       Real ymom_added_grav = 0.;
       Real zmom_added_grav = 0.;
+      Real xmom_added_rot  = 0.;
+      Real ymom_added_rot  = 0.;
+      Real zmom_added_rot  = 0.;
 
       for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
 				 time, State_Type, 0, NUM_STATE);
@@ -657,9 +661,10 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(grid_volume), 
 	     &cflLoc, verbose, 
 	     mass_added, eint_added, eden_added, 
-	     E_added_flux, E_added_grav, 
+	     E_added_flux, E_added_grav, E_added_rot,
 	     xmom_added_flux, ymom_added_flux, zmom_added_flux,
-	     xmom_added_grav, ymom_added_grav, zmom_added_grav);
+	     xmom_added_grav, ymom_added_grav, zmom_added_grav,
+	     xmom_added_rot,  ymom_added_rot,  zmom_added_rot);
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
           // Since we need the fluxes for the conservative gravity, we'll copy them
@@ -692,10 +697,12 @@ Castro::advance_hydro (Real time,
         if (print_energy_diagnostics)
         {
            const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-	   Real foo[11] = {mass_added, eint_added, eden_added, E_added_flux, E_added_grav, 
-			  xmom_added_flux, ymom_added_flux, zmom_added_flux,
-	                  xmom_added_grav, ymom_added_grav, zmom_added_grav};
-	   ParallelDescriptor::ReduceRealSum(foo, 11, ParallelDescriptor::IOProcessorNumber());
+	   Real foo[15] = {mass_added, eint_added, eden_added, 
+			   E_added_flux, E_added_grav, E_added_rot,
+			   xmom_added_flux, ymom_added_flux, zmom_added_flux,
+	                   xmom_added_grav, ymom_added_grav, zmom_added_grav,
+	                   xmom_added_rot,  ymom_added_rot,  zmom_added_rot};
+	   ParallelDescriptor::ReduceRealSum(foo, 15, ParallelDescriptor::IOProcessorNumber());
            if (ParallelDescriptor::IOProcessor()) 
            {
 	       mass_added = foo[0];
@@ -703,12 +710,16 @@ Castro::advance_hydro (Real time,
 	       eden_added = foo[2];
 	       E_added_flux = foo[3];
 	       E_added_grav = foo[4];
-	       xmom_added_flux = foo[5];
-	       ymom_added_flux = foo[6];
-	       zmom_added_flux = foo[7];
-	       xmom_added_grav = foo[8];
-	       ymom_added_grav = foo[9];
-	       zmom_added_grav = foo[10];
+	       E_added_rot  = foo[5];
+	       xmom_added_flux = foo[6];
+	       ymom_added_flux = foo[7];
+	       zmom_added_flux = foo[8];
+	       xmom_added_grav = foo[9];
+	       ymom_added_grav = foo[10];
+	       zmom_added_grav = foo[11];
+	       xmom_added_rot  = foo[12];
+	       ymom_added_rot  = foo[13];
+	       zmom_added_rot  = foo[14];
                if (std::abs(mass_added) != 0)
                {
                   std::cout << "   Mass added from negative density correction : " << 
@@ -740,6 +751,19 @@ Castro::advance_hydro (Real time,
                                 ymom_added_grav*cell_vol << std::endl;
                   std::cout << "zmom added from grav. source terms             : " << 
                                 zmom_added_grav*cell_vol << std::endl;
+	       }
+#endif
+#ifdef ROTATION
+               if (do_rotation && print_energy_diagnostics) 
+	       {	 
+                  std::cout << "(rho E) added from rot. source terms          : " << 
+                                E_added_rot*cell_vol << std::endl;
+		  std::cout << "xmom added from rot. source terms             : " << 
+		                xmom_added_rot*cell_vol << std::endl;
+                  std::cout << "ymom added from rot. source terms             : " << 
+                                ymom_added_rot*cell_vol << std::endl;
+                  std::cout << "zmom added from rot. source terms             : " << 
+                                zmom_added_rot*cell_vol << std::endl;
 	       }
 #endif
            }
@@ -1038,7 +1062,6 @@ Castro::advance_hydro (Real time,
 	    const Box& bx = mfi.tilebox();
 	
 	    Real E_added_local = 0.0;
-	    Real E_added_fluxes_local = 0.0;
 	    Real xmom_added_local = 0.0;
 	    Real ymom_added_local = 0.0;
 	    Real zmom_added_local = 0.0;
@@ -1053,7 +1076,7 @@ Castro::advance_hydro (Real time,
 	       BL_TO_FORTRAN(fluxes[0][mfi]),
 	       BL_TO_FORTRAN(fluxes[1][mfi]),
 	       BL_TO_FORTRAN(fluxes[2][mfi]),
-	       dx,dt,E_added_local,E_added_fluxes_local,
+	       dx,dt,E_added_local,
 	       xmom_added_local,ymom_added_local,zmom_added_local);
 
  	    if (print_energy_diagnostics) {

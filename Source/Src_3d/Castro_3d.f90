@@ -19,9 +19,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
-                    E_added_flux,E_added_grav,&
+                    E_added_flux,E_added_grav,E_added_rot,&
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    xmom_added_grav,ymom_added_grav,zmom_added_grav)
+                    xmom_added_grav,ymom_added_grav,zmom_added_grav,&
+                    xmom_added_rot,ymom_added_rot,zmom_added_rot)
 
   use meth_params_module, only : NVAR
   use threadbox_module, only : build_threadbox_3d, get_lo_hi
@@ -63,10 +64,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot
   double precision mass_added,eint_added,eden_added
   double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
+  double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
 
   integer, parameter :: xblksize=2048, yblksize=2048, zblksize=2048
   integer, parameter :: blocksize_min = 4
@@ -170,9 +172,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
           area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
           vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
           courno,verbose,mass_added,eint_added,eden_added,&
-          E_added_flux,E_added_grav,&
+          E_added_flux,E_added_grav,E_added_rot,&
           xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-          xmom_added_grav,ymom_added_grav,zmom_added_grav)
+          xmom_added_grav,ymom_added_grav,zmom_added_grav,&
+          xmom_added_rot,ymom_added_rot,zmom_added_rot)
      
      ! Note that fluxes are on faces.  To avoid race conditions, ...
      if (thi(1) .ne. hi(1)) fxhi(1) = fxhi(1) - 1
@@ -258,9 +261,10 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
-                    E_added_flux,E_added_grav,&
+                    E_added_flux,E_added_grav,E_added_rot,&
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    xmom_added_grav,ymom_added_grav,zmom_added_grav)
+                    xmom_added_grav,ymom_added_grav,zmom_added_grav,&
+                    xmom_added_rot,ymom_added_rot,zmom_added_rot)
 
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                  normalize_species
@@ -306,10 +310,11 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot
   double precision mass_added,eint_added,eden_added
   double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
+  double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
 
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:,:)
@@ -420,8 +425,8 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                      lo,hi,(/dx,dy,dz/),dt,E_added_grav, &
-                      xmom_added_grav,ymom_added_grav,zmom_added_grav)
+                      lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
+                      xmom_added_rot,ymom_added_rot,zmom_added_rot)
   
   ! Impose sponge
   if (do_sponge .eq. 1) then

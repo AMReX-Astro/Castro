@@ -34,6 +34,8 @@ contains
     double precision :: dens
     double precision :: omegadotr,omegacrossr(3),omegacrossv(3),omega2
 
+    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
+    double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
     if (coord_type == 0) then
@@ -57,6 +59,16 @@ contains
           y = ymin + dx(2)*(float(j)+HALF) - center(2)
           do i = lo(1), hi(1)
              x = xmin + dx(1)*(float(i)+HALF) - center(1)
+
+             ! **** Start Diagnostics ****
+             old_re = uout(i,j,k,UEDEN)
+             old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+                               uout(i,j,k,URHO) 
+             old_rhoeint = uout(i,j,k,UEDEN) - old_ke
+             old_xmom = uout(i,j,k,UMX)
+             old_ymom = uout(i,j,k,UMY)
+             old_zmom = uout(i,j,k,UMZ)
+             ! ****   End Diagnostics ****
 
              r = (/ x, y, z /)
 
@@ -90,6 +102,19 @@ contains
              SrE = dot_product(v, Sr)
 
              uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + SrE * dt
+
+             ! **** Start Diagnostics ****
+             new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
+                               uout(i,j,k,URHO) 
+
+             new_rhoeint = uout(i,j,k,UEDEN) - new_ke
+ 
+             E_added =  E_added + uout(i,j,k,UEDEN) - old_re
+
+             xmom_added = xmom_added + uout(i,j,k,UMX) - old_xmom
+             ymom_added = ymom_added + uout(i,j,k,UMY) - old_ymom
+             zmom_added = zmom_added + uout(i,j,k,UMZ) - old_zmom
+             ! ****   End Diagnostics ****
 
           enddo
        enddo
@@ -142,6 +167,8 @@ end module rot_sources_module
     double precision :: omegadotr,omegacrossr(3),omega2
     double precision :: omegacrossvold(3),omegacrossvnew(3)
 
+    double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
+    double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
     if (coord_type == 0) then
@@ -165,6 +192,16 @@ end module rot_sources_module
           y = ymin + dx(2)*(float(j)+HALF) - center(2)
           do i = lo(1), hi(1)
              x = xmin + dx(1)*(float(i)+HALF) - center(1)
+
+             ! **** Start Diagnostics ****
+             old_re = unew(i,j,k,UEDEN)
+             old_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+                               unew(i,j,k,URHO) 
+             old_rhoeint = unew(i,j,k,UEDEN) - old_ke
+             old_xmom = unew(i,j,k,UMX)
+             old_ymom = unew(i,j,k,UMY)
+             old_zmom = unew(i,j,k,UMZ)
+             ! ****   End Diagnostics ****
 
              r = (/ x, y, z /)
 
@@ -213,6 +250,17 @@ end module rot_sources_module
              SrEcorr = HALF * (SrE_new - SrE_old)
 
              unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
+
+             ! **** Start Diagnostics ****
+             ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
+             new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
+                               unew(i,j,k,URHO) 
+             new_rhoeint = unew(i,j,k,UEDEN) - new_ke
+             E_added =  E_added + unew(i,j,k,UEDEN) - old_re
+             xmom_added = xmom_added + unew(i,j,k,UMX) - old_xmom
+             ymom_added = ymom_added + unew(i,j,k,UMY) - old_ymom
+             zmom_added = zmom_added + unew(i,j,k,UMZ) - old_zmom
+             ! ****   End Diagnostics ****
 
           enddo
        enddo
