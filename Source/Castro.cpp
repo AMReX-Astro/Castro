@@ -1275,33 +1275,15 @@ Castro::post_timestep (int iteration)
 
 #ifdef RADIATION
     if (do_radiation && (level < finest_level)) {
-      if (Radiation::do_deferred_sync == 1) {
         // computeTemp is not needed before or after this call because
         // setup for deferred sync does not touch state, only flux registers.
         radiation->deferred_sync_setup(level);
 
 	if (do_reflux) {
-	  radiation->reflux(level);
-
-          // Since radiation->reflux does not touch the fluid state,
-          // we do need to recompute Temp here.
+	    radiation->reflux(level);
+	    // Since radiation->reflux does not touch the fluid state,
+	    // we do need to recompute Temp here.
 	}
-      }
-      else {
-
-        radiation->sync_solve(level);
-
-	if (do_reflux) {
-	  radiation->reflux(level);
-	}
-
-        // Rad sync touches these levels, so recompute temp on all of them.
-        for (int lev = level; lev <= finest_level; lev++) {
-          MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-          computeTemp(S_new);
-        }
-
-      }
     }
 #endif
 
