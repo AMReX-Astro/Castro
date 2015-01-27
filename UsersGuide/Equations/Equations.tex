@@ -227,5 +227,17 @@ A number of runtime parameters affect the hydrodynamics behavior.
   procedure on the parabolic coefficients before they are integrated
   to the interface states instead of the default method of flattening
   on the integrals themselves.
+
+\item {\tt use\_flattening} turns on/off the flattening of parabola
+  near shocks.
+
+\item {\tt ppm\_flatten\_before\_integrals} applies the flattening
+  to the parabolas before we integrate over the domain seen by
+  each characteristic wave instead of afterwards.
+
+\item {\tt use\_colglaz} uses the Colella \& Glaz Riemann solver to
+  solve for the `star' state.
+  
+  
 \end{itemize}
 
