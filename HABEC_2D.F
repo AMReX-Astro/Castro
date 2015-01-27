@@ -1600,3 +1600,51 @@ c Top face of grid
          print *, "hmmat3: impossible face orientation"
       endif
       end
+
+      subroutine setabecflux(
+     &     dir,
+     &     density, dims(density),
+     &     dcoef, dims(dcoef),
+     &     beta,
+     &     dx,
+     &     flux, dims(flux))
+
+      integer dimdec(density)
+      integer dimdec(dcoef)
+      integer dimdec(flux)
+
+      real*8 density(dimv(density))
+      real*8 dcoef(dimv(dcoef))
+      real*8 flux(dimv(flux))
+
+      integer dir,i,j
+      real*8 beta, dx(BL_SPACEDIM), fac
+
+
+      if( dir .eq. 0 ) then
+
+c...     x-direction
+
+         fac = - beta / dx(1)
+
+         do j = fluxloi2,fluxhii2
+            do i = fluxloi1,fluxhii1
+               flux(i,j) = dcoef(i,j) * (density(i,j) - density(i-1,j)) * fac
+            end do
+         end do
+
+      else if( dir .eq. 1 ) then
+
+c...     y-direction
+
+         fac = - beta / dx(2)
+
+         do j = fluxloi2,fluxhii2
+            do i = fluxloi1,fluxhii1
+               flux(i,j) = dcoef(i,j) * (density(i,j) - density(i,j-1)) * fac
+            end do
+         end do
+      endif
+
+      return
+      end

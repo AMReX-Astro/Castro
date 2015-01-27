@@ -3,7 +3,7 @@
 #include <AmrLevel.H>
 
 #include <LO_BCTYPES.H>
-#include <CompSolver.H>
+//#include <CompSolver.H>
 
 #include "RadSolve.H"
 #include "Radiation.H"  // for access to static physical constants only
@@ -19,60 +19,29 @@
 Array<Real> RadSolve::absres(0);
 
 RadSolve::RadSolve(Amr* Parent) : parent(Parent),
-  hd(NULL), hm(NULL), solver(NULL)
+  hd(NULL), hm(NULL)
 {
   ParmParse pp("radsolve");
 
   if (BL_SPACEDIM == 1) {
     // pfmg will not work in 1D
-    use_hypre_level              = 1;
-    use_hypre_multilevel         = 0;
-    use_hypre_nonsymmetric_terms = 0;
     level_solver_flag            = 0;
-    multilevel_solver_flag       = 0;
-    pp.query("use_hypre_level",              use_hypre_level);
-    pp.query("use_hypre_multilevel",         use_hypre_multilevel);
-    pp.query("use_hypre_nonsymmetric_terms", use_hypre_nonsymmetric_terms);
-    pp.query("level_solver_flag",            level_solver_flag);
-    pp.query("multilevel_solver_flag",       multilevel_solver_flag);
   }
   else {
-    use_hypre_level              = 1;
-    use_hypre_multilevel         = 0;
-    use_hypre_nonsymmetric_terms = 0;
     level_solver_flag            = 1;
-    multilevel_solver_flag       = 1;
-    pp.query("use_hypre_level",              use_hypre_level);
-    pp.query("use_hypre_multilevel",         use_hypre_multilevel);
-    pp.query("use_hypre_nonsymmetric_terms", use_hypre_nonsymmetric_terms);
-    pp.query("level_solver_flag",            level_solver_flag);
-    pp.query("multilevel_solver_flag",       multilevel_solver_flag);
   }
+  pp.query("level_solver_flag",            level_solver_flag);
 
-  if (!use_hypre_level) {
-    if ( ParallelDescriptor::IOProcessor() ) {
-      cout << "radsolve.use_hypre_level = 1 is currently required" << endl;
-    }
-    exit(0);
-  }
+  use_hypre_nonsymmetric_terms = 0;
+  pp.query("use_hypre_nonsymmetric_terms", use_hypre_nonsymmetric_terms);
 
   if (Radiation::SolverType == Radiation::SGFLDSolver 
       && Radiation::Er_Lorentz_term) { 
 
     use_hypre_nonsymmetric_terms = 1;
 
-    //    static int first = 1;
-    
     if (level_solver_flag < 100) {
       BoxLib::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
-      // int old_flag = level_solver_flag;
-      // level_solver_flag = 109;  // PFMG-preconditioned GMRES
-      // use_hypre_nonsymmetric_terms = 1;
-      // if ( ParallelDescriptor::IOProcessor() && first ) {
-      // 	cout << "To do Lorentz term implicitly level_solver_flag must be >= 100." << endl;
-      // 	cout << "level_solver_flag has been reset from "<<old_flag<<" to "<<level_solver_flag<<endl;
-      // 	first = 0;
-      // }
     }
   }
 
@@ -104,16 +73,6 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
 
   verbose = 0; pp.query("v", verbose); pp.query("verbose", verbose);
 
-  // additional CompSolver parameters
-  use_harmonic_avg   = 1; pp.query("use_harmonic_avg",     use_harmonic_avg);
-  multilevel_version = 1; pp.query("multilevel_version",   multilevel_version);
-  cs_reltol_mult     = 100.0;   pp.query("cs_reltol_mult", cs_reltol_mult);
-  bottomnumiter      = 1;       pp.query("bottomnumiter",  bottomnumiter);
-  bottomtol          = 1.0e-6;  pp.query("bottomtol",      bottomtol);
-  secondtol          = 1.0e-10; pp.query("secondtol",      secondtol);
-  presmooth          = -1;      pp.query("presmooth",      presmooth);
-  postsmooth         = -1;      pp.query("postsmooth",     postsmooth);
-
   {
     // Putting this here is a kludge, but I make the factors static and
     // enter them here for both kinds of solvers so that any solver
@@ -134,29 +93,12 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
   static int first = 1;
   if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
     first = 0;
-    cout << "radsolve.use_hypre_level        = " << use_hypre_level << endl;
     cout << "radsolve.level_solver_flag      = " << level_solver_flag << endl;
-    cout << "radsolve.use_hypre_multilevel   = "
-         << use_hypre_multilevel << endl;
-    cout << "radsolve.multilevel_solver_flag = "
-         << multilevel_solver_flag << endl;
     cout << "radsolve.maxiter                = " << maxiter << endl;
     cout << "radsolve.reltol                 = " << reltol << endl;
     cout << "radsolve.abstol                 = " << abstol << endl;
     cout << "radsolve.use_hypre_nonsymmetric_terms = "
          << use_hypre_nonsymmetric_terms << endl;
-    if (use_hypre_multilevel == 0) {
-      cout << "radsolve.use_harmonic_avg       = " << use_harmonic_avg << endl;
-      cout << "radsolve.multilevel_version     = " << multilevel_version<<endl;
-      cout << "radsolve.cs_reltol_mult         = " << cs_reltol_mult << endl;
-      cout << "radsolve.bottomnumiter          = " << bottomnumiter << endl;
-      cout << "radsolve.bottomtol              = " << bottomtol << endl;
-      cout << "radsolve.secondtol              = " << secondtol << endl;
-      if (presmooth > 0 || postsmooth > 0) {
-        cout << "radsolve.presmooth              = " << presmooth << endl;
-        cout << "radsolve.postsmooth             = " << postsmooth << endl;
-      }
-    }
     cout << "radsolve.verbose                = " << verbose << endl;
   }
 
@@ -172,25 +114,23 @@ void RadSolve::levelInit(int level)
   const BoxArray& grids = parent->boxArray(level);
 //  const Real *dx = parent->Geom(level).CellSize();
 
-  if (use_hypre_level) {
-    if (level_solver_flag < 100) {
+  if (level_solver_flag < 100) {
       hd = new HypreABec(grids, parent->Geom(level), level_solver_flag);
-    }
-    else {
+  }
+  else {
       if (use_hypre_nonsymmetric_terms == 0) {
-        hm = new HypreMultiABec(level, level, level_solver_flag);
+	  hm = new HypreMultiABec(level, level, level_solver_flag);
       }
       else {
-        hm = new HypreExtMultiABec(level, level, level_solver_flag);
-	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-	cMulti  = hem->cMultiplier();
-	d1Multi = hem->d1Multiplier();
-	d2Multi = hem->d2Multiplier();
+	  hm = new HypreExtMultiABec(level, level, level_solver_flag);
+	  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
+	  cMulti  = hem->cMultiplier();
+	  d1Multi = hem->d1Multiplier();
+	  d2Multi = hem->d2Multiplier();
       }
       hm->addLevel(level, parent->Geom(level), grids,
                    IntVect::TheUnitVector());
       hm->buildMatrixStructure();
-    }
   }
 }
 
@@ -266,32 +206,22 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 
 void RadSolve::setLevelACoeffs(int level, const MultiFab& acoefs)
 {
-  if (hd || hm) {
     if (hd) {
-      hd->aCoefficients(acoefs);
+	hd->aCoefficients(acoefs);
     }
     else if (hm) {
-      hm->aCoefficients(level, acoefs);
+	hm->aCoefficients(level, acoefs);
     }
-  }
-  else if (solver) {
-    solver->aCoefficients(level - base, acoefs);
-  }
 }
 
 void RadSolve::setLevelBCoeffs(int level, const MultiFab& bcoefs, int dir)
 {
-  if (hd || hm) {
     if (hd) {
-      hd->bCoefficients(bcoefs, dir);
+	hd->bCoefficients(bcoefs, dir);
     }
     else if (hm) {
-      hm->bCoefficients(level, bcoefs, dir);
+	hm->bCoefficients(level, bcoefs, dir);
     }
-  }
-  else if (solver) {
-    solver->bCoefficients(level - base, bcoefs, dir);
-  }
 }
 
 void RadSolve::setLevelCCoeffs(int level, const MultiFab& ccoefs, int dir)
@@ -302,42 +232,6 @@ void RadSolve::setLevelCCoeffs(int level, const MultiFab& ccoefs, int dir)
       hem->cCoefficients(level, ccoefs, dir);
     }
   }
-}
-
-const MultiFab& RadSolve::getLevelACoeffs(int level)
-{
-  const MultiFab *ap;
-  if (hd || hm) {
-    if (hd) {
-      ap = &hd->aCoefficients();
-    }
-    else if (hm) {
-      ap = &hm->aCoefficients(level);
-    }
-  }
-  else if (solver) {
-    BoxLib::Error("CompSolver can not return coefficients");
-    //ap = &solver->Acoef();
-  }
-  return *ap;
-}
-
-const MultiFab& RadSolve::getLevelBCoeffs(int level, int dir)
-{
-  const MultiFab *bp;
-  if (hd || hm) {
-    if (hd) {
-      bp = &hd->bCoefficients(dir);
-    }
-    else if (hm) {
-      bp = &hm->bCoefficients(level, dir);
-    }
-  }
-  else if (solver) {
-    BoxLib::Error("CompSolver can not return coefficients");
-    //bp = &solver->Bcoef();
-  }
-  return *bp;
 }
 
 void RadSolve::levelACoeffs(int level,
@@ -569,83 +463,12 @@ void RadSolve::levelBCoeffs(int level,
                  r.dataPtr(), s.dataPtr(), c, dx);
     }
 
-    if (hd || hm) {
-      if (hd) {
+    if (hd) {
 	hd->bCoefficients(bcoefs, idim);
-      }
-      else if (hm) {
+    }
+    else if (hm) {
 	hm->bCoefficients(level, bcoefs, idim);
-      }
     }
-    else if (solver) {
-      solver->bCoefficients(level - base, bcoefs, idim);
-    }
-
-  } // -->> over dimension
-}
-
-void RadSolve::levelBCoeffs(int level,
-                            MultiFab& kappa_r, int kcomp,
-                            MultiFab& Er, int igroup,
-                            Real c, int limiter)
-{
-  BL_PROFILE("RadSolve::levelBCoeffs");
-  const BoxArray& grids = parent->boxArray(level);
-
-  BL_ASSERT(kappa_r.nGrow() == 1);
-
-  int idim;
-
-  MultiFab Erborder;
-  if (limiter > 0) {
-    Erborder.define(grids,1,1,Fab_allocate);
-    for (MFIter mfi(Erborder); mfi.isValid(); ++mfi) {
-      Erborder[mfi].setVal(-1.0);
-      Erborder[mfi].copy(Er[mfi], igroup, 0, 1);
-    }
-    // Values in ghost cells are set to -1, indicating that one-sided
-    // differences should be used in computing the gradient term for
-    // the flux limiter.  In order to make the solution independent
-    // of the grid layout, we now go back and overwrite values in
-    // those cells bordering grids at the same level:
-
-    Erborder.FillBoundary();
-
-    if (parent->Geom(level).isAnyPeriodic()) {
-      parent->Geom(level).FillPeriodicBoundary(Erborder, true);
-    }
-  }
-
-  // Allocate space for ABecLapacian coeffs, fill with values
-
-  int Ncomp  = 1;
-  int Nghost = 0;
-
-  Array<Real> q, r, s;
-
-  for (idim = 0; idim < BL_SPACEDIM; idim++) {
-
-    BoxArray bsC(grids);
-    MultiFab bcoefs(bsC.surroundingNodes(idim), Ncomp, Nghost, Fab_allocate);
-
-    computeBCoeffs(bcoefs, idim, kappa_r, kcomp, Erborder, 0,
-                   c, limiter, parent->Geom(level));
-
-    // this routine is called for both level and multilevel solves,
-    // so we must install coefs in the right place:
-
-    if (hd || hm) {
-      if (hd) {
-	hd->bCoefficients(bcoefs, idim);
-      }
-      else if (hm) {
-	hm->bCoefficients(level, bcoefs, idim);
-      }
-    }
-    else if (solver) {
-      solver->bCoefficients(level - base, bcoefs, idim);
-    }
-
   } // -->> over dimension
 }
 
@@ -1171,475 +994,6 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
        BL_TO_FORTRAN(Dterm[fi]));
   }
 }
-
-void RadSolve::multilevelInit(int crse_level, int fine_level,
-                              const BCRec& rad_bc, Real time)
-{
-  BL_PROFILE("RadSolve::multilevelInit");
-
-  if (use_hypre_multilevel == 1) {
-    RadBndry::setTime(time);
-
-    if (use_hypre_nonsymmetric_terms == 0) {
-      hm = new HypreMultiABec(crse_level, fine_level,
-                              multilevel_solver_flag);
-    }
-    else {
-      hm = new HypreExtMultiABec(crse_level, fine_level,
-                                 multilevel_solver_flag);
-    }
-
-    // add grids in reverse order in case we are masking covered part of coarse
-    for (int level = fine_level; level >= crse_level; level--) {
-      IntVect ratio = ((level < fine_level) ? parent->refRatio(level)
-                       : IntVect::TheUnitVector());
-      hm->addLevel(level, parent->Geom(level),
-                   parent->boxArray(level), ratio);
-    }
-    for (int level = crse_level; level <= fine_level; level++) {
-      RadBndry *bdp = new RadBndry(parent->boxArray(level),
-                                   parent->Geom(level));
-      if (level > crse_level) {
-        IntVect rat =  parent->refRatio(level-1);
-        bdp->setBndryConds(rad_bc, parent->Geom(level), rat);
-        bdp->setBndryFluxConds(rad_bc);
-      }
-      hm->setBndry(level, *bdp);
-    }
-    hm->buildMatrixStructure();
-    hm->setScalars(alpha, beta);
-
-    return;
-  }
-
-  int use_hypre = 1; // this is only option currently supported
-  solver = new CompSolver(use_hypre, multilevel_solver_flag,
-			  use_harmonic_avg, multilevel_version);
-
-  bbld = new RadBndryBld;
-
-  solver->SetBndryConds(bbld, rad_bc);
-  RadBndry::setTime(time);
-
-  base   = crse_level;
-  finest = fine_level;
-
-  for (int level = crse_level; level <= fine_level; level++) {
-    IntVect ratio = (level == 0) ? IntVect::TheUnitVector()
-                                 : parent->refRatio(level-1);
-    solver->AddLevel(level - base, parent->Geom(level),
-		     parent->boxArray(level), ratio);
-  }
-
-  solver->SetScalars(alpha, beta);
-}
-
-void RadSolve::multilevelClear()
-{
-  if (use_hypre_multilevel == 1) {
-    for (int level = hm->crseLevel(); level <= hm->fineLevel(); level++) {
-      hm->bndryClear(level);
-    }
-    delete hm;
-    hm = NULL;
-  }
-  else {
-    delete solver;
-    solver = NULL;
-    delete bbld;
-  }
-}
-
-RadBndry& RadSolve::multilevelCrseBndryData()
-{
-  if (use_hypre_multilevel == 1) {
-    return (RadBndry&)hm->bndryData(hm->crseLevel());
-  }
-  else {
-    return *(RadBndry*)solver->GetCrseBndryData();
-  }
-}
-
-void RadSolve::multilevelACoeffs(int level, MultiFab& fkp, Real c)
-{
-  BL_PROFILE("RadSolve::multilevelACoeffs");
-  const BoxArray& grids = parent->boxArray(level);
-
-  // Allocate space for ABecLapacian acoeffs, fill with values
-
-  int Ncomp  = 1;
-  int Nghost = 0;
-
-  Array<Real> r, s;
-
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
-
-  for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& abox = acoefs[mfi].box();
-    const Box& reg  = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
-    FORT_MACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[mfi].dataPtr(), r.dataPtr(), s.dataPtr(), c);
-  }
-
-  if (use_hypre_multilevel == 1) {
-    hm->aCoefficients(level, acoefs);
-  }
-  else {
-    solver->aCoefficients(level - base, acoefs);
-  }
-}
-
-void RadSolve::multilevelRhs(int level, MultiFab& temp,
-                             MultiFab& fkp, MultiFab& Ert, Real sigma)
-{
-  BL_PROFILE("RadSolve::multilevelRhs");
-  int i;
-  const BoxArray& grids = parent->boxArray(level);
-
-  int Ncomp  = 1;
-  int Nghost = 0;
-
-  Array<Real> r, s;
-
-  MultiFab rhs(grids, Ncomp, Nghost, Fab_allocate);
-
-  for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
-    i = mfi.index();
-    const Box &rbox = rhs[mfi].box();
-    const Box &reg  = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
-    FORT_MRHS(rhs[mfi].dataPtr(), dimlist(rbox), dimlist(reg),
-	      temp[mfi].dataPtr(), fkp[mfi].dataPtr(),
-	      Ert[mfi].dataPtr(), r.dataPtr(), s.dataPtr(),
-	      sigma);
-  }
-
-  if (use_hypre_multilevel == 1) {
-    hm->loadLevelVectorB(level, rhs, Inhomogeneous_BC);
-  }
-  else {
-    solver->SetRhs(level - base, rhs);
-  }
-}
-
-void RadSolve::multilevelGuess(int level, MultiFab& guess)
-{
-  if (use_hypre_multilevel == 1) {
-    hm->loadLevelVectorX(level, guess, 0);
-  }
-  else {
-    solver->SetInitialGuess(level - base, guess);
-  }
-}
-
-void RadSolve::multilevelSolve(int crse_level,
-                               int fine_active_level,
-                               int is_sync)
-{
-  BL_PROFILE("RadSolve::multilevelSolve");
-
-  if (use_hypre_multilevel == 1) {
-
-    // Hypre multilevel solver in normal operation:
-
-    hm->loadMatrix();
-    hm->finalizeMatrix();
-    hm->finalizeVectors();
-    if (is_sync) {
-      Real abstoltmp = 0.0;
-      for (int lev = crse_level; lev <= fine_active_level; lev++) {
-        abstoltmp = (abstoltmp > absres[lev]) ? abstoltmp : absres[lev];
-        if (crse_level == 0)
-          absres[lev] = 0.0;
-      }
-      if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-        int oldprec = cout.precision(20);
-        cout << "Using absolute tolerance = " << abstoltmp << endl;
-        cout.precision(oldprec);
-      }
-
-      BL_ASSERT(crse_level == hm->crseLevel());
-      // We assert this because it is all that is currently supported:
-      BL_ASSERT(fine_active_level == hm->fineLevel());
-
-      hm->setupSolver(reltol, abstoltmp, maxiter);
-    }
-    else {
-
-      // The intent is that with hypre the "secondary solver"
-      // business will not be necessary, so this should just work.
-
-      hm->setupSolver(reltol, abstol, maxiter);
-    }
-
-    hm->setVerbose(verbose);
-    hm->solve();
-    hm->clearSolver();
-    return;
-  }
-
-  // We're not using hypre multilevel, so use CompSolver:
-
-  Real BottomTol    = bottomtol;
-  int BottomMaxIter = maxiter;
-  int BottomNumIter = bottomnumiter;
-
-  if (finest == crse_level || fine_active_level == crse_level)
-    BottomTol = reltol;
-
-  solver->SetBottomParams(BottomTol, BottomMaxIter, BottomNumIter);
-
-  int cycle_type = 1;    // 1 = V-cycle, 2 = W-cycle
-  // these two now set in inputs file:
-  //int presmooth = 1;     // smoothing sweeps before coarse correction
-  //int postsmooth = 1;    // smoothing sweeps after coarse correction
-  int interp_order = 0;  // 0 = pw-constant, 1 = pw-BL_SPACEDIM-linear
-  int restrict_order = 0;// 0 = pw-constant, 1 = pw-BL_SPACEDIM-linear
-  solver->SetParms(cycle_type, presmooth, postsmooth,
-		   interp_order, restrict_order);
-
-  BL_ASSERT(crse_level >= base);
-
-  if (is_sync) {
-    Real abstoltmp = 0.0;
-    for (int lev = crse_level; lev <= fine_active_level; lev++) {
-      abstoltmp = (abstoltmp > absres[lev]) ? abstoltmp : absres[lev];
-      if (crse_level == 0)
-	absres[lev] = 0.0;
-    }
-
-    if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(20);
-      cout << "Using absolute tolerance = " << abstoltmp << endl;
-      cout.precision(oldprec);
-    }
-
-    // This is the original tolerance used in the sync for years:
-    //solver->Solve(reltol, 0.0, maxiter, verbose,
-    //              crse_level - base, fine_active_level - base);
-
-    // Pure abstol version, usually faster, in some cases too restrictive
-    //solver->Solve(0.0, abstoltmp, maxiter, verbose,
-    //		  crse_level - base, fine_active_level - base);
-
-    // Compromise version, less restrictive (faster) than either of the above
-    solver->Solve(cs_reltol_mult * reltol, abstoltmp, maxiter, verbose,
-                  crse_level - base, fine_active_level - base);
-  }
-  else {
-    solver->BuildSecondarySolvers(crse_level - base,
-				  fine_active_level - base);
-    solver->Solve(cs_reltol_mult * reltol, abstol, maxiter, verbose,
-		  crse_level - base, fine_active_level - base);
-    solver->SecondarySolve(secondtol, maxiter, verbose,
-			   crse_level - base, fine_active_level - base);
-  }
-}
-
-void RadSolve::multilevelSolution(int level, MultiFab& solution)
-{
-  BL_PROFILE("RadSolve::multilevelSolution");
-  if (use_hypre_multilevel == 1) {
-    hm->getSolution(level, solution, 0);
-  }
-  else {
-    solver->GetSolution(level - base, solution);
-  }
-}
-
-void RadSolve::multilevelFineCorrection(int level, MultiFab& diff)
-{
-  BL_PROFILE("RadSolve::multilevelCorrection");
-  if (use_hypre_multilevel == 1) {
-    cout << "Warning: multilevelFineCorrection not implemented" << endl;
-    cout << "         for radsolve.use_hypre_multilevel = 1" << endl;
-  }
-  else {
-    solver->GetFineCorrection(level - base, diff);
-  }
-}
-
-void RadSolve::multilevelFlux(int level, MultiFab& dflux,
-                              FluxRegister* flux_in, FluxRegister* flux_out,
-                              int igroup, const BCRec& rad_bc)
-{
-  BL_PROFILE("RadSolve::multilevelFlux");
-  const BoxArray& grids = parent->boxArray(level);
-
-  if (use_hypre_multilevel == 1) {
-
-    // This still doesn't do dflux, but seems to handle both flux_in
-    // and flux_out now.  The part that looks at the coarse level
-    // solution is ugly and not tested.
-    // Values in this case would only matter if theta < 1.
-
-    MultiFab Er(grids, 1, 0);
-    multilevelSolution(level, Er);
-
-    if (level > hm->crseLevel()) {
-      // This section seems to work but has not been debugged.
-      MultiFab Er_crse(parent->boxArray(level-1), 1, 0);
-      multilevelSolution(level-1, Er_crse);
-      BoxArray cgrids(grids);
-      IntVect crse_ratio = parent->refRatio(level-1);
-      cgrids.coarsen(crse_ratio);
-      BndryRegister crse_br(cgrids, 0, 1, 1, 1);
-      crse_br.setVal(1.0e30);
-      BL_ASSERT(!parent->Geom(level).isAnyPeriodic());
-      crse_br.copyFrom(Er_crse, 0, 0, 0, 1);
-
-      RadBndry *bdp = (RadBndry*) &hm->bndryData(level);
-      bdp->setBndryValues(crse_br, 0, Er, 0, 0, 1, crse_ratio, rad_bc);
-      bdp->setBndryFluxConds(rad_bc);
-    }
-
-    levelFlux(level, flux_in, flux_out, Er, igroup);
-  }
-  else {
-
-    // dflux gets only the flux portion of the operator, so turn off absorption
-    solver->SetScalars(0.0, 1.0);
-    solver->GetFlux(level - base, dflux, flux_in, flux_out);
-    solver->SetScalars(alpha, beta);
-
-    if (Geometry::IsRZ()) {
-      Array<Real> r;
-      for (MFIter di(dflux); di.isValid(); ++di) {
-        int i = di.index();
-        const Box &dbox = dflux[di].box();
-        const Box &reg  = grids[i];
-        parent->Geom(level).GetCellLoc(r, dbox, 0);
-        FORT_DIVR(dflux[di].dataPtr(), dimlist(dbox), dimlist(reg),
-                  r.dataPtr());
-      }
-    }
-    else if (Geometry::IsSPHERICAL()) {
-      const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-      Array<Real> r, s;
-      for (MFIter di(dflux); di.isValid(); ++di) {
-        int i = di.index();
-        const Box &dbox = dflux[di].box();
-        const Box &reg  = grids[i];
-        parent->Geom(level).GetCellLoc(r, dbox, 0);
-        parent->Geom(level).GetCellLoc(s, dbox, I);
-        const Real *dx = parent->Geom(level).CellSize();
-        FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(dbox), dx);
-        FORT_DIVRS(dflux[di].dataPtr(), dimlist(dbox), dimlist(reg),
-                   r.dataPtr(), s.dataPtr());
-      }
-    }
-  }
-}
-
-void RadSolve::syncACoeffs(int level,
-                           MultiFab& fkp, MultiFab& etainv,
-                           Real c, Real delta_t)
-{
-  BL_PROFILE("RadSolve::syncACoeffs");
-  const BoxArray& grids = parent->boxArray(level);
-
-  // Allocate space for ABecLapacian acoeffs, fill with values
-
-  int Ncomp  = 1;
-  int Nghost = 0;
-
-  Array<Real> r, s;
-
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
-
-  for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &abox = acoefs[mfi].box();
-    const Box &reg  = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
-    FORT_SACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		r.dataPtr(), s.dataPtr(), c, delta_t);
-  }
-
-  if (use_hypre_multilevel == 1) {
-    hm->aCoefficients(level, acoefs);
-  }
-  else {
-    solver->aCoefficients(level - base, acoefs);
-  }
-}
-
-
-void RadSolve::syncRhs(int level, FluxRegister* sync_flux,
-                       Real scale, int igroup)
-{
-  BL_PROFILE("RadSolve::syncRhs");
-  const BoxArray& grids = parent->boxArray(level);
-
-  int Ncomp  = 1;
-  int Nghost = 0;
-
-  MultiFab rhs(grids, Ncomp, Nghost, Fab_allocate);
-  rhs.setVal(0.0);
-
-  if (sync_flux) {
-    // This works directly for a multilevel solve since the finer level
-    // is present in the rhs to overwrite the junk produced under it.
-    // In the single-level version we have to be sure to clean up
-    // fine-fine interfaces manually.  This is currently done by a call
-    // to clear_internal_borders in Radiation::sync_solve.
-
-    sync_flux->Reflux(rhs, scale, igroup, 0, 1, parent->Geom(level));
-  }
-
-  if (use_hypre_multilevel == 1) {
-    hm->loadLevelVectorB(level, rhs, Homogeneous_BC);
-  }
-  else {
-    solver->SetRhs(level - base, rhs);
-  }
-}
-
 
 // <MGFLD routines>
 void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,

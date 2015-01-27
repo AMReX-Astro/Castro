@@ -25,6 +25,7 @@
 #  define   FORT_HMMAT2  hmmat2_
 #  define   FORT_HMMAT3  hmmat3_
 #  define   FORT_ADD_CCOEF_FLUX   add_ccoef_flux_
+#  define   FORT_SET_ABEC_FLUX    setabecflux_
 #elif defined(BL_FORT_USE_UPPERCASE)
 #  define   FORT_HACOEF  HACOEF
 #  define   FORT_HBCOEF  HBCOEF
@@ -49,6 +50,7 @@
 #  define   FORT_HMMAT2  HMMAT2
 #  define   FORT_HMMAT3  HMMAT3
 #  define   FORT_ADD_CCOEF_FLUX   ADD_CCOEF_FLUX
+#  define   FORT_SET_ABEC_FLUX    SETABECFLUX
 #  endif
 
 extern "C" {
@@ -190,6 +192,13 @@ extern "C" {
                            const Real& gamma,
                            const Real* dx,
                            Real* Flux, intS);
+
+  void FORT_SET_ABEC_FLUX(int*,
+			  Real*, intS,
+			  Real*, intS,
+			  const Real*,
+			  const Real*,
+			  Real*, intS);
 };
 
 #endif

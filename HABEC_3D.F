@@ -2272,3 +2272,72 @@ c from the interior stencil which must be removed at the boundary.
          print *, "hmmat3: impossible face orientation"
       endif
       end
+
+      subroutine setabecflux(
+     &     dir,
+     &     density, dims(density),
+     &     dcoef, dims(dcoef),
+     &     beta,
+     &     dx,
+     &     flux, dims(flux))
+
+      integer dimdec(density)
+      integer dimdec(dcoef)
+      integer dimdec(flux)
+
+      real*8 density(dimv(density))
+      real*8 dcoef(dimv(dcoef))
+      real*8 flux(dimv(flux))
+
+      integer dir,i,j,k
+      real*8 beta, dx(BL_SPACEDIM), fac
+
+
+      if( dir .eq. 0 ) then
+
+c...     x-direction
+
+         fac = - beta / dx(1)
+
+         do k = fluxloi3,fluxhii3
+            do j = fluxloi2,fluxhii2
+               do i = fluxloi1,fluxhii1
+                  flux(i,j,k) = dcoef(i,j,k) *
+     &               (density(i,j,k) - density(i-1,j,k)) * fac
+               end do
+            end do
+         end do
+
+      else if( dir .eq. 1 ) then
+
+c...     y-direction
+
+         fac = - beta / dx(2)
+
+         do k = fluxloi3,fluxhii3
+            do j = fluxloi2,fluxhii2
+               do i = fluxloi1,fluxhii1
+                  flux(i,j,k) = dcoef(i,j,k) *
+     &               (density(i,j,k) - density(i,j-1,k)) * fac
+               end do
+            end do
+         end do
+
+      else if( dir .eq. 2 ) then
+
+c...     z-direction
+
+         fac = - beta / dx(3)
+
+         do k = fluxloi3,fluxhii3
+            do j = fluxloi2,fluxhii2
+               do i = fluxloi1,fluxhii1
+                  flux(i,j,k) = dcoef(i,j,k) *
+     &               (density(i,j,k) - density(i,j,k-1)) * fac
+               end do
+            end do
+         end do
+      endif
+
+      return
+      end
