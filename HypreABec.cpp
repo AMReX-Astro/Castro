@@ -254,14 +254,14 @@ void HypreABec::aCoefficients(const MultiFab &a)
 {
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs->boxArray() );
-  MultiFab::Copy(*acoefs, a, 0, 0, a.nComp(), a.nGrow());
+  MultiFab::Copy(*acoefs, a, 0, 0, 1, 0);
 }
  
 void HypreABec::bCoefficients(const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == bcoefs[dir]->boxArray() );
-  MultiFab::Copy(*bcoefs[dir], b, 0, 0, b.nComp(), b.nGrow());
+  MultiFab::Copy(*bcoefs[dir], b, 0, 0, 1, 0);
 }
 
 void HypreABec::SPalpha(const MultiFab& a)

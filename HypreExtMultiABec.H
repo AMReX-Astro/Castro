@@ -14,8 +14,7 @@ class HypreExtMultiABec : public HypreMultiABec {
       ccoefs( fine_level+1),
       d1coefs(fine_level+1),
       d2coefs(fine_level+1),
-      alpha2(0.0), gamma(0.0), delta1(0.0), delta2(0.0),
-      boundary_Xi(fine_level+1)
+      alpha2(0.0), gamma(0.0), delta1(0.0), delta2(0.0)
   {
   }
 
@@ -52,8 +51,6 @@ class HypreExtMultiABec : public HypreMultiABec {
     return d2coefs[level][dir];
   }
 
-  void boundaryXi(int level, const MultiFab &Xi, int dir);
-
   void loadLevelVectors(int level,
                         MultiFab& dest,
                         int icomp,
@@ -77,9 +74,6 @@ class HypreExtMultiABec : public HypreMultiABec {
   PArray< Tuple<MultiFab, BL_SPACEDIM> > d1coefs; // cell-based but directional
   PArray< Tuple<MultiFab, BL_SPACEDIM> > d2coefs; // face-based
   Real alpha2, gamma, delta1, delta2; // multipliers for the above
-
-  // the following used at Neumann and Marshak boundaries:
-  PArray< Tuple<PArray<Fab>, 2 * BL_SPACEDIM> > boundary_Xi;
 };
 
 #endif

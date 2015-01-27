@@ -22,42 +22,6 @@ HypreExtMultiABec::~HypreExtMultiABec()
     if (d2coefs.defined(level)) {
       delete d2coefs.remove(level);
     }
-    if (boundary_Xi.defined(level)) {
-      delete boundary_Xi.remove(level);
-    }
-  }
-}
- 
-void HypreExtMultiABec::boundaryXi(int level, const MultiFab &Xi, int dir)
-{
-  BL_ASSERT( Xi.ok() );
-
-  if (!boundary_Xi.defined(level)) {
-    boundary_Xi.set(level, new Tuple<PArray<Fab>, 2 * BL_SPACEDIM>);
-  }
-
-  const Box& domain = geom[level].Domain();
-
-  for (int s = Orientation::low; s <= Orientation::high; s++) {
-    Orientation ori(dir, (Orientation::Side)s);
-    for (MFIter mfi(Xi); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      const Box &reg = grids[level][i];
-      if (reg[ori] == domain[ori]) {
-        if (boundary_Xi[level][ori].size() == 0) {
-          boundary_Xi[level][ori].resize(grids[level].size(), PArrayManage);
-        }
-        if (!boundary_Xi[level][ori].defined(i)) {
-          Box b = BoxLib::bdryNode(Xi[mfi].box(), ori);
-          boundary_Xi[level][ori].set(i, new FArrayBox(b));
-        }
-        // should work whether Xi is cell or face based:
-        Box srcbox = Xi[mfi].box();
-        srcbox.setRange(dir, srcbox[ori], 1);
-        const Box& destbox = boundary_Xi[level][ori][i].box();
-        boundary_Xi[level][ori][i].copy(Xi[mfi], srcbox, 0, destbox, 0, 1);
-      }
-    }        
   }
 }
 
@@ -65,11 +29,12 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 {
   BL_ASSERT( a2.ok() );
 
+  int ncomp=1;
+  int ngrow=0;
+
   if (!a2coefs.defined(level)) {
     a2coefs.set(level, new Tuple<MultiFab, BL_SPACEDIM>);
  
-    int ncomp=1;
-    int ngrow=0;
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -80,20 +45,19 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 
   BL_ASSERT( a2.boxArray() == a2coefs[level][dir].boxArray() );
 
-  for (MFIter mfi(a2); mfi.isValid(); ++mfi) {
-    a2coefs[level][dir][mfi].copy(a2[mfi]);
-  }
+  MultiFab::Copy(a2coefs[level][dir], a2, 0, 0, ncomp, ngrow);
 }
  
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
   BL_ASSERT( c.ok() );
 
+  int ncomp=2; // coeffs are 2-sided for upwinding
+  int ngrow=0;
+
   if (!ccoefs.defined(level)) {
     ccoefs.set(level, new Tuple<MultiFab, BL_SPACEDIM>);
  
-    int ncomp=2; // coeffs are 2-sided for upwinding
-    int ngrow=0;
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -104,20 +68,19 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
   BL_ASSERT( c.boxArray() == ccoefs[level][dir].boxArray() );
 
-  for (MFIter mfi(c); mfi.isValid(); ++mfi) {
-    ccoefs[level][dir][mfi].copy(c[mfi]);
-  }
+  MultiFab::Copy(ccoefs[level][dir], c, 0, 0, ncomp, ngrow);
 }
 
 void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 {
   BL_ASSERT( d1.ok() );
 
+  int ncomp=1;
+  int ngrow=0;
+
   if (!d1coefs.defined(level)) {
     d1coefs.set(level, new Tuple<MultiFab, BL_SPACEDIM>);
 
-    int ncomp=1;
-    int ngrow=0;
     for (int i = 0; i < BL_SPACEDIM; i++) {
       d1coefs[level][i].define(grids[level], ncomp, ngrow, Fab_allocate);
       d1coefs[level][i].setVal(0.0);
@@ -126,20 +89,19 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 
   BL_ASSERT( d1.boxArray() == d1coefs[level][dir].boxArray() );
 
-  for (MFIter mfi(d1); mfi.isValid(); ++mfi) {
-    d1coefs[level][dir][mfi].copy(d1[mfi]);
-  }
+  MultiFab::Copy(d1coefs[level][dir], d1, 0, 0, ncomp, ngrow);
 }
  
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
   BL_ASSERT( d2.ok() );
 
+  int ncomp=1;
+  int ngrow=0;
+
   if (!d2coefs.defined(level)) {
     d2coefs.set(level, new Tuple<MultiFab, BL_SPACEDIM>);
  
-    int ncomp=1;
-    int ngrow=0;
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -150,9 +112,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 
   BL_ASSERT( d2.boxArray() == d2coefs[level][dir].boxArray() );
 
-  for (MFIter mfi(d2); mfi.isValid(); ++mfi) {
-    d2coefs[level][dir][mfi].copy(d2[mfi]);
-  }
+  MultiFab::Copy(d2coefs[level][dir], d2, 0, 0, ncomp, ngrow);
 }
 
 static void 
@@ -987,6 +947,9 @@ void HypreExtMultiABec::boundaryDterm(int level,
 				      int icomp)
 {
   const Box& domain = bd[level].getDomain();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box &reg = grids[level][i];

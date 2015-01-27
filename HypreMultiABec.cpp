@@ -1345,18 +1345,14 @@ void HypreMultiABec::aCoefficients(int level, const MultiFab &a)
 {
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs[level].boxArray() );
-  for (MFIter ai(a); ai.isValid(); ++ai) {
-    acoefs[level][ai].copy(a[ai]);
-  }
+  MultiFab::Copy(acoefs[level], a, 0, 0, 1, 0);
 }
  
 void HypreMultiABec::bCoefficients(int level, const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == bcoefs[level][dir].boxArray() );
-  for (MFIter bi(b); bi.isValid(); ++bi) {
-    bcoefs[level][dir][bi].copy(b[bi]);
-  }
+  MultiFab::Copy(bcoefs[level][dir], b, 0, 0, 1, 0);
 }
 
 void HypreMultiABec::SPalpha(int level, const MultiFab& a)
@@ -1366,9 +1362,7 @@ void HypreMultiABec::SPalpha(int level, const MultiFab& a)
     SPa.set(level, new MultiFab(grids[level],1,0));
     BL_ASSERT( a.boxArray() == SPa[level].boxArray() );
   }
-  for (MFIter ai(a); ai.isValid(); ++ai) {
-    SPa[level][ai].copy(a[ai]);
-  }  
+  MultiFab::Copy(SPa[level], a, 0, 0, 1, 0);
 }
 
 void HypreMultiABec::loadMatrix()
@@ -3125,69 +3119,75 @@ void HypreMultiABec::boundaryFlux(int level,
                                   int icomp,
 				  BC_Mode inhom)
 {
-  Array<Real> r;
-  Real foo=1.e200;
+    const Box& domain = bd[level].getDomain();
 
-  const Box& domain = bd[level].getDomain();
-  for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &reg = grids[level][i];
-    for (OrientationIter oitr; oitr; oitr++) {
-      int cdir(oitr());
-      int idim = oitr().coordDir();
-      const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
-      const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-      const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
-      const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-      const Box &fbox = Flux[idim][mfi].box();
-      const Box &sbox = Soln[mfi].box();
-      const Box &fsb  =  fs.box();
-      const Box &msb  = msk.box();
-      const Box &bbox = bcoefs[level][idim][mfi].box();
-      if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
-        int bctype = bct;
-        if (bd[level].mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd[level].bndryTypes(oitr())[i];
-          tfp = tf.dataPtr();
-          bctype = -1;
-        }
-        // In normal code operation only the fluxes at internal
-        // Dirichlet boundaries are used.  Some diagnostics use the
-        // fluxes computed at domain boundaries but these do not
-        // influence the evolution of the interior solution.
-	Real* pSPa;
-	Box SPabox; 
-	if (SPa.defined(level)) {
-	  pSPa = SPa[level][mfi].dataPtr();
-	  SPabox = SPa[level][mfi].box();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Array<Real> r;
+	Real foo=1.e200;
+	
+	for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
+	    int i = mfi.index();
+	    const Box &reg = grids[level][i];
+	    for (OrientationIter oitr; oitr; oitr++) {
+		int cdir(oitr());
+		int idim = oitr().coordDir();
+		const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
+		const Real      &bcl = bd[level].bndryLocs(oitr())[i];
+		const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
+		const Mask      &msk = bd[level].bndryMasks(oitr())[i];
+		const Box &fbox = Flux[idim][mfi].box();
+		const Box &sbox = Soln[mfi].box();
+		const Box &fsb  =  fs.box();
+		const Box &msb  = msk.box();
+		const Box &bbox = bcoefs[level][idim][mfi].box();
+		if (reg[oitr()] == domain[oitr()]) {
+		    const int *tfp = NULL;
+		    int bctype = bct;
+		    if (bd[level].mixedBndry(oitr())) {
+			const BaseFab<int> &tf = bd[level].bndryTypes(oitr())[i];
+			tfp = tf.dataPtr();
+			bctype = -1;
+		    }
+		    // In normal code operation only the fluxes at internal
+		    // Dirichlet boundaries are used.  Some diagnostics use the
+		    // fluxes computed at domain boundaries but these do not
+		    // influence the evolution of the interior solution.
+		    Real* pSPa;
+		    Box SPabox; 
+		    if (SPa.defined(level)) {
+			pSPa = SPa[level][mfi].dataPtr();
+			SPabox = SPa[level][mfi].box();
+		    }
+		    else {
+			pSPa = &foo;
+			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+		    }
+		    getFaceMetric(r, reg, oitr(), geom[level]);
+		    FORT_HBFLX3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+				Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+				cdir, bctype, tfp, bho, bcl,
+				fs.dataPtr(bdcomp), dimlist(fsb),
+				msk.dataPtr(), dimlist(msb),
+				bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+				beta, geom[level].CellSize(),
+				flux_factor, r.dataPtr(), inhom,
+				pSPa, dimlist(SPabox));
+		}
+		else {
+		    FORT_HBFLX(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+			       Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			       cdir, bct, bho, bcl,
+			       fs.dataPtr(bdcomp), dimlist(fsb),
+			       msk.dataPtr(), dimlist(msb),
+			       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+			       beta, geom[level].CellSize(), inhom);
+		}
+	    }
 	}
-	else {
-	  pSPa = &foo;
-	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	}
-        getFaceMetric(r, reg, oitr(), geom[level]);
-        FORT_HBFLX3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-                    Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-                    cdir, bctype, tfp, bho, bcl,
-                    fs.dataPtr(bdcomp), dimlist(fsb),
-                    msk.dataPtr(), dimlist(msb),
-                    bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                    beta, geom[level].CellSize(),
-                    flux_factor, r.dataPtr(), inhom,
-		    pSPa, dimlist(SPabox));
-      }
-      else {
-        FORT_HBFLX(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-                   Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-                   cdir, bct, bho, bcl,
-                   fs.dataPtr(bdcomp), dimlist(fsb),
-                   msk.dataPtr(), dimlist(msb),
-                   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                   beta, geom[level].CellSize(), inhom);
-      }
     }
-  }
 }
 
 void HypreMultiABec::initializeApplyLevel(int level,
