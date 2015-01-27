@@ -3699,7 +3699,7 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      n = UFA + iadv - 1
      nq = QFA + iadv - 1
 
-
+     do j = jlo, jhi 
         do i = ilo, ihi 
            
            rrr = qp(i,j,kc,QRHO)
@@ -5393,6 +5393,7 @@ subroutine ppflaten(lof, hif, &
   end do
   end do
   end do
+
 end subroutine ppflaten
 
 end module rad_advection_module
