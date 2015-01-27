@@ -602,9 +602,9 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
     solver_flag(_solver_flag),
     geom(fine_level+1),
     grids(fine_level+1),
-    subgrids(fine_level+1),
     fine_ratio(fine_level+1),
     bd(fine_level+1),
+    subgrids(fine_level+1),
     acoefs(fine_level+1),
     bcoefs(fine_level+1),
     SPa(fine_level+1),
@@ -662,7 +662,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
 #endif
   if (!i) {
     int   argc   = 1;
-    char *argv[] = { "mf" };
+    const char *argv[] = { "mf" };
     // arguments must be set, though not used for anything important
     MPI_Init(&argc, (char***)&argv);
   }

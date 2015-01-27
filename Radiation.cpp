@@ -2402,7 +2402,6 @@ void Radiation::computeTemp(MultiFab& State, int resetEint)
   Real absolute = 0.0;
 
   for (MFIter mfi(State); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
     const Box& bx = mfi.validbox();
 
     if (do_real_eos == 0) {

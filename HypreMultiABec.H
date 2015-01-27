@@ -387,7 +387,7 @@ class HypreMultiABec {
 
  protected:
 
-  int crse_level, fine_level;
+  int crse_level, fine_level, solver_flag;
 
   Array<Geometry> geom;
   Array<BoxArray> grids;
@@ -407,7 +407,7 @@ class HypreMultiABec {
   PArray<BndryAuxVar>     cintrp, ederiv;
   PArray<CrseBndryAuxVar> c_cintrp, c_ederiv, c_entry;
 
-  int solver_flag, verbose, verbose_threshold, bho, use_subgrids;
+  int verbose, verbose_threshold, bho, use_subgrids;
 
   HYPRE_SStructGrid     grid;
   HYPRE_SStructStencil  stencil;

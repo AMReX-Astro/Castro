@@ -78,7 +78,7 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
 #endif
   if (!i) {
     int   argc   = 1;
-    char *argv[] = { "mf" };
+    const char *argv[] = { "mf" };
     // arguments must be set, though not used for anything important
     MPI_Init(&argc, (char***)&argv);
   }
@@ -855,7 +855,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
   const BoxArray& grids = dest.boxArray();
 
   int i, idim;
-  int time_index;
 
   //dest.setVal(0.0);
 

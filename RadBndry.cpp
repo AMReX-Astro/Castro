@@ -206,15 +206,15 @@ void RadBndry::setBndryConds(const BCRec& bc,
 void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 {
   const BoxArray& grids = boxes();
-  int ngrds = grids.size();
+//  int ngrds = grids.size();
   const Real* dx = geom.CellSize();
   const Real* xlo = geom.ProbLo();
   const Box& domain = geom.Domain();
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    Array<Real> &bloc = bcloc[face];
-    Array<RadBoundCond> &bctag = bcond[face];
+//    Array<Real> &bloc = bcloc[face];
+//    Array<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));
@@ -250,17 +250,17 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	  }
 	  exit(2);
 
+#if 0
 	  Fab& bnd_fab = bndry[face][bi];
 	  const Box& bnd_box = bnd_fab.box();
 	  BaseFab<int>& tfab = bctypearray[face][i];
-#if 0
 	  FORT_RADBNDRY2(bnd_fab.dataPtr(), dimlist(bnd_box),
 			 tfab.dataPtr(), dimlist(domain), dx, xlo, time);
-#endif
 	  if (p_bcflag == 0) {
 	    // Homogeneous case.  We called RADBNDRY2 only to set tfab right.
 	    setValue(face, i, value);
 	  }
+#endif
 	}
       }
     }
