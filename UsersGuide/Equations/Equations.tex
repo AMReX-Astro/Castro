@@ -187,3 +187,45 @@ The left row eigenvectors, normalized so that $\Rb_d\cdot\Lb_d = \Ib$ are:
 0 & 0 & \frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0
 \end{array}\right).
 \end{equation}
+
+\section{Runtime Parameters}
+
+A number of runtime parameters affect the hydrodynamics behavior.
+
+\begin{itemize}
+\item {\tt ppm\_reference} uses the integral under the parabola for
+  the region corresponding to the fastest moving wave to the interface
+  for the reference state used by the characteristic projection in
+  ppm.
+
+\item {\tt ppm\_trace\_grav} reconstructs the gravitational
+  acceleration as a parabola and then constructs the integrals under
+  this parabola for the three characteristic waves and then puts the
+  gravitational source term into the characteristic projection when
+  doing the interface states.
+
+\item {\tt ppm\_temp\_fix} does various attempts to use the
+  temperature in the reconstruction of the interface states
+
+\item {\tt ppm\_tau\_in\_tracing} uses $\tau = 1/\rho$ instead of
+  $\rho$ in the characteristic projection
+
+\item {\tt ppm\_predict\_gammae} reconstructs $\gamma_e = p/(\rho e) + 1$
+  to the interfaces and does the necessary transverse terms to aid in
+  the conversion between the conserved and primitive interface states
+  in the transverse flux routines.
+
+\item {\tt ppm\_reference\_edge\_limit} uses the limit of the
+  parabolic interpolant as the reference state instead of the
+  cell-center value for the case when the wave is not moving toward
+  the interface
+
+\item {\tt ppm\_reference\_eigenvectors} uses the reference states in
+  the evaluation of the eigenvectors for the characteristic projection
+
+\item {\tt ppm\_flatten\_before\_integrals} does the flattening
+  procedure on the parabolic coefficients before they are integrated
+  to the interface states instead of the default method of flattening
+  on the integrals themselves.
+\end{itemize}
+
