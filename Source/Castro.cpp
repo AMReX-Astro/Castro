@@ -127,8 +127,9 @@ Radiation*   Castro::radiation = 0;
 
 #ifdef ROTATION
 int          Castro::do_rotation = -1;
-Real         Castro::rotational_period = 0.0;
+Real         Castro::rotational_period = -1.e200;
 int          Castro::rot_source_type = 1;
+int          Castro::rot_axis = 3;
 #endif
 
 int          Castro::deterministic = 0;
@@ -403,7 +404,6 @@ Castro::read_params ()
     pp.query("cg_tol",cg_tol);
     pp.query("use_pslope",use_pslope);
     pp.query("grav_source_type",grav_source_type);
-    pp.query("rot_source_type",rot_source_type);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
 
@@ -498,8 +498,16 @@ Castro::read_params ()
 
 #ifdef ROTATION
     pp.get("do_rotation",do_rotation);
-    if (do_rotation) pp.get("rotational_period",rotational_period);
+    if (do_rotation) {
+      pp.get("rotational_period",rotational_period);
+      if (rotational_period <= 0.0) {
+	std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
+	BoxLib::Error();
+      }
+    }
     else pp.query("rotational_period",rotational_period);
+    pp.query("rot_source_type",rot_source_type);
+    pp.query("rot_axis",rot_axis);
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";

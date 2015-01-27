@@ -72,6 +72,7 @@ module meth_params_module
 
   double precision, save :: rot_period
   integer, save :: rot_source_type
+  integer, save :: rot_axis
 
   double precision, save :: const_grav
 

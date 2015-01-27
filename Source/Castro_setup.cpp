@@ -211,7 +211,8 @@ Castro::variableSetUp ()
     const Real run_strt = ParallelDescriptor::second() ; 
 
 #ifndef ROTATION
-    static Real rotational_period = 0;
+    static Real rotational_period = -1.e200;
+    static int  rot_axis = 3;
 #endif
 
     // we want const_grav in F90, get it here from parmparse, since it
@@ -236,7 +237,7 @@ Castro::variableSetUp ()
 	 grav_source_type, do_sponge,
          normalize_species,fix_mass_flux,use_sgs,
 	 dual_energy_eta1, dual_energy_eta2, dual_energy_update_E_from_e,
-	 rot_source_type, rotational_period, const_grav, deterministic);
+	 rot_source_type, rot_axis, rotational_period, const_grav, deterministic);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  

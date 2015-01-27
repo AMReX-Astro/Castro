@@ -11,7 +11,7 @@ contains
   function get_omega() result(omega)
 
     use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period
+    use meth_params_module, only: rot_period, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
     implicit none
@@ -19,13 +19,13 @@ contains
     double precision :: omega(3)
 
     if (coord_type == 0) then
-       ! If rot_period is zero, that means rotation is disabled, and so we should effectively
+       ! If rot_period is less than zero, that means rotation is disabled, and so we should effectively
        ! shut off the source term by setting omega = 0.
 
+       omega = (/ ZERO, ZERO, ZERO /)
+
        if (rot_period > ZERO) then
-          omega = (/ ZERO, ZERO, TWO * M_PI / rot_period /)
-       else
-          omega = (/ ZERO, ZERO, ZERO /)
+          omega(rot_axis) = TWO * M_PI / rot_period
        endif
     else
        call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
