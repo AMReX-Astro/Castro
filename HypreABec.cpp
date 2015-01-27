@@ -254,18 +254,14 @@ void HypreABec::aCoefficients(const MultiFab &a)
 {
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs->boxArray() );
-  for (MFIter ai(a); ai.isValid(); ++ai) {
-    (*acoefs)[ai].copy(a[ai]);
-  }
+  MultiFab::Copy(*acoefs, a, 0, 0, a.nComp(), a.nGrow());
 }
  
 void HypreABec::bCoefficients(const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == bcoefs[dir]->boxArray() );
-  for (MFIter bi(b); bi.isValid(); ++bi) {
-    (*bcoefs[dir])[bi].copy(b[bi]);
-  }
+  MultiFab::Copy(*bcoefs[dir], b, 0, 0, b.nComp(), b.nGrow());
 }
 
 void HypreABec::SPalpha(const MultiFab& a)
@@ -275,9 +271,7 @@ void HypreABec::SPalpha(const MultiFab& a)
     const BoxArray& grids = a.boxArray(); 
     SPa = new MultiFab(grids,1,0);
   }
-  for (MFIter ai(a); ai.isValid(); ++ai) {
-    (*SPa)[ai].copy(a[ai]);
-  }  
+  MultiFab::Copy(*SPa, a, 0, 0, 1, 0);
 }
 
 void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
@@ -456,73 +450,79 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                              BC_Mode inhom)
 {
-  BL_PROFILE("HypreABec::boundaryFlux");
-
-  const BoxArray &grids = Soln.boxArray();
-
-  Array<Real> r;
-  Real foo=1.e200;
-
-  const NGBndry& bd = getBndry();
-  const Box& domain = bd.getDomain();
-  for (MFIter si(Soln); si.isValid(); ++si) {
-    int i = si.index();
-    const Box &reg = grids[i];
-    for (OrientationIter oitr; oitr; oitr++) {
-      int cdir(oitr());
-      int idim = oitr().coordDir();
-      const RadBoundCond &bct = bd.bndryConds(oitr())[i];
-      const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Fab       &fs  = bd.bndryValues(oitr())[si];
-      const Mask      &msk = bd.bndryMasks(oitr())[i];
-      const Box &fbox = Flux[idim][si].box();
-      const Box &sbox = Soln[si].box();
-      const Box &fsb  =  fs.box();
-      const Box &msb  = msk.box();
-      const Box &bbox = (*bcoefs[idim])[si].box();
-      if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
-        int bctype = bct;
-        if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
-          tfp = tf.dataPtr();
-          bctype = -1;
-        }
-        // In normal code operation only the fluxes at internal
-        // Dirichlet boundaries are used.  Some diagnostics use the
-        // fluxes computed at domain boundaries but these do not
-        // influence the evolution of the interior solution.
-	Real* pSPa;
-	Box SPabox; 
-	if (SPa != 0) {
-	  pSPa = (*SPa)[si].dataPtr();
-	  SPabox = (*SPa)[si].box();
+    BL_PROFILE("HypreABec::boundaryFlux");
+    
+    const BoxArray &grids = Soln.boxArray();
+    
+    const NGBndry& bd = getBndry();
+    const Box& domain = bd.getDomain();
+    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Array<Real> r;
+	Real foo=1.e200;
+	
+	for (MFIter si(Soln); si.isValid(); ++si) {
+	    int i = si.index();
+	    const Box &reg = grids[i];
+	    for (OrientationIter oitr; oitr; oitr++) {
+		int cdir(oitr());
+		int idim = oitr().coordDir();
+		const RadBoundCond &bct = bd.bndryConds(oitr())[i];
+		const Real      &bcl = bd.bndryLocs(oitr())[i];
+		const Fab       &fs  = bd.bndryValues(oitr())[si];
+		const Mask      &msk = bd.bndryMasks(oitr())[i];
+		const Box &fbox = Flux[idim][si].box();
+		const Box &sbox = Soln[si].box();
+		const Box &fsb  =  fs.box();
+		const Box &msb  = msk.box();
+		const Box &bbox = (*bcoefs[idim])[si].box();
+		if (reg[oitr()] == domain[oitr()]) {
+		    const int *tfp = NULL;
+		    int bctype = bct;
+		    if (bd.mixedBndry(oitr())) {
+			const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+			tfp = tf.dataPtr();
+			bctype = -1;
+		    }
+		    // In normal code operation only the fluxes at internal
+		    // Dirichlet boundaries are used.  Some diagnostics use the
+		    // fluxes computed at domain boundaries but these do not
+		    // influence the evolution of the interior solution.
+		    Real* pSPa;
+		    Box SPabox; 
+		    if (SPa != 0) {
+			pSPa = (*SPa)[si].dataPtr();
+			SPabox = (*SPa)[si].box();
+		    }
+		    else {
+			pSPa = &foo;
+			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+		    }
+		    getFaceMetric(r, reg, oitr(), geom);
+		    FORT_HBFLX3(Flux[idim][si].dataPtr(), dimlist(fbox),
+				Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+				cdir, bctype, tfp, bho, bcl,
+				fs.dataPtr(bdcomp), dimlist(fsb),
+				msk.dataPtr(), dimlist(msb),
+				(*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+				beta, dx, flux_factor, r.dataPtr(), inhom,
+				pSPa, dimlist(SPabox));
+		}
+		else {
+		    FORT_HBFLX(Flux[idim][si].dataPtr(), dimlist(fbox),
+			       Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			       cdir, bct, bho, bcl,
+			       fs.dataPtr(bdcomp), dimlist(fsb),
+			       msk.dataPtr(), dimlist(msb),
+			       (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+			       beta, dx, inhom);
+		}
+	    }
 	}
-	else {
-	  pSPa = &foo;
-	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	}
-        getFaceMetric(r, reg, oitr(), geom);
-	FORT_HBFLX3(Flux[idim][si].dataPtr(), dimlist(fbox),
-		    Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-		    cdir, bctype, tfp, bho, bcl,
-		    fs.dataPtr(bdcomp), dimlist(fsb),
-		    msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
-		    beta, dx, flux_factor, r.dataPtr(), inhom,
-		    pSPa, dimlist(SPabox));
-      }
-      else {
-	FORT_HBFLX(Flux[idim][si].dataPtr(), dimlist(fbox),
-		   Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-		   cdir, bct, bho, bcl,
-		   fs.dataPtr(bdcomp), dimlist(fsb),
-		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
-		   beta, dx, inhom);
-      }
     }
-  }
 }
 
 void HypreABec::getFaceMetric(Array<Real>& r,
