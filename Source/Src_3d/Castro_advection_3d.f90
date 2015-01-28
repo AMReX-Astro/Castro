@@ -49,7 +49,7 @@ contains
                      pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
-                                   use_pslope, ppm_trace_grav, ppm_temp_fix
+                                   use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
@@ -137,6 +137,7 @@ contains
     
     double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
+    double precision, allocatable:: Ip_r(:,:,:,:,:,:), Im_r(:,:,:,:,:,:)
     double precision, allocatable:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
     
     type (eos_t) :: eos_state
@@ -240,6 +241,10 @@ contains
     allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
     allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
 
+    ! for rotation (last index is x,y,z component)
+    allocate ( Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+    allocate ( Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+
     ! for gamc -- needed for the reference state in eigenvectors
     allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
     allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
@@ -286,6 +291,16 @@ contains
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
+                         ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+             enddo
+          endif
+
+          if (ppm_trace_rot .eq. 1) then
+             do n=1,3
+                call ppm(rot(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                         q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
              enddo
           endif
@@ -337,7 +352,7 @@ contains
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
+                           Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
                            qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                            ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
@@ -412,7 +427,7 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
              call tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
+                             Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                              gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                              ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)

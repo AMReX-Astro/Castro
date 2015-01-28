@@ -2205,9 +2205,9 @@ contains
        enddo
     endif
 
-    ! Add the rotation source term
-
-    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
+    ! rotation to the normal edge states
+    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
        do j = jlo, jhi
           do i = ilo, ihi
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2597,9 +2597,9 @@ contains
        enddo
     endif
 
-    ! Add the rotation source term
-
-    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
+    ! rotation to the normal edge states
+    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2990,9 +2990,9 @@ contains
        enddo
     endif
 
-    ! Add the rotation source term
-
-    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
+    ! rotation to the normal edge states
+    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
