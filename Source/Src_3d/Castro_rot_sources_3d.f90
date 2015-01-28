@@ -56,7 +56,7 @@ contains
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
     double precision :: v(3),omega(3)
-    double precision :: omegadotr,omegacrossr(3),omegacrossv(3)
+    double precision :: omegadotr,omegacrossr(3),omegacrossomegacrossr(3),omegacrossv(3)
 
     omega = get_omega()
 
@@ -70,12 +70,13 @@ contains
              r = (/ x, y, z /)
 
              omegacrossr = cross_product(omega,r)
+             omegacrossomegacrossr = cross_product(omega,omegacrossomegacrossr)
 
              v = (/ q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW) /)
 
              omegacrossv = cross_product(omega,v)
 
-             rot(i,j,k,:) = -TWO * omegacrossv - cross_product(omega,omegacrossr)
+             rot(i,j,k,:) = -TWO * omegacrossv - omegacrossomegacrossr
              
           enddo
        enddo
@@ -228,7 +229,9 @@ end module rot_sources_module
                          flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                          flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                          flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                         dx,dt,E_added,xmom_added,ymom_added,zmom_added)
+                         dx,dt, &
+                         vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+                         xmom_added,ymom_added,zmom_added,E_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
     use probdata_module, only: center
@@ -248,12 +251,16 @@ end module rot_sources_module
     integer :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
     integer :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
 
+    integer :: vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
+
     double precision :: uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
     double precision :: unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
 
     double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
     double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
     double precision :: flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+
+    double precision :: vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
 
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
@@ -402,7 +409,7 @@ end module rot_sources_module
                           HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) - phi(i,j,k-1)) + &
                           HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) - phi(i,j,k  ))
 
-                SrEcorr = SrEcorr / (dx(1) * dx(2) * dx(3))
+                SrEcorr = SrEcorr / vol(i,j,k)
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 

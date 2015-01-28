@@ -15,7 +15,8 @@ contains
     subroutine add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
                                uout,uout_l1,uout_l2,uout_h1,uout_h2,&
                                grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                               lo,hi,dt,E_added)
+                               lo,hi,dt,E_added, &
+                               xmom_added,ymom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, grav_source_type
       use bl_constants_module
@@ -31,11 +32,13 @@ contains
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
       double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,2)
       double precision dt,E_added
+      double precision xmom_added,ymom_added
 
       double precision :: rho
       double precision :: SrU, SrV, SrE
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
+      double precision :: old_xmom, old_ymom
       integer          :: i, j
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -54,6 +57,8 @@ contains
                old_ke = HALF * (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / &
                                 uout(i,j,URHO) 
                old_rhoeint = uout(i,j,UEDEN) - old_ke
+               old_xmom = uout(i,j,UMX)
+               old_ymom = uout(i,j,UMY)
                ! ****   End Diagnostics ****
 
                rho    = uin(i,j,URHO)
@@ -90,6 +95,8 @@ contains
                new_rhoeint = uout(i,j,UEDEN) - new_ke
  
                E_added =  E_added + uout(i,j,UEDEN) - old_re
+               xmom_added = xmom_added + uout(i,j,UMX) - old_xmom
+               ymom_added = ymom_added + uout(i,j,UMY) - old_ymom
                ! ****   End Diagnostics ****
 
          enddo

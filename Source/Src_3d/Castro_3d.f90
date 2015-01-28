@@ -19,10 +19,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
-                    E_added_flux,E_added_grav,E_added_rot,&
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                     xmom_added_grav,ymom_added_grav,zmom_added_grav,&
-                    xmom_added_rot,ymom_added_rot,zmom_added_rot)
+                    xmom_added_rot,ymom_added_rot,zmom_added_rot,&
+                    E_added_flux,E_added_grav,E_added_rot)
 
   use meth_params_module, only : NVAR
   use threadbox_module, only : build_threadbox_3d, get_lo_hi

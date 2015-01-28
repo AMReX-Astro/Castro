@@ -6,6 +6,7 @@ f90EXE_sources += ext_src_$(DIM)d.f90
 f90EXE_sources += enforce_consistent_e_$(DIM)d.f90
 f90EXE_sources += prescribe_grav_$(DIM)d.f90
 f90EXE_sources += Castro_grav_sources_$(DIM)d.f90
+f90EXE_sources += Castro_rot_sources_$(DIM)d.f90
 
 #f90EXE_sources += estdt_burning_$(DIM)d.f90
 
@@ -45,10 +46,6 @@ endif
 
 ifeq ($(USE_LEVELSET), TRUE)
 f90EXE_sources += LevelSet_$(DIM)d.f90
-endif
-
-ifeq ($(USE_ROTATION), TRUE)
-f90EXE_sources += Rotate_$(DIM)d.f90
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)

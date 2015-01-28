@@ -33,6 +33,7 @@ contains
   subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                     rot, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
@@ -80,6 +81,7 @@ contains
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
     double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2)
+    double precision   rot( gv_l1: gv_h2, gv_l2: gv_h2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
     double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
@@ -160,6 +162,7 @@ contains
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                      rot, &
                       gamc,qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
@@ -197,6 +200,7 @@ contains
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                rot, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
     
@@ -223,6 +227,7 @@ contains
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                rot, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                 vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -516,7 +521,8 @@ contains
                      area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
-                     div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
+                     div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+                     xmom_added_flux,ymom_added_flux)
 
     use eos_module
     use network, only : nspec, naux
@@ -552,6 +558,7 @@ contains
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
     double precision dx, dy, dt, E_added_flux
+    double precision xmom_added_flux, ymom_added_flux
     
     integer i, j, n
 
@@ -613,7 +620,14 @@ contains
                    E_added_flux = E_added_flux + dt * & 
                         ( flux1(i,j,n) - flux1(i+1,j,n) &
                         +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                   
+                else if (n .eq. UMX) then
+                   xmom_added_flux = xmom_added_flux + dt * &
+                        ( flux1(i,j,n) - flux1(i+1,j,n) &
+                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+                else if (n .eq. UMY) then
+                   ymom_added_flux = ymom_added_flux + dt * &
+                        ( flux1(i,j,n) - flux1(i+1,j,n) &
+                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
                 end if
              enddo
           enddo

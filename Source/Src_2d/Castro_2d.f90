@@ -17,7 +17,10 @@
                           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                           vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                           courno,verbose,mass_added,eint_added,eden_added,&
-                          E_added_flux,E_added_grav)
+                          xmom_added_flux, ymom_added_flux, &
+                          xmom_added_grav, ymom_added_grav, &
+                          xmom_added_rot,  ymom_added_rot,  &
+                          E_added_flux,E_added_grav,E_added_rot)
 
       use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
                                      do_sponge, normalize_species, allow_negative_energy
@@ -25,6 +28,7 @@
            normalize_new_species
       use sponge_module, only : sponge
       use grav_sources_module, only : add_grav_source
+      use rot_sources_module, only : add_rot_source, fill_rotation_field
 
       implicit none
 
@@ -56,8 +60,14 @@
       double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
       double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
-      double precision delta(2),dt,time,courno,E_added_flux,E_added_grav
+      double precision delta(2),dt,time,courno
+      double precision E_added_flux,E_added_grav,E_added_rot
+      double precision xmom_added_flux, ymom_added_flux
+      double precision xmom_added_grav, ymom_added_grav
+      double precision xmom_added_rot,  ymom_added_rot
       double precision mass_added,eint_added,eden_added
+
+      double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,2)
 
 !     Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:)
@@ -103,10 +113,17 @@
                    src,srcQ,src_l1,src_l2,src_h1,src_h2, &
                    courno,dx,dy,dt,ngq,ngf)
 
+      ! Fill in the rotation field for use in the edge state prediction
+
+      call fill_rotation_field(rot,gv_l1,gv_l2,gv_h1,gv_h2, &
+                               q,uin_l1,uin_l2,uin_h1,uin_h2, &
+                               lo, hi, delta)
+
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
                    srcQ, src_l1, src_l2, src_h1, src_h2,  &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                   rot, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -136,7 +153,8 @@
                   area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                   area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                   vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-                  div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
+                  div,pdivu,lo,hi,dx,dy,dt,E_added_flux,&
+                  xmom_added_flux,ymom_added_flux)
 
       ! Enforce the density >= small_dens.
       call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
@@ -153,7 +171,13 @@
       call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
                            uout,uout_l1,uout_l2,uout_h1,uout_h2,&
                            grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                           lo,hi,dt,E_added_grav)
+                           lo,hi,dt,E_added_grav,&
+                           xmom_added_grav,ymom_added_grav)
+
+      call add_rot_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
+                          uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                          lo,hi,delta,dt,E_added_rot,&
+                          xmom_added_rot,ymom_added_rot)
 
       if (do_sponge .eq. 1) &
            call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &

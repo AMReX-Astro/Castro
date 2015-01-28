@@ -661,10 +661,29 @@ Castro::advance_hydro (Real time,
 	     BL_TO_FORTRAN(grid_volume), 
 	     &cflLoc, verbose, 
 	     mass_added, eint_added, eden_added, 
-	     E_added_flux, E_added_grav, E_added_rot,
-	     xmom_added_flux, ymom_added_flux, zmom_added_flux,
-	     xmom_added_grav, ymom_added_grav, zmom_added_grav,
-	     xmom_added_rot,  ymom_added_rot,  zmom_added_rot);
+	     xmom_added_flux, 
+#if (BL_SPACEDIM >= 2)
+	     ymom_added_flux, 
+#endif
+#if (BL_SPACEDIM == 3)
+	     zmom_added_flux,
+#endif
+	     xmom_added_grav, 
+#if (BL_SPACEDIM >= 2)
+	     ymom_added_grav, 
+#endif
+#if (BL_SPACEDIM == 3)
+	     zmom_added_grav,
+#endif
+	     xmom_added_rot,  
+#if (BL_SPACEDIM >= 2)
+	     ymom_added_rot,  
+#endif
+#if (BL_SPACEDIM == 3)
+	     zmom_added_rot,
+#endif
+	     E_added_flux, E_added_grav, E_added_rot
+	     );
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
           // Since we need the fluxes for the conservative gravity, we'll copy them
@@ -1077,6 +1096,11 @@ Castro::advance_hydro (Real time,
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
+
+	    Box bx_g4(BoxLib::grow(bx,NUM_GROW));
+
+            grid_volume.resize(bx_g4,1);
+	    grid_volume.copy(levelVolume[mfi]);
 	
 	    Real E_added_local = 0.0;
 	    Real xmom_added_local = 0.0;
@@ -1087,10 +1111,23 @@ Castro::advance_hydro (Real time,
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
 	       BL_TO_FORTRAN(fluxes[0][mfi]),
+#if (BL_SPACEDIM >= 2)
 	       BL_TO_FORTRAN(fluxes[1][mfi]),
+#endif
+#if (BL_SPACEDIM == 3)
 	       BL_TO_FORTRAN(fluxes[2][mfi]),
-	       dx,dt,E_added_local,
-	       xmom_added_local,ymom_added_local,zmom_added_local);
+#endif
+	       dx,dt,
+	       BL_TO_FORTRAN(grid_volume),
+	       xmom_added_local,
+#if (BL_SPACEDIM >= 2)
+	       ymom_added_local,
+#endif
+#if (BL_SPACEDIM == 3)
+	       zmom_added_local,
+#endif
+               E_added_local
+	       );
 
  	    if (print_energy_diagnostics) {
 	      E_added    += E_added_local;
@@ -1112,8 +1149,12 @@ Castro::advance_hydro (Real time,
 
                std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
 	       std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)	       
 	       std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
 	       std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
+#endif
 	   }
         }	
 
