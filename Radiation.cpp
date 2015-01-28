@@ -621,10 +621,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   pp.query("flatten_pp_threshold", flatten_pp_threshold);
   pp.query("first_order_hydro", first_order_hydro);
-  BL_FORT_PROC_CALL(CA_INIT_MORE_RADHYDRO_PARS, ca_init_more_radhydro_pars)
-    (first_order_hydro, flatten_pp_threshold);
-
   pp.query("pure_hydro", pure_hydro);
+
+  BL_FORT_PROC_CALL(CA_INIT_RADHYDRO_PARS, ca_init_radhydro_pars)
+      (fspace_advection_type, comoving, first_order_hydro, flatten_pp_threshold);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids)

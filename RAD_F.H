@@ -125,8 +125,9 @@
 
 #include <BLFort.H>
 
-BL_FORT_PROC_DECL(CA_INIT_MORE_RADHYDRO_PARS,ca_init_more_radhydro_pars)
-(const int & first_order_hydro, const Real & flatten_pp_threshold);
+BL_FORT_PROC_DECL(CA_INIT_RADHYDRO_PARS,ca_init_radhydro_pars)
+    (const int & fspace_advection_type, const int & comoving,
+     const int & first_order_hydro, const Real & flatten_pp_threshold);
 
 BL_FORT_PROC_DECL(CA_INITRADCONSTANTS,ca_initradconstants)
   (const Real& pi, Real& clight, Real& hplanck,

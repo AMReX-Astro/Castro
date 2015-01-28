@@ -20,20 +20,19 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
      area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
      area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
      vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-     courno,verbose, &
-     nstep_fsp, fspace_advection_type, comoving)
+     courno,verbose, nstep_fsp)
   
   use meth_params_module, only : QVAR, QU, QPRES, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
        normalize_species
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : init_radhydro_params, QRADVAR
+  use radhydro_params_module, only : QRADVAR
   use advection_module, only : enforce_minimum_density, normalize_new_species, divu
   use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
   use sponge_module, only : sponge
 
   implicit none
 
-  integer nstep_fsp, fspace_advection_type, comoving
+  integer nstep_fsp
   integer is_finest_level
   integer lo(3),hi(3),verbose
   integer domlo(3),domhi(3)
@@ -110,13 +109,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer ngq,ngf,iflaten
   double precision dx,dy,dz, mass_added,eint_added,eden_added
 
-  logical, save :: first_call = .true.
-
-  if (first_call) then
-     call init_radhydro_params(fspace_advection_type, comoving)
-     first_call = .false.
-  end if
-  
   allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QRADVAR))
   allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
   allocate( gamcg(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
