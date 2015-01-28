@@ -312,9 +312,7 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const BL_FORT_FAB_ARG(volume),
      const Real* cflLoc,
      const int& verbose, 
-     int* nstep_fsp, 
-     const int* fspace_advection_type,
-     const int* comoving);
+     int* nstep_fsp); 
 #endif
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)

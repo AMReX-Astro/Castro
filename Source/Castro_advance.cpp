@@ -523,9 +523,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN(dloga), 
 #endif
 		     BL_TO_FORTRAN(grid_volume), 
-		     &cflLoc, verbose, 
-		     &nstep_fsp, &Radiation::fspace_advection_type,
-		     &radiation->comoving);
+		     &cflLoc, verbose, &nstep_fsp);
 		
 		if (do_reflux) 
 		{
