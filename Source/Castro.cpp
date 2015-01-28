@@ -146,6 +146,7 @@ int          Castro::do_special_tagging = 0;
 int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
+int          Castro::ppm_trace_rot = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
 int          Castro::ppm_predict_gammae = 0;
@@ -387,6 +388,7 @@ Castro::read_params ()
     pp.query("ppm_type", ppm_type);
     pp.query("ppm_reference", ppm_reference);
     pp.query("ppm_trace_grav", ppm_trace_grav);
+    pp.query("ppm_trace_rot",ppm_trace_rot);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
     pp.query("ppm_predict_gammae", ppm_predict_gammae);

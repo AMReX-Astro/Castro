@@ -1822,7 +1822,7 @@ contains
                                    npassive, upass_map, qpass_map, &            
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
     use eos_module
 
     implicit none
@@ -2207,7 +2207,7 @@ contains
 
     ! Add the rotation source term
 
-    if (rot_period > ZERO) then
+    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi
           do i = ilo, ihi
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2246,7 +2246,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
     use eos_module
 
     implicit none      
@@ -2599,7 +2599,7 @@ contains
 
     ! Add the rotation source term
 
-    if (rot_period > ZERO) then
+    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2638,7 +2638,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
     use eos_module
 
     implicit none
@@ -2992,7 +2992,7 @@ contains
 
     ! Add the rotation source term
 
-    if (rot_period > ZERO) then
+    if (rot_period > ZERO .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
