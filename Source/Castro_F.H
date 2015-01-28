@@ -292,16 +292,21 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      const Real& zmom_added_grav,
 #endif
+#if (BL_SPACEDIM > 1)
      const Real& xmom_added_rot,
+#endif
 #if (BL_SPACEDIM >= 2)
      const Real& ymom_added_rot,
 #endif
 #if (BL_SPACEDIM == 3)
      const Real& zmom_added_rot,
 #endif
+#if (BL_SPACEDIM > 1)
+     const Real& E_added_rot,
+#endif
      const Real& E_added_flux,
-     const Real& E_added_grav,
-     const Real& E_added_rot);
+     const Real& E_added_grav);
+
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -350,14 +355,32 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const BL_FORT_FAB_ARG(grad_phi_cc),
      const BL_FORT_FAB_ARG(S_old),
      BL_FORT_FAB_ARG(S_new),
+#if (BL_SPACEDIM > 1)
      const BL_FORT_FAB_ARG(phi_old),
      const BL_FORT_FAB_ARG(phi_new),
+#endif
+#if (BL_SPACEDIM > 1)
      BL_FORT_FAB_ARG(xflux),
+#endif
+#if (BL_SPACEDIM >= 2)
      BL_FORT_FAB_ARG(yflux),
+#endif
+#if (BL_SPACEDIM == 3)
      BL_FORT_FAB_ARG(zflux),
-     const Real dx[], const Real& dt, const Real& E_added,
-     const Real& xmom_added, const Real& ymom_added, const Real& zmom_added);
+#endif
+     const Real dx[], const Real& dt, 
+     const BL_FORT_FAB_ARG(volume), 
+     const Real& xmom_added, 
+#if (BL_SPACEDIM >= 2)
+     const Real& ymom_added, 
+#endif
+#if (BL_SPACEDIM == 3)
+     const Real& zmom_added,
+#endif
+     const Real& E_added);
 
+#ifdef ROTATION
+#if (BL_SPACEDIM > 1)
 BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG(S_old),
@@ -379,6 +402,8 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
      const Real& zmom_added,
 #endif
      const Real& E_added);
+#endif
+#endif
 
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
     (BL_FORT_FAB_ARG(S_new), 

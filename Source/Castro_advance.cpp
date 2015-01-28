@@ -675,15 +675,19 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 	     zmom_added_grav,
 #endif
-	     xmom_added_rot,  
+#if (BL_SPACEDIM > 1)
+	     xmom_added_rot,
+#endif
 #if (BL_SPACEDIM >= 2)
 	     ymom_added_rot,  
 #endif
 #if (BL_SPACEDIM == 3)
 	     zmom_added_rot,
 #endif
-	     E_added_flux, E_added_grav, E_added_rot
-	     );
+#if (BL_SPACEDIM > 1)
+	     E_added_rot, 
+#endif
+             E_added_flux, E_added_grav);
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
           // Since we need the fluxes for the conservative gravity, we'll copy them
@@ -1023,6 +1027,11 @@ Castro::advance_hydro (Real time,
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
+
+	    Box bx_g4(BoxLib::grow(bx,NUM_GROW));
+
+            grid_volume.resize(bx_g4,1);
+	    grid_volume.copy(levelVolume[mfi]);
 	
 	    Real E_added_local = 0.0;
 	    Real xmom_added_local = 0.0;
@@ -1034,13 +1043,27 @@ Castro::advance_hydro (Real time,
 	       BL_TO_FORTRAN(grav_vec_new[mfi]),
 	       BL_TO_FORTRAN(S_old[mfi]),
 	       BL_TO_FORTRAN(S_new[mfi]),
+#if (BL_SPACEDIM > 1)
 	       BL_TO_FORTRAN((*gravity->get_phi_prev(level))[mfi]),
 	       BL_TO_FORTRAN((*gravity->get_phi_curr(level))[mfi]),
 	       BL_TO_FORTRAN(fluxes[0][mfi]),
+#endif
+#if (BL_SPACEDIM >= 2)
 	       BL_TO_FORTRAN(fluxes[1][mfi]),
+#endif
+#if (BL_SPACEDIM == 3)
 	       BL_TO_FORTRAN(fluxes[2][mfi]),
-	       dx,dt,E_added_local,
-	       xmom_added_local,ymom_added_local,zmom_added_local);
+#endif
+	       dx,dt,
+	       BL_TO_FORTRAN(grid_volume),
+	       xmom_added_local,
+#if (BL_SPACEDIM >= 2)
+	       ymom_added_local,
+#endif
+#if (BL_SPACEDIM == 3)
+	       zmom_added_local,
+#endif
+               E_added_local);
 
  	    if (print_energy_diagnostics) {
 	      E_added    += E_added_local;
@@ -1082,6 +1105,7 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
+#if (BL_SPACEDIM > 1)
     if (do_rotation)
       {
 	// Now do corrector part of rotation source term update
@@ -1160,6 +1184,7 @@ Castro::advance_hydro (Real time,
 
 	computeTemp(S_new);
       }
+#endif
 #endif
 
     reset_internal_energy(S_new);

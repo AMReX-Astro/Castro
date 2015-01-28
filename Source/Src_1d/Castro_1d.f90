@@ -15,6 +15,8 @@
                           dloga,dloga_l1,dloga_h1,&
                           vol,vol_l1,vol_h1,courno,verbose,&
                           mass_added,eint_added,eden_added,&
+                          xmom_added_flux, &
+                          xmom_added_grav, &
                           E_added_flux, E_added_grav)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
@@ -62,6 +64,7 @@
       double precision, allocatable:: pdivu(:)
 
       double precision :: dx,E_added_flux,E_added_grav
+      double precision :: xmom_added_flux, xmom_added_grav
       double precision :: mass_added, eint_added, eden_added
       integer i,ngf
 

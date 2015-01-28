@@ -22,7 +22,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                     xmom_added_grav,ymom_added_grav,zmom_added_grav,&
                     xmom_added_rot,ymom_added_rot,zmom_added_rot,&
-                    E_added_flux,E_added_grav,E_added_rot)
+                    E_added_rot,E_added_flux,E_added_grav)
 
   use meth_params_module, only : NVAR
   use threadbox_module, only : build_threadbox_3d, get_lo_hi

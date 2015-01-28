@@ -20,7 +20,7 @@
                           xmom_added_flux, ymom_added_flux, &
                           xmom_added_grav, ymom_added_grav, &
                           xmom_added_rot,  ymom_added_rot,  &
-                          E_added_flux,E_added_grav,E_added_rot)
+                          E_added_rot,E_added_flux,E_added_grav)
 
       use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
                                      do_sponge, normalize_species, allow_negative_energy
