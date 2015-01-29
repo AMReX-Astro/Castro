@@ -165,7 +165,7 @@ end module grav_sources_module
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
       double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-      double precision   vol(vol_l1:vol_h2,vol_l2:vol_h2,vol_l3:vol_h3)
+      double precision   vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
       double precision  dx(3),dt,E_added
 
       integer i,j,k
