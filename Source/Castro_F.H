@@ -57,14 +57,15 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& use_colglaz, const int& use_flattening,
      const int& transverse_use_eos, const int& transverse_reset_density, const int& transverse_reset_rhoe,
      const int& cg_maxiter, const Real& cg_tol,
-     const int& use_pslope, const int& grav_source_type,
+     const int& use_pslope, 
+     const int& do_grav, const int& grav_source_type,
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
      const Real& dual_energy_eta1,
      const Real& dual_energy_eta2,
      const int& dual_energy_update_E_from_e,
-     const int& rot_source_type, const int& rot_axis, const Real& rotational_period, 
+     const int& do_rotation, const int& rot_source_type, const int& rot_axis, const Real& rotational_period, 
      const Real& const_grav, const int& deterministic);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)

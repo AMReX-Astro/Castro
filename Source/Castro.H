@@ -664,6 +664,9 @@ protected:
     // permits sponge to be turned on and off
     static int do_sponge;
 
+    // permits rotation calculation to be turned on and off
+    static int do_rotation;
+
     // put phi in the plotfile
     static int plot_phiGrav;
 
@@ -705,7 +708,6 @@ protected:
 #endif
 
 #ifdef ROTATION
-  static int do_rotation;
   static Real rotational_period;
   static int rot_source_type;
   static int rot_axis;

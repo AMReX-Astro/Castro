@@ -101,8 +101,10 @@ Real         Castro::small_temp    = -1.e200;
 Real         Castro::small_pres    = -1.e200;
 Real         Castro::small_ener    = -1.e200;
 
-int          Castro::do_hydro = -1;
-int          Castro::do_react = -1;
+int          Castro::do_hydro    = -1;
+int          Castro::do_react    = -1;
+int          Castro::do_grav     = -1;
+int          Castro::do_rotation = -1;
 int          Castro::add_ext_src = 0;
 
 #ifdef POINTMASS
@@ -112,7 +114,6 @@ Real         Castro::point_mass    = 0.0;
 #ifdef GRAVITY
 Gravity*     Castro::gravity  = 0;
 int          Castro::plot_phiGrav = 0;
-int          Castro::do_grav  = -1;
 #endif
 
 #ifdef DIFFUSION
@@ -126,7 +127,6 @@ Radiation*   Castro::radiation = 0;
 #endif
 
 #ifdef ROTATION
-int          Castro::do_rotation = -1;
 Real         Castro::rotational_period = -1.e200;
 int          Castro::rot_source_type = 1;
 int          Castro::rot_axis = 3;

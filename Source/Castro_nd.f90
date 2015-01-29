@@ -269,10 +269,11 @@
                                    transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in, &
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
-                                   grav_source_type_in, &
+                                   do_grav_in, grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
-                                   rot_source_type_in, rot_axis_in, rot_period_in, const_grav_in, deterministic_in)
+                                   do_rotation_in, rot_source_type_in, rot_axis_in, rot_period_in, &
+                                   const_grav_in, deterministic_in)
 !                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
@@ -297,7 +298,8 @@
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
         integer, intent(in) :: dual_energy_update_E_from_e_in
         double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in
-        integer, intent(in) :: use_pslope_in, grav_source_type_in
+        integer, intent(in) :: use_pslope_in
+        integer, intent(in) :: do_grav_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
@@ -307,7 +309,7 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_period_in, const_grav_in
-        integer, intent(in) :: rot_source_type_in, rot_axis_in
+        integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
         integer, intent(in) :: deterministic_in
         integer :: iadv, ispec
 
@@ -485,10 +487,12 @@
         cg_tol                       = cg_tol_in
         cg_maxiter                   = cg_maxiter_in
         use_pslope                   = use_pslope_in
+        do_grav                      = do_grav_in
         grav_source_type             = grav_source_type_in
         do_sponge                    = do_sponge_in
         normalize_species            = normalize_species_in
         fix_mass_flux                = fix_mass_flux_in
+        do_rotation                  = do_rotation_in
         rot_period                   = rot_period_in
         rot_source_type              = rot_source_type_in
         rot_axis                     = rot_axis_in

@@ -53,6 +53,7 @@ module meth_params_module
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
   integer         , save :: use_pslope
+  integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_sponge
   integer         , save :: normalize_species
@@ -71,6 +72,7 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   double precision, save :: max_dist
 
+  integer, save :: do_rotation
   double precision, save :: rot_period
   integer, save :: rot_source_type
   integer, save :: rot_axis
