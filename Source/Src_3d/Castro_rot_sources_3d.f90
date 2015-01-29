@@ -70,7 +70,7 @@ contains
              r = (/ x, y, z /)
 
              omegacrossr = cross_product(omega,r)
-             omegacrossomegacrossr = cross_product(omega,omegacrossomegacrossr)
+             omegacrossomegacrossr = cross_product(omega,omegacrossr)
 
              v = (/ q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW) /)
 
