@@ -1822,7 +1822,8 @@ contains
                                    npassive, upass_map, qpass_map, &            
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
+                                   do_grav, do_rotation
     use eos_module
 
     implicit none
@@ -2191,7 +2192,7 @@ contains
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
-    if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi          
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*grav(i,j,k3d,1)
@@ -2207,7 +2208,7 @@ contains
 
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
-    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
+    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi
           do i = ilo, ihi
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2246,7 +2247,8 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
+                                   do_grav, do_rotation
     use eos_module
 
     implicit none      
@@ -2583,7 +2585,7 @@ contains
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
-    if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
@@ -2599,7 +2601,7 @@ contains
 
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
-    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
+    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
@@ -2638,7 +2640,8 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot
+                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
+                                   do_grav, do_rotation
     use eos_module
 
     implicit none
@@ -2976,7 +2979,7 @@ contains
     
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
-    if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
@@ -2992,7 +2995,7 @@ contains
 
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
-    if (ppm_trace_rot == 0 .or. ppm_type == 0) then
+    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)

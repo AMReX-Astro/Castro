@@ -26,7 +26,7 @@ contains
          ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, ppm_predict_gammae, &
-         npassive, qpass_map
+         npassive, qpass_map, do_grav, do_rotation
     use ppm_module, only : ppm
 
     implicit none
@@ -210,7 +210,7 @@ contains
 
     ! if desired, do parabolic reconstruction of the gravitational
     ! acceleration -- we'll use this for the force on the velocity
-    if (ppm_trace_grav == 1) then
+    if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
@@ -222,7 +222,7 @@ contains
 
     ! if desired, do parabolic reconstruction of the rotational
     ! source -- we'll use this for the force on the velocity
-    if (ppm_trace_rot == 1) then
+    if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
        do n = 1,2
           call ppm(rot(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
@@ -319,7 +319,7 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dum = dum - halfdt*Im_g(i,j,1,1,igx)
              dup = dup - halfdt*Im_g(i,j,1,3,igx)
           endif
@@ -327,7 +327,7 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_rot == 1) then
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
              dum = dum - halfdt*Im_r(i,j,1,1,igx)
              dup = dup - halfdt*Im_r(i,j,1,3,igx)
           endif
@@ -457,11 +457,11 @@ contains
              ! the state traced under the middle wave
              dv    = Im(i,j,1,2,QV)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
              endif
 
-             if (ppm_trace_rot == 1) then
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
                 dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
              endif
 
@@ -556,7 +556,7 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dum = dum - halfdt*Ip_g(i,j,1,1,igx)
              dup = dup - halfdt*Ip_g(i,j,1,3,igx)
           endif
@@ -564,7 +564,7 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_rot == 1) then
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
              dum = dum - halfdt*Ip_r(i,j,1,1,igx)
              dup = dup - halfdt*Ip_r(i,j,1,3,igx)
           endif
@@ -690,11 +690,11 @@ contains
              ! transverse velocity
              dv    = Ip(i,j,1,2,QV)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
              endif
 
-             if (ppm_trace_rot == 1) then
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
                 dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
              endif
 
@@ -914,7 +914,7 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Im_g(i,j,2,1,igy)
              dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
           endif
@@ -922,7 +922,7 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_rot == 1) then
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
              dvm = dvm - halfdt*Im_r(i,j,2,1,igy)
              dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
           endif
@@ -1045,11 +1045,11 @@ contains
              ! transverse velocity
              du    = Im(i,j,2,2,QU)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 du  = du  + halfdt*Im_g(i,j,2,2,igx)
              endif
 
-             if (ppm_trace_rot == 1) then
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
                 du  = du  + halfdt*Im_r(i,j,2,2,igx)
              endif
 
@@ -1139,7 +1139,7 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Ip_g(i,j,2,1,igy)
              dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
           endif
@@ -1147,7 +1147,7 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_rot == 1) then
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
              dvm = dvm - halfdt*Ip_r(i,j,2,1,igy)
              dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
           endif
@@ -1266,11 +1266,11 @@ contains
              ! transverse velocity
              du    =  Ip(i,j,2,2,QU)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 du  = du  + halfdt*Ip_g(i,j,2,2,igx)
              endif
 
-             if (ppm_trace_rot == 1) then
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
                 du  = du  + halfdt*Ip_r(i,j,2,2,igx)
              endif
 

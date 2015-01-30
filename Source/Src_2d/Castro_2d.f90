@@ -115,9 +115,13 @@
 
       ! Fill in the rotation field for use in the edge state prediction
 
-      call fill_rotation_field(rot,gv_l1,gv_l2,gv_h1,gv_h2, &
-                               q,uin_l1,uin_l2,uin_h1,uin_h2, &
-                               lo, hi, delta)
+      if (do_rotation .eq. 1) then
+
+         call fill_rotation_field(rot,gv_l1,gv_l2,gv_h1,gv_h2, &
+                                  q,uin_l1,uin_l2,uin_h1,uin_h2, &
+                                  lo, hi, delta)
+
+      endif
 
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
@@ -168,16 +172,24 @@
       if (normalize_species .eq. 1) &
          call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
 
-      call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
-                           uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                           grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                           lo,hi,dt,E_added_grav,&
-                           xmom_added_grav,ymom_added_grav)
+      if (do_grav .eq. 1) then
 
-      call add_rot_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
-                          uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                          lo,hi,delta,dt,E_added_rot,&
-                          xmom_added_rot,ymom_added_rot)
+         call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
+                              uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                              grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                              lo,hi,dt,E_added_grav,&
+                              xmom_added_grav,ymom_added_grav)
+
+      endif
+
+      if (do_rotation .eq. 1) then
+
+         call add_rot_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
+                             uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                             lo,hi,delta,dt,E_added_rot,&
+                             xmom_added_rot,ymom_added_rot)
+
+      endif
 
       if (do_sponge .eq. 1) &
            call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &

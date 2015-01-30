@@ -49,7 +49,8 @@ contains
                      pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
-                                   use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix
+                                   use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
+                                   do_grav, do_rotation
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
@@ -285,7 +286,7 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           end do
 
-          if (ppm_trace_grav .eq. 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
              do n=1,3
                 call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -295,7 +296,7 @@ contains
              enddo
           endif
 
-          if (ppm_trace_rot .eq. 1) then
+          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
              do n=1,3
                 call ppm(rot(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &

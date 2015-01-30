@@ -267,7 +267,7 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_rot,ymom_added_rot,zmom_added_rot)
 
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
-                                 normalize_species
+                                 normalize_species, do_grav, do_rotation
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
        normalize_new_species
   use sponge_module, only : sponge
@@ -369,9 +369,13 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Compute the rotation field, which depends on position and velocity
 
-  call fill_rotation_field(rot,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                           q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                           lo,hi,delta)
+  if (do_rotation .eq. 1) then
+
+     call fill_rotation_field(rot,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                              q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+                              lo,hi,delta)
+
+  endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
@@ -426,16 +430,20 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
                                 lo,hi)
   end if
 
-  call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                       grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                       lo,hi,dt,E_added_grav,&
-                       xmom_added_grav,ymom_added_grav,zmom_added_grav)
+  if (do_grav .eq. 1) then
+     call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                          grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                          lo,hi,dt,E_added_grav,&
+                          xmom_added_grav,ymom_added_grav,zmom_added_grav)
+  endif
 
-  call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                      uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                      lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
-                      xmom_added_rot,ymom_added_rot,zmom_added_rot)
+  if (do_rotation .eq. 1) then
+     call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                         lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
+                         xmom_added_rot,ymom_added_rot,zmom_added_rot)
+  endif
   
   ! Impose sponge
   if (do_sponge .eq. 1) then

@@ -395,7 +395,7 @@ end module rot_sources_module
 
                 new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
-
+ 
                 unew(i,j,k,UEDEN) = old_rhoeint + new_ke
 
              else if (rot_source_type == 4) then

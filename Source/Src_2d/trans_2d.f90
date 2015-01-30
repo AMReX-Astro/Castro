@@ -27,7 +27,7 @@ contains
                                    npassive, qpass_map, upass_map, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav, ppm_trace_rot, &
                                    transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae
+                                   ppm_predict_gammae, do_grav, do_rotation
 
     use eos_module
     use bl_constants_module
@@ -343,7 +343,7 @@ contains
           ! if ppm_trace_grav == 1, then we already added the
           ! piecewise parabolic traced gravity to the normal edge
           ! states
-          if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+          if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
              qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,1)
              qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,2)
              
@@ -354,7 +354,7 @@ contains
           ! if ppm_trace_rot == 1, then we already added the
           ! piecewise parabolic traced rotation to the normal edge
           ! states
-          if (ppm_trace_rot == 0 .or. ppm_type == 0) then
+          if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
              qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*rot(i,j,1)
              qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*rot(i,j,2)
              
@@ -389,7 +389,7 @@ contains
                                    npassive, qpass_map, upass_map, &
                                    transverse_use_eos, ppm_type, ppm_trace_grav, ppm_trace_rot, &
                                    transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae
+                                   ppm_predict_gammae, do_grav, do_rotation
 
     use eos_module
 
@@ -677,7 +677,7 @@ contains
           ! if ppm_trace_grav == 1, then we already added the
           ! piecewise parabolic traced gravity to the normal edge
           ! states
-          if (ppm_trace_grav == 0 .or. ppm_type == 0) then
+          if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
              qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,1)
              qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,2)
              
@@ -688,7 +688,7 @@ contains
           ! if ppm_trace_rot == 1, then we already added the
           ! piecewise parabolic traced rotation to the normal edge
           ! states
-          if (ppm_trace_rot == 0 .or. ppm_type == 0) then
+          if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
              qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*rot(i,j,1)
              qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*rot(i,j,2)
              

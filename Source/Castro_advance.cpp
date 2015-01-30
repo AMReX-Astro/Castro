@@ -1110,10 +1110,10 @@ Castro::advance_hydro (Real time,
       {
 	// Now do corrector part of rotation source term update
 
-        Real E_added = 0.;
-	Real xmom_added      = 0.;
-	Real ymom_added      = 0.;
-	Real zmom_added      = 0.;
+        Real E_added    = 0.;
+	Real xmom_added = 0.;
+	Real ymom_added = 0.;
+	Real zmom_added = 0.;
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
@@ -1126,7 +1126,7 @@ Castro::advance_hydro (Real time,
             grid_volume.resize(bx_g4,1);
 	    grid_volume.copy(levelVolume[mfi]);
 	
-	    Real E_added_local = 0.0;
+	    Real E_added_local    = 0.0;
 	    Real xmom_added_local = 0.0;
 	    Real ymom_added_local = 0.0;
 	    Real zmom_added_local = 0.0;
