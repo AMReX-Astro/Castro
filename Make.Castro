@@ -1,5 +1,6 @@
 CASTRO_DIR ?= ../../../Castro   # path to Castro
 HYPRE_DIR ?= /path/to/Hypre
+HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 ### HDF5_DIR ?= /path/to/HDF5
 
 
