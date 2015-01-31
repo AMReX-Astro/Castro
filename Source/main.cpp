@@ -129,6 +129,10 @@ main (int   argc,
 
     }
 
+    if (!amrptr->okToContinue()) {
+      std::cout << "Stopping simulation because dt < dt_cutoff." << std::endl;
+    }
+
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);
     delete dumpmodelptr;
