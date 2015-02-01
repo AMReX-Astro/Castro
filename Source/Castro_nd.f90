@@ -550,18 +550,16 @@
 
         coord_type = coord_type_in
 
-        xmin = xmin_in
-        xmax = xmax_in
-        center(1) = (xmax + xmin) / TWO
+        problo(1) = xmin_in
+        problo(2) = ymin_in
+        problo(3) = zmin_in
 
-        ymin = ymin_in
-        ymax = ymax_in
-        center(2) = (ymax + ymin) / TWO
+        probhi(1) = xmax_in
+        probhi(2) = ymax_in
+        probhi(3) = zmax_in
 
-        zmin = zmin_in
-        zmax = zmax_in
-        center(3) = (zmax + zmin) / TWO
-        
+        center = (problo + probhi) / TWO
+
       end subroutine set_problem_params
 
 ! ::: 
