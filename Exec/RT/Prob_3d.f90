@@ -11,8 +11,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ denerr,dengrad,max_denerr_lev,max_dengrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev,frac, &
+  namelist /fortin/ frac, &
        rho_1, rho_2, p0_base
 
   ! Build "probin" filename -- the name of file containing fortin namelist.

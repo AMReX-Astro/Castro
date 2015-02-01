@@ -185,6 +185,7 @@ Real         Castro::sum_turb_src = 0.0;
 
 std::string  Castro::job_name = "";
 
+std::string  Castro::probin_file = "probin";
 
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
@@ -521,6 +522,10 @@ Castro::read_params ()
    pp.query("deterministic", deterministic);
 
    pp.query("job_name",job_name);  
+
+   ParmParse ppa("amr");
+   ppa.query("probin_file",probin_file);
+
 }
 
 Castro::Castro ()
@@ -2828,16 +2833,9 @@ Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
   // live in the probin
-  std::string probin_file = "probin";
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
-  }
-
-  ParmParse pp("amr");
-  if (pp.contains("probin_file"))
-  {
-    pp.get("probin_file",probin_file);
   }
 
   int probin_file_length = probin_file.length();
@@ -2845,7 +2843,6 @@ Castro::extern_init ()
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
-
 
   BL_FORT_PROC_CALL(CA_EXTERN_INIT,ca_extern_init) 
     (probin_file_name.dataPtr(),

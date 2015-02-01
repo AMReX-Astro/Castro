@@ -78,6 +78,8 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
      const Real& ymin, const Real& ymax,
      const Real& zmin, const Real& zmax);
 
+BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);;
+
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const Real& time, 
      const int* lo, const int* hi,

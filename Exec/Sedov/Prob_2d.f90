@@ -12,9 +12,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer :: untin,i
 
   namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub, &
-       denerr,dengrad,max_denerr_lev,max_dengrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev
+       r_init, nsub
   
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -36,16 +34,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   r_init = 0.05d0          ! initial radius of the explosion (in cm)
   nsub = 4
 
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
   !     Set explosion center
   center(1) = (problo(1)+probhi(1))/2.d0
   center(2) = (problo(2)+probhi(2))/2.d0

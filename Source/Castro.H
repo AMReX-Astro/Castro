@@ -716,9 +716,11 @@ protected:
     // set it to true to make OMP deterministic
     static int deterministic;  
 
+    // Name of the probin file and its length.
+    static std::string probin_file;
+
 /* problem-specific includes */
 #include <Problem.H>
-
 
 };
 

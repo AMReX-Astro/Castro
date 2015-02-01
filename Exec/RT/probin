@@ -1,5 +1,9 @@
 &fortin
 
+/
+
+&tagging
+
   denerr = 1.d20
   dengrad = 0.01
   max_denerr_lev = 5
@@ -11,3 +15,4 @@
   max_pressgrad_lev = 5
 
 /
+

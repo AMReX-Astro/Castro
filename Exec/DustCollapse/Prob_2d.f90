@@ -16,9 +16,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ &
        rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
-       denerr, dengrad, max_denerr_lev, max_dengrad_lev, &
-       velerr, velgrad, max_velerr_lev, max_velgrad_lev, &
-       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
        center_x, center_y, center_z
 
 !
@@ -38,18 +35,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
 ! set namelist defaults
 
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-  
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
-  velgrad = 1.d20
-  max_velgrad_lev = -1
-  
   rho_0 = 1.d9
   r_0 = 6.5d8
   r_old = r_0

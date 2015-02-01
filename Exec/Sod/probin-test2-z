@@ -9,6 +9,9 @@
 
   idir = 3
   frac = 0.5
+/
+
+&tagging
 
   denerr = 3
   dengrad = 0.01
@@ -22,5 +25,6 @@
  
   velgrad = 0.01
   max_velgrad_lev = 3
+
 /
 

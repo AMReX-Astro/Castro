@@ -570,3 +570,83 @@
       double precision :: dummy 
       integer          :: flag
       end subroutine ca_set_special_tagging_flag
+
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
+
+      subroutine get_tagging_params(name, namlen)
+
+        use tagging_params_module
+
+        ! Initialize the tagging parameters
+
+        integer :: namlen
+        integer :: name(namlen)
+        
+        integer :: un, i, status
+
+        integer, parameter :: maxlen = 256
+        character (len=maxlen) :: probin
+
+        namelist /tagging/ &
+           denerr,     dengrad,   max_denerr_lev,   max_dengrad_lev, &
+           velerr,     velgrad,   max_velerr_lev,   max_velgrad_lev, &
+           presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
+           temperr,   tempgrad,  max_temperr_lev,  max_tempgrad_lev, &
+           raderr,     radgrad,   max_raderr_lev,   max_radgrad_lev
+
+        ! Set namelist defaults
+        denerr = 1.d20
+        dengrad = 1.d20
+        max_denerr_lev = 10
+        max_dengrad_lev = 10
+
+        presserr = 1.d20
+        pressgrad = 1.d20
+        max_presserr_lev = -1
+        max_pressgrad_lev = -1
+
+        velerr  = 1.d20
+        velgrad = 1.d20
+        max_velerr_lev = -1
+        max_velgrad_lev = -1
+
+        temperr  = 1.d20
+        tempgrad = 1.d20
+        max_temperr_lev = -1
+        max_tempgrad_lev = -1
+
+        raderr  = 1.d20
+        radgrad = 1.d20
+        max_raderr_lev = -1
+        max_radgrad_lev = -1
+
+        ! create the filename
+        if (namlen > maxlen) then
+           print *, 'probin file name too long'
+           stop
+        endif
+
+        do i = 1, namlen
+           probin(i:i) = char(name(i))
+        end do
+
+        ! read in the namelist
+        un = 9
+        open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+        read (unit=un, nml=tagging, iostat=status)
+
+        if (status < 0) then
+           ! the namelist does not exist, so we just go with the defaults
+           continue
+
+        else if (status > 0) then
+           ! some problem in the namelist
+           print *, 'ERROR: problem in the extern namelist'
+           stop
+        endif
+
+        close (unit=un)
+
+      end subroutine get_tagging_params

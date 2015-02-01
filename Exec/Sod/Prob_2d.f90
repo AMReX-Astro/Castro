@@ -18,10 +18,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   type (eos_t) :: eos_state
 
   namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, T_l, T_r, frac, idir, &
-       use_Tinit, &
-       denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velgrad,  max_velgrad_lev, &
-       presserr, pressgrad,max_presserr_lev,max_pressgrad_lev
+       use_Tinit
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -54,19 +51,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   frac = 0.5              ! fraction of the domain for the interface
 
   use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
-
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-
-  velgrad = 1.d20
-  max_velgrad_lev = -1
 
   !     Read namelists
   untin = 9
