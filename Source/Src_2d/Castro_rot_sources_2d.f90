@@ -43,8 +43,7 @@ contains
                                  q,q_l1,q_l2,q_h1,q_h2,lo,hi,dx)
 
     use meth_params_module, only: QVAR, QU, QV, QW
-    use probdata_module, only: center
-    use prob_params_module, only: xmin, ymin, zmin
+    use prob_params_module, only: xmin, ymin, zmin, center
     use bl_constants_module
 
     implicit none
@@ -93,8 +92,7 @@ contains
                             lo,hi,dx,dt,E_added,xmom_added,ymom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
-    use probdata_module, only: center
-    use prob_params_module, only: coord_type, xmin, ymin, zmin
+    use prob_params_module, only: coord_type, xmin, ymin, zmin, center
     use bl_constants_module
 
     implicit none
@@ -228,8 +226,7 @@ end module rot_sources_module
                          xmom_added,ymom_added,E_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period, rot_source_type
-    use probdata_module, only: center
-    use prob_params_module, only: coord_type, xmin, ymin
+    use prob_params_module, only: coord_type, xmin, ymin, center
     use bl_constants_module
     use rot_sources_module, only: cross_product, get_omega
 

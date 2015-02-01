@@ -4,7 +4,7 @@
 
       subroutine ca_compute_1d_gr_grav(var, r_l1, r_h1, grav, dx, problo)
 
-      use probdata_module
+      use prob_params_module, only : center
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
       use network                     , only : nspec, naux

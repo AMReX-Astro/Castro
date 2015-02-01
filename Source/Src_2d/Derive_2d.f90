@@ -107,7 +107,7 @@
 !
 !     This routine will derive the radial velocity.
 !
-      use probdata_module, only : center
+      use prob_params_module, only : center
       use bl_constants_module
 
       implicit none 

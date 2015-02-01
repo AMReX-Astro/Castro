@@ -356,7 +356,7 @@
 
       subroutine get_center(center_out)
 
-        use probdata_module, only : center
+        use prob_params_module, only : center
 
         implicit none
 
@@ -372,7 +372,7 @@
 
       subroutine set_center(center_in)
 
-        use probdata_module, only : center
+        use prob_params_module, only : center
 
         implicit none
 

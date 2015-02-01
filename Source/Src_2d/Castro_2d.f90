@@ -366,8 +366,8 @@
                                       vol,v_l1,v_l2,v_h1,v_h2,radial_vol, &
                                       problo,numpts_1d)
 
-      use meth_params_module, only : URHO, UMX, UMY
-      use probdata_module
+      use meth_params_module, only: URHO, UMX, UMY
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -520,7 +520,7 @@
 
       subroutine get_center(center_out)
 
-        use probdata_module, only : center
+        use prob_params_module, only : center
 
         implicit none
 
@@ -536,7 +536,7 @@
 
       subroutine set_center(center_in)
 
-        use probdata_module, only : center
+        use prob_params_module, only : center
 
         implicit none
 

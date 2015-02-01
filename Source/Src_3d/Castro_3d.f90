@@ -28,9 +28,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   use threadbox_module, only : build_threadbox_3d, get_lo_hi
   use omp_module, only : omp_get_max_threads
 
-  ! This is used for IsoTurb only
-  ! use probdata_module   , only : radiative_cooling_type
-
   implicit none
 
   integer is_finest_level
@@ -273,9 +270,6 @@ subroutine umdrv_tile(is_finest_level,time,lo,hi,domlo,domhi, &
   use sponge_module, only : sponge
   use grav_sources_module, only : add_grav_source
   use rot_sources_module, only : add_rot_source, fill_rotation_field
-
-  ! This is used for IsoTurb only
-  ! use probdata_module   , only : radiative_cooling_type
 
   implicit none
 
@@ -597,7 +591,7 @@ subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
                                problo,numpts_1d)
   
   use meth_params_module, only : URHO, UMX, UMY, UMZ
-  use probdata_module
+  use prob_params_module, only : center
   use bl_constants_module
 
   implicit none
@@ -772,7 +766,7 @@ end subroutine ca_enforce_nonnegative_species
 
 subroutine get_center(center_out)
 
-  use probdata_module, only : center
+  use prob_params_module, only : center
   
   implicit none
   
@@ -788,7 +782,7 @@ end subroutine get_center
 
 subroutine set_center(center_in)
   
-  use probdata_module, only : center
+  use prob_params_module, only : center
   
   implicit none
   

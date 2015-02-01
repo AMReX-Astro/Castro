@@ -132,8 +132,7 @@
        subroutine ca_sumlocmass(rho,r_l1,r_l2,r_h1,r_h2,lo,hi, &
                                 problo,dx,mass,r,irlo,irhi,idir)
 
-       use prob_params_module, only : coord_type
-       use probdata_module, only : center
+       use prob_params_module, only : coord_type, center
        use bl_constants_module
 
        implicit none
@@ -192,8 +191,7 @@
        subroutine ca_sumlocmass2d(rho,r_l1,r_l2,r_h1,r_h2,lo,hi, &
                                   problo,dx,mass,r,irlo,irhi,idir1,idir2)
 
-       use prob_params_module, only : coord_type
-       use probdata_module, only : center
+       use prob_params_module, only : coord_type, center
        use bl_constants_module
 
        implicit none
@@ -265,8 +263,7 @@
                                 f2, f2_l1,f2_l2,f2_h1,f2_h2,&
                                 lo,hi,dx,product)
 
-       use prob_params_module, only : coord_type
-       use probdata_module, only : center
+       use prob_params_module, only : coord_type, center
        use bl_constants_module
 
        implicit none

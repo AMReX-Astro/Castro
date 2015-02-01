@@ -359,7 +359,7 @@
                                     rho,r_l1,r_l2,r_h1,r_h2, &
                                     radial_den,radial_vol,problo, &
                                     n1d,drdxfac,level)
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -442,7 +442,7 @@
                                          radial_mass,radial_vol,problo, &
                                          n1d,drdxfac,level)
       use bl_constants_module
-      use probdata_module
+      use prob_params_module, only: center
 
       implicit none
 
@@ -531,7 +531,7 @@
                                      grav,g_l1,g_l2,g_h1,g_h2, &
                                      radial_grav,problo,n1d,level)
 
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -612,7 +612,7 @@
                                     radial_phi,problo, &
                                     numpts_1d,fill_interior)
 
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none

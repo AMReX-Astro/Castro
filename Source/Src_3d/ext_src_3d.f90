@@ -27,7 +27,6 @@ subroutine ca_ext_src(lo,hi,&
 
   use bl_constants_module, only: ZERO
   use meth_params_module, only : NVAR
-  !    use probdata_module   , only : center
  
   implicit none
   

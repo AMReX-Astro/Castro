@@ -401,7 +401,7 @@
                                          radial_mass,radial_vol,problo,&
                                          n1d,drdxfac,level)
       use bl_constants_module
-      use probdata_module
+      use prob_params_module, only: center
 
       implicit none
 
@@ -504,7 +504,7 @@
                                      radial_grav,problo,n1d,level)
 
       use bl_constants_module
-      use probdata_module
+      use prob_params_module, only: center
 
       implicit none
 
@@ -601,7 +601,7 @@
                                     radial_phi,problo,&
                                     numpts_1d,fill_interior)
         use bl_constants_module
-        use probdata_module
+        use prob_params_module, only: center
 
         implicit none
 
@@ -709,7 +709,7 @@
       subroutine ca_put_multipole_bc (lo,hi,domlo,domhi,dx,&
                                       phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
                                       problo,probhi,lnum,q0,qC,qS)
-        use probdata_module
+        use prob_params_module, only: center
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
 
@@ -842,9 +842,9 @@
       subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,symmetry_type,lo_bc,hi_bc,&
                                                dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
                                                problo,probhi,lnum,q0,qC,qS)
-        use probdata_module
+        use prob_params_module, only: center
         use bl_constants_module
-        use meth_params_module, only : deterministic
+        use meth_params_module, only: deterministic
 
         implicit none
 
@@ -1165,7 +1165,7 @@
                       rho, factArray, &
                       q0, qC, qS, lnum)
 
-        use probdata_module
+        use prob_params_module, only: center
         use bl_constants_module
 
         implicit none
@@ -1316,7 +1316,7 @@
                                            dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
                                            problo, probhi, &
                                            bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
-        use probdata_module
+        use prob_params_module, only: center
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
 
@@ -1582,7 +1582,7 @@
 
       subroutine ca_put_direct_sum_bc (lo,hi,domlo,domhi,phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
                                        bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi)
-        use probdata_module
+        use prob_params_module, only: center
 
         implicit none
 
@@ -1664,7 +1664,7 @@
       double precision function direct_sum_symmetric_add (loc,locb,problo,probhi, &
                        rho,dV,doSymmetricAddLo,doSymmetricAddHi) result(bcTerm)
 
-        use probdata_module
+        use prob_params_module, only: center
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
 

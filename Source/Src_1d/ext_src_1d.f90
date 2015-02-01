@@ -24,7 +24,6 @@ subroutine ca_ext_src(lo,hi, &
                       src,src_l1,src_h1,problo,dx,time,dt)
 
   use meth_params_module, only : NVAR, UMX
-  use probdata_module   , only : center
   use bl_constants_module
   
   implicit none

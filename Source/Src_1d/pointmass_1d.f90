@@ -4,7 +4,7 @@
        subroutine pm_add_to_grav(point_mass,grav,grav_l1,grav_h1,problo,dx,lo,hi)
 
        use fundamental_constants_module, only : Gconst
-       use probdata_module             , only : center
+       use prob_params_module          , only : center
        use bl_constants_module
 
        implicit none

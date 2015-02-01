@@ -526,6 +526,7 @@
 
         ! Passing data from C++ into f90
 
+        use bl_constants_module, only: TWO
         use prob_params_module
 
         implicit none 
@@ -568,7 +569,6 @@
 ! ::: 
 
       subroutine ca_set_special_tagging_flag(dummy,flag) 
-      use probdata_module
       double precision :: dummy 
       integer          :: flag
       end subroutine ca_set_special_tagging_flag

@@ -7,7 +7,7 @@
                                  problo,dx,lo,hi)
 
        use fundamental_constants_module, only : Gconst
-       use probdata_module             , only : center
+       use prob_params_module          , only : center
 
        implicit none
        integer         , intent(in   ) :: lo(3), hi(3)
@@ -52,7 +52,7 @@
            problo,dx,time,dt) 
 
       use meth_params_module, only : NVAR, URHO
-       use probdata_module  , only : center
+      use prob_params_module, only : center
 
       implicit none
 
@@ -116,7 +116,7 @@
            problo,dx,time,dt) 
 
       use meth_params_module, only : NVAR
-      use probdata_module   , only : center
+      use prob_params_module, only : center
 
       implicit none
 
