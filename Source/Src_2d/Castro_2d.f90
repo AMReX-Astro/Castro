@@ -23,7 +23,8 @@
                           E_added_rot,E_added_flux,E_added_grav)
 
       use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
-                                     do_sponge, normalize_species, allow_negative_energy
+                                     do_sponge, normalize_species, allow_negative_energy, &
+                                     do_grav, do_rotation
       use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
            normalize_new_species
       use sponge_module, only : sponge

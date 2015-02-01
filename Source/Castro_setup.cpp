@@ -213,6 +213,7 @@ Castro::variableSetUp ()
 #ifndef ROTATION
     static Real rotational_period = -1.e200;
     static int  rot_axis = 3;
+    static int  rot_source_type = -1;
 #endif
 
     // we want const_grav in F90, get it here from parmparse, since it

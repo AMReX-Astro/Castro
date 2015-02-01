@@ -119,10 +119,6 @@ end module grav_sources_module
                              gnew,gnew_l1,gnew_l2,gnew_h1,gnew_h2, &
                              uold,uold_l1,uold_l2,uold_h1,uold_h2, &
                              unew,unew_l1,unew_l2,unew_h1,unew_h2, &
-                             pold,pold_l1,pold_l2,pold_h1,pold_h2, &
-                             pnew,pnew_l1,pnew_l2,pnew_h1,pnew_h2, &
-                             flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                             flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                              dx,dt, &
                              vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                              xmom_added,ymom_added,E_added)
@@ -138,21 +134,11 @@ end module grav_sources_module
       integer gnew_l1,gnew_l2,gnew_h1,gnew_h2
       integer uold_l1,uold_l2,uold_h1,uold_h2
       integer unew_l1,unew_l2,unew_h1,unew_h2
-      integer pold_l1,pold_l2,pold_h1,pold_h2
-      integer pnew_l1,pnew_l2,pnew_h1,pnew_h2
-      integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
-      integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
       integer vol_l1,vol_l2,vol_h1,vol_h2
       double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,2)
       double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,2)
-      double precision  pold(pold_l1:pold_h1,pold_l2:pold_h2)
-      double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2)
-      double precision   phi(pnew_l1:pnew_h1,pnew_l2:pnew_h2)
-      double precision   grav(gnew_l1:gnew_h1,gnew_l2:gnew_h2,2)
       double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,NVAR)
       double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,NVAR)
-      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
       double precision   vol(vol_l1:vol_h1,vol_l2:vol_h2)
       double precision  dx(2),dt,E_added
       double precision xmom_added,ymom_added
@@ -175,18 +161,10 @@ end module grav_sources_module
       ! 1: Original version ("does work")
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
-      ! 4: Conservative gravity approach from the AREPO code paper (Springel 2010).
 
        if (grav_source_type .eq. 4 .and. coord_type .ne. 0) then
           call bl_error("Error:: grav_source_type == 4 only enabled for Cartesian geometry.")
        endif
-
-      do j = lo(2)-1, hi(2)+1
-         do i = lo(1)-1, hi(1)+1
-            grav(i,j,:) = HALF * (gnew(i,j,:) + gold(i,j,:))
-            phi(i,j)    = HALF * (pnew(i,j) + pold(i,j))               
-         enddo
-      enddo
 
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -247,15 +225,6 @@ end module grav_sources_module
                    new_ke = HALF * (unew(i,j,UMX)**2 + unew(i,j,UMY)**2) / &
                                      unew(i,j,URHO) 
                    unew(i,j,UEDEN) = old_rhoeint + new_ke
-               else if (grav_source_type .eq. 4) then
-                   SrEcorr = HALF * flux1(i  ,j,URHO) * (phi(i  ,j) - phi(i-1,j)) + &
-                             HALF * flux1(i+1,j,URHO) * (phi(i+1,j) - phi(i  ,j)) + &
-                             HALF * flux2(i,j  ,URHO) * (phi(i,j  ) - phi(i,j-1)) + &
-                             HALF * flux2(i,j+1,URHO) * (phi(i,j+1) - phi(i,j  ))
-
-                  SrEcorr = SrEcorr / vol(i,j)
-
-                  unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr                  
                else 
                   call bl_error("Error:: Castro_grav_sources_2d.f90 :: bogus grav_source_type")
                end if
