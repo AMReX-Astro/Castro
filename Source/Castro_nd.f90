@@ -551,12 +551,15 @@
 
         xmin = xmin_in
         xmax = xmax_in
+        center(1) = (xmax + xmin) / TWO
 
         ymin = ymin_in
         ymax = ymax_in
+        center(2) = (ymax + ymin) / TWO
 
         zmin = zmin_in
         zmax = zmax_in
+        center(3) = (zmax + zmin) / TWO
         
       end subroutine set_problem_params
 
