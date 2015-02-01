@@ -43,7 +43,7 @@ contains
                                  q,q_l1,q_l2,q_h1,q_h2,lo,hi,dx)
 
     use meth_params_module, only: QVAR, QU, QV, QW
-    use prob_params_module, only: xmin, ymin, zmin, center
+    use prob_params_module, only: problo, center
     use bl_constants_module
 
     implicit none
@@ -64,9 +64,9 @@ contains
     omega = get_omega()
 
     do j = lo(2)-1, hi(2)+1
-       y = ymin + dx(2)*(float(j)+HALF) - center(2)
+       y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
        do i = lo(1)-1, hi(1)+1
-          x = xmin + dx(1)*(float(i)+HALF) - center(1)
+          x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
           r = (/ x, y, ZERO /)
 
@@ -92,7 +92,7 @@ contains
                             lo,hi,dx,dt,E_added,xmom_added,ymom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
-    use prob_params_module, only: coord_type, xmin, ymin, zmin, center
+    use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
 
     implicit none
@@ -121,9 +121,9 @@ contains
     omega2 = dot_product(omega,omega)
     
     do j = lo(2), hi(2)
-       y = ymin + dx(2)*(float(j)+HALF) - center(2)
+       y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
        do i = lo(1), hi(1)
-          x = xmin + dx(1)*(float(i)+HALF) - center(1)
+          x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
           ! **** Start Diagnostics ****
           old_re = uout(i,j,UEDEN)
@@ -226,7 +226,7 @@ end module rot_sources_module
                          xmom_added,ymom_added,E_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period, rot_source_type
-    use prob_params_module, only: coord_type, xmin, ymin, center
+    use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
     use rot_sources_module, only: cross_product, get_omega
 
@@ -272,9 +272,9 @@ end module rot_sources_module
     if (rot_source_type == 4) then
 
        do j = lo(2)-1, hi(2)+1
-          y = ymin + dx(2)*(float(j)+HALF) - center(2)
+          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
           do i = lo(1)-1, hi(1)+1
-             x = xmin + dx(1)*(float(i)+HALF) - center(1)
+             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
              r = (/ x, y, ZERO /)
              omegacrossr = cross_product(omega,r)
@@ -287,9 +287,9 @@ end module rot_sources_module
     endif
 
     do j = lo(2), hi(2)
-       y = ymin + dx(2)*(float(j)+HALF) - center(2)
+       y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
        do i = lo(1), hi(1)
-          x = xmin + dx(1)*(float(i)+HALF) - center(1)
+          x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
           ! **** Start Diagnostics ****
           old_re = unew(i,j,UEDEN)

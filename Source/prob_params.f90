@@ -9,7 +9,6 @@ module prob_params_module
   integer         , save, allocatable :: physbc_hi(:)
   integer         , save :: Outflow, Symmetry, SlipWall, NoSlipWall
   integer         , save :: coord_type
-  double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
-  double precision, save :: center(3)
+  double precision, save :: center(3), problo(3), probhi(3)
   
 end module prob_params_module
