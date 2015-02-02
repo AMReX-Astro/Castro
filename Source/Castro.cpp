@@ -29,6 +29,7 @@ using std::string;
 #include <VisMF.H>
 #include <TagBox.H>
 #include <ParmParse.H>
+#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -2564,6 +2565,46 @@ Castro::errorEst (TagBoxArray& tags,
 	}
 
         delete mf;
+
+	// Now we'll tag any user-specified zones using the full state array.
+
+	MultiFab& S_new = get_new_data(State_Type);
+
+        Array<int>  itags;
+
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	{
+	    // tile box
+	    const Box&  tilebx  = mfi.tilebox();
+
+            TagBox&     tagfab  = tags[mfi];
+
+	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+	    // So we are going to get a temporary integer array.
+	    tagfab.get_itags(itags, tilebx);
+
+            // data pointer and index space
+	    int*        tptr    = itags.dataPtr();
+	    const int*  tlo     = tilebx.loVect();
+	    const int*  thi     = tilebx.hiVect();
+
+	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
+	                     (tptr,  ARLIM(tlo), ARLIM(thi),
+			      BL_TO_FORTRAN(S_new[mfi]),
+			      &tagval, &clearval, 
+			      tilebx.loVect(), tilebx.hiVect(), 
+			      dx, prob_lo, &time, &level);
+
+	    //
+	    // Don't forget to set the tags in the TagBox.
+	    //
+	    if (allow_untagging == 1) 
+	    {
+		tagfab.tags_and_untags(itags, tilebx);
+	    } else {
+		tagfab.tags(itags, tilebx);
+	    }
+	}
     }
 }
 
