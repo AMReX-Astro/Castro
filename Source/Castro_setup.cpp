@@ -846,7 +846,6 @@ Castro::variableSetUp ()
 
     if (Radiation::nNeutrinoSpecies > 0 &&
         Radiation::nNeutrinoGroups[0] > 0) {
-#if 1
       derive_lst.add("Enue", IndexType::TheCellType(),1,
 		     BL_FORT_PROC_CALL(CA_DERENUE,ca_derenue),the_same_box);
       derive_lst.addComponent("Enue",desc_lst,Rad_Type,0,Radiation::nGroups);
@@ -890,7 +889,6 @@ Castro::variableSetUp ()
       // FirstAux is (rho * Ye)
       derive_lst.addComponent("Ynuae",desc_lst,State_Type,FirstAux,1);
       derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-#endif
     }
 #endif
 
