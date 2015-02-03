@@ -3,7 +3,7 @@
 #include <BLFort.H>
 
 BL_FORT_PROC_DECL(FILCC,filcc)
-                (const Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
+                (Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
                  const int * domlo, const int * domhi,
                  const Real * dx_crse, const Real * xlo,
                  const int * bc);
