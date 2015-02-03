@@ -167,7 +167,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 !     Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+       srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
        lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
        flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
