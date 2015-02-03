@@ -1017,22 +1017,35 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
       if (Radiation::rad_hydro_combined) {
-	const MultiFab& radMF = get_new_data(Rad_Type);
-	for (MFIter mfi(stateMF); mfi.isValid(); ++mfi) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  {
+	      Real dt = 1.e200;
 
-	  const Box& box = mfi.validbox();
-	  Real dt = estdt;
-	  
-	  FArrayBox gPr(box);
-	  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, box);
+	      const MultiFab& radMF = get_new_data(Rad_Type);
+	      FArrayBox gPr;
 
-	  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
-	    (BL_TO_FORTRAN(stateMF[mfi]),
-	     BL_TO_FORTRAN(gPr),
-	     box.loVect(),box.hiVect(),dx,&dt);
+	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi) 
+	      {
+	          const Box& tbox = mfi.tilebox();
+	          const Box& vbox = mfi.validbox();
+		  
+		  gPr.resize(tbox);
+		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 	  
-	  estdt = std::min(estdt,dt);
-	}
+		  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+	               BL_TO_FORTRAN(gPr),
+	               tbox.loVect(),tbox.hiVect(),dx,&dt);
+              }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt_rad)	      
+#endif
+	      {
+	          estdt = std::min(estdt,dt);
+              }
+          }
       }
       else 
       {
