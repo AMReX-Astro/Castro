@@ -448,7 +448,7 @@ Castro::advance_hydro (Real time,
 
 	    int nstep_fsp = -1;
 
-	    BL_PROFILE_VAR(CA_UMDRV_RAD);
+	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv_rad()", CA_UMDRV_RAD);
 
 #ifdef _OPENMP
 	    bool tiling = true;
@@ -510,7 +510,6 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
 			 BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 			 BL_TO_FORTRAN(Erout),
-			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
