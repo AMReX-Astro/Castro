@@ -137,13 +137,14 @@ Figure~\ref{fig:domain-tiling}.
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\linewidth]{domain-tile}
-\caption{A simple domain showing 4 {\tt Box}es labeled 0--3, and their
-tiling regions (dotted lines)}
+\caption{\label{fig:domain-tiling} A simple domain showing 4
+  {\tt Box}es labeled 0--3, and their tiling regions (dotted lines)}
 \end{figure}
 %
 The first box is divided into 4 logical tiles, the second and third
 are divided into 2 tiles each (because they are small), and the fourth
-into 4 tiles.  So there are 12 tiles in total.
+into 4 tiles.  So there are 12 tiles in total.  The difference between
+the tiling and non-tiling version are then:
 \begin{itemize}
 \item In the tiling version,
 the loop body will be run 12 times.  Note that {\tt tilebox} is
@@ -166,18 +167,26 @@ above the {\tt for (MFIter...)} line.
 \end{lstlisting}
 Assuming four threads are used in the above example, thread 0 will
 work on 3 tiles from the first box, thread 1 on 1 tile from the first
-box and 2 tiles from the second box, and so forth.  It should be noted
-OpeMP can be used even when tiling is turned off.  In that case, the
-OpenMP granularity is at the box level.  It should also be noted that
---- independent of whether or not tiling is on --- OpenMP threading
-can also be started within the function called inside the {\tt MFIter}
-loop, rather than at the {\tt MFIter} loop level.
+box and 2 tiles from the second box, and so forth.  Note that 
+OpenMP can be used even when tiling is turned off.  In that case, the
+OpenMP granularity is at the box level (and good performance would need
+many boxes per MPI task).
 
-The tile size for the three spatial dimensions can be set by a parameter
-{\tt fabarray.mfiter\_tile\_size = 1024000 8 8}.  A huge number like
-1024000 will turn off tiling in that direction.  The {\tt MFIter}
-constructor can also take an explicit tile size: {\tt
-  MFIter(mfi(mf,IntVect(128,16,32)))}. 
+We also note that, independent of whether or not tiling is on, OpenMP
+threading can also be started within the function called inside the
+{\tt MFIter} loop, rather than at the {\tt MFIter} loop level.  This
+was the original way that threading was done in \castro, but we are in
+the process of removing this approach in favor of tiling.
+
+The tile size for the three spatial dimensions can be set by a
+parameter, e.g., {\tt fabarray.mfiter\_tile\_size = 1024000 8 8}.  A
+huge number like {\tt 1024000} will turn off tiling in that direction.
+As noted above, the {\tt MFIter} constructor can also take an explicit
+tile size: {\tt MFIter(mfi(mf,IntVect(128,16,32)))}.
+
+Note that tiling can naturally transition from all threads working
+on a single box to each thread working on a separate box as the boxes
+coarsen (e.g., in multigrid).
 
 The {\tt MFIter} class provides some other useful functions:
 \begin{lstlisting}
@@ -185,7 +194,7 @@ The {\tt MFIter} class provides some other useful functions:
  mfi.growntilebox(int): A grown tile box that includes ghost cells at box
                         boundaries only.  Thus the returned boxes for a
                         Fab are non-overlapping.
- mfi.fluxbox(int)     : Returns non-overlapping edge-type boxes for tiles.
+ mfi.nodaltilebox(int): Returns non-overlapping edge-type boxes for tiles.
                         The argument is for direction.
  mfi.fabbox()         : Same as mf[mfi].box().
 \end{lstlisting}
@@ -198,4 +207,65 @@ work in the ghost cells of tiles.
 
 
 \section{Practical Details in Working with Tiling}
+
+With tiling, the OpenMp is now all in C++, and not in Fortran.  Note that
+the OpenMP pragma does not have a {\tt for}---this is not used when working
+with an iterator.
+
+It is the responsibility of the coder to make sure that the routines with
+in a tiled region are safe to use with OpenMP.  In particular, note that:
+\begin{itemize}
+\item tile boxes are non-overlapping
+\item the union of tile boxes completely cover the fab
+\item Consider working with a node-centered MultiFab, {\tt ugdnv}, and a
+cell=centered MultiFab, {\tt s}:
+  \begin{itemize}
+
+  \item with {\tt mfi(s)}, the tiles are based on the cell-centered
+  index space.  If you have an $8\times 8$ box, then and 4 tiles, then
+  your tiling boxes will range from $0\rightarrow 3$, $4\rightarrow
+  7$.
+
+  \item with {\tt mfi{ugdnv}}, the tiles are based on nodal indices,
+  so your tiling boxes will range from $0\rightarrow 3$, $4\rightarrow 8$.
+
+  \end{itemize}  
+\item When updating routines to work with tiling, we need to understand
+the distinction between the index-space of the entire box (which
+corresponds to the memory layout) and the index-space of the tile.
+
+  \begin{itemize}
+
+  \item In the C++ end, we pass (usually via the {\tt
+  BL\_TO\_FORTRAN()} macro) the {\tt loVect} and {\tt hiVect} of the
+  entire box (including ghost cells).  These are then used to allocate
+  the array in Fortran as:
+  \begin{lstlisting}
+    double precision :: a(a_l1:a_h1, a_l2:a_h2, ...)
+  \end{lstlisting}
+  When tiling is used, we do not want to loop as {\tt do a\_l1, a\_h1},
+  but instead we need to loop over the tiling region.  The indices of
+  the tiling region need to be passed into the Fortran routine
+  separately, and they come from the {\tt mfi.tilebox()} statement.
+
+  \item In Fortran, when initializing an array to 0, do so only over
+  the tile region, not for the entire box.  For a Fortran array {\tt a},
+  this means we cannot do:
+  \begin{lstlisting}
+  a = 0.0
+  a(:,:,:,:) = 0.0
+  \end{lstlisting}
+  but instead must do:
+  \begin{lstlisting}
+  a(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.0
+  \end{lstlisting}
+  where {\tt lo()} and {\tt hi()} are the index-space for the tile box
+  returned from {\tt mfi.tilebox()} in C++ and passed into the Fortran
+  routine.
+
+
+\end{itemize}
+
+\end{itemize}
+
 
