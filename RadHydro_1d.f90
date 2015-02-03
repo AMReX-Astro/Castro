@@ -16,7 +16,8 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      Erin, Erin_l1, Erin_h1, &
      lam, lam_l1, lam_h1, &
      q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1,&
-     src,srcQ,src_l1,src_h1, &
+     src,src_l1,src_h1, &
+     srcQ,srQ_l1,srQ_h1, &
      courno,dx,dt,ngp,ngf,iflaten)
 
   use network, only : nspec, naux
@@ -44,6 +45,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1 
   integer          :: q_l1,q_h1
   integer          ::  src_l1,src_h1
+  integer          ::  srQ_l1,srQ_h1
   double precision ::   uin(uin_l1:uin_h1,NVAR)
   double precision :: Erin(Erin_l1:Erin_h1, 0:ngroups-1)
   double precision :: lam(lam_l1:lam_h1, 0:ngroups-1)
@@ -55,7 +57,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   double precision ::  csml(  q_l1:  q_h1)
   double precision :: flatn(  q_l1:  q_h1)
   double precision ::   src(src_l1:src_h1,NVAR)
-  double precision ::  srcQ(src_l1:src_h1,QVAR)
+  double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
   double precision :: dx, dt, courno
   integer iflaten
 

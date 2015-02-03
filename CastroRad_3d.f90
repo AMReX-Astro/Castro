@@ -107,20 +107,32 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, allocatable ::uy_zfc(:,:,:)
 
   integer ngq,ngf,iflaten
+  integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   double precision dx,dy,dz, mass_added,eint_added,eden_added
 
-  allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QRADVAR))
-  allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate( gamcg(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(    cg(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+  ngq = NHYP
+  ngf = 1
+  iflaten = 1
+  
+  q_l1 = lo(1)-NHYP
+  q_l2 = lo(2)-NHYP
+  q_l3 = lo(3)-NHYP
+  q_h1 = hi(1)+NHYP
+  q_h2 = hi(2)+NHYP
+  q_h3 = hi(3)+NHYP
+
+  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QRADVAR))
+  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate( gamcg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(    cg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
   allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
 
-  allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR))
+  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
 
   allocate( ergdx(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3,0:ngroups-1))
   allocate( ergdy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3,0:ngroups-1))
@@ -141,22 +153,19 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   dy = delta(2)
   dz = delta(3)
 
-  ngq = NHYP
-  ngf = 1
-  iflaten = 1
-  
   !     Translate to primitive variables, compute sound speeds
   !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
   !       and set to correspond to coordinates of (lo:hi)
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
        Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       q,c,cg,gamc,gamcg,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-       src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+       src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+       srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
        courno,dx,dy,dz,dt,ngq,ngf,iflaten)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
        srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
@@ -176,7 +185,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
        pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc)
 
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+  call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
        dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
 
   !     Conservative update

@@ -70,17 +70,27 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: pdivu(:)
   
   double precision dx,mass_added,eint_added,eden_added
-  integer i,g,ngf,iflaten
+  integer i,g,ngf,ngq,iflaten
+  integer q_l1, q_h1
 
-  allocate(     q(uin_l1:uin_h1,QRADVAR))  ! 
-  allocate(    c (uin_l1:uin_h1))
-  allocate(    cg(uin_l1:uin_h1))
-  allocate( gamc (uin_l1:uin_h1))
-  allocate( gamcg(uin_l1:uin_h1))
-  allocate( flatn(uin_l1:uin_h1))
-  allocate(  csml(uin_l1:uin_h1))
+  dx = delta(1)
+
+  ngq = NHYP
+  ngf = 1
+  iflaten = 1
+
+  q_l1 = lo(1)-NHYP
+  q_h1 = hi(1)+NHYP
+
+  allocate(     q(q_l1:q_h1,QRADVAR))  ! 
+  allocate(    c (q_l1:q_h1))
+  allocate(    cg(q_l1:q_h1))
+  allocate( gamc (q_l1:q_h1))
+  allocate( gamcg(q_l1:q_h1))
+  allocate( flatn(q_l1:q_h1))
+  allocate(  csml(q_l1:q_h1))
   
-  allocate(  srcQ(src_l1:src_h1,QVAR))
+  allocate(  srcQ(lo(1)-1:hi(1)+1,QVAR))
   
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
@@ -88,10 +98,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
   allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
   
-  dx = delta(1)
-
-  ngf = 1
-  iflaten = 1
 
   !     Translate to primitive variables, compute sound speeds
   !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
@@ -100,14 +106,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
        Erin, Erin_l1, Erin_h1, &
        lam, lam_l1, lam_h1, &
-       q,c,cg,gamc,gamcg,csml,flatn,uin_l1,uin_h1, &
-       src,srcQ,src_l1,src_h1, &
+       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
+       src,src_l1,src_h1, &
+       srcQ,lo(1)-1,hi(1)+1, &
        courno,dx,dt,NHYP,ngf,iflaten)
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
        lam, lam_l1, lam_h1, &       
-       q,c,cg,gamc,gamcg,csml,flatn,uin_l1,uin_h1, &
-       srcQ, src_l1, src_h1, &
+       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
+       srcQ,lo(1)-1,hi(1)+1, &
        grav, gv_l1, gv_h1, &
        lo(1),hi(1),dx,dt, &
        flux,flux_l1,flux_h1, &

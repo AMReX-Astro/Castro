@@ -16,7 +16,8 @@ subroutine ctoprim_rad(lo,hi, &
      Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
      lam,lam_l1,lam_l2,lam_h1,lam_h2, &
      q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-     src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+     src,src_l1,src_l2,src_h1,src_h2, &
+     srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
      courno,dx,dy,dt,ngp,ngf,iflaten)
 
 !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
@@ -46,6 +47,7 @@ subroutine ctoprim_rad(lo,hi, &
   integer lam_l1,lam_l2,lam_h1,lam_h2
   integer q_l1,q_l2,q_h1,q_h2
   integer src_l1,src_l2,src_h1,src_h2
+  integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
   integer iflaten
 
   double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
@@ -59,7 +61,7 @@ subroutine ctoprim_rad(lo,hi, &
   double precision ::  csml(q_l1:q_h1,q_l2:q_h2)
   double precision :: flatn(q_l1:q_h1,q_l2:q_h2)
   double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
-  double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+  double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision :: dx, dy, dt, courno
 
   double precision, allocatable :: dpdrho(:,:)
