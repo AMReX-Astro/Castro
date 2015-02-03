@@ -7,7 +7,7 @@ approach, called {\em tiling}, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers.
 
 
-\section{\boxlib\'s Non-Tiling Approach In C++}
+\section{\boxlib's Non-Tiling Approach In C++}
 \label{sec:boxlib0}
 
 At the highest abstraction level, we have {\tt MultiFab} (mulitple
@@ -63,7 +63,7 @@ A few comments about this code
 \end{itemize}
 
 
-\section{\boxlib\'s Current Tiling Approach In C++}
+\section{\boxlib's Current Tiling Approach In C++}
 \label{sec:boxlib1}
 
 There are two types of tiling that people discuss.  In {\em logical
@@ -132,19 +132,32 @@ the same size as the entire box, but only work on the index space
 identified by the tile-box ({\tt box}).
 \end{itemize}
 
-Let us consider an example.  Suppose there are four boxes.  The first
-box is divided into 4 logical tiles, the second and third are divided
-into 2 tiles each (because they are small), and the fourth into 4 tiles.
-So there are 12 tiles in total.  In the tiling version, the loop body
-will be run 12 times.  Note that {\tt tilebox} is different for each
-tile, whereas {\tt fab} might be referencing the same object if the tiles
-belong to the same box.  In the non-tiling version (by constructing
-{\tt MFIter} without the optional second argument or setting to {\tt
-  false}), the loop body will be run 4 times because there are four
-boxes, and a call to {\tt mfi.tilebox()} will return the traditional
-{\tt validbox}.  The non-tiling case is essentially having one tile
-per box.
+Let us consider an example.  Suppose there are four boxes---see
+Figure~\ref{fig:domain-tiling}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\linewidth]{domain-tile}
+\caption{A simple domain showing 4 {\tt Box}es labeled 0--3, and their
+tiling regions (dotted lines)}
+\end{figure}
+%
+The first box is divided into 4 logical tiles, the second and third
+are divided into 2 tiles each (because they are small), and the fourth
+into 4 tiles.  So there are 12 tiles in total.
+\begin{itemize}
+\item In the tiling version,
+the loop body will be run 12 times.  Note that {\tt tilebox} is
+different for each tile, whereas {\tt fab} might be referencing the
+same object if the tiles belong to the same box.
 
+\item In the non-tiling
+version (by constructing {\tt MFIter} without the optional second
+argument or setting to {\tt false}), the loop body will be run 4 times
+because there are four boxes, and a call to {\tt mfi.tilebox()} will
+return the traditional {\tt validbox}.  The non-tiling case is
+essentially having one tile per box.
+\end{itemize}
+ 
 Tiling provides us the opportunity of a coarse-grained approach for
 OpenMP.  Threading can be turned on by inserting the following line
 above the {\tt for (MFIter...)} line.
