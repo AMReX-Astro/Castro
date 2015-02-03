@@ -59,7 +59,7 @@ A few comments about this code
 \item Instead of getting the data pointer explicitly (via {\tt fab.dataPtr()}),
    \castro\ often uses the preprocessor macro {\tt BL\_TO\_FORTRAN(x)} (defined
    in {\tt ArrayLim.H}) to substitute in the data pointer and the {\tt lo}
-   and {\tt hi} indices of the valid region.
+   and {\tt hi} indices of the multidimensional Fortran array (including ghost cells).
 \end{itemize}
 
 
@@ -115,7 +115,7 @@ that can take an {\tt IntVect} that explicitly gives the tile size
 in each coordinate direction.
 
 If we don't explictly specify the tile size at the loop, then the
-runtime parameter {\tt mfiter\_tile\_size} can be used to set it
+runtime parameter {\tt fabarray.mfiter\_tile\_size} can be used to set it
 globally.
 
 \item {\tt .validBox()} has the same meaning as in the non-tile approach,
@@ -208,15 +208,16 @@ work in the ghost cells of tiles.
 
 \section{Practical Details in Working with Tiling}
 
-With tiling, the OpenMp is now all in C++, and not in Fortran.  Note that
-the OpenMP pragma does not have a {\tt for}---this is not used when working
-with an iterator.
+With tiling, the OpenMP is now all in C++, and not in Fortran for all
+modules except reactions, initdata, and boundary filling functions
+(such as {\tt hypfill}..  Note that the OpenMP pragma does not have a
+{\tt for}---this is not used when working with an iterator.
 
 It is the responsibility of the coder to make sure that the routines with
 in a tiled region are safe to use with OpenMP.  In particular, note that:
 \begin{itemize}
 \item tile boxes are non-overlapping
-\item the union of tile boxes completely cover the fab
+\item the union of tile boxes completely cover the valid region of the fab
 \item Consider working with a node-centered MultiFab, {\tt ugdnv}, and a
 cell=centered MultiFab, {\tt s}:
   \begin{itemize}
@@ -263,6 +264,9 @@ corresponds to the memory layout) and the index-space of the tile.
   returned from {\tt mfi.tilebox()} in C++ and passed into the Fortran
   routine.
 
+\item Look at {\tt r\_old\_s} in {\tt Exec/DustCollapse/probdata.f90} as an
+  example of how to declare a {\tt threadprivate} variable---this is then used
+  in {\tt sponge\_3d.f90}.
 
 \end{itemize}
 
