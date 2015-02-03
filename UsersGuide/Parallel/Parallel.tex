@@ -1,0 +1,216 @@
+\castro\ uses a hybrid MPI + OpenMP approach to parallelism.  The
+basic idea is that MPI is used to distribute individual boxes across
+nodes while OpenMP is used to distribute the work in local boxes to
+the cores within a node.  The OpenMP approach in \castro\ has evolved
+considerably since the original paper was written, with the modern
+approach, called {\em tiling}, gearing up to meet the demands of
+many-core processors in the next-generation of supercomputers.
+
+
+\section{BoxLib's Non-Tiling Approach In C++}
+\label{sec:boxlib0}
+
+At the highest abstraction level, we have {\tt MultiFab} (mulitple
+{\tt FArrayBox}es).  A {\tt MultiFab} contains an array of {\tt
+  Box}es (a {\tt Box} contains integers specifying the index space it
+covers), including {\tt Box}es owned by other processors for the
+purpose of communication, an array of MPI ranks specifying which MPI
+processor owns each {\tt Box}, and an array of pointers to {\tt
+  FArrayBox}es owned by this MPI processor.  The real floating point
+data are stored as one-dimensional arrays in {\tt FArrayBox}es.  An
+{\tt FArrayBox} also contains a box that can be used to reshape the 1D
+array into multi-dimensional arrays to be used by Fortran subroutines.
+A typical usage of {\tt MultiFab} is as follows,
+
+\begin{lstlisting}
+  for (MFIter mfi(mf); mfi.isValid(); ++mfi) // Loop over boxes
+  {
+    // Get the index space of this iteration
+    const Box& box = mfi.validbox(); 
+
+    // Get a reference to the FAB, which contains data and box  
+    FArrayBox& fab = mf[mfi];  
+
+    // Get double* of the FAB 
+    double* a = fab.dataPtr();
+
+    // Get the index space for the data pointed by the double* 
+    // Note "abox" may have ghost cells, and is thus larger than 
+    // or equal to "box" obtained using mfi.validbox().
+    const Box& abox = fab.box();
+
+    // We can now pass the information to a Fortran routine,
+    // which reshapes double* a into a multi-dimensional array 
+    // with dimensions specified by the information in "abox".
+    // We will also pass "box", which specifies our "work" region.
+  }
+\end{lstlisting}
+
+\section{BoxLib's Current Tiling Approach In C++}
+\label{sec:boxlib1}
+
+We have recently introduced logical tiling into parts of BoxLib.  It
+is turned off by default, because this makes the transition smooth and
+because not everything should be tiled.  Examples can be found at {\tt
+  Tutorials/Tiling\_C}, and {\tt Src/LinearSolvers/C\_CellMG/}.
+
+In our logical tiling approach, a box is logically split into tiles,
+and a {\tt MFIter} loops over each tile in each box.  Note that the
+non-tiling iteration approach can be considered as a special case of
+tiling with the tile size equal to the box size.
+
+An example of using tiling is shown below.
+
+\begin{lstlisting}
+  bool tiling = true;
+  for (MFIter mfi(mf,tiling); mfi.isValid(); ++mfi) // Loop over tiles
+  {
+    // Get the index space of this iteration
+    const Box& box = mfi.tilebox(); 
+
+    // Get a reference to the FAB, which contains data and box  
+    FArrayBox& fab = mf[mfi];  
+
+    // Get double* of the FAB 
+    double* a = fab.dataPtr();
+
+    // Get the index space for the data pointed by the double*.
+    const Box& abox = fab.box();
+
+    // We can now pass the information to a Fortran routine.
+  }
+\end{lstlisting}
+Note that the code is almost identical to the one in \S~\ref{sec:boxlib0}.
+
+Let us consider an example.  Suppose there are four boxes.  The first
+box is divided into 4 logical tiles, the second and third are divided
+into 2 tiles each (because they are small), and the fourth into 4 tiles.
+So there are 12 tiles in total.  In the tiling version, the loop body
+will be run 12 times.  Note that {\tt tilebox} is different for each
+tile, whereas {\tt fab} might be referencing the same object if the tiles
+belong to the same box.  In the non-tiling version (by constructing
+{\tt MFIter} without the optional second argument or setting to {\tt
+  false}), the loop body will be run 4 times because there are four
+boxes, and a call to {\tt mfi.tilebox()} will return the traditional
+{\tt validbox}.  The non-tiling case is essentially having one tile
+per box.
+
+Tiling provides us the opportunity of a coarse-grained approach for
+OpenMP.  Threading can be turned on by inserting the following line
+above the {\tt for (MFIter...)} line.
+\begin{lstlisting}
+  #pragma omp parallel
+\end{lstlisting}
+Assuming four threads are used in the above example, thread 0 will
+work on 3 tiles from the first box, thread 1 on 1 tile from the first
+box and 2 tiles from the second box, and so forth.  It should be noted
+OpeMP can be used even when tiling is turned off.  In that case, the
+OpenMP granularity is at the box level.  It should also be noted that
+--- independent of whether or not tiling is on --- OpenMP threading
+can also be started within the function called inside the {\tt MFIter}
+loop, rather than at the {\tt MFIter} loop level.
+
+The tile size for the three spatial dimensions can be set by a parameter
+{\tt fabarray.mfiter\_tile\_size = 1024000 8 8}.  A huge number like
+1024000 will turn off tiling in that direction.  The {\tt MFIter}
+constructor can also take an explicit tile size: {\tt
+  MFIter(mfi(mf,IntVect(128,16,32)))}. 
+
+The {\tt MFIter} class provides some other useful functions:
+\begin{lstlisting}
+ mfi.validbox()       : The same meaning as before independent of tiling.
+ mfi.growntilebox(int): A grown tile box that includes ghost cells at box
+                        boundaries only.  Thus the returned boxes for a
+                        Fab are non-overlapping.
+ mfi.fluxbox(int)     : Returns non-overlapping edge-type boxes for tiles.
+                        The argument is for direction.
+ mfi.fabbox()         : Same as mf[mfi].box().
+\end{lstlisting}
+
+Finally we note that tiling is not always desired or better.  This
+traditional fine-grained approach coupled with dynamic scheduling is
+more appropriate for work with unbalanced loads, such as chemistry
+burning in cells by an implicit solver.  Tiling can also create extra
+work in the ghost cells of tiles.
+
+\section{TiDA}
+\label{sec:tida}
+
+In the logical tiling approach, the memory allocated in each {\tt
+  FArrayBox} of a {\tt MultiFab} is in one contiguous block.  Since
+memory granularity is at the page level, this may generate NUMA
+effects if the thread pool spans the NUMA domains.  If the thread pool
+is limited within the NUMA domain, the cost of managing meta-data for
+boxes could be an issue.  The TiDA library supports the so-called
+regional tiling and thread pinning.  This could help BoxLib make the
+box meta-data smaller while avoiding NUMA issues.
+
+We would like the adoption of TiDA to be as smooth as possible.  In
+this section, we present our plan. 
+
+\subsection{Terminology, Abstraction and Memory Layout}
+
+We should still have {\tt MultiFab} at the highest abstraction level.
+A box (with lower case `b') is an object that stores the index space.
+Let's define {\tt Box} as a rectangular box that contains one or
+multiple {\tt Region}s.  Let's define {\tt Region} as a box for a TiDA
+region.  Let's define {\tt Tile} as a sub-box within a {\tt Region}.
+An example of the structure of {\tt Box}, {\tt Region} and {\tt Tile}
+is shown in Figure~\ref{fig:BRT}.  So a {\tt MultiFab} has a set of
+{\tt Box}es, and each {\tt Box} contains a set of {\tt Region}s, and
+each {\tt Region} contains a set of {\tt Tile}s.  The memory allocated
+for the data on a {\tt Box} is not contiguous unless it only contains
+one {\tt Region}.  The memory for the data on a {\tt Region} is
+contiguous.  Therefore a block of data on a {\tt Region} can be
+reshaped into a multi-dimensional Fortran array, whereas the data on a
+{\tt Box} may not.  The {\tt Tile}s are logical, and they can be the
+granularity level for threading.  That {\tt Tile}s are logical gives
+us more controls on tiling strategy.  For example, we can have one
+{\tt Tile} per {\tt Region} and can then have threading granularity at
+the numerical cell level, which can be better for dynamic scheduling.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\centering
+%\includegraphics[width=5.5in]{./BoxRegionTile}
+\caption{\label{fig:BRT} Box, Region and Tile.}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We should still keep the {\tt FArrayBox} abstraction and name, even
+though it is now associated with {\tt Region}.  We regard it as an
+object that stores a multi-dimensional Fortran array and a box
+specifying the index space for the array.  A {\tt MultiFab} contains
+an array of array of {\tt FArrayBox}es.  The first array is for {\tt
+  Box}, and the second for {\tt Region}.
+
+{\tt Box}es are created by BoxLib and {\tt Regions} are created by
+TiDA.  Abstractly, the creation of {\tt Region}s can be 
+\begin{lstlisting}
+  TiDA::createRegions(Array<Box>, Array< Array<Region> >);
+\end{lstlisting}
+The memory allocation can be
+\begin{lstlisting}
+  TiDA::malloc(Array< Array<Region> >, 
+               int nc, int ng, double*** p, int*** TID);
+\end{lstlisting}
+Here, {\tt int nc} indicates the number of components and {\tt int ng}
+indicates the number of ghost cells surrounding the {\tt Region}s.
+The {\tt double*** p} provides access to the memory for the data, and
+it will be stored into {\tt FArrayBox}es of a {\tt MultiFab}.  The
+{\tt int*** TID} gives us the thread IDs for each {\tt Region}.  Note
+that there are usually multiple threads associated with each {\tt
+  Region}. 
+
+We would like to separate the memory allocation from the creation of
+{\tt Region}s, because we usually have multiple {\tt MultiFab}s using
+the same {\tt Box}es and these {\tt MultiFab}s often have different
+number of ghost cells.  {\tt MultiFab}s with the same {\tt Boxes}
+should have the same affinity of threads and {\tt Region}s, whether or
+not they have the same number of ghost cells or components.  Another
+thing we should pay attention to is the memory layout of a coarsened
+grid in a multigrid solver to lower the communication cost between
+multigrid levels.  Maybe we can ask TiDA to create a tower of {\tt
+  Regions} and allocate all memory in one call.  Maybe we can pass in
+the fine {\tt Region}s along with thread affinity information when we
+ask TiDA to create a coarsened version.
