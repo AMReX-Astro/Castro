@@ -760,16 +760,16 @@ Castro::advance_hydro (Real time,
 	}
 	if (fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-		fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1);
+		fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.);
 	}
 #ifdef RADIATION
 	if (rad_current) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-		current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
+		rad_current->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
 	}
 	if (rad_fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1);
+	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.);
         }
 #endif
     }
