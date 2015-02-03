@@ -625,7 +625,7 @@ end subroutine ca_est_gpr0
 
 
 subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
-     gPr, gPr_l1, gPr_h1, dx, limiter, comoving)
+     gPr, gPr_l1, gPr_h1, vlo, vhi, dx, limiter, comoving)
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
@@ -635,6 +635,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
   integer, intent(in) :: kap_l1, kap_h1 
   integer, intent(in) ::  Er_l1,  Er_h1
   integer, intent(in) :: gPr_l1, gPr_h1
+  integer, intent(in) :: vlo(1), vhi(1)  ! region with valid Er
   integer, intent(in) :: limiter, comoving
   double precision, intent(in) :: dx
   double precision, intent(in) ::  kap(kap_l1:kap_h1, 0:ngroups-1) 
@@ -643,12 +644,30 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
 
   integer :: i, g
   double precision :: r, lam, f, gamr
+  integer :: im, ip
+  double precision :: xm, xp
+
+  if (gPr_l1-1 .ge. vlo(1)) then
+     im = 1
+     xm = 2.d0
+  else
+     im = 0
+     xm = 1.d0
+  end if
+
+  if (gPr_h1+1 .le. vhi(1)) then
+     ip = 1
+     xp = 2.d0
+  else
+     ip = 0
+     xp = 1.d0
+  end if
 
   gPr = 0.0d0
 
   do g = 0, ngroups-1
      i = gPr_l1
-     r = abs(Er(i+1,g) - Er(i,g)) / (dx)
+     r = abs(Er(i+1,g) - Er(i-im,g)) / (xm*dx)
      r = r / (kap(i,g) * max(Er(i,g), 1.d-50))
      lam = FLDlambda(r, limiter)
      if (comoving .eq. 1) then
@@ -660,7 +679,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
      gPr(i) = gPr(i) + gamr * lam * Er(i,g)
      
      do i = gPr_l1+1, gPr_h1-1
-        r = abs(Er(i+1,g) - Er(i-1,g)) / (2.*dx)
+        r = abs(Er(i+1,g) - Er(i-1,g)) / (2.d0*dx)
         r = r / (kap(i,g) * max(Er(i,g), 1.d-50))
         lam = FLDlambda(r, limiter)
         if (comoving .eq. 1) then
@@ -673,7 +692,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
      end do
 
      i = gPr_h1
-     r = abs(Er(i,g) - Er(i-1,g)) / (dx)
+     r = abs(Er(i+ip,g) - Er(i-1,g)) / (xp*dx)
      r = r / (kap(i,g) * max(Er(i,g), 1.d-50))
      lam = FLDlambda(r, limiter)
      if (comoving .eq. 1) then

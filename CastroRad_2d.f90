@@ -975,7 +975,7 @@ end subroutine ca_est_gpr0
 
 subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
      Er, Er_l1, Er_l2, Er_h1, Er_h2, &
-     gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2, dx, limiter, comoving)
+     gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2, vlo, vhi, dx, limiter, comoving)
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
@@ -984,6 +984,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
 
   integer, intent(in) :: kap_l1, kap_l2, kap_h1, kap_h2, &
        Er_l1, Er_l2, Er_h1, Er_h2, gPr_l1, gPr_l2, gPr_h1, gPr_h2
+  integer, intent(in) :: vlo(2), vhi(2)  ! the region with valid Er
   integer, intent(in) :: limiter, comoving
   double precision, intent(in) :: dx(2)
   double precision, intent(in) :: kap(kap_l1:kap_h1,kap_l2:kap_h2, 0:ngroups-1), &
@@ -993,6 +994,40 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
   integer :: i, j, g
   double precision :: gE(gPr_l1:gPr_h1,gPr_l2:gPr_h2)
   double precision :: lam, gE1, gE2, r, f, gamr 
+  integer :: im, ip, jm, jp
+  double precision :: xm, xp, ym, yp
+
+  if (gPr_l1-1 .ge. vlo(1)) then
+     im = 1
+     xm = 2.d0
+  else
+     im = 0
+     xm = 1.d0
+  end if
+
+  if (gPr_h1+1 .le. vhi(1)) then
+     ip = 1
+     xp = 2.d0
+  else
+     ip = 0
+     xp = 1.d0
+  end if
+  
+  if (gPr_l2-1 .ge. vlo(2)) then
+     jm = 1
+     ym = 2.d0
+  else
+     jm = 0
+     ym = 1.d0
+  end if
+
+  if (gPr_h2+1 .le. vhi(2)) then
+     jp = 1
+     yp = 2.d0
+  else
+     jp = 0
+     yp = 1.d0
+  end if
 
   gPr = 0.0d0
 
@@ -1009,61 +1044,61 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
      ! lo-x lo-y corner
      i = gPr_l1
      j = gPr_l2
-     gE1 = (Er(i+1,j  ,g) - Er(i,j,g)) / (dx(1))
-     gE2 = (Er(i  ,j+1,g) - Er(i,j,g)) / (dx(2))
+     gE1 = (Er(i+1,j  ,g) - Er(i-im,j   ,g)) / (xm*dx(1))
+     gE2 = (Er(i  ,j+1,g) - Er(i   ,j-jm,g)) / (ym*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
 
      ! med-x lo-y side
      j = gPr_l2
      do i = gPr_l1+1, gPr_h1-1
-        gE1 = (Er(i+1,j  ,g) - Er(i-1,j,g)) / (2.d0*dx(1))
-        gE2 = (Er(i  ,j+1,g) - Er(i  ,j,g)) / (dx(2))
+        gE1 = (Er(i+1,j  ,g) - Er(i-1,j   ,g)) / (2.d0*dx(1))
+        gE2 = (Er(i  ,j+1,g) - Er(i  ,j-jm,g)) / (  ym*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
      
      ! hi-x lo-y corner
      i = gPr_h1
      j = gPr_l2
-     gE1 = (Er(i,j,g) - Er(i-1,j,g)) / (dx(1))
-     gE2 = (Er(i,j+1,g) - Er(i,j,g)) / (dx(2))
+     gE1 = (Er(i+ip,j  ,g) - Er(i-1,j   ,g)) / (xp*dx(1))
+     gE2 = (Er(i   ,j+1,g) - Er(i  ,j-jm,g)) / (ym*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
   
      ! lo-x med-y side
      i = gPr_l1
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i+1,j,g) - Er(i,j,g)) / (dx(1))
-        gE2 = (Er(i,j+1,g) - Er(i,j-1,g)) / (2.d0*dx(2))
+        gE1 = (Er(i+1,j  ,g) - Er(i-im,j  ,g)) / (  xm*dx(1))
+        gE2 = (Er(i  ,j+1,g) - Er(i   ,j-1,g)) / (2.d0*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
      
      ! hi-x med-y side
      i = gPr_h1
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i,j,g) - Er(i-1,j,g)) / (dx(1))
-        gE2 = (Er(i,j+1,g) - Er(i,j-1,g)) / (2.d0*dx(2))
+        gE1 = (Er(i+ip,j  ,g) - Er(i-1,j  ,g)) / (  xp*dx(1))
+        gE2 = (Er(i   ,j+1,g) - Er(i  ,j-1,g)) / (2.d0*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
      
      ! lo-x hi-y corner
      i = gPr_l1
      j = gPr_h2
-     gE1 = (Er(i+1,j,g) - Er(i,j,g)) / (dx(1))
-     gE2 = (Er(i,j,g) - Er(i,j-1,g)) / (dx(2))
+     gE1 = (Er(i+1,j   ,g) - Er(i-im,j  ,g)) / (xm*dx(1))
+     gE2 = (Er(i  ,j+jp,g) - Er(i   ,j-1,g)) / (yp*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
      
      ! med-x hi-y side
      j = gPr_h2
      do i = gPr_l1+1, gPr_h1-1
-        gE1 = (Er(i+1,j,g) - Er(i-1,j,g)) / (2.d0*dx(1))
-        gE2 = (Er(i,j,g) - Er(i,j-1,g)) / (dx(2))
+        gE1 = (Er(i+1,j   ,g) - Er(i-1,j,g)) / (2.d0*dx(1))
+        gE2 = (Er(i  ,j+jp,g) - Er(i,j-1,g)) / (  yp*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
      
      ! hi-x hi-y corner
      i = gPr_h1
      j = gPr_h2
-     gE1 = (Er(i,j,g) - Er(i-1,j,g)) / (dx(1))
-     gE2 = (Er(i,j,g) - Er(i,j-1,g)) / (dx(2))
+     gE1 = (Er(i+ip,j   ,g) - Er(i-1,j  ,g)) / (xp*dx(1))
+     gE2 = (Er(i   ,j+jp,g) - Er(i  ,j-1,g)) / (yp*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
      
      do j = gPr_l2, gPr_h2

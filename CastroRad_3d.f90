@@ -1516,7 +1516,7 @@ end subroutine ca_est_gpr0
 
 subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
-     gPr, gPr_l1, gPr_l2, gPr_l3, gPr_h1, gPr_h2, gPr_h3, dx, limiter, comoving)
+     gPr, gPr_l1, gPr_l2, gPr_l3, gPr_h1, gPr_h2, gPr_h3, vlo, vhi, dx, limiter, comoving)
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
@@ -1526,6 +1526,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
   integer, intent(in) :: kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
        Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
        gPr_l1, gPr_l2, gPr_l3, gPr_h1, gPr_h2, gPr_h3
+  integer, intent(in) :: vlo(3), vhi(3)  ! the region with valid Er
   integer, intent(in) :: limiter, comoving
   double precision, intent(in) :: dx(3)
   double precision, intent(in) :: kap(kap_l1:kap_h1,kap_l2:kap_h2,kap_l3:kap_h3,0:ngroups-1), &
@@ -1533,10 +1534,58 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
   double precision, intent(out) :: gPr(gPr_l1:gPr_h1,gPr_l2:gPr_h2,gPr_l3:gPr_h3)
 
   integer :: i, j, k, g
-  double precision, allocatable :: gE(:,:,:)
+  double precision :: gE(gPr_l1:gPr_h1,gPr_l2:gPr_h2,gPr_l3:gPr_h3)
   double precision :: lam, gE1, gE2, gE3, r, f, gamr 
+  integer :: im, ip, jm, jp, km, kp
+  double precision :: xm, xp, ym, yp, zm, zp
 
-  allocate(gE(gPr_l1:gPr_h1,gPr_l2:gPr_h2,gPr_l3:gPr_h3))
+  if (gPr_l1-1 .ge. vlo(1)) then
+     im = 1
+     xm = 2.d0
+  else
+     im = 0
+     xm = 1.d0
+  end if
+
+  if (gPr_h1+1 .le. vhi(1)) then
+     ip = 1
+     xp = 2.d0
+  else
+     ip = 0
+     xp = 1.d0
+  end if
+  
+  if (gPr_l2-1 .ge. vlo(2)) then
+     jm = 1
+     ym = 2.d0
+  else
+     jm = 0
+     ym = 1.d0
+  end if
+
+  if (gPr_h2+1 .le. vhi(2)) then
+     jp = 1
+     yp = 2.d0
+  else
+     jp = 0
+     yp = 1.d0
+  end if
+
+  if (gPr_l3-1 .ge. vlo(3)) then
+     km = 1
+     zm = 2.d0
+  else
+     km = 0
+     zm = 1.d0
+  end if
+
+  if (gPr_h3+1 .le. vhi(3)) then
+     kp = 1
+     zp = 2.d0
+  else
+     kp = 0
+     zp = 1.d0
+  end if
 
   gPr = 0.d0
 
@@ -1557,9 +1606,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      j = gPr_l2
      k = gPr_l3
-     gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+     gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+     gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+     gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      ! med-x lo-y lo-z
@@ -1567,8 +1616,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      k = gPr_l3
      do i = gPr_l1+1, gPr_h1-1
         gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-        gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-        gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+        gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+        gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1576,18 +1625,18 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_l2
      k = gPr_l3
-     gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+     gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+     gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+     gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      ! lo-x med-y lo-z
      i = gPr_l1
      k = gPr_l3
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
+        gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
         gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-        gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+        gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1597,7 +1646,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         do i = gPr_l1+1, gPr_h1-1
            gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
            gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-           gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+           gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
@@ -1606,9 +1655,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      k = gPr_l3
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
+        gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
         gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-        gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+        gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1616,9 +1665,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      j = gPr_h2
      k = gPr_l3
-     gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+     gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+     gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+     gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      ! med-x hi-y lo-z
@@ -1626,8 +1675,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      k = gPr_l3
      do i = gPr_l1+1, gPr_h1-1
         gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-        gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-        gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+        gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+        gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1635,17 +1684,17 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_h2
      k = gPr_l3
-     gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / (dx(3))
+     gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+     gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+     gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
 
      ! lo-x lo-y med-z
      i = gPr_l1
      j = gPr_l2
      do k = gPr_l3+1, gPr_h3-1
-        gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-        gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
+        gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+        gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
@@ -1655,7 +1704,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      do k = gPr_l3+1, gPr_h3-1
         do i = gPr_l1+1, gPr_h1-1
            gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-           gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
+           gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
            gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
@@ -1665,8 +1714,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_l2
      do k = gPr_l3+1, gPr_h3-1
-        gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-        gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
+        gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+        gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
@@ -1675,7 +1724,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      do k = gPr_l3+1, gPr_h3-1
         do j = gPr_l2+1, gPr_h2-1
-           gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
+           gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
            gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
            gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
@@ -1686,7 +1735,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      do k = gPr_l3+1, gPr_h3-1
         do j = gPr_l2+1, gPr_h2-1
-           gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
+           gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
            gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
            gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
@@ -1697,8 +1746,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      j = gPr_h2
      do k = gPr_l3+1, gPr_h3-1
-        gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-        gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
+        gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+        gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
@@ -1708,7 +1757,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      do k = gPr_l3+1, gPr_h3-1
         do i = gPr_l1+1, gPr_h1-1
            gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-           gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
+           gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
            gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
@@ -1718,8 +1767,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_h2
      do k = gPr_l3+1, gPr_h3-1
-        gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-        gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
+        gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+        gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
@@ -1728,9 +1777,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      j = gPr_l2
      k = gPr_h3
-     gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+     gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+     gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+     gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
 
      ! med-x lo-y hi-z
@@ -1738,8 +1787,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      k = gPr_h3
      do i = gPr_l1+1, gPr_h1-1
         gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-        gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-        gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+        gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+        gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1747,18 +1796,18 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_l2
      k = gPr_h3
-     gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+     gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+     gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
+     gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      ! lo-x med-y hi-z
      i = gPr_l1
      k = gPr_h3
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
+        gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
         gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-        gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+        gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1768,7 +1817,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         do i = gPr_l1+1, gPr_h1-1
            gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
            gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-           gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+           gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
@@ -1777,9 +1826,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      k = gPr_h3
      do j = gPr_l2+1, gPr_h2-1
-        gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
+        gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
         gE2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.d0*dx(2))
-        gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+        gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1787,9 +1836,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_l1
      j = gPr_h2
      k = gPr_h3
-     gE1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+     gE1 = (Er(i+1,j,k,g) - Er(i-im,j,k,g)) / (xm*dx(1))
+     gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+     gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      ! med-x hi-y hi-z
@@ -1797,8 +1846,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      k = gPr_h3
      do i = gPr_l1+1, gPr_h1-1
         gE1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.d0*dx(1))
-        gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-        gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+        gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+        gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
      
@@ -1806,9 +1855,9 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      i = gPr_h1
      j = gPr_h2
      k = gPr_h3
-     gE1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx(1))
-     gE2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx(2))
-     gE3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / (dx(3))
+     gE1 = (Er(i+ip,j,k,g) - Er(i-1,j,k,g)) / (xp*dx(1))
+     gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
+     gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      
      do k = gPr_l3, gPr_h3
@@ -1828,8 +1877,6 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      end do
      
   end do
-
-  deallocate(gE)
 
 end subroutine ca_est_gpr2
 

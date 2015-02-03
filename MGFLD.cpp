@@ -916,7 +916,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
   }
   else {
 
-    FArrayBox kappa_r(box, nGroups);
+    FArrayBox kappa_r(gPr.box(), nGroups);
 
     if (do_multigroup) {
       MGFLD_compute_rosseland(kappa_r, state);
@@ -928,7 +928,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
     BL_FORT_PROC_CALL(CA_EST_GPR2, ca_est_gpr2)
       (BL_TO_FORTRAN(kappa_r),
        BL_TO_FORTRAN(Er),
-       BL_TO_FORTRAN(gPr), dx, &limiter, &comoving);
+       BL_TO_FORTRAN(gPr), 
+       box.loVect(),box.hiVect(),
+       dx, &limiter, &comoving);
   }
 }
 

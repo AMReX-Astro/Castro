@@ -248,8 +248,9 @@ BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
 BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
    (const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(Er),
-    BL_FORT_FAB_ARG(gPr), const Real* dx, 
-    const int* limiter, const int* comoving); 
+    BL_FORT_FAB_ARG(gPr), 
+    const int lo[], const int hi[],
+    const Real* dx, const int* limiter, const int* comoving); 
 
 BL_FORT_PROC_DECL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
    (BL_FORT_FAB_ARG(test), const int* ntest, const int* n,
