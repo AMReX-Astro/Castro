@@ -70,9 +70,12 @@ Castro::volWgtSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -129,9 +132,12 @@ Castro::volWgtSquaredSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -189,9 +195,12 @@ Castro::locWgtSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -256,9 +265,12 @@ Castro::locWgtSum2D (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -305,9 +317,12 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -371,9 +386,12 @@ Castro::volWgtSumOneSide (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
 #if (BL_SPACEDIM == 2)
@@ -481,9 +499,12 @@ Castro::locWgtSumOneSide (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
 #if (BL_SPACEDIM == 2)
