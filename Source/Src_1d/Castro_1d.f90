@@ -195,13 +195,8 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
-! ::  ngc        => number of ghost cells in coarse array
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  ngf        => number of ghost cells in fine array
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -230,9 +225,6 @@
       double precision fv(fv_l1:fv_h1)
 
       integer i, n, ic, ioff
-      integer lratx
- 
-      lratx = lrat(1)
  
       do n = 1, nvar
  
@@ -240,12 +232,11 @@
          do ic = lo(1), hi(1)
             crse(ic,n) = ZERO
          enddo
- 
- 
+  
 !        Sum fine data
-         do ioff = 0, lratx-1
+         do ioff = 0, lrat(1)-1
             do ic = lo(1), hi(1)
-               i = ic*lratx + ioff
+               i = ic*lrat(1) + ioff
                crse(ic,n) = crse(ic,n) + fv(i) * fine(i,n)
             enddo
          enddo

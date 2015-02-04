@@ -216,13 +216,8 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
-! ::  ngc        => number of ghost cells in coarse array
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  ngf        => number of ghost cells in fine array
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -251,81 +246,37 @@
       double precision fv(fv_l1:fv_h1,fv_l2:fv_h2)
 
       integer i, j, n, ic, jc, ioff, joff
-      integer lenx, leny, mxlen
-      integer lratx, lraty
 
-      lratx = lrat(1)
-      lraty = lrat(2)
-      lenx = hi(1)-lo(1)+1
-      leny = hi(2)-lo(2)+1
-      mxlen = max(lenx,leny)
-
-      if (lenx .eq. mxlen) then
-         do n = 1, nvar
+      do n = 1, nvar
  
 !           Set coarse grid to zero on overlap
-            do jc = lo(2), hi(2)
-               do ic = lo(1), hi(1)
-                  crse(ic,jc,n) = ZERO
-               enddo
+         do jc = lo(2), hi(2)
+            do ic = lo(1), hi(1)
+               crse(ic,jc,n) = ZERO
             enddo
+         enddo
 
 !           Sum fine data
-            do joff = 0, lraty-1
-               do jc = lo(2), hi(2)
-                  j = jc*lraty + joff
-                  do ioff = 0, lratx-1
-                     do ic = lo(1), hi(1)
-                        i = ic*lratx + ioff
-                        crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
-                     enddo
+         do joff = 0, lrat(2)-1
+            do jc = lo(2), hi(2)
+               j = jc*lrat(2) + joff
+               do ioff = 0, lrat(1)-1
+                  do ic = lo(1), hi(1)
+                     i = ic*lrat(1) + ioff
+                     crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
                   enddo
                enddo
             enddo
-
-!           Divide out by volume weight
-            do jc = lo(2), hi(2)
-               do ic = lo(1), hi(1)
-                  crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
-               enddo
-            enddo
-            
          enddo
-
-      else
-
-         do n = 1, nvar
-
-!           Set coarse grid to zero on overlap
-            do ic = lo(1), hi(1)
-               do jc = lo(2), hi(2)
-                  crse(ic,jc,n) = ZERO
-               enddo
-            enddo
- 
-!           Sum fine data
-            do ioff = 0, lratx-1
-               do ic = lo(1), hi(1)
-                  i = ic*lratx + ioff
-                  do joff = 0, lraty-1
-                     do jc = lo(2), hi(2)
-                        j = jc*lraty + joff
-                        crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
-                     enddo
-                  enddo
-               enddo
-            enddo
-             
+         
 !           Divide out by volume weight
+         do jc = lo(2), hi(2)
             do ic = lo(1), hi(1)
-               do jc = lo(2), hi(2)
-                  crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
-               enddo
+               crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
             enddo
-            
          enddo
-
-      end if
+         
+      enddo
 
       end subroutine ca_avgdown
 
