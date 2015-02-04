@@ -213,7 +213,7 @@
       
         integer :: i, j, g
 
-        Et = 0.d0
+        Et(lo(1):hi(1),lo(2):hi(2),:) = 0.d0
 
         do g = 1, ncomp_Er
            do j = lo(2), hi(2)
@@ -245,7 +245,7 @@
       
         integer :: i, j, g
 
-        Enue = 0.d0
+        Enue(lo(1):hi(1),lo(2):hi(2),:) = 0.d0
 
         do g = 1, ng0
            do j = lo(2), hi(2)
@@ -277,7 +277,7 @@
       
         integer :: i, j, g
 
-        Enuae = 0.d0
+        Enuae(lo(1):hi(1),lo(2):hi(2),:) = 0.d0
 
         do g = ng0+1, ng0+ng1
            do j = lo(2), hi(2)

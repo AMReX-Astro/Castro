@@ -204,7 +204,7 @@
       
         integer :: i, g
 
-        Et = 0.d0
+        Et(lo(1):hi(1),:) = 0.d0
 
         do g = 1, ncomp_Er
            do i = lo(1), hi(1)
@@ -234,7 +234,7 @@
       
         integer :: i, g
 
-        Enue = 0.d0
+        Enue(lo(1):hi(1),:) = 0.d0
 
         do g = 1, ng0
            do i = lo(1), hi(1)
@@ -264,7 +264,7 @@
       
         integer :: i, g
 
-        Enuae = 0.d0
+        Enuae(lo(1):hi(1),:) = 0.d0
 
         do g = ng0+1, ng0+ng1
            do i = lo(1), hi(1)
