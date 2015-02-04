@@ -1829,17 +1829,18 @@ c temp contains frhoe on input:
 
 c temp contains temp on input:
 
-      subroutine gcv(cv,
-     @  dims(reg),
+      subroutine gcv(dims(reg),
+     @  cv,dims(cbox),
      @  temp, dims(tbox),
      @  const, em, en, tf,
      @  state, dims(sbox))
       implicit none
       INCLUDE 'StateLayout.H'
       integer dimdec(reg)
+      integer dimdec(cbox)
       integer dimdec(tbox)
       integer dimdec(sbox)
-      real*8 cv(dimv(reg))
+      real*8 cv(dimv(cbox))
       real*8 temp(dimv(tbox))
       real*8 const(0:1), em(0:1), en(0:1), tf(0:1)
       real*8 state(dimv(sbox), 0:SVSIZE-1)

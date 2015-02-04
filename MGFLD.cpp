@@ -339,7 +339,8 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	      dedT[mfi].setVal(const_c_v[0],box,0);
 	  }
 	  else if (const_c_v[0] > 0.0) {
-	      FORT_GCV(dedT[mfi].dataPtr(), dimlist(box),
+	      FORT_GCV(dimlist(box),
+		       dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
 		       temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
 		       const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
 		       prop_temp_floor.dataPtr(),

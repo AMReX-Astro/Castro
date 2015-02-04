@@ -875,7 +875,8 @@ extern "C" {
 		  Real* con, Real* em, Real* en,
                   Real* state, intS);
 
-  void FORT_GCV(Real* c_v, intS, const Real* temp, intS,
+  void FORT_GCV(intS,
+                Real* c_v, intS, const Real* temp, intS,
 		const Real* con, const Real* em, const Real* en, const Real* tf,
 		const Real* state, intS);
 

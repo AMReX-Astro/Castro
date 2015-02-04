@@ -1398,8 +1398,6 @@ void Radiation::get_frhoe(Fab& frhoe,
 void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
                         const Box& reg)
 {
-  const Box& tbox = temp.box();
-  const Box& sbox = state.box();
   if (do_real_eos == 1) {
     BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
       (reg.loVect(), reg.hiVect(),
@@ -1410,14 +1408,13 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
       c_v.setVal(const_c_v[0]);
     }
     else {
-      BL_ASSERT(reg == c_v.box());
-
-      FORT_GCV(c_v.dataPtr(), dimlist(reg),
-               temp.dataPtr(), dimlist(tbox),
+      FORT_GCV(dimlist(reg),
+	       c_v.dataPtr(), dimlist(c_v.box()),
+               temp.dataPtr(), dimlist(temp.box()),
                const_c_v.dataPtr(),
                c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
                prop_temp_floor.dataPtr(),
-               state.dataPtr(), dimlist(sbox));
+               state.dataPtr(), dimlist(state.box()));
     }
   }
   else {
