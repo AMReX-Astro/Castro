@@ -343,7 +343,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2)
 
   use network, only : nspec, naux
-  use meth_params_module, only : QVAR, NVAR, ppm_type 
+  use meth_params_module, only : NVAR, ppm_type 
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
 
@@ -557,7 +557,7 @@ subroutine trace_ppm_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
   use network, only : nspec, naux
-  use meth_params_module, only : QVAR, QRHO, QU, QV, &
+  use meth_params_module, only : QRHO, QU, QV, &
        QREINT, QPRES, QFA, QFS, QFX, &
        nadv, small_dens, ppm_type
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
@@ -1252,7 +1252,7 @@ subroutine cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2,&
      gamc,gamcg,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
      idir,ilo,ihi,jlo,jhi)
 
-  use meth_params_module, only : QVAR, NVAR
+  use meth_params_module, only : NVAR
   use radhydro_params_module, only : QRADVAR 
   use rad_params_module, only : ngroups
 
@@ -1357,8 +1357,8 @@ subroutine riemannus_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
      idir, ilo1, ihi1, ilo2, ihi2)
 
   use network, only : nspec, naux
-  use prob_params_module, only : physbc_lo,physbc_hi,Symmetry
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
+  use prob_params_module, only : physbc_lo,Symmetry
+  use meth_params_module, only : NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
        URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
        small_dens, small_pres
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
@@ -1695,7 +1695,7 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv
+       URHO, UMX, UMY, UEDEN, UFA, UFS, UFX, nadv
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -1949,7 +1949,7 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv
+       URHO, UMX, UMY, UEDEN, UFA, UFS, UFX, nadv
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups

@@ -18,38 +18,58 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
   absolute = 0.0;
   err_er = 0.0;
 
-  for (MFIter mfi(Er_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i]; 
-
-#ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_CHECK_CONV_ER_NEUT, ca_check_conv_er_neut)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaTz[mfi]),
-       BL_TO_FORTRAN(etaYz[mfi]),
-       BL_TO_FORTRAN(theTz[mfi]),
-       BL_TO_FORTRAN(theYz[mfi]),
-       BL_TO_FORTRAN(temp_new[mfi]),
-       BL_TO_FORTRAN(Ye_new[mfi]),
-       &relative, &absolute, & err_er, &delta_t);
-#else
-    BL_FORT_PROC_CALL(CA_CHECK_CONV_ER, ca_check_conv_er)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaTz[mfi]),
-       BL_TO_FORTRAN(temp_new[mfi]),
-       &relative, &absolute, & err_er, &delta_t);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
+  {
+      Real priv_relative = 0.0;
+      Real priv_absolute = 0.0;
+      Real priv_err_er   = 0.0;
+
+      for (MFIter mfi(Er_new,true); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.tilebox();
+#ifdef NEUTRINO
+	  BL_FORT_PROC_CALL(CA_CHECK_CONV_ER_NEUT, ca_check_conv_er_neut)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(Er_new[mfi]),
+	       BL_TO_FORTRAN(Er_pi[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(etaTz[mfi]),
+	       BL_TO_FORTRAN(etaYz[mfi]),
+	       BL_TO_FORTRAN(theTz[mfi]),
+	       BL_TO_FORTRAN(theYz[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(Ye_new[mfi]),
+	       &priv_relative, &priv_absolute, &priv_err_er, &delta_t);
+#else
+	  BL_FORT_PROC_CALL(CA_CHECK_CONV_ER, ca_check_conv_er)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(Er_new[mfi]),
+	       BL_TO_FORTRAN(Er_pi[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(etaTz[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       &priv_relative, &priv_absolute, &priv_err_er, &delta_t);
+#endif
+      }
+
+#ifdef _OPENMP
+#pragma omp critical(rad_check_conv_er)
+#endif
+      {
+	  relative = std::max(relative, priv_relative);
+	  absolute = std::max(absolute, priv_absolute);
+	  err_er   = std::max(err_er  , priv_err_er);
+      }
   }
 
-  ParallelDescriptor::ReduceRealMax(relative);
-  ParallelDescriptor::ReduceRealMax(absolute);
-  ParallelDescriptor::ReduceRealMax(err_er);
+  Real data[3] = {relative, absolute, err_er};
+
+  ParallelDescriptor::ReduceRealMax(data, 3);
+
+  relative = data[0];
+  absolute = data[1];
+  err_er   = data[2];
 }
 
 
@@ -73,65 +93,109 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
   rel_FY   = abs_FY   = 0.0;
   rel_Ye   = abs_Ye   = 0.0;
 
-  for (MFIter mfi(rhoe_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i]; 
-
-#ifdef NEUTRINO    
-    BL_FORT_PROC_CALL(CA_CHECK_CONV_NEUT, ca_check_conv_neut)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(rhoe_new[mfi]),
-       BL_TO_FORTRAN(rhoe_star[mfi]),
-       BL_TO_FORTRAN(rhoe_step[mfi]),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(temp_new[mfi]),
-       BL_TO_FORTRAN(temp_star[mfi]),
-       BL_TO_FORTRAN(rhoYe_new[mfi]),
-       BL_TO_FORTRAN(rhoYe_star[mfi]),
-       BL_TO_FORTRAN(rhoYe_step[mfi]),
-       BL_TO_FORTRAN(rho[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(jg[mfi]),
-       BL_TO_FORTRAN(dedT[mfi]),
-       BL_TO_FORTRAN(dedY[mfi]),
-       &rel_rhoe, &abs_rhoe, 
-       &rel_FT,   &abs_FT, 
-       &rel_T,    &abs_T, 
-       &rel_FY,   &abs_FY, 
-       &rel_Ye,   &abs_Ye,
-       &delta_t);
-#else
-    BL_FORT_PROC_CALL(CA_CHECK_CONV, ca_check_conv)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(rhoe_new[mfi]),
-       BL_TO_FORTRAN(rhoe_star[mfi]),
-       BL_TO_FORTRAN(rhoe_step[mfi]),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(temp_new[mfi]),
-       BL_TO_FORTRAN(temp_star[mfi]),
-       BL_TO_FORTRAN(rho[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(jg[mfi]),
-       BL_TO_FORTRAN(dedT[mfi]),
-       &rel_rhoe, &abs_rhoe, 
-       &rel_FT,   &abs_FT, 
-       &rel_T,    &abs_T, 
-       &delta_t);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
+  {
+      Real priv_rel_rhoe = 0.0;
+      Real priv_abs_rhoe = 0.0;
+      Real priv_rel_FT   = 0.0;
+      Real priv_abs_FT   = 0.0;
+      Real priv_rel_T    = 0.0;
+      Real priv_abs_T    = 0.0;
+#ifdef NEUTRINO
+      Real priv_rel_FY   = 0.0;
+      Real priv_abs_FY   = 0.0;
+      Real priv_rel_Ye   = 0.0;
+      Real priv_abs_Ye   = 0.0;
+#endif      
+
+      for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.tilebox();
+#ifdef NEUTRINO    
+	  BL_FORT_PROC_CALL(CA_CHECK_CONV_NEUT, ca_check_conv_neut)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(rhoe_new[mfi]),
+	       BL_TO_FORTRAN(rhoe_star[mfi]),
+	       BL_TO_FORTRAN(rhoe_step[mfi]),
+	       BL_TO_FORTRAN(Er_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(temp_star[mfi]),
+	       BL_TO_FORTRAN(rhoYe_new[mfi]),
+	       BL_TO_FORTRAN(rhoYe_star[mfi]),
+	       BL_TO_FORTRAN(rhoYe_step[mfi]),
+	       BL_TO_FORTRAN(rho[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(jg[mfi]),
+	       BL_TO_FORTRAN(dedT[mfi]),
+	       BL_TO_FORTRAN(dedY[mfi]),
+	       &priv_rel_rhoe, &priv_abs_rhoe, 
+	       &priv_rel_FT,   &priv_abs_FT, 
+	       &priv_rel_T,    &priv_abs_T, 
+	       &priv_rel_FY,   &priv_abs_FY, 
+	       &priv_rel_Ye,   &priv_abs_Ye,
+	       &delta_t);
+#else
+	  BL_FORT_PROC_CALL(CA_CHECK_CONV, ca_check_conv)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(rhoe_new[mfi]),
+	       BL_TO_FORTRAN(rhoe_star[mfi]),
+	       BL_TO_FORTRAN(rhoe_step[mfi]),
+	       BL_TO_FORTRAN(Er_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(temp_star[mfi]),
+	       BL_TO_FORTRAN(rho[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(jg[mfi]),
+	       BL_TO_FORTRAN(dedT[mfi]),
+	       &priv_rel_rhoe, &priv_abs_rhoe, 
+	       &priv_rel_FT,   &priv_abs_FT, 
+	       &priv_rel_T,    &priv_abs_T, 
+	       &delta_t);
+#endif
+      }
+
+#ifdef _OPENMP
+#pragma omp critical(rad_check_conv)
+#endif
+      {
+	  rel_rhoe = std::max(rel_rhoe, priv_rel_rhoe);  
+	  abs_rhoe = std::max(abs_rhoe, priv_abs_rhoe); 
+	  rel_FT   = std::max(rel_FT  , priv_rel_FT  ); 
+	  abs_FT   = std::max(abs_FT  , priv_abs_FT  ); 
+	  rel_T    = std::max(rel_T   , priv_rel_T   ); 
+	  abs_T    = std::max(abs_T   , priv_abs_T   ); 
+#ifdef NEUTRINO
+	  rel_FY   = std::max(rel_FY  , priv_rel_FY  ); 
+	  abs_FY   = std::max(abs_FY  , priv_abs_FY  ); 
+	  rel_Ye   = std::max(rel_Ye  , priv_rel_Ye  ); 
+	  abs_Ye   = std::max(abs_Ye  , priv_abs_Ye  ); 
+#endif      
+      }
   }
 
-  ParallelDescriptor::ReduceRealMax(rel_rhoe);
-  ParallelDescriptor::ReduceRealMax(abs_rhoe);
-  ParallelDescriptor::ReduceRealMax(rel_FT);
-  ParallelDescriptor::ReduceRealMax(abs_FT);
-  ParallelDescriptor::ReduceRealMax(rel_T);
-  ParallelDescriptor::ReduceRealMax(abs_T);
 #ifdef NEUTRINO
-  ParallelDescriptor::ReduceRealMax(rel_FY);
-  ParallelDescriptor::ReduceRealMax(abs_FY);
-  ParallelDescriptor::ReduceRealMax(rel_Ye);
-  ParallelDescriptor::ReduceRealMax(abs_Ye);
+  int ndata = 10;
+Real data[10] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T, rel_FY, abs_FY, rel_Ye, abs_Ye};
+#else
+  int ndata = 6;
+  Real data[6 ] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T};
 #endif
+
+  ParallelDescriptor::ReduceRealMax(data,ndata);
+
+  rel_rhoe = data[0]; 
+  abs_rhoe = data[1];
+  rel_FT   = data[2];
+  abs_FT   = data[3];
+  rel_T    = data[4];
+  abs_T    = data[5];
+#ifdef NEUTRINO
+  rel_FY   = data[6];
+  abs_FY   = data[7];
+  rel_Ye   = data[8];
+  abs_Ye   = data[9];
+#endif      
 }
 
 
@@ -139,22 +203,28 @@ void Radiation::compute_coupling(MultiFab& coupT, MultiFab& coupY,
 				 const MultiFab& kpp, const MultiFab& Eg,
 				 const MultiFab& jg)
 {
-  for (MFIter mfi(kpp); mfi.isValid(); ++mfi) {
-#ifdef NEUTRINO 
-    BL_FORT_PROC_CALL(CA_COMPUTE_COUPTY, ca_compute_coupty)
-      (BL_TO_FORTRAN(coupT[mfi]),
-       BL_TO_FORTRAN(coupY[mfi]),
-       BL_TO_FORTRAN(kpp[mfi]),
-       BL_TO_FORTRAN(Eg[mfi]),    
-       BL_TO_FORTRAN(jg[mfi]));
-#else
-    BL_FORT_PROC_CALL(CA_COMPUTE_COUPT, ca_compute_coupt)
-      (BL_TO_FORTRAN(coupT[mfi]),
-       BL_TO_FORTRAN(kpp[mfi]),
-       BL_TO_FORTRAN(Eg[mfi]),    
-       BL_TO_FORTRAN(jg[mfi]));
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-  }
+    for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+#ifdef NEUTRINO 
+	BL_FORT_PROC_CALL(CA_COMPUTE_COUPTY, ca_compute_coupty)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(coupT[mfi]),
+	     BL_TO_FORTRAN(coupY[mfi]),
+	     BL_TO_FORTRAN(kpp[mfi]),
+	     BL_TO_FORTRAN(Eg[mfi]),    
+	     BL_TO_FORTRAN(jg[mfi]));
+#else
+	BL_FORT_PROC_CALL(CA_COMPUTE_COUPT, ca_compute_coupt)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(coupT[mfi]),
+	     BL_TO_FORTRAN(kpp[mfi]),
+	     BL_TO_FORTRAN(Eg[mfi]),    
+	     BL_TO_FORTRAN(jg[mfi]));
+#endif
+    }
 }
 
 
@@ -170,46 +240,48 @@ void Radiation::compute_eta_theta(MultiFab& etaT, MultiFab& etaTz,
 				  const MultiFab& Er_star, const MultiFab& rho, 
 				  const BoxArray& grids, Real delta_t, Real ptc_tau)
 {
-  for (MFIter mfi(rho); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(rho,true); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(etaTz[mfi]),
-       BL_TO_FORTRAN(etaY[mfi]),
-       BL_TO_FORTRAN(etaYz[mfi]),
-       BL_TO_FORTRAN(eta1[mfi]),
-       BL_TO_FORTRAN(thetaT[mfi]),
-       BL_TO_FORTRAN(thetaTz[mfi]),
-       BL_TO_FORTRAN(thetaY[mfi]),
-       BL_TO_FORTRAN(thetaYz[mfi]),
-       BL_TO_FORTRAN(theta1[mfi]),
-       BL_TO_FORTRAN(djdT[mfi]),
-       BL_TO_FORTRAN(djdY[mfi]),
-       BL_TO_FORTRAN(dkdT[mfi]),
-       BL_TO_FORTRAN(dkdY[mfi]),
-       BL_TO_FORTRAN(dedT[mfi]),
-       BL_TO_FORTRAN(dedY[mfi]),
-       BL_TO_FORTRAN(Er_star[mfi]),
-       BL_TO_FORTRAN(rho[mfi]),
-       &delta_t, &ptc_tau);
+	BL_FORT_PROC_CALL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
+	    (bx.loVect(), bx.hiVect(),
+	      BL_TO_FORTRAN(etaT[mfi]),
+	      BL_TO_FORTRAN(etaTz[mfi]),
+	      BL_TO_FORTRAN(etaY[mfi]),
+	      BL_TO_FORTRAN(etaYz[mfi]),
+	      BL_TO_FORTRAN(eta1[mfi]),
+	      BL_TO_FORTRAN(thetaT[mfi]),
+	      BL_TO_FORTRAN(thetaTz[mfi]),
+	      BL_TO_FORTRAN(thetaY[mfi]),
+	      BL_TO_FORTRAN(thetaYz[mfi]),
+	      BL_TO_FORTRAN(theta1[mfi]),
+	      BL_TO_FORTRAN(djdT[mfi]),
+	      BL_TO_FORTRAN(djdY[mfi]),
+	      BL_TO_FORTRAN(dkdT[mfi]),
+	      BL_TO_FORTRAN(dkdY[mfi]),
+	      BL_TO_FORTRAN(dedT[mfi]),
+	      BL_TO_FORTRAN(dedY[mfi]),
+	      BL_TO_FORTRAN(Er_star[mfi]),
+	      BL_TO_FORTRAN(rho[mfi]),
+	      &delta_t, &ptc_tau);
 #else
-    BL_FORT_PROC_CALL(CA_COMPUTE_ETAT, ca_compute_etat)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(etaTz[mfi]),
-       BL_TO_FORTRAN(eta1[mfi]),
-       BL_TO_FORTRAN(djdT[mfi]),
-       BL_TO_FORTRAN(dkdT[mfi]),
-       BL_TO_FORTRAN(dedT[mfi]),
-       BL_TO_FORTRAN(Er_star[mfi]),
-       BL_TO_FORTRAN(rho[mfi]),
-       &delta_t, &ptc_tau);
+	BL_FORT_PROC_CALL(CA_COMPUTE_ETAT, ca_compute_etat)
+	    (bx.loVect(), bx.hiVect(),
+	      BL_TO_FORTRAN(etaT[mfi]),
+	      BL_TO_FORTRAN(etaTz[mfi]),
+	      BL_TO_FORTRAN(eta1[mfi]),
+	      BL_TO_FORTRAN(djdT[mfi]),
+	      BL_TO_FORTRAN(dkdT[mfi]),
+	      BL_TO_FORTRAN(dedT[mfi]),
+	      BL_TO_FORTRAN(Er_star[mfi]),
+	      BL_TO_FORTRAN(rho[mfi]),
+	      &delta_t, &ptc_tau);
 #endif
-  }
+    }
 }
 
 
@@ -237,44 +309,47 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 
   const Geometry& geom = parent->Geom(level);
 
-  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-#ifdef NEUTRINO
-    if (radiation_type == Neutrino) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_DEDX, ca_compute_dedx)
-	(BL_TO_FORTRAN(S_new[mfi]),
-	 BL_TO_FORTRAN(temp_new[mfi]),
-	 BL_TO_FORTRAN(Ye_new[mfi]),
-	 BL_TO_FORTRAN(temp_star[mfi]),
-	 BL_TO_FORTRAN(Ye_star[mfi]),
-	 BL_TO_FORTRAN(dedT[mfi]),
-	 BL_TO_FORTRAN(dedY[mfi]),
-	 &star_is_valid);
-    }
-    else {
-      dedY[mfi].setVal(0.0);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-      const Box& reg = grids[i];
-      if (do_real_eos == 1) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
-	  (reg.loVect(), reg.hiVect(),
-	   BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
-      }
-      else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
-	dedT[mfi].setVal(const_c_v[0]);
-      }
-      else if (const_c_v[0] > 0.0) {
-	  FORT_GCV(dedT[mfi].dataPtr(), dimlist(reg),
-		   temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
-		   const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-		   prop_temp_floor.dataPtr(),
-		   S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
+  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+      const Box& box = mfi.tilebox();
+#ifdef NEUTRINO
+      if (radiation_type == Neutrino) {
+	  BL_FORT_PROC_CALL(CA_COMPUTE_DEDX, ca_compute_dedx)
+	      (box.loVect(), box.hiVect(),
+	       BL_TO_FORTRAN(S_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(Ye_new[mfi]),
+	       BL_TO_FORTRAN(temp_star[mfi]),
+	       BL_TO_FORTRAN(Ye_star[mfi]),
+	       BL_TO_FORTRAN(dedT[mfi]),
+	       BL_TO_FORTRAN(dedY[mfi]),
+	       &star_is_valid);
       }
       else {
-	BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
-      }
+	  dedY[mfi].setVal(0.0,box,0);
+#endif
+	  if (do_real_eos == 1) {
+	      BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
+		  (box.loVect(), box.hiVect(),
+		   BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
+	  }
+	  else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
+	      dedT[mfi].setVal(const_c_v[0],box,0);
+	  }
+	  else if (const_c_v[0] > 0.0) {
+	      FORT_GCV(dedT[mfi].dataPtr(), dimlist(box),
+		       temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
+		       const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		       prop_temp_floor.dataPtr(),
+		       S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
+	  }
+	  else {
+	      BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
+	  }
 #ifdef NEUTRINO
-    }
+      }
 #endif
   }
 
@@ -287,85 +362,86 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   }
 #endif
 
-  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = BoxLib::grow(grids[i], ngrow);
-    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.growntilebox(ngrow);
 #ifdef NEUTRINO
-    if (radiation_type == Neutrino) {
-      BL_FORT_PROC_CALL(CA_OPAC_EMIS_NEUT, ca_opac_emis_neut)
-	(bx.loVect(), bx.hiVect(),
-	 BL_TO_FORTRAN(S_new[mfi]),
-	 BL_TO_FORTRAN(temp_new[mfi]),
-	 BL_TO_FORTRAN(Ye_new[mfi]),
-	 BL_TO_FORTRAN(temp_star[mfi]),
-	 BL_TO_FORTRAN(Ye_star[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(kappa_r[mfi]),
-	 BL_TO_FORTRAN(jg[mfi]),
-	 BL_TO_FORTRAN(djdT[mfi]),
-	 BL_TO_FORTRAN(djdY[mfi]),
-	 BL_TO_FORTRAN(dkdT[mfi]),
-	 BL_TO_FORTRAN(dkdY[mfi]),
-	 &use_dkdT, &star_is_valid, &lag_opac);
-    }
-    else {
-      djdY[mfi].setVal(0.0);
-      dkdY[mfi].setVal(0.0);
+      if (radiation_type == Neutrino) {
+	  BL_FORT_PROC_CALL(CA_OPAC_EMIS_NEUT, ca_opac_emis_neut)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(S_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(Ye_new[mfi]),
+	       BL_TO_FORTRAN(temp_star[mfi]),
+	       BL_TO_FORTRAN(Ye_star[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(kappa_r[mfi]),
+	       BL_TO_FORTRAN(jg[mfi]),
+	       BL_TO_FORTRAN(djdT[mfi]),
+	       BL_TO_FORTRAN(djdY[mfi]),
+	       BL_TO_FORTRAN(dkdT[mfi]),
+	       BL_TO_FORTRAN(dkdY[mfi]),
+	       &use_dkdT, &star_is_valid, &lag_opac);
+      }
+      else {
+	  djdY[mfi].setVal(0.0,bx,0,nGroups);
+	  dkdY[mfi].setVal(0.0,bx,0,nGroups);
 #endif
 
-      if (use_opacity_table_module) {
+	  if (use_opacity_table_module) {
 
-	BL_FORT_PROC_CALL(CA_OPACS, ca_opacs)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(S_new[mfi]),
-	   BL_TO_FORTRAN(temp_new[mfi]),
-	   BL_TO_FORTRAN(temp_star[mfi]),
-	   BL_TO_FORTRAN(kappa_p[mfi]),
-	   BL_TO_FORTRAN(kappa_r[mfi]),
-	   BL_TO_FORTRAN(dkdT[mfi]),
-	   &use_dkdT, &star_is_valid, &lag_opac);
+	      BL_FORT_PROC_CALL(CA_OPACS, ca_opacs)
+		  (bx.loVect(), bx.hiVect(),
+		   BL_TO_FORTRAN(S_new[mfi]),
+		   BL_TO_FORTRAN(temp_new[mfi]),
+		   BL_TO_FORTRAN(temp_star[mfi]),
+		   BL_TO_FORTRAN(kappa_p[mfi]),
+		   BL_TO_FORTRAN(kappa_r[mfi]),
+		   BL_TO_FORTRAN(dkdT[mfi]),
+		   &use_dkdT, &star_is_valid, &lag_opac);
 
-      }
-      else {  // use power-law 
+	  }
+	  else {  // use power-law 
+	      
+	      BL_FORT_PROC_CALL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
+		  (bx.loVect(), bx.hiVect(),
+		   BL_TO_FORTRAN(S_new[mfi]),
+		   BL_TO_FORTRAN(temp_new[mfi]),
+		   BL_TO_FORTRAN(kappa_p[mfi]),
+		   BL_TO_FORTRAN(kappa_r[mfi]),
+		   BL_TO_FORTRAN(dkdT[mfi]), 
+		   &do_kappa_stm_emission, &use_dkdT,
+		   &const_kappa_p[0], &kappa_p_exp_m[0], 
+		   &kappa_p_exp_n[0], &kappa_p_exp_p[0],
+		   &const_kappa_r[0], &kappa_r_exp_m[0], 
+		   &kappa_r_exp_n[0], &kappa_r_exp_p[0],
+		   &const_scattering[0], &scattering_exp_m[0], 
+		   &scattering_exp_n[0], &scattering_exp_p[0],
+		   &prop_temp_floor[0]);
+	      
+	  }
 
-	BL_FORT_PROC_CALL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(S_new[mfi]),
-	   BL_TO_FORTRAN(temp_new[mfi]),
-	   BL_TO_FORTRAN(kappa_p[mfi]),
-	   BL_TO_FORTRAN(kappa_r[mfi]),
-	   BL_TO_FORTRAN(dkdT[mfi]), 
-	   &do_kappa_stm_emission, &use_dkdT,
-	   &const_kappa_p[0], &kappa_p_exp_m[0], 
-	   &kappa_p_exp_n[0], &kappa_p_exp_p[0],
-	   &const_kappa_r[0], &kappa_r_exp_m[0], 
-	   &kappa_r_exp_n[0], &kappa_r_exp_p[0],
-	   &const_scattering[0], &scattering_exp_m[0], 
-	   &scattering_exp_n[0], &scattering_exp_p[0],
-	   &prop_temp_floor[0]);
-	
-      }
-
-      const Box& reg = grids[i];
+	  const Box& reg = mfi.tilebox();
       
-      Array<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
+	  Array<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
 #ifdef MG_SU_OLSON
-      PFcoef.set(0, 0.5);
-      PFcoef.set(1, 0.5);
+	  PFcoef.set(0, 0.5);
+	  PFcoef.set(1, 0.5);
 #endif
-      BL_FORT_PROC_CALL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
-	(reg.loVect(), reg.hiVect(),
-	 BL_TO_FORTRAN(jg[mfi]),  
-	 BL_TO_FORTRAN(djdT[mfi]),  
-	 BL_TO_FORTRAN(temp_new[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(dkdT[mfi]),
-	 PFcoef.dataPtr(), 
-	 use_WiensLaw, integrate_Planck, Tf_Wien);
+	  BL_FORT_PROC_CALL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
+	      (reg.loVect(), reg.hiVect(),
+	       BL_TO_FORTRAN(jg[mfi]),  
+	       BL_TO_FORTRAN(djdT[mfi]),  
+	       BL_TO_FORTRAN(temp_new[mfi]),
+	       BL_TO_FORTRAN(kappa_p[mfi]),
+	       BL_TO_FORTRAN(dkdT[mfi]),
+	       PFcoef.dataPtr(), 
+	       use_WiensLaw, integrate_Planck, Tf_Wien);
 
 #ifdef NEUTRINO
-    }
+      }
 #endif
   }    
 

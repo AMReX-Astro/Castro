@@ -281,7 +281,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      ugdnv,ugdnv_l1,ugdnv_h1, &
      dloga,dloga_l1,dloga_h1)
 
-  use meth_params_module, only : QVAR, NVAR, ppm_type
+  use meth_params_module, only : NVAR, ppm_type
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
 
@@ -320,8 +320,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision dloga(dloga_l1:dloga_h1)
   
-  integer i
-
 !     Left and right state arrays (edge centered, cell centered)
   double precision, allocatable:: dq(:,:),  qm(:,:),   qp(:,:)
 
@@ -824,7 +822,7 @@ subroutine cmpflx_rad(lo,hi,domlo,domhi, &
      ugdnv,ug_l1,ug_h1, &
      gamc,gamcg,csml,c,qd_l1,qd_h1,ilo,ihi)
 
-  use meth_params_module, only : QVAR, NVAR
+  use meth_params_module, only : NVAR
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
 
@@ -907,7 +905,7 @@ subroutine riemannus_rad(lam, lam_l1, lam_h1, &
      ilo,ihi,domlo,domhi)
 
   use network, only : nspec, naux
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QPRES, QREINT, QFA, QFS, QFX, &
+  use meth_params_module, only : NVAR, QRHO, QU, QPRES, QREINT, QFA, QFS, QFX, &
        URHO, UMX, UEDEN, UEINT, UFA, UFS, UFX, nadv, small_dens, small_pres, &
        fix_mass_flux
   use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
@@ -1192,7 +1190,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
        normalize_species
   use rad_params_module, only : ngroups, nugroup, dlognu
-  use radhydro_params_module, only : fspace_type, comoving, QRADVAR, QPTOT
+  use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
   use fluxlimiter_module, only : Edd_factor
   use advection_module, only : normalize_species_fluxes
@@ -1234,7 +1232,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   double precision  pdivu(lo(1):hi(1)  )
   double precision dx, dt
 
-  integer          :: i, n, g, ng2, g0, g1
+  integer          :: i, n, g
   double precision :: div1
   double precision :: SrU,Up,SrE
 

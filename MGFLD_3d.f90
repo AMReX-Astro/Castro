@@ -107,7 +107,7 @@ subroutine ca_accel_spec(lo, hi, &
   double precision,intent(in) :: dt, tau
 
   integer :: i, j, k
-  double precision :: cdt1, rt, sumeps
+  double precision :: cdt1, sumeps
   double precision,dimension(0:ngroups-1):: epsilon, kapt
 
   cdt1 = 1.d0/(clight*dt)
@@ -264,7 +264,7 @@ subroutine ca_check_conv_er( lo, hi, &
 end subroutine ca_check_conv_er
 
 
-subroutine ca_compute_coupt(  &
+subroutine ca_compute_coupt( lo, hi,  &
      cpt, cpt_l1, cpt_l2, cpt_l3, cpt_h1, cpt_h2, cpt_h3, &
      kpp, kpp_l1, kpp_l2, kpp_l3, kpp_h1, kpp_h2, kpp_h3, &
      eg ,  eg_l1,  eg_l2,  eg_l3,  eg_h1,  eg_h2,  eg_h3, &
@@ -274,6 +274,7 @@ subroutine ca_compute_coupt(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: cpt_l1, cpt_h1, cpt_l2, cpt_h2, cpt_l3, cpt_h3 
   integer, intent(in) :: kpp_l1, kpp_h1, kpp_l2, kpp_h2, kpp_l3, kpp_h3 
   integer, intent(in) ::  eg_l1,  eg_h1,  eg_l2,  eg_h2,  eg_l3,  eg_h3
@@ -285,12 +286,12 @@ subroutine ca_compute_coupt(  &
 
   integer :: i, j, k, g
 
-  cpt = 0.d0
+  cpt(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = 0.d0
 
   do g=0, ngroups-1
-     do k=cpt_l3, cpt_h3
-     do j=cpt_l2, cpt_h2
-     do i=cpt_l1, cpt_h1
+     do k=lo(3),hi(3)
+     do j=lo(2),hi(2)
+     do i=lo(1),hi(1)
         cpt(i,j,k) = cpt(i,j,k) + (kpp(i,j,k,g) * eg(i,j,k,g) - jg(i,j,k,g))
      end do
      end do
@@ -338,7 +339,7 @@ subroutine ca_compute_etat( lo, hi, &
   double precision,intent(in) :: dt, tau
 
   integer :: i, j, k
-  double precision :: cdt, det, et, ey, tt, ty, tmp, sigma
+  double precision :: cdt, sigma
   double precision :: dZdT(0:ngroups-1), sumdZdT, foo, bar
 
   sigma = 1.d0 + tau
@@ -786,7 +787,7 @@ subroutine ca_state_update( lo, hi, &
      msk ,   msk_l1,  msk_l2,  msk_l3,  msk_h1,  msk_h2,  msk_h3, &
      derat, dTrat)
 
-  use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP
+  use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
 
   implicit none
 
@@ -838,7 +839,7 @@ subroutine ca_update_matter( lo, hi,  &
      dt, tau)
 
   use rad_params_module, only : ngroups, clight
-  use meth_params_module, only : NVAR, URHO
+  use meth_params_module, only : NVAR
 
   implicit none
 
@@ -869,7 +870,7 @@ subroutine ca_update_matter( lo, hi,  &
   double precision,intent(in )::Snew(Snew_l1:Snew_h1,Snew_l2:Snew_h2,Snew_l3:Snew_h3,NVAR)
   double precision,intent(in) :: dt, tau
 
-  integer :: i,j,k,g
+  integer :: i,j,k
   double precision :: cdt, H1, dkEE, chg
 
   cdt = clight * dt
@@ -905,7 +906,6 @@ subroutine ca_ncupdate_matter( lo, hi,  &
      dt)
 
   use rad_params_module, only : ngroups, clight
-  use meth_params_module, only : NVAR, URHO
 
   implicit none
 
@@ -970,7 +970,7 @@ subroutine ca_opacs( lo, hi,  &
      dkdT,dkdT_l1,dkdT_l2,dkdT_l3,dkdT_h1,dkdT_h2,dkdT_h3, &
      use_dkdT, validStar, lag_opac) 
 
-  use rad_params_module, only : ngroups, nugroup, dnugroup
+  use rad_params_module, only : ngroups, nugroup
   use opacity_table_module, only : get_opacities
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UFX
@@ -1001,7 +1001,7 @@ subroutine ca_opacs( lo, hi,  &
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
   if (lag_opac .eq. 1) then
-     dkdT = 0.d0
+     dkdT(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.d0
      return
   end if
 

@@ -83,10 +83,6 @@ void MGRadBndry::init(const int _ngroups)
 
   ParmParse pp("radiation");
 
-  Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-  pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-
   Array<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
   pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
   pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
@@ -114,17 +110,14 @@ void MGRadBndry::init(const int _ngroups)
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
     int dir = face.coordDir();
-    int bctype;
     bcval[face].resize(ngroups);
     if (face.isLow()) {
-      bctype       = lo_bc[dir];
       bcflag[face] = lo_bcflag[dir];
       for(int igroup = 0; igroup < ngroups; igroup++) {
         bcval[face][igroup] = lo_bcval[dir][igroup];
       }
     }
     else {
-      bctype       = hi_bc[dir];
       bcflag[face] = hi_bcflag[dir];
       for(int igroup = 0; igroup < ngroups; igroup++) {
         bcval[face][igroup] = hi_bcval[dir][igroup];

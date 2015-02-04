@@ -22,8 +22,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
      vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
      courno,verbose, nstep_fsp)
   
-  use meth_params_module, only : QVAR, QU, QPRES, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
-       normalize_species
+  use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, normalize_species
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_module, only : enforce_minimum_density, normalize_new_species, divu

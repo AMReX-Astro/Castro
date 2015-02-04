@@ -16,8 +16,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol,vol_l1,vol_h1,courno,verbose, &
                         nstep_fsp)
 
-  use meth_params_module, only : QVAR, QU, QPRES, NVAR, NHYP, URHO, use_colglaz, do_sponge, &
-       normalize_species
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP, do_sponge, normalize_species
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_module, only : enforce_minimum_density, normalize_new_species
@@ -70,7 +69,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: pdivu(:)
   
   double precision dx,mass_added,eint_added,eden_added
-  integer i,g,ngf,ngq,iflaten
+  integer i,ngf,ngq,iflaten
   integer q_l1, q_h1
 
   dx = delta(1)
@@ -562,7 +561,7 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy
   implicit none
   

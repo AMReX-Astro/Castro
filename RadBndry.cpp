@@ -89,10 +89,6 @@ void RadBndry::init()
 
   ParmParse pp("radiation");
 
-  Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-  pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-
   Array<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
   pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
   pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
@@ -104,14 +100,11 @@ void RadBndry::init()
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
     int dir = face.coordDir();
-    int bctype;
     if (face.isLow()) {
-      bctype       = lo_bc[dir];
       bcflag[face] = lo_bcflag[dir];
       bcval[face]  = lo_bcval[dir];
     }
     else {
-      bctype       = hi_bc[dir];
       bcflag[face] = hi_bcflag[dir];
       bcval[face]  = hi_bcval[dir];
     }
@@ -122,14 +115,11 @@ void RadBndry::init(Real bv)
 {
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    int bctype;
     if (face.isLow()) {
-      bctype       = LO_DIRICHLET;
       bcflag[face] = 0;
       bcval[face]  = bv;
     }
     else {
-      bctype       = LO_DIRICHLET;
       bcflag[face] = 0;
       bcval[face]  = bv;
     }

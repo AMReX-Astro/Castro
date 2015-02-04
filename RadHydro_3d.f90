@@ -389,7 +389,7 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
      ugdnvz_l1,ugdnvz_l2,ugdnvz_l3, ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
      pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc)
 
-  use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, ppm_type
+  use meth_params_module, only : QVAR, NVAR, QU, ppm_type
   use ppm_module
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
@@ -4351,7 +4351,7 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
        QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFA, UFS, UFX, &
+       URHO, UMX, UMY, UMZ, UEDEN, UFA, UFS, UFX, &
        nadv
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
@@ -4665,7 +4665,7 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
        QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFA, UFS, UFX, &
+       URHO, UMX, UMY, UMZ, UEDEN, UFA, UFS, UFX, &
        nadv
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving

@@ -344,7 +344,7 @@ subroutine ca_check_conv_er_neut( lo, hi, &
 end subroutine ca_check_conv_er_neut
 
 
-subroutine ca_compute_coupty(  &
+subroutine ca_compute_coupty( lo, hi, &
      cpt, cpt_l1, cpt_h1, &
      cpy, cpy_l1, cpy_h1, &
      kpp, kpp_l1, kpp_h1, &
@@ -355,6 +355,7 @@ subroutine ca_compute_coupty(  &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: cpt_l1, cpt_h1 
   integer, intent(in) :: cpy_l1, cpy_h1 
   integer, intent(in) :: kpp_l1, kpp_h1 
@@ -369,11 +370,11 @@ subroutine ca_compute_coupty(  &
   integer :: i, g
   double precision :: foo
 
-  cpt = 0.d0
-  cpy = 0.d0
+  cpt(lo(1):hi(1)) = 0.d0
+  cpy(lo(1):hi(1)) = 0.d0
 
   do g=0, ngroups-1
-     do i=cpt_l1, cpt_h1
+     do i=lo(1),hi(1)
         foo = kpp(i,g) * eg(i,g) - jg(i,g)
         cpt(i) = cpt(i) + foo
         cpy(i) = cpy(i) + erg2rhoYe(g) * foo
@@ -383,7 +384,7 @@ subroutine ca_compute_coupty(  &
 end subroutine ca_compute_coupty
 
 
-subroutine ca_compute_dedx(  &
+subroutine ca_compute_dedx( lo, hi,  &
      S   ,   S_l1,   S_h1, &
      T   ,   T_l1,   T_h1, &
      Ye  ,  Ye_l1,  Ye_h1, &
@@ -399,6 +400,7 @@ subroutine ca_compute_dedx(  &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) ::    S_l1,    S_h1 
   integer, intent(in) ::    T_l1,    T_h1
   integer, intent(in) ::   Ye_l1,   Ye_h1
@@ -421,7 +423,7 @@ subroutine ca_compute_dedx(  &
   double precision :: dT, dYe, T1, T2, Ye1, Ye2
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  do i=dedT_l1, dedT_h1
+  do i=lo(1),hi(1)
 
      rhoinv = 1.d0/S(i,URHO)
      eos_state % rho = S(i,URHO)
@@ -542,7 +544,7 @@ subroutine ca_compute_eta_the( lo, hi, &
   double precision, intent(in) :: dt, tau
 
   integer :: i
-  double precision :: cdt, det, et, ey, tt, ty, tmp, sigma
+  double precision :: cdt, det, et, ey, tt, ty, sigma
   double precision :: dZdT(0:ngroups-1), dZdY(0:ngroups-1)
   double precision :: sumdZdT, sumdZdY, fooT, fooY, barT, barY
 
@@ -903,7 +905,7 @@ subroutine ca_state_update_neut( lo, hi, &
      msk ,    msk_l1,   msk_h1,  &
      derat, dTrat, dye)
 
-  use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, UFS, UFX
+  use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, UFX
 
   implicit none
 
@@ -1074,7 +1076,6 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
      dt)
 
   use rad_params_module, only : ngroups, erg2rhoYe, clight
-  use meth_params_module, only : NVAR, URHO
 
   implicit none
 

@@ -347,13 +347,15 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV_NEUT, ca_check_conv_neut)
     Real* rel_Ye  , Real* abs_Ye,
     const Real* delta_t);
 BL_FORT_PROC_DECL(CA_COMPUTE_COUPTY, ca_compute_coupty)
-    (BL_FORT_FAB_ARG(coupt), 
+    (const int lo[], const int hi[],
+     BL_FORT_FAB_ARG(coupt), 
      BL_FORT_FAB_ARG(coupy), 
      const BL_FORT_FAB_ARG(kpp),
      const BL_FORT_FAB_ARG(Eg),
      const BL_FORT_FAB_ARG(jg));
 BL_FORT_PROC_DECL(CA_COMPUTE_DEDX, ca_compute_dedx)
-    (const BL_FORT_FAB_ARG(state),
+    (const int* lo, const int *hi, 
+     const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(T),
      const BL_FORT_FAB_ARG(Ye),
      const BL_FORT_FAB_ARG(Ts),
@@ -531,7 +533,8 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV_ER, ca_check_conv_er)
     const BL_FORT_FAB_ARG(temp),
     Real* rel, Real* abs, Real *errr, const Real* dt);
 BL_FORT_PROC_DECL(CA_COMPUTE_COUPT, ca_compute_coupt)
-    (BL_FORT_FAB_ARG(coupt), 
+    (const int lo[], const int hi[],
+     BL_FORT_FAB_ARG(coupt), 
      const BL_FORT_FAB_ARG(kpp),
      const BL_FORT_FAB_ARG(Eg),
      const BL_FORT_FAB_ARG(jg));

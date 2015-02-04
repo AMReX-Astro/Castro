@@ -379,7 +379,7 @@ subroutine ca_check_conv_er_neut( lo, hi,  &
 end subroutine ca_check_conv_er_neut
 
 
-subroutine ca_compute_coupty(  &
+subroutine ca_compute_coupty( lo, hi,  &
      cpt,cpt_l1,cpt_l2,cpt_l3,cpt_h1,cpt_h2,cpt_h3, &
      cpy,cpy_l1,cpy_l2,cpy_l3,cpy_h1,cpy_h2,cpy_h3, &
      kpp,kpp_l1,kpp_l2,kpp_l3,kpp_h1,kpp_h2,kpp_h3, &
@@ -390,6 +390,7 @@ subroutine ca_compute_coupty(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: cpt_l1, cpt_h1, cpt_l2, cpt_h2, cpt_l3, cpt_h3
   integer, intent(in) :: cpy_l1, cpy_h1, cpy_l2, cpy_h2, cpy_l3, cpy_h3
   integer, intent(in) :: kpp_l1, kpp_h1, kpp_l2, kpp_h2, kpp_l3, kpp_h3
@@ -404,9 +405,9 @@ subroutine ca_compute_coupty(  &
   integer :: i, j, k, g
   double precision :: foo
 
-  do k=cpt_l3, cpt_h3
-     do j=cpt_l2, cpt_h2
-        do i=cpt_l1, cpt_h1
+  do k=lo(3),hi(3)
+     do j=lo(2),hi(2)
+        do i=lo(1),hi(1)
            cpt(i,j,k) = 0.d0
            cpy(i,j,k) = 0.d0
         end do
@@ -414,9 +415,9 @@ subroutine ca_compute_coupty(  &
   end do
 
   do g=0, ngroups-1
-     do k=cpt_l3, cpt_h3
-     do j=cpt_l2, cpt_h2
-     do i=cpt_l1, cpt_h1
+     do k=lo(3),hi(3)
+     do j=lo(2),hi(2)
+     do i=lo(1),hi(1)
         foo = kpp(i,j,k,g) * eg(i,j,k,g) - jg(i,j,k,g)
         cpt(i,j,k) = cpt(i,j,k) + foo
         cpy(i,j,k) = cpy(i,j,k) + erg2rhoYe(g) * foo
@@ -428,7 +429,7 @@ subroutine ca_compute_coupty(  &
 end subroutine ca_compute_coupty
 
 
-subroutine ca_compute_dedx(  &
+subroutine ca_compute_dedx( lo, hi,  &
      S   ,   S_l1,   S_l2,   S_l3,   S_h1,   S_h2,   S_h3, &
      T   ,   T_l1,   T_l2,   T_l3,   T_h1,   T_h2,   T_h3, &
      Ye  ,  Ye_l1,  Ye_l2,  Ye_l3,  Ye_h1,  Ye_h2,  Ye_h3, &
@@ -444,6 +445,7 @@ subroutine ca_compute_dedx(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) ::    S_l1,    S_h1,    S_l2,    S_h2,    S_l3,    S_h3 
   integer, intent(in) ::    T_l1,    T_h1,    T_l2,    T_h2,    T_l3,    T_h3
   integer, intent(in) ::   Ye_l1,   Ye_h1,   Ye_l2,   Ye_h2,   Ye_l3,   Ye_h3
@@ -466,9 +468,9 @@ subroutine ca_compute_dedx(  &
   double precision :: dT, dYe, T1, T2, Ye1, Ye2
   double precision, parameter :: fac = 0.5d0, minfrac = 1.d-8
 
-  do k=dedT_l3, dedT_h3
-  do j=dedT_l2, dedT_h2
-  do i=dedT_l1, dedT_h1
+  do k=lo(3),hi(3)
+  do j=lo(2),hi(2)
+  do i=lo(1),hi(1)
 
      rhoinv = 1.d0/S(i,j,k,URHO)
      eos_state % rho = S(i,j,k,URHO)
@@ -988,7 +990,7 @@ subroutine ca_state_update_neut( lo, hi, &
      msk ,   msk_l1,  msk_l2,  msk_l3,  msk_h1,  msk_h2,  msk_h3, &
      derat, dTrat, dye)
 
-  use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, UFS, UFX
+  use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, UFX
 
   implicit none
 
@@ -1173,7 +1175,6 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
      dt)
 
   use rad_params_module, only : ngroups, erg2rhoYe, clight
-  use meth_params_module, only : NVAR, URHO
 
   implicit none
 
