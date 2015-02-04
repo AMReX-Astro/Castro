@@ -246,6 +246,7 @@ end subroutine ca_umdrv_rad
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
+! This subroutine cannot be tiled
 subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
      kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      lam, lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &

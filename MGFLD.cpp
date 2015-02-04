@@ -963,8 +963,11 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     }
     
     const Real* dx = parent->Geom(level).CellSize();
-    
-    for (MFIter mfi(Er_wide); mfi.isValid(); ++mfi) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
       BL_FORT_PROC_CALL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 	(BL_TO_FORTRAN(Er_wide[mfi]), 
 	 BL_TO_FORTRAN(kpr[mfi]),

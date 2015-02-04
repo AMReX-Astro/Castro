@@ -176,6 +176,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 end subroutine ca_umdrv_rad
 
 
+! This subroutine cannot be tiled
 subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
      kap, kap_l1, kap_h1, &
      lam, lam_l1, lam_h1, &
