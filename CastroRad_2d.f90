@@ -964,6 +964,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_h1,u_h2, &
 end subroutine ca_estdt_rad
 
 
+! this is tiling safe
 subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2)
 
@@ -990,6 +991,7 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
 end subroutine ca_est_gpr0
 
 
+! this is tiling safe
 subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
      Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2, vlo, vhi, dx, limiter, comoving)

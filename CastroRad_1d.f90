@@ -618,6 +618,7 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
 end subroutine ca_estdt_rad
 
 
+! this is tiling safe
 subroutine ca_est_gpr0(Er, Er_l1, Er_h1, gPr, gPr_l1, gPr_h1)
 
   use rad_params_module, only : ngroups
@@ -641,6 +642,7 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_h1, gPr, gPr_l1, gPr_h1)
 end subroutine ca_est_gpr0
 
 
+! this is tiling safe
 subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
      gPr, gPr_l1, gPr_h1, vlo, vhi, dx, limiter, comoving)
 
