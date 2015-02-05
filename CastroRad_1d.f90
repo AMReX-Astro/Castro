@@ -449,7 +449,8 @@ subroutine ca_get_v_dcf( lo, hi, &
 end subroutine ca_get_v_dcf
 
 
-subroutine ca_compute_dcoefs(d, d_l1, d_h1, &
+subroutine ca_compute_dcoefs( lo, hi, &
+     d  ,   d_l1,   d_h1, &
      lam, lam_l1, lam_h1, &
      v ,    v_l1,   v_h1, &
      dcf, dcf_l1, dcf_h1, &
@@ -457,6 +458,7 @@ subroutine ca_compute_dcoefs(d, d_l1, d_h1, &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: d_l1, d_h1, &
        & lam_l1, lam_h1, &
        &   v_l1,   v_h1, &
@@ -467,11 +469,11 @@ subroutine ca_compute_dcoefs(d, d_l1, d_h1, &
   double precision, intent(in)  :: lam(lam_l1:lam_h1)
   double precision, intent(in)  ::   v(  v_l1:  v_h1)
   double precision, intent(in)  :: dcf(dcf_l1:dcf_h1)
-  double precision, intent(in)  ::   r(  d_l1:  d_h1)
+  double precision, intent(in)  ::   r( lo(1): hi(1))
 
   integer :: i
 
-  do i = d_l1, d_h1
+  do i = lo(1), hi(1)
      if (v(i-1) + v(i) .gt. 0.d0) then
         d(i) = dcf(i-1) * v(i-1) * lam(i)
      else if (v(i-1) + v(i) .lt. 0.d0) then

@@ -1236,7 +1236,8 @@ subroutine ca_get_v_dcf( lo, hi, &
 end subroutine ca_get_v_dcf
 
 
-subroutine ca_compute_dcoefs(d, d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
+subroutine ca_compute_dcoefs( lo, hi, &
+     d  ,   d_l1,   d_l2,   d_l3,   d_h1,   d_h2,   d_h3, &
      lam, lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &
      v ,    v_l1,   v_l2,   v_l3,   v_h1,   v_h2,   v_h3, &
      dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3, &
@@ -1244,6 +1245,7 @@ subroutine ca_compute_dcoefs(d, d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
        & lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &
        &   v_l1,   v_l2,   v_l3,   v_h1,   v_h2,   v_h3, &
@@ -1254,14 +1256,14 @@ subroutine ca_compute_dcoefs(d, d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
   double precision, intent(in)  :: lam(lam_l1:lam_h1, lam_l2:lam_h2, lam_l3:lam_h3)
   double precision, intent(in)  ::   v(  v_l1:  v_h1,   v_l2:  v_h2,   v_l3:  v_h3, 3)
   double precision, intent(in)  :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
-  double precision, intent(in)  ::   r(  d_l1:  d_h1)
+  double precision, intent(in)  ::   r( lo(1): hi(1))
 
   integer :: i, j, k
 
   if (idir.eq.0) then
-     do k = d_l3, d_h3
-        do j = d_l2, d_h2
-           do i = d_l1, d_h1
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
               if (v(i-1,j,k,1) + v(i,j,k,1) .gt. 0.d0) then
                  d(i,j,k) = dcf(i-1,j,k) * v(i-1,j,k,1) * lam(i,j,k)
               else if (v(i-1,j,k,1) + v(i,j,k,1) .lt. 0.d0) then
@@ -1273,9 +1275,9 @@ subroutine ca_compute_dcoefs(d, d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
         end do
      end do
   else if (idir.eq.1) then
-     do k = d_l3, d_h3
-        do j = d_l2, d_h2
-           do i = d_l1, d_h1
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
               if (v(i,j-1,k,2) + v(i,j,k,2) .gt. 0.d0) then
                  d(i,j,k) = dcf(i,j-1,k) * v(i,j-1,k,2) * lam(i,j,k)
               else if (v(i,j-1,k,2) + v(i,j,k,2) .lt. 0.d0) then
@@ -1287,9 +1289,9 @@ subroutine ca_compute_dcoefs(d, d_l1, d_l2, d_l3, d_h1, d_h2, d_h3, &
         end do
      end do
   else
-     do k = d_l3, d_h3
-        do j = d_l2, d_h2
-           do i = d_l1, d_h1
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
               if (v(i,j,k-1,3) + v(i,j,k,3) .gt. 0.d0) then
                  d(i,j,k) = dcf(i,j,k-1) * v(i,j,k-1,3) * lam(i,j,k)
               else if (v(i,j,k-1,3) + v(i,j,k,3) .lt. 0.d0) then
