@@ -1,6 +1,6 @@
 ! begin photon routine
 
-subroutine ca_accel_acoe(   &
+subroutine ca_accel_acoe( lo, hi,  &
      eta1,eta1_l1,eta1_h1,   &
      spc , spc_l1, spc_h1,   &
      kap , kap_l1, kap_h1,   &
@@ -11,6 +11,7 @@ subroutine ca_accel_acoe(   &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: eta1_l1,eta1_h1
   integer, intent(in) ::  spc_l1, spc_h1
   integer, intent(in) ::  kap_l1, kap_h1
@@ -26,7 +27,7 @@ subroutine ca_accel_acoe(   &
 
   dt1 = (1.d0+tau)/dt
 
-  do i = aco_l1, aco_h1
+  do i = lo(1), hi(1)
      kbar = sum(spc(i,:) * kap(i,:))
      H1 = eta1(i)
      aco(i) = H1*kbar*clight + dt1
@@ -81,7 +82,7 @@ subroutine ca_accel_spec(lo, hi, &
 
   implicit none
 
-  integer, intent(in) :: lo(1), hi(1)
+  integer,intent(in) :: lo(1), hi(1)
   integer,intent(in):: kap_l1, kap_h1
   integer,intent(in)::mugT_l1,mugT_h1
   integer,intent(in)::spec_l1,spec_h1

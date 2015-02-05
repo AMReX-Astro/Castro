@@ -287,7 +287,8 @@ BL_FORT_PROC_DECL(CA_INITFLUXLIMITER, ca_initfluxlimiter)
 
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
-   (const BL_FORT_FAB_ARG(eta1),
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(eta1),
     const BL_FORT_FAB_ARG(thetaT),
     const BL_FORT_FAB_ARG(thetaY),
     const BL_FORT_FAB_ARG(spc),
@@ -495,7 +496,8 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER_NEUT, ca_ncupdate_matter_neut)
 #else   // photons
 
 BL_FORT_PROC_DECL(CA_ACCEL_ACOE, ca_accel_acoe)
-   (const BL_FORT_FAB_ARG(eta1),
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(eta1),
     const BL_FORT_FAB_ARG(spc),
     const BL_FORT_FAB_ARG(kap),
     BL_FORT_FAB_ARG(aco),

@@ -1,5 +1,5 @@
 
-subroutine ca_accel_acoe_neut(   &
+subroutine ca_accel_acoe_neut( lo, hi,  &
      eta1,eta1_l1,eta1_l2,eta1_l3,eta1_h1,eta1_h2,eta1_h3, &
      theT,theT_l1,theT_l2,theT_l3,theT_h1,theT_h2,theT_h3, &
      theY,theY_l1,theY_l2,theY_l3,theY_h1,theY_h2,theY_h3, &
@@ -12,6 +12,7 @@ subroutine ca_accel_acoe_neut(   &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: eta1_l1,eta1_h1,eta1_l2,eta1_h2,eta1_l3,eta1_h3
   integer, intent(in) :: theT_l1,theT_h1,theT_l2,theT_h2,theT_l3,theT_h3
   integer, intent(in) :: theY_l1,theY_h1,theY_l2,theY_h2,theY_l3,theY_h3
@@ -33,9 +34,9 @@ subroutine ca_accel_acoe_neut(   &
 
   dt1 = (1.d0+tau)/dt
 
-  do k = aco_l3, aco_h3
-  do j = aco_l2, aco_h2
-  do i = aco_l1, aco_h1
+  do k = lo(3), hi(3)
+  do j = lo(2), hi(2)
+  do i = lo(1), hi(1)
      kbar = 0.d0
      kybar = 0.d0
      do g=0, ngroups-1

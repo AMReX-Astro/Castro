@@ -524,23 +524,29 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
   // A coefficients
   MultiFab acoefs(grids, 1, 0);
-  for (MFIter mfi(acoefs); mfi.isValid(); ++mfi) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(acoefs,true); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
-      (BL_TO_FORTRAN(eta1[mfi]),
-       BL_TO_FORTRAN(thetaT[mfi]),
-       BL_TO_FORTRAN(thetaY[mfi]),
-       BL_TO_FORTRAN(spec[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(acoefs[mfi]),
-       &delta_t, &ptc_tau);    
+      BL_FORT_PROC_CALL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(eta1[mfi]),
+	   BL_TO_FORTRAN(thetaT[mfi]),
+	   BL_TO_FORTRAN(thetaY[mfi]),
+	   BL_TO_FORTRAN(spec[mfi]),
+	   BL_TO_FORTRAN(kappa_p[mfi]),
+	   BL_TO_FORTRAN(acoefs[mfi]),
+	   &delta_t, &ptc_tau);    
 #else
-    BL_FORT_PROC_CALL(CA_ACCEL_ACOE, ca_accel_acoe)
-      (BL_TO_FORTRAN(eta1[mfi]),
-       BL_TO_FORTRAN(spec[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(acoefs[mfi]),
-       &delta_t, &ptc_tau);    
+      BL_FORT_PROC_CALL(CA_ACCEL_ACOE, ca_accel_acoe)
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(eta1[mfi]),
+	   BL_TO_FORTRAN(spec[mfi]),
+	   BL_TO_FORTRAN(kappa_p[mfi]),
+	   BL_TO_FORTRAN(acoefs[mfi]),
+	   &delta_t, &ptc_tau);    
 #endif
   }  
 
