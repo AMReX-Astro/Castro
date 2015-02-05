@@ -878,6 +878,7 @@ subroutine ca_face2center( lo, hi, &
 end subroutine ca_face2center
 
 
+! no tiling
 subroutine ca_correct_dterm(  & 
      dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
      dfy, dfy_l1, dfy_l2, dfy_h1, dfy_h2, &

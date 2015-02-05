@@ -938,73 +938,82 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
 
-  for (int n = 0; n < BL_SPACEDIM; n++) {
-    const MultiFab *dp;
-
-    dp = &hem->d2Coefficients(level, n);
-    MultiFab &dcoef = *(MultiFab*)dp;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
-	const Box& bx = fi.tilebox();
-	BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
-	    (bx.loVect(), bx.hiVect(),
-	     BL_TO_FORTRAN(Erborder[fi]),
-	     BL_TO_FORTRAN(dcoef[fi]), 
-	     BL_TO_FORTRAN(Dterm_face[n][fi]), 
+  for (int n = 0; n < BL_SPACEDIM; n++) {
+      const MultiFab *dp;
+
+      dp = &hem->d2Coefficients(level, n);
+      MultiFab &dcoef = *(MultiFab*)dp;
+      
+      for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
+	  const Box& bx = fi.tilebox();
+	  BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(Erborder[fi]),
+	       BL_TO_FORTRAN(dcoef[fi]), 
+	       BL_TO_FORTRAN(Dterm_face[n][fi]), 
 	     dx, &n);
-    }
+      }
   }
 
   // Correct D terms at physical and coarse-fine boundaries.
   hem->boundaryDterm(level, &Dterm_face[0], Er, igroup);
 
-  Array<Real> rc, re, s;
-  if (Geometry::IsSPHERICAL()) {
-    for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {
-      int i = fi.index();
-      const Box &reg = grids[i];
-      parent->Geom(level).GetEdgeLoc(re, reg, 0);
-      parent->Geom(level).GetCellLoc(rc, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, 0);
-      const Box &dbox = Dterm_face[0][fi].box();
-      FORT_SPHE(re.dataPtr(), s.dataPtr(), 0, dimlist(dbox), dx);
-
-      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-	      BL_TO_FORTRAN(Dterm_face[1][fi]),
-	      BL_TO_FORTRAN(Dterm_face[2][fi])),
-       re.dataPtr(), rc.dataPtr());
-    }
-  }
-  else if (Geometry::IsRZ()) {
-    for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {
-      int i = fi.index();
-      const Box &reg = grids[i];
-      parent->Geom(level).GetEdgeLoc(re, reg, 0);
-      parent->Geom(level).GetCellLoc(rc, reg, 0);
-
-      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-	      BL_TO_FORTRAN(Dterm_face[1][fi]),
-	      BL_TO_FORTRAN(Dterm_face[2][fi])),
-       re.dataPtr(), rc.dataPtr());
-    }
-  }
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
-      const Box& bx = fi.tilebox();
-      BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	  (bx.loVect(), bx.hiVect(),
-	   D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-		  BL_TO_FORTRAN(Dterm_face[1][fi]),
-		  BL_TO_FORTRAN(Dterm_face[2][fi])),
-	   BL_TO_FORTRAN(Dterm[fi]));
+  {
+      Array<Real> rc, re, s;
+      
+      if (Geometry::IsSPHERICAL()) {
+      for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
+	      int i = fi.index();
+	      const Box &reg = grids[i];
+	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
+	      parent->Geom(level).GetCellLoc(rc, reg, 0);
+	      parent->Geom(level).GetCellLoc(s, reg, 0);
+	      const Box &dbox = Dterm_face[0][fi].box();
+	      FORT_SPHE(re.dataPtr(), s.dataPtr(), 0, dimlist(dbox), dx);
+	      
+	      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
+		  (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+			  BL_TO_FORTRAN(Dterm_face[1][fi]),
+			  BL_TO_FORTRAN(Dterm_face[2][fi])),
+		   re.dataPtr(), rc.dataPtr());
+	  }
+#ifdef _OPENMP
+#pragma omp barrier
+#endif
+      }
+      else if (Geometry::IsRZ()) {
+	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
+	      int i = fi.index();
+	      const Box &reg = grids[i];
+	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
+	      parent->Geom(level).GetCellLoc(rc, reg, 0);
+	      
+	      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
+		  (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+			  BL_TO_FORTRAN(Dterm_face[1][fi]),
+			  BL_TO_FORTRAN(Dterm_face[2][fi])),
+		   re.dataPtr(), rc.dataPtr());
+	  }
+#ifdef _OPENMP
+#pragma omp barrier
+#endif
+      }
+
+      for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
+	  const Box& bx = fi.tilebox();
+	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
+	      (bx.loVect(), bx.hiVect(),
+	       D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+		      BL_TO_FORTRAN(Dterm_face[1][fi]),
+		      BL_TO_FORTRAN(Dterm_face[2][fi])),
+	       BL_TO_FORTRAN(Dterm[fi]));
+      }
   }
 }
 
