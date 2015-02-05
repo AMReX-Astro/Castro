@@ -2457,7 +2457,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
 
   MultiFab mask(grids,1,ngrow);
   mask.setVal(-1.0,ngrow);
-  mask.setVal( 0.0);
+  mask.setVal( 0.0,0);
   mask.FillBoundary();
   if (geom.isAnyPeriodic()) {
     geom.FillPeriodicBoundary(mask, true);
