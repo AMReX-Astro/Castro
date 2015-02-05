@@ -529,11 +529,13 @@ subroutine ca_set_dterm_face( lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-subroutine ca_face2center(foox, foox_l1, foox_h1, &
-     fooc, fooc_l1, fooc_h1)
+subroutine ca_face2center( lo, hi, &
+  foox, foox_l1, foox_h1, &
+  fooc, fooc_l1, fooc_h1)
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: foox_l1, foox_h1
   integer, intent(in) :: fooc_l1, fooc_h1
   double precision, intent(in)  :: foox(foox_l1:foox_h1)
@@ -541,7 +543,7 @@ subroutine ca_face2center(foox, foox_l1, foox_h1, &
 
   integer :: i
 
-  do i=fooc_l1,fooc_h1
+  do i=lo(1), hi(1)
      fooc(i) = (foox(i) + foox(i+1))/2.d0
   end do
 

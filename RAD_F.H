@@ -269,7 +269,8 @@ BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
     const Real* dx, const int* idir);
 
 BL_FORT_PROC_DECL(CA_FACE2CENTER, ca_face2center)
-    (D_DECL(const BL_FORT_FAB_ARG(foox),
+    (const int lo[], const int hi[],
+     D_DECL(const BL_FORT_FAB_ARG(foox),
 	    const BL_FORT_FAB_ARG(fooy),
 	    const BL_FORT_FAB_ARG(fooz)),
      BL_FORT_FAB_ARG(fooc));

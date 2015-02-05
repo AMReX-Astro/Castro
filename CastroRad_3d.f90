@@ -1383,7 +1383,7 @@ subroutine ca_set_dterm_face( lo, hi, &
 end subroutine ca_set_dterm_face
 
 
-subroutine ca_face2center(  &
+subroutine ca_face2center( lo, hi, &
      foox, foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3, &
      fooy, fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3, &
      fooz, fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3, &
@@ -1391,6 +1391,7 @@ subroutine ca_face2center(  &
 
   implicit none
 
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3
   integer, intent(in) :: fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3
   integer, intent(in) :: fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3
@@ -1402,9 +1403,9 @@ subroutine ca_face2center(  &
 
   integer :: i,j,k
 
-  do k=fooc_l3,fooc_h3
-     do j=fooc_l2,fooc_h2
-        do i=fooc_l1,fooc_h1
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
            fooc(i,j,k) = (foox(i,j,k) + foox(i+1,j,k) &
                 &       + fooy(i,j,k) + fooy(i,j+1,k) &
                 &       + fooz(i,j,k) + fooz(i,j,k+1) )/6.d0

@@ -994,12 +994,17 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
     }
   }
 
-  for (MFIter fi(Dterm); fi.isValid(); ++fi) {
-    BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-      (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-	      BL_TO_FORTRAN(Dterm_face[1][fi]),
-	      BL_TO_FORTRAN(Dterm_face[2][fi])),
-       BL_TO_FORTRAN(Dterm[fi]));
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
+      const Box& bx = fi.tilebox();
+      BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
+	  (bx.loVect(), bx.hiVect(),
+	   D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+		  BL_TO_FORTRAN(Dterm_face[1][fi]),
+		  BL_TO_FORTRAN(Dterm_face[2][fi])),
+	   BL_TO_FORTRAN(Dterm[fi]));
   }
 }
 
