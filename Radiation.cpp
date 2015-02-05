@@ -2184,7 +2184,6 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     BL_ASSERT(      v.nGrow() == 1);
     BL_ASSERT(    dcf.nGrow() == 1);
     
-    const BoxArray& grids = kappa_r.boxArray();
     int nstate = castro->get_new_data(State_Type).nComp();
     Real time = castro->get_state_data(State_Type).curTime();
     
@@ -2463,42 +2462,48 @@ void Radiation::filter_prim(int level, MultiFab& State)
     geom.FillPeriodicBoundary(mask, true);
   }
 
-  BoxArray baf;
-  if (level < parent->finestLevel()) {
-    baf = parent->boxArray(level+1);
-    baf.coarsen(parent->refRatio(level));
+  if (level < parent->finestLevel()) 
+  {
+      BoxArray baf = parent->boxArray(level+1);
+      baf.coarsen(parent->refRatio(level));
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(mask); mfi.isValid(); ++mfi)
+      {
+	  FArrayBox& mask_fab = mask[mfi];
+	  const Box& mask_box = mask_fab.box();
+	  
+	  std::vector< std::pair<int,Box> > isects = baf.intersections(mask_box);
+	  
+	  for (int ii = 0; ii < isects.size(); ii++) {
+	      mask_fab.setVal(1.0, isects[ii].second, 0);
+	  }
+      }
   }
 
-  for (FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,
-			     0,ncomp); fpi.isValid(); ++fpi) {
+  FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,0,ncomp);
+  MultiFab& S_fp = fpi.get_mf();
 
-    const Box& bx = fpi.validbox();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+  {
+      const Box& bx = mfi.tilebox();
 
-    FArrayBox &Sborder = fpi();
-
-    //    RealBox gridloc = RealBox(bx,geom.CellSize(),geom.ProbLo());
-    RealBox gridloc = RealBox(bx, dx, prob_lo);
-    const Real* xlo = gridloc.lo();
-
-    FArrayBox& mask_fab = mask[fpi];
-    const Box& mask_box = mask_fab.box();
-
-    if (level < parent->finestLevel()) {
-      std::vector< std::pair<int,Box> > isects = baf.intersections(mask_box);
-
-      for (int ii = 0; ii < isects.size(); ii++) {
-	mask_fab.setVal(1.0, isects[ii].second, 0);
-      }
-    }
-
-    BL_FORT_PROC_CALL(CA_FILT_PRIM, ca_filt_prim)
-      (bx.loVect(), bx.hiVect(), 
-       BL_TO_FORTRAN(Sborder),
-       BL_TO_FORTRAN(State[fpi]),
-       BL_TO_FORTRAN(mask_fab),
-       &filter_prim_T, &filter_prim_S,
-       domain_lo, domain_hi,
-       dx, xlo, prob_lo, 
-       &time, &level);
+      const RealBox& gridloc = RealBox(bx, dx, prob_lo);
+      const Real* xlo = gridloc.lo();
+      
+      BL_FORT_PROC_CALL(CA_FILT_PRIM, ca_filt_prim)
+	  (bx.loVect(), bx.hiVect(), 
+	   BL_TO_FORTRAN( S_fp[mfi]),
+	   BL_TO_FORTRAN(State[mfi]),
+	   BL_TO_FORTRAN( mask[mfi]),
+	   &filter_prim_T, &filter_prim_S,
+	   domain_lo, domain_hi,
+	   dx, xlo, prob_lo, 
+	   &time, &level);
   }
 }
