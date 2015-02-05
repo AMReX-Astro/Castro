@@ -218,7 +218,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
     const int* filter_lambda_T, const int* filter_lambda_S);
 
 BL_FORT_PROC_DECL(CA_GET_V_DCF, ca_get_v_dcf)
-   (const BL_FORT_FAB_ARG(er), 
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(er), 
     const BL_FORT_FAB_ARG(state), 
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(c_v),

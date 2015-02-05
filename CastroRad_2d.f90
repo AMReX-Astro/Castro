@@ -680,7 +680,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
 end subroutine ca_compute_lamborder
 
 
-subroutine ca_get_v_dcf( &
+subroutine ca_get_v_dcf( lo, hi, &
      er ,  er_l1,  er_l2,  er_h1,  er_h2, &
      s  ,   s_l1,   s_l2,   s_h1,   s_h2, &
      T  ,   T_l1,   T_l2,   T_h1,   T_h2, &
@@ -696,6 +696,7 @@ subroutine ca_get_v_dcf( &
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: er_l1,er_l2,er_h1,er_h2,s_l1,s_l2,s_h1,s_h2
   integer, intent(in) :: T_l1,T_l2,T_h1,T_h2,c_v_l1,c_v_l2,c_v_h1,c_v_h2
   integer, intent(in) :: kr_l1,kr_l2,kr_h1,kr_h2
@@ -718,8 +719,8 @@ subroutine ca_get_v_dcf( &
   fac0 = 4.d0 * sigma * dtime / dtemp
   fac2 = c * dtime / dtemp
 
-  do j=v_l2, v_h2
-     do i=v_l1, v_h1
+  do j=lo(2),hi(2)
+     do i=lo(1),hi(1)
         v(i,j,1) = s(i,j,UMX)/s(i,j,URHO)
         v(i,j,2) = s(i,j,UMY)/s(i,j,URHO)
         

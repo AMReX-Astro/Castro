@@ -1388,38 +1388,38 @@ void Radiation::get_frhoe(Fab& frhoe,
                           Fab& state,
                           const Box& reg)
 {
-  BL_PROFILE("Radiation::get_frhoe");
-
-  // just algebra, not an eos call:
-  const Box& sbox = state.box();
-  FORT_CFRHOE(frhoe.dataPtr(), dimlist(reg), state.dataPtr(), dimlist(sbox));
+    BL_ASSERT(reg == frhoe.box());
+    const Box& sbox = state.box();
+    FORT_CFRHOE(frhoe.dataPtr(), dimlist(reg), state.dataPtr(), dimlist(sbox));
 }
 
 void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
                         const Box& reg)
 {
-  if (do_real_eos == 1) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
-      (reg.loVect(), reg.hiVect(),
-       BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-  }
-  else if (do_real_eos == 0) {
-    if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
-      c_v.setVal(const_c_v[0]);
+    BL_ASSERT(reg == c_v.box());
+
+    if (do_real_eos == 1) {
+	BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
+	    (reg.loVect(), reg.hiVect(),
+	     BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+    }
+    else if (do_real_eos == 0) {
+	if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
+	    c_v.setVal(const_c_v[0]);
+	}
+	else {
+	    FORT_GCV(dimlist(reg),
+		     c_v.dataPtr(), dimlist(c_v.box()),
+		     temp.dataPtr(), dimlist(temp.box()),
+		     const_c_v.dataPtr(),
+		     c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		     prop_temp_floor.dataPtr(),
+		     state.dataPtr(), dimlist(state.box()));
+	}
     }
     else {
-      FORT_GCV(dimlist(reg),
-	       c_v.dataPtr(), dimlist(c_v.box()),
-               temp.dataPtr(), dimlist(temp.box()),
-               const_c_v.dataPtr(),
-               c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-               prop_temp_floor.dataPtr(),
-               state.dataPtr(), dimlist(state.box()));
+	BoxLib::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
     }
-  }
-  else {
-    BoxLib::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
-  }
 }
 
 // temp contains frhoe on input:
@@ -2180,111 +2180,119 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 				    Real delta_t, Real c,
 				    AmrLevel* castro, int igroup)
 {
-  BL_ASSERT(kappa_r.nGrow() == 1);
-  BL_ASSERT(      v.nGrow() == 1);
-  BL_ASSERT(    dcf.nGrow() == 1);
-
-  const BoxArray& grids = kappa_r.boxArray();
-  int nstate = castro->get_new_data(State_Type).nComp();
-  Real time = castro->get_state_data(State_Type).curTime();
-
-  MultiFab Er(grids, 1, 1); 
-  
-  for (FillPatchIterator fpi(*castro, Er, 1, time, Rad_Type, 0, 1);
-       fpi.isValid(); ++fpi) {
-    Er[fpi].copy(fpi());
-  }
-
-  for(FillPatchIterator fpi(*castro, Er, 1, time, State_Type, 0, nstate); 
-      fpi.isValid(); ++fpi) {
-
-    FArrayBox &state = fpi();
-
-    const Box& reg = kappa_r[fpi].box();
-
-    Fab temp(reg);
-    get_frhoe(temp, state, reg);
-
-    if (do_real_eos > 0) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-    }
-    else if (do_real_eos == 0) {
-      FORT_GTEMP(temp.dataPtr(), dimlist(reg),
-		 const_c_v.dataPtr(),
-		 c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-		 state.dataPtr(), dimlist(reg));
-    }
-
-    Fab c_v(reg);
-    get_c_v(c_v, temp, state, reg);
-
-    state.copy(temp,0,Temp,1);
-
-    // compute rosseland
-    if (use_opacity_table_module) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[fpi]), BL_TO_FORTRAN(state));
-    }
-    else if (const_scattering[0] > 0.0) {
-      FORT_ROSSE1S(kappa_r[fpi].dataPtr(igroup), dimlist(reg), dimlist(reg),
-		   const_kappa_r.dataPtr(),
-		   kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		   kappa_r_exp_p.dataPtr(), 
-		   const_scattering.dataPtr(),
-		   scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
-		   scattering_exp_p.dataPtr(), 
-		   nugroup[igroup],
-		   prop_temp_floor.dataPtr(), kappa_r_floor,
-		   temp.dataPtr(), state.dataPtr(), dimlist(reg));
-    }
-    else {
-      FORT_ROSSE1(kappa_r[fpi].dataPtr(igroup), dimlist(reg), dimlist(reg),
-		  const_kappa_r.dataPtr(),
-		  kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		  kappa_r_exp_p.dataPtr(), nugroup[igroup],
-		  prop_temp_floor.dataPtr(), kappa_r_floor,
-		  temp.dataPtr(), state.dataPtr(), dimlist(reg));
-    }
-
-
-    if (use_opacity_table_module) {
-      cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
-	   << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
-	   << "when use_opacity_table_module=1"<<endl;
-      BoxLib::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
-    }
-
-
-    Fab kp(reg);
-    FORT_FKPN(kp.dataPtr(), dimlist(reg),
-	      const_kappa_p.dataPtr(),
-	      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-	      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-	      prop_temp_floor.dataPtr(),
-	      temp.dataPtr(), state.dataPtr(), dimlist(reg));
-    Fab kp2(reg);
-    temp.plus(dT, 0, 1);
-    FORT_FKPN(kp2.dataPtr(), dimlist(reg),
-	      const_kappa_p.dataPtr(),
-	      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-	      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-	      prop_temp_floor.dataPtr(),
-	      temp.dataPtr(), state.dataPtr(), dimlist(reg));
-    temp.plus(-dT, 0, 1);
+    BL_ASSERT(kappa_r.nGrow() == 1);
+    BL_ASSERT(      v.nGrow() == 1);
+    BL_ASSERT(    dcf.nGrow() == 1);
     
-    BL_FORT_PROC_CALL(CA_GET_V_DCF, ca_get_v_dcf)
-      (BL_TO_FORTRAN(Er[fpi]),
-       BL_TO_FORTRAN(state),
-       BL_TO_FORTRAN(temp),
-       BL_TO_FORTRAN(c_v),
-       BL_TO_FORTRAN(kappa_r[fpi]),
-       BL_TO_FORTRAN(kp),
-       BL_TO_FORTRAN(kp2),
-       &dT, &delta_t, &sigma, &c,
-       BL_TO_FORTRAN(v[fpi]),
-       BL_TO_FORTRAN(dcf[fpi]));
-  }
+    const BoxArray& grids = kappa_r.boxArray();
+    int nstate = castro->get_new_data(State_Type).nComp();
+    Real time = castro->get_state_data(State_Type).curTime();
+    
+    FillPatchIterator fpi_r(*castro, kappa_r, 1, time, Rad_Type, 0, 1);
+    MultiFab& Er = fpi_r.get_mf();
+    
+    FillPatchIterator fpi_s(*castro, kappa_r, 1, time, State_Type, 0, nstate); 
+    MultiFab& S = fpi_s.get_mf();
+    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Fab temp, c_v, kp, kp2;
+	for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
+	{
+	    const Box& reg = mfi.growntilebox(1);
+	    
+	    temp.resize(reg);
+	    get_frhoe(temp, S[mfi], reg);
+	    
+	    if (do_real_eos > 0) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
+		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
+	    }
+	    else if (do_real_eos == 0) {
+		FORT_GTEMP(temp.dataPtr(), dimlist(reg),
+			   const_c_v.dataPtr(),
+			   c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+			   S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    }
+	    
+	    c_v.resize(reg);
+	    get_c_v(c_v, temp, S[mfi], reg);
+	    
+	    S[mfi].copy(temp,reg,0,reg,Temp,1);
+	    
+	    // compute rosseland
+	    if (use_opacity_table_module) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
+		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
+	    }
+	    else if (const_scattering[0] > 0.0) {
+		FORT_ROSSE1S(kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
+			     dimlist(reg),
+			     const_kappa_r.dataPtr(),
+			     kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+			     kappa_r_exp_p.dataPtr(), 
+			     const_scattering.dataPtr(),
+			     scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
+			     scattering_exp_p.dataPtr(), 
+			     nugroup[igroup],
+			     prop_temp_floor.dataPtr(), kappa_r_floor,
+			     temp.dataPtr(), 
+			     S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    }
+	    else {
+		FORT_ROSSE1(kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
+			    dimlist(reg),
+			    const_kappa_r.dataPtr(),
+			    kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+			    kappa_r_exp_p.dataPtr(), nugroup[igroup],
+			    prop_temp_floor.dataPtr(), kappa_r_floor,
+			    temp.dataPtr(), 
+			    S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    }
+	    
+	    if (use_opacity_table_module) {
+		cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
+		     << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
+		     << "when use_opacity_table_module=1"<<endl;
+		BoxLib::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
+	    }
+	    
+	    
+	    kp.resize(reg);
+	    FORT_FKPN(kp.dataPtr(), dimlist(reg),
+		      const_kappa_p.dataPtr(),
+		      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		      kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		      prop_temp_floor.dataPtr(),
+		      temp.dataPtr(), 
+		      S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    kp2.resize(reg);
+	    temp.plus(dT, 0, 1);
+	    FORT_FKPN(kp2.dataPtr(), dimlist(reg),
+		      const_kappa_p.dataPtr(),
+		      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		      kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		      prop_temp_floor.dataPtr(),
+		      temp.dataPtr(), 
+		      S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    temp.plus(-dT, 0, 1);
+	    
+	    BL_FORT_PROC_CALL(CA_GET_V_DCF, ca_get_v_dcf)
+		(reg.loVect(), reg.hiVect(),
+		 BL_TO_FORTRAN(Er[mfi]),
+		 BL_TO_FORTRAN(S[mfi]),
+		 BL_TO_FORTRAN(temp),
+		 BL_TO_FORTRAN(c_v),
+		 BL_TO_FORTRAN(kappa_r[mfi]),
+		 BL_TO_FORTRAN(kp),
+		 BL_TO_FORTRAN(kp2),
+		 &dT, &delta_t, &sigma, &c,
+		 BL_TO_FORTRAN(v[mfi]),
+		 BL_TO_FORTRAN(dcf[mfi]));
+	}
+    }
 }
 
 void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiFab& kr,
