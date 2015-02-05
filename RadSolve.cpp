@@ -944,12 +944,17 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
     dp = &hem->d2Coefficients(level, n);
     MultiFab &dcoef = *(MultiFab*)dp;
 
-    for (MFIter fi(dcoef); fi.isValid(); ++fi) {
-      BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
-	(BL_TO_FORTRAN(Erborder[fi]),
-	 BL_TO_FORTRAN(dcoef[fi]), 
-	 BL_TO_FORTRAN(Dterm_face[n][fi]), 
-	 dx, &n);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
+	const Box& bx = fi.tilebox();
+	BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(Erborder[fi]),
+	     BL_TO_FORTRAN(dcoef[fi]), 
+	     BL_TO_FORTRAN(Dterm_face[n][fi]), 
+	     dx, &n);
     }
   }
 

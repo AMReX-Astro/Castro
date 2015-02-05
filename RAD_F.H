@@ -262,7 +262,8 @@ BL_FORT_PROC_DECL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
 	   const BL_FORT_FAB_ARG(lamz)));
 
 BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
-   (const BL_FORT_FAB_ARG(Er),
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(Er),
     const BL_FORT_FAB_ARG(dcoef), 
     BL_FORT_FAB_ARG(dterm_face), 
     const Real* dx, const int* idir);

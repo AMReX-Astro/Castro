@@ -819,11 +819,13 @@ subroutine ca_update_dcf(lo, hi, &
 end subroutine ca_update_dcf
 
 
-subroutine ca_set_dterm_face(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
+subroutine ca_set_dterm_face( lo, hi, &
+     Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      dc, dc_l1, dc_l2, dc_h1, dc_h2, &
      dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir)
   implicit none
   
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: Er_l1, Er_l2, Er_h1, Er_h2,  &
        dc_l1, dc_l2, dc_h1, dc_h2, dtf_l1, dtf_l2, dtf_h1, dtf_h2, idir
   double precision, intent(in) :: dx(2)
@@ -833,14 +835,14 @@ subroutine ca_set_dterm_face(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
   integer :: i, j
 
   if (idir .eq. 0) then
-     do j = dtf_l2, dtf_h2
-        do i = dtf_l1, dtf_h1
+     do j=lo(2), hi(2)
+        do i=lo(1), hi(1)
            dtf(i,j) = (Er(i,j) - Er(i-1,j)) / dx(1) * dc(i,j)
         end do
      end do
   else
-     do j = dtf_l2, dtf_h2
-        do i = dtf_l1, dtf_h1
+     do j=lo(2), hi(2)
+        do i=lo(1), hi(1)
            dtf(i,j) = (Er(i,j) - Er(i,j-1)) / dx(2) * dc(i,j)
         end do
      end do
