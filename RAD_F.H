@@ -238,7 +238,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
     const Real* r, const int* idir);
  
 BL_FORT_PROC_DECL(CA_UPDATE_DCF, ca_update_dcf)
-   (BL_FORT_FAB_ARG(dcf),
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(dcf),
     const BL_FORT_FAB_ARG(etainv),
     const BL_FORT_FAB_ARG(kp),
     const BL_FORT_FAB_ARG(kr));

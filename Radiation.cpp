@@ -2298,18 +2298,24 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiFab& kr,
 			   const Geometry& geom)
 {
-  for (MFIter mfi(dcf); mfi.isValid(); ++mfi) {
-    BL_FORT_PROC_CALL(CA_UPDATE_DCF, ca_update_dcf)
-      (BL_TO_FORTRAN(dcf[mfi]),
-       BL_TO_FORTRAN(etainv[mfi]),
-       BL_TO_FORTRAN(kp[mfi]),
-       BL_TO_FORTRAN(kr[mfi]));
-  }
-
-  dcf.FillBoundary();
-  if (geom.isAnyPeriodic()) {
-    geom.FillPeriodicBoundary(dcf, false);
-  }
+    int ng = dcf.nGrow();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.growntilebox(ng);
+	BL_FORT_PROC_CALL(CA_UPDATE_DCF, ca_update_dcf)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(dcf[mfi]),
+	     BL_TO_FORTRAN(etainv[mfi]),
+	     BL_TO_FORTRAN(kp[mfi]),
+	     BL_TO_FORTRAN(kr[mfi]));
+    }
+    
+    dcf.FillBoundary();
+    if (geom.isAnyPeriodic()) {
+	geom.FillPeriodicBoundary(dcf, false);
+    }
 }
 
 void Radiation::EstTimeStep(Real & estdt, int level)

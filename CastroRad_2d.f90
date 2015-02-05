@@ -793,12 +793,14 @@ subroutine ca_compute_dcoefs( lo, hi, &
 end subroutine ca_compute_dcoefs
 
 
-subroutine ca_update_dcf(dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
+subroutine ca_update_dcf(lo, hi, &
+     dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
      etainv, eti_l1, eti_l2, eti_h1, eti_h2, &
      kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2)
 
   implicit none
 
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: dcf_l1, dcf_l2, dcf_h1, dcf_h2, eti_l1, eti_l2, eti_h1, eti_h2, &
        kp_l1, kp_l2, kp_h1, kp_h2, kr_l1, kr_l2, kr_h1, kr_h2
   double precision, intent(in) :: etainv(eti_l1:eti_h1, eti_l2:eti_h2)
@@ -808,8 +810,8 @@ subroutine ca_update_dcf(dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
 
   integer :: i, j
 
-  do j=dcf_l2+1, dcf_h2-1
-     do i=dcf_l1+1, dcf_h1-1
+  do j=lo(2), hi(2)
+     do i=lo(1), hi(1)
         dcf(i,j) = 2.d0 * etainv(i,j) * (kp(i,j)/kr(i,j))
      end do
   end do
