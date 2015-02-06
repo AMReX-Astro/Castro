@@ -230,10 +230,8 @@ end subroutine ca_check_initial_species
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -262,13 +260,7 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
   double precision fv(fv_l1:fv_h1,fv_l2:fv_h2,fv_l3:fv_h3)
   
   integer i, j, k, n, ic, jc, kc, ioff, joff, koff
-  integer lratx, lraty, lratz
   double precision   volfrac
-  
-  lratx   = lrat(1)
-  lraty   = lrat(2)
-  lratz   = lrat(3)
-  volfrac = ONE/float(lrat(1)*lrat(2)*lrat(3))
   
   do n = 1, nvar
      !
@@ -284,15 +276,15 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      !
      ! Sum fine data.
      !
-     do koff = 0, lratz-1
+     do koff = 0, lrat(3)-1
         do kc = lo(3),hi(3)
-           k = kc*lratz + koff
-           do joff = 0, lraty-1
+           k = kc*lrat(3) + koff
+           do joff = 0, lrat(2)-1
               do jc = lo(2), hi(2)
-                 j = jc*lraty + joff
-                 do ioff = 0, lratx-1
+                 j = jc*lrat(2) + joff
+                 do ioff = 0, lrat(1)-1
                     do ic = lo(1), hi(1)
-                       i = ic*lratx + ioff
+                       i = ic*lrat(1) + ioff
                        crse(ic,jc,kc,n) = crse(ic,jc,kc,n) + fine(i,j,k,n)
                     enddo
                  enddo
@@ -303,6 +295,7 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      !
      ! Divide out by volume weight.
      !
+     volfrac = ONE/dble(lrat(1)*lrat(2)*lrat(3))
      do kc = lo(3), hi(3)
         do jc = lo(2), hi(2)
            do ic = lo(1), hi(1)
