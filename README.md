@@ -13,4 +13,3 @@ https://ccse.lbl.gov/BoxLib/index.html
 There is a User's Guide in `Castro/UsersGuide/` (type `make` to build
 from LaTeX source) that will guide you through running your first
 problem.
-
