@@ -296,7 +296,8 @@ BL_FORT_PROC_DECL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
     BL_FORT_FAB_ARG(aco),
     const Real* dt, const Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_ACCEL_RHS_NEUT, ca_accel_rhs_neut)
-   (const BL_FORT_FAB_ARG(Ern),
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(Ern),
     const BL_FORT_FAB_ARG(Erl),
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(etaT),
@@ -503,7 +504,8 @@ BL_FORT_PROC_DECL(CA_ACCEL_ACOE, ca_accel_acoe)
     BL_FORT_FAB_ARG(aco),
     const Real* dt, const Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_ACCEL_RHS, ca_accel_rhs)
-   (const BL_FORT_FAB_ARG(Ern),
+   (const int lo[], const int hi[],
+    const BL_FORT_FAB_ARG(Ern),
     const BL_FORT_FAB_ARG(Erl),
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(etaT),

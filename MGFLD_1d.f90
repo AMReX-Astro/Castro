@@ -36,7 +36,7 @@ subroutine ca_accel_acoe( lo, hi,  &
 end subroutine ca_accel_acoe
 
 
-subroutine ca_accel_rhs(  &
+subroutine ca_accel_rhs( lo, hi, &
      Ern , Ern_l1, Ern_h1,  &
      Erl , Erl_l1, Erl_h1,  &
      kap , kap_l1, kap_h1,   &
@@ -48,6 +48,7 @@ subroutine ca_accel_rhs(  &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: Ern_l1, Ern_h1
   integer, intent(in) :: Erl_l1, Erl_h1
   integer, intent(in) :: kap_l1, kap_h1
@@ -63,7 +64,7 @@ subroutine ca_accel_rhs(  &
   integer :: i 
   double precision :: rt, H
 
-  do i = rhs_l1, rhs_h1
+  do i = lo(1), hi(1)
      rt = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
      H = etaT(i)
      rhs(i) = clight*H*rt

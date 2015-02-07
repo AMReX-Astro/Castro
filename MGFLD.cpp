@@ -609,26 +609,32 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
   // rhs
   MultiFab rhs(grids,1,0);
-  for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(rhs,true); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_ACCEL_RHS_NEUT, ca_accel_rhs_neut) 
-      (BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(etaY[mfi]),
-       BL_TO_FORTRAN(thetaT[mfi]),
-       BL_TO_FORTRAN(thetaY[mfi]),
-       BL_TO_FORTRAN(rhs[mfi]),
-       &delta_t);
+      BL_FORT_PROC_CALL(CA_ACCEL_RHS_NEUT, ca_accel_rhs_neut) 
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(Er_new[mfi]),
+	   BL_TO_FORTRAN(Er_pi[mfi]),
+	   BL_TO_FORTRAN(kappa_p[mfi]),
+	   BL_TO_FORTRAN(etaT[mfi]),
+	   BL_TO_FORTRAN(etaY[mfi]),
+	   BL_TO_FORTRAN(thetaT[mfi]),
+	   BL_TO_FORTRAN(thetaY[mfi]),
+	   BL_TO_FORTRAN(rhs[mfi]),
+	   &delta_t);
 #else
-    BL_FORT_PROC_CALL(CA_ACCEL_RHS, ca_accel_rhs) 
-      (BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(rhs[mfi]),
-       &delta_t);
+      BL_FORT_PROC_CALL(CA_ACCEL_RHS, ca_accel_rhs) 
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(Er_new[mfi]),
+	   BL_TO_FORTRAN(Er_pi[mfi]),
+	   BL_TO_FORTRAN(kappa_p[mfi]),
+	   BL_TO_FORTRAN(etaT[mfi]),
+	   BL_TO_FORTRAN(rhs[mfi]),
+	   &delta_t);
 #endif
   }
 

@@ -49,7 +49,7 @@ subroutine ca_accel_acoe_neut( lo, hi,  &
 end subroutine ca_accel_acoe_neut
 
 
-subroutine ca_accel_rhs_neut(  &
+subroutine ca_accel_rhs_neut( lo, hi, &
      Ern , Ern_l1, Ern_h1,  &
      Erl , Erl_l1, Erl_h1,  &
      kap , kap_l1, kap_h1,   &
@@ -64,6 +64,7 @@ subroutine ca_accel_rhs_neut(  &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: Ern_l1, Ern_h1
   integer, intent(in) :: Erl_l1, Erl_h1
   integer, intent(in) :: kap_l1, kap_h1
@@ -85,7 +86,7 @@ subroutine ca_accel_rhs_neut(  &
   integer :: i, g
   double precision :: rt, ry, H, Theta, foo
 
-  do i = rhs_l1, rhs_h1
+  do i = lo(1), hi(1)
      rt = 0.d0
      ry = 0.d0
      do g=0,ngroups-1
