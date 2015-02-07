@@ -480,10 +480,12 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   Er_zero.setVal(0.0);
   getBndryDataMG_ga(mgbd, Er_zero, level);
 
-  MultiFab spec(grids, nGroups, 1); 
-  for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i];
+  MultiFab spec(grids, nGroups, 1);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif 
+  for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
+    const Box& bx = mfi.tilebox();
 #ifdef NEUTRINO
     BL_FORT_PROC_CALL(CA_ACCEL_SPEC_NEUT, ca_accel_spec_neut) 
       (bx.loVect(), bx.hiVect(),
