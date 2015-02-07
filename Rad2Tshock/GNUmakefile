@@ -3,8 +3,8 @@ FCOMP	   = gfortran
 
 DIM        = 1
 
-DEBUG      = FALSE
 DEBUG      = TRUE
+DEBUG      = FALSE
 
 PROFILE    = FALSE
 

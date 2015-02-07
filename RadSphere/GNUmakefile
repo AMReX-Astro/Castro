@@ -4,6 +4,7 @@ FCOMP	   = gfortran
 DIM        = 1
 
 DEBUG      = TRUE
+DEBUG      = FALSE
 
 PROFILE    = FALSE
 

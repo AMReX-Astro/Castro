@@ -7,8 +7,8 @@ DIM        = 1
 #DIM        = 2
 #DIM        = 3
 
-DEBUG      = FALSE
 DEBUG      = TRUE
+DEBUG      = FALSE
 
 PROFILE    = FALSE
 
