@@ -531,7 +531,7 @@ subroutine ca_compute_kappas(lo, hi, &
 end subroutine ca_compute_kappas
 
 
-subroutine ca_compute_rhs(  &
+subroutine ca_compute_rhs( lo, hi, &
      rhs , rhs_l1, rhs_h1, &
      jg  ,  jg_l1,  jg_h1, &
      mugT,mugT_l1,mugT_h1, &
@@ -547,6 +547,7 @@ subroutine ca_compute_rhs(  &
 
   implicit none
 
+  integer,intent(in):: lo(1), hi(1) 
   integer,intent(in):: rhs_l1, rhs_h1
   integer,intent(in)::  jg_l1,  jg_h1
   integer,intent(in)::mugT_l1,mugT_h1
@@ -565,7 +566,7 @@ subroutine ca_compute_rhs(  &
   double precision,intent(in )::re2 ( re2_l1: re2_h1)
   double precision,intent(in )::Ers ( Ers_l1: Ers_h1,0:ngroups-1)
   double precision,intent(in )::res ( res_l1: res_h1)
-  double precision,intent(in) ::   r( rhs_l1: rhs_h1)
+  double precision,intent(in) ::   r(lo(1):hi(1))
   double precision,intent(in) :: dt, tau
   integer, intent(in) :: igroup
 
@@ -573,7 +574,7 @@ subroutine ca_compute_rhs(  &
   double precision :: Hg, dt1
 
   dt1 = 1.d0/dt
-  do i=rhs_l1, rhs_h1
+  do i=lo(1),hi(1)
      Hg = mugT(i,igroup) * etaT(i)
 
      rhs(i) = clight*(jg(i,igroup) + Hg*cpT(i))  &
@@ -586,7 +587,7 @@ subroutine ca_compute_rhs(  &
 end subroutine ca_compute_rhs
 
 
-subroutine ca_compute_rhs_so(  & ! MG Su-Olson
+subroutine ca_compute_rhs_so( lo, hi, & ! MG Su-Olson
      rhs , rhs_l1, rhs_h1, &
      jg  ,  jg_l1,  jg_h1, &
      mugT,mugT_l1,mugT_h1, &
@@ -601,6 +602,7 @@ subroutine ca_compute_rhs_so(  & ! MG Su-Olson
 
   implicit none
 
+  integer,intent(in):: lo(1), hi(1) 
   integer,intent(in):: rhs_l1, rhs_h1
   integer,intent(in)::  jg_l1,  jg_h1
   integer,intent(in)::mugT_l1,mugT_h1
@@ -617,7 +619,7 @@ subroutine ca_compute_rhs_so(  & ! MG Su-Olson
   double precision,intent(in )::Er2 ( Er2_l1: Er2_h1,0:ngroups-1)
   double precision,intent(in )::re2 ( re2_l1: re2_h1)
   double precision,intent(in )::res ( res_l1: res_h1)
-  double precision,intent(in) :: x(rhs_l1:rhs_h1)
+  double precision,intent(in) :: x(lo(1):hi(1))
   double precision,intent(in) :: t, dt
   integer, intent(in) :: igroup
 
@@ -628,7 +630,7 @@ subroutine ca_compute_rhs_so(  & ! MG Su-Olson
   integer :: i
   double precision :: Hg
 
-  do i=rhs_l1, rhs_h1
+  do i=lo(1),hi(1)
      Hg = mugT(i,igroup)*etaT(i)
      rhs(i) = clight*jg(i,igroup) + clight*cpt(i)*Hg &
           + (Er2(i,igroup) - (res(i)-re2(i))*Hg) / dt

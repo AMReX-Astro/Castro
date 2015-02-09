@@ -1127,85 +1127,92 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 			Real delta_t, int igroup, int it, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
-  const BoxArray& grids = parent->boxArray(level);
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   Real time = castro->get_state_data(Rad_Type).curTime();
-  
-  Array<Real> r, s;
 
-  for (MFIter ri(rhs); ri.isValid(); ++ri) {
-    int i = ri.index();
-    const Box &reg = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {  
+      Array<Real> r, s;
+
+      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
+
+	  const Box &reg = ri.tilebox();
 
 #ifdef MG_SU_OLSON
 
-    parent->Geom(level).GetCellLoc(r, reg, 0);
+	  parent->Geom(level).GetCellLoc(r, reg, 0);
 
-    BL_FORT_PROC_CALL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
-      (BL_TO_FORTRAN(rhs[ri]),
-       BL_TO_FORTRAN(jg[ri]),
-       BL_TO_FORTRAN(mugT[ri]),
-       BL_TO_FORTRAN(coupT[ri]),
-       BL_TO_FORTRAN(etaT[ri]),
-       BL_TO_FORTRAN(Er_step[ri]),
-       BL_TO_FORTRAN(rhoe_step[ri]),
-       BL_TO_FORTRAN(rhoe_star[ri]),
-       r.dataPtr(), 
-       &time, &delta_t, &igroup);
+	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
+	      (reg.loVect(), reg.hiVect(),
+	       BL_TO_FORTRAN(rhs[ri]),
+	       BL_TO_FORTRAN(jg[ri]),
+	       BL_TO_FORTRAN(mugT[ri]),
+	       BL_TO_FORTRAN(coupT[ri]),
+	       BL_TO_FORTRAN(etaT[ri]),
+	       BL_TO_FORTRAN(Er_step[ri]),
+	       BL_TO_FORTRAN(rhoe_step[ri]),
+	       BL_TO_FORTRAN(rhoe_star[ri]),
+	       r.dataPtr(), 
+	       &time, &delta_t, &igroup);
 
 #else
 
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (CoordSys::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (CoordSys::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
+	  const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+	  if (CoordSys::IsCartesian()) {
+	      r.resize(reg.length(0), 1);
+	      s.resize(reg.length(I), 1);
+	  }
+	  else if (CoordSys::IsRZ()) {
+	      parent->Geom(level).GetCellLoc(r, reg, 0);
+	      s.resize(reg.length(I), 1);
+	  }
+	  else {
+	      parent->Geom(level).GetCellLoc(r, reg, 0);
+	      parent->Geom(level).GetCellLoc(s, reg, I);
+	      const Real *dx = parent->Geom(level).CellSize();
+	      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
+	  }
 
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
-      (BL_TO_FORTRAN(rhs[ri]),
-       BL_TO_FORTRAN(jg[ri]),
-       BL_TO_FORTRAN(mugT[ri]),
-       BL_TO_FORTRAN(mugY[ri]),
-       BL_TO_FORTRAN(coupT[ri]),
-       BL_TO_FORTRAN(coupY[ri]),
-       BL_TO_FORTRAN(etaT[ri]),
-       BL_TO_FORTRAN(etaY[ri]),
-       BL_TO_FORTRAN(thetaT[ri]),
-       BL_TO_FORTRAN(thetaY[ri]),
-       BL_TO_FORTRAN(Er_step[ri]),
-       BL_TO_FORTRAN(rhoe_step[ri]),
-       BL_TO_FORTRAN(rhoYe_step[ri]),
-       BL_TO_FORTRAN(Er_star[ri]),
-       BL_TO_FORTRAN(rhoe_star[ri]),
-       BL_TO_FORTRAN(rhoYe_star[ri]),
-       r.dataPtr(), 
-       &delta_t, &igroup, &ptc_tau);
+	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
+	      (reg.loVect(), reg.hiVect(),
+	       BL_TO_FORTRAN(rhs[ri]),
+	       BL_TO_FORTRAN(jg[ri]),
+	       BL_TO_FORTRAN(mugT[ri]),
+	       BL_TO_FORTRAN(mugY[ri]),
+	       BL_TO_FORTRAN(coupT[ri]),
+	       BL_TO_FORTRAN(coupY[ri]),
+	       BL_TO_FORTRAN(etaT[ri]),
+	       BL_TO_FORTRAN(etaY[ri]),
+	       BL_TO_FORTRAN(thetaT[ri]),
+	       BL_TO_FORTRAN(thetaY[ri]),
+	       BL_TO_FORTRAN(Er_step[ri]),
+	       BL_TO_FORTRAN(rhoe_step[ri]),
+	       BL_TO_FORTRAN(rhoYe_step[ri]),
+	       BL_TO_FORTRAN(Er_star[ri]),
+	       BL_TO_FORTRAN(rhoe_star[ri]),
+	       BL_TO_FORTRAN(rhoYe_star[ri]),
+	       r.dataPtr(), 
+	       &delta_t, &igroup, &ptc_tau);
 #else
-    BL_FORT_PROC_CALL(CA_COMPUTE_RHS, ca_compute_rhs)
-      (BL_TO_FORTRAN(rhs[ri]),
-       BL_TO_FORTRAN(jg[ri]),
-       BL_TO_FORTRAN(mugT[ri]),
-       BL_TO_FORTRAN(coupT[ri]),
-       BL_TO_FORTRAN(etaT[ri]),
-       BL_TO_FORTRAN(Er_step[ri]),
-       BL_TO_FORTRAN(rhoe_step[ri]),
-       BL_TO_FORTRAN(Er_star[ri]),
-       BL_TO_FORTRAN(rhoe_star[ri]),
-       r.dataPtr(), 
-       &delta_t, &igroup, &ptc_tau);
+	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS, ca_compute_rhs)
+	      (reg.loVect(), reg.hiVect(),
+	       BL_TO_FORTRAN(rhs[ri]),
+	       BL_TO_FORTRAN(jg[ri]),
+	       BL_TO_FORTRAN(mugT[ri]),
+	       BL_TO_FORTRAN(coupT[ri]),
+	       BL_TO_FORTRAN(etaT[ri]),
+	       BL_TO_FORTRAN(Er_step[ri]),
+	       BL_TO_FORTRAN(rhoe_step[ri]),
+	       BL_TO_FORTRAN(Er_star[ri]),
+	       BL_TO_FORTRAN(rhoe_star[ri]),
+	       r.dataPtr(), 
+	       &delta_t, &igroup, &ptc_tau);
 #endif
 #endif
+      }
   }
 }
 

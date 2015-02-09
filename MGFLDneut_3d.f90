@@ -656,7 +656,7 @@ subroutine ca_compute_eta_the( lo, hi, &
 end subroutine ca_compute_eta_the
 
 
-subroutine ca_compute_rhs_neut(  &
+subroutine ca_compute_rhs_neut( lo, hi, &
      rhs , rhs_l1, rhs_l2, rhs_l3, rhs_h1, rhs_h2, rhs_h3, &
      jg  ,  jg_l1,  jg_l2,  jg_l3,  jg_h1,  jg_h2,  jg_h3, &
      mugT,mugT_l1,mugT_l2,mugT_l3,mugT_h1,mugT_h2,mugT_h3, &
@@ -679,6 +679,7 @@ subroutine ca_compute_rhs_neut(  &
 
   implicit none
 
+  integer,intent(in):: lo(3), hi(3) 
   integer,intent(in):: rhs_l1, rhs_h1, rhs_l2, rhs_h2, rhs_l3, rhs_h3
   integer,intent(in)::  jg_l1,  jg_h1,  jg_l2,  jg_h2,  jg_l3,  jg_h3
   integer,intent(in)::mugT_l1,mugT_h1,mugT_l2,mugT_h2,mugT_l3,mugT_h3
@@ -716,7 +717,7 @@ subroutine ca_compute_rhs_neut(  &
        0:ngroups-1)
   double precision,intent(in )::res ( res_l1: res_h1, res_l2: res_h2, res_l3: res_h3)
   double precision,intent(in )::rYs ( rYs_l1: rYs_h1, rYs_l2: rYs_h2, rYs_l3: rYs_h3)
-  double precision,intent(in) ::   r( rhs_l1: rhs_h1)
+  double precision,intent(in) ::   r(lo(1):hi(1))
   double precision,intent(in) :: dt, tau             
   integer, intent(in) :: igroup
 
@@ -724,9 +725,9 @@ subroutine ca_compute_rhs_neut(  &
   double precision :: Hg, thetag, dt1
 
   dt1 = 1.d0/dt
-  do k=rhs_l3, rhs_h3
-  do j=rhs_l2, rhs_h2
-  do i=rhs_l1, rhs_h1
+  do k=lo(3), hi(3)
+  do j=lo(2), hi(2)
+  do i=lo(1), hi(1)
      Hg = mugT(i,j,k,igroup)*etaT(i,j,k) - mugY(i,j,k,igroup)*etaY(i,j,k)
      thetag = mugY(i,j,k,igroup)*theY(i,j,k) - mugT(i,j,k,igroup)*theT(i,j,k)
 

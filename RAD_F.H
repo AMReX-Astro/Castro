@@ -392,7 +392,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
      const BL_FORT_FAB_ARG(rho),
      const Real* delta_t, const Real* tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
-   (BL_FORT_FAB_ARG(rhs),
+   (const int* lo, const int *hi, 
+    BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(mugY),
@@ -559,7 +560,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETAT, ca_compute_etat)
      const BL_FORT_FAB_ARG(rho),
      const Real* delta_t, const Real* tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS, ca_compute_rhs)
-   (BL_FORT_FAB_ARG(rhs),
+   (const int* lo, const int *hi, 
+    BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(coupT),
@@ -673,7 +675,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
     const Real* prop_temp_floor);
 #ifdef MG_SU_OLSON
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
-   (BL_FORT_FAB_ARG(rhs),
+   (const int* lo, const int *hi, 
+    BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(coupT),
