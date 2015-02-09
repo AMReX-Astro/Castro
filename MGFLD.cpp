@@ -674,34 +674,36 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 			    const MultiFab& mugT, const MultiFab& mugY, 
 			    const BoxArray& grids, Real delta_t, Real ptc_tau)
 {
-  for (MFIter mfi(Er_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(Er_new,true); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_LOCAL_ACCEL_NEUT, ca_local_accel_neut)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(etaY[mfi]),
-       BL_TO_FORTRAN(thetaT[mfi]),
-       BL_TO_FORTRAN(thetaY[mfi]),
-       BL_TO_FORTRAN(mugT[mfi]),
-       BL_TO_FORTRAN(mugY[mfi]),
-       &delta_t, &ptc_tau);
+	BL_FORT_PROC_CALL(CA_LOCAL_ACCEL_NEUT, ca_local_accel_neut)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(Er_new[mfi]),
+	     BL_TO_FORTRAN(Er_pi[mfi]),
+	     BL_TO_FORTRAN(kappa_p[mfi]),
+	     BL_TO_FORTRAN(etaT[mfi]),
+	     BL_TO_FORTRAN(etaY[mfi]),
+	     BL_TO_FORTRAN(thetaT[mfi]),
+	     BL_TO_FORTRAN(thetaY[mfi]),
+	     BL_TO_FORTRAN(mugT[mfi]),
+	     BL_TO_FORTRAN(mugY[mfi]),
+	     &delta_t, &ptc_tau);
 #else
-    BL_FORT_PROC_CALL(CA_LOCAL_ACCEL, ca_local_accel)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(Er_new[mfi]),
-       BL_TO_FORTRAN(Er_pi[mfi]),
-       BL_TO_FORTRAN(kappa_p[mfi]),
-       BL_TO_FORTRAN(etaT[mfi]),
-       BL_TO_FORTRAN(mugT[mfi]),
-       &delta_t, &ptc_tau);
+	BL_FORT_PROC_CALL(CA_LOCAL_ACCEL, ca_local_accel)
+	    (bx.loVect(), bx.hiVect(),
+	     BL_TO_FORTRAN(Er_new[mfi]),
+	     BL_TO_FORTRAN(Er_pi[mfi]),
+	     BL_TO_FORTRAN(kappa_p[mfi]),
+	     BL_TO_FORTRAN(etaT[mfi]),
+	     BL_TO_FORTRAN(mugT[mfi]),
+	     &delta_t, &ptc_tau);
 #endif
-  }
+    }
 }
 
 

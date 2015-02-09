@@ -423,7 +423,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	if (accel_allowed) {
 	  if (accelerate == 1) {
 	    local_accel(Er_new, Er_pi, kappa_p, etaT, etaY, thetaT, thetaY,
-			mugT, mugY, grids, delta_t, ptc_tau);
+			mugT, mugY, delta_t, ptc_tau);
 	  } 
 	  else if (accelerate == 2) {
 	    gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 

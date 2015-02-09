@@ -359,7 +359,7 @@ protected:
 		   const MultiFab& etaT, const MultiFab& etaY, 
 		   const MultiFab& thetaT, const MultiFab& thetaY, 
 		   const MultiFab& mugT, const MultiFab& mugY, 
-		   const BoxArray& grids, Real delta_t, Real ptc_tau);
+		   Real delta_t, Real ptc_tau);
   void state_energy_update(MultiFab& state, const MultiFab& rhoe, const MultiFab& Ye,
 			   const MultiFab& temp, const BoxArray& grids, 
 			   Real& derat, Real& dT, Real&dye, int level);
