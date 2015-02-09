@@ -1045,23 +1045,35 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
       if (Radiation::rad_hydro_combined) {
-	const MultiFab& radMF = get_new_data(Rad_Type);
-	for (MFIter mfi(stateMF); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  {
+	      Real dt = 1.e200;
 
-	  const Box& box = mfi.validbox();
-	  Real dt = estdt;
-	  
-	  FArrayBox gPr(box);
-	  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, box);
+	      const MultiFab& radMF = get_new_data(Rad_Type);
+	      FArrayBox gPr;
 
-	  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
-	    (BL_TO_FORTRAN(stateMF[mfi]),
-	     BL_TO_FORTRAN(gPr),
-	     box.loVect(),box.hiVect(),dx,&dt);
+	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi) 
+	      {
+	          const Box& tbox = mfi.tilebox();
+	          const Box& vbox = mfi.validbox();
+		  
+		  gPr.resize(tbox);
+		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 	  
-	  estdt = std::min(estdt,dt);
-	}
+		  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+	               BL_TO_FORTRAN(gPr),
+	               tbox.loVect(),tbox.hiVect(),dx,&dt);
+              }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt_rad)	      
+#endif
+	      {
+	          estdt = std::min(estdt,dt);
+              }
+          }
       }
       else 
       {
@@ -1303,33 +1315,15 @@ Castro::post_timestep (int iteration)
 
 #ifdef RADIATION
     if (do_radiation && (level < finest_level)) {
-      if (Radiation::do_deferred_sync == 1) {
         // computeTemp is not needed before or after this call because
         // setup for deferred sync does not touch state, only flux registers.
         radiation->deferred_sync_setup(level);
 
 	if (do_reflux) {
-	  radiation->reflux(level);
-
-          // Since radiation->reflux does not touch the fluid state,
-          // we do need to recompute Temp here.
+	    radiation->reflux(level);
+	    // Since radiation->reflux does not touch the fluid state,
+	    // we do need to recompute Temp here.
 	}
-      }
-      else {
-
-        radiation->sync_solve(level);
-
-	if (do_reflux) {
-	  radiation->reflux(level);
-	}
-
-        // Rad sync touches these levels, so recompute temp on all of them.
-        for (int lev = level; lev <= finest_level; lev++) {
-          MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-          computeTemp(S_new);
-        }
-
-      }
     }
 #endif
 
@@ -3015,17 +3009,17 @@ Castro::get_numpts ()
      int numpts_1d;
 
      Box bx(geom.Domain());
-     int nx = bx.size()[0];
+     long nx = bx.size()[0];
 
 #if (BL_SPACEDIM == 1)
      numpts_1d = nx;
 #elif (BL_SPACEDIM == 2)
-     int ny = bx.size()[1];
+     long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;  
 #elif (BL_SPACEDIM == 3)
-     int ny = bx.size()[1];
-     int nz = bx.size()[2];
+     long ny = bx.size()[1];
+     long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif 

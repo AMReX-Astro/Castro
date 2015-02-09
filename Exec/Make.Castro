@@ -84,13 +84,13 @@ ifeq ($(USE_ROTATION), TRUE)
 endif
 
 ifeq ($(USE_HYPRE), TRUE)
-#  ifeq ($(WHICHLINUX), DELLA)
-#    INCLUDE_LOCATIONS += /usr/local/intel/include/hypre-openmpi
-#    LIBRARY_LOCATIONS += /usr/local/intel/lib64/openmpi-intel-ib
-#  else
+  ifeq ($(USE_OMP), TRUE)
+    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
+    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
+  else
     INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
     LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-#  endif
+  endif
   LIBRARIES += -lHYPRE
 endif
 

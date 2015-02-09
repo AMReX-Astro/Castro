@@ -1,4 +1,5 @@
 #include <cmath>
+#include <limits>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -2351,32 +2352,45 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
+
 #ifdef _OPENMP
+    int nthreads = omp_get_max_threads();
+    PArray< Array<Real> > priv_radial_mass(nthreads, PArrayManage);
+    PArray< Array<Real> > priv_radial_vol (nthreads, PArrayManage);
+    for (int i=0; i<nthreads; i++) {
+	priv_radial_mass.set(i, new Array<Real>(n1d,0.0));
+	priv_radial_vol.set (i, new Array<Real>(n1d,0.0));
+    }
 #pragma omp parallel
 #endif
     {
-	Array<Real> priv_radial_mass(n1d,0.0);
-	Array<Real> priv_radial_vol (n1d,0.0);
-
+#ifdef _OPENMP
+	int tid = omp_get_thread_num();
+#endif
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx =mfi.tilebox();
 	    BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
 		(bx.loVect(), bx.hiVect(),dx,&dr,
 		 BL_TO_FORTRAN(Rhs[mfi]), 
-		 priv_radial_mass.dataPtr(), priv_radial_vol.dataPtr(),
+#ifdef _OPENMP
+		 priv_radial_mass[tid].dataPtr(), priv_radial_vol[tid].dataPtr(),
+#else
+		 radial_mass.dataPtr(), radial_vol.dataPtr(),
+#endif
 		 geom.ProbLo(),&n1d,&drdxfac,&level);
 	}
 
 #ifdef _OPENMP
-#pragma omp critical (ca_compute_radia_mass)
-#endif
-	{
-	    for (int i=0; i<n1d; i++) {
-		radial_mass[i] += priv_radial_mass[i];
-		radial_vol [i] += priv_radial_vol [i];		
+#pragma omp barrier
+#pragma omp for
+	for (int i=0; i<n1d; i++) {
+	    for (int it=0; it<nthreads; it++) {
+		radial_mass[i] += priv_radial_mass[it][i];
+		radial_vol [i] += priv_radial_vol [it][i];		
 	    }
 	}
+#endif
     }
    
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
@@ -2462,17 +2476,24 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     const Box& domain = parent->Geom(level).Domain();
 
 #ifdef _OPENMP
+    int nthreads = omp_get_max_threads();
+    PArray<FArrayBox> priv_q0(nthreads);
+    PArray<FArrayBox> priv_qC(nthreads);
+    PArray<FArrayBox> priv_qS(nthreads);
+    for (int i=0; i<nthreads; i++) {
+	priv_q0.set(i, new FArrayBox(boxq0));
+	priv_qC.set(i, new FArrayBox(boxqC));
+	priv_qS.set(i, new FArrayBox(boxqS));
+    }
 #pragma omp parallel
 #endif
     {
-	FArrayBox priv_q0(boxq0);
-	FArrayBox priv_qC(boxqC);
-	FArrayBox priv_qS(boxqS);
-
-	priv_q0.setVal(0.0);
-	priv_qC.setVal(0.0);
-	priv_qS.setVal(0.0);
-
+#ifdef _OPENMP
+	int tid = omp_get_thread_num();
+	priv_q0[tid].setVal(0.0);
+	priv_qC[tid].setVal(0.0);
+	priv_qS[tid].setVal(0.0);
+#endif
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
@@ -2480,17 +2501,48 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 		(bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
 		 &symmetry_type,lo_bc,hi_bc,
 		 dx,BL_TO_FORTRAN(Rhs[mfi]),geom.ProbLo(),geom.ProbHi(),
-		 &lnum,priv_q0.dataPtr(),priv_qC.dataPtr(),priv_qS.dataPtr());
+		 &lnum,
+#ifdef _OPENMP
+		 priv_q0[tid].dataPtr(),priv_qC[tid].dataPtr(),priv_qS[tid].dataPtr()
+#else
+		 q0.dataPtr(),qC.dataPtr(),qS.dataPtr()
+#endif
+		    );
 	}
 
 #ifdef _OPENMP
-#pragma omp critical(ca_compute_multipole_moments)
-#endif
+	int np0 = boxq0.numPts();
+	int npC = boxqC.numPts();
+	int npS = boxqS.numPts();
+	Real* p0 = q0.dataPtr();
+	Real* pC = qC.dataPtr();
+	Real* pS = qS.dataPtr();
+#pragma omp barrier
+#pragma omp for nowait
+	for (int i=0; i<np0; ++i)
 	{
-	    q0.plus(priv_q0);
-	    qC.plus(priv_qC);
-	    qS.plus(priv_qS);
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pp = priv_q0[it].dataPtr();
+		p0[i] += pp[i];
+	    }
 	}
+#pragma omp for nowait
+	for (int i=0; i<npC; ++i)
+	{
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pp = priv_qC[it].dataPtr();
+		pC[i] += pp[i];
+	    }
+	}
+#pragma omp for nowait
+	for (int i=0; i<npS; ++i)
+	{
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pp = priv_qS[it].dataPtr();
+		pS[i] += pp[i];
+	    }
+	}
+#endif
     }
 
     // Now, do a global reduce over all processes.
@@ -2565,9 +2617,9 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     Box boxXZ(smallEndXZ, bigEndXZ);
     Box boxYZ(smallEndYZ, bigEndYZ);
 
-    const int nPtsXY = boxXY.numPts();
-    const int nPtsXZ = boxXZ.numPts();
-    const int nPtsYZ = boxYZ.numPts(); 
+    const long nPtsXY = boxXY.numPts();
+    const long nPtsXZ = boxXZ.numPts();
+    const long nPtsYZ = boxYZ.numPts(); 
 
     FArrayBox bcXYLo(boxXY);
     FArrayBox bcXYHi(boxXY);
@@ -2599,23 +2651,33 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     int symmetry_type = Symmetry;
     
 #ifdef _OPENMP
+    int nthreads = omp_get_max_threads();
+    PArray<FArrayBox> priv_bcXYLo(nthreads);
+    PArray<FArrayBox> priv_bcXYHi(nthreads);
+    PArray<FArrayBox> priv_bcXZLo(nthreads);
+    PArray<FArrayBox> priv_bcXZHi(nthreads);
+    PArray<FArrayBox> priv_bcYZLo(nthreads);
+    PArray<FArrayBox> priv_bcYZHi(nthreads);
+    for (int i=0; i<nthreads; i++) {
+	priv_bcXYLo.set(i, new FArrayBox(boxXY));
+	priv_bcXYHi.set(i, new FArrayBox(boxXY));
+	priv_bcXZLo.set(i, new FArrayBox(boxXZ));
+	priv_bcXZHi.set(i, new FArrayBox(boxXZ));
+	priv_bcYZLo.set(i, new FArrayBox(boxYZ));
+	priv_bcYZHi.set(i, new FArrayBox(boxYZ));
+    }
 #pragma omp parallel
 #endif
     {
-	FArrayBox priv_bcXYLo(boxXY);
-	FArrayBox priv_bcXYHi(boxXY);
-	FArrayBox priv_bcXZLo(boxXZ);
-	FArrayBox priv_bcXZHi(boxXZ);
-	FArrayBox priv_bcYZLo(boxYZ);
-	FArrayBox priv_bcYZHi(boxYZ);
-	
-	priv_bcXYLo.setVal(0.0);
-	priv_bcXYHi.setVal(0.0);
-	priv_bcXZLo.setVal(0.0);
-	priv_bcXZHi.setVal(0.0);
-	priv_bcYZLo.setVal(0.0);
-	priv_bcYZHi.setVal(0.0);
-
+#ifdef _OPENMP
+	int tid = omp_get_thread_num();
+	priv_bcXYLo[tid].setVal(0.0);
+	priv_bcXYHi[tid].setVal(0.0);
+	priv_bcXZLo[tid].setVal(0.0);
+	priv_bcXZHi[tid].setVal(0.0);
+	priv_bcYZLo[tid].setVal(0.0);
+	priv_bcYZHi[tid].setVal(0.0);
+#endif
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box bx = mfi.tilebox();
@@ -2624,23 +2686,60 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 		 &symmetry_type,lo_bc,hi_bc,
 		 dx,BL_TO_FORTRAN(Rhs[mfi]),
 		 geom.ProbLo(),geom.ProbHi(),
-		 priv_bcXYLo.dataPtr(), priv_bcXYHi.dataPtr(),
-		 priv_bcXZLo.dataPtr(), priv_bcXZHi.dataPtr(),
-		 priv_bcYZLo.dataPtr(), priv_bcYZHi.dataPtr());
+#ifdef _OPENMP
+		 priv_bcXYLo[tid].dataPtr(), priv_bcXYHi[tid].dataPtr(),
+		 priv_bcXZLo[tid].dataPtr(), priv_bcXZHi[tid].dataPtr(),
+		 priv_bcYZLo[tid].dataPtr(), priv_bcYZHi[tid].dataPtr()
+#else
+		 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+		 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+		 bcYZLo.dataPtr(), bcYZHi.dataPtr()
+#endif
+		    );
 	}
 
 #ifdef _OPENMP
-#pragma omp critical(ca_compute_direct_sum_bc)
-#endif
-	{
-	    bcXYLo.plus(priv_bcXYLo);
-	    bcXYHi.plus(priv_bcXYHi);
-	    bcXZLo.plus(priv_bcXZLo);
-	    bcXZHi.plus(priv_bcXZHi);
-	    bcYZLo.plus(priv_bcYZLo);
-	    bcYZHi.plus(priv_bcYZHi);
+	Real* pXYLo = bcXYLo.dataPtr();
+	Real* pXYHi = bcXYHi.dataPtr();
+	Real* pXZLo = bcXZLo.dataPtr();
+	Real* pXZHi = bcXZHi.dataPtr();
+	Real* pYZLo = bcYZLo.dataPtr();
+	Real* pYZHi = bcYZHi.dataPtr();
+#pragma omp barrier
+#pragma omp for nowait
+        for (int i=0; i<nPtsXY; i++) {
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pl = priv_bcXYLo[it].dataPtr();
+		const Real* ph = priv_bcXYHi[it].dataPtr();
+		pXYLo[i] += pl[i];
+		pXYHi[i] += ph[i];
+	    }
 	}
+#pragma omp for nowait
+        for (int i=0; i<nPtsXZ; i++) {
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pl = priv_bcXZLo[it].dataPtr();
+		const Real* ph = priv_bcXZHi[it].dataPtr();
+		pXZLo[i] += pl[i];
+		pXZHi[i] += ph[i];
+	    }
+	}
+#pragma omp for nowait
+        for (int i=0; i<nPtsYZ; i++) {
+	    for (int it=0; it<nthreads; it++) {
+		const Real* pl = priv_bcYZLo[it].dataPtr();
+		const Real* ph = priv_bcYZHi[it].dataPtr();
+		pYZLo[i] += pl[i];
+		pYZHi[i] += ph[i];
+	    }
+	}
+#endif
     }
+
+    // because the number of elments in mpi_reduce is int
+    BL_ASSERT(nPtsXY <= std::numeric_limits<int>::max());
+    BL_ASSERT(nPtsXZ <= std::numeric_limits<int>::max());
+    BL_ASSERT(nPtsYZ <= std::numeric_limits<int>::max());
 
     ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
     ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), nPtsXY);
@@ -2967,15 +3066,25 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         Real dr = dx[0] / double(drdxfac);
 
 #ifdef _OPENMP
+	int nthreads = omp_get_max_threads();
+#ifdef GR_GRAV
+	PArray< Array<Real> > priv_radial_pres(nthreads, PArrayManage);
+#endif
+	PArray< Array<Real> > priv_radial_mass(nthreads, PArrayManage);
+	PArray< Array<Real> > priv_radial_vol (nthreads, PArrayManage);
+	for (int i=0; i<nthreads; i++) {
+#ifdef GR_GRAV
+	    priv_radial_pres.set(i, new Array<Real>(n1d,0.0));
+#endif
+	    priv_radial_mass.set(i, new Array<Real>(n1d,0.0));
+	    priv_radial_vol.set (i, new Array<Real>(n1d,0.0));
+	}
 #pragma omp parallel
 #endif
 	{
-#ifdef GR_GRAV
-	    Array<Real> priv_radial_pres(n1d,0.0);
-#endif
-	    Array<Real> priv_radial_mass(n1d,0.0);
-	    Array<Real> priv_radial_vol (n1d,0.0);
-	
+#ifdef _OPENMP
+	    int tid = omp_get_thread_num();
+#endif	
 	    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
@@ -2984,30 +3093,41 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
 		    (bx.loVect(), bx.hiVect(), dx, &dr,
                      BL_TO_FORTRAN(fab), 
-                     priv_radial_mass.dataPtr(), 
-                     priv_radial_vol.dataPtr(), 
+#ifdef _OPENMP
+                     priv_radial_mass[tid].dataPtr(), 
+                     priv_radial_vol[tid].dataPtr(), 
+#else
+                     radial_mass[lev].dataPtr(), 
+                     radial_vol[lev].dataPtr(), 
+#endif
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 		
 #ifdef GR_GRAV
 		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
 		    (bx.loVect(), bx.hiVect(),dx,&dr,
                      BL_TO_FORTRAN(fab),
+#ifdef _OPENMP
                      priv_radial_pres.dataPtr(),
+#else
+                     radial_pres[lev].dataPtr(),
+#endif
                      geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
 	    }
+
 #ifdef _OPENMP
-#pragma omp critical (ca_compute_radia_mass_2)
-#endif
-	    {
-	        for (int i=0; i<n1d; i++) {
+#pragma omp barrier
+#pragma omp for
+	    for (int i=0; i<n1d; i++) {
+		for (int it=0; it<nthreads; it++) {
 #ifdef GR_GRAV
-	            radial_pres[lev][i] += priv_radial_pres[i];
+	            radial_pres[lev][i] += priv_radial_pres[it][i];
 #endif
-	            radial_mass[lev][i] += priv_radial_mass[i];
-		    radial_vol [lev][i] += priv_radial_vol [i];		
+	            radial_mass[lev][i] += priv_radial_mass[it][i];
+		    radial_vol [lev][i] += priv_radial_vol [it][i];		
 		}
 	    }
+#endif
 	}
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);

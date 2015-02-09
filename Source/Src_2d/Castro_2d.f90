@@ -87,13 +87,23 @@
 
       double precision dx,dy
 
-      allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,QVAR))
-      allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2))
-      allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2))
+      integer q_l1, q_l2, q_h1, q_h2
 
-      allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR))
+      ngq = NHYP
+      ngf = 1
+
+      q_l1 = lo(1)-NHYP
+      q_l2 = lo(2)-NHYP
+      q_h1 = hi(1)+NHYP
+      q_h2 = hi(2)+NHYP
+
+      allocate(     q(q_l1:q_h1,q_l2:q_h2,QVAR))
+      allocate(  gamc(q_l1:q_h1,q_l2:q_h2))
+      allocate( flatn(q_l1:q_h1,q_l2:q_h2))
+      allocate(     c(q_l1:q_h1,q_l2:q_h2))
+      allocate(  csml(q_l1:q_h1,q_l2:q_h2))
+
+      allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,QVAR))
 
       allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
       allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
@@ -103,15 +113,13 @@
       dx = delta(1)
       dy = delta(2)
 
-      ngq = NHYP
-      ngf = 1
-
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
 !       and set to correspond to coordinates of (lo:hi)
       call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+                   q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+                   src,src_l1,src_l2,src_h1,src_h2, &
+                   srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    courno,dx,dy,dt,ngq,ngf)
 
       ! Fill in the rotation field for use in the edge state prediction
@@ -125,8 +133,8 @@
       endif
 
 !     Compute hyperbolic fluxes using unsplit Godunov
-      call umeth2d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   srcQ, src_l1, src_l2, src_h1, src_h2,  &
+      call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+                   srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                    rot, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
@@ -144,7 +152,7 @@
 
       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
       ! this is used for the artifical viscosity
-      call divu(lo,hi,q,uin_l1,uin_l2,uin_h1,uin_h2, &
+      call divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2, &
                 delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
 !     Conservative update
@@ -245,13 +253,8 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
-! ::  ngc        => number of ghost cells in coarse array
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  ngf        => number of ghost cells in fine array
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -280,81 +283,37 @@
       double precision fv(fv_l1:fv_h1,fv_l2:fv_h2)
 
       integer i, j, n, ic, jc, ioff, joff
-      integer lenx, leny, mxlen
-      integer lratx, lraty
 
-      lratx = lrat(1)
-      lraty = lrat(2)
-      lenx = hi(1)-lo(1)+1
-      leny = hi(2)-lo(2)+1
-      mxlen = max(lenx,leny)
-
-      if (lenx .eq. mxlen) then
-         do n = 1, nvar
+      do n = 1, nvar
  
 !           Set coarse grid to zero on overlap
-            do jc = lo(2), hi(2)
-               do ic = lo(1), hi(1)
-                  crse(ic,jc,n) = ZERO
-               enddo
+         do jc = lo(2), hi(2)
+            do ic = lo(1), hi(1)
+               crse(ic,jc,n) = ZERO
             enddo
+         enddo
 
 !           Sum fine data
-            do joff = 0, lraty-1
-               do jc = lo(2), hi(2)
-                  j = jc*lraty + joff
-                  do ioff = 0, lratx-1
-                     do ic = lo(1), hi(1)
-                        i = ic*lratx + ioff
-                        crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
-                     enddo
+         do joff = 0, lrat(2)-1
+            do jc = lo(2), hi(2)
+               j = jc*lrat(2) + joff
+               do ioff = 0, lrat(1)-1
+                  do ic = lo(1), hi(1)
+                     i = ic*lrat(1) + ioff
+                     crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
                   enddo
                enddo
             enddo
-
-!           Divide out by volume weight
-            do jc = lo(2), hi(2)
-               do ic = lo(1), hi(1)
-                  crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
-               enddo
-            enddo
-            
          enddo
-
-      else
-
-         do n = 1, nvar
-
-!           Set coarse grid to zero on overlap
-            do ic = lo(1), hi(1)
-               do jc = lo(2), hi(2)
-                  crse(ic,jc,n) = ZERO
-               enddo
-            enddo
- 
-!           Sum fine data
-            do ioff = 0, lratx-1
-               do ic = lo(1), hi(1)
-                  i = ic*lratx + ioff
-                  do joff = 0, lraty-1
-                     do jc = lo(2), hi(2)
-                        j = jc*lraty + joff
-                        crse(ic,jc,n) = crse(ic,jc,n) + fv(i,j) * fine(i,j,n)
-                     enddo
-                  enddo
-               enddo
-            enddo
-             
+         
 !           Divide out by volume weight
+         do jc = lo(2), hi(2)
             do ic = lo(1), hi(1)
-               do jc = lo(2), hi(2)
-                  crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
-               enddo
+               crse(ic,jc,n) = crse(ic,jc,n) / cv(ic,jc)
             enddo
-            
          enddo
-
-      end if
+         
+      enddo
 
       end subroutine ca_avgdown
 

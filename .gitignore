@@ -7,7 +7,8 @@
 *.blg
 *.lof
 *.lot
-
+UsersGuide/*.out
+UsersGuide/*.ps
 
 # emacs temporaries
 *~
@@ -16,10 +17,16 @@
 
 # Castro executables
 Castro*.ex
+*.exe
 
 # plt and chk files
 plt*
 chk*
+*plt?????
+*chk?????
+*plt?????.old*
+*chk?????.old*
+
 
 # These files are created at build time
 extern.f90
@@ -29,3 +36,5 @@ network.f90
 o/
 d/
 f/
+t/
+buildInfo.cpp

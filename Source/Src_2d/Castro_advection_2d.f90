@@ -79,7 +79,7 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
+    double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2,2)
     double precision   rot( gv_l1: gv_h1, gv_l2: gv_h2,2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
@@ -271,7 +271,8 @@ contains
   subroutine ctoprim(lo,hi, &
                      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                      q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-                     src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+                     src,src_l1,src_l2,src_h1,src_h2, &
+                     srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                      courno,dx,dy,dt,ngp,ngf)
     
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
@@ -299,6 +300,7 @@ contains
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer q_l1,q_l2,q_h1,q_h2
     integer src_l1,src_l2,src_h1,src_h2
+    integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
     
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
@@ -307,7 +309,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2)
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
-    double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt, courno
     
     double precision, allocatable :: dpdrho(:,:)
@@ -325,9 +327,9 @@ contains
 
     type (eos_t) :: eos_state
     
-    allocate(     dpdrho(q_l1:q_h1,q_l2:q_h2))
-    allocate(     dpde(q_l1:q_h1,q_l2:q_h2))
-    allocate(  dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
+    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2))
+    allocate(   dpde(q_l1:q_h1,q_l2:q_h2))
+    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
     
     do i=1,2
        loq(i) = lo(i)-ngp

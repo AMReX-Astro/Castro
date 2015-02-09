@@ -6,10 +6,7 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -33,12 +30,8 @@
       double precision fine(f_l1:f_h1,f_l2:f_h2)
 
       integer i, j, ic, jc, ioff, joff
-      integer lratx, lraty
       double precision volfrac
 
-      lratx = lrat(1)
-      lraty = lrat(2)
-      volfrac = ONE/float(lrat(1)*lrat(2))
 !
 !     ::::: set coarse grid to zero on overlap
 !
@@ -50,18 +43,19 @@
 !
 !         ::::: sum fine data
 !
-      do joff = 0, lraty-1
+      do joff = 0, lrat(2)-1
          do jc = lo(2), hi(2)
-            j = jc*lraty + joff
-            do ioff = 0, lratx-1
+            j = jc*lrat(2) + joff
+            do ioff = 0, lrat(1)-1
                do ic = lo(1), hi(1)
-                  i = ic*lratx + ioff
+                  i = ic*lrat(1) + ioff
                   crse(ic,jc) = crse(ic,jc) + fine(i,j)
                enddo
             enddo
          enddo
       enddo
 
+      volfrac = ONE/dble(lrat(1)*lrat(2))
       do ic = lo(1), hi(1)
          do jc = lo(2), hi(2)
             crse(ic,jc) = volfrac*crse(ic,jc)

@@ -3,7 +3,7 @@
 #include <BLFort.H>
 
 BL_FORT_PROC_DECL(FILCC,filcc)
-                (const Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
+                (Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
                  const int * domlo, const int * domhi,
                  const Real * dx_crse, const Real * xlo,
                  const int * bc);
@@ -256,27 +256,27 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(ugdnvx),
+     BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
-     const BL_FORT_FAB_ARG(ugdnvy),
+     BL_FORT_FAB_ARG(ugdnvy),
 #endif
 #if (BL_SPACEDIM == 3)
-     const BL_FORT_FAB_ARG(ugdnvz),
+     BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,
-     D_DECL(const BL_FORT_FAB_ARG(xflux),
-            const BL_FORT_FAB_ARG(yflux),
-            const BL_FORT_FAB_ARG(zflux)),
-     D_DECL(const BL_FORT_FAB_ARG(xarea),
-            const BL_FORT_FAB_ARG(yarea),
-            const BL_FORT_FAB_ARG(zarea)),
+     D_DECL(BL_FORT_FAB_ARG(xflux),
+            BL_FORT_FAB_ARG(yflux),
+            BL_FORT_FAB_ARG(zflux)),
+     D_DECL(BL_FORT_FAB_ARG(xarea),
+            BL_FORT_FAB_ARG(yarea),
+            BL_FORT_FAB_ARG(zarea)),
 #if (BL_SPACEDIM < 3)
      const BL_FORT_FAB_ARG(dloga),
 #endif
      const BL_FORT_FAB_ARG(volume),
-     const Real* cflLoc,
+     Real* cflLoc,
      const int&  verbose,
      const Real& mass_added,
      const Real& eint_added,
@@ -310,7 +310,6 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const Real& E_added_flux,
      const Real& E_added_grav);
 
-
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
     (const int* is_finest_level,
@@ -322,22 +321,22 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const BL_FORT_FAB_ARG(Er),
      const BL_FORT_FAB_ARG(lam),
      BL_FORT_FAB_ARG(Erout),
-     const BL_FORT_FAB_ARG(ugdnvx),
+     BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
-     const BL_FORT_FAB_ARG(ugdnvy),
+     BL_FORT_FAB_ARG(ugdnvy),
 #endif
 #if (BL_SPACEDIM == 3)
-     const BL_FORT_FAB_ARG(ugdnvz),
+     BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,
-     D_DECL(const BL_FORT_FAB_ARG(xflux),
-            const BL_FORT_FAB_ARG(yflux),
-            const BL_FORT_FAB_ARG(zflux)),
-     D_DECL(const BL_FORT_FAB_ARG(xradflux),
-            const BL_FORT_FAB_ARG(yradflux),
-            const BL_FORT_FAB_ARG(zradflux)),
+     D_DECL(BL_FORT_FAB_ARG(xflux),
+            BL_FORT_FAB_ARG(yflux),
+            BL_FORT_FAB_ARG(zflux)),
+     D_DECL(BL_FORT_FAB_ARG(xradflux),
+            BL_FORT_FAB_ARG(yradflux),
+            BL_FORT_FAB_ARG(zradflux)),
      D_DECL(const BL_FORT_FAB_ARG(xarea),
             const BL_FORT_FAB_ARG(yarea),
             const BL_FORT_FAB_ARG(zarea)),
@@ -345,11 +344,9 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const BL_FORT_FAB_ARG(dloga),
 #endif
      const BL_FORT_FAB_ARG(volume),
-     const Real* cflLoc,
+     Real* cflLoc,
      const int& verbose, 
-     int* nstep_fsp, 
-     const int* fspace_advection_type,
-     const int* comoving);
+     int* nstep_fsp); 
 #endif
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)

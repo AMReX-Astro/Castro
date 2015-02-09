@@ -66,15 +66,22 @@
       double precision :: dx,E_added_flux,E_added_grav
       double precision :: xmom_added_flux, xmom_added_grav
       double precision :: mass_added, eint_added, eden_added
-      integer i,ngf
+      integer i,ngf,ngq
+      integer q_l1, q_h1
 
-      allocate(     q(uin_l1:uin_h1,QVAR))
-      allocate(     c(uin_l1:uin_h1))
-      allocate(  gamc(uin_l1:uin_h1))
-      allocate( flatn(uin_l1:uin_h1))
-      allocate(  csml(uin_l1:uin_h1))
+      ngq = NHYP
+      ngf = 1
 
-      allocate(  srcQ(src_l1:src_h1,QVAR))
+      q_l1 = lo(1)-NHYP
+      q_h1 = hi(1)+NHYP
+
+      allocate(     q(q_l1:q_h1,QVAR))
+      allocate(     c(q_l1:q_h1))
+      allocate(  gamc(q_l1:q_h1))
+      allocate( flatn(q_l1:q_h1))
+      allocate(  csml(q_l1:q_h1))
+
+      allocate(  srcQ(lo(1)-1:hi(1)+1,QVAR))
 
       allocate(   div(lo(1):hi(1)+1))
       allocate( pdivu(lo(1):hi(1)  ))
@@ -82,20 +89,19 @@
 
       dx = delta(1)
 
-      ngf = 1
-
 !     Translate to primitive variables, compute sound speeds
 !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
 !       and set to correspond to coordinates of (lo:hi)
    
       call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                   src,srcQ,src_l1,src_h1, &
-                   courno,dx,dt,NHYP,ngf)
+                   q,c,gamc,csml,flatn,q_l1,q_h1, &
+                   src,src_l1,src_h1, &
+                   srcQ,lo(1)-1,hi(1)+1, &
+                   courno,dx,dt,ngq,ngf)
 
       call umeth1d(lo,hi,domlo,domhi, &
-                   q,c,gamc,csml,flatn,uin_l1,uin_h1, &
-                   srcQ, src_l1, src_h1, &
+                   q,c,gamc,csml,flatn,q_l1,q_h1, &
+                   srcQ, lo(1)-1,hi(1)+1, &
                    grav, gv_l1, gv_h1, &
                    lo(1),hi(1),dx,dt, &
                    flux,flux_l1,flux_h1, &
@@ -192,13 +198,8 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
-! ::  ngc        => number of ghost cells in coarse array
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  ngf        => number of ghost cells in fine array
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -227,9 +228,6 @@
       double precision fv(fv_l1:fv_h1)
 
       integer i, n, ic, ioff
-      integer lratx
- 
-      lratx = lrat(1)
  
       do n = 1, nvar
  
@@ -237,12 +235,11 @@
          do ic = lo(1), hi(1)
             crse(ic,n) = ZERO
          enddo
- 
- 
+  
 !        Sum fine data
-         do ioff = 0, lratx-1
+         do ioff = 0, lrat(1)-1
             do ic = lo(1), hi(1)
-               i = ic*lratx + ioff
+               i = ic*lrat(1) + ioff
                crse(ic,n) = crse(ic,n) + fv(i) * fine(i,n)
             enddo
          enddo

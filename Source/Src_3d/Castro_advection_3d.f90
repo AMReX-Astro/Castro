@@ -635,7 +635,8 @@ contains
 
   subroutine ctoprim(lo,hi,          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                      q,c,gamc,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
-                     src,srcQ,           src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                     src,                src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                     srcQ,               srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
                      courno,dx,dy,dz,dt,ngp,ngf)
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
@@ -665,6 +666,7 @@ contains
     integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
     integer q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+    integer srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
     
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
@@ -673,7 +675,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR)
+    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
     double precision :: dx, dy, dz, dt, courno
 
     double precision, allocatable:: dpdrho(:,:,:)
