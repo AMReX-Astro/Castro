@@ -33,7 +33,7 @@ contains
   subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                     rot, &
+                     rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
@@ -61,6 +61,7 @@ contains
     integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
+    integer rt_l1, rt_l2, rt_h1, rt_h2
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
     integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
@@ -81,7 +82,7 @@ contains
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2,2)
-    double precision   rot( gv_l1: gv_h1, gv_l2: gv_h2,2)
+    double precision   rot( rt_l1: rt_h1, rt_l2: rt_h2,2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
     double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
@@ -162,7 +163,7 @@ contains
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                      rot, &
+                      rot,rt_l1,rt_l2,rt_h1,rt_h2, &
                       gamc,qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
@@ -200,7 +201,7 @@ contains
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                rot, &
+                rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
     
@@ -227,7 +228,7 @@ contains
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                rot, &
+                rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                 vol, vol_l1, vol_l2, vol_h1, vol_h2, &

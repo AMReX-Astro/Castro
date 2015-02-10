@@ -68,8 +68,6 @@
       double precision xmom_added_rot,  ymom_added_rot
       double precision mass_added,eint_added,eden_added
 
-      double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,2)
-
 !     Automatic arrays for workspace
       double precision, allocatable:: q(:,:,:)
       double precision, allocatable:: gamc(:,:)
@@ -81,6 +79,7 @@
       double precision, allocatable:: pgdy(:,:)
       double precision, allocatable:: srcQ(:,:,:)
       double precision, allocatable:: pdivu(:,:)
+      double precision, allocatable:: rot(:,:,:)
 
       integer ngq,ngf
 !     integer i_c,j_c
@@ -110,6 +109,8 @@
       allocate(  pgdx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1))
       allocate(  pgdy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1))
 
+      allocate(   rot(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2))
+
       dx = delta(1)
       dy = delta(2)
 
@@ -126,17 +127,19 @@
 
       if (do_rotation .eq. 1) then
 
-         call fill_rotation_field(rot,gv_l1,gv_l2,gv_h1,gv_h2, &
-                                  q,uin_l1,uin_l2,uin_h1,uin_h2, &
+         call fill_rotation_field(rot,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1,&
+                                  q,q_l1,q_l2,q_h1,q_h2, &
                                   lo, hi, delta)
 
+      else
+         rot = 0.d0
       endif
 
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                    srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                   rot, &
+                   rot, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -205,7 +208,7 @@
                        time,dt, &
                        dx,dy,domlo,domhi)
 
-      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
+      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu,rot)
 
       end subroutine ca_umdrv
 

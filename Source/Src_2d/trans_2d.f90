@@ -14,7 +14,7 @@ contains
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                    rot, &
+                    rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                     hdt, cdtdx,  &
                     area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -42,6 +42,7 @@ contains
     integer gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
+    integer rt_l1, rt_l2, rt_h1, rt_h2
     integer area1_l1, area1_l2, area1_h1, area1_h2
     integer vol_l1, vol_l2, vol_h1, vol_h2
     integer ilo, ihi, jlo, jhi
@@ -57,7 +58,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,2)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision hdt, cdtdx
@@ -379,7 +380,7 @@ contains
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                    rot, &
+                    rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
     use network, only : nspec, naux
@@ -403,6 +404,7 @@ contains
     integer gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
+    integer rt_l1, rt_l2, rt_h1, rt_h2
     integer ilo, ihi, jlo, jhi
 
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -416,7 +418,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,2)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
     double precision hdt, cdtdy
     
     integer i, j
