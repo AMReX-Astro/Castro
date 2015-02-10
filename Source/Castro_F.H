@@ -278,37 +278,37 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const BL_FORT_FAB_ARG(volume),
      Real* cflLoc,
      const int&  verbose,
-     const Real& mass_added,
-     const Real& eint_added,
-     const Real& eden,
-     const Real& xmom_added_flux,
+     Real& mass_added,
+     Real& eint_added,
+     Real& eden_added,
+     Real& xmom_added_flux,
 #if (BL_SPACEDIM >= 2)
-     const Real& ymom_added_flux,
+     Real& ymom_added_flux,
 #endif
 #if (BL_SPACEDIM == 3)
-     const Real& zmom_added_flux,
+     Real& zmom_added_flux,
 #endif
-     const Real& xmom_added_grav,
+     Real& xmom_added_grav,
 #if (BL_SPACEDIM >= 2)
-     const Real& ymom_added_grav,
+     Real& ymom_added_grav,
 #endif
 #if (BL_SPACEDIM == 3)
-     const Real& zmom_added_grav,
+     Real& zmom_added_grav,
 #endif
 #if (BL_SPACEDIM > 1)
-     const Real& xmom_added_rot,
+     Real& xmom_added_rot,
 #endif
 #if (BL_SPACEDIM >= 2)
-     const Real& ymom_added_rot,
+     Real& ymom_added_rot,
 #endif
 #if (BL_SPACEDIM == 3)
-     const Real& zmom_added_rot,
+     Real& zmom_added_rot,
 #endif
 #if (BL_SPACEDIM > 1)
-     const Real& E_added_rot,
+     Real& E_added_rot,
 #endif
-     const Real& E_added_flux,
-     const Real& E_added_grav);
+     Real& E_added_flux,
+     Real& E_added_grav);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
