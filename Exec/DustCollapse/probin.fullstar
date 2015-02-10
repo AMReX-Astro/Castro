@@ -5,12 +5,14 @@
   rho_ambient = 1.0d-5
   smooth_delta = 4.d6
 
-  dengrad = 1.d7
-  max_dengrad_lev = 3
-
   center_x = 7.5d8
   center_y = 7.5d8
   center_z = 7.5d8
+/
+
+&tagging
+  dengrad = 1.d7
+  max_dengrad_lev = 3
 /
 
 &extern
