@@ -446,9 +446,10 @@ Castro::advance_hydro (Real time,
 
 #ifdef _OPENMP
 	    bool tiling = true;
-#pragma omp parallel
 #ifdef POINTMASS
-#pragma omp reduction(+:mass_change_at_center)
+#pragma omp parallel reduction(+:mass_change_at_center)
+#else
+#pragma omp parallel
 #endif
 #else
 	    bool tiling = false;
@@ -595,9 +596,19 @@ Castro::advance_hydro (Real time,
 	    
 #ifdef _OPENMP
 	    bool tiling = true;
-#pragma omp parallel reduction(+:E_added_grav,E_added_flux,mass_added,eint_added,eden_added)
 #ifdef POINTMASS
-#pragma omp reduction(+:mass_change_at_center)
+#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
+    reduction(+:mass_added,eint_added,eden_added)			\
+    reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux)	\
+    reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav)        \
+    reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )        \
+    reduction(+:mass_change_at_center)
+#else
+#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
+    reduction(+:mass_added,eint_added,eden_added)			\
+    reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux)	\
+    reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav)        \
+    reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )
 #endif
 #else
 	    bool tiling = false;
