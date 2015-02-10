@@ -13,7 +13,7 @@ contains
        dx,dy,dz,domlo,domhi)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
-    use probdata_module, only : center, r_old_s
+    use probdata_module, only : prob_center, r_old_s
 
     implicit none
     integer          :: lo(3),hi(3),domlo(3),domhi(3)
@@ -69,13 +69,13 @@ contains
     r_tp = r + 5.0d7
 
     do k = lo(3),hi(3)
-       z = (dble(k)+0.5d0)*dz - center(3)
+       z = (dble(k)+0.5d0)*dz - prob_center(3)
 
        do j = lo(2),hi(2)
-          y = (dble(j)+0.5d0)*dy - center(2)
+          y = (dble(j)+0.5d0)*dy - prob_center(2)
 
           do i = lo(1),hi(1)
-             x = (dble(i)+0.5d0)*dx - center(1)
+             x = (dble(i)+0.5d0)*dx - prob_center(1)
 
              ! compute radius
              radius = sqrt(x**2 + y**2 + z**2)
