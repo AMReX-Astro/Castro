@@ -672,7 +672,7 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 			    const MultiFab& etaT, const MultiFab& etaY, 
 			    const MultiFab& thetaT, const MultiFab& thetaY, 
 			    const MultiFab& mugT, const MultiFab& mugY, 
-			    const BoxArray& grids, Real delta_t, Real ptc_tau)
+			    Real delta_t, Real ptc_tau)
 {
 #ifdef _OPENMP
 #pragma omp parallel
@@ -714,54 +714,56 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 {
   BL_PROFILE("Radiation::state_energy_update (MGFLD)");
 
-  BoxArray baf;
+  MultiFab msk(grids,1,0);
 
-  if (level < parent->finestLevel()) {
-    baf = parent->boxArray(level+1);
-    baf.coarsen(parent->refRatio(level));
-  }
+  {
+      BoxArray baf;
 
-  for (MFIter mfi(state); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-
-    const Box& reg  = state.box(i); // interior region
-
-    const Box& sbox = state[mfi].box();
-    FArrayBox msk(sbox,1);
-    {
-      msk.setVal(0.0, 0);
-      msk.setVal(1.0, reg, 0); // msk is 1 in interior, 0 in ghost cells
-
-      // Now mask off finer level also:
       if (level < parent->finestLevel()) {
-        std::vector< std::pair<int,Box> > isects = baf.intersections(reg);
-
-        for (int ii = 0; ii < isects.size(); ii++) {
-          msk.setVal(0.0, isects[ii].second, 0);
-        }
+	  baf = parent->boxArray(level+1);
+	  baf.coarsen(parent->refRatio(level));
       }
 
-      // The mask here is for the derat and dye calculation,
-      // to limit it to active cells on each level.
-    }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(msk); mfi.isValid(); ++mfi) 
+      {
+	  msk[mfi].setVal(1.0);
 
+	  // Now mask off finer level also:
+	  if (level < parent->finestLevel()) {
+	      std::vector< std::pair<int,Box> > isects = baf.intersections(mfi.validbox());
+	      for (int ii = 0; ii < isects.size(); ii++) {
+		  msk[mfi].setVal(0.0, isects[ii].second, 0);
+	      }
+	  } 
+      }
+  }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(state,true); mfi.isValid(); ++mfi) 
+  {
+      const Box& reg  = mfi.tilebox();
 #ifdef NEUTRINO
-    BL_FORT_PROC_CALL(CA_STATE_UPDATE_NEUT, ca_state_update_neut)
-      (reg.loVect(), reg.hiVect(),
-       BL_TO_FORTRAN(state[mfi]),
-       BL_TO_FORTRAN(rhoe[mfi]),
-       BL_TO_FORTRAN(Ye[mfi]),
-       BL_TO_FORTRAN(temp[mfi]),
-       BL_TO_FORTRAN(msk),
-       &derat, &dT, &dye);
+      BL_FORT_PROC_CALL(CA_STATE_UPDATE_NEUT, ca_state_update_neut)
+	  (reg.loVect(), reg.hiVect(),
+	   BL_TO_FORTRAN(state[mfi]),
+	   BL_TO_FORTRAN(rhoe[mfi]),
+	   BL_TO_FORTRAN(Ye[mfi]),
+	   BL_TO_FORTRAN(temp[mfi]),
+	   BL_TO_FORTRAN(msk[mfi]),
+	   &derat, &dT, &dye);
 #else
-    BL_FORT_PROC_CALL(CA_STATE_UPDATE, ca_state_update)
-      (reg.loVect(), reg.hiVect(),
-       BL_TO_FORTRAN(state[mfi]),
-       BL_TO_FORTRAN(rhoe[mfi]),
-       BL_TO_FORTRAN(temp[mfi]),
-       BL_TO_FORTRAN(msk),
-       &derat, &dT);
+      BL_FORT_PROC_CALL(CA_STATE_UPDATE, ca_state_update)
+	  (reg.loVect(), reg.hiVect(),
+	   BL_TO_FORTRAN(state[mfi]),
+	   BL_TO_FORTRAN(rhoe[mfi]),
+	   BL_TO_FORTRAN(temp[mfi]),
+	   BL_TO_FORTRAN(msk[mfi]),
+	   &derat, &dT);
 #endif
   }
 
