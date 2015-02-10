@@ -50,7 +50,7 @@
       read(untin,fortin)
       close(unit=untin)
 
-      center(:2) = 0.5d0 * (probhi+problo)
+      prob_center(:2) = 0.5d0 * (probhi+problo)
 
       end
 

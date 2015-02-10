@@ -38,7 +38,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  center(1) = 0.d0
+  prob_center(1) = 0.d0
 
 end subroutine PROBINIT
 

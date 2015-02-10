@@ -51,8 +51,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! we are going to enforce that the lower left corner of the domain is 0,0
   ! (i.e., we only model a quadrant)
 
-  center(1) = center_x
-  center(2) = center_y
+  prob_center(1) = center_x
+  prob_center(2) = center_y
 
   xmin = problo(1)
   if (xmin /= 0.d0) then
@@ -161,7 +161,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            do ii = 0, nsub-1
               xx = xl + (dble(ii) + 0.5d0) * dx_sub
 
-              dist = sqrt((xx-center(1))**2 + (yy-center(2))**2)
+              dist = sqrt((xx-prob_center(1))**2 + (yy-prob_center(2))**2)
 
               ! use a tanh profile to smooth the transition between rho_0 
               ! and rho_ambient

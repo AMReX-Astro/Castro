@@ -58,9 +58,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  center(1) = frac*(problo(1)+probhi(1))
-  center(2) = frac*(problo(2)+probhi(2))
-  center(3) = frac*(problo(3)+probhi(3))
+  prob_center(1) = frac*(problo(1)+probhi(1))
+  prob_center(2) = frac*(problo(2)+probhi(2))
+  prob_center(3) = frac*(problo(3)+probhi(3))
   
   ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0d0
@@ -163,7 +163,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
 
            if (idir == 1) then
-              if (xcen <= center(1)) then
+              if (xcen <= prob_center(1)) then
                  state(i,j,k,URHO) = rho_l
                  state(i,j,k,UMX) = rho_l*u_l
                  state(i,j,k,UMY) = 0.d0
@@ -182,7 +182,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               endif
               
            else if (idir == 2) then
-              if (ycen <= center(2)) then
+              if (ycen <= prob_center(2)) then
                  state(i,j,k,URHO) = rho_l
                  state(i,j,k,UMX) = 0.d0
                  state(i,j,k,UMY) = rho_l*u_l
@@ -201,7 +201,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               endif
               
            else if (idir == 3) then
-              if (zcen <= center(3)) then
+              if (zcen <= prob_center(3)) then
                  state(i,j,k,URHO) = rho_l
                  state(i,j,k,UMX) = 0.d0
                  state(i,j,k,UMY) = 0.d0

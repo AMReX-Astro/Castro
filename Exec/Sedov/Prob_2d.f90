@@ -35,8 +35,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   nsub = 4
 
   !     Set explosion center
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
+  prob_center(1) = (problo(1)+probhi(1))/2.d0
+  prob_center(2) = (problo(2)+probhi(2))/2.d0
 
   !     Read namelists
   untin = 9
@@ -117,7 +117,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               do ii = 0, nsub-1
                  xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
                  
-                 dist = (center(1)-xx)**2 + (center(2)-yy)**2 
+                 dist = (prob_center(1)-xx)**2 + (prob_center(2)-yy)**2 
                  
                  if(dist <= r_init**2) then
                     vol_pert    = vol_pert    + 1.d0

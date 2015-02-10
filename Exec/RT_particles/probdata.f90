@@ -2,7 +2,7 @@ module probdata_module
 
   double precision , save :: frac
 
-  double precision , save :: center(3)
+  double precision , save :: prob_center(3)
 
   ! RT parameters
   double precision, save :: rho_1, rho_2

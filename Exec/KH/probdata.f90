@@ -10,6 +10,6 @@ module probdata_module
       integer        , save ::  idir
 
 !     This needs to be defined in all probdata modules.
-      double precision, save ::  center(3)
+      double precision, save ::  prob_center(3)
       
 end module probdata_module

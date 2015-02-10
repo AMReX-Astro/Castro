@@ -44,7 +44,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   idir     = 1
 
-  center = 0.5d0 * (problo + probhi)
+  prob_center = 0.5d0 * (problo + probhi)
 
   !     Read namelists
   untin = 9

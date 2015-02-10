@@ -40,9 +40,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! set local variable defaults
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
-  center(3) = (problo(3)+probhi(3))/2.d0
+  prob_center(1) = (problo(1)+probhi(1))/2.d0
+  prob_center(2) = (problo(2)+probhi(2))/2.d0
+  prob_center(3) = (problo(3)+probhi(3))/2.d0
   
 end subroutine PROBINIT
 
@@ -121,7 +121,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  do ii = 0, nsub-1
                     xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
                     
-                    dist = (center(1)-xx)**2 + (center(2)-yy)**2
+                    dist = (prob_center(1)-xx)**2 + (prob_center(2)-yy)**2
                     
                     if(dist <= r_init**2) then
                        npert = npert + 1
@@ -183,7 +183,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                     do ii = 0, nsub-1
                        xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
                        
-                       dist = (center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2
+                       dist = (prob_center(1)-xx)**2 + (prob_center(2)-yy)**2 + (prob_center(3)-zz)**2
                        
                        if(dist <= r_init**2) then
                           npert = npert + 1

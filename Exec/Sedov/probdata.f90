@@ -1,6 +1,6 @@
 module probdata_module
 
-      double precision, save ::  center(3)
+      double precision, save ::  prob_center(3)
 
 !     Sod variables
       double precision, save ::  p_ambient, dens_ambient, exp_energy
