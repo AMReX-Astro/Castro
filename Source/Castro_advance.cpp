@@ -598,17 +598,17 @@ Castro::advance_hydro (Real time,
 	    bool tiling = true;
 #ifdef POINTMASS
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
-    reduction(+:mass_added,eint_added,eden_added)			\
-    reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux)	\
-    reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav)        \
-    reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )        \
-    reduction(+:mass_change_at_center)
+                     reduction(+:mass_added,eint_added,eden_added) \
+                     reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
+                     reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
+                     reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot ) \
+                     reduction(+:mass_change_at_center)
 #else
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
-    reduction(+:mass_added,eint_added,eden_added)			\
-    reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux)	\
-    reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav)        \
-    reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )
+                     reduction(+:mass_added,eint_added,eden_added) \
+                     reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
+                     reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
+                     reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )
 #endif
 #else
 	    bool tiling = false;
@@ -710,7 +710,6 @@ Castro::advance_hydro (Real time,
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++)
 		      fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));	  
-
 		    
 #ifdef POINTMASS
 		    if (level == finest_level)
@@ -773,10 +772,14 @@ Castro::advance_hydro (Real time,
 				 E_added_flux*cell_vol << std::endl;
 		   std::cout << "xmom added from fluxes                      : " << 
 				 xmom_added_flux*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)
 		   std::cout << "ymom added from fluxes                      : " << 
 				 ymom_added_flux*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
 		   std::cout << "zmom added from fluxes                      : " << 
 				 zmom_added_flux*cell_vol << std::endl;
+#endif
 #ifdef GRAVITY
 		   if (do_grav) 
 		   {	 
@@ -784,10 +787,14 @@ Castro::advance_hydro (Real time,
 				    E_added_grav*cell_vol << std::endl;
 		      std::cout << "xmom added from grav. source terms             : " << 
 				    xmom_added_grav*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)
 		      std::cout << "ymom added from grav. source terms             : " << 
 				    ymom_added_grav*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
 		      std::cout << "zmom added from grav. source terms             : " << 
 				    zmom_added_grav*cell_vol << std::endl;
+#endif
 		   }
 #endif
 #ifdef ROTATION
@@ -795,12 +802,16 @@ Castro::advance_hydro (Real time,
 		   {	 
 		      std::cout << "(rho E) added from rot. source terms          : " << 
 				    E_added_rot*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)
 		      std::cout << "xmom added from rot. source terms             : " << 
 				    xmom_added_rot*cell_vol << std::endl;
 		      std::cout << "ymom added from rot. source terms             : " << 
 				    ymom_added_rot*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
 		      std::cout << "zmom added from rot. source terms             : " << 
 				    zmom_added_rot*cell_vol << std::endl;
+#endif
 		   }
 #endif
 	       }
@@ -1141,74 +1152,65 @@ Castro::advance_hydro (Real time,
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
-        FArrayBox grid_volume;
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx = mfi.tilebox();
+	    FArrayBox grid_volume;
 
-	    Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-
-            grid_volume.resize(bx_g4,1);
-	    grid_volume.copy(levelVolume[mfi]);
-	
-	    Real E_added_local    = 0.0;
-	    Real xmom_added_local = 0.0;
-	    Real ymom_added_local = 0.0;
-	    Real zmom_added_local = 0.0;
-	    BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(S_old[mfi]),
-	       BL_TO_FORTRAN(S_new[mfi]),
-	       BL_TO_FORTRAN(fluxes[0][mfi]),
+	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx = mfi.tilebox();
+		
+		Box bx_g4(BoxLib::grow(bx,NUM_GROW));
+		
+		grid_volume.resize(bx_g4,1);
+		grid_volume.copy(levelVolume[mfi]);
+		
+		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(S_old[mfi]),
+		     BL_TO_FORTRAN(S_new[mfi]),
+		     BL_TO_FORTRAN(fluxes[0][mfi]),
 #if (BL_SPACEDIM >= 2)
-	       BL_TO_FORTRAN(fluxes[1][mfi]),
+		     BL_TO_FORTRAN(fluxes[1][mfi]),
 #endif
 #if (BL_SPACEDIM == 3)
-	       BL_TO_FORTRAN(fluxes[2][mfi]),
+		     BL_TO_FORTRAN(fluxes[2][mfi]),
 #endif
-	       dx,dt,
-	       BL_TO_FORTRAN(grid_volume),
-	       xmom_added_local,
+		     dx,dt,
+		     BL_TO_FORTRAN(grid_volume),
+		     xmom_added,
 #if (BL_SPACEDIM >= 2)
-	       ymom_added_local,
+		     ymom_added,
 #endif
 #if (BL_SPACEDIM == 3)
-	       zmom_added_local,
+		     zmom_added,
 #endif
-               E_added_local
-	       );
-
- 	    if (print_energy_diagnostics) {
-	      E_added    += E_added_local;
-	      xmom_added += xmom_added_local;
-	      ymom_added += ymom_added_local;
-	      zmom_added += zmom_added_local;
+		     E_added);
 	    }
 	}
 
         if (print_energy_diagnostics)
         {
-	   ParallelDescriptor::ReduceRealSum(E_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(xmom_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(ymom_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(zmom_added, ParallelDescriptor::IOProcessorNumber());	
+	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
+	    ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
+	    if (ParallelDescriptor::IOProcessor()) {
+		const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+		E_added = foo[0];
+		D_EXPR(xmom_added = foo[1],
+		       ymom_added = foo[2],
+		       zmom_added = foo[3]);
 
-           if (ParallelDescriptor::IOProcessor()) {
-	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-
-               std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
-	       std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
+		std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
+		std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
 #if (BL_SPACEDIM >= 2)	       
-	       std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
+		std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
 #endif
 #if (BL_SPACEDIM == 3)
-	       std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
+		std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
 #endif
-	   }
+	    }
         }	
 
 	computeTemp(S_new);
