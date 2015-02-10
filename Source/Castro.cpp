@@ -2559,11 +2559,17 @@ Castro::errorEst (TagBoxArray& tags,
 	}
 
         delete mf;
+    }
 
-	// Now we'll tag any user-specified zones using the full state array.
+    // Now we'll tag any user-specified zones using the full state array.
 
-	MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
 
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
         Array<int>  itags;
 
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
@@ -2581,7 +2587,7 @@ Castro::errorEst (TagBoxArray& tags,
 	    int*        tptr    = itags.dataPtr();
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
-
+	    
 	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
 	                     (tptr,  ARLIM(tlo), ARLIM(thi),
 			      BL_TO_FORTRAN(S_new[mfi]),
