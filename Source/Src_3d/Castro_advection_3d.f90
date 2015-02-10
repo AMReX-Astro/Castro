@@ -35,7 +35,7 @@ contains
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
                      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
                      grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                     rot, &
+                     rot,  rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                      ilo1, ilo2, ilo3, ihi1, ihi2, ihi3, dx, dy, dz, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
                      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
@@ -67,6 +67,7 @@ contains
     integer qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
     integer src_l1, src_l2, src_l3, src_h1, src_h2, src_h3
     integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
     integer fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3
     integer fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3
@@ -85,7 +86,7 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision   rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision   rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
     double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
@@ -298,7 +299,7 @@ contains
 
           if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
              do n=1,3
-                call ppm(rot(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                call ppm(rot(:,:,:,n),rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), &
@@ -483,7 +484,7 @@ contains
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                       rot,&
+                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                        hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
@@ -542,7 +543,7 @@ contains
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                          rot,&
+                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                           hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
 
              ! Compute U''_y at km (k3d-1)
@@ -554,7 +555,7 @@ contains
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                          rot,&
+                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                           hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
              ! Compute F^x at km (k3d-1)

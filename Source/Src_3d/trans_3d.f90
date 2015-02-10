@@ -1811,7 +1811,7 @@ contains
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot, &
+                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -1836,6 +1836,7 @@ contains
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -1853,7 +1854,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdy
     
     integer i, j
@@ -2236,7 +2237,7 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot, &
+                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2261,6 +2262,7 @@ contains
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -2278,7 +2280,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdz
     
     integer i, j
@@ -2629,7 +2631,7 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot, &
+                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2654,6 +2656,7 @@ contains
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -2671,7 +2674,7 @@ contains
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdy,cdtdz
     
     integer i, j

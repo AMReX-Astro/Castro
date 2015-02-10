@@ -71,8 +71,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
   double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
 
-  double precision rot(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:,:)
   double precision, allocatable:: gamc(:,:,:)
@@ -82,6 +80,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, allocatable:: div(:,:,:)
   double precision, allocatable:: pdivu(:,:,:)
   double precision, allocatable:: srcQ(:,:,:,:)
+  double precision, allocatable:: rot(:,:,:,:)
   
   double precision dx,dy,dz
   integer ngq,ngf
@@ -107,6 +106,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
   allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
+  allocate(   rot(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
   
   dx = delta(1)
   dy = delta(2)
@@ -126,18 +126,20 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! Compute the rotation field, which depends on position and velocity
 
   if (do_rotation .eq. 1) then
-
-     call fill_rotation_field(rot,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+     
+     call fill_rotation_field(rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                               q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                               lo,hi,delta)
 
+  else
+     rot = 0.d0
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-               rot, &
+               rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -208,7 +210,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                  dx,dy,dz,domlo,domhi)
   end if
 
-  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
+  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu,rot)
 
 end subroutine ca_umdrv
 
