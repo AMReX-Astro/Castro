@@ -1045,71 +1045,75 @@ Castro::advance_hydro (Real time,
 	Real ymom_added      = 0.;
 	Real zmom_added      = 0.;
 
-        FArrayBox grid_volume;
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx = mfi.tilebox();
-
-	    Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-
-            grid_volume.resize(bx_g4,1);
-	    grid_volume.copy(levelVolume[mfi]);
+	    FArrayBox grid_volume;
+	    FArrayBox single_cell_fab(Box(IntVect::TheZeroVector(),IntVect::TheZeroVector()));
+	    
+	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx = mfi.tilebox();
+		
+		Box bx_g4(BoxLib::grow(bx,NUM_GROW));
+		
+		grid_volume.resize(bx_g4,1);
+		grid_volume.copy(levelVolume[mfi]);
 	
-	    Real E_added_local = 0.0;
-	    Real xmom_added_local = 0.0;
-	    Real ymom_added_local = 0.0;
-	    Real zmom_added_local = 0.0;
-	    BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(grav_vec_old[mfi]),
-	       BL_TO_FORTRAN(grav_vec_new[mfi]),
-	       BL_TO_FORTRAN(S_old[mfi]),
-	       BL_TO_FORTRAN(S_new[mfi]),
 #if (BL_SPACEDIM == 3)
-	       BL_TO_FORTRAN((*gravity->get_phi_prev(level))[mfi]),
-	       BL_TO_FORTRAN((*gravity->get_phi_curr(level))[mfi]),
-	       BL_TO_FORTRAN(fluxes[0][mfi]),
-	       BL_TO_FORTRAN(fluxes[1][mfi]),
-	       BL_TO_FORTRAN(fluxes[2][mfi]),
+		FArrayBox& phi_prev_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
+		    (*gravity->get_phi_prev(level))[mfi] : single_cell_fab;
+		FArrayBox& phi_curr_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
+		    (*gravity->get_phi_curr(level))[mfi] : single_cell_fab;
 #endif
-	       dx,dt,
-	       BL_TO_FORTRAN(grid_volume),
-	       xmom_added_local,
-#if (BL_SPACEDIM >= 2)
-	       ymom_added_local,
-#endif
-#if (BL_SPACEDIM == 3)
-	       zmom_added_local,
-#endif
-               E_added_local);
 
- 	    if (print_energy_diagnostics) {
-	      E_added    += E_added_local;
-	      xmom_added += xmom_added_local;
-	      ymom_added += ymom_added_local;
-	      zmom_added += zmom_added_local;
+		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(grav_vec_old[mfi]),
+		     BL_TO_FORTRAN(grav_vec_new[mfi]),
+		     BL_TO_FORTRAN(S_old[mfi]),
+		     BL_TO_FORTRAN(S_new[mfi]),
+#if (BL_SPACEDIM == 3)
+		     BL_TO_FORTRAN(phi_prev_fab),
+		     BL_TO_FORTRAN(phi_curr_fab),
+		     BL_TO_FORTRAN(fluxes[0][mfi]),
+		     BL_TO_FORTRAN(fluxes[1][mfi]),
+		     BL_TO_FORTRAN(fluxes[2][mfi]),
+#endif
+		     dx,dt,
+		     BL_TO_FORTRAN(grid_volume),
+		     xmom_added,
+#if (BL_SPACEDIM >= 2)
+		     ymom_added,
+#endif
+#if (BL_SPACEDIM == 3)
+		     zmom_added,
+#endif
+		     E_added);
 	    }
-        }
+	}
 
         if (print_energy_diagnostics)
         {
-	   ParallelDescriptor::ReduceRealSum(E_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(xmom_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(ymom_added, ParallelDescriptor::IOProcessorNumber());
-           ParallelDescriptor::ReduceRealSum(zmom_added, ParallelDescriptor::IOProcessorNumber());	
+	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
+	    ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
+	    if (ParallelDescriptor::IOProcessor()) {
+		const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
+		E_added = foo[0];
+		D_EXPR(xmom_added = foo[1],
+		       ymom_added = foo[2],
+		       zmom_added = foo[3]);
 
-           if (ParallelDescriptor::IOProcessor()) {
-	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-
-               std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
-	       std::cout << "xmom added from grav. corr. terms              : " << xmom_added*cell_vol << std::endl;
-	       std::cout << "ymom added from grav. corr. terms              : " << ymom_added*cell_vol << std::endl;
-	       std::cout << "zmom added from grav. corr. terms              : " << zmom_added*cell_vol << std::endl;
-	   }
+		std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
+		std::cout << "xmom added from grav. corr. terms              : " << xmom_added*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)
+		std::cout << "ymom added from grav. corr. terms              : " << ymom_added*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
+		std::cout << "zmom added from grav. corr. terms              : " << zmom_added*cell_vol << std::endl;
+#endif
+	    }
         }	
 
 	computeTemp(S_new);

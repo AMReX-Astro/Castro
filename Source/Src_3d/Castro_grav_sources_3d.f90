@@ -136,7 +136,7 @@ end module grav_sources_module
                              vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                              xmom_added,ymom_added,zmom_added,E_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, grav_source_type
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
@@ -156,19 +156,17 @@ end module grav_sources_module
       integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
       double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,gold_l3:gold_h3,3)
       double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
-      double precision   grav(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
       double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
       double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
       double precision  pold(pold_l1:pold_h1,pold_l2:pold_h2,pold_l3:pold_h3)
       double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
-      double precision   phi(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
       double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
       double precision   vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
       double precision  dx(3),dt,E_added
 
-      integer i,j,k
+      integer i,j,k,n
 
       double precision SrU_old, SrV_old, SrW_old
       double precision SrU_new, SrV_new, SrW_new
@@ -182,6 +180,9 @@ end module grav_sources_module
       double precision old_xmom, old_ymom, old_zmom, xmom_added, ymom_added, zmom_added
       double precision rho_E_added, flux_added
 
+!      double precision, allocatable :: grav(:,:,:,:)
+      double precision, allocatable :: phi(:,:,:)
+ 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
@@ -189,14 +190,23 @@ end module grav_sources_module
       ! 3: Puts all gravitational work into KE, not (rho e)
       ! 4: Conservative gravity approach from the AREPO code paper (Springel 2010).
 
-      do k = lo(3)-1, hi(3)+1
-         do j = lo(2)-1, hi(2)+1
-            do i = lo(1)-1, hi(1)+1
-               grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-               phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
+      if (grav_source_type .eq. 4) then
+         allocate(phi (lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
+!         allocate(grav(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1),3)
+
+         do k = lo(3)-1, hi(3)+1
+            do j = lo(2)-1, hi(2)+1
+               do i = lo(1)-1, hi(1)+1
+                  phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
+               enddo
+               ! do n=1,3
+               !    do i = lo(1)-1, hi(1)+1
+               !       grav(i,j,k,n) = HALF * (gnew(i,j,k,n) + gold(i,j,k,n))
+               !    end do                  
+               ! end do
             enddo
-         enddo
-      enddo
+         end do
+      end if
 
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
