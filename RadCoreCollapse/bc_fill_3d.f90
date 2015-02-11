@@ -7,6 +7,7 @@
      use meth_params_module, only: NVAR,outflow_data_old, outflow_data_new, &
                                    outflow_data_old_time, outflow_data_new_time, &
                                    URHO, UMX, UMY, UMZ, UFS, UFX, UTEMP, UEDEN, UEINT
+     use prob_params_module, only : center
 
      implicit none
      include 'bc_types.fi'
@@ -539,6 +540,7 @@
       use probdata_module
       use meth_params_module, only: outflow_data_old, outflow_data_new, &
                                     outflow_data_old_time, outflow_data_new_time
+      use prob_params_module, only : center
       implicit none
       include 'bc_types.fi'
 

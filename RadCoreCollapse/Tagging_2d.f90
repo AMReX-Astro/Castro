@@ -22,7 +22,6 @@
                                  var,varl1,varl2,varh1,varh2, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
-      use probdata_module
       implicit none
 
       integer          :: set, clear, nd, level
@@ -124,7 +123,7 @@
                              den,denl1,denl2,denh1,denh2, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -191,7 +190,7 @@
                              temp,templ1,templ2,temph1,temph2, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -259,7 +258,7 @@
                                lo,hi,np,domlo,domhi, &
                                delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, np, level
@@ -325,7 +324,7 @@
                              vel,vell1,vell2,velh1,velh2, &
                              lo,hi,nv,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nv, level
@@ -383,7 +382,7 @@
                              lo,hi,nr,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nr, level
@@ -449,7 +448,7 @@
                              ent,entl1,entl2,enth1,enth2, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -596,6 +595,7 @@
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
       use probdata_module
+      use prob_params_module, only : center
       use fundamental_constants_module, only : Gconst
       implicit none
 

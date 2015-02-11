@@ -13,11 +13,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   character(1) dummy
   
   namelist /fortin/ & 
-       denerr,   dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velerr,   velgrad,  max_velerr_lev,  max_pressgrad_lev, &
-       presserr, pressgrad,max_presserr_lev,max_pressgrad_lev, &
-       temperr,  tempgrad, max_temperr_lev, max_tempgrad_lev, &
-       raderr,   radgrad,  max_raderr_lev,  max_radgrad_lev, &
        rwind0, rwind1, rhowind1, Twind1, rbasefac, filter_rhomax, filter_timemax
   
   !
@@ -39,30 +34,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
   
   ! set namelist defaults
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-  
-  velerr = 1.d20
-  velgrad = 1.d20
-  max_velerr_lev = -1
-  max_velgrad_lev = -1
-  
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
-  temperr = 1.d20
-  tempgrad = 1.d20
-  max_temperr_lev = -1
-  max_tempgrad_lev = -1
-  
-  raderr = 1.d20
-  radgrad = 1.d20
-  max_raderr_lev = -1
-  max_radgrad_lev = -1
   
   rbasefac = 0.99d0
   rwind0 = 0.7d14
@@ -73,7 +44,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   filter_rhomax = -1.d20
   filter_timemax = -1.d20
 
-  center(1) = 0.d0
   xmin = problo(1)
   xmax = probhi(1)
 

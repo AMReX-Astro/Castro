@@ -22,7 +22,6 @@
                                  var,varl1,varl2,varl3,varh1,varh2,varh3, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
-      use probdata_module
       implicit none
 
       integer          :: set, clear, nd, level
@@ -174,7 +173,7 @@
                              den,denl1,denl2,denl3,denh1,denh2,denh3, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -249,7 +248,7 @@
                               lo,hi,np,domlo,domhi, &
                               delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, np, level
@@ -324,7 +323,7 @@
                              lo,hi,np,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, np, level
@@ -398,7 +397,7 @@
                              lo,hi,nv,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nv, level
@@ -459,7 +458,7 @@
                              lo,hi,nr,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nr, level
@@ -532,7 +531,7 @@
                              ent,entl1,entl2,entl3,enth1,enth2,enth3, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -697,6 +696,7 @@
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
       use probdata_module
+      use prob_params_module, only : center
       use fundamental_constants_module, only : Gconst
       implicit none
 

@@ -23,7 +23,6 @@
                                  var,varl1,varh1, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
-      use probdata_module
       implicit none
 
       integer          :: set, clear, nd, level
@@ -94,7 +93,7 @@
                              den,denl1,denh1, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -155,7 +154,7 @@
                               temp,templ1,temph1,&
                               lo,hi,nd,domlo,domhi, &
                               delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -211,7 +210,7 @@
                                press,pressl1,pressh1, &
                                lo,hi,np,domlo,domhi, &
                                delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, np, level
       integer tagl1,tagh1
@@ -270,7 +269,7 @@
                              vel,vell1,velh1, &
                              lo,hi,nv,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, nv, level
       integer tagl1,tagh1
@@ -322,7 +321,7 @@
                              rad,radl1,radh1, &
                              lo,hi,nr,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, nr, level
       integer tagl1,tagh1

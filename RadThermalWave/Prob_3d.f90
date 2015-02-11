@@ -10,13 +10,8 @@
       integer untin,i,j,k,dir
       double precision rn
 
-      namelist /fortin/ rhocv, T0, Eexp, rexp, &
-           denerr,   dengrad,  max_denerr_lev,  max_dengrad_lev, &
-           velerr,   velgrad,  max_velerr_lev,  max_pressgrad_lev, &
-           presserr, pressgrad,max_presserr_lev,max_pressgrad_lev, &
-           temperr,  tempgrad, max_temperr_lev, max_tempgrad_lev, &
-           raderr,   radgrad,  max_raderr_lev,  max_radgrad_lev
-      
+      namelist /fortin/ rhocv, T0, Eexp, rexp
+
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
 !     
@@ -41,43 +36,15 @@
       Eexp = -1.d-50
       rexp = -1.d50
 
-      denerr = 1.d20
-      dengrad = 1.d20
-      max_denerr_lev = -1
-      max_dengrad_lev = -1
-      
-      velerr = 1.d20
-      velgrad = 1.d20
-      max_velerr_lev = -1
-      max_velgrad_lev = -1
-      
-      presserr = 1.d20
-      pressgrad = 1.d20
-      max_presserr_lev = -1
-      max_pressgrad_lev = -1
-      
-      temperr = -1.d20
-      tempgrad = 1.d20
-      max_temperr_lev = -1
-      max_tempgrad_lev = -1
-      
-      raderr = 1.d20
-      radgrad = 1.d20
-      max_raderr_lev = -1
-      max_radgrad_lev = -1
-      
       ! domain extrema and center
       xmin = problo(1)
       xmax = probhi(1)
-      center(1) = 0.5d0*(xmin + xmax)
 
       ymin = problo(2)
       ymax = probhi(2)
-      center(2) = 0.5d0*(ymin + ymax)
 
       zmin = problo(3)
       zmax = probhi(3)
-      center(3) = 0.5d0*(zmin + zmax)
 
 !     Read namelists
       untin = 9

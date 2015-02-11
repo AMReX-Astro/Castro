@@ -15,8 +15,7 @@
 
       integer :: untin,i
 
-      namelist /fortin/ rho_0, T_0, &
-           raderr,radgrad,max_raderr_lev,max_radgrad_lev
+      namelist /fortin/ rho_0, T_0
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -41,13 +40,6 @@
       rho_0 = 1.0             ! not used -- no hydro
       T_0 = 5.797e5           ! 50 eV
 
-      ! initialize the refinement criteria
-      raderr = 1.d20
-      radgrad = 1.d20
-      max_raderr_lev = -1
-      max_radgrad_lev = -1
-
-
 !     Read namelists
       untin = 9
       open(untin,file=probin(1:namlen),form='formatted',status='old')
@@ -62,12 +54,6 @@
       call eos(eos_input_rt, eos_state)
 
       rhoe_0 = rho_0 * eos_state % e
-
-!     set local variable defaults
-
-!     the 'center' variables are the location of the middle of the 
-!     domain -- this is where we put the interface
-      center(1) = 0.5d0*(problo(1)+probhi(1))
 
 !     domain extrema
       xmin = problo(1)

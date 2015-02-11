@@ -12,13 +12,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   
   integer untin,i
   
-  namelist /fortin/  &
-       denerr,   dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velerr,   velgrad,  max_velerr_lev,  max_pressgrad_lev, &
-       presserr, pressgrad,max_presserr_lev,max_pressgrad_lev, &
-       temperr,  tempgrad, max_temperr_lev, max_tempgrad_lev, &
-       raderr,   radgrad,  max_raderr_lev,  max_radgrad_lev
-  
+!  namelist /fortin/ 
+
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !     
@@ -37,42 +32,14 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      probin(i:i) = char(name(i))
   end do
   
-  ! set namelist defaults
-  
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-  
-  velerr = 1.d20
-  velgrad = 1.d20
-  max_velerr_lev = -1
-  max_velgrad_lev = -1
-  
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
-  temperr = 1.d20
-  tempgrad = 1.d20
-  max_temperr_lev = -1
-  max_tempgrad_lev = -1
-  
-  raderr = 1.d20
-  radgrad = 1.d20
-  max_raderr_lev = -1
-  max_radgrad_lev = -1
-  
-  center(1) = (problo(1)+probhi(1))/2.d0
   xmin = problo(1)
   xmax = probhi(1)
 
-  ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  ! ! Read namelists
+  ! untin = 9
+  ! open(untin,file=probin(1:namlen),form='formatted',status='old')
+  ! read(untin,fortin)
+  ! close(unit=untin)
   
 end subroutine PROBINIT
 

@@ -3,24 +3,12 @@ module probdata_module
       double precision Pi
       parameter (Pi=3.1415926535897932384d0)
 
-      double precision, save :: denerr,dengrad
-      double precision, save :: presserr,pressgrad
-      double precision, save :: temperr, tempgrad
-      double precision, save :: velerr  ,velgrad
-      double precision, save :: raderr  ,radgrad
-      double precision, save :: enterr,  entgrad
       double precision, save :: yeerr,  yegrad
       double precision, save :: masserr
-      integer         , save :: max_denerr_lev,  max_dengrad_lev
-      integer         , save :: max_presserr_lev,max_pressgrad_lev
-      integer         , save :: max_temperr_lev, max_tempgrad_lev
-      integer         , save :: max_velerr_lev  ,max_velgrad_lev
-      integer         , save :: max_raderr_lev  ,max_radgrad_lev
-      integer         , save :: max_enterr_lev  ,max_entgrad_lev
       integer         , save :: max_yeerr_lev  ,max_yegrad_lev
       integer         , save :: max_masserr_lev
  
-      double precision, save ::  center(3), corner(3)
+      double precision, save :: corner(3)
 
       integer, save :: init_smoothing
 

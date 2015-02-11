@@ -11,8 +11,7 @@
 
       integer :: untin,i
 
-      namelist /fortin/ rho_0, T_0, kappa_0, x_jump, R, &
-           denerr,dengrad,max_denerr_lev,max_dengrad_lev, wref_l1, wref_l2
+      namelist /fortin/ rho_0, T_0, kappa_0, x_jump, R, wref_l1, wref_l2
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -40,12 +39,6 @@
       x_jump = 0.5d0
       R = 1.d0
 
-      ! initialize the refinement criteria
-      denerr = 1.d20
-      dengrad = 1.d20
-      max_denerr_lev = -1
-      max_dengrad_lev = -1
-
       wref_l1 = 0.d0
       wref_l2 = 0.d0
 
@@ -54,12 +47,6 @@
       open(untin,file=probin(1:namlen),form='formatted',status='old')
       read(untin,fortin)
       close(unit=untin)
-
-!     set local variable defaults
-
-!     the 'center' variables are the location of the middle of the 
-!     domain -- this is where we put the interface
-      center(1) = 0.5d0*(problo(1)+probhi(1))
 
 !     domain extrema
       xmin = problo(1)

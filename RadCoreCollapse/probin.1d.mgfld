@@ -1,8 +1,5 @@
 &fortin
 
-  denerr = 7.2e7
-  max_denerr_lev = 3
-
   masserr = 1.32
   max_masserr_lev = 3
 
@@ -11,6 +8,14 @@
 
   yegrad = 0.01
   max_yegrad_lev = 4
+
+/
+
+
+&tagging
+
+  denerr = 7.2e7
+  max_denerr_lev = 3
 
   enterr = 5.0
   max_enterr_lev = 4

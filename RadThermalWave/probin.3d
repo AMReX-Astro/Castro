@@ -3,6 +3,10 @@
   T0 = 1.d-6
   Eexp = 3.d7
   rexp =3.125
+/
+
+
+&tagging
 
   max_tempgrad_lev = 4
   tempgrad = 0.5

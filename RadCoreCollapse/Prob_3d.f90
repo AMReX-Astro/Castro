@@ -3,6 +3,7 @@
       use probdata_module
       use network, only : network_init
       use meth_params_module, only : outflow_data_old_time, outflow_data_new_time
+      use prob_params_module, only : center
       use interpolate_module
       use fundamental_constants_module, only : k_B, ev2erg
 
@@ -27,10 +28,6 @@
 
       namelist /fortin/  &
            model_filename, npts_model, model_has_neut_data, model_temp_in_K, &
-           denerr,dengrad,max_denerr_lev,max_dengrad_lev, &
-           presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, &
-           raderr,radgrad,max_raderr_lev,max_radgrad_lev,&
-           enterr, entgrad, max_enterr_lev, max_entgrad_lev, &
            yeerr, yegrad, max_yeerr_lev, max_yegrad_lev, &
            masserr, max_masserr_lev
 
@@ -72,26 +69,6 @@
       npts_model = 500
       model_has_neut_data = 0
       model_temp_in_K = 0
-
-      denerr = 1.d20
-      dengrad = 1.d20
-      max_denerr_lev = -1
-      max_dengrad_lev = -1
-
-      presserr = 1.d20
-      pressgrad = 1.d20
-      max_presserr_lev = -1
-      max_pressgrad_lev = -1
-
-      raderr = 1.d20
-      radgrad = 1.d20
-      max_raderr_lev = -1
-      max_radgrad_lev = -1
-
-      enterr = 1.d20
-      entgrad = 1.d20
-      max_enterr_lev = -1
-      max_entgrad_lev = -1
 
       yeerr = 1.d20
       yegrad = 1.d20
@@ -212,6 +189,7 @@
       use eos_module
       use network, only : nspec, naux
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
+      use prob_params_module, only : center
       use interpolate_module
 
       implicit none
@@ -342,6 +320,7 @@
            delta,xlo,xhi)
 
       use probdata_module
+      use prob_params_module, only : center
       use rad_params_module, only: ngroups
       use interpolate_module
 
