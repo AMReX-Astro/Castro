@@ -1,6 +1,7 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
+  use prob_params_module, only : center
   use bl_error_module
 
   implicit none
@@ -35,8 +36,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   nsub = 4
 
   !     Set explosion center
-  prob_center(1) = (problo(1)+probhi(1))/2.d0
-  prob_center(2) = (problo(2)+probhi(2))/2.d0
+  center(1) = (problo(1)+probhi(1))/2.d0
+  center(2) = (problo(2)+probhi(2))/2.d0
 
   !     Read namelists
   untin = 9
@@ -76,6 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module, only : gamma_const
   use bl_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
+  use prob_params_module, only : center
   implicit none
 
   integer :: level, nscal
@@ -117,7 +119,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               do ii = 0, nsub-1
                  xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
                  
-                 dist = (prob_center(1)-xx)**2 + (prob_center(2)-yy)**2 
+                 dist = (center(1)-xx)**2 + (center(2)-yy)**2 
                  
                  if(dist <= r_init**2) then
                     vol_pert    = vol_pert    + 1.d0

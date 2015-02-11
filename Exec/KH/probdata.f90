@@ -9,7 +9,4 @@ module probdata_module
 !     This specifies the direction of the flow; see Prob_?d.f90
       integer        , save ::  idir
 
-!     This needs to be defined in all probdata modules.
-      double precision, save ::  prob_center(3)
-      
 end module probdata_module

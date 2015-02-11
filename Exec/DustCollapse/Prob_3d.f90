@@ -4,6 +4,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use eos_module
   use network, only : nspec
   use meth_params_module, only : small_temp
+  use prob_params_module, only : center
 
   implicit none 
 
@@ -56,9 +57,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   !$OMP END PARALLEL
 
   ! in 3-d, we center the sphere at (center_x, center_y, center_z)
-  prob_center(1) = center_x
-  prob_center(2) = center_y
-  prob_center(3) = center_z
+  center(1) = center_x
+  center(2) = center_y
+  center(3) = center_z
 
   xmin = problo(1)
   xmax = probhi(1)
@@ -125,6 +126,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
+  use prob_params_module, only : center
 
   implicit none
 
@@ -169,7 +171,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            do ii = 0, nsub-1
               xx = xl + (dble(ii) + 0.5d0) * dx_sub
 
-              dist = sqrt((xx-prob_center(1))**2 + (yy-prob_center(2))**2 + (zz-prob_center(3))**2)
+              dist = sqrt((xx-center(1))**2 + (yy-center(2))**2 + (zz-center(3))**2)
 
               ! use a tanh profile to smooth the transition between rho_0 
               ! and rho_ambient
@@ -213,8 +215,8 @@ end subroutine ca_initdata
       subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                             domlo,domhi,delta,xlo,time,bc)
 
-      use probdata_module, only : prob_center
       use meth_params_module, only : NVAR,UMX,UMY,UMZ
+      use prob_params_module, only : center
 
       implicit none
       include 'bc_types.fi'
@@ -255,17 +257,17 @@ end subroutine ca_initdata
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
 
-            y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
-            z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+            y = (dble(j) + 0.5d0) * delta(2) - center(2)
+            z = (dble(k) + 0.5d0) * delta(3) - center(3)
 
             ic = domlo(1)
-            xc = (dble(ic) + 0.5d0) * delta(1) - prob_center(1)
+            xc = (dble(ic) + 0.5d0) * delta(1) - center(1)
             rc = sqrt(xc**2 + y**2 + z**2)
 
             momc = sqrt(adv(ic,j,k,UMX)**2 + adv(ic,j,k,UMY)**2 + adv(ic,j,k,UMZ)**2)
 
             do i = adv_l1, domlo(1)-1
-               x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
+               x = (dble(i) + 0.5d0) * delta(1) - center(1)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2
@@ -285,17 +287,17 @@ end subroutine ca_initdata
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
 
-            y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
-            z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+            y = (dble(j) + 0.5d0) * delta(2) - center(2)
+            z = (dble(k) + 0.5d0) * delta(3) - center(3)
 
             ic = domhi(1)
-            xc = (dble(ic) + 0.5d0) * delta(1) - prob_center(1)
+            xc = (dble(ic) + 0.5d0) * delta(1) - center(1)
             rc = sqrt(xc**2 + y**2 + z**2)
 
             momc = sqrt(adv(ic,j,k,UMX)**2 + adv(ic,j,k,UMY)**2 + adv(ic,j,k,UMZ)**2)
 
             do i = domhi(1)+1, adv_h1
-               x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
+               x = (dble(i) + 0.5d0) * delta(1) - center(1)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2
@@ -315,18 +317,18 @@ end subroutine ca_initdata
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
 
-            x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
-            z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+            x = (dble(i) + 0.5d0) * delta(1) - center(1)
+            z = (dble(k) + 0.5d0) * delta(3) - center(3)
 
             jc = domlo(2)
-            yc = (dble(jc) + 0.5d0) * delta(2) - prob_center(2)
+            yc = (dble(jc) + 0.5d0) * delta(2) - center(2)
             rc = sqrt(x**2 + yc**2 + z**2)
 
             momc = sqrt(adv(i,jc,k,UMX)**2 + adv(i,jc,k,UMY)**2 + adv(i,jc,k,UMZ)**2)
 
             do j = adv_l2, domlo(2)-1
 
-               y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
+               y = (dble(j) + 0.5d0) * delta(2) - center(2)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2
@@ -346,17 +348,17 @@ end subroutine ca_initdata
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
 
-            x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
-            z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+            x = (dble(i) + 0.5d0) * delta(1) - center(1)
+            z = (dble(k) + 0.5d0) * delta(3) - center(3)
 
             jc = domhi(2)
-            yc = (dble(jc) + 0.5d0) * delta(2) - prob_center(2)
+            yc = (dble(jc) + 0.5d0) * delta(2) - center(2)
             rc = sqrt(x**2 + yc**2 + z**2)
 
             momc = sqrt(adv(i,jc,k,UMX)**2 + adv(i,jc,k,UMY)**2 + adv(i,jc,k,UMZ)**2)
 
             do j = domhi(2)+1, adv_h2
-               y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
+               y = (dble(j) + 0.5d0) * delta(2) - center(2)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2
@@ -376,17 +378,17 @@ end subroutine ca_initdata
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
 
-            x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
-            y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
+            x = (dble(i) + 0.5d0) * delta(1) - center(1)
+            y = (dble(j) + 0.5d0) * delta(2) - center(2)
 
             kc = domlo(3)
-            zc = (dble(kc) + 0.5d0) * delta(3) - prob_center(3)
+            zc = (dble(kc) + 0.5d0) * delta(3) - center(3)
             rc = sqrt(x**2 + y**2 + zc**2)
 
             momc = sqrt(adv(i,j,kc,UMX)**2 + adv(i,j,kc,UMY)**2 + adv(i,j,kc,UMZ)**2)
 
             do k = adv_l3, domlo(3)-1
-               z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+               z = (dble(k) + 0.5d0) * delta(3) - center(3)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2
@@ -406,17 +408,17 @@ end subroutine ca_initdata
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
 
-            x = (dble(i) + 0.5d0) * delta(1) - prob_center(1)
-            y = (dble(j) + 0.5d0) * delta(2) - prob_center(2)
+            x = (dble(i) + 0.5d0) * delta(1) - center(1)
+            y = (dble(j) + 0.5d0) * delta(2) - center(2)
 
             kc = domhi(3)
-            zc = (dble(kc) + 0.5d0) * delta(3) - prob_center(3)
+            zc = (dble(kc) + 0.5d0) * delta(3) - center(3)
             rc = sqrt(x**2 + y**2 + zc**2)
 
             momc = sqrt(adv(i,j,kc,UMX)**2 + adv(i,j,kc,UMY)**2 + adv(i,j,kc,UMZ)**2)
 
             do k = domhi(3)+1, adv_h3
-               z = (dble(k) + 0.5d0) * delta(3) - prob_center(3)
+               z = (dble(k) + 0.5d0) * delta(3) - center(3)
                r = sqrt(x**2 + y**2 + z**2)
 
                mom  = momc * (rc/r)**2

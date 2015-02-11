@@ -60,8 +60,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   !     set local variable defaults -- the 'center' variables are the location of the
   !     interface
-  prob_center(1) = frac*(problo(1)+probhi(1))
-  prob_center(2) = frac*(problo(2)+probhi(2))
+  split(1) = frac*(problo(1)+probhi(1))
+  split(2) = frac*(problo(2)+probhi(2))
 
   !     compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0d0
@@ -161,7 +161,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
         
         if (idir == 1) then
-           if (xcen <= prob_center(1)) then
+           if (xcen <= split(1)) then
               state(i,j,URHO) = rho_l
               state(i,j,UMX) = rho_l*u_l
               state(i,j,UMY) = 0.d0
@@ -180,7 +180,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            endif
            
         else if (idir == 2) then
-           if (ycen <= prob_center(2)) then
+           if (ycen <= split(2)) then
               state(i,j,URHO) = rho_l
               state(i,j,UMX) = 0.d0
               state(i,j,UMY) = rho_l*u_l

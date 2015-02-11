@@ -10,8 +10,7 @@
 
       integer untin,i
 
-      namelist /fortin/ rho1, rho2, u1, u2, L, pres, vfac, vmode, &
-                        idir, center
+      namelist /fortin/ rho1, rho2, u1, u2, L, pres, vfac, vmode, idir
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -49,8 +48,6 @@
       open(untin,file=probin(1:namlen),form='formatted',status='old')
       read(untin,fortin)
       close(unit=untin)
-
-      prob_center(:2) = 0.5d0 * (probhi+problo)
 
       end
 

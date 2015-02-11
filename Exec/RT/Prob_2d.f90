@@ -40,8 +40,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
 
   ! set local variable defaults
-  prob_center(1) = frac*(problo(1)+probhi(1))
-  prob_center(2) = frac*(problo(2)+probhi(2))
+  split(1) = frac*(problo(1)+probhi(1))
+  split(2) = frac*(problo(2)+probhi(2))
   
   L_x = probhi(1) - problo(1)
 
@@ -90,7 +90,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer :: i,j
   double precision :: x,y,pres,presmid,pertheight
   
-  presmid  = p0_base - rho_1*prob_center(2)
+  presmid  = p0_base - rho_1*split(2)
         
   state(:,:,UMX)   = ZERO
   state(:,:,UMY)   = ZERO
@@ -101,12 +101,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      do i = lo(1), hi(1)
         
-        if (y .lt. prob_center(2)) then
+        if (y .lt. split(2)) then
            pres = p0_base - rho_1*y
            state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
            state(i,j,UEINT) = pres / (gamma_const - 1.0d0)
         else
-           pres = presmid - rho_2*(y-prob_center(2))
+           pres = presmid - rho_2*(y-split(2))
            state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
            state(i,j,UEINT) = pres / (gamma_const - 1.0d0)
         end if

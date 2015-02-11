@@ -10,8 +10,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ rho1, rho2, u1, u2, pres, L, vfac, vmode, &
-       idir, center
+  namelist /fortin/ rho1, rho2, u1, u2, pres, L, vfac, vmode, idir
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -43,8 +42,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   vmode = 4.0d0
 
   idir     = 1
-
-  prob_center = 0.5d0 * (problo + probhi)
 
   !     Read namelists
   untin = 9

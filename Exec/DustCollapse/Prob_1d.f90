@@ -3,6 +3,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use eos_module
   use meth_params_module, only: small_temp
+  use prob_params_module, only : center
   use network, only : nspec
   implicit none 
 
@@ -48,7 +49,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! in 1-d spherical, the lower domain boundary should be the origin
-  prob_center(1) = 0.0d0
+  center(1) = 0.0d0
 
   xmin = problo(1)
   if (xmin /= 0.d0) then
@@ -113,7 +114,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
-  
+  use prob_params_module, only : center
+
   implicit none
   
   integer          :: level, nscal
@@ -142,7 +144,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         xx = xl + (dble(ii) + 0.5d0) * dx_sub
         
-        dist = (xx-prob_center(1))
+        dist = (xx-center(1))
         
         ! use a tanh profile to smooth the transition between rho_0                                    
         ! and rho_ambient                                                                              

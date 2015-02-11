@@ -1,6 +1,7 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
+  use prob_params_module, only : center
   implicit none
 
   integer :: init, namlen
@@ -38,7 +39,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  prob_center(1) = 0.d0
+  center(1) = 0.d0
 
 end subroutine PROBINIT
 
