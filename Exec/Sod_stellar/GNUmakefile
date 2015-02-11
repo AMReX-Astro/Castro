@@ -14,6 +14,8 @@ FCOMP	   = gfortran
 USE_MPI    = FALSE
 USE_OMP    = FALSE
 
+# define the location of the CASTRO top directory
+CASTRO_DIR := ../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_dir     := helmeos
