@@ -70,16 +70,30 @@ This overwrites the initialized CASTRO data using the new 1D initial model for a
 \end{enumerate}
 
 \section{Additional Notes}
-Note that for both single-level and multilevel MAESTRO to CASTRO initialization, the CASTRO base grid structure does not have to match the MAESTRO base grid structure, as long as the problem domain is the same.  For example, if the coarsest level in a MAESTRO plotfile contains $64^3$ cells divided into 8-$32^3$ grids, it is ok to use a CASTRO base grid structure with 1-$64^3$ grid, 64-$16^3$ grids, or anything else you can imagine - the grids don't even have to be the same size.  As is normally the case, the CASTRO base grid structure is created based on the parameters in the CASTRO inputs file, such as {\bf amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc.
+Note that for both single-level and multilevel MAESTRO to CASTRO
+initialization, the CASTRO base grid structure does not have to match
+the MAESTRO base grid structure, as long as the problem domain is the
+same.  For example, if the coarsest level in a MAESTRO plotfile
+contains $64^3$ cells divided into 8-$32^3$ grids, it is ok to use a
+CASTRO base grid structure with 1-$64^3$ grid, 64-$16^3$ grids, or
+anything else you can imagine - the grids don't even have to be the
+same size.  As is normally the case, the CASTRO base grid structure is
+created based on the parameters in the CASTRO inputs file, such as
+{\bf amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc.
 
 \subsection{Multilevel Restart}
-When initialing from a multilevel MAESTRO plotfile, there are some extra steps.  First, you need to create a CASTRO-compatible grids file from the MAESTRO plotfile.  This can be done with the AmrPostprocessing/F\_Src/fboxinfo.f90 utility.  
-Compile and run this using the ``\texttt{--}castro'' option, e.g., 
-``fboxinfo.Linux.gfortran.exe \texttt{--}castro pltxxxxx \texttt{|} tee gr0.maestro'', 
-to generate the CASTRO-compatible grids file.  Note that the base grid structure is still controlled 
-by {\bf amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc., 
-since in C++ BoxLib, the grids file only indicates the refined grid structure, 
-whereas in Fortran BoxLib the grids file contains the base grid and refined grid structures.
+When initialing from a multilevel MAESTRO plotfile, there are some
+extra steps.  First, you need to create a CASTRO-compatible grids file
+from the MAESTRO plotfile.  This can be done with the {\tt
+  BoxLib/Tools/Postprocessing/F\_Src/fboxinfo.f90} utility.  Compile
+and run this using the ``\texttt{--}castro'' option, e.g.,
+``fboxinfo.Linux.gfortran.exe \texttt{--}castro pltxxxxx \texttt{|}
+tee gr0.maestro'', to generate the CASTRO-compatible grids file.  Note
+that the base grid structure is still controlled by {\bf
+  amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc., since in C++
+BoxLib, the grids file only indicates the refined grid structure,
+whereas in Fortran BoxLib the grids file contains the base grid and
+refined grid structures.
 
 Now, when you initialize the CASTRO simulation, you need to specify the grid file using {\bf amr.regrid\_file = "gr0\_3d.128\_2levels"}, for example.  You can happily run this now, but note that the regridding algorithm will never be called (since CASTRO thinks it's started a new simulation from scratch with a grids file, thus disabling the regridding).  If you wish for the grid structure to be changed, you must do a traditional CASTRO restart from the CASTRO-generated checkpoint file (you can still use the same ``.MAESTRO'' executable or an executable built with USE\_MAESTRO\_INIT=FALSE), making sure that you {\bf do not} specity {\bf amr.regrid\_file} (or else the grids will stay fixed).  You are free to specify {\bf amr.regrid\_on\_restart}, {\bf amr.compute\_new\_dt\_on\_regrid}, and {\bf amr.plotfile\_on\_restart}.
 

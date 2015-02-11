@@ -79,7 +79,7 @@ shown for comparison.
 The {\tt Verification} subdirectory includes the analytic solution for
 the Sod problem {\tt sod-exact.out}, with $\gamma = 1.4$.  1-d slices
 can be extracted from the \castro\ plotfile using the {\tt fextract} tool
-from {\tt AmrPostprocessing/F\_Src/}.  
+from {\tt BoxLib/Tools/Postprocessing/F\_Src/}.  
 The steps to generate this verification plot with \castro\ are:
 \begin{enumerate}
 \item in {\tt Exec/Sod}, build the \castro\ executable in 3-d
@@ -87,7 +87,7 @@ The steps to generate this verification plot with \castro\ are:
  {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x} \\
  {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y} \\
  {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-z}
-\item build the {\tt fextract} tool in {\tt AmrPostprocessing/F\_Src/}.  
+\item build the {\tt fextract} tool in {\tt BoxLib/Tools/Postprocessing/F\_Src/}.  
 \item run {\tt fextract} on the \castro\ output to generate 1-d slices
  through the output: \\
  {\tt fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod\_x\_plt00034} \\
@@ -294,7 +294,7 @@ domain runs from 0 to 1 in each coordinate direction.
 
 
 Analysis routines for the Sedov problem are provided in
-{\tt AmrPostprocessing/F\_Src/Castro\_hydro}.  These routines will
+{\tt Castro/Diagnostics/Sedov/}.  These routines will
 average the \castro\ solution over angles, using the proper geometric
 weighting, to produce an average profile as a function of radius.
 The following routines correspond to the inputs files described above:
@@ -330,7 +330,7 @@ the 2-d cylindrical Sedov explosion, one would do:
 \item run the spherical Sedov problem with \castro\ in 2-d cylindrical coordinates: \\
  {\tt ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph\_in\_cylcoords} 
 \item build the {\tt fsedov2d\_sph\_in\_cylcoords} tool in 
-{\tt AmrPostprocessing/F\_Src/Castro\_hydro}.  
+{\tt Castro/Diagnostics/Sedov}.  
 \item run {\tt fsedov2d\_sph\_in\_cylcoords} on the \castro\ output to generate 1-d radial
  profiles: \\
  {\tt fsedov2d\_sph\_in\_cylcoords.Linux.Intel.exe -s sedov\_2d\_sph\_in\_cyl.out $\mathtt{\backslash}$ } \\
