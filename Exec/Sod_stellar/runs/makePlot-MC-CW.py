@@ -29,7 +29,8 @@ def model():
     problems = ['test1', 'test2', 'test3', 'test4']
 
     runs = ['exact', 'MC-ev', 'CW-ev'] #, 'flash']
-
+    labels = ['exact', 'CASTRO', r'CASTRO with $1/\rho$']
+    
     markers = ["o", "x", "+", "*", "D", "h"]
     colors = ["r", "b", "c", "g", "m", "0.5"]
     symsize = [12, 12, 25, 15, 10, 10]
@@ -131,7 +132,7 @@ def model():
                 pylab.subplot(224)
 
             isym = 0
-            for r in runs:
+            for r, l in zip(runs, labels):
 
                 if v == "density":
                     varData = data[r].rho
@@ -146,7 +147,7 @@ def model():
                     pylab.plot(data[r].x, varData, label=r, c="k")
                 else:
                     pylab.plot(data[r].x, varData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
-                    pylab.scatter(data[r].x, varData, label=r, 
+                    pylab.scatter(data[r].x, varData, label=l, 
                                   marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                     isym += 1
 
@@ -249,6 +250,76 @@ def model():
         pylab.savefig("%s-MC-CW-resid.eps" % (p))
 
 
+        #----------------------------------------------------------------------
+        # T-only plot
+        #----------------------------------------------------------------------
+
+        pylab.clf()
+        
+        vars = ["temperature"]
+        units = ["(g/cc)", "(cm/s)", "(erg/cc)", "(K)"]
+
+        
+        for v in vars:
+
+            if v == "density":
+                pylab.subplot(111)
+            elif v == "velocity":
+                pylab.subplot(111)
+            elif v == "pressure":
+                pylab.subplot(111)
+            elif v == "temperature":
+                pylab.subplot(111)
+
+            isym = 0
+            for r, l in zip(runs, labels):
+
+                if v == "density":
+                    varData = data[r].rho
+                elif v == "velocity":
+                    varData = data[r].u
+                elif v == "pressure":
+                    varData = data[r].p
+                elif v == "temperature":
+                    varData = data[r].T
+
+                if (r == "exact"):
+                    pylab.plot(data[r].x, varData, label=r, c="k")
+                else:
+                    pylab.plot(data[r].x, varData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
+                    pylab.scatter(data[r].x, varData, label=l, 
+                                  marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
+                    isym += 1
+
+
+            pylab.xlabel("x")
+            pylab.ylabel(v + " " + units[vars.index(v)])
+    
+            pylab.legend(frameon=False, fontsize=9)
+
+            ax = pylab.gca()
+
+            pylab.xlim(0, xmax[p])
+
+            ax.xaxis.set_major_formatter(fmt)
+            if v == "temperature":
+                ax.set_yscale('log')
+            else:
+                ax.yaxis.set_major_formatter(fmt)
+
+
+            if p == "test4" and v in ["density", "pressure", "temperature"]:
+                ax.set_yscale('log')
+
+
+        f = pylab.gcf()
+        f.set_size_inches(5.0,6.0)
+
+        pylab.tight_layout()
+
+        print "saving figure: %s-MC-CW-%s.png" % (p, v)
+        pylab.savefig("%s-MC-CW-%s.png" % (p, v))
+        pylab.savefig("%s-MC-CW-%s.eps" % (p, v))
 
 
 

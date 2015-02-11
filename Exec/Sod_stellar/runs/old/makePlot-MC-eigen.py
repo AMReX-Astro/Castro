@@ -28,7 +28,7 @@ def model():
 
     problems = ['test1', 'test2', 'test3', 'test4']
 
-    runs = ['exact', 'MC-ppmT-I-ev', 'MC-ppmT-II-ev', 'MC-ppmT-III-ev']
+    runs = ['exact', 'MC', 'MC-ev']
 
     markers = ["o", "x", "+", "*", "D", "h"]
     colors = ["r", "b", "c", "g", "m", "0.5"]
@@ -167,15 +167,18 @@ def model():
                 ax.yaxis.set_major_formatter(fmt)
 
 
+            if p == "test4" and v in ["density", "pressure", "temperature"]:
+                ax.set_yscale('log')
+
 
         f = pylab.gcf()
         f.set_size_inches(7.0,9.0)
 
         pylab.tight_layout()
 
-        print "saving figure: %s-Tfixes.png" % (p)
-        pylab.savefig("%s-Tfixes.png" % (p))
-        pylab.savefig("%s-Tfixes.eps" % (p))
+        print "saving figure: %s-MC-eigen.png" % (p)
+        pylab.savefig("%s-MC-eigen.png" % (p))
+        pylab.savefig("%s-MC-eigen.eps" % (p))
         
 
         #----------------------------------------------------------------------    
@@ -214,7 +217,10 @@ def model():
                     pass
                 else:
                     # sanity check
-                    print "grid agreement: {}".format(numpy.max(data[r].x - data["exact"].x))
+                    if not numpy.max(data[r].x - data["exact"].x) == 0.0:
+                        print "grid differences with {}: max error = {}".format(r, numpy.max(data[r].x - data["exact"].x))
+
+
 
                     pylab.plot(data[r].x, varData-refData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                     pylab.scatter(data[r].x, varData-refData, label=r, 
@@ -241,11 +247,81 @@ def model():
 
         pylab.tight_layout()
 
-        print "saving figure: %s-Tfixes-resid.png" % (p)
-        pylab.savefig("%s-Tfixes-resid.png" % (p))
-        pylab.savefig("%s-Tfixes-resid.eps" % (p))
+        print "saving figure: %s-MC-eigen-resid.png" % (p)
+        pylab.savefig("%s-MC-eigen-resid.png" % (p))
+        pylab.savefig("%s-MC-eigen-resid.eps" % (p))
 
 
+        #----------------------------------------------------------------------
+        # T-only plot
+        #----------------------------------------------------------------------
+
+        pylab.clf()
+        
+        vars = ["temperature"]
+        units = ["(g/cc)", "(cm/s)", "(erg/cc)", "(K)"]
+
+        
+        for v in vars:
+
+            if v == "density":
+                pylab.subplot(111)
+            elif v == "velocity":
+                pylab.subplot(111)
+            elif v == "pressure":
+                pylab.subplot(111)
+            elif v == "temperature":
+                pylab.subplot(111)
+
+            isym = 0
+            for r in runs:
+
+                if v == "density":
+                    varData = data[r].rho
+                elif v == "velocity":
+                    varData = data[r].u
+                elif v == "pressure":
+                    varData = data[r].p
+                elif v == "temperature":
+                    varData = data[r].T
+
+                if (r == "exact"):
+                    pylab.plot(data[r].x, varData, label=r, c="k")
+                else:
+                    pylab.plot(data[r].x, varData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
+                    pylab.scatter(data[r].x, varData, label=r, 
+                                  marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
+                    isym += 1
+
+
+            pylab.xlabel("x")
+            pylab.ylabel(v + " " + units[vars.index(v)])
+    
+            pylab.legend(frameon=False, fontsize=9)
+
+            ax = pylab.gca()
+
+            pylab.xlim(0, xmax[p])
+
+            ax.xaxis.set_major_formatter(fmt)
+            if v == "temperature":
+                ax.set_yscale('log')
+            else:
+                ax.yaxis.set_major_formatter(fmt)
+
+
+            if p == "test4" and v in ["density", "pressure", "temperature"]:
+                ax.set_yscale('log')
+
+
+        f = pylab.gcf()
+        f.set_size_inches(5.0,6.0)
+
+        pylab.tight_layout()
+
+        print "saving figure: %s-MC-eigen-%s.png" % (p, v)
+        pylab.savefig("%s-MC-eigen-%s.png" % (p, v))
+        pylab.savefig("%s-MC-eigen-%s.eps" % (p, v))
 
 
 

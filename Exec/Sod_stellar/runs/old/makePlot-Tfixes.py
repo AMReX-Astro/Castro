@@ -28,7 +28,7 @@ def model():
 
     problems = ['test1', 'test2', 'test3', 'test4']
 
-    runs = ['exact', 'MC', 'MC-ev']
+    runs = ['exact', 'MC-ev', 'MC-ppmT-I-ev', 'MC-ppmT-II-ev', 'MC-ppmT-III-ev']
 
     markers = ["o", "x", "+", "*", "D", "h"]
     colors = ["r", "b", "c", "g", "m", "0.5"]
@@ -46,6 +46,11 @@ def model():
         print "  ..reading in data"
 
         for r in runs:
+
+            if p == "test4" and r == "MC-ppmT-III-ev":
+                print "skipping {}: {}".format(p, r)
+                continue
+
             if r == "exact":
                 modelData = dataRead.getData("exact/%s.exact.128.out" % (p))
 
@@ -133,6 +138,11 @@ def model():
             isym = 0
             for r in runs:
 
+                if p == "test4" and r == "MC-ppmT-III-ev":
+                    print "skipping {}: {}".format(p, r)
+                    continue
+
+
                 if v == "density":
                     varData = data[r].rho
                 elif v == "velocity":
@@ -173,9 +183,9 @@ def model():
 
         pylab.tight_layout()
 
-        print "saving figure: %s-MC-eigen.png" % (p)
-        pylab.savefig("%s-MC-eigen.png" % (p))
-        pylab.savefig("%s-MC-eigen.eps" % (p))
+        print "saving figure: %s-Tfixes.png" % (p)
+        pylab.savefig("%s-Tfixes.png" % (p))
+        pylab.savefig("%s-Tfixes.eps" % (p))
         
 
         #----------------------------------------------------------------------    
@@ -197,6 +207,10 @@ def model():
             isym = 0
             for r in runs:
 
+                if p == "test4" and r == "MC-ppmT-III-ev":
+                    print "skipping {}: {}".format(p, r)
+                    continue
+
                 if v == "density":
                     varData = data[r].rho
                     refData = data["exact"].rho
@@ -214,10 +228,7 @@ def model():
                     pass
                 else:
                     # sanity check
-                    if not numpy.max(data[r].x - data["exact"].x) == 0.0:
-                        print "grid differences with {}: max error = {}".format(r, numpy.max(data[r].x - data["exact"].x))
-
-
+                    print "grid agreement: {}".format(numpy.max(data[r].x - data["exact"].x))
 
                     pylab.plot(data[r].x, varData-refData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
                     pylab.scatter(data[r].x, varData-refData, label=r, 
@@ -244,9 +255,9 @@ def model():
 
         pylab.tight_layout()
 
-        print "saving figure: %s-MC-eigen-resid.png" % (p)
-        pylab.savefig("%s-MC-eigen-resid.png" % (p))
-        pylab.savefig("%s-MC-eigen-resid.eps" % (p))
+        print "saving figure: %s-Tfixes-resid.png" % (p)
+        pylab.savefig("%s-Tfixes-resid.png" % (p))
+        pylab.savefig("%s-Tfixes-resid.eps" % (p))
 
 
 

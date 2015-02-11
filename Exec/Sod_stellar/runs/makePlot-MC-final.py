@@ -28,8 +28,9 @@ def model():
 
     problems = ['test1', 'test2', 'test3', 'test4']
 
-    runs = ['exact', 'MC-ev', 'flash', 'flash-nochar']
-
+    runs = ['exact', 'MC-ev', 'flash', 'flash-nochar'] #, 'flash-nosteep']
+    labels = ['exact', 'Castro + CGF', 'Flash', 'Flash (no char limiting)']
+    
     markers = ["o", "x", "+", "*", "D", "h"]
     colors = ["r", "b", "c", "g", "m", "0.5"]
     symsize = [12, 12, 25, 15, 10, 10]
@@ -56,7 +57,8 @@ def model():
                 vars.u = modelData[:,3]
                 vars.p = modelData[:,4]
                 vars.T = modelData[:,5]
-
+                vars.e = modelData[:,6]
+                
                 data[r] = vars
 
             elif r == "flash":
@@ -70,7 +72,8 @@ def model():
                 vars.T = modelData[:,3]
                 vars.u = modelData[:,4]
                 vars.p = modelData[:,2]
-
+                vars.e = modelData[:,5]
+                
                 data[r] = vars
                 
 
@@ -85,7 +88,24 @@ def model():
                 vars.T = modelData[:,3]
                 vars.u = modelData[:,4]
                 vars.p = modelData[:,2]
+                vars.e = modelData[:,5]
+                
+                data[r] = vars
+                
 
+            elif r == "flash-nosteep":
+
+                modelData = dataRead.getData("flash/%s/flash.par.%s.nosteep.data" % (p, p))
+
+                vars = dataObj()
+
+                vars.x = modelData[:,0]
+                vars.rho = modelData[:,1]
+                vars.T = modelData[:,3]
+                vars.u = modelData[:,4]
+                vars.p = modelData[:,2]
+                vars.e = modelData[:,5]
+                
                 data[r] = vars
                 
 
@@ -109,7 +129,8 @@ def model():
                 vars.u = modelData[:,2]/modelData[:,1]
                 vars.p = modelData[:,10]
                 vars.T = modelData[:,6]
-
+                vars.e = modelData[:,5]/vars.rho
+                
                 data[r] = vars
 
 
@@ -131,22 +152,24 @@ def model():
 
         pylab.clf()
         
-        vars = ["density", "velocity", "pressure", "temperature"]
-        units = ["(g/cc)", "(cm/s)", "(erg/cc)", "(K)"]
+        vars = ["density", "velocity", "pressure", "temperature", "gammae"]
+        units = ["(g/cc)", "(cm/s)", "(erg/cc)", "(K)", ""]
 
         for v in vars:
 
             if v == "density":
-                pylab.subplot(221)
+                pylab.subplot(321)
             elif v == "velocity":
-                pylab.subplot(222)
+                pylab.subplot(322)
             elif v == "pressure":
-                pylab.subplot(223)
+                pylab.subplot(323)
             elif v == "temperature":
-                pylab.subplot(224)
-
+                pylab.subplot(324)
+            elif v == "gammae":
+                pylab.subplot(325)
+                
             isym = 0
-            for r in runs:
+            for r, l in zip(runs, labels):
 
                 if v == "density":
                     varData = data[r].rho
@@ -156,20 +179,28 @@ def model():
                     varData = data[r].p
                 elif v == "temperature":
                     varData = data[r].T
+                elif v == "gammae":
+                    varData = data[r].p/(data[r].rho * data[r].e) + 1.0                    
 
                 if (r == "exact"):
-                    pylab.plot(data[r].x, varData, label=r, c="k")
+                    pylab.plot(data[r].x, varData, label=l, c="k")
                 else:
                     pylab.plot(data[r].x, varData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
-                    pylab.scatter(data[r].x, varData, label=r, 
+                    pylab.scatter(data[r].x, varData, label=l, 
                                   marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                     isym += 1
 
 
             pylab.xlabel("x")
-            pylab.ylabel(v + " " + units[vars.index(v)])
-    
-            pylab.legend(frameon=False, fontsize=9)
+            if v == "gammae":
+                vl = r"$\gamma_e$"
+            else:
+                vl = v
+            
+            pylab.ylabel(vl + " " + units[vars.index(v)])
+
+            if v == "density":
+                pylab.legend(frameon=False, fontsize=9)
 
             ax = pylab.gca()
 
@@ -181,6 +212,9 @@ def model():
             else:
                 ax.yaxis.set_major_formatter(fmt)
 
+
+            if p == "test4" and v in ["density", "pressure", "temperature"]:
+                ax.set_yscale('log')
 
 
         f = pylab.gcf()
@@ -201,16 +235,18 @@ def model():
         for v in vars:
 
             if v == "density":
-                pylab.subplot(221)
+                pylab.subplot(321)
             elif v == "velocity":
-                pylab.subplot(222)
+                pylab.subplot(322)
             elif v == "pressure":
-                pylab.subplot(223)
+                pylab.subplot(323)
             elif v == "temperature":
-                pylab.subplot(224)
-
+                pylab.subplot(324)
+            elif v == "gammae":
+                pylab.subplot(325)
+                
             isym = 0
-            for r in runs:
+            for r, l in zip(runs, labels):
 
                 if v == "density":
                     varData = data[r].rho
@@ -224,7 +260,10 @@ def model():
                 elif v == "temperature":
                     varData = data[r].T
                     refData = data["exact"].T
-
+                elif v == "gammae":
+                    varData = data[r].p/(data[r].rho * data[r].e) + 1.0
+                    refData = data["exact"].p/(data["exact"].rho * data["exact"].e) + 1.0
+                    
                 if (r == "exact"):
                     pass
                 else:
@@ -232,18 +271,22 @@ def model():
                     if not numpy.max(data[r].x - data["exact"].x) == 0.0:
                         print "grid differences with {}: max error = {}".format(r, numpy.max(data[r].x - data["exact"].x))
 
-
-
                     pylab.plot(data[r].x, varData-refData, c=colors[isym], ls=":", zorder=-100, alpha=0.75)
-                    pylab.scatter(data[r].x, varData-refData, label=r, 
+                    pylab.scatter(data[r].x, varData-refData, label=l, 
                                   marker=markers[isym], c=colors[isym], s=7, edgecolor=colors[isym])
                     isym += 1
 
 
             pylab.xlabel("x")
-            pylab.ylabel("{} error {}".format(v, units[vars.index(v)]))
-    
-            pylab.legend(frameon=False, fontsize=9)
+            if v == "gammae":
+                vl = r"$\gamma_e$"
+            else:
+                vl = v
+
+            pylab.ylabel("{} error {}".format(vl, units[vars.index(v)]))
+
+            if v == "density":            
+                pylab.legend(frameon=False, fontsize=9)
 
             ax = pylab.gca()
 
