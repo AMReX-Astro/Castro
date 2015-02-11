@@ -50,7 +50,7 @@ contains
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision  rot(rt_l1:rt_h2,rt_l2:rt_h2,2)
+    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
