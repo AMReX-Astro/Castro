@@ -558,7 +558,7 @@
         probhi(2) = ymax_in
         probhi(3) = zmax_in
 
-        center = (problo + probhi) / TWO
+        center = 0.d0
 
       end subroutine set_problem_params
 

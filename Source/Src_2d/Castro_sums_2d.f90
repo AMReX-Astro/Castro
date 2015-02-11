@@ -263,7 +263,7 @@
                                 f2, f2_l1,f2_l2,f2_h1,f2_h2,&
                                 lo,hi,dx,product)
 
-       use prob_params_module, only : coord_type, center
+       use prob_params_module, only : coord_type
        use bl_constants_module
 
        implicit none
