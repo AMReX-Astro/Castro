@@ -1,3 +1,5 @@
+\section{Parallelization}
+
 \castro\ uses a hybrid MPI + OpenMP approach to parallelism.  The
 basic idea is that MPI is used to distribute individual boxes across
 nodes while OpenMP is used to distribute the work in local boxes to
@@ -7,7 +9,7 @@ approach, called {\em tiling}, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers.
 
 
-\section{\boxlib's Non-Tiling Approach In C++}
+\subsection{\boxlib's Non-Tiling Approach In C++}
 \label{sec:boxlib0}
 
 At the highest abstraction level, we have {\tt MultiFab} (mulitple
@@ -63,7 +65,7 @@ A few comments about this code
 \end{itemize}
 
 
-\section{\boxlib's Current Tiling Approach In C++}
+\subsection{\boxlib's Current Tiling Approach In C++}
 \label{sec:boxlib1}
 
 There are two types of tiling that people discuss.  In {\em logical
@@ -206,7 +208,7 @@ burning in cells by an implicit solver.  Tiling can also create extra
 work in the ghost cells of tiles.
 
 
-\section{Practical Details in Working with Tiling}
+\subsection{Practical Details in Working with Tiling}
 
 With tiling, the OpenMP is now all in C++, and not in Fortran for all
 modules except reactions, initdata, and boundary filling functions
