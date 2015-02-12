@@ -257,7 +257,7 @@ contains
 
           ! construct div{U}
           divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
-                 HALF*(q(i,j+1,QV) - q(i,j+1,QV))/dy
+                 HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
           
           ! find the pre- and post-shock pressures in each direction
           if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
