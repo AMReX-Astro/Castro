@@ -591,6 +591,7 @@
 
         namelist /tagging/ &
            denerr,     dengrad,   max_denerr_lev,   max_dengrad_lev, &
+           enterr,     entgrad,   max_enterr_lev,   max_entgrad_lev, &
            velerr,     velgrad,   max_velerr_lev,   max_velgrad_lev, &
            presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
            temperr,   tempgrad,  max_temperr_lev,  max_tempgrad_lev, &
@@ -601,6 +602,11 @@
         dengrad = 1.d20
         max_denerr_lev = 10
         max_dengrad_lev = 10
+
+        enterr = 1.d20
+        entgrad = 1.d20
+        max_enterr_lev = -1
+        max_entgrad_lev = -1
 
         presserr = 1.d20
         pressgrad = 1.d20
