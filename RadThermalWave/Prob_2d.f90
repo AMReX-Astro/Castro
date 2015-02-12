@@ -36,7 +36,7 @@
       Eexp = -1.d-50
       rexp = -1.d50
 
-      ! domain extrema and center
+      ! domain extrema
       xmin = problo(1)
       xmax = probhi(1)
 
