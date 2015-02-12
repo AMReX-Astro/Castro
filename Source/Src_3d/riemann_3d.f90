@@ -1,5 +1,7 @@
 module riemann_module
 
+  use bl_constants_module
+
   implicit none
 
   private
@@ -8,9 +10,9 @@ module riemann_module
 
 contains
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine cmpflx(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                     flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
@@ -53,7 +55,7 @@ contains
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
-      
+
     if(idir.eq.1) then
        do j = jlo, jhi
           do i = ilo, ihi
@@ -82,21 +84,21 @@ contains
           enddo
        enddo
     endif
-    
+
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
        ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are 
+       ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
        do j = jlo, jhi
           do i = ilo, ihi
 
              ! this is an initial guess for iterations, since we
              ! can't be certain that temp is on interfaces
-             eos_state%T = 10000.0d0   
-                              
+             eos_state%T = 10000.0d0
+
              ! minus state
              eos_state%rho = qm(i,j,kc,QRHO)
              eos_state%p   = qm(i,j,kc,QPRES)
@@ -126,7 +128,7 @@ contains
 
           enddo
        enddo
-         
+
     endif
 
     ! Solve Riemann problem
@@ -149,9 +151,110 @@ contains
 
   end subroutine cmpflx
 
-! ::: 
+
+  subroutine shock(q,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                   shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                   ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz)
+
+    use prob_params_module, only : coord_type
+    use meth_params_module, only : QU, QV, QW, QPRES, QVAR
+
+    integer, intent(in) :: qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
+    integer, intent(in) :: s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
+    integer, intent(in) :: ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
+    double precision, intent(in) :: dx, dy, dz
+    double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
+    double precision, intent(inout) :: shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
+
+    integer :: i, j, k
+
+    double precision :: divU
+    double precision :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
+    double precision :: e_x, e_y, e_z, d
+    double precision :: p_pre, p_post, pjump
+
+    double precision, parameter :: small = 1.d-10
+    double precision, parameter :: eps = 0.33d0
+
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+
+    if (coord_type /= 0) then
+       call bl_error("ERROR: invalid geometry in shock()")
+    endif
+
+    do k = ilo3-1, ihi3+1
+       do j = ilo2-1, ihi2+1
+          do i = ilo1-1, ihi1+1
+
+             ! construct div{U}
+             divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))/dx + &
+                    HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dy + &
+                    HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))/dz
+
+             ! find the pre- and post-shock pressures in each direction
+             if (q(i+1,j,k,QPRES) - q(i-1,j,k,QPRES) < ZERO) then
+                px_pre  = q(i+1,j,k,QPRES)
+                px_post = q(i-1,j,k,QPRES)
+             else
+                px_pre  = q(i-1,j,k,QPRES)
+                px_post = q(i+1,j,k,QPRES)
+             endif
+
+             if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
+                py_pre  = q(i,j+1,k,QPRES)
+                py_post = q(i,j-1,k,QPRES)
+             else
+                py_pre  = q(i,j-1,k,QPRES)
+                py_post = q(i,j+1,k,QPRES)
+             endif
+
+             if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
+                pz_pre  = q(i,j,k+1,QPRES)
+                pz_post = q(i,j,k-1,QPRES)
+             else
+                pz_pre  = q(i,j,k-1,QPRES)
+                pz_post = q(i,j,k+1,QPRES)
+             endif
+
+             ! use compression to create unit vectors for the shock direction
+             e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
+             e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
+             e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
+             d = ONE/(e_x + e_y + e_z + small)
+
+             e_x = e_x*d
+             e_y = e_y*d
+             e_z = e_z*d
+
+             ! project the pressures onto the shock direction
+             p_pre  = e_x*px_pre + e_y*py_pre + e_z*pz_pre
+             p_post = e_x*px_post + e_y*py_post + e_z*pz_post
+
+             ! test for compression + pressure jump to flag a shock
+             pjump = eps - (p_post - p_pre)/p_pre
+
+             if (pjump < ZERO .and. divU < ZERO) then
+                shk(i,j,k) = ONE
+             else
+                shk(i,j,k) = ZERO
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine shock
+
+
+
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine riemanncg(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
@@ -195,17 +298,17 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
-    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+    ! Note:  Here k3d is the k corresponding to the full 3d array --
     !         it should be used for print statements or tests against domlo, domhi, etc
-    !         kc  is the k corresponding to the 2-wide slab of k-planes, so in this routine 
-    !             it takes values only of  1 or 2 
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so in this routine
+    !             it takes values only of  1 or 2
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
-    
+
     double precision :: rgdnv,v1gdnv,v2gdnv,ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
@@ -249,7 +352,7 @@ contains
 
           ! left state
           rl = max(ql(i,j,kc,QRHO),small_dens)
-          
+
           ! pick left velocities based on direction
           if(idir.eq.1) then
              ul  = ql(i,j,kc,QU)
@@ -264,7 +367,7 @@ contains
              v1l = ql(i,j,kc,QU)
              v2l = ql(i,j,kc,QV)
           endif
-          
+
           pl  = ql(i,j,kc,QPRES)
           rel = ql(i,j,kc,QREINT)
           gcl = gamcl(i,j)
@@ -289,7 +392,7 @@ contains
 
           ! right state
           rr = max(qr(i,j,kc,QRHO),small_dens)
-          
+
           ! pick right velocities based on direction
           if(idir.eq.1) then
              ur  = qr(i,j,kc,QU)
@@ -304,7 +407,7 @@ contains
              v1r = qr(i,j,kc,QU)
              v2r = qr(i,j,kc,QV)
           endif
-          
+
           pr  = qr(i,j,kc,QPRES)
           rer = qr(i,j,kc,QREINT)
           gcr = gamcr(i,j)
@@ -324,15 +427,15 @@ contains
              gcr = eos_state%gam1
           endif
 
-            
+
           ! common quantities
           taul = ONE/rl
           taur = ONE/rr
-          
+
           ! lagrangian sound speeds
           clsql = gcl*pl*rl
           clsqr = gcr*pr*rr
-          
+
 
           ! Note: in the original Colella & Glaz paper, they predicted
           ! gamma_e to the interfaces using a special (non-hyperbolic)
@@ -341,23 +444,23 @@ contains
           ! what we have on the interfaces.
           gamel = pl/rel + ONE
           gamer = pr/rer + ONE
-          
+
           ! these should consider a wider average of the cell-centered
           ! gammas
           gmin = min(gamel, gamer, ONE, FOUR3RD)
           gmax = max(gamel, gamer, TWO, FIVE3RD)
-          
+
           game_bar = HALF*(gamel + gamer)
           gamc_bar = HALF*(gcl + gcr)
-          
+
           gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
-          
+
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
           wl = max(wsmall,sqrt(abs(clsql)))
           wr = max(wsmall,sqrt(abs(clsqr)))
-          
-          ! make an initial guess for pstar -- this is a two-shock 
+
+          ! make an initial guess for pstar -- this is a two-shock
           ! approximation
           !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
@@ -391,7 +494,7 @@ contains
           converged = .false.
           iter = 1
           do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
-               
+
              call wsqge(pl,taul,gamel,gdot,  &
                         gamstar,pstar,wlsq,clsql,gmin,gmax)
 
@@ -401,15 +504,15 @@ contains
              ! NOTE: these are really the inverses of the wave speeds!
              wl = ONE / sqrt(wlsq)
              wr = ONE / sqrt(wrsq)
-             
+
              ustnm1 = ustarm
              ustnp1 = ustarp
-             
+
              ustarm = ur-(pr-pstar)*wr
              ustarp = ul+(pl-pstar)*wl
-             
+
              dpditer=abs(pstnm1-pstar)
-             
+
              ! Here we are going to do the Secant iteration version in
              ! CG.  Note that what we call zp and zm here are not
              ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
@@ -418,12 +521,12 @@ contains
              if(zp-weakwv*cav(i,j) <= ZERO)then
                 zp = dpditer*wl
              endif
-             
+
              zm=abs(ustarm-ustnm1)
              if(zm-weakwv*cav(i,j) <= ZERO)then
                 zm = dpditer*wr
              endif
-             
+
              ! the new pstar is found via CG Eq. 18
              denom=dpditer/max(zp+zm,small*(cav(i,j)))
              pstnm1 = pstar
@@ -436,7 +539,7 @@ contains
              pstar_hist(iter) = pstar
 
              iter = iter + 1
-             
+
           enddo
 
           if (.not. converged) then
@@ -450,19 +553,19 @@ contains
              print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
-          
-          
+
+
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves, using the updated wave speeds
           ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-          ustarp = ul+(pl-pstar)*wl            
+          ustarp = ul+(pl-pstar)*wl
 
           ustar = HALF* ( ustarp + ustarm )
 
-          
+
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
-          ! worry about the L/L* states or the R*/R states.  
+          ! worry about the L/L* states or the R*/R states.
           if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
@@ -470,7 +573,7 @@ contains
              tauo = taul
              gamco = gcl
              gameo = gamel
-             
+
           else if (ustar .lt. ZERO) then
              ro = rr
              uo = ur
@@ -490,19 +593,19 @@ contains
           ! use tau = 1/rho as the independent variable here
           ro = max(small_dens,ONE/tauo)
           tauo = ONE/ro
-         
+
           co = sqrt(abs(gamco*po/ro))
           co = max(csmall,co)
           clsq = (co*ro)**2
 
-          ! now that we know which state (left or right) we need to worry 
+          ! now that we know which state (left or right) we need to worry
           ! about, get the value of gamstar and wosq across the wave we
           ! are dealing with.
           call wsqge(po,tauo,gameo,gdot,   &
                      gamstar,pstar,wosq,clsq,gmin,gmax)
 
           sgnm = sign(ONE,ustar)
-          
+
           wo = sqrt(wosq)
           dpjmp = pstar - po
 
@@ -514,14 +617,14 @@ contains
 
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
-          
-          
+
+
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
-          
+
           !ushock = HALF*(spin + spout)
           ushock = wo/ro - sgnm*uo
-          
+
           if (pstar-po .ge. ZERO) then
              spin = ushock
              spout = ushock
@@ -551,10 +654,10 @@ contains
 
           ! linearly interpolate between the star and normal state -- this covers the
           ! case where we are inside the rarefaction fan.
-          rgdnv = frac*rstar + (ONE - frac)*ro          
+          rgdnv = frac*rstar + (ONE - frac)*ro
           ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
-          gamgdnv =  frac*gamstar + (ONE-frac)*gameo          
+          gamgdnv =  frac*gamstar + (ONE-frac)*gameo
 
           ! now handle the cases where instead we are fully in the
           ! star or fully in the original (l/r) state
@@ -572,7 +675,7 @@ contains
           endif
 
           gegdnv(i,j,kc) = gamgdnv
-          
+
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
@@ -609,7 +712,7 @@ contains
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
-          
+
           if(idir.eq.1) then
              uflx(i,j,kflux,UMX) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
              uflx(i,j,kflux,UMY) = uflx(i,j,kflux,URHO)*v1gdnv
@@ -644,11 +747,11 @@ contains
              else
                 qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
              endif
-             
+
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             
+
              rho_K_contrib =  TWO3RD * rgdnv * qavg
-             
+
              if(idir.eq.1) then
                 uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
              elseif(idir.eq.2) then
@@ -656,7 +759,7 @@ contains
              elseif(idir.eq.3) then
                 uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,UMZ) + rho_K_contrib
              endif
-             
+
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
 
@@ -674,7 +777,7 @@ contains
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-          
+
        enddo
     enddo
 
@@ -683,7 +786,7 @@ contains
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
     use bl_constants_module
-    
+
     implicit none
 
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
@@ -711,7 +814,7 @@ contains
     ! else
     !    divide=pstar-p
     ! endif
-    
+
     ! temp=temp/divide
     ! wsq = wsq/(v - temp*p*v)
 
@@ -726,13 +829,13 @@ contains
        wsq = csq
     endif
     wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
-    
+
     return
   end subroutine wsqge
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine riemannus(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
@@ -756,7 +859,7 @@ contains
     integer :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
-    
+
     double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
@@ -767,8 +870,8 @@ contains
     double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    
-    ! Note:  Here k3d is the k corresponding to the full 3d array -- 
+
+    ! Note:  Here k3d is the k corresponding to the full 3d array --
     !         it should be used for print statements or tests against domlo, domhi, etc
     !         kc  is the k corresponding to the 2-wide slab of k-planes, so takes values
     !             only of 1 or 2
@@ -778,7 +881,7 @@ contains
     integer :: i,j,kc,kflux,k3d, ipassive
     integer :: n, nq
     integer :: iadv, ispec, iaux
-    
+
     double precision :: rgdnv,v1gdnv,v2gdnv,regdnv,ustar
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
@@ -788,7 +891,7 @@ contains
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
-    
+
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -808,12 +911,12 @@ contains
              v1l = ql(i,j,kc,QU)
              v2l = ql(i,j,kc,QV)
           endif
-          
+
           pl  = max(ql(i,j,kc,QPRES ),small_pres)
           rel =     ql(i,j,kc,QREINT)
-          
+
           rr = max(qr(i,j,kc,QRHO),small_dens)
-          
+
           ! pick right velocities based on direction
           if(idir.eq.1) then
              ur  = qr(i,j,kc,QU)
@@ -828,7 +931,7 @@ contains
              v1r = qr(i,j,kc,QU)
              v2r = qr(i,j,kc,QV)
           endif
-          
+
           pr  = max(qr(i,j,kc,QPRES),small_pres)
           rer =     qr(i,j,kc,QREINT)
 
@@ -836,11 +939,11 @@ contains
           wsmall = small_dens*csmall
           wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
           wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
-          
+
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
           pstar = max(pstar,small_pres)
-          
+
           if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
@@ -861,7 +964,7 @@ contains
              gamco = HALF*(gamcl(i,j)+gamcr(i,j))
           endif
           ro = max(small_dens,ro)
-          
+
           co = sqrt(abs(gamco*po/ro))
           co = max(csmall,co)
           entho = (reo/ro + po/ro)/co**2
@@ -870,7 +973,7 @@ contains
           estar = reo + (pstar - po)*entho
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
-          
+
           sgnm = sign(ONE,ustar)
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
@@ -886,7 +989,7 @@ contains
           endif
           frac = (ONE + (spout + spin)/scr)*HALF
           frac = max(ZERO,min(ONE,frac))
-          
+
           if (ustar .gt. ZERO) then
              v1gdnv = v1l
              v2gdnv = v2l
@@ -898,10 +1001,10 @@ contains
              v2gdnv = HALF*(v2l+v2r)
           endif
           rgdnv = frac*rstar + (ONE - frac)*ro
-          
+
           ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
-          
+
           regdnv = frac*estar + (ONE - frac)*reo
           if (spout .lt. ZERO) then
              rgdnv = ro
@@ -915,11 +1018,11 @@ contains
              pgdnv(i,j,kc) = pstar
              regdnv = estar
           endif
-          
+
           gegdnv(i,j,kc) = pgdnv(i,j,kc)/regdnv + 1.0d0
 
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
-            
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if (idir .eq. 1) then
              if (i.eq.domlo(1) .and. &
@@ -951,10 +1054,10 @@ contains
                   physbc_hi(3) .eq. NoSlipWall) ) &
                   ugdnv(i,j,kc) = ZERO
           end if
-          
+
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
-          
+
           if(idir.eq.1) then
              uflx(i,j,kflux,UMX) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
              uflx(i,j,kflux,UMY) = uflx(i,j,kflux,URHO)*v1gdnv
@@ -968,12 +1071,12 @@ contains
              uflx(i,j,kflux,UMY) = uflx(i,j,kflux,URHO)*v2gdnv
              uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
           endif
-          
+
           rhoetot = regdnv + HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
-          
+
           ! Treat K as a passively advected quantity but allow it to affect fluxes of (rho E) and momenta.
           if (UESGS .gt. -1) then
              n  = UESGS
@@ -985,11 +1088,11 @@ contains
              else
                 qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
              endif
-             
+
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-             
+
              rho_K_contrib =  TWO3RD * rgdnv * qavg
-             
+
              if(idir.eq.1) then
                 uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
              elseif(idir.eq.2) then
@@ -997,10 +1100,10 @@ contains
              elseif(idir.eq.3) then
                 uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,UMZ) + rho_K_contrib
              endif
-             
+
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
-          
+
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
              nq = qpass_map(ipassive)
@@ -1014,10 +1117,10 @@ contains
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-                    
+
        enddo
     enddo
-    
+
   end subroutine riemannus
 
 end module riemann_module
