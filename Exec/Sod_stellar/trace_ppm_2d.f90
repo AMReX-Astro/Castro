@@ -360,12 +360,12 @@ contains
           if (ppm_temp_fix < 3) then
              ! we are relying on tau as built from the reconstructed rho
              ! parabolas
-             dtau  = (tau_ref  - 1.0d0/Im(i,j,1,2,QRHO))
+             dtau  = tau_ref  - 1.0d0/Im(i,j,1,2,QRHO)
           else
              ! we are directly reconstructing tau as parabola
-             dtaum  = (tau_ref  - Im_tau(i,j,1,1,1))
-             dtau  = (tau_ref  - Im_tau(i,j,1,2,1))
-             dtaup  = (tau_ref  - Im_tau(i,j,1,3,1))
+             dtaum  = tau_ref  - Im_tau(i,j,1,1,1)
+             dtau  = tau_ref  - Im_tau(i,j,1,2,1)
+             dtaup  = tau_ref  - Im_tau(i,j,1,3,1)
           endif
 
           ! if we are doing gravity tracing, then we add the force to
@@ -705,11 +705,11 @@ contains
           if (ppm_temp_fix < 3) then
              ! we are relying on tau as built from the reconstructed rho
              ! parabolas
-             dtau  = (tau_ref  - 1.0d0/Ip(i,j,1,2,QRHO))
+             dtau  = tau_ref  - 1.0d0/Ip(i,j,1,2,QRHO)
           else
-             dtaum  = (tau_ref  - Ip_tau(i,j,1,1,1))
-             dtau  = (tau_ref  - Ip_tau(i,j,1,2,1))
-             dtaup  = (tau_ref  - Ip_tau(i,j,1,3,1))
+             dtaum  = tau_ref  - Ip_tau(i,j,1,1,1)
+             dtau  = tau_ref  - Ip_tau(i,j,1,2,1)
+             dtaup  = tau_ref  - Ip_tau(i,j,1,3,1)
           endif
 
           ! if we are doing gravity tracing, then we add the force to
@@ -1301,7 +1301,7 @@ contains
                 qyp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
                 
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
-                qyp(i,j,QREINT) = xi1*rhoe + xi*e_s/tau_s
+                qyp(i,j,QREINT) = e_s/tau_s
 
              endif
 
