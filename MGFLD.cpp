@@ -790,150 +790,152 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 			      const MultiFab& kappa_p, const MultiFab& jg, 
 			      const MultiFab& mugT, const MultiFab& mugY, 
 			      const MultiFab& S_new, 
-			      int level, const BoxArray& grids, Real delta_t, Real ptc_tau,
+			      int level, Real delta_t, Real ptc_tau,
 			      int it, bool conservative_update)
 {
-  for (MFIter mfi(rhoe_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i]; 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox(); 
 
 #ifdef NEUTRINO    
-    if (conservative_update) {
-      BL_FORT_PROC_CALL(CA_UPDATE_MATTER_NEUT, ca_update_matter_neut)
-	(bx.loVect(), bx.hiVect(),
-	 BL_TO_FORTRAN(rhoe_new[mfi]),
-	 BL_TO_FORTRAN(rhoYe_new[mfi]),
-	 BL_TO_FORTRAN(Ye_new[mfi]),
-	 BL_TO_FORTRAN(Er_new[mfi]),
-	 BL_TO_FORTRAN(Er_pi[mfi]),
-	 BL_TO_FORTRAN(rhoe_star[mfi]),
-	 BL_TO_FORTRAN(rhoYe_star[mfi]),
-	 BL_TO_FORTRAN(rhoe_step[mfi]),
-	 BL_TO_FORTRAN(rhoYe_step[mfi]),
-	 BL_TO_FORTRAN(etaT[mfi]),
-	 BL_TO_FORTRAN(etaY[mfi]),
-	 BL_TO_FORTRAN(eta1[mfi]),
-	 BL_TO_FORTRAN(thetaT[mfi]),
-	 BL_TO_FORTRAN(thetaY[mfi]),
-	 BL_TO_FORTRAN(theta1[mfi]),
-	 BL_TO_FORTRAN(coupT[mfi]),
-	 BL_TO_FORTRAN(coupY[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(mugT[mfi]),
-	 BL_TO_FORTRAN(mugY[mfi]),
-	 BL_TO_FORTRAN(S_new[mfi]),
-	 &delta_t, &ptc_tau);
+	if (conservative_update) {
+	    BL_FORT_PROC_CALL(CA_UPDATE_MATTER_NEUT, ca_update_matter_neut)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(rhoe_new[mfi]),
+		 BL_TO_FORTRAN(rhoYe_new[mfi]),
+		 BL_TO_FORTRAN(Ye_new[mfi]),
+		 BL_TO_FORTRAN(Er_new[mfi]),
+		 BL_TO_FORTRAN(Er_pi[mfi]),
+		 BL_TO_FORTRAN(rhoe_star[mfi]),
+		 BL_TO_FORTRAN(rhoYe_star[mfi]),
+		 BL_TO_FORTRAN(rhoe_step[mfi]),
+		 BL_TO_FORTRAN(rhoYe_step[mfi]),
+		 BL_TO_FORTRAN(etaT[mfi]),
+		 BL_TO_FORTRAN(etaY[mfi]),
+		 BL_TO_FORTRAN(eta1[mfi]),
+		 BL_TO_FORTRAN(thetaT[mfi]),
+		 BL_TO_FORTRAN(thetaY[mfi]),
+		 BL_TO_FORTRAN(theta1[mfi]),
+		 BL_TO_FORTRAN(coupT[mfi]),
+		 BL_TO_FORTRAN(coupY[mfi]),
+		 BL_TO_FORTRAN(kappa_p[mfi]),
+		 BL_TO_FORTRAN(mugT[mfi]),
+		 BL_TO_FORTRAN(mugY[mfi]),
+		 BL_TO_FORTRAN(S_new[mfi]),
+		 &delta_t, &ptc_tau);
 
-      if (radiation_type == Neutrino) { 
-	BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(temp_new[mfi]), 
-	   BL_TO_FORTRAN(rhoe_new[mfi]),
-	   BL_TO_FORTRAN(Ye_new[mfi]),
-	   BL_TO_FORTRAN(S_new[mfi]));
-      }
-      else {
-	temp_new[mfi].copy(rhoe_new[mfi]);
-
-	if (do_real_eos > 0) {
-	  BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-	    (bx.loVect(), bx.hiVect(), 
-	     BL_TO_FORTRAN(temp_new[mfi]), 
-	     BL_TO_FORTRAN(S_new[mfi]));
-	}
-	else if (do_real_eos == 0) {
-	  BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-	    (bx.loVect(), bx.hiVect(), 
-	     BL_TO_FORTRAN(temp_new[mfi]), 
-	     BL_TO_FORTRAN(S_new[mfi]),
-	     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+	    if (radiation_type == Neutrino) { 
+		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(temp_new[mfi]), 
+		     BL_TO_FORTRAN(rhoe_new[mfi]),
+		     BL_TO_FORTRAN(Ye_new[mfi]),
+		     BL_TO_FORTRAN(S_new[mfi]));
+	    }
+	    else {
+		temp_new[mfi].copy(rhoe_new[mfi],bx);
+		
+		if (do_real_eos > 0) {
+		    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
+			(bx.loVect(), bx.hiVect(), 
+			 BL_TO_FORTRAN(temp_new[mfi]), 
+			 BL_TO_FORTRAN(S_new[mfi]));
+		}
+		else if (do_real_eos == 0) {
+		    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
+			(bx.loVect(), bx.hiVect(), 
+			 BL_TO_FORTRAN(temp_new[mfi]), 
+			 BL_TO_FORTRAN(S_new[mfi]),
+			 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		}
+		else {
+		    BoxLib::Error("ERROR Radiation::do_real_eos < 0");
+		}
+	    }
 	}
 	else {
-	  BoxLib::Error("ERROR Radiation::do_real_eos < 0");
+	    BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER_NEUT, ca_ncupdate_matter_neut)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(temp_new[mfi]),
+		 BL_TO_FORTRAN(Ye_new[mfi]),
+		 BL_TO_FORTRAN(Er_new[mfi]),
+		 BL_TO_FORTRAN(rhoe_star[mfi]),
+		 BL_TO_FORTRAN(rhoYe_star[mfi]),
+		 BL_TO_FORTRAN(rhoe_step[mfi]),
+		 BL_TO_FORTRAN(rhoYe_step[mfi]),
+		 BL_TO_FORTRAN(etaTz[mfi]),
+		 BL_TO_FORTRAN(etaYz[mfi]),
+		 BL_TO_FORTRAN(thetaTz[mfi]),
+		 BL_TO_FORTRAN(thetaYz[mfi]),
+		 BL_TO_FORTRAN(kappa_p[mfi]),
+		 BL_TO_FORTRAN(jg[mfi]),
+		 &delta_t);
+	    
+	    BL_FORT_PROC_CALL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(rhoe_new[mfi]),
+		 BL_TO_FORTRAN(rhoYe_new[mfi]),
+		 BL_TO_FORTRAN(temp_new[mfi]), 
+		 BL_TO_FORTRAN(Ye_new[mfi]),
+		 BL_TO_FORTRAN(S_new[mfi]));
 	}
-      }
-    }
-    else {
-      BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER_NEUT, ca_ncupdate_matter_neut)
-	(bx.loVect(), bx.hiVect(),
-	 BL_TO_FORTRAN(temp_new[mfi]),
-	 BL_TO_FORTRAN(Ye_new[mfi]),
-	 BL_TO_FORTRAN(Er_new[mfi]),
-	 BL_TO_FORTRAN(rhoe_star[mfi]),
-	 BL_TO_FORTRAN(rhoYe_star[mfi]),
-	 BL_TO_FORTRAN(rhoe_step[mfi]),
-	 BL_TO_FORTRAN(rhoYe_step[mfi]),
-	 BL_TO_FORTRAN(etaTz[mfi]),
-	 BL_TO_FORTRAN(etaYz[mfi]),
-	 BL_TO_FORTRAN(thetaTz[mfi]),
-	 BL_TO_FORTRAN(thetaYz[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(jg[mfi]),
-	 &delta_t);
-
-      BL_FORT_PROC_CALL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
-      	(bx.loVect(), bx.hiVect(),
-      	 BL_TO_FORTRAN(rhoe_new[mfi]),
-      	 BL_TO_FORTRAN(rhoYe_new[mfi]),
-      	 BL_TO_FORTRAN(temp_new[mfi]), 
-      	 BL_TO_FORTRAN(Ye_new[mfi]),
-      	 BL_TO_FORTRAN(S_new[mfi]));
-    }
 #else
-    if (conservative_update) {
-      BL_FORT_PROC_CALL(CA_UPDATE_MATTER, ca_update_matter)
-	(bx.loVect(), bx.hiVect(),
-	 BL_TO_FORTRAN(rhoe_new[mfi]),
-	 BL_TO_FORTRAN(Er_new[mfi]),
-	 BL_TO_FORTRAN(Er_pi[mfi]),
-	 BL_TO_FORTRAN(rhoe_star[mfi]),
-	 BL_TO_FORTRAN(rhoe_step[mfi]),
-	 BL_TO_FORTRAN(eta1[mfi]),
-	 BL_TO_FORTRAN(coupT[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(mugT[mfi]),
-	 BL_TO_FORTRAN(S_new[mfi]),
-	 &delta_t, &ptc_tau);
-      
-      temp_new[mfi].copy(rhoe_new[mfi]);
+	if (conservative_update) {
+	    BL_FORT_PROC_CALL(CA_UPDATE_MATTER, ca_update_matter)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(rhoe_new[mfi]),
+		 BL_TO_FORTRAN(Er_new[mfi]),
+		 BL_TO_FORTRAN(Er_pi[mfi]),
+		 BL_TO_FORTRAN(rhoe_star[mfi]),
+		 BL_TO_FORTRAN(rhoe_step[mfi]),
+		 BL_TO_FORTRAN(eta1[mfi]),
+		 BL_TO_FORTRAN(coupT[mfi]),
+		 BL_TO_FORTRAN(kappa_p[mfi]),
+		 BL_TO_FORTRAN(mugT[mfi]),
+		 BL_TO_FORTRAN(S_new[mfi]),
+		 &delta_t, &ptc_tau);
+	    
+	    temp_new[mfi].copy(rhoe_new[mfi],bx);
 
-      if (do_real_eos > 0) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-	  (bx.loVect(), bx.hiVect(), 
-	   BL_TO_FORTRAN(temp_new[mfi]), 
-	   BL_TO_FORTRAN(S_new[mfi]));
-      }
-      else if (do_real_eos == 0) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-	  (bx.loVect(), bx.hiVect(), 
-	   BL_TO_FORTRAN(temp_new[mfi]), 
-	   BL_TO_FORTRAN(S_new[mfi]),
-	   &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
-      }
-      else {
-	BoxLib::Error("ERROR Radiation::do_real_eos < 0");
-      }
-    }
-    else {
-      BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
-	(bx.loVect(), bx.hiVect(),
-	 BL_TO_FORTRAN(temp_new[mfi]),
-	 BL_TO_FORTRAN(Er_new[mfi]),
-	 BL_TO_FORTRAN(rhoe_star[mfi]),
-	 BL_TO_FORTRAN(rhoe_step[mfi]),
-	 BL_TO_FORTRAN(etaTz[mfi]),
-	 BL_TO_FORTRAN(kappa_p[mfi]),
-	 BL_TO_FORTRAN(jg[mfi]),
-	 &delta_t);
-
-      BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
-      	(bx.loVect(), bx.hiVect(),
-      	 BL_TO_FORTRAN(rhoe_new[mfi]),
-      	 BL_TO_FORTRAN(temp_new[mfi]), 
-      	 BL_TO_FORTRAN(S_new[mfi]));
-    }
+	    if (do_real_eos > 0) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
+		    (bx.loVect(), bx.hiVect(), 
+		     BL_TO_FORTRAN(temp_new[mfi]), 
+		     BL_TO_FORTRAN(S_new[mfi]));
+	    }
+	    else if (do_real_eos == 0) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
+		    (bx.loVect(), bx.hiVect(), 
+		     BL_TO_FORTRAN(temp_new[mfi]), 
+		     BL_TO_FORTRAN(S_new[mfi]),
+		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+	    }
+	    else {
+		BoxLib::Error("ERROR Radiation::do_real_eos < 0");
+	    }
+	}
+	else {
+	    BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(temp_new[mfi]),
+		 BL_TO_FORTRAN(Er_new[mfi]),
+		 BL_TO_FORTRAN(rhoe_star[mfi]),
+		 BL_TO_FORTRAN(rhoe_step[mfi]),
+		 BL_TO_FORTRAN(etaTz[mfi]),
+		 BL_TO_FORTRAN(kappa_p[mfi]),
+		 BL_TO_FORTRAN(jg[mfi]),
+		 &delta_t);
+	    
+	    BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(rhoe_new[mfi]),
+		 BL_TO_FORTRAN(temp_new[mfi]), 
+		 BL_TO_FORTRAN(S_new[mfi]));
+	}
 #endif
-  }  
+    }  
 }
 
 // ========================================================================

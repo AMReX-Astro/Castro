@@ -378,7 +378,7 @@ protected:
 		     const MultiFab& kappa_p, const MultiFab& jg, 
 		     const MultiFab& mugT, const MultiFab& mugY, 
 		     const MultiFab& S_new, 
-		     int level, const BoxArray& grids, Real delta_t, 
+		     int level, Real delta_t, 
 		     Real ptc_tau, int it, bool conservative_update);
   void bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
 		     MultiFab& rhoYe_new, MultiFab& Ye_new, 

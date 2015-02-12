@@ -493,7 +493,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 		  thetaT, thetaTz, thetaY, thetaYz, theta1,
 		  coupT, coupY,
 		  kappa_p, jg, mugT, mugY,
-		  S_new, level, grids, delta_t, ptc_tau, it, conservative_update);
+		  S_new, level, delta_t, ptc_tau, it, conservative_update);
 
     if (verbose >= 2 && radiation_type == Neutrino) {
       Real yemin = Ye_new.min(0);
