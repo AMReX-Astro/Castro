@@ -1315,7 +1315,7 @@ subroutine ca_compute_powerlaw_kappa_s( lo, hi,  &
 
   if (  m.eq.0.d0 .and.  n.eq.0.d0 .and.  p.eq.0.d0 .and. &
        sm.eq.0.d0 .and. sn.eq.0.d0 .and. sp.eq.0.d0 ) then
-     kappa = kappa0 + s0
+     kappa(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = kappa0 + s0
   else
      do g = 0, ngroups-1
         nup = nugroup(g)**p
@@ -1359,7 +1359,7 @@ subroutine ca_compute_powerlaw_kappa( lo, hi,  &
   double precision :: Teff, kf, nup
 
   if (  m.eq.0.d0 .and.  n.eq.0.d0 .and.  p.eq.0.d0 ) then
-     kappa = kappa0
+     kappa(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = kappa0
   else
      do g = 0, ngroups-1
         nup = nugroup(g)**p

@@ -1078,42 +1078,45 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 
 void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state)
 {
-  BL_PROFILE("Radiation::MGFLD_compute_rosseland (MultiFab)");
+    BL_PROFILE("Radiation::MGFLD_compute_rosseland (MultiFab)");
 
-  for (MFIter mfi(kappa_r); mfi.isValid(); ++mfi) {
-    const Box& kbox = kappa_r[mfi].box();
-#ifdef NEUTRINO
-    if (radiation_type == Neutrino) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
-	  (kbox.loVect(), kbox.hiVect(),
-	   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
-    }
-    else {
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-      if (use_opacity_table_module) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	    (kbox.loVect(), kbox.hiVect(),
-	     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
-      }
-      else if (const_kappa_r[0] < 0.0) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
-	    (kbox.loVect(), kbox.hiVect(),
-	     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-	     &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
-	     &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
-	     &prop_temp_floor[0], &kappa_r_floor);	 
-      }
-      else {
-	BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-	    (kbox.loVect(), kbox.hiVect(),
-	     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-	     &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
-	     &prop_temp_floor[0], &kappa_r_floor);	 
-      }
+    for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.growntilebox();
 #ifdef NEUTRINO
-    }
+	if (radiation_type == Neutrino) {
+	    BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
+	}
+	else {
 #endif
-  }
+	    if (use_opacity_table_module) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
+	    }
+	    else if (const_kappa_r[0] < 0.0) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+		     &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
+		     &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
+		     &prop_temp_floor[0], &kappa_r_floor);	 
+	    }
+	    else {
+		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+		     &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
+		     &prop_temp_floor[0], &kappa_r_floor);	 
+	    }
+#ifdef NEUTRINO
+	}
+#endif
+    }
 }
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
