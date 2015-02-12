@@ -33,7 +33,7 @@
         real*8 spec(sboxl0:sboxh0)
         integer i
         if (idim .eq. 0) then
-           do i = regl0, regh0 + 1
+           do i = regl0, regh0
               bcoef(i) = bcoef(i) &
                  + 0.5d0 * (spec(i-1) + spec(i)) * bcgrp(i)
            enddo

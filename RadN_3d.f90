@@ -60,7 +60,7 @@
         if (idim .eq. 0) then
            do k = regl2, regh2
            do j = regl1, regh1
-           do i = regl0, regh0 + 1
+           do i = regl0, regh0
               bcoef(i,j,k) = bcoef(i,j,k) &
                  + 0.5d0 * (spec(i-1,j,k) + spec(i,j,k)) * bcgrp(i,j,k)
            enddo
@@ -68,7 +68,7 @@
            enddo
         else if (idim .eq. 1) then
            do k = regl2, regh2
-           do j = regl1, regh1 + 1
+           do j = regl1, regh1
            do i = regl0, regh0
               bcoef(i,j,k) = bcoef(i,j,k) &
                  + 0.5d0 * (spec(i,j-1,k) + spec(i,j,k)) * bcgrp(i,j,k)
@@ -76,7 +76,7 @@
            enddo
            enddo
         else
-           do k = regl2, regh2 + 1
+           do k = regl2, regh2
            do j = regl1, regh1
            do i = regl0, regh0
               bcoef(i,j,k) = bcoef(i,j,k) &

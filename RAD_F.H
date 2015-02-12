@@ -690,7 +690,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
 
 // other functions that work for both neutrino and photons
 BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
-   (const BL_FORT_FAB_ARG(bcgr),
+   (const int* lo, const int *hi, 
+    const BL_FORT_FAB_ARG(bcgr),
     const BL_FORT_FAB_ARG(spec),
     BL_FORT_FAB_ARG(ccoe),
     const Real* dx, const int* idim, const int* igroup);

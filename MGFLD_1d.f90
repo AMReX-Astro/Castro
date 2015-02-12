@@ -1041,7 +1041,7 @@ end subroutine ca_compute_planck
 
 ! other routines that work for both photon and neutrinos
 
-subroutine ca_accel_ccoe(  &
+subroutine ca_accel_ccoe( lo, hi, &
      bcgr, bcgr_l1, bcgr_h1,  &
      spec, spec_l1, spec_h1,  &
      ccoe, ccoe_l1, ccoe_h1,  &
@@ -1051,6 +1051,7 @@ subroutine ca_accel_ccoe(  &
 
   implicit none
 
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: bcgr_l1, bcgr_h1
   integer, intent(in) :: spec_l1, spec_h1
   integer, intent(in) :: ccoe_l1, ccoe_h1
@@ -1063,7 +1064,7 @@ subroutine ca_accel_ccoe(  &
   integer :: i
   double precision :: grad_spec, foo
 
-  do i = ccoe_l1, ccoe_h1
+  do i = lo(1), hi(1)
      grad_spec = (spec(i,igroup) - spec(i-1,igroup)) / dx(1)
      foo = - 0.5d0 * bcgr(i) * grad_spec
      ccoe(i,0) = ccoe(i,0) + foo

@@ -45,13 +45,13 @@
         integer i, j
         if (idim .eq. 0) then
            do j = regl1, regh1
-           do i = regl0, regh0 + 1
+           do i = regl0, regh0
               bcoef(i,j) = bcoef(i,j) &
                  + 0.5d0 * (spec(i-1,j) + spec(i,j)) * bcgrp(i,j)
            enddo
            enddo
         else
-           do j = regl1, regh1 + 1
+           do j = regl1, regh1
            do i = regl0, regh0
               bcoef(i,j) = bcoef(i,j) &
                  + 0.5d0 * (spec(i,j-1) + spec(i,j)) * bcgrp(i,j)

@@ -578,25 +578,27 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 			    lambda[idim], igroup, c, geom);
       // metrics is already in bcgrp
 
-      for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	const Box& reg  = grids[i];
-	const Box& bbox = bcoefs[idim][mfi].box();
-	const Box& sbox = spec[mfi].box();
-	FORT_LBCOEFNA(bcoefs[idim][mfi].dataPtr(),
-		      bcgrp[idim][mfi].dataPtr(),
-		      dimlist(bbox), dimlist(reg),
-		      spec[mfi].dataPtr(igroup), dimlist(sbox),
-		      idim);
-
-	if (nGroups > 1) {
-	  BL_FORT_PROC_CALL(CA_ACCEL_CCOE, ca_accel_ccoe)
-	    (BL_TO_FORTRAN(bcgrp[idim][mfi]),
-	     BL_TO_FORTRAN(spec[mfi]),
-	     BL_TO_FORTRAN(ccoefs[idim][mfi]),
-	     dx, &idim, &igroup);
-	}
-
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
+	  const Box&  bx  = mfi.nodaltilebox(idim);
+	  const Box& bbox = bcoefs[idim][mfi].box();
+	  const Box& sbox = spec[mfi].box();
+	  FORT_LBCOEFNA(bcoefs[idim][mfi].dataPtr(),
+			bcgrp[idim][mfi].dataPtr(),
+			dimlist(bbox), dimlist(bx),
+			spec[mfi].dataPtr(igroup), dimlist(sbox),
+			idim);
+	  
+	  if (nGroups > 1) {
+	      BL_FORT_PROC_CALL(CA_ACCEL_CCOE, ca_accel_ccoe)
+		  (bx.loVect(), bx.hiVect(),
+		   BL_TO_FORTRAN(bcgrp[idim][mfi]),
+		   BL_TO_FORTRAN(spec[mfi]),
+		   BL_TO_FORTRAN(ccoefs[idim][mfi]),
+		   dx, &idim, &igroup);
+	  }
       }
     }
   }
