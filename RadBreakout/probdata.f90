@@ -2,7 +2,6 @@ module probdata_module
   
   double precision, save :: rwind0, rwind1, rhowind1, Twind1, rbasefac
 
-  double precision, save :: center(3)
   double precision, save :: xmin,xmax,ymin,ymax,zmin,zmax
 
   integer, save :: npts_model
