@@ -1279,10 +1279,9 @@ contains
     f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
 
 
-    ! normal momentum flux -- leave out the pressure term -- we handle
-    ! that separately
-    fl_tmp = ql(QRHO)*ql(ivel)**2
-    fr_tmp = qr(QRHO)*qr(ivel)**2
+    ! normal momentum flux -- we handle that separately
+    fl_tmp = ql(QRHO)*ql(ivel)**2 + ql(QPRES)
+    fr_tmp = qr(QRHO)*qr(ivel)**2 + qr(QPRES)
 
     f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
 
