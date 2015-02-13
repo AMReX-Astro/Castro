@@ -18,6 +18,7 @@ contains
                     flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                     ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                     gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                    shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use eos_type_module
@@ -32,23 +33,38 @@ contains
     integer flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
     integer pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
+    integer s_l1,s_l2,s_l3,s_h1,s_h2,s_h3
     integer idir,ilo,ihi,jlo,jhi
     integer i,j,kc,kflux,k3d
     integer domlo(3),domhi(3)
 
+    ! note: qm, qp, ugdnv, pgdnv, gegdnv come in as planes (all
+    ! of x,y zones but only 2 elements in the z dir) instead of being
+    ! dimensioned the same as the full box.  We index these with kc
     double precision qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
     double precision ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+
+    ! flux either comes in as planes (like qm, qp, ... above), or
+    ! comes in dimensioned as the full box.  We index the flux
+    ! with kflux -- this will be set correctly for the different
+    ! cases.
+    double precision flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
+    
+    ! gamc, csml, c, shk come in dimensioned as the full box, so we
+    ! use k3d here to index it in z
     double precision gamc(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-
+    double precision  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
+    
     double precision, allocatable :: smallc(:,:),cavg(:,:)
     double precision, allocatable :: gamcm(:,:),gamcp(:,:)
 
+    integer :: is_shock
+    double precision :: cl, cr
     type (eos_t) :: eos_state
 
     allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
@@ -145,6 +161,46 @@ contains
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+    endif
+
+
+    if (hybrid_riemann == 1) then
+       ! correct the fluxes using an HLL scheme if we are in a shock
+       ! and doing the hybrid approach
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             select case (idir)
+             case (1)
+                is_shock = shk(i-1,j,k3d) + shk(i,j,k3d)
+             case (2)
+                is_shock = shk(i,j-1,k3d) + shk(i,j,k3d)
+             case (3)
+                is_shock = shk(i,j,k3d-1) + shk(i,j,k3d)
+             end select
+
+             if (is_shock >= 1) then
+
+                select case (idir)
+                case (1)
+                   cl = c(i-1,j,k3d)
+                   cr = c(i,j,k3d)
+                case (2)
+                   cl = c(i,j-1,k3d)
+                   cr = c(i,j,k3d)
+                case (3)
+                   cl = c(i,j,k3d-1)
+                   cr = c(i,j,k3d)
+                end select
+
+                call HLL(qm(i,j,kc,:), qp(i,j,kc,:), cl, cr, &
+                         idir, flx(i,j,kflux,:))
+
+             endif
+
+          enddo
+       enddo
+
     endif
 
     deallocate(smallc,cavg,gamcm,gamcp)
@@ -1125,7 +1181,7 @@ contains
 
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
- 
+
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
@@ -1152,7 +1208,7 @@ contains
        ivel = QU
        ivelt = QV
        iveltt = QW
-       
+
        imom = UMX
        imomt = UMY
        imomtt = UMZ
@@ -1161,7 +1217,7 @@ contains
        ivel = QV
        ivelt = QU
        iveltt = QW
-       
+
        imom = UMY
        imomt = UMX
        imomtt = UMZ
@@ -1170,11 +1226,11 @@ contains
        ivel = QW
        ivelt = QU
        iveltt = QV
-       
+
        imom = UMZ
        imomt = UMX
        imomtt = UMY
-       
+
     end select
 
     rhol_sqrt = sqrt(ql(QRHO))
@@ -1182,7 +1238,7 @@ contains
 
     rhod = ONE/(rhol_sqrt + rhor_sqrt)
 
-    
+
 
     ! compute the average sound speed. This uses an approximation from
     ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
@@ -1196,7 +1252,7 @@ contains
 
     a1 = uavg - cavg
     a4 = uavg + cavg
-    
+
 
     ! signal speeds (E91, eq. 4.5)
     bl = min(a1, ql(ivel) - cl)
@@ -1210,7 +1266,7 @@ contains
     if (abs(bd) < small*max(abs(bm),abs(bp))) return
 
     bd = ONE/bd
-    
+
 
     ! compute the fluxes according to E91, eq. 4.4b -- note that the
     ! min/max above picks the correct flux if we are not in the star
@@ -1242,7 +1298,7 @@ contains
     fr_tmp = qr(QRHO)*qr(ivel)*qr(iveltt)
 
     f(imomtt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(iveltt) - ql(QRHO)*ql(iveltt))
-    
+
 
     ! total energy flux
     rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2 + ql(iveltt)**2)
@@ -1273,5 +1329,5 @@ contains
     enddo
 
   end subroutine HLL
-  
+
 end module riemann_module

@@ -462,9 +462,9 @@ Castro::read_params ()
 	BoxLib::Error();
       }
 
-    if (hybrid_riemann == 1 && BL_SPACEDIM != 2)
+    if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
-        std::cerr << "hybrid_riemann only implemented in 2-d\n";
+        std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
         BoxLib::Error();
       }
 
