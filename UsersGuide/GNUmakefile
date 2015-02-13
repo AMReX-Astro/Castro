@@ -1,6 +1,6 @@
 EPStoPDF = epstopdf
 
-ALL: CastroUserGuide.ps CastroUserGuide.pdf 
+ALL: CastroUserGuide.pdf 
 
 eps_source = $(wildcard *.eps) \
              $(wildcard ConvertCheckpoint/*.eps) \
@@ -34,12 +34,10 @@ CastroUserGuide.dvi: CastroUserGuide.tex $(eps_source) $(section_sources) $(eps_
 	bibtex CastroUserGuide
 	latex CastroUserGuide.tex < /dev/null
 	latex CastroUserGuide.tex < /dev/null
-	latex CastroUserGuide.tex < /dev/null
 
 CastroUserGuide.pdf: CastroUserGuide.tex $(pdf_source) $(section_sources) $(pdf_source)
 	pdflatex CastroUserGuide.tex < /dev/null
 	bibtex CastroUserGuide
-	pdflatex CastroUserGuide.tex < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 
