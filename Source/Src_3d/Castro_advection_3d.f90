@@ -266,6 +266,21 @@ contains
     ! Initialize pdivu to zero
     pdivu(:,:,:) = ZERO
 
+
+    ! We come into this routine with a 3-d box of data, but we operate
+    ! on it locally by considering 2 planes that encompass all of the
+    ! x, y indices of the original box, but each plane corresponds to
+    ! a single z index.
+    !
+    ! In the notation below, k3d will always been the index into the
+    ! original 3-d box.  kc will be the z-index in the local "planar"
+    ! data and km will be the previously used index in the local
+    ! planar data.
+    !
+    ! With each loop in the k direction, we will overwrite the old
+    ! data in the planar arrays.
+
+    
     ! Initialize kc (current k-level) and km (previous k-level)
     kc = 1
     km = 2
