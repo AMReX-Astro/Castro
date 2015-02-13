@@ -15,6 +15,12 @@ KH:
   A Kelvin-Helmholtz shear instability problem
 
 
+oddeven:
+  A grid-aligned shock hitting a very small density perturbation.
+  This demonstrates the odd-even decoupling problem that the
+  hybrid_riemann option prevents.
+  
+
 RT:
 
   A Rayleigh-Taylor instability.  This problem setup was used in
