@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use prob_params_module, only: center
   use probdata_module
   use bl_error_module
 
@@ -11,10 +12,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ p_ambient, dens_ambient, dens_pert_factor, vel_pert, &
-                    denerr, dengrad, max_denerr_lev, max_dengrad_lev, &
-                    presserr, pressgrad, max_presserr_lev, max_pressgrad_lev
-
+  namelist /fortin/ p_ambient, dens_ambient, dens_pert_factor, vel_pert
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -28,21 +26,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
          
   ! Set namelist defaults
-
-  p_ambient = 1.d0         ! ambient pressure (in erg/cc)
-  dens_ambient = 1.d0      ! ambient density (in g/cc)
-  dens_pert_factor = 1.01  ! density enhancement for central zone
-  vel_pert = 20.d0
-
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
 
   ! set center, domain extrema
   center(1) = (problo(1)+probhi(1))/2.d0
@@ -93,6 +76,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use prob_params_module, only: center
+  
   implicit none
 
   integer level, nscal
