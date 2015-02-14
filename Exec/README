@@ -52,6 +52,12 @@ Sod_stellar:
   Zingale & Katz (2015).
   
 
+test2:
+
+  A reacting bubble rise problem that was featured in the Maestro
+  paper III algorithm paper.
+
+
 toy_convect:
 
   A simple nova-like convection problem with an external heating
