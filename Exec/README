@@ -21,6 +21,12 @@ oddeven:
   hybrid_riemann option prevents.
   
 
+reacting_bubble:
+
+  A reacting bubble rise problem that was featured in the Maestro
+  paper III algorithm paper.
+
+
 RT:
 
   A Rayleigh-Taylor instability.  This problem setup was used in
@@ -52,7 +58,7 @@ Sod_stellar:
   Zingale & Katz (2015).
   
 
-test2:
+reacting_bubble:
 
   A reacting bubble rise problem that was featured in the Maestro
   paper III algorithm paper.
