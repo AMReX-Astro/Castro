@@ -14,6 +14,10 @@ FCOMP	   = gfortran
 USE_MPI    = TRUE
 USE_GRAV   = TRUE
 
+
+# define the location of the CASTRO top directory
+CASTRO_DIR  := ../..
+
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := multigamma
 
