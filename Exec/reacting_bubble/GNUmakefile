@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION        = DOUBLE
 PROFILE          = FALSE
 DEBUG            = FALSE
@@ -15,6 +13,9 @@ USE_REACT        = TRUE
 USE_MODELPARSER  = TRUE
 USE_MAESTRO_INIT = FALSE
 USE_OLDPLOTPER   = FALSE
+
+
+CASTRO_DIR = ../..
 
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := helmeos
