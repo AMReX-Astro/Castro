@@ -1,0 +1,11 @@
+This problem is for comparing to MAESTRO/UNIT_TESTS/test_basestate
+
+** Note: you need to use the same network as the corresponding MAESTRO
+   run.
+
+inputs sets up the comparison from the multilevel paper, and compares
+to the inputs file in MAESTRO/UNIT_TESTS/test_basestate/spherical
+
+inputs-subchandra compares to the inputs file in
+MAESTRO/UNIT_TESTS/test_basestate/sub_chandra
+

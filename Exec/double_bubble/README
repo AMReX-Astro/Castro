@@ -1,0 +1,10 @@
+Two bubbles are evolved with an isentropic (or isothermal) stratified
+background.  To make it easy to track the bubbles, they are given
+different compositions from the background.  One of the bubbles has
+the same gamma as the background the other has a different gamma.
+
+To plot the bubbles together, use:
+
+contour2.py --label1 "B" --label2 "C" --m1 0.001 --M1 1 --m2 0.001 --M2 1 B C plt0XXXX
+
+where contour2.py can be found in the AmrPostprocessing directory.

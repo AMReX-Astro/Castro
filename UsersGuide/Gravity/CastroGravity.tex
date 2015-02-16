@@ -1,3 +1,57 @@
+\subsection{List of Parameters}
+
+\begin{table*}[h]
+\begin{scriptsize}
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+Parameter & Definition & Acceptable Values &Default\\
+\hline
+{\bf castro.do\_grav}  & Include gravity as a forcing term & 0 if false, 1 if true & must be set \\
+& & & if USE\_GRAV = TRUE  \\
+\hline
+{\bf gravity.gravity\_type} & if {\bf castro.do\_grav} = 1, & ConstantGrav, & \\
+& how shall gravity be calculated & PoissonGrav, & \\
+& & or MonopoleGrav & must be set \\
+\hline
+{\bf gravity.const\_grav} & if {\bf gravity.gravity\_type} = ConstantGrav, & & \\
+& set the value of constant gravity & Real & 0.0 \\
+\hline
+{\bf gravity.no\_sync} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
+& whether to perform the ``sync solve" &  0 or 1 & 0 \\
+\hline
+{\bf gravity.no\_composite} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
+& whether to perform a composite solve & 0 or 1 & 0 \\
+\hline
+{\bf gravity.max\_multipole\_order} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
+& max $\ell$ value to use for multipole BCs & Integer $\geq 0$ & 0 \\
+\hline
+{\bf gravity.direct\_sum\_bcs} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
+& evaluate BCs using exact sum & 0 or 1 & 0 \\
+\hline
+\end{tabular}
+\label{Table:Gravity}
+\end{center}
+\end{scriptsize}
+\end{table*}
+
+\subsection{Notes}
+
+Gravity types are ConstantGrav, PoissonGrav, or MonopoleGrav.  See the Gravity section for more detail.
+
+\begin{itemize}
+\item To include gravity you must set 
+\begin{itemize}
+\item USE\_GRAV  = TRUE in the GNUmakefile 
+\item {\bf castro.do\_grav} = 1 in the inputs file
+\end{itemize}
+\item {\bf gravity.gravity\_type} is  only relevant if {\bf castro.do\_grav} = 1 
+\item {\bf gravity.no\_sync} and {\bf gravity.no\_composite} are only relevant if {\bf gravity.gravity\_type} = PoissonGrav,
+i.e. the code does a full Poisson solve for self-gravity.
+\item {\bf gravity.max\_multipole\_order} and {\bf gravity.direct\_sum\_bcs} are only relevant if {\bf gravity.gravity\_type} = PoissonGrav,
+and they are described in Section \ref{sec-poisson-3d-bcs}.
+\end{itemize}
+
+
 There are currently four options for how gravity is calculated -- 
 these are controlled by setting {\bf gravity.gravity\_type}.  
 The options are {\bf ConstantGrav, PoissonGrav, Monopole Grav} or {\bf PrescribedGrav}.

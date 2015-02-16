@@ -651,7 +651,7 @@
 
         else if (status > 0) then
            ! some problem in the namelist
-           print *, 'ERROR: problem in the extern namelist'
+           print *, 'ERROR: problem in the tagging namelist'
            stop
         endif
 
