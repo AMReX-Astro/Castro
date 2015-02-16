@@ -502,58 +502,64 @@ amr.restart = chk_run00061
 \subsection{Controlling Plotfile Generation}
 \label{sec:PlotFiles}
 The main output from \castro\ is in the form of plotfiles (which are really directories).
-The following options in the inputs file control the generation of plotfiles 
-
-
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values &Default\\
-\hline
-{\bf amr.plot\_file} & prefix for plotfiles & Text & "plt" \\
-{\bf amr.plot\_int}  & how often (by level 0 time steps) to write plot files & Integer $> 0$ & -1  \\
-{\bf amr.plot\_per}  & how often (by simulation time) to write plot files & Real $> 0$ & -1.0 \\
-{\bf amr.plot\_vars}  & name of state variables to include in plotfiles 
- & ALL, NONE or list & ALL \\
-{\bf amr.derive\_plot\_vars}  & name of derived variables to include in plotfiles 
- & ALL, NONE or list & NONE \\
-{\bf castro.plot\_X}  & include all the species mass fractions in the plotfile 
- & 0 or 1 & 0 \\
-{\bf amr.plot\_files\_output} & should we write plot files & 0 or 1 & 1 \\
-{\bf amr.plotfile\_on\_restart} & should we write a plotfile immediately after restarting 
-  & 0 or 1 & 0 \\
-{\bf amr.plot\_nfiles}  & how parallel is the writing of the plotfiles & Integer $\geq 1$ & 64 \\
-{\bf castro.plot\_phiGrav} & Should we plot the gravitational potential & 0 or 1 & 0 \\
-\hline
-\end{tabular}
-\end{center}
-\end{scriptsize}
-\end{table*}
-
-All the options for {\bf amr.derive\_plot\_vars} are kept in \texttt{derive\_lst} in Castro\_setup.cpp.  Feel free to look at it and see what's there. 
-
-
-Note:
-
+The following options in the inputs file control the generation of plotfiles:
 \begin{itemize}
+\item {\tt amr.plot\_file}: prefix for plotfiles (text; default: ``{\tt plt}'')
 
-\item You should specify either {\bf amr.plot\_int} or {\bf amr.plot\_per}.  Do not try to specify both. 
+\item {\tt amr.plot\_int}: how often (by level-0 time steps) to write plot files
+  (Integer $> 0$; default: -1)
 
-\item Note that if {\bf amr.plot\_per} is used then in order to hit that exact time the 
-code may modify the time step slightly, which will change your results ever so slightly 
-than if you didn't set this flag.
+\item {\tt amr.plot\_per}: how often (by simulation time) to write plot files
+  (Real $> 0$; default: -1.0)
 
-\item See the Software Section for more details on parallel I/O and the 
-{\bf amr.plot\_nfiles} parameter.
+Note that if {\tt amr.plot\_per} is used then in order to hit that
+exact time the code may modify the time step slightly, which will
+change your results ever so slightly than if you didn't set this flag.
 
-\item If you are doing a scaling study then set {\bf amr.plot\_files\_output} = 0
+\item {\tt amr.plot\_vars}: name of state variables to include in plotfiles 
+ (valid options: {\tt ALL}, {\tt NONE} or a list; default: {\tt ALL})
+
+\item {\tt amr.derive\_plot\_vars}: name of derived variables to include in plotfiles 
+ (valid options: {\tt ALL}, {\tt NONE} or a list; default: {\tt NONE}
+
+\item {\tt amr.plot\_files\_output}: should we write plot files? (0 or 1; default: 1)
+
+If you are doing a scaling study then set {\tt amr.plot\_files\_output = 0}
 so you can test scaling of the algorithm without I/O.
 
-\item {\bf castro.plot\_phiGrav} is only relevant if 
-{\bf castro.do\_grav} = 1 and {\bf gravity.gravity\_type} = PoissonGrav
+\item {\tt amr.plotfile\_on\_restart}: should we write a plotfile immediately after restarting?
+  (0 or 1; default: 0)
+  
+\item {\tt amr.plot\_nfiles}: how parallel is the writing of the plotfiles?
+  (Integer $\geq 1$; default: 64)
+
+See the Software Section for more details on parallel I/O and the 
+{\tt amr.plot\_nfiles} parameter.
+
+\item {\tt castro.plot\_X}: include all the species mass fractions in the plotfile 
+ (0 or 1; default:  0)
+
+\item {\tt castro.plot\_phiGrav}: should we plot the gravitational potential?
+  (0 or 1; default: 0)
+
+  {\tt castro.plot\_phiGrav} is only relevant if {\bf castro.do\_grav
+  = 1} and {\tt gravity.gravity\_type = PoissonGrav}
 
 \end{itemize}
+
+All the options for {\tt amr.derive\_plot\_vars} are kept
+in \texttt{derive\_lst} in {\tt Castro\_setup.cpp}.  Feel free to look at it
+and see what's there.
+
+{\color{red} discuss extra derives options}
+
+Some notes:
+\begin{itemize}
+
+\item You should specify either {\tt amr.plot\_int} or
+{\tt amr.plot\_per}.  Do not try to specify both. 
+\end{itemize}
+
 
 As an example:
 \begin{itemize}
