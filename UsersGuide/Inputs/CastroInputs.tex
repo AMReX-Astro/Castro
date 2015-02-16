@@ -1,150 +1,178 @@
-The Castro executables read run-time information from an "inputs" file (which you put on the command line) 
-and from a "probin" file, the name of which is usually defined in the inputs file, but which defaults to "probin".  
-To set the "probin" file name in the inputs file:\\
+The \castro\ executable uses two inputs files at runtime to set and alter the
+behavior of the algorithm and initial conditions.
 
-{\bf amr.probin\_file} = my\_special\_probin\\ \\
-for example, has the Fortran code read a file called "my\_special\_probin"
+The main inputs file, typically named {\tt inputs} is used to
+set \boxlib\ parameters and the control flow in the C++ portions of
+the \castro\ code.  Each parameter here has a namespace (like {\tt
+amr.{\em optionname}} or {\tt castro.{\em optionname}}).  Parameters
+set here are read using the \boxlib\ {\tt ParmParse} class
+infrastructure.
 
-\section{Problem Geometry}
+The second inputs file, typically named {\tt probin} is used by the
+Fortran code that initializes the problem setup.  It is read at
+problem initialization (via a Fortran {\tt namelist}) and the
+problem-specific quantities are stored in a Fortran module {\tt
+probdata\_module} defined in the problem's {\tt probdata.f90} file.
 
-\subsection{List of Parameters}
+Only the {\tt inputs} file is specified on the commandline.  The
+associated {\tt probin} file is specified in the {\tt inputs} file
+using the {\tt amr.probin\_file} parameter, e.g.,
+\begin{lstlisting}
+amr.probin_file = my_special_probin
+\end{lstlisting}
+for example, has the Fortran code read a file called {\tt my\_special\_probin}.
 
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values & Default \\
-\hline
-{\bf geometry.prob\_lo} & physical location of low corner of the domain & Real & must be set\\
-{\bf geometry.prob\_hi} & physical location of high corner of the domain & Real  & must be set\\
-{\bf geometry.coord\_sys} & coordinate system & 0 = Cartesian, 1 = r-z, 2 = spherical & must be set \\
-{\bf geometry.is\_periodic} & is the domain periodic in this direction & 0 if false, 1 if true  & 0 0 0 \\
-\hline
-\end{tabular}
-\label{Table:Geometry}
-\end{scriptsize}
-\end{table*}
+\section{Working with {\tt probin} Files}
 
-\subsection{Examples of Usage}
-
+There are three different Fortran {\tt namelist}s that can be defined in the
+{\tt probin} file:
 \begin{itemize}
+\item {\tt \&fortin} is the main {\tt namelist} read by the problem's {\tt probinit}
+subroutine in the {\tt Prob\_?d.f90} file.
 
-\item {\bf geometry.prob\_lo} = 0 0 0 \\
-defines the low corner of the domain at (0,0,0) in physical space.  
+\item {\tt \&extern} is used to set different microphysics options
 
-\item {\bf geometry.prob\_hi} = 1.e8 2.e8 2.e8 \\
-defines the high corner of the domain at (1.e8,2.e8,2.e8) in physical space.  
-
-\item {\bf geometry.coord\_sys} = 0 \\
-defines the coordinate system as Cartesian 
-
-\item {\bf geometry.is\_periodic} = 0 1 0 \\
-says the domain is periodic in the y-direction only. 
-
+\item {\tt \&tagging} is used to get the parameters (defined in {\tt tagging\_module})
+that affect how we tag for refinement.
 \end{itemize}
 
-\section{Domain Boundary Conditions}
+\section{Common {\tt inputs} Options}
 
-\subsection{List of Parameters}
+{\bf Important}: because the {\tt inputs} file is handled by the C++ portion of
+the code, any quantities you specify in scientific notation, must take the
+form {\tt 1.e5} and not {\tt 1.d5}---the `{\tt d}' specifier is not recognized.
 
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values &Default\\
-\hline
-{\bf castro.lo\_bc} & boundary type of each low face  & 0,1,2,3,4,5 & must be set \\
-{\bf castro.hi\_bc} & boundary type of each high face & 0,1,2,3,4,5 & must be set \\
-\hline
-\end{tabular}
-\label{Table:BC}
-\end{center}
-\end{scriptsize}
-\end{table*}
+Additionally, note that in \castro, all quantities are in CGS units.
 
-\subsection{Notes}
+\subsection{Problem Geometry}
 
-Boundary types are:
+The {\tt geometry.} namespace is used by \boxlib\ to define the
+computational domain.  The main parameters here are:
+\begin{itemize}
+\item {\tt geometry.prob\_lo}: physical location of low corner of the
+domain (type: {\tt Real}; must be set)
 
+  Note: a number is needed for each dimension in the problem
+  
+\item {\tt geometry.prob\_hi}: physical location of high corner of the
+domain (type: {\tt Real}; must be set)
+
+  Note: a number is needed for each dimension in the problem
+  
+\item {\tt geometry.coord\_sys}: coordinate system, 0 = Cartesian,
+1 = $r$-$z$ (2-d only), 2 = spherical (1-d only) (must be set)
+
+\item {\tt geometry.is\_periodic}: is the domain periodic in this direction?
+  {\tt 0} if false, {\tt 1} if true  (default: {\tt 0 0 0}) 
+
+  Note: an integer is needed for each dimension in the problem.
+\end{itemize}
+
+As an example, the following:
+\begin{lstlisting}
+geometry.prob_lo = 0 0 0
+geometry.prob_hi = 1.e8 2.e8 2.e8 
+geometry.coord_sys = 0 
+geometry.is_periodic} = 0 1 0 
+\end{lstlisting}
+defines the domain to run from $(0,0,0)$ at the lower left to
+$(10^8,2\times 10^8,2\times 10^8)$ at the upper right in physical space, specifies a
+Cartesian geometry, and makes the domain periodic in the $y$-direction
+only.
+
+
+\subsection{Domain Boundary Conditions}
+
+Boundary conditions are specified using integer keys that are interpreted
+by \boxlib.  The runtime parameters that we use are:
+\begin{itemize}
+\item {\tt castro.lo\_bc}: boundary type of each low face  (must be set)
+\item {\tt castro.hi\_bc}: boundary type of each high face (must be set)
+\end{itemize}
+
+The valid boundary types are:
 \begin{table*}[h]
 \begin{center}
 \begin{tabular}{llll} 
-0 --  Interior / Periodic \hspace{1.in} & 3  --  Symmetry     \hspace{1.in} & \\
-1 --  Inflow              \hspace{1.in} & 4  --  Slip Wall    \hspace{1.in}& \\
-2 --  Outflow             \hspace{1.in} & 5  --  No Slip Wall \hspace{1.in}& \\
+{\tt 0} --  Interior / Periodic \hspace{1.in} & {\tt 3}  --  Symmetry     \hspace{1.in} & \\
+{\tt 1} --  Inflow              \hspace{1.in} & {\tt 4}  --  Slip Wall    \hspace{1.in}& \\
+{\tt 2} --  Outflow             \hspace{1.in} & {\tt 5}  --  No Slip Wall \hspace{1.in}& \\
 \end{tabular}
 \end{center}
 \end{table*}
 
-\noindent Note -- {\bf castro.lo\_bc} and {\bf castro.hi\_bc} must be consistent with 
-{\bf geometry.is\_periodic} -- if the domain is periodic in a particular
-direction then the low and high bc's must be set to 0 for that direction.
+\noindent Note: {\tt castro.lo\_bc} and {\tt castro.hi\_bc} must be consistent with 
+{\tt geometry.is\_periodic}---if the domain is periodic in a particular
+direction then the low and high bc's must be set to {\tt 0} for that direction.
 
-\subsection{Examples of Usage}
+As an example, the following:
+\begin{lstlisting}
+castro.lo_bc = 1 4 0 
+castro.hi_bc = 2 4 0 
 
+geometry.is_periodic = 0 0 1
+\end{lstlisting}
+would define a problem with inflow ({\tt 1}) in the low-$x$ direction,
+outflow ({\tt 2}) in the high-$x$ direction, slip wall ({\tt 4}) on
+the low and high $y$-faces, and periodic in the $z$-direction.
+
+\subsection{Resolution}
+
+The grid resolution is specified by defining the resolution at the
+coarsest level (level 0) and the number of refinement levels and
+factor of refinement between levels.  The relevant parameters are:
 \begin{itemize}
+\item {\tt amr.n\_cell}:  number of cells in each direction at the coarsest level (Integer $> 0$; must be set)
 
-\item {\bf castro.lo\_bc} = 1 4 0 
+\item {\tt amr.max\_level}:  number of levels of refinement above the coarsest level (Integer $\geq 0$; must be set)
 
-\item {\bf castro.hi\_bc} = 2 4 0 
+\item {\tt amr.ref\_ratio}: ratio of coarse to fine grid spacing between subsequent levels (2 or 4; must be set)
 
-\item {\bf geometry.is\_periodic} = 0 0 1
+\item {\tt amr.regrid\_int}: how often (in terms of number of steps) to regrid (Integer; must be set)
 
+\item {\tt amr.regrid\_on\_restart}: should we regrid immediately after restarting? (0 or 1; default: 0)
 \end{itemize}
 
-\noindent would define a problem with inflow (1) in the low-x direction, 
-outflow(2) in the high-x direction, slip wall (4) on the low and high y-faces, 
-and periodic in the z-direction. 
+Note: if {\tt amr.max\_level = 0} then you do not need to set {\tt amr.ref\_ratio} or {\tt amr.regrid\_int}.
 
-\section{Resolution}
-\subsection{List of Parameters}
+Some examples:
+\begin{lstlisting}
+amr.n_cell = 32 64 64
+\end{lstlisting}
+would define the domain to have 32 cells in the $x$-direction, 64 cells
+in the $y$-direction, and 64 cells in the $z$-direction {\em{at the
+coarsest level}}.  (If this line appears in a 2D inputs file then the
+final number will be ignored.)
 
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values &Default\\
-\hline
-{\bf amr.n\_cell} &  number of cells in each direction at the coarsest level & Integer $> 0$ & must be set \\
-{\bf amr.max\_level} &  number of levels of refinement above the coarsest level& Integer $\geq 0$  & must be set \\
-{\bf amr.ref\_ratio} & ratio of coarse to fine grid spacing between subsequent levels & 2 or 4 & must be set \\
-{\bf amr.regrid\_int} & how often to regrid & Integer & must be set \\
-{\bf amr.regrid\_on\_restart} & should we regrid immediately after restarting & 0 or 1 & 0 \\
-\hline
-\end{tabular}
-%\caption{Input Parameters -- Resolution}
-\label{Table:ResInputs}
-\end{center}
-\end{scriptsize}
-\end{table*}
-
-\noindent Note: if {\bf amr.max\_level} = 0 then you do not need to set {\bf amr.ref\_ratio} or {\bf amr.regrid\_int}.
-
-\subsection{Examples of Usage}
-
-\begin{itemize}
-
-\item {\bf amr.n\_cell} = 32 64 64
-
-would define the domain to have 32 cells in the x-direction, 64 cells in the y-direction, 
-and 64 cells in the z-direction {\em{at the coarsest level}}. 
-(If this line appears in a 2D inputs file then the final number will be ignored.)
-
-\item {\bf amr.max\_level} = 2 \\ 
-would allow a maximum  of 2 refined levels in addition to the coarse level.   
-Note that these additional levels will only be created only if the tagging criteria 
-are such that cells are flagged as needing refinement.  The number of refined levels 
-in a calculation must be $\leq$ {\bf amr.max\_level}, but can change in time and need
-not always be equal to {\bf amr.max\_level}.
+\begin{lstlisting}
+amr.max_level = 2 
+\end{lstlisting}
+would allow a maximum of 2 refined levels in addition to the coarse
+level.  Note that these additional levels will only be created only if
+the tagging criteria are such that cells are flagged as needing
+refinement.  The number of refined levels in a calculation must be
+$\leq$ {\tt amr.max\_level}, but can change in time and need not
+always be equal to {\tt amr.max\_level}.
  
-\item {\bf amr.ref\_ratio} = 2 4 \\ 
-would set factor 2 refinement between levels 0 and 1, and factor 4 refinement between levels 1 and 2. 
-Note that you must have at least {\bf amr.max\_level} values of {\bf amr.ref\_ratio} 
-(Additional values may appear in that line and they will be ignored).
+\begin{lstlisting}
+amr.ref_ratio = 2 4 
+\end{lstlisting}
+would set factor of 2 refinement between levels 0 and 1, and factor of 4
+refinement between levels 1 and 2.  Note that you must have at least
+{\tt amr.max\_level} values of {\tt amr.ref\_ratio} (Additional values
+may appear in that line and they will be ignored).
 
-\item {\bf amr.regrid\_int} = 2 2 \\
-tells the code to regrid every 2 steps.  Thus in this example, new level 1 grids will be created every 2 level 0 time steps, and new level 2 grids will be created every 2 level 1 time steps. If {\bf amr.regrid\_int} $<$ 0 for any level, then regridding starting at that level will be disabled. If {\bf amr.regrid\_int} = -1 only, then we never regrid for any level. Note that this is not compatible with {\bf amr.regrid\_on\_restart} = 1.
+\begin{lstlisting}
+amr.regrid_int = 2 2
+\end{lstlisting}
+tells the code to regrid every 2 steps.  Thus in this example, new
+level 1 grids will be created every 2 level-0 time steps, and new
+level 2 grids will be created every 2 level-1 time steps. If {\tt
+amr.regrid\_int} $<$ 0 for any level, then regridding starting at that
+level will be disabled. If {\tt amr.regrid\_int = -1} only, then we
+never regrid for any level. Note that this is not compatible with {\tt
+amr.regrid\_on\_restart = 1}.
 
-\end{itemize}
 
 \section{Tagging}
 
