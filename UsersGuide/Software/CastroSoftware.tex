@@ -1,21 +1,28 @@
 \section{Code structure}
 
 The code structure in the {\tt Castro/} directory is as follows:
-
 \begin{itemize}
-    \item {\bf constants}      : contains a file of useful constants in CGS units
-    \item {\bf ConvertCheckpoint} : a tool to convert a checkpoint file to a larger domain
-    \item {\bf EOS}            : contains directories for different EOS routines
-    \item {\bf Exec}       : various examples
-    \begin{itemize}
-      \item {\bf Sedov}        : run directory for the Sedov problem
-      \item {\bf Sod}          : run directory for the Sod problem
-      \item {\bf KH}           : run directory for the Kelvin-Helmholz problem
-    \end{itemize}
-    \item {\bf Networks}       : contains directories for different reaction networks
-    \item {\bf Source}     : source code
-    \item {\bf UsersGuide} : you're reading this now!
-    \item {\bf Util}       : a catch-all for additional things you may need 
+\item {\tt constants/}: contains a file of useful constants in CGS units
+
+\item {\tt ConvertCheckpoint/}: a tool to convert a checkpoint file to
+  a larger domain
+
+\item {\tt EOS/}: contains directories for different EOS routines
+
+\item {\tt Exec/}: various problem implementations, including:
+  \begin{itemize}
+  \item {\tt Sedov/}: run directory for the Sedov problem
+  \item {\tt Sod/}: run directory for the Sod problem
+  \item {\tt KH/}: run directory for the Kelvin-Helmholz problem
+  \end{itemize}
+
+\item {\tt Networks/}: contains directories for different reaction networks
+
+\item {\tt Source/}: source code
+
+\item {\tt UsersGuide/}: you're reading this now!
+
+\item {\tt Util/}: a catch-all for additional things you may need 
 \end{itemize}
 
 \section{Castro Data Structures}
@@ -26,8 +33,8 @@ The code structure in the {\tt Castro/} directory is as follows:
 data.
 
 In {\tt Castro.H}, the {\tt enum} {\tt StateType} defines the
-different descriptors for the state data that \castro\ recognizes.  The
-main descriptors are:
+different descriptors for the state data that \castro\ recognizes.
+The main descriptors are:
 \begin{itemize}
 \item {\tt State\_Type}: the state variables for the hydrodynamics solver.
 
@@ -46,9 +53,9 @@ with this \boxlib\ data-structure.  Each state quantity always has both
 an old and new timestate and the BoxLib class knows how to interpolate
 in both space and time.  We interact with the data by getting pointers
 to multifabs.  For instance:
-\begin{verbatim}
-       MultiFab& S_new = get_new_data(State_Type);
-\end{verbatim}
+\begin{lstlisting}
+MultiFab& S_new = get_new_data(State_Type);
+\end{lstlisting}
 gets a pointer to the multifab containing the hydrodynamics state data
 at the new time (here {\tt State\_Type} is the {\tt enum} defined in 
 {\tt Castro.H}).
@@ -57,22 +64,21 @@ We iterate over the multifabs using an iterator {\tt MFIter}.  This
 iterator knows about the locality of the data---only the boxes on the
 processor will be looped over.  An example loop (for the
 initialization, from {\tt Castro\_setup.cpp} would be):
-\begin{verbatim}
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-       {
+\begin{lstlisting}
+for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+  {
+     const Box& bx      = mfi.validbox();
+     const int* lo      = bx.loVect();
+     const int* hi      = bx.hiVect();
 
-           const Box& bx      = mfi.validbox();
-           const int* lo      = bx.loVect();
-           const int* hi      = bx.hiVect();
-
-           if (! orig_domain.contains(bx)) {
-              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, lo, hi, ns,
-                 BL_TO_FORTRAN(S_new[mfi]), dx,
-                 gridloc.lo(), gridloc.hi());
-           }
-       }
-\end{verbatim}
+     if (! orig_domain.contains(bx)) {
+        BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+          (level, cur_time, lo, hi, ns,
+           BL_TO_FORTRAN(S_new[mfi]), dx,
+           gridloc.lo(), gridloc.hi());
+     }
+  }
+\end{lstlisting}
 here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
 C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
 is a BoxLib macro that is used to interface with Fortran routines.
