@@ -76,7 +76,8 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
      const int& coord_type,
      const Real& xmin, const Real& xmax,
      const Real& ymin, const Real& ymax,
-     const Real& zmin, const Real& zmax);
+     const Real& zmin, const Real& zmax,
+     const Real* center);
 
 BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);;
 

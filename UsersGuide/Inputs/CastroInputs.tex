@@ -18,6 +18,7 @@ Parameter & Definition & Acceptable Values & Default \\
 {\bf geometry.prob\_hi} & physical location of high corner of the domain & Real  & must be set\\
 {\bf geometry.coord\_sys} & coordinate system & 0 = Cartesian, 1 = r-z, 2 = spherical & must be set \\
 {\bf geometry.is\_periodic} & is the domain periodic in this direction & 0 if false, 1 if true  & 0 0 0 \\
+{\bf castro.center} & physical location of problem center & Real & 0.0, 0.0, 0.0 \\
 \hline
 \end{tabular}
 \label{Table:Geometry}
@@ -39,6 +40,11 @@ defines the coordinate system as Cartesian
 
 \item {\bf geometry.is\_periodic} = 0 1 0 \\
 says the domain is periodic in the y-direction only. 
+
+\item {\bf castro.center} = 5.0e7 1.0e8 1.0e8 \\
+defines the problem center at (5.0e7,1.0e8,1.0e8) in physical space.
+The problem center is used for gravity, rotation, and some other quantities.
+Often you should choose it to coincide with the center of mass of your system.
 
 \end{itemize}
 

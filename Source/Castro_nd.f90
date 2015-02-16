@@ -522,11 +522,11 @@
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
                                     Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
                                     coord_type_in, &
-                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in)
+                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in, center_in)
 
         ! Passing data from C++ into f90
 
-        use bl_constants_module, only: TWO
+        use bl_constants_module, only: ZERO
         use prob_params_module
 
         implicit none 
@@ -536,6 +536,7 @@
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
         double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
+        double precision, intent(in) :: center_in(dm)
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))
@@ -558,7 +559,8 @@
         probhi(2) = ymax_in
         probhi(3) = zmax_in
 
-        center = 0.d0
+        center       = ZERO
+        center(1:dm) = center_in(1:dm)
 
       end subroutine set_problem_params
 
