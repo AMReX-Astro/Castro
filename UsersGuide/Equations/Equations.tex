@@ -369,16 +369,42 @@ where $c=1/3$ is a tunable parameter, then set $\tilde\chi_i=0$.
 \end{equation}
 \end{enumerate}
 \subsection{Edge State Prediction}
-We wish to compute a left and right state of primitive variables at each edge to be used as inputs to the Riemann problem.  We use a version of the Colella and Sekora 2009 PPM algorithm, which has been further modified to eliminate sensitivity due to roundoff error (modifications via personal communication with Colella).  Note that CASTRO also has options for the original PPM algorithm of Colella and Woodward 1984, and piecewise-linear algorithm described in Saltzman 1994.  We also use characteristic tracing with corner coupling in 3D, as described in Miller and Colella 2002.  We give full details of the PPM algorithm, as it has not appeared before in the literature, and summarize the developments from Miller and Colella 2002.
+We wish to compute a left and right state of primitive variables at
+each edge to be used as inputs to the Riemann problem.  We use a
+version of the Colella and Sekora 2009 PPM algorithm, which has been
+further modified to eliminate sensitivity due to roundoff error
+(modifications via personal communication with Colella).  Note that
+\castro\ also has options for the original PPM algorithm of Colella
+and Woodward 1984, and piecewise-linear algorithm described in
+Saltzman 1994.  We also use characteristic tracing with corner
+coupling in 3D, as described in Miller and Colella 2002.  We give full
+details of the PPM algorithm, as it has not appeared before in the
+literature, and summarize the developments from Miller and Colella
+2002.
 
-The PPM algorithm is used to compute time-centered edge states by extrapolating the base-time data in space and time.  The edge states are dual-valued, i.e., at each face, there is a left state and a right state estimate.  The spatial extrapolation is one-dimensional, i.e., transverse derivatives are ignored.  We also use a flattening procedure to further limit the edge state values.  The Miller and Colella 2002 algorithm, which we describe later, incorporates the transverse terms, and also describes the modifications required for equations with additional characteristics besides the fluid velocity.  There are four steps to compute these dual-valued edge states (here, we use $s$ to denote an arbitrary scalar from $\Qb$, and we write the equations in 1D, for simplicity):
+The PPM algorithm is used to compute time-centered edge states by
+extrapolating the base-time data in space and time.  The edge states
+are dual-valued, i.e., at each face, there is a left state and a right
+state estimate.  The spatial extrapolation is one-dimensional, i.e.,
+transverse derivatives are ignored.  We also use a flattening
+procedure to further limit the edge state values.  The Miller and
+Colella 2002 algorithm, which we describe later, incorporates the
+transverse terms, and also describes the modifications required for
+equations with additional characteristics besides the fluid velocity.
+There are four steps to compute these dual-valued edge states (here,
+we use $s$ to denote an arbitrary scalar from $\Qb$, and we write the
+equations in 1D, for simplicity):
 \begin{itemize}
-\item {\bf Step 1}: Compute $s_{i,+}$ and $s_{i,-}$, which are spatial interpolations of $s$ to the hi and lo side of the face with special limiters, respectively.  Begin by interpolating $s$ to edges using a 4th-order interpolation in space:
+\item {\bf Step 1}: Compute $s_{i,+}$ and $s_{i,-}$, which are spatial
+  interpolations of $s$ to the hi and lo side of the face with special
+  limiters, respectively.  Begin by interpolating $s$ to edges using a
+  4th-order interpolation in space:
 \begin{equation}
 s_{i+\myhalf} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
 \end{equation}
-Then, if $(s_{i+\myhalf}-s_i)(s_{i+1}-s_{i+\myhalf}) < 0$, we limit $s_{i+\myhalf}$ 
-a nonlinear combination of approximations to the second derivative.  The steps are as follows:
+Then, if $(s_{i+\myhalf}-s_i)(s_{i+1}-s_{i+\myhalf}) < 0$, we limit
+$s_{i+\myhalf}$ a nonlinear combination of approximations to the
+second derivative.  The steps are as follows:
 \begin{enumerate}
 \item Define:
 \begin{eqnarray}
@@ -393,20 +419,24 @@ s = \text{sign}\left[(D^2s)_{i+\myhalf}\right],
 \begin{equation}
 (D^2s)_{i+\myhalf,\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\myhalf,L}\right|,Cs\left|(D^2s)_{i+\myhalf,R}\right|,s\left|(D^2s)_{i+\myhalf}\right|\right],0\right\},
 \end{equation}
-where $C=1.25$ as used in Colella and Sekora 2009.  The limited value of $s_{i+\myhalf}$ is
+where $C=1.25$ as used in Colella and Sekora 2009.  The limited value
+of $s_{i+\myhalf}$ is
 \begin{equation}
 s_{i+\myhalf} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\myhalf,\text{lim}}.
 \end{equation}
 \end{enumerate}
-Now we implement an updated implementation of the Colella and Sekora 2009 algorithm which eliminates sensitivity to roundoff.  First we need to detect whether a particular cell corresponds to an ``extremum''.  There are two tests.
+Now we implement an updated implementation of the Colella and Sekora
+2009 algorithm which eliminates sensitivity to roundoff.  First we
+need to detect whether a particular cell corresponds to an
+``extremum''.  There are two tests.
 \begin{itemize}
 \item For the first test, define
 \begin{equation}
 \alpha_{i,\pm} = s_{i\pm\myhalf} - s_i.
 \end{equation}
 If $\alpha_{i,+}\alpha_{i,-} \ge 0$, then we are at an extremum.
-\item We only apply the second test if either $|\alpha_{i,\pm}| > 2|\alpha_{i,\mp}|$.  
-If so, we define:
+\item We only apply the second test if either $|\alpha_{i,\pm}| >
+  2|\alpha_{i,\mp}|$.  If so, we define:
 \begin{eqnarray}
 (Ds)_{i,{\rm face},-} &=& s_{i-\myhalf} - s_{i-\sfrac{3}{2}} \\
 (Ds)_{i,{\rm face},+} &=& s_{i+\sfrac{3}{2}} - s_{i-\myhalf}
@@ -426,9 +456,11 @@ $(Ds)_{i,\pm} = (Ds)_{i,{\rm face},\pm}$.  Otherwise, set
 $(Ds)_{i,\pm} = (Ds)_{i,{\rm cc},\pm}$.  Finally, we are at an extreumum if
 $(Ds)_{i,+}(Ds)_{i,-} \le 0$.
 \end{itemize}
-Thus concludes the extremum tests.  The remaining limiters depend on whether we are at an extremum.
+Thus concludes the extremum tests.  The remaining limiters depend on
+whether we are at an extremum.
 \begin{itemize}
-\item If we are at an extremum, we modify $\alpha_{i,\pm}$.  First, we define
+\item If we are at an extremum, we modify $\alpha_{i,\pm}$.  First, we
+  define
 \begin{eqnarray}
 (D^2s)_{i} &=& 6(\alpha_{i,+}+\alpha_{i,-}) \\
 (D^2s)_{i,L} &=& s_{i-2}-2s_{i-1}+s_{i} \\
@@ -446,7 +478,8 @@ Then,
 \begin{equation}
 \alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
 \end{equation}
-\item If we are not at an extremum and $|\alpha_{i,\pm}| > 2|\alpha_{i,\mp}|$, then define
+\item If we are not at an extremum and $|\alpha_{i,\pm}| >
+  2|\alpha_{i,\mp}|$, then define
 \begin{equation}
 s = \text{sign}(\alpha_{i,\mp})
 \end{equation}
@@ -456,8 +489,9 @@ s = \text{sign}(\alpha_{i,\mp})
 \begin{equation}
 \delta s = s_{i\mp 1} - s_i,
 \end{equation}
-If $s\delta\mathcal{I}_{\text{ext}} \ge s\delta s$, then we perform the following test.
-If $s\delta s - \alpha_{i,\mp} \ge 1\times 10^{-10}$, then
+If $s\delta\mathcal{I}_{\text{ext}} \ge s\delta s$, then we perform
+the following test.  If $s\delta s - \alpha_{i,\mp} \ge 1\times
+10^{-10}$, then
 \begin{equation}
 \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\myhalf}
 \end{equation}
@@ -467,7 +501,8 @@ otherwise,
 \end{equation}
 \end{itemize}
 Finally, $s_{i,\pm} = s_i + \alpha_{i,\pm}$.
-\item {\bf Step 2}: Construct a quadratic profile using $s_{i,-},s_i$, and $s_{i,+}$.
+\item {\bf Step 2}: Construct a quadratic profile using $s_{i,-},s_i$,
+  and $s_{i,+}$.
 \begin{equation}
 s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\label{Quadratic Interp}
 \end{equation}
@@ -477,8 +512,11 @@ s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 \begin{equation}
 \xi = \frac{x - ih}{h}, ~ 0 \le \xi \le 1.
 \end{equation}
-\item {\bf Step 3:} Integrate quadratic profiles.  We are essentially computing the average value swept out by the quadratic profile across the face assuming the profile is moving at a speed $\lambda_k$.\\ \\
-Define the following integrals, where $\sigma_k = |\lambda_k|\Delta t/h$:
+\item {\bf Step 3:} Integrate quadratic profiles.  We are essentially
+  computing the average value swept out by the quadratic profile
+  across the face assuming the profile is moving at a speed
+  $\lambda_k$.\\ \\ Define the following integrals, where $\sigma_k =
+  |\lambda_k|\Delta t/h$:
 \begin{eqnarray}
 \mathcal{I}_{i,+}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
 \mathcal{I}_{i,-}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
@@ -488,19 +526,33 @@ Plugging in (\ref{Quadratic Interp}) gives:
 \mathcal{I}_{i,+}(\sigma_k) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
 \mathcal{I}_{i,-}(\sigma_k) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
 \end{eqnarray}
-\item {\bf Step 4:} Obtain 1D edge states by performing a 1D extrapolation to get 
-left and right edge states.  Note that we include an explicit source term contribution.
+\item {\bf Step 4:} Obtain 1D edge states by performing a 1D
+  extrapolation to get left and right edge states.  Note that we
+  include an explicit source term contribution.
 \begin{eqnarray}
 s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,+}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
 s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,-}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n.
 \end{eqnarray}
-Here, $\rb_k$ is the $k^{\rm th}$ right column eigenvector of $\Rb(\Ab_d)$ and $\lb_k$ is the $k^{\rm th}$ left row eigenvector lf $\Lb(\Ab_d)$.  The flattening coefficient is $\chi_i$.
+Here, $\rb_k$ is the $k^{\rm th}$ right column eigenvector of
+$\Rb(\Ab_d)$ and $\lb_k$ is the $k^{\rm th}$ left row eigenvector lf
+$\Lb(\Ab_d)$.  The flattening coefficient is $\chi_i$.
 \end{itemize}
-In order to add the transverse terms in an spatial operator unsplit framework, the details follow exactly as given in Section 4.2.1 in Miller and Colella 2002, except for the details of the Riemann solver, which are given below.
+In order to add the transverse terms in an spatial operator unsplit
+framework, the details follow exactly as given in Section 4.2.1 in
+Miller and Colella 2002, except for the details of the Riemann solver,
+which are given below.
 \subsection{Riemann Problem}
-Inputs from the edge state prediction are $\rho_{L/R}, u_{L/R}, v_{L/R}, p_{L/R}$, and $(\rho e)_{L/R}$ ($v$ represents all of the transverse velocity components).  We also compute $\gamma$ at cell centers and copy these to edges directly to get the left and right states, $\gamma_{L/R}$.  We also define $c_{\rm avg}$ as a face-centered value that is the average of the neighboring cell-centered values of $c$.  We have also computed $\rho_{\rm small}, p_{\rm small}$, and $c_{\rm small}$ using cell-centered data.  
+Inputs from the edge state prediction are $\rho_{L/R}, u_{L/R},
+v_{L/R}, p_{L/R}$, and $(\rho e)_{L/R}$ ($v$ represents all of the
+transverse velocity components).  We also compute $\gamma$ at cell
+centers and copy these to edges directly to get the left and right
+states, $\gamma_{L/R}$.  We also define $c_{\rm avg}$ as a
+face-centered value that is the average of the neighboring
+cell-centered values of $c$.  We have also computed $\rho_{\rm small},
+p_{\rm small}$, and $c_{\rm small}$ using cell-centered data.
 
-Here are the steps.  First, define $(\rho c)_{\rm small} = \rho_{\rm small}c_{\rm small}$. Then, define:
+Here are the steps.  First, define $(\rho c)_{\rm small} = \rho_{\rm
+  small}c_{\rm small}$. Then, define:
 \begin{equation}
 (\rho c)_{L/R} = \max\left[(\rho c)_{\rm small},\left|\gamma_{L/R},p_{L/R},\rho_{L/R}\right|\right].
 \end{equation}
@@ -534,13 +586,17 @@ c_{\rm out} &=& c_0 - {\rm sign}(u^*)u_0, \\
 c_{\rm in} &=& c^* - {\rm sign}(u^*)u^*, \\
 c_{\rm shock} &=& \frac{c_{\rm in} + c_{\rm out}}{2}.
 \end{eqnarray}
-If $p^* - p_0 \ge 0$, then $c_{\rm in} = c_{\rm out} = c_{\rm shock}$.  Then, if $c_{\rm out} = c_{\rm in}$, we define $c_{\rm temp} = \epsilon c_{\rm avg}$.  Otherwise, $c_{\rm temp} = c_{\rm out} - c_{\rm in}$.  We define the fraction
+If $p^* - p_0 \ge 0$, then $c_{\rm in} = c_{\rm out} = c_{\rm shock}$.
+Then, if $c_{\rm out} = c_{\rm in}$, we define $c_{\rm temp} =
+\epsilon c_{\rm avg}$.  Otherwise, $c_{\rm temp} = c_{\rm out} -
+c_{\rm in}$.  We define the fraction
 \begin{equation}
 f = \half\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
 \end{equation}
 and constrain $f$ to lie in the range $f\in[0,1]$.
 
-To get the final ``Godunov'' state, for the transverse velocity, we upwind based on $u^*$.
+To get the final ``Godunov'' state, for the transverse velocity, we
+upwind based on $u^*$.
 \begin{equation}
 v_{\rm gdnv} =
 \begin{cases}
@@ -555,10 +611,16 @@ u_{\rm gdnv} &=& f u^* + (1-f)u_0, \\
 p_{\rm gdnv} &=& f p^* + (1-f)p_0, \\
 (\rho e)_{\rm gdnv} &=& f(\rho e)^* + (1-f)(\rho e)_0.
 \end{eqnarray}
-Finally, if $c_{\rm out} < 0$, set $\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0$, and $(\rho e)_{\rm gdnv}=(\rho e)_0$.  If $c_{\rm in}\ge 0$, set $\rho_{\rm gdnv}=\rho^*, u_{\rm gdnv}=u^*, p_{\rm gdnv}=p^*$, and $(\rho e)_{\rm gdnv}=(\rho e)^*$.
+Finally, if $c_{\rm out} < 0$, set $\rho_{\rm gdnv}=\rho_0, u_{\rm
+  gdnv}=u_0, p_{\rm gdnv}=p_0$, and $(\rho e)_{\rm gdnv}=(\rho e)_0$.
+If $c_{\rm in}\ge 0$, set $\rho_{\rm gdnv}=\rho^*, u_{\rm gdnv}=u^*,
+p_{\rm gdnv}=p^*$, and $(\rho e)_{\rm gdnv}=(\rho e)^*$.
 \subsection{Compute Fluxes and Update}
-Compute the fluxes as a function of the primitive variables, and then advance the solution:
+Compute the fluxes as a function of the primitive variables, and then
+advance the solution:
 \begin{equation}
 \Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
 \end{equation}
-Again, note that since the source term is not time centered, this is not a second-order method.  After the advective update, we correct the solution, effectively time-centering the source term.
+Again, note that since the source term is not time centered, this is
+not a second-order method.  After the advective update, we correct the
+solution, effectively time-centering the source term.

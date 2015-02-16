@@ -511,55 +511,60 @@ amr.restart = chk_run00061
 
 \subsection{Controlling Plotfile Generation}
 \label{sec:PlotFiles}
-The main output from \castro\ is in the form of plotfiles (which are really directories).
-The following options in the inputs file control the generation of plotfiles:
+The main output from \castro\ is in the form of plotfiles (which are
+really directories).  The following options in the inputs file control
+the generation of plotfiles:
 \begin{itemize}
-\item {\tt amr.plot\_file}: prefix for plotfiles (text; default: ``{\tt plt}'')
+\item {\tt amr.plot\_file}: prefix for plotfiles (text; default:
+  ``{\tt plt}'')
 
-\item {\tt amr.plot\_int}: how often (by level-0 time steps) to write plot files
-  (Integer $> 0$; default: -1)
+\item {\tt amr.plot\_int}: how often (by level-0 time steps) to write
+  plot files (Integer $> 0$; default: -1)
 
-\item {\tt amr.plot\_per}: how often (by simulation time) to write plot files
-  (Real $> 0$; default: -1.0)
+\item {\tt amr.plot\_per}: how often (by simulation time) to write
+  plot files (Real $> 0$; default: -1.0)
 
 Note that if {\tt amr.plot\_per} is used then in order to hit that
 exact time the code may modify the time step slightly, which will
 change your results ever so slightly than if you didn't set this flag.
 
-\item {\tt amr.plot\_vars}: name of state variables to include in plotfiles 
- (valid options: {\tt ALL}, {\tt NONE} or a list; default: {\tt ALL})
+\item {\tt amr.plot\_vars}: name of state variables to include in
+  plotfiles (valid options: {\tt ALL}, {\tt NONE} or a list; default:
+  {\tt ALL})
 
-\item {\tt amr.derive\_plot\_vars}: name of derived variables to include in plotfiles 
- (valid options: {\tt ALL}, {\tt NONE} or a list; default: {\tt NONE}
+\item {\tt amr.derive\_plot\_vars}: name of derived variables to
+  include in plotfiles (valid options: {\tt ALL}, {\tt NONE} or a
+  list; default: {\tt NONE}
 
-\item {\tt amr.plot\_files\_output}: should we write plot files? (0 or 1; default: 1)
+\item {\tt amr.plot\_files\_output}: should we write plot files? (0 or
+  1; default: 1)
 
-If you are doing a scaling study then set {\tt amr.plot\_files\_output = 0}
-so you can test scaling of the algorithm without I/O.
+If you are doing a scaling study then set {\tt amr.plot\_files\_output
+  = 0} so you can test scaling of the algorithm without I/O.
 
-\item {\tt amr.plotfile\_on\_restart}: should we write a plotfile immediately after restarting?
-  (0 or 1; default: 0)
+\item {\tt amr.plotfile\_on\_restart}: should we write a plotfile
+  immediately after restarting?  (0 or 1; default: 0)
   
-\item {\tt amr.plot\_nfiles}: how parallel is the writing of the plotfiles?
-  (Integer $\geq 1$; default: 64)
+\item {\tt amr.plot\_nfiles}: how parallel is the writing of the
+  plotfiles?  (Integer $\geq 1$; default: 64)
 
-See the Software Section for more details on parallel I/O and the 
-{\tt amr.plot\_nfiles} parameter.
+See the Software Section for more details on parallel I/O and the {\tt
+  amr.plot\_nfiles} parameter.
 
-\item {\tt castro.plot\_X}: include all the species mass fractions in the plotfile 
- (0 or 1; default:  0)
+\item {\tt castro.plot\_X}: include all the species mass fractions in
+  the plotfile (0 or 1; default: 0)
 
-\item {\tt castro.plot\_phiGrav}: should we plot the gravitational potential?
-  (0 or 1; default: 0)
+\item {\tt castro.plot\_phiGrav}: should we plot the gravitational
+  potential?  (0 or 1; default: 0)
 
   {\tt castro.plot\_phiGrav} is only relevant if {\bf castro.do\_grav
-  = 1} and {\tt gravity.gravity\_type = PoissonGrav}
+    = 1} and {\tt gravity.gravity\_type = PoissonGrav}
 
 \end{itemize}
 
-All the options for {\tt amr.derive\_plot\_vars} are kept
-in \texttt{derive\_lst} in {\tt Castro\_setup.cpp}.  Feel free to look at it
-and see what's there.
+All the options for {\tt amr.derive\_plot\_vars} are kept in
+\texttt{derive\_lst} in {\tt Castro\_setup.cpp}.  Feel free to look at
+it and see what's there.
 
 {\color{red} discuss extra derives options}
 
@@ -572,101 +577,107 @@ Some notes:
 
 
 As an example:
-\begin{itemize}
+\begin{lstlisting}
+amr.plot_file = plt_run
+amr.plot_int = 10
+\end{lstlisting}
+means that plot files (really directories) starting with the prefix
+``{\tt plt\_run}'' will be generated every 10 level-0 time steps.  The
+directory names will be {\tt plt\_run00000}, {\tt plt\_run00010}, {\tt
+  plt\_run00020}, etc.
 
-\item {\bf amr.plot\_file} = plt\_run
-\item {\bf amr.plot\_int} = 10
-
-means that plot files (really directories) starting with the prefix "plt\_run" will be
-generated every 10 level 0 time steps.  The directory names will be {\it plt\_run00000}, 
-{\it plt\_run00010}, {\it plt\_run00020}, etc.
-
-\end{itemize}
 
 If instead you specify
-
-\begin{itemize}
-
-\item {\bf amr.plot\_file} = plt\_run
-\item {\bf amr.plot\_per} = 0.5
-
-then restart files (really directories) starting with the prefix "plt\_run" will be
-generated every 0.1 units of simulation time.  The directory names will be {\it plt\_run00000}, 
-{\it plt\_run00043}, {\it plt\_run00061}, etc, where $t = 0.1$ after 43 level 0 steps, 
-$t = 0.2$ after 61 level 0 steps, etc.
-
-\end{itemize}
+\begin{lstlisting}
+amr.plot_file = plt_run
+amr.plot_per = 0.5
+\end{lstlisting}
+then restart files (really directories) starting with the prefix
+``{\tt plt\_run}'' will be generated every 0.1 units of simulation time.  The
+directory names will be {\tt plt\_run00000}, {\tt plt\_run00043}, {\tt
+  plt\_run00061}, etc, where $t = 0.1$ after 43 level-0 steps, $t =
+0.2$ after 61 level-0 steps, etc.
 
 
 
 \subsection{Screen Output}
 
-
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values &Default\\
-\hline
-{\bf amr.v} & verbosity of Amr.cpp & 0 or 1 & 0 \\
-{\bf castro.v} & verbosity of Castro.cpp & 0 or 1 & 0 \\
-{\bf gravity.v} & verbosity of Gravity.cpp & 0 or 1 & 0 \\
-{\bf diffusion.v} & verbosity of Diffusion.cpp & 0 or 1 & 0 \\
-{\bf mg.v} & verbosity of multigrid solver (for gravity) & 0,1,2,3,4 & 0 \\
-{\bf amr.grid\_log}       & name of the file to which the grids are written & Text & not used if not set \\
-{\bf amr.run\_log}        & name of the file to which certain output is written & Text & not used if not set \\
-{\bf amr.run\_log\_terse} & name of the file to which certain (terser) output is written & Text & not used if not set \\
-{\bf amr.sum\_interval}   & if $> 0,$ how often (in level 0 time steps) & &  \\  
-                          & to compute and print integral quantities & Integer & -1 \\  
-{\bf castro.do\_special\_tagging} & & 0 or 1 & 1 \\
-\hline
-\end{tabular}
-\end{center}
-\end{scriptsize}
-\end{table*}
-
-
-Note: 
+There are several options that set how much output is written to the
+screen as \castro\ runs:
 \begin{itemize}
+\item {\tt amr.v}: verbosity of {\tt Amr.cpp} (0 or 1; default: 0)
 
-\item {\bf castro.do\_special\_tagging} = 1 allows the user to set a special flag based on
-user-specified criteria.  This can be used, for example, to calculate the bounce time in a 
-core collapse simulation; the bounce time is defined as the first time at which the maximum
-density in the domain exceeds a user-specified value.   This time can then be printed into
-a special file as a useful diagnostic.
+\item {\tt castro.v}: verbosity of {\tt Castro.cpp} (0 or 1; default: 0)
 
+\item {\tt gravity.v}: verbosity of {\tt Gravity.cpp} (0 or 1; default: 0)
+  
+\item {\tt diffusion.v}: verbosity of {\tt Diffusion.cpp} (0 or 1;
+  default: 0)
+  
+\item {\tt mg.v}: verbosity of multigrid solver (for gravity) (allow
+  values: 0,1,2,3,4; default: 0)
+  
+\item {\tt amr.grid\_log}: name of the file to which the grids are
+  written (text; not used if not set)
+  
+\item {\tt amr.run\_log}: name of the file to which certain output is
+  written (text; not used if not set)
+  
+\item {\tt amr.run\_log\_terse}: name of the file to which certain
+  (terser) output is written (text; not used if not set)
+  
+\item {\tt amr.sum\_interval}: if $> 0$, how often (in level-0 time
+  steps) to compute and print integral quantities (Integer; default: -1)
+
+  The integral quantities include total mass, momentum and energy in
+  the domain every {\tt castro.sum\_interval} level-0 steps.
+  The print statements have the form
+  \begin{verbatim}
+    TIME= 1.91717746 MASS= 1.792410279e+34
+  \end{verbatim}
+  for example.  If this line is commented out then
+  it will not compute and print these quanitities.
+
+  
+\item {\tt castro.do\_special\_tagging}: allows the user to set a
+  special flag based on user-specified criteria (0 or 1; default: 1)
+
+  {\tt castro.do\_special\_tagging = 1} can be used, for example, to
+  calculate the bounce time in a core collapse simulation; the bounce
+  time is defined as the first time at which the maximum density in
+  the domain exceeds a user-specified value.  This time can then be
+  printed into a special file as a useful diagnostic.
 \end{itemize}
 
 As an example:
-\begin{itemize}
+\begin{lstlisting}
+amr.grid_log = grdlog
+amr.run_log = runlog 
+\end{lstlisting}  
+Every time the code regrids it prints a list of grids at all relevant
+levels.  Here the code will write these grids lists into the file {\tt
+  grdlog}.  Additionally, every time step the code prints certain
+statements to the screen (if {\tt amr.v} = 1), such as:
+\begin{verbatim}
+STEP = 1 TIME = 1.91717746 DT = 1.91717746 
+PLOTFILE: file = plt00001 
+\end{verbatim}
+The {\tt run\_log} option will output these statements into {\em
+  runlog} as well.
 
-\item {\bf amr.grid\_log} = grdlog \\
-Every time the code regrids it prints a list of grids at all relevant levels.  
-Here the code will write these grids lists into the file {\em grdlog}.
+Terser output can be obtained via:
+\begin{lstlisting}
+amr.run_log_terse} = runlogterse
+\end{lstlisting}
+This file, {\tt runlogterse} differs from {\tt runlog}, in that it
+only contains lines of the form
+\begin{verbatim}
+10  0.2  0.005
+\end{verbatim}
+in which ``10'' is the number of steps taken, ``0.2'' is the
+simulation time, and ``0.005'' is the level-0 time step.  This file
+can be plotted very easily to monitor the time step.
 
-\item {\bf amr.run\_log} = runlog \\ 
-Every time step the code prints certain statements to the screen (if {\bf amr.v} = 1), such as \\
-STEP = 1 TIME = 1.91717746 DT = 1.91717746 \\
-PLOTFILE: file = plt00001 \\
-Here these statements will be written into {\em runlog} as well.
-
-\item {\bf amr.run\_log\_terse} = runlogterse \\ 
-This file, {\em runlogterse} differs from {\em runlog}, in that it only contains lines
-of the form \\ 
-10  0.2  0.005 \\
-in which "10" is the number of steps taken, "0.2" is the simulation time, and "0.005" is the 
-level 0 time step.  This file can be plotted very easily to monitor the time step.
-
-\item {\bf castro.sum\_interval} = 2 \\
-if {\bf castro.sum\_interval} $> 0$ then the code computes and prints certain integral quantities, 
-such as total mass, momentum and energy in the domain every {\bf castro.sum\_interval} level 0 steps. 
-In this example the code will print these quantities every two coarse time steps.  The print 
-statements have the form \\
-TIME= 1.91717746 MASS= 1.792410279e+34 \\
-for example. 
-If this line is commented out then it will not compute and print these quanitities.
-
-\end{itemize}
 
 
 \subsection{Other parameters}

@@ -2,7 +2,14 @@ Our equations look like:
 \begin{equation}
 \frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
 \end{equation}
-where $\Fb$ is the flux vector, $\Sb_{\rm react}$ are the reaction source terms, and $\Sb$ are the non-reaction source terms, which includes any user-defined external sources, $\Sb_{\rm ext}$.  We use Strang splitting to discretize the advection-reaction equations.  In summary, for each time step, we update the conservative variables, $\Ub$, by reacting for half a time step, advecting for a full time step (ignoring the reaction terms), and reacting for half a time step.  In summary,
+where $\Fb$ is the flux vector, $\Sb_{\rm react}$ are the reaction
+source terms, and $\Sb$ are the non-reaction source terms, which
+includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
+Strang splitting to discretize the advection-reaction equations.  In
+summary, for each time step, we update the conservative variables,
+$\Ub$, by reacting for half a time step, advecting for a full time
+step (ignoring the reaction terms), and reacting for half a time step.
+In summary,
 \begin{equation}
 \Ub^n = \Ub^n + \frac{\dt}{2}\Sb_{\rm react}^n,
 \end{equation}
@@ -12,9 +19,17 @@ where $\Fb$ is the flux vector, $\Sb_{\rm react}$ are the reaction source terms,
 \begin{equation}
 \Ub^{n+1} = \Ub^{n+1} + \frac{\dt}{2}\Sb_{\rm react}^{n+1},
 \end{equation}
-The construction of $F$ is purely explicit, and based on an unsplit second-order Godunov method.  We predict the standard primitive variables, as well as $\rho e$, at time-centered edges and use an approximate Riemann solver construct fluxes.  At the beginning of the time step, we assume that $\Ub$ and $\phi$ are defined consistently, i.e., $\rho^n$ and $\phi^n$ satisfy equation (\ref{eq:Self Gravity}).\\
+The construction of $F$ is purely explicit, and based on an unsplit
+second-order Godunov method.  We predict the standard primitive
+variables, as well as $\rho e$, at time-centered edges and use an
+approximate Riemann solver construct fluxes.  At the beginning of the
+time step, we assume that $\Ub$ and $\phi$ are defined consistently,
+i.e., $\rho^n$ and $\phi^n$ satisfy equation (\ref{eq:Self
+  Gravity}).\\
 
-CASTRO also supports radiation (Chapter \ref{Chap:Radiation}) and level sets (Chapter \ref{Chap:Level Sets}).  We omit the details in this section.  Here is the single-level algorithm:
+\castro\ also supports radiation (Chapter \ref{Chap:Radiation}) and
+level sets (Chapter \ref{Chap:Level Sets}).  We omit the details in
+this section.  Here is the single-level algorithm:
 \begin{description}
 \item[Step 1:] {\em React $\Delta t/2$.}
 
@@ -34,7 +49,11 @@ or use one of the simpler gravity types.
 
 \item[Step 3:] {\em Compute explicit source terms.}
 
-We now compute explicit source terms for each variable in $\Qb$ and $\Ub$.  The primitive variable source terms will be used to construct time-centered fluxes.  The conserved variable source will be used to advance the solution.  We neglect reaction source terms since they are accounted for in {\bf Steps 1} and {\bf 6}.  The source terms are:
+We now compute explicit source terms for each variable in $\Qb$ and
+$\Ub$.  The primitive variable source terms will be used to construct
+time-centered fluxes.  The conserved variable source will be used to
+advance the solution.  We neglect reaction source terms since they are
+accounted for in {\bf Steps 1} and {\bf 6}.  The source terms are:
 \begin{equation}
 \Sb_{\Qb}^n =
 \left(\begin{array}{c}
@@ -82,7 +101,11 @@ The goal is to advance
 \begin{equation}
 \Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
 \end{equation}
-neglecting reaction terms.  Note that since the source term is not time centered, this is not a second-order method.  After the advective update, we correct the solution, effectively time-centering the source term. The advection step is complicated, and more detail is given in Section \ref{Sec:Advection Step}.  Here is the summarized version:
+neglecting reaction terms.  Note that since the source term is not
+time centered, this is not a second-order method.  After the advective
+update, we correct the solution, effectively time-centering the source
+term. The advection step is complicated, and more detail is given in
+Section \ref{Sec:Advection Step}.  Here is the summarized version:
 \begin{enumerate}
 \item Compute primitive variables.
 \item Predict primitive variables to time-centered edges.
@@ -98,7 +121,9 @@ Solve for gravity using:
 or use one of the simpler gravity types.
 \item[Step 5:] {\em Correct solution with time-centered source terms.}
 
-We need to correct the solution by effectively time-centering the source terms.  These corrections are to be performed sequentially since new source term evaluations may depend on previous corrections.
+We need to correct the solution by effectively time-centering the
+source terms.  These corrections are to be performed sequentially
+since new source term evaluations may depend on previous corrections.
 
 First, we correct the solution with the updated gravity:
 \begin{eqnarray}
@@ -106,11 +131,13 @@ First, we correct the solution with the updated gravity:
 (\rho E)^{n+1} &=& (\rho E)^{n+1} + \frac{\dt}{2}\left[\left(\rho\ub\cdot\gb\right)^{n+1} - \left(\rho\ub\cdot\gb\right)^n\right].
 \end{eqnarray}
 
-Next, we correct $\Ub$ with updated external sources.  For example, for the momentum, we correct using
+Next, we correct $\Ub$ with updated external sources.  For example,
+for the momentum, we correct using
 \begin{equation}
 (\rho\ub)^{n+1} = (\rho\ub)^{n+1} + \frac{\dt}{2}\left(\Sb_{{\rm ext},\rho\ub}^{n+1} - \Sb_{{\rm ext},\rho\ub}^n\right).
 \end{equation}
-We correct $\rho E, \rho A_k, \rho X_k$, and $\rho Y_k$ in an analogous manner.
+We correct $\rho E, \rho A_k, \rho X_k$, and $\rho Y_k$ in an
+analogous manner.
 
 Finally, we correct the solution with updated thermal diffusion using
 \begin{equation}
@@ -125,8 +152,8 @@ Update the solution due to the effect of reactions over half a time step.
 \end{eqnarray}
 \item[Step 7:] {\em Modify auxiliary variables.}
 
-This is problem-dependent.  By default we treat the auxiliary variables as 
-advected quantities, so no additional steps are required.
+This is problem-dependent.  By default we treat the auxiliary
+variables as advected quantities, so no additional steps are required.
 \end{description}
 Thus concludes the single-level algorithm description.
 

@@ -1,6 +1,6 @@
 \section{Code structure}
 
-The code structure in the Castro directory is as follows:
+The code structure in the {\tt Castro/} directory is as follows:
 
 \begin{itemize}
     \item {\bf constants}      : contains a file of useful constants in CGS units
@@ -22,25 +22,30 @@ The code structure in the Castro directory is as follows:
 
 \subsection{State Data}
 
-CASTRO relies on the class structure defined by BoxLib to manage the data.  
+\castro\ relies on the class structure defined by \boxlib\ to manage the
+data.
 
 In {\tt Castro.H}, the {\tt enum} {\tt StateType} defines the
-different descriptors for the state data that Castro recognizes.  The
+different descriptors for the state data that \castro\ recognizes.  The
 main descriptors are:
 \begin{itemize}
 \item {\tt State\_Type}: the state variables for the hydrodynamics solver.
+
 \item {\tt Rad\_Type}: the radiation quantities (only enabled if {\tt
   RADIATION} is defined).
+
 \item {\tt Gravity\_Type}: the data required for the gravity solve (only
   enabled if {\tt GRAVITY} is defined).
+
 \item {\tt Reactions\_Type}: {\color{red} what is this for?}
 \end{itemize}
 
-The state data is registered with BoxLib in {\tt Castro\_setup.cpp}.  We access 
-the multifabs that carry the data of interest by interacting with this
-BoxLib data-structure.  Each state quantity always has both an old and new timestate
-and the BoxLib class knows how to interpolate in both space and time.  We interact
-with the data by getting pointers to multifabs.  For instance:
+The state data is registered with \boxlib\ in {\tt Castro\_setup.cpp}.
+We access the multifabs that carry the data of interest by interacting
+with this \boxlib\ data-structure.  Each state quantity always has both
+an old and new timestate and the BoxLib class knows how to interpolate
+in both space and time.  We interact with the data by getting pointers
+to multifabs.  For instance:
 \begin{verbatim}
        MultiFab& S_new = get_new_data(State_Type);
 \end{verbatim}
@@ -68,19 +73,19 @@ initialization, from {\tt Castro\_setup.cpp} would be):
            }
        }
 \end{verbatim}
-here {\tt BL\_TO\_FORTRAN} is a special BoxLib macro that converts the
+here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
 C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
 is a BoxLib macro that is used to interface with Fortran routines.
 \MarginPar{what is the purpose of mfi.isValid()?}
 
 \subsection{Other Quantities}
 
-The following is a list of variables, routines, etc used in CASTRO. It
+The following is a list of variables, routines, etc used in \castro. It
 may not be complete or even entirely accurate; it's mostly intended
 for my own use.\\
 
 {\bf lo,hi}: index extent of the "grid" of data currently being
-handled by a CASTRO routine\\
+handled by a \castro\ routine\\
 
 {\bf domlo, domhi}: index extent of the problem domain. This changes
 according to refinement level: 0th refinement level will have 0,
@@ -88,22 +93,22 @@ castro.max\_grid\_size, and nth level will go from 0 to
 castro.max\_grid\_size*(multiplying equivalent of
 sum)castro.ref\_ratio(n).\\
 
-{\bf dx}: cell spacing, presumably in cm, since CASTRO uses cgs
+{\bf dx}: cell spacing, in cm, since \castro\ uses CGS
 units\\
 
 {\bf xlo}: physical location of the lower left-hand corner of the
-"grid" of data currently being handled by a CASTRO routine\\
+"grid" of data currently being handled by a \castro\ routine\\
 
 {\bf bc}: array that holds boundary condition of and array. Sometimes
-it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index
-of the latter holds the variable index, i.e. density, pressure,
-species, etc.\\
+it appears of the form {\tt bc(:,:)} and sometimes {\tt
+  bc(:,:,:)}. The last index of the latter holds the variable index,
+i.e., density, pressure, species, etc.\\
 
-{\bf EXT\_DIR}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR : data
+{\bf EXT\_DIR}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR}) data
 specified on EDGE (FACE) of bndry\\
 
-{\bf FOEXTRAP}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP : first
-order extrapolation from last cell in interior CASTRO
+{\bf FOEXTRAP}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP}) first
+order extrapolation from last cell in interior \castro
 
 
 \section{Setting Up Your Own Problem}
@@ -160,16 +165,16 @@ subroutines:
 \subsection{Boundaries Between Grids}
 Boundaries between grids are of two types. The first we call
 "fine-fine", which is two grids at the same level.  Filling ghost
-cells at the same level is also part of the fillpatch operation --
-it's just a straight copy from "valid regions" to ghost cells. The
-second type is "coarse-fine", which needs interpolation from the
-coarse grid to fill the fine grid ghost cells.  This also happens as
-part of the FillPatch operation, which is why arrays aren't just
-arrays, they're "State Data", which means that the data knows how to
-interpolate itself (in an anthropomorphical sense).  The type of
-interpolation to use is defined in Castro\_setup.cpp as well -- search
-for cell\_cons\_interp, for example -- that's "cell conservative
-interpolation", i.e the data is cell-based (as opposed to node-based
+cells at the same level is also part of the fillpatch operation---it's
+just a straight copy from "valid regions" to ghost cells. The second
+type is "coarse-fine", which needs interpolation from the coarse grid
+to fill the fine grid ghost cells.  This also happens as part of the
+FillPatch operation, which is why arrays aren't just arrays, they're
+"State Data", which means that the data knows how to interpolate
+itself (in an anthropomorphical sense).  The type of interpolation to
+use is defined in {\tt Castro\_setup.cpp} as well---search for
+{\tt cell\_cons\_interp}, for example---that's ``cell conservative
+interpolation'', i.e., the data is cell-based (as opposed to node-based
 or edge-based) and the interpolation is such that the average of the
 fine values created is equal to the coarse value from which they came.
 (This wouldn't be the case with straight linear interpolation, for
@@ -208,10 +213,12 @@ Slip Wall with Fixed Temp & EXT\_DIR $u_n=0$ & EXT\_DIR & HOEXTRAP \\
 \end{scriptsize}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The boundary conditions in Table \ref{Table:BC} have already been implemented in CASTRO.  
-The table looks cruddy--it's copied from {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H}. 
-Some of that makes more sense if there are linebreaks within the table, 
-but I'm not sure how to do it. Here's definitions of some of the funnier-souding all-caps words from above:\\
+The boundary conditions in Table \ref{Table:BC} have already been
+implemented in \castro.  The table looks cruddy---it's copied from {\tt
+  BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H}.  Some of that makes more
+sense if there are linebreaks within the table, but I'm not sure how
+to do it. Here's definitions of some of the funnier-souding all-caps
+words from above:\\
 
 INT\_DIR  : data taken from other grids or interpolated
 
@@ -226,28 +233,35 @@ REFLECT\_EVEN : F(-n) = F(n) true reflection from interior cells
 REFLECT\_ODD  : F(-n) = -F(n) true reflection from interior cells\\ \\
 Basically, boundary conditions are imposed on "state variables" every time that they're "fillpatched", as part of the fillpatch operation.
 
-For example, the loop that calls CA\_UMDRV (all the integration stuff) starts with \\ \\
-{\tt       for (FillPatchIterator fpi(*this, S\_new, NUM\_GROW,
-                                  time, State\_Type, strtComp, NUM\_STATE);
-            fpi.isValid();
-            ++fpi)
-}\\ \\
-Here the FillPatchIterator is the thing that distributes the grids over processors and 
-makes parallel "just work". This fills the single patch "fpi" , which has NUM\_GROW 
-ghost cells, with data of type "State\_Type" at time "time", starting with component 
-strtComp and including a total of NUM\_STATE components.
+For example, the loop that calls CA\_UMDRV (all the integration stuff) starts with
+\begin{lstlisting}
+   for (FillPatchIterator fpi(*this, S\_new, NUM\_GROW,
+                              time, State\_Type, strtComp, NUM\_STATE);
+        fpi.isValid();
+        ++fpi)
+\end{lstlisting}
+Here the {\tt FillPatchIterator} is the thing that distributes the
+grids over processors and makes parallel ``just work''. This fills the
+single patch ``{\tt fpi}'' , which has {\tt NUM\_GROW} ghost cells,
+with data of type ``{\tt State\_Type}'' at time ``{\tt time}'',
+starting with component {\tt strtComp} and including a total of {\tt
+  NUM\_STATE} components.
 
-The way that you tell the code what kind of physical boundary condition to use is given 
-in Castro\_setup.cpp. At the top we define arrays such as "scalar\_bc", "norm\_vel\_bc", 
-etc, which say which kind of bc to use on which kind of physical boundary. 
-Boundary conditions are set in functions like "set\_scalar\_bc", which uses the 
-scalar\_bc pre-defined arrays.
+The way that you tell the code what kind of physical boundary
+condition to use is given in {\tt Castro\_setup.cpp}. At the top we
+define arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'',
+etc, which say which kind of bc to use on which kind of physical
+boundary.  Boundary conditions are set in functions like ``{\tt
+  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
+arrays.
 
-If you want to specify a value at a function (like at an inflow boundary), 
-there are routines in Prob\_1d.f90, for example, which do that. Which routine is called 
-for which variable is again defined in Castro\_setup.cpp 
+If you want to specify a value at a function (like at an inflow
+boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
+that. Which routine is called for which variable is again defined in
+{\tt Castro\_setup.cpp}.
 
 \section{Parallel I/O}
+
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
 The fundamental data structure we read/write to disk is a MultiFab,
@@ -258,31 +272,31 @@ shared across thousands of CPUs.  Each CPU writes the part of the
 MultiFab that it owns to disk, but they don't each write to their own
 distinct file.  Instead each MultiFab is written to a runtime
 configurable number of files N (N can be set in the inputs file as the
-parameter {\bf amr.checkpoint\_nfiles} and {\bf amr.plot\_nfiles}; the
+parameter {\tt amr.checkpoint\_nfiles} and {\tt amr.plot\_nfiles}; the
 default is 64).  That is to say, each MultiFab is written to disk
 across at most N files, plus a small amount of data that gets written
 to a header file describing how the file is laid out in those N files.
 
-What happens is N CPUs each opens a unique one of the N files into
+What happens is $N$ CPUs each opens a unique one of the $N$ files into
 which the MultiFab is being written, seeks to the end, and writes
-their data.  The other CPUs are waiting at a barrier for those N
-writing CPUs to finish.  This repeats for another N CPUs until all the
+their data.  The other CPUs are waiting at a barrier for those $N$
+writing CPUs to finish.  This repeats for another $N$ CPUs until all the
 data in the MultiFab is written to disk.  All CPUs then pass some data
-to CPU 0 which writes a header file describing how the MultiFab is
+to CPU {\tt 0} which writes a header file describing how the MultiFab is
 laid out on disk.
 
-We also read MultiFabs from disk in a "chunky" manner opening only N
-files for reading at a time.  The number N, when the MultiFabs were
-written, does not have to match the number N when the MultiFabs are
+We also read MultiFabs from disk in a ``chunky'' manner, opening only $N$
+files for reading at a time.  The number $N$, when the MultiFabs were
+written, does not have to match the number $N$ when the MultiFabs are
 being read from disk.  Nor does the number of CPUs running while
 reading in the MultiFab need to match the number of CPUs running when
 the MultiFab was written to disk.
 
-Think of the number N as the number of independent I/O pathways in
-your underlying parallel filesystem.  Of course a "real" parallel
-filesytem should be able to handle any reasonable value of N.  The
-value -1 forces N to the number of CPUs on which you're running, which
-means that each CPU writes to a unique file, which can create a very
-large number of files, which can lead to inode issues.
+Think of the number $N$ as the number of independent I/O pathways in
+your underlying parallel filesystem.  Of course a ``real'' parallel
+filesytem should be able to handle any reasonable value of $N$.  The
+value {\tt -1} forces $N$ to the number of CPUs on which you're
+running, which means that each CPU writes to a unique file, which can
+create a very large number of files, which can lead to inode issues.
 
 
