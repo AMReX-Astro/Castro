@@ -15,6 +15,7 @@ section_sources = Introduction/CastroIntroduction.tex \
                   UnitsAndConstants/CastroUnits.tex \
                   Equations/Equations.tex \
 	          Gravity/CastroGravity.tex \
+	          Diffusion/CastroDiffusion.tex \
 	          FlowChart/FlowChart.tex \
                   LevelSet/LevelSet.tex \
                   AMR/AMR.tex \
