@@ -278,8 +278,8 @@ For the reconstruction of the interface states, the following apply:
   for the reference state used by the characteristic projection in
   ppm (1) or the cell-centered value (0).  (Default: 1)
 
-  The original \castro\ paper~\ref{castro_I} used the cell-centered
-  value ({\tt ppm\_reference = 0}), but the method in the PPM paper~\ref{ppm}
+  The original \castro\ paper~\cite{castro_I} used the cell-centered
+  value ({\tt ppm\_reference = 0}), but the method in the PPM paper~\cite{ppm}
   does the method of {\tt ppm\_refrence = 1}.
     
 \item {\tt castro.ppm\_trace\_grav} reconstructs the gravitational
@@ -328,12 +328,12 @@ parameters apply:
 
   The default is to use the solver based on an unpublished Colella,
   Glaz, \& Ferguson manuscript, as described in the original
-  \castro\ paper~\ref{castro_I}.
+  \castro\ paper~\cite{castro_I}.
 
   The Colella \& Glaz solver is iterative, and two runtime parameters are used
   to control its behavior:
   \begin{itemize}
-  \item {\tt castro.cg\_maxiter}: number of iterations for C/G algorithm
+  \item {\tt castro.cg\_maxiter}: number of iterations for CG algorithm
     (Integer; default: 12)
     
   \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
