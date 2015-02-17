@@ -684,62 +684,63 @@ void RadSolve::levelFlux(int level,
 void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Flux,
 				     MultiFab& flx, int igroup)
 {
-  const BoxArray& grids = parent->boxArray(level);
+    const BoxArray& grids = parent->boxArray(level);
 
-  int nflx = flx.nComp();
+    int nflx = flx.nComp();
+    
+    const Geometry& geom = parent->Geom(level);
+    const Real *dx = geom.CellSize();
 
-  Array<Real> r, s;
-  const Geometry& geom = parent->Geom(level);
-  const Real *dx = geom.CellSize();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Array<Real> r, s;
+    
+	for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
+	    {
+		const Box &ccbx  = mfi.tilebox();
+		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-    for (MFIter mfi(flx); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
+		int rlo, rhi;
 
-      const Box &Fbox = Flux[idim][mfi].box();
-      const int* Flo = Fbox.loVect();
-      const int* Fhi = Fbox.hiVect();
+		const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+		if (Geometry::IsCartesian()) {
+		    r.resize(ccbx.length(0)+1, 1);
+		    rlo = ndbx.smallEnd(0);
+		    rhi = ndbx.bigEnd  (0);
+		}
+		else if (Geometry::IsRZ()) {
+		    if (idim == 0) {
+			geom.GetEdgeLoc(r, ccbx, 0);
+			rlo = ndbx.smallEnd(0);
+			rhi = ndbx.bigEnd  (0);
+		    }
+		    else {
+			geom.GetCellLoc(r, ccbx, 0);
+			rlo = ccbx.smallEnd(0);
+			rhi = ccbx.bigEnd  (0);
+		    }
+		}
+		else {
+		    geom.GetEdgeLoc(r, ccbx, 0);
+		    geom.GetCellLoc(s, ccbx, I);
+		    rlo = ndbx.smallEnd(0);
+		    rhi = ndbx.bigEnd  (0);
 
-      const Box &reg  = grids[i];
-      const int* reglo = reg.loVect();
-      const int* reghi = reg.hiVect();
+		    FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(ndbx), dx);
+		}
 
-      int rlo, rhi;
-
-      const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-      if (Geometry::IsCartesian()) {
-	r.resize(reg.length(0)+1, 1);
-	rlo = Flo[0];
-	rhi = Fhi[0];
-      }
-      else if (Geometry::IsRZ()) {
-	if (idim == 0) {
-	  geom.GetEdgeLoc(r, reg, 0);
-	  rlo = Flo[0];
-	  rhi = Fhi[0];
+		BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
+		    (ccbx.loVect(), ccbx.hiVect(),
+		     BL_TO_FORTRAN(flx[mfi]),
+		     BL_TO_FORTRAN(Flux[idim][mfi]),
+		     r.dataPtr(), &rlo, &rhi, 
+		     &nflx, &idim, &igroup);
+	    }
 	}
-	else {
-	  geom.GetCellLoc(r, reg, 0);
-	  rlo = reglo[0];
-	  rhi = reghi[0];
-	}
-      }
-      else {
-	geom.GetEdgeLoc(r, reg, 0);
-	geom.GetCellLoc(s, reg, I);
-	rlo = Flo[0];
-	rhi = Fhi[0];
-
-	FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(Fbox), dx);
-      }
-
-      BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
-	(BL_TO_FORTRAN(flx[mfi]),
-	 BL_TO_FORTRAN(Flux[idim][mfi]),
-	 r.dataPtr(), &rlo, &rhi, 
-	 &nflx, &idim, &igroup);
     }
-  }
 }
 
 void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,

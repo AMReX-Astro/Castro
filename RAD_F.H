@@ -696,7 +696,8 @@ BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
     BL_FORT_FAB_ARG(ccoe),
     const Real* dx, const int* idim, const int* igroup);
 BL_FORT_PROC_DECL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
-   (BL_FORT_FAB_ARG(test), 
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(test), 
     const BL_FORT_FAB_ARG(flx),
     const Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* igroup);

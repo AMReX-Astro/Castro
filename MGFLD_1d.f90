@@ -1074,7 +1074,7 @@ subroutine ca_accel_ccoe( lo, hi, &
 end subroutine ca_accel_ccoe
 
 
-subroutine ca_test_type_flux( &
+subroutine ca_test_type_flux( lo, hi, &
      t, t_l1, t_h1, &
      f, f_l1, f_h1, &
      x, x_l1, x_h1, &
@@ -1082,6 +1082,7 @@ subroutine ca_test_type_flux( &
 
   use rad_params_module, only : get_ispec
 
+  integer,intent(in):: lo(1), hi(1)
   integer,intent(in)::t_l1,t_h1
   integer,intent(in)::f_l1,f_h1
   integer,intent(in)::x_l1,x_h1
@@ -1095,7 +1096,7 @@ subroutine ca_test_type_flux( &
   ispec = get_ispec(igroup)
   it = ispec
 
-  do i=t_l1, t_h1
+  do i=lo(1),hi(1)
      t(i,it) = t(i,it) + (f(i)/(x(i)+1.d-50) + f(i+1)/x(i+1)) / 2.d0
   end do
 
