@@ -170,13 +170,13 @@ subroutines:
 \section{Boundaries}
 \subsection{Boundaries Between Grids}
 Boundaries between grids are of two types. The first we call
-"fine-fine", which is two grids at the same level.  Filling ghost
+``fine-fine'', which is two grids at the same level.  Filling ghost
 cells at the same level is also part of the fillpatch operation---it's
-just a straight copy from "valid regions" to ghost cells. The second
+just a straight copy from ``valid regions'' to ghost cells. The second
 type is "coarse-fine", which needs interpolation from the coarse grid
 to fill the fine grid ghost cells.  This also happens as part of the
 FillPatch operation, which is why arrays aren't just arrays, they're
-"State Data", which means that the data knows how to interpolate
+``State Data'', which means that the data knows how to interpolate
 itself (in an anthropomorphical sense).  The type of interpolation to
 use is defined in {\tt Castro\_setup.cpp} as well---search for
 {\tt cell\_cons\_interp}, for example---that's ``cell conservative
@@ -199,50 +199,71 @@ get the grid layout.  \MarginPar{did I say that right?}
 
 
 \subsection{Physical Boundaries}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|c|c|c|c|} \hline
-Physical BC & Velocity & Temperature & Scalars \\
-\hline
-Outflow & FOEXTRAP & FOEXTRAP & FOEXTRAP \\
-No Slip Wall with Adiabatic Temp & EXT\_DIR $u=v=0$ & REFLECT\_EVEN $dT/dt=0$ & HOEXTRAP \\
-No Slip Wall with Fixed Temp & EXT\_DIR $u=v=0$ & EXT\_DIR & HOEXTRAP \\
-Slip Wall with Adiabatic Temp & EXT\_DIR $u_n=0$, HOEXTRAP $u_t$ & REFLECT\_EVEN $dT/dn=0$ & HOEXTRAP \\
-Slip Wall with Fixed Temp & EXT\_DIR $u_n=0$ & EXT\_DIR & HOEXTRAP \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Conversions from physical to mathematical BCs}
-\label{Table:BC}
-\end{scriptsize}
-\end{table}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The boundary conditions in Table \ref{Table:BC} have already been
-implemented in \castro.  The table looks cruddy---it's copied from {\tt
-  BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H}.  Some of that makes more
-sense if there are linebreaks within the table, but I'm not sure how
-to do it. Here's definitions of some of the funnier-souding all-caps
-words from above:\\
 
-INT\_DIR  : data taken from other grids or interpolated
+The following boundary conditions have already been implemented in
+\castro\ See {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H} for some
+more details.
+\begin{itemize}
+\item {\it Outflow}:
+  \begin{itemize}
+    \item velocity: {\tt FOEXTRAP}
+    \item temperature: {\tt FOEXTRAP}
+    \item scalars: {\tt FOEXTRAP}
+  \end{itemize}
+  
+\item {\it No Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dt=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
 
-EXT\_DIR  : data specified on EDGE (FACE) of bndry
+\item {\it No Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+    
+\item {\it Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+  
+\item {\it Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
 
-HOEXTRAP  : higher order extrapolation to EDGE of bndry
+\end{itemize}
 
-FOEXTRAP  : first order extrapolation from last cell in interior
+Here's definitions of some of the funny-sounding ``all-caps''
+words from above:
+\begin{itemize}
+\item {\tt INT\_DIR}: data taken from other grids or interpolated
 
-REFLECT\_EVEN : F(-n) = F(n) true reflection from interior cells
+\item {\tt EXT\_DIR}: data specified on EDGE (FACE) of bndry
 
-REFLECT\_ODD  : F(-n) = -F(n) true reflection from interior cells\\ \\
-Basically, boundary conditions are imposed on "state variables" every time that they're "fillpatched", as part of the fillpatch operation.
+\item {\tt HOEXTRAP}: higher order extrapolation to EDGE of bndry
 
-For example, the loop that calls CA\_UMDRV (all the integration stuff) starts with
+\item {\tt FOEXTRAP}: first order extrapolation from last cell in interior
+
+\item {\tt REFLECT\_EVEN}: $F(-n) = F(n)$ true reflection from interior cells
+
+\item {\tt REFLECT\_ODD}: $F(-n) = -F(n)$ true reflection from interior cells
+\end{itemize}
+
+Basically, boundary conditions are imposed on ``state variables'' every
+time that they're ``fillpatched'', as part of the fillpatch operation.
+
+For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) starts with
 \begin{lstlisting}
-   for (FillPatchIterator fpi(*this, S\_new, NUM\_GROW,
-                              time, State\_Type, strtComp, NUM\_STATE);
+   for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
+                              time, State_Type, strtComp, NUM_STATE);
         fpi.isValid();
         ++fpi)
 \end{lstlisting}
