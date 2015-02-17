@@ -269,7 +269,7 @@ Castro::variableSetUp ()
 #endif
 
     // Get the center variable from the inputs and pass it directly to Fortran.
-    Array<Real> center(BL_SPACEDIM);
+    Array<Real> center(BL_SPACEDIM, 0.0);
     ParmParse ppc("castro");
     ppc.queryarr("center",center,0,BL_SPACEDIM);
         
