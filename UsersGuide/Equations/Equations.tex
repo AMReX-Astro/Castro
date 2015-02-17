@@ -27,21 +27,21 @@ The ordering of the elements within $\Ub$ is defined (in 3D) by integer
 variables into the array---see Table~\ref{table:consints}
 \begin{table}[t]
   \centering
-\begin{tabular}{llp{4.5in}}
+\begin{tabular}{llp{3.5in}}
   \hline
       {\bf variable} & {\bf quantity} & {\bf note} \\
   \hline
-URHO & $\rho$ \\
-UMX & $\rho u$ \\
-UMY & $\rho v$ \\
-UMZ & $\rho w$ \\
-UEDEN & $\rho E$ \\
-UEINT & $\rho e$ & this is computed from the other quantities using
+{\tt URHO} & $\rho$ \\
+{\tt UMX} & $\rho u$ \\
+{\tt UMY} & $\rho v$ \\
+{\tt UMZ} & $\rho w$ \\
+{\tt UEDEN} & $\rho E$ \\
+{\tt UEINT} & $\rho e$ & this is computed from the other quantities using
              $\rho e = \rho E - \rho \ub \cdot \ub / 2$ \\
-UTEMP & $T$  & this is computed from the other quantities using the EOS \\
-UFA & $\rho A_1$ & the first advected quantity \\
-UFS & $\rho X_1$ & the first species \\
-UFX & $\rho Y_1$ & the first auxiliary variable \\
+{\tt UTEMP} & $T$  & this is computed from the other quantities using the EOS \\
+{\tt UFA} & $\rho A_1$ & the first advected quantity \\
+{\tt UFS} & $\rho X_1$ & the first species \\
+{\tt UFX} & $\rho Y_1$ & the first auxiliary variable \\
 \hline
 \end{tabular}
 \caption{\label{table:consints} The integer variables to index the conservative state array}
@@ -107,20 +107,20 @@ keys for the different quantities are listed in Table~\ref{table:primlist}.
 
 \begin{table}[t]
   \centering
-\begin{tabular}{llp{4.5in}}
+\begin{tabular}{llp{3.5in}}
   \hline
       {\bf variable} & {\bf quantity} & {\bf note} \\
   \hline
- QRHO & $\rho$ \\
- QU & $u$ \\
- QV & $v$ \\
- QW & $w$ \\
- QPRES & $p$ \\
- QREINT & $\rho e$ \\
- QTEMP & $T$ \\
- QFA & $A_1$ & the first advected quantity \\
- QFS & $X_1$ & the first species \\
- QFX & $Y_1$ & the first auxiliary variable \\
+{\tt  QRHO} & $\rho$ \\
+{\tt  QU} & $u$ \\
+{\tt  QV} & $v$ \\
+{\tt  QW} & $w$ \\
+{\tt  QPRES} & $p$ \\
+{\tt  QREINT} & $\rho e$ \\
+{\tt  QTEMP} & $T$ \\
+{\tt  QFA} & $A_1$ & the first advected quantity \\
+{\tt  QFS} & $X_1$ & the first species \\
+{\tt  QFX} & $Y_1$ & the first auxiliary variable \\
  \hline
 \end{tabular}
 \caption{\label{table:primlist} The integer variable keys for accessing the
@@ -230,7 +230,40 @@ The left row eigenvectors, normalized so that $\Rb_d\cdot\Lb_d = \Ib$ are:
 \section{Runtime Parameters}
 
 A number of runtime parameters affect the hydrodynamics behavior.
+\begin{itemize}
+\item {\tt castro.do\_hydro}: time-advance the fluid dynamical
+  equations (0 or 1; must be set)
 
+\item {\tt castro.add\_ext\_src}: include additional user-specified
+  source term (0 or 1; default 0)
+  
+\item {\tt castro.do\_sponge}: call a user-supplied sponging routine
+  after the solution update (0 or 1; default: 0)
+
+  The purpose of the sponge is to damp velocities outside of a star, to
+  prevent them from dominating the timestep constraint.
+  
+\item {\tt castro.normalize\_species}: enforce that $\sum_i X_i = 1$
+  (0 or 1; default: 0)
+  
+\item {\tt castro.fix\_mass\_flux}: enforce constant mass flux at
+  domain boundary (0 or 1; default: 1)
+  
+\item {\tt castro.allow\_negative\_energy}: is internal energy allowed to be
+  negative? (0 or 1; default: 1)
+  
+\item {\tt castro.spherical\_star}: (0 or 1; default: 0)
+  
+\item {\tt castro.show\_center\_of\_mass}: (0 or 1; default: 0)
+\end{itemize}
+
+Several floors are imposed on the thermodynamic quantities to prevet unphysical
+behavior:
+\begin{itemize}
+\item {\tt castro.small\_dens}: (Real; default: -1.e20)
+\item {\tt castro.small\_temp}: (Real; default: -1.e20)
+\item {\tt castro.small\_pres}: (Real; default: -1.e20)
+\end{itemize}
 
 For the reconstruction of the interface states, the following apply:
 \begin{itemize}
@@ -325,23 +358,6 @@ parameters apply:
 \begin{tabular}{|l|p{3.0in}|l|l|} \hline
 Parameter & Definition & Acceptable Values &Default\\
 \hline
-{\bf castro.do\_hydro} & Time-advance the fluid dynamical equations & 0 if false, 1 if true &
- must be set \\
-{\bf castro.do\_react} & Include reactions                          & 0 if false, 1 if true & 
- must be set \\
-% {\bf castro.do\_radiation} & Include radiation                      & 0 if false, 1 if true &
-%  must be set if USE\_RAD = TRUE \\
-{\bf castro.add\_ext\_src} & Include additional user-specified source term & 0 if false, 1 if true & 0 \\
-{\bf castro.point\_mass}   & Point mass at the center of the star & Real $\geq 0$ & 0.0 \\
-{\bf castro.do\_sponge} & Call a user-supplied sponging routine after the solution update & 0 or 1 & 0 \\
-{\bf castro.normalize\_species} & Enforce that $\sum_i X_i = 1$ & 0 or 1 & 0 \\
-{\bf castro.fix\_mass\_flux} & Enforce constant mass flux at domain boundary & 0 or 1 & 1 \\
-{\bf castro.allow\_negative\_energy} & Is internal energy allowed to be negative & 0 or 1 & 1 \\
-{\bf castro.spherical\_star} & & 0 or 1 & 0 \\
-{\bf castro.show\_center\_of\_mass} & & 0 or 1 & 0 \\
-{\bf castro.small\_dens} & & Real & -1.e20 \\
-{\bf castro.small\_temp} & & Real & -1.e20 \\
-{\bf castro.small\_pres} & & Real & -1.e20 \\
 \hline
 \end{tabular}
 \label{Table:Physics}
@@ -354,7 +370,6 @@ Parameter & Definition & Acceptable Values &Default\\
 \begin{itemize}
 \item You must have USE\_POINTMASS = TRUE in the GNUmakefile for {\bf
   castro.point\_mass} to be relevant.
-\item {\bf castro.use\_colglaz}  = 1 is only implemented in 1D
 \end{itemize}
 
 
