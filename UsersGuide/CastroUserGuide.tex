@@ -190,6 +190,7 @@
 
 % codes
 \newcommand{\castro}{{\sf Castro}}
+\newcommand{\maestro}{{\sf Maestro}}
 \newcommand{\boxlib}{{\sf BoxLib}}
 \newcommand{\yt}{{\sf yt}}
 \newcommand{\amrvis}{{\sf Amrvis}}
@@ -276,29 +277,34 @@
 \chapter{Units and Constants}
 \input UnitsAndConstants/CastroUnits.tex
 
-\chapter{Equations}
+\chapter{Software Framework}
+\input Software/CastroSoftware.tex
+\input Parallel/Parallel.tex
+
+\chapter{Single-Level Flow Chart}
+\input FlowChart/FlowChart.tex
+
+\chapter{Hydrodynamics}
 \input Equations/Equations.tex
 
 \chapter{Gravity}
 \input Gravity/CastroGravity.tex
 
+\chapter{Diffusion}
+\input Diffusion/CastroDiffusion.tex
+
 \chapter{Rotation}
 \input Rotation/CastroRotation.tex
 
-\chapter{Single-Level Flow Chart}
-\input FlowChart/FlowChart.tex
-
-%\chapter{Radiation}\label{Chap:Radiation}
-%\input Radiation/Radiation.tex
-
-\chapter{Level Sets}\label{Chap:Level Sets}
-\input LevelSet/LevelSet.tex
+\chapter{Equation of State and Burning Network}
+\input EOSNetwork/EOSNetwork.tex
 
 \chapter{AMR}
 \input AMR/AMR.tex
 
-\chapter{Equation of State and Burning Network}
-\input EOSNetwork/EOSNetwork.tex
+\chapter{Level Sets}\label{Chap:Level Sets}
+\input LevelSet/LevelSet.tex
+
 
 \chapter{ConvertCheckpoint}
 \input ConvertCheckpoint/ConvertCheckpoint.tex
@@ -309,17 +315,11 @@
 \chapter{Visualization}
 \input Visualization/CastroVisualization.tex
 
-\chapter{Software Framework}
-\input Software/CastroSoftware.tex
-\input Parallel/Parallel.tex
-
 \chapter{Verification Test Problems}
 \input CastroVerification/Verification.tex
 
-\chapter{Managing Jobs on Jaguar}\label{Chap:Managing}
+\chapter{Managing Jobs}\label{Chap:Managing}
 \input ManagingJobs/managingjobs.tex
-
-
 
 \chapter{Scaling}
 \input Scaling/Scaling
@@ -334,6 +334,6 @@
 \renewcommand\bibname{References}
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{plain}
-\bibliography{CastroVerification/verification,Gravity/gr,LevelSet/levelset}
+\bibliography{refs,CastroVerification/verification,Gravity/gr,LevelSet/levelset}
 
 \end{document}

@@ -1,49 +1,61 @@
 \section{Code structure}
 
-The code structure in the Castro directory is as follows:
-
+The code structure in the {\tt Castro/} directory is as follows:
 \begin{itemize}
-    \item {\bf constants}      : contains a file of useful constants in CGS units
-    \item {\bf ConvertCheckpoint} : a tool to convert a checkpoint file to a larger domain
-    \item {\bf EOS}            : contains directories for different EOS routines
-    \item {\bf Exec}       : various examples
-    \begin{itemize}
-      \item {\bf Sedov}        : run directory for the Sedov problem
-      \item {\bf Sod}          : run directory for the Sod problem
-      \item {\bf KH}           : run directory for the Kelvin-Helmholz problem
-    \end{itemize}
-    \item {\bf Networks}       : contains directories for different reaction networks
-    \item {\bf Source}     : source code
-    \item {\bf UsersGuide} : you're reading this now!
-    \item {\bf Util}       : a catch-all for additional things you may need 
+\item {\tt constants/}: contains a file of useful constants in CGS units
+
+\item {\tt ConvertCheckpoint/}: a tool to convert a checkpoint file to
+  a larger domain
+
+\item {\tt EOS/}: contains directories for different EOS routines
+
+\item {\tt Exec/}: various problem implementations, including:
+  \begin{itemize}
+  \item {\tt Sedov/}: run directory for the Sedov problem
+  \item {\tt Sod/}: run directory for the Sod problem
+  \item {\tt KH/}: run directory for the Kelvin-Helmholz problem
+  \end{itemize}
+
+\item {\tt Networks/}: contains directories for different reaction networks
+
+\item {\tt Source/}: source code
+
+\item {\tt UsersGuide/}: you're reading this now!
+
+\item {\tt Util/}: a catch-all for additional things you may need 
 \end{itemize}
 
 \section{Castro Data Structures}
 
 \subsection{State Data}
 
-CASTRO relies on the class structure defined by BoxLib to manage the data.  
+\castro\ relies on the class structure defined by \boxlib\ to manage the
+data.
 
 In {\tt Castro.H}, the {\tt enum} {\tt StateType} defines the
-different descriptors for the state data that Castro recognizes.  The
-main descriptors are:
+different descriptors for the state data that \castro\ recognizes.
+The main descriptors are:
 \begin{itemize}
 \item {\tt State\_Type}: the state variables for the hydrodynamics solver.
+
 \item {\tt Rad\_Type}: the radiation quantities (only enabled if {\tt
   RADIATION} is defined).
+
 \item {\tt Gravity\_Type}: the data required for the gravity solve (only
   enabled if {\tt GRAVITY} is defined).
+
 \item {\tt Reactions\_Type}: {\color{red} what is this for?}
 \end{itemize}
 
-The state data is registered with BoxLib in {\tt Castro\_setup.cpp}.  We access 
-the multifabs that carry the data of interest by interacting with this
-BoxLib data-structure.  Each state quantity always has both an old and new timestate
-and the BoxLib class knows how to interpolate in both space and time.  We interact
-with the data by getting pointers to multifabs.  For instance:
-\begin{verbatim}
-       MultiFab& S_new = get_new_data(State_Type);
-\end{verbatim}
+The state data is registered with \boxlib\ in {\tt Castro\_setup.cpp}.
+We access the multifabs that carry the data of interest by interacting
+with this \boxlib\ data-structure.  Each state quantity always has both
+an old and new timestate and the BoxLib class knows how to interpolate
+in both space and time.  We interact with the data by getting pointers
+to multifabs.  For instance:
+\begin{lstlisting}
+MultiFab& S_new = get_new_data(State_Type);
+\end{lstlisting}
 gets a pointer to the multifab containing the hydrodynamics state data
 at the new time (here {\tt State\_Type} is the {\tt enum} defined in 
 {\tt Castro.H}).
@@ -52,35 +64,34 @@ We iterate over the multifabs using an iterator {\tt MFIter}.  This
 iterator knows about the locality of the data---only the boxes on the
 processor will be looped over.  An example loop (for the
 initialization, from {\tt Castro\_setup.cpp} would be):
-\begin{verbatim}
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-       {
+\begin{lstlisting}
+for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+  {
+     const Box& bx      = mfi.validbox();
+     const int* lo      = bx.loVect();
+     const int* hi      = bx.hiVect();
 
-           const Box& bx      = mfi.validbox();
-           const int* lo      = bx.loVect();
-           const int* hi      = bx.hiVect();
-
-           if (! orig_domain.contains(bx)) {
-              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, lo, hi, ns,
-                 BL_TO_FORTRAN(S_new[mfi]), dx,
-                 gridloc.lo(), gridloc.hi());
-           }
-       }
-\end{verbatim}
-here {\tt BL\_TO\_FORTRAN} is a special BoxLib macro that converts the
+     if (! orig_domain.contains(bx)) {
+        BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+          (level, cur_time, lo, hi, ns,
+           BL_TO_FORTRAN(S_new[mfi]), dx,
+           gridloc.lo(), gridloc.hi());
+     }
+  }
+\end{lstlisting}
+here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
 C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
 is a BoxLib macro that is used to interface with Fortran routines.
 \MarginPar{what is the purpose of mfi.isValid()?}
 
 \subsection{Other Quantities}
 
-The following is a list of variables, routines, etc used in CASTRO. It
+The following is a list of variables, routines, etc used in \castro. It
 may not be complete or even entirely accurate; it's mostly intended
 for my own use.\\
 
 {\bf lo,hi}: index extent of the "grid" of data currently being
-handled by a CASTRO routine\\
+handled by a \castro\ routine\\
 
 {\bf domlo, domhi}: index extent of the problem domain. This changes
 according to refinement level: 0th refinement level will have 0,
@@ -88,22 +99,22 @@ castro.max\_grid\_size, and nth level will go from 0 to
 castro.max\_grid\_size*(multiplying equivalent of
 sum)castro.ref\_ratio(n).\\
 
-{\bf dx}: cell spacing, presumably in cm, since CASTRO uses cgs
+{\bf dx}: cell spacing, in cm, since \castro\ uses CGS
 units\\
 
 {\bf xlo}: physical location of the lower left-hand corner of the
-"grid" of data currently being handled by a CASTRO routine\\
+"grid" of data currently being handled by a \castro\ routine\\
 
 {\bf bc}: array that holds boundary condition of and array. Sometimes
-it appears of the form bc(:,:) and sometimes bc(:,:,:). The last index
-of the latter holds the variable index, i.e. density, pressure,
-species, etc.\\
+it appears of the form {\tt bc(:,:)} and sometimes {\tt
+  bc(:,:,:)}. The last index of the latter holds the variable index,
+i.e., density, pressure, species, etc.\\
 
-{\bf EXT\_DIR}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR : data
+{\bf EXT\_DIR}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR}) data
 specified on EDGE (FACE) of bndry\\
 
-{\bf FOEXTRAP}: from BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP : first
-order extrapolation from last cell in interior CASTRO
+{\bf FOEXTRAP}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP}) first
+order extrapolation from last cell in interior \castro
 
 
 \section{Setting Up Your Own Problem}
@@ -159,17 +170,17 @@ subroutines:
 \section{Boundaries}
 \subsection{Boundaries Between Grids}
 Boundaries between grids are of two types. The first we call
-"fine-fine", which is two grids at the same level.  Filling ghost
-cells at the same level is also part of the fillpatch operation --
-it's just a straight copy from "valid regions" to ghost cells. The
-second type is "coarse-fine", which needs interpolation from the
-coarse grid to fill the fine grid ghost cells.  This also happens as
-part of the FillPatch operation, which is why arrays aren't just
-arrays, they're "State Data", which means that the data knows how to
-interpolate itself (in an anthropomorphical sense).  The type of
-interpolation to use is defined in Castro\_setup.cpp as well -- search
-for cell\_cons\_interp, for example -- that's "cell conservative
-interpolation", i.e the data is cell-based (as opposed to node-based
+``fine-fine'', which is two grids at the same level.  Filling ghost
+cells at the same level is also part of the fillpatch operation---it's
+just a straight copy from ``valid regions'' to ghost cells. The second
+type is "coarse-fine", which needs interpolation from the coarse grid
+to fill the fine grid ghost cells.  This also happens as part of the
+FillPatch operation, which is why arrays aren't just arrays, they're
+``State Data'', which means that the data knows how to interpolate
+itself (in an anthropomorphical sense).  The type of interpolation to
+use is defined in {\tt Castro\_setup.cpp} as well---search for
+{\tt cell\_cons\_interp}, for example---that's ``cell conservative
+interpolation'', i.e., the data is cell-based (as opposed to node-based
 or edge-based) and the interpolation is such that the average of the
 fine values created is equal to the coarse value from which they came.
 (This wouldn't be the case with straight linear interpolation, for
@@ -188,66 +199,96 @@ get the grid layout.  \MarginPar{did I say that right?}
 
 
 \subsection{Physical Boundaries}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|c|c|c|c|} \hline
-Physical BC & Velocity & Temperature & Scalars \\
-\hline
-Outflow & FOEXTRAP & FOEXTRAP & FOEXTRAP \\
-No Slip Wall with Adiabatic Temp & EXT\_DIR $u=v=0$ & REFLECT\_EVEN $dT/dt=0$ & HOEXTRAP \\
-No Slip Wall with Fixed Temp & EXT\_DIR $u=v=0$ & EXT\_DIR & HOEXTRAP \\
-Slip Wall with Adiabatic Temp & EXT\_DIR $u_n=0$, HOEXTRAP $u_t$ & REFLECT\_EVEN $dT/dn=0$ & HOEXTRAP \\
-Slip Wall with Fixed Temp & EXT\_DIR $u_n=0$ & EXT\_DIR & HOEXTRAP \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Conversions from physical to mathematical BCs}
-\label{Table:BC}
-\end{scriptsize}
-\end{table}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The boundary conditions in Table \ref{Table:BC} have already been implemented in CASTRO.  
-The table looks cruddy--it's copied from {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H}. 
-Some of that makes more sense if there are linebreaks within the table, 
-but I'm not sure how to do it. Here's definitions of some of the funnier-souding all-caps words from above:\\
 
-INT\_DIR  : data taken from other grids or interpolated
+The following boundary conditions have already been implemented in
+\castro\ See {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H} for some
+more details.
+\begin{itemize}
+\item {\it Outflow}:
+  \begin{itemize}
+    \item velocity: {\tt FOEXTRAP}
+    \item temperature: {\tt FOEXTRAP}
+    \item scalars: {\tt FOEXTRAP}
+  \end{itemize}
+  
+\item {\it No Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dt=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
 
-EXT\_DIR  : data specified on EDGE (FACE) of bndry
+\item {\it No Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+    
+\item {\it Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+  
+\item {\it Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
 
-HOEXTRAP  : higher order extrapolation to EDGE of bndry
+\end{itemize}
 
-FOEXTRAP  : first order extrapolation from last cell in interior
+Here's definitions of some of the funny-sounding ``all-caps''
+words from above:
+\begin{itemize}
+\item {\tt INT\_DIR}: data taken from other grids or interpolated
 
-REFLECT\_EVEN : F(-n) = F(n) true reflection from interior cells
+\item {\tt EXT\_DIR}: data specified on EDGE (FACE) of bndry
 
-REFLECT\_ODD  : F(-n) = -F(n) true reflection from interior cells\\ \\
-Basically, boundary conditions are imposed on "state variables" every time that they're "fillpatched", as part of the fillpatch operation.
+\item {\tt HOEXTRAP}: higher order extrapolation to EDGE of bndry
 
-For example, the loop that calls CA\_UMDRV (all the integration stuff) starts with \\ \\
-{\tt       for (FillPatchIterator fpi(*this, S\_new, NUM\_GROW,
-                                  time, State\_Type, strtComp, NUM\_STATE);
-            fpi.isValid();
-            ++fpi)
-}\\ \\
-Here the FillPatchIterator is the thing that distributes the grids over processors and 
-makes parallel "just work". This fills the single patch "fpi" , which has NUM\_GROW 
-ghost cells, with data of type "State\_Type" at time "time", starting with component 
-strtComp and including a total of NUM\_STATE components.
+\item {\tt FOEXTRAP}: first order extrapolation from last cell in interior
 
-The way that you tell the code what kind of physical boundary condition to use is given 
-in Castro\_setup.cpp. At the top we define arrays such as "scalar\_bc", "norm\_vel\_bc", 
-etc, which say which kind of bc to use on which kind of physical boundary. 
-Boundary conditions are set in functions like "set\_scalar\_bc", which uses the 
-scalar\_bc pre-defined arrays.
+\item {\tt REFLECT\_EVEN}: $F(-n) = F(n)$ true reflection from interior cells
 
-If you want to specify a value at a function (like at an inflow boundary), 
-there are routines in Prob\_1d.f90, for example, which do that. Which routine is called 
-for which variable is again defined in Castro\_setup.cpp 
+\item {\tt REFLECT\_ODD}: $F(-n) = -F(n)$ true reflection from interior cells
+\end{itemize}
+
+Basically, boundary conditions are imposed on ``state variables'' every
+time that they're ``fillpatched'', as part of the fillpatch operation.
+
+For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) starts with
+\begin{lstlisting}
+   for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
+                              time, State_Type, strtComp, NUM_STATE);
+        fpi.isValid();
+        ++fpi)
+\end{lstlisting}
+Here the {\tt FillPatchIterator} is the thing that distributes the
+grids over processors and makes parallel ``just work''. This fills the
+single patch ``{\tt fpi}'' , which has {\tt NUM\_GROW} ghost cells,
+with data of type ``{\tt State\_Type}'' at time ``{\tt time}'',
+starting with component {\tt strtComp} and including a total of {\tt
+  NUM\_STATE} components.
+
+The way that you tell the code what kind of physical boundary
+condition to use is given in {\tt Castro\_setup.cpp}. At the top we
+define arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'',
+etc, which say which kind of bc to use on which kind of physical
+boundary.  Boundary conditions are set in functions like ``{\tt
+  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
+arrays.
+
+If you want to specify a value at a function (like at an inflow
+boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
+that. Which routine is called for which variable is again defined in
+{\tt Castro\_setup.cpp}.
 
 \section{Parallel I/O}
+
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
 The fundamental data structure we read/write to disk is a MultiFab,
@@ -258,31 +299,31 @@ shared across thousands of CPUs.  Each CPU writes the part of the
 MultiFab that it owns to disk, but they don't each write to their own
 distinct file.  Instead each MultiFab is written to a runtime
 configurable number of files N (N can be set in the inputs file as the
-parameter {\bf amr.checkpoint\_nfiles} and {\bf amr.plot\_nfiles}; the
+parameter {\tt amr.checkpoint\_nfiles} and {\tt amr.plot\_nfiles}; the
 default is 64).  That is to say, each MultiFab is written to disk
 across at most N files, plus a small amount of data that gets written
 to a header file describing how the file is laid out in those N files.
 
-What happens is N CPUs each opens a unique one of the N files into
+What happens is $N$ CPUs each opens a unique one of the $N$ files into
 which the MultiFab is being written, seeks to the end, and writes
-their data.  The other CPUs are waiting at a barrier for those N
-writing CPUs to finish.  This repeats for another N CPUs until all the
+their data.  The other CPUs are waiting at a barrier for those $N$
+writing CPUs to finish.  This repeats for another $N$ CPUs until all the
 data in the MultiFab is written to disk.  All CPUs then pass some data
-to CPU 0 which writes a header file describing how the MultiFab is
+to CPU {\tt 0} which writes a header file describing how the MultiFab is
 laid out on disk.
 
-We also read MultiFabs from disk in a "chunky" manner opening only N
-files for reading at a time.  The number N, when the MultiFabs were
-written, does not have to match the number N when the MultiFabs are
+We also read MultiFabs from disk in a ``chunky'' manner, opening only $N$
+files for reading at a time.  The number $N$, when the MultiFabs were
+written, does not have to match the number $N$ when the MultiFabs are
 being read from disk.  Nor does the number of CPUs running while
 reading in the MultiFab need to match the number of CPUs running when
 the MultiFab was written to disk.
 
-Think of the number N as the number of independent I/O pathways in
-your underlying parallel filesystem.  Of course a "real" parallel
-filesytem should be able to handle any reasonable value of N.  The
-value -1 forces N to the number of CPUs on which you're running, which
-means that each CPU writes to a unique file, which can create a very
-large number of files, which can lead to inode issues.
+Think of the number $N$ as the number of independent I/O pathways in
+your underlying parallel filesystem.  Of course a ``real'' parallel
+filesytem should be able to handle any reasonable value of $N$.  The
+value {\tt -1} forces $N$ to the number of CPUs on which you're
+running, which means that each CPU writes to a unique file, which can
+create a very large number of files, which can lead to inode issues.
 
 

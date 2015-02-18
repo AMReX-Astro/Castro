@@ -222,7 +222,6 @@ Castro::variableSetUp ()
     Real const_grav = 0;
     pp.query("const_grav", const_grav);
 
-
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
@@ -268,11 +267,16 @@ Castro::variableSetUp ()
     Real zmin = 0.0;
     Real zmax = 0.0;
 #endif
-    
+
+    // Get the center variable from the inputs and pass it directly to Fortran.
+    Array<Real> center(BL_SPACEDIM, 0.0);
+    ParmParse ppc("castro");
+    ppc.queryarr("center",center,0,BL_SPACEDIM);
+        
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
          (dm,phys_bc.lo(),phys_bc.hi(),
 	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-	  xmin,xmax,ymin,ymax,zmin,zmax);
+	  xmin,xmax,ymin,ymax,zmin,zmax,center.dataPtr());
 
     // Read in the parameters for the tagging criteria
     // and store them in the Fortran module.
