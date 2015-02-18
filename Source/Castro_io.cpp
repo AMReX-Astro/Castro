@@ -562,6 +562,12 @@ Castro::writePlotFile (const std::string& dir,
 	  jobInfoFile << "AstroDev git hash: " << githash3 << "\n";
 	}
 
+	const char* buildgithash = buildInfoGetBuildGitHash();
+	const char* buildgitname = buildInfoGetBuildGitName();
+	if (strlen(buildgithash) > 0){
+	  jobInfoFile << buildgitname << " git hash:  " << buildgithash << "\n";
+	}
+	
 	jobInfoFile << "\n\n";
 
 
