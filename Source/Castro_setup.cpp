@@ -120,15 +120,22 @@ Castro::variableSetUp ()
 
     if (ParallelDescriptor::IOProcessor()) {
 
-	const char* castro_hash = buildInfoGetGitHash(1);
-	const char* boxlib_hash = buildInfoGetGitHash(2);
+	const char* castro_hash  = buildInfoGetGitHash(1);
+	const char* boxlib_hash  = buildInfoGetGitHash(2);
+	const char* buildgithash = buildInfoGetBuildGitHash();
+	const char* buildgitname = buildInfoGetBuildGitName();
+
 	if (strlen(castro_hash) > 0) {
 	  std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
 	}
 	if (strlen(boxlib_hash) > 0) {
-	  std::cout << "BoxLib git hash: " << boxlib_hash << "\n\n";
+	  std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+	}
+	if (strlen(buildgithash) > 0){
+	  std::cout << buildgitname << " git hash: " << buildgithash << "\n";
 	}
 
+	std::cout << "\n";
     }
 
     BL_ASSERT(desc_lst.size() == 0);
