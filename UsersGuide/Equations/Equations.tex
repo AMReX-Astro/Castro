@@ -252,7 +252,14 @@ A number of runtime parameters affect the hydrodynamics behavior.
 \item {\tt castro.allow\_negative\_energy}: is internal energy allowed to be
   negative? (0 or 1; default: 1)
   
-\item {\tt castro.spherical\_star}: (0 or 1; default: 0)
+\item {\tt castro.spherical\_star}: this is used to set the boundary
+  conditions by assuming the star is spherically symmetric in
+  the outer regions (0 or 1; default: 0)
+
+  When used, \castro\ averages the values at a given radius over the
+  cells that are inside the domain to define a radial function.  This
+  function is then used to set the values outside the domain in
+  implementing the boundary conditions.
   
 \item {\tt castro.show\_center\_of\_mass}: (0 or 1; default: 0)
 \end{itemize}
