@@ -28,7 +28,8 @@ Parameter & Definition & Acceptable Values &Default\\
     {\bf gravity.direct\_sum\_bcs} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
     
 & evaluate BCs using exact sum & 0 or 1 & 0 \\
-{\bf castro.point\_mass}   & Point mass at the center of the star & Real $\geq 0$ & 0.0 \\
+    {\bf castro.point\_mass}   & Point mass at the center of the star & Real $\geq 0$ & 0.0 \\
+
 \hline
 \end{tabular}
 \label{Table:Gravity}
@@ -38,6 +39,9 @@ Parameter & Definition & Acceptable Values &Default\\
 
 \subsection{Notes}
 
+    You must have USE\_POINTMASS = TRUE in the GNUmakefile for {\bf
+      castro.point\_mass} to be relevant.
+    
 Gravity types are ConstantGrav, PoissonGrav, or MonopoleGrav.  See the Gravity section for more detail.
 
 \begin{itemize}
