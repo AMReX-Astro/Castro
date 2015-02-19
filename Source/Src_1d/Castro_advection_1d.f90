@@ -492,9 +492,11 @@ contains
                                       uout,uout_l1,uout_h1,&
                                       lo, hi, mass_added, eint_added, eden_added, verbose)
     use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, &
-                                   UFS, UFX, UFA, small_dens, nadv
+    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
+                                   UFS, UFX, UFA, small_dens, small_temp, nadv
     use bl_constants_module
+    use eos_type_module, only : eos_t
+    use eos_module, only : eos_input_rt, eos
 
     implicit none
     
@@ -507,13 +509,13 @@ contains
     
     ! Local variables
     integer          :: i,ii,n
-    double precision :: min_dens
-    double precision, allocatable :: fac(:)
+    double precision :: max_dens
+    integer          :: i_set
     double precision :: initial_mass, final_mass
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
-    
-    allocate(fac(lo(1):hi(1)))
+
+    type (eos_t) :: eos_state
     
     initial_mass = ZERO
     final_mass = ZERO
@@ -523,6 +525,8 @@ contains
     
     initial_eden = ZERO
     final_eden = ZERO
+
+    max_dens = ZERO
     
     do i = lo(1),hi(1)
        
@@ -540,67 +544,95 @@ contains
           
        else if (uout(i,URHO) < small_dens) then
           
-          min_dens = uin(i,URHO)
+          max_dens = uout(i,URHO)
           do ii = -1,1
-             min_dens = min(min_dens,uin(i+ii,URHO))
-             if (uout(i+ii,URHO) > small_dens) &
-                  min_dens = min(min_dens,uout(i+ii,URHO))
+             if (i+ii.ge.uout_l1 .and. i+ii.le.uout_h1) then
+                if (uout(i+ii,URHO) .gt. max_dens) then
+                   i_set = i+ii
+                   max_dens = uout(i_set,URHO)
+                endif
+             endif
           end do
+
+          ! If no neighboring zones are above small_dens, our only recourse 
+          ! is to set the density equal to small_dens, and the temperature 
+          ! equal to small_temp. We set the velocities to zero, 
+          ! though any choice here would be arbitrary.
+
+          if (max_dens < small_dens) then
+
+             do n = UFS, UFS+nspec-1
+                uout(i,n) = uout(i_set,n) * (small_dens / uout(i,URHO))
+             end do
+             do n = UFX, UFX+naux-1
+                uout(i,n) = uout(i_set,n) * (small_dens / uout(i,URHO))
+             end do
+             do n = UFA, UFA+nadv-1
+                uout(i,n) = uout(i_set,n) * (small_dens / uout(i,URHO))
+             end do
+
+             eos_state % rho = small_dens
+             eos_state % T   = small_temp
+             eos_state % xn  = uout(i,UFS:UFS+nspec-1) / uout(i,URHO)
+
+             call eos(eos_input_rt, eos_state)
+
+             uout(i,URHO ) = eos_state % rho
+             uout(i,UTEMP) = eos_state % T
+
+             uout(i,UMX  ) = ZERO
+
+             uout(i,UEINT) = eos_state % rho * eos_state % e
+             uout(i,UEDEN) = uout(i,UEINT)
+
+          endif
           
           if (verbose .gt. 0) then
              if (uout(i,URHO) < ZERO) then
                 print *,'   '
                 print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
                 print *,'>>> ... resetting negative density '
-                print *,'>>> ... from ',uout(i,URHO),' to ',min_dens
+                print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
                 print *,'    '
              else
                 print *,'   '
                 print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
                 print *,'>>> ... resetting small density '
-                print *,'>>> ... from ',uout(i,URHO),' to ',min_dens
+                print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
                 print *,'    '
              end if
           end if
-          
-          fac(i) = min_dens / uout(i,URHO)
-          
-       end if
 
-    enddo
+          uout(i,URHO ) = uout(i_set,URHO )
+          uout(i,UEINT) = uout(i_set,UEINT)
+          uout(i,UEDEN) = uout(i_set,UEDEN)
+          uout(i,UMX  ) = uout(i_set,UMX  )
 
-    do i = lo(1),hi(1)
-
-       if (uout(i,URHO) < small_dens) then
-
-          uout(i,URHO ) = uout(i,URHO ) * fac(i)
-          uout(i,UEDEN) = uout(i,UEDEN) * fac(i)
-          uout(i,UEINT) = uout(i,UEINT) * fac(i)
-          uout(i,UMX  ) = uout(i,UMX  ) * fac(i)
-          
           do n = UFS, UFS+nspec-1
-             uout(i,n) = uout(i,n) * fac(i)
+             uout(i,n) = uout(i_set,n)
           end do
           do n = UFX, UFX+naux-1
-             uout(i,n) = uout(i,n) * fac(i)
+             uout(i,n) = uout(i_set,n)
           end do
           do n = UFA, UFA+nadv-1
-             uout(i,n) = uout(i,n) * fac(i)
+             uout(i,n) = uout(i_set,n)
           end do
           
        end if
-       
+
        final_mass = final_mass + uout(i,URHO)
        final_eint = final_eint + uout(i,UEINT)
        final_eden = final_eden + uout(i,UEDEN)
-       
+
     enddo
-    
-    deallocate(fac)
-    
-    mass_added = mass_added + (final_mass - initial_mass)
-    eint_added = eint_added + (final_eint - initial_eint)
-    eden_added = eden_added + (final_eden - initial_eden)
+
+    if (max_dens /= ZERO) then
+
+       mass_added = mass_added + (final_mass - initial_mass)
+       eint_added = eint_added + (final_eint - initial_eint)
+       eden_added = eden_added + (final_eden - initial_eden)
+
+    endif
     
   end subroutine enforce_minimum_density
 

@@ -1305,7 +1305,7 @@ contains
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n
     integer          :: i_set, j_set, k_set
-    double precision :: min_dens
+    double precision :: max_dens
     
     double precision :: initial_mass, final_mass
     double precision :: initial_eint, final_eint
@@ -1322,7 +1322,7 @@ contains
     initial_eden = ZERO
       final_eden = ZERO
 
-    min_dens = ZERO
+    max_dens = ZERO
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -1340,7 +1340,7 @@ contains
                 
              else if (uout(i,j,k,URHO) < small_dens) then
                 
-                min_dens = uout(i,j,k,URHO)
+                max_dens = uout(i,j,k,URHO)
                 i_set = i
                 j_set = j
                 k_set = k
@@ -1349,22 +1349,23 @@ contains
                       do ii = -1,1
                          if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. k+kk.ge.uout_l3 .and. &
                              i+ii.le.uout_h1 .and. j+jj.le.uout_h2 .and. k+kk.le.uout_h3) then
-                              if (uout(i+ii,j+jj,k+kk,URHO) .gt. min_dens) then
+                              if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
                                   i_set = i+ii
                                   j_set = j+jj
                                   k_set = k+kk
+                                  max_dens = uout(i_set,j_set,k_set,URHO)
                               endif
                          endif
                       end do
                    end do
                 end do
 
-                ! If we haven't changed the indices, that means none of the nearby zones
-                ! are above small_dens. Our only recourse now is to set the density equal to
-                ! small_dens, and the temperatuer equal to small_temp. We set the velocities
-                ! to zero, though any choice here would be arbitrary.
+                ! If no neighboring zones are above small_dens, our only recourse 
+                ! is to set the density equal to small_dens, and the temperature 
+                ! equal to small_temp. We set the velocities to zero, 
+                ! though any choice here would be arbitrary.
 
-                if (i_set .eq. i .and. j_set .eq. j .and. k_set .eq. k) then
+                if (max_dens < small_dens) then
 
                    do n = UFS, UFS+nspec-1
                       uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
@@ -1391,6 +1392,7 @@ contains
 
                    uout(i,j,k,UEINT) = eos_state % rho * eos_state % e
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
+
                 endif
                 
                 if (verbose .gt. 0) then
@@ -1434,7 +1436,7 @@ contains
        enddo
     enddo
 
-    if ( min_dens /= ZERO ) then
+    if ( max_dens /= ZERO ) then
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
