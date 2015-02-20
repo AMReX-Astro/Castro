@@ -227,9 +227,20 @@ The left row eigenvectors, normalized so that $\Rb_d\cdot\Lb_d = \Ib$ are:
 \end{array}\right).
 \end{equation}
 
-\section{Runtime Parameters}
+\section{Hydrodynamics Update}
 
-A number of runtime parameters affect the hydrodynamics behavior.
+\label{Sec:Advection Step}
+
+There are four major steps in the hydrodynamics update:
+\begin{enumerate}
+\item Converting to primitive variables
+\item Construction the edge states
+\item Solving the Riemann problem
+\item Doing the conservative update
+\end{enumerate}
+Each of these steps has a variety of runtime parameters that
+affect their behavior.  Additionally, there are some general
+runtime parameters for hydrodynamics:
 \begin{itemize}
 \item {\tt castro.do\_hydro}: time-advance the fluid dynamical
   equations (0 or 1; must be set)
@@ -272,116 +283,35 @@ behavior:
 \item {\tt castro.small\_pres}: (Real; default: -1.e20)
 \end{itemize}
 
-For the reconstruction of the interface states, the following apply:
-\begin{itemize}
-\item {\tt castro.ppm\_type}: use piecewise linear vs PPM algorithm
-  (0, 1, 2; default: 1)
 
-  Values of 1 and 2 are both piecewise parabolic reconstruction, with
-  2 using updated limiters that better preserve extrema.
-
-\item {\tt castro.ppm\_reference} uses the integral under the parabola for
-  the region corresponding to the fastest moving wave to the interface
-  for the reference state used by the characteristic projection in
-  ppm (1) or the cell-centered value (0).  (Default: 1)
-
-  The original \castro\ paper~\cite{castro_I} used the cell-centered
-  value ({\tt ppm\_reference = 0}), but the method in the PPM paper~\cite{ppm}
-  does the method of {\tt ppm\_refrence = 1}.
-    
-\item {\tt castro.ppm\_trace\_grav} reconstructs the gravitational
-  acceleration as a parabola and then constructs the integrals under
-  this parabola for the three characteristic waves and then puts the
-  gravitational source term into the characteristic projection when
-  doing the interface states (0 or 1; default: 0)
-
-\item {\tt castro.ppm\_temp\_fix} does various attempts to use the
-  temperature in the reconstruction of the interface states.  This
-  is experimental.
-
-\item {\tt castro.ppm\_tau\_in\_tracing} uses $\tau = 1/\rho$ instead of
-  $\rho$ in the characteristic projection (0 or 1; default 0)
-
-\item {\tt castro.ppm\_predict\_gammae} reconstructs $\gamma_e = p/(\rho e) + 1$
-  to the interfaces and does the necessary transverse terms to aid in
-  the conversion between the conserved and primitive interface states
-  in the transverse flux routines (0 or 1; default 0)
-
-\item {\tt castro.ppm\_reference\_edge\_limit} uses the limit of the
-  parabolic interpolant as the reference state instead of the
-  cell-center value for the case when the wave is not moving toward
-  the interface (0 or 1; default 0)
-
-\item {\tt castro.ppm\_reference\_eigenvectors} uses the reference states in
-  the evaluation of the eigenvectors for the characteristic projection
-  (0 or 1; default 0)
-  
-\item {\tt castro.use\_flattening} turns on/off the flattening of parabola
-  near shocks (0 or 1; default 1)
-
-\item {\tt castro.ppm\_flatten\_before\_integrals} does the flattening
-  procedure on the parabolic coefficients before they are integrated
-  to the interface states instead of the default method of flattening
-  on the integrals themselves.
-
-\end{itemize}
-
-
-For the construction of the fluxes in the Riemann solver, the following
-parameters apply:
-\begin{itemize}
-\item {\tt castro.use\_colglaz} uses the Colella \& Glaz Riemann solver~\cite{colglaz} to
-  solve for the `star' state (0 or 1; default 0)
-
-  The default is to use the solver based on an unpublished Colella,
-  Glaz, \& Ferguson manuscript, as described in the original
-  \castro\ paper~\cite{castro_I}.
-
-  The Colella \& Glaz solver is iterative, and two runtime parameters are used
-  to control its behavior:
-  \begin{itemize}
-  \item {\tt castro.cg\_maxiter}: number of iterations for CG algorithm
-    (Integer; default: 12)
-    
-  \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
-     for the ``star'' state (Real; default: 1.0e-5)
-  \end{itemize}
-
-\item {castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
-  in a zone with a shock (0 or 1; default 0)
-
-  This eliminates an odd-even decoupling issue (see the {\tt oddeven}
-  problem.
-  
-\end{itemize}
-
-
-
-\section{Advection Step}\label{Sec:Advection Step}
-There are four major steps in the advective update, detailed below.
 \subsection{Compute Primitive Variables}\label{Sec:Compute Primitive Variables}
+
 We compute the primtive variables from the conserved variables.
 \begin{itemize}
-\item $\rho, \rho e$ - directly copy these from the conserved state
+\item $\rho, \rho e$: directly copy these from the conserved state
   vector
-\item $\ub, A_k, X_k, Y_k$ - copy these from the conserved state
+\item $\ub, A_k, X_k, Y_k$: copy these from the conserved state
   vector, dividing by $\rho$
-\item $p,T$ - use the EOS.  First, if {\bf
-  castro.allow\_negative\_energy} = 0 (it defaults to 1) and $e < 0$,
-  we do the following:
-\begin{enumerate}
-\item Use the EOS to set $e = e(\rho,T_{\rm small},X_k)$.
-\item If $e < 0$, abort the program with an error message.
-\end{enumerate}
-Now, use the EOS to compute $p,T = p,T(\rho,e,X_k)$.
+\item $p,T$: use the EOS.
+
+  First, if {\tt castro.allow\_negative\_energy = 0} (it defaults to
+  1) and $e < 0$, we do the following:
+
+  \begin{enumerate}
+  \item Use the EOS to set $e = e(\rho,T_{\rm small},X_k)$.
+  \item If $e < 0$, abort the program with an error message.
+  \end{enumerate}
+  Now, use the EOS to compute $p,T = p,T(\rho,e,X_k)$.
 \end{itemize}
+
 We also compute the flattening coefficient, $\chi\in[0,1]$, used in
 the edge state prediction to further limit slopes near strong shocks.
-We use the same flattening procedure described in the the FLASH paper.
+We use the same flattening procedure described in the the the original
+PPM paper~\cite{ppm} and the Flash paper~\cite{flash}.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
-that used in the FLASH paper).  For each cell, we compute the
+that used in the Flash paper).  For each cell, we compute the
 flattening coefficient for each spatial direction, and choose the
 minimum value over all directions.  As an example, to compute the
 flattening for the x-direction, here are the steps:
@@ -411,27 +341,40 @@ where $c=1/3$ is a tunable parameter, then set $\tilde\chi_i=0$.
 \end{cases}.
 \end{equation}
 \end{enumerate}
+
+The following runtime parameters affect the behavior here:
+\begin{itemize}
+  \item {\tt castro.use\_flattening} turns on/off the flattening of parabola
+  near shocks (0 or 1; default 1)
+\end{itemize}
+
+
 \subsection{Edge State Prediction}
 We wish to compute a left and right state of primitive variables at
-each edge to be used as inputs to the Riemann problem.  We use a
-version of the Colella and Sekora 2009 PPM algorithm, which has been
-further modified to eliminate sensitivity due to roundoff error
-(modifications via personal communication with Colella).  Note that
-\castro\ also has options for the original PPM algorithm of Colella
-and Woodward 1984, and piecewise-linear algorithm described in
-Saltzman 1994.  We also use characteristic tracing with corner
-coupling in 3D, as described in Miller and Colella 2002.  We give full
-details of the PPM algorithm, as it has not appeared before in the
-literature, and summarize the developments from Miller and Colella
-2002.
+each edge to be used as inputs to the Riemann problem.  There
+are several reconstruction techniques, a piecewise
+linear method that follows the description in Colella (1990)~\cite{colella:1990},
+the classic PPM limiters~\cite{ppm}, and the new PPM limiters introduced
+in Colella \& Sekora (2008)~\cite{colellasekora}.  The choice of
+limiters is determined by {\tt castro.ppm\_type}.
+
+For the new PPM limiters, we have further modified the method
+of~\cite{colellasekora} to eliminate sensitivity due to roundoff error
+(modifications via personal communication with Colella).
+
+We also use characteristic tracing with corner coupling in 3D, as
+described in Miller \& Colella (2002)~\cite{millercolella:2002}.  We
+give full details of the new PPM algorithm, as it has not appeared before
+in the literature, and summarize the developments from Miller \&
+Colella.
 
 The PPM algorithm is used to compute time-centered edge states by
 extrapolating the base-time data in space and time.  The edge states
 are dual-valued, i.e., at each face, there is a left state and a right
 state estimate.  The spatial extrapolation is one-dimensional, i.e.,
 transverse derivatives are ignored.  We also use a flattening
-procedure to further limit the edge state values.  The Miller and
-Colella 2002 algorithm, which we describe later, incorporates the
+procedure to further limit the edge state values.  The Miller \&
+Colella algorithm, which we describe later, incorporates the
 transverse terms, and also describes the modifications required for
 equations with additional characteristics besides the fluid velocity.
 There are four steps to compute these dual-valued edge states (here,
@@ -468,8 +411,8 @@ of $s_{i+\myhalf}$ is
 s_{i+\myhalf} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\myhalf,\text{lim}}.
 \end{equation}
 \end{enumerate}
-Now we implement an updated implementation of the Colella and Sekora
-2009 algorithm which eliminates sensitivity to roundoff.  First we
+Now we implement an updated implementation of the Colella \& Sekora
+ algorithm which eliminates sensitivity to roundoff.  First we
 need to detect whether a particular cell corresponds to an
 ``extremum''.  There are two tests.
 \begin{itemize}
@@ -582,22 +525,90 @@ $\Lb(\Ab_d)$.  The flattening coefficient is $\chi_i$.
 \end{itemize}
 In order to add the transverse terms in an spatial operator unsplit
 framework, the details follow exactly as given in Section 4.2.1 in
-Miller and Colella 2002, except for the details of the Riemann solver,
+Miller \& Colella, except for the details of the Riemann solver,
 which are given below.
+
+
+For the reconstruction of the interface states, the following apply:
+\begin{itemize}
+\item {\tt castro.ppm\_type}: use piecewise linear vs PPM algorithm
+  (0, 1, 2; default: 1)
+
+  Values of 1 and 2 are both piecewise parabolic reconstruction, with
+  2 using updated limiters that better preserve extrema.
+
+\item {\tt castro.ppm\_reference} uses the integral under the parabola for
+  the region corresponding to the fastest moving wave to the interface
+  for the reference state used by the characteristic projection in
+  ppm (1) or the cell-centered value (0).  (Default: 1)
+
+  The original \castro\ paper~\cite{castro_I} used the cell-centered
+  value ({\tt ppm\_reference = 0}), but the method in the PPM paper~\cite{ppm}
+  does the method of {\tt ppm\_refrence = 1}.
+    
+\item {\tt castro.ppm\_trace\_grav} reconstructs the gravitational
+  acceleration as a parabola and then constructs the integrals under
+  this parabola for the three characteristic waves and then puts the
+  gravitational source term into the characteristic projection when
+  doing the interface states (0 or 1; default: 0)
+
+\item {\tt castro.ppm\_temp\_fix} does various attempts to use the
+  temperature in the reconstruction of the interface states.  This
+  is experimental.
+
+\item {\tt castro.ppm\_tau\_in\_tracing} uses $\tau = 1/\rho$ instead of
+  $\rho$ in the characteristic projection (0 or 1; default 0)
+
+\item {\tt castro.ppm\_predict\_gammae} reconstructs $\gamma_e = p/(\rho e) + 1$
+  to the interfaces and does the necessary transverse terms to aid in
+  the conversion between the conserved and primitive interface states
+  in the transverse flux routines (0 or 1; default 0)
+
+\item {\tt castro.ppm\_reference\_edge\_limit} uses the limit of the
+  parabolic interpolant as the reference state instead of the
+  cell-center value for the case when the wave is not moving toward
+  the interface (0 or 1; default 0)
+
+\item {\tt castro.ppm\_reference\_eigenvectors} uses the reference states in
+  the evaluation of the eigenvectors for the characteristic projection
+  (0 or 1; default 0)
+  
+
+\item {\tt castro.ppm\_flatten\_before\_integrals} does the flattening
+  procedure on the parabolic coefficients before they are integrated
+  to the interface states instead of the default method of flattening
+  on the integrals themselves.
+\end{itemize}
+
+
+
+
+
+
+
 \subsection{Riemann Problem}
+
+\castro\ has two main options for the Riemann solver---the
+Colella \& Glaz solver~\cite{colglaz} (the same solver used
+by Flash) and a simpler solver described in an unpublished
+manuscript by Colella, Glaz, \& Ferguson.  These are both
+two-shock approximate solvers, but differ in how they approximate
+the thermodynamics in the ``star'' region.
+
 Inputs from the edge state prediction are $\rho_{L/R}, u_{L/R},
 v_{L/R}, p_{L/R}$, and $(\rho e)_{L/R}$ ($v$ represents all of the
-transverse velocity components).  We also compute $\gamma$ at cell
-centers and copy these to edges directly to get the left and right
-states, $\gamma_{L/R}$.  We also define $c_{\rm avg}$ as a
-face-centered value that is the average of the neighboring
-cell-centered values of $c$.  We have also computed $\rho_{\rm small},
-p_{\rm small}$, and $c_{\rm small}$ using cell-centered data.
+transverse velocity components).  We also compute $\Gamma \equiv d\log
+p / d\log \rho |_s$ at cell centers and copy these to edges directly
+to get the left and right states, $\Gamma_{L/R}$.  We also define
+$c_{\rm avg}$ as a face-centered value that is the average of the
+neighboring cell-centered values of $c$.  We have also computed
+$\rho_{\rm small}, p_{\rm small}$, and $c_{\rm small}$ using
+cell-centered data.
 
 Here are the steps.  First, define $(\rho c)_{\rm small} = \rho_{\rm
   small}c_{\rm small}$. Then, define:
 \begin{equation}
-(\rho c)_{L/R} = \max\left[(\rho c)_{\rm small},\left|\gamma_{L/R},p_{L/R},\rho_{L/R}\right|\right].
+(\rho c)_{L/R} = \max\left[(\rho c)_{\rm small},\left|\Gamma_{L/R},p_{L/R},\rho_{L/R}\right|\right].
 \end{equation}
 Define star states:
 \begin{equation}
@@ -606,13 +617,13 @@ p^* = \max\left[p_{\rm small},\frac{\left[(\rho c)_L p_R + (\rho c)_R p_L\right]
 \begin{equation}
 u^* = \frac{\left[(\rho c)_L u_L + (\rho c)_R u_R\right]+ (p_L - p_R)}{(\rho c)_L + (\rho c)_R}.
 \end{equation}
-If $u^* \ge 0$ then define $\rho_0, u_0, p_0, (\rho e)_0$ and $\gamma_0$ to be the left state.  Otherwise, define them to be the right state.  Then, set
+If $u^* \ge 0$ then define $\rho_0, u_0, p_0, (\rho e)_0$ and $\Gamma_0$ to be the left state.  Otherwise, define them to be the right state.  Then, set
 \begin{equation}
 \rho_0 = \max(\rho_{\rm small},\rho_0),
 \end{equation}
 and define
 \begin{equation}
-c_0 = \max\left(c_{\rm small},\sqrt{\frac{\gamma_0 p_0}{\rho_0}}\right),
+c_0 = \max\left(c_{\rm small},\sqrt{\frac{\Gamma_0 p_0}{\rho_0}}\right),
 \end{equation}
 \begin{equation}
 \rho^* = \rho_0 + \frac{p^* - p_0}{c_0^2},
@@ -621,7 +632,7 @@ c_0 = \max\left(c_{\rm small},\sqrt{\frac{\gamma_0 p_0}{\rho_0}}\right),
 (\rho e)^* = (\rho e)_0 + (p^* - p_0)\frac{(\rho e)_0 + p_0}{\rho_0 c_0^2},
 \end{equation}
 \begin{equation}
-c^* = \max\left(c_{\rm small},\sqrt{\left|\frac{\gamma_0 p^*}{\rho^*}\right|}\right)
+c^* = \max\left(c_{\rm small},\sqrt{\left|\frac{\Gamma_0 p^*}{\rho^*}\right|}\right)
 \end{equation}
 Then,
 \begin{eqnarray}
@@ -658,7 +669,47 @@ Finally, if $c_{\rm out} < 0$, set $\rho_{\rm gdnv}=\rho_0, u_{\rm
   gdnv}=u_0, p_{\rm gdnv}=p_0$, and $(\rho e)_{\rm gdnv}=(\rho e)_0$.
 If $c_{\rm in}\ge 0$, set $\rho_{\rm gdnv}=\rho^*, u_{\rm gdnv}=u^*,
 p_{\rm gdnv}=p^*$, and $(\rho e)_{\rm gdnv}=(\rho e)^*$.
+
+
+If instead the Colella \& Glaz solver is used, then we define
+\begin{equation}
+  \gamma \equiv \frac{p}{\rho e} + 1
+\end{equation}
+on each side of the interface and follow the rest of the algorithm as
+described in the original paper.
+
+For the construction of the fluxes in the Riemann solver, the following
+parameters apply:
+\begin{itemize}
+\item {\tt castro.use\_colglaz} uses the Colella \& Glaz Riemann solver~\cite{colglaz} to
+  solve for the `star' state (0 or 1; default 0)
+
+  The default is to use the solver based on an unpublished Colella,
+  Glaz, \& Ferguson manuscript, as described in the original
+  \castro\ paper~\cite{castro_I}.
+
+  The Colella \& Glaz solver is iterative, and two runtime parameters are used
+  to control its behavior:
+  \begin{itemize}
+  \item {\tt castro.cg\_maxiter}: number of iterations for CG algorithm
+    (Integer; default: 12)
+    
+  \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
+     for the ``star'' state (Real; default: 1.0e-5)
+  \end{itemize}
+
+\item {castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
+  in a zone with a shock (0 or 1; default 0)
+
+  This eliminates an odd-even decoupling issue (see the {\tt oddeven}
+  problem.
+  
+\end{itemize}
+
+
+
 \subsection{Compute Fluxes and Update}
+
 Compute the fluxes as a function of the primitive variables, and then
 advance the solution:
 \begin{equation}
