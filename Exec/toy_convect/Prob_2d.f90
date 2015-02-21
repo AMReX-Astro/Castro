@@ -117,7 +117,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
 
      do i = lo(1), hi(1)   
 
@@ -167,11 +167,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (apply_vel_field) then
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
         ydist = y - velpert_height_loc
         
         do i = lo(1), hi(1)   
-           x = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5d0)
 
            upert = 0.d0
 
@@ -262,7 +262,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
         ! this do loop counts backwards since we want to work downward
         do j=domlo(2)-1,adv_l2,-1
-           y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+           y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
            
            do i=adv_l1,adv_h1
               
@@ -385,7 +385,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
      if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
 
         do j=domhi(2)+1,adv_h2
-           y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+           y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
 
            do i=adv_l1,adv_h1
                   
@@ -479,7 +479,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   !     YLO
   if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
      do j=adv_l2,domlo(2)-1
-        y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
         do i=adv_l1,adv_h1
            adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
         end do
@@ -489,7 +489,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   !     YHI
   if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
      do j=domhi(2)+1,adv_h2
-        y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-adv_l2)+ 0.5d0)
         do i=adv_l1,adv_h1
            adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
         end do
