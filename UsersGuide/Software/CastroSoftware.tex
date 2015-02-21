@@ -25,9 +25,48 @@ The code structure in the {\tt Castro/} directory is as follows:
 \item {\tt Util/}: a catch-all for additional things you may need 
 \end{itemize}
 
-\section{Castro Data Structures}
 
-\subsection{State Data}
+\section{An Overview of \castro}
+
+\castro\ is built upon the \boxlib\ C++ framework.  This provides
+high-level classes for managing an adaptive mesh refinement simulation,
+including the core data structures we will deal with.
+
+The \castro\ simulation begins in {\tt main.cpp} where an instance
+of the \boxlib\ {\tt Amr} class is created:
+\begin{lstlisting}
+  Amr* amrptr = new Amr;
+\end{lstlisting}
+The initialization, including calling a problem's {\tt initdata()}
+routine and refining the base grid occurs next through
+\begin{lstlisting}
+  amrptr->init(strt_time,stop_time);
+\end{lstlisting}
+nd then comes the main loop over coarse timesteps until the
+desired simulation time is reached:
+\begin{lstlisting}
+  while ( amrptr->okToContinue()                            &&
+         (amrptr->levelSteps(0) < max_step || max_step < 0) &&
+         (amrptr->cumTime() < stop_time || stop_time < 0.0) )
+
+  {
+     //
+     // Do a timestep.
+     //
+     amrptr->coarseTimeStep(stop_time);
+  }
+\end{lstlisting}
+This uses the \boxlib\ machinery to do the necessary subcycling in time,
+including synchronization between levels, to advance the level hierarchy
+forward in time.  
+
+\subsection{Geometry class}
+
+\subsection{ParmParse class}
+
+\subsection{Castro Data Structures}
+
+\subsubsection{State Data}
 
 \castro\ relies on the class structure defined by \boxlib\ to manage the
 data.
@@ -88,8 +127,15 @@ The corresponding Fortran function will look like:
 {\color{red} Need to write the Fortran version here}
 
 
+\subsection{Derived Variables}
 
-\subsection{Helper Modules}
+\subsection{Error Estimators}
+
+
+\subsection{Gravity class}
+
+
+\subsection{Fortran Helper Modules}
 
 There are a number of modules that make data available to the Fortran
 side of \castro\ or perform other useful tasks.
