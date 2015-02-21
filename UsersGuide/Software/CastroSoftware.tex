@@ -137,85 +137,192 @@ side of \castro\ or perform other useful tasks.
 \end{itemize}
 
   
-\subsection{Other Quantities}
-
-The following is a list of variables, routines, etc used in \castro. It
-may not be complete or even entirely accurate; it's mostly intended
-for my own use.\\
-
-{\bf lo,hi}: index extent of the "grid" of data currently being
-handled by a \castro\ routine\\
-
-{\bf domlo, domhi}: index extent of the problem domain. This changes
-according to refinement level: 0th refinement level will have 0,
-castro.max\_grid\_size, and nth level will go from 0 to
-castro.max\_grid\_size*(multiplying equivalent of
-sum)castro.ref\_ratio(n).\\
-
-{\bf dx}: cell spacing, in cm, since \castro\ uses CGS
-units\\
-
-{\bf xlo}: physical location of the lower left-hand corner of the
-"grid" of data currently being handled by a \castro\ routine\\
-
-{\bf bc}: array that holds boundary condition of and array. Sometimes
-it appears of the form {\tt bc(:,:)} and sometimes {\tt
-  bc(:,:,:)}. The last index of the latter holds the variable index,
-i.e., density, pressure, species, etc.\\
-
-{\bf EXT\_DIR}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:EXT\_DIR}) data
-specified on EDGE (FACE) of bndry\\
-
-{\bf FOEXTRAP}: (from {\tt BoxLib/Src/C\_AMRLib/BC\_TYPES.H:FOEXTRAP}) first
-order extrapolation from last cell in interior \castro
-
 
 \section{Setting Up Your Own Problem}
 
 To define a new problem, we create a new directory under {\tt Exec/},
-and place in it a {\tt Prob\_2d.f90} file (or 1d/3d, depending on the
+and place in it a {\tt Prob\_2d.f90} file (or {\tt 1d}/{\tt 3d}, depending on the
 dimensionality of the problem), a {\tt probdata.f90} file, the {\tt
   inputs} and {\tt probin} files, and a {\tt Make.package} file that
 tells the build system what problem-specific routines exist.  The
 simplest way to get started is to copy these files from an existing
 problem.  Here we describe how to customize your problem.
 
-A typical {\tt Prob\_?d.f90} routine consists of the following 
-subroutines:
+The purpose of these files is:
 \begin{itemize}
-\item {\tt PROBINIT}
+\item {\tt probdata.f90}: this holds the {\tt probdata\_module} Fortran module
+  that allocates storage for all the problem-specific runtime parameters that
+  are used by the problem (including those that are read from the {\tt probin}
+  file.
 
-\item {\tt ca\_initdata}
+\item {\tt Prob\_?d.f90}: this holds the main routines to
+  initialize the problem and grid and perform problem-specific boundary
+  conditions:
 
-\item the {\tt *fill} routines: The following routines handle how
-  \castro\ fills ghostcells for specific data.  The idea is that these
-  routines are registered in {\tt Castro\_setup.cpp}, and called as
-  needed.  By default, they just pass the arguments through to {\tt
-    filcc}, which handles all of the generic boundary conditions (like
-  reflecting, extrapolation, etc.).  The specific `{\tt fill}'
-  routines can then supply the problem-specific boundary conditions,
-  which are typically just Dirichlet boundary conditions.  The code
-  implementing these specific conditions should {\em follow} the {\tt
-    filcc} call.
+  \begin{itemize}
+  \item {\tt probinit()}:
 
-\begin{itemize}
-\item {\tt ca\_hypfill}:
-  This handles the boundary filling for the hyperbolic system.
+    This routine is primarily responsible for reading in the {\tt
+      probin} file (by defining the {\tt \&fortin} namelist and
+    reading in an initial model (usually through the {\tt
+      model\_parser\_module}---see the {\tt toy\_convect} problem
+    setup for an example).  The parameters that are initialized
+    here are those stored in the {\tt probdata\_module}.
 
-\item {\tt ca\_denfill}: At times, we need to fill just the density
-  (always assumed to be the first element in the hyperbolic state)
-  instead of the entire state.  When the fill patch routine is called
-  with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
-  use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
+  \item {\tt ca\_initdata()}:
 
-\item {\tt ca\_grav?fill}: These routines will the ghostcells with the
-  gravitational acceleration.  By default, they will just do something
-  like a first-order extrapolation.  These are needed for the hydro
-  routines to have the gravitational acceleration needed for the 
-  source terms to the interface states.
+    This routine will initialize the state data for a single grid.
+    The inputs to this routine are:
+    \begin{itemize}
+    \item {\tt level}: the level of refinement of the grid we are filling
 
-\item {\tt ca\_reactfill}
-\end{itemize}
+    \item {\tt time}: the simulation time
+
+    \item {\tt lo()}, {\tt hi()}: the integer indices of the box's {\em
+      valid data region} lower left and upper right corners.  These
+      integers refer to a global index space for the level and
+      identify where in the computational domain the box lives.
+
+    \item {\tt nscal}: the number of scalar quantities---this is not typically
+      used in \castro.
+
+    \item {\tt state\_l1}, {\tt state\_l2}, ({\tt state\_l3}): the
+      integer indices of the lower left corner of the box in each
+      coordinate direction.  These are for the box as allocated in memory,
+      so they include any ghost cells as well as the valid data regions.
+
+    \item {\tt state\_h1}, {\tt state\_h2}, ({\tt state\_h3}): the
+      integer indices of the upper right corner of the box in each
+      coordinate direction.  These are for the box as allocated in memory,
+      so they include any ghost cells as well as the valid data regions.
+      
+    \item {\tt state()}: the main state array.  This is dimensioned as:
+\begin{verbatim}
+double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+\end{verbatim}
+    (in 2-d), where {\tt NVAR} comes from the {\tt meth\_params\_module}.
+
+    When accessing this array, we use the index keys provided by
+    {\tt meth\_params\_module} (e.g., {\tt URHO}) to refer to specific
+    quantities
+    
+    \item {\tt delta()}: this is an array containing the zone width ($\Delta x$)
+      in each coordinate direction: $\mathtt{delta(1)} = \Delta x$,
+      $\mathtt{delta(2)} = \Delta y$, $\ldots$.
+
+    \item {\tt xlo()}, {\tt xhi()}: these are the physical coordinates of the
+      lower left and upper right corners of the {\em valid region}
+      of the box.  These can be used to compute the coordinates of the
+      cell-centers of a zone as:
+\begin{lstlisting}
+  do j = lo(2), hi(2)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
+     ...
+\end{lstlisting}
+     (Note: this method works fine for the problem initialization
+     stuff, but for routines that implement tiling, as discussed below,
+     {\tt lo} and {\tt xlo} may not refer to the same corner, and instead
+     coordinates should be computed using {\tt problo()} from the {\tt
+     prob\_params\_module}.)
+     
+    \end{itemize}
+      
+
+  \item the {\tt *fill} routines:
+
+    The following routines handle how \castro\ fills ghostcells {\em
+      at physical boundaries} for specific data.
+
+    The idea is that
+    these routines are registered in {\tt Castro\_setup.cpp}, and
+    called as needed.  By default, they just pass the arguments
+    through to {\tt filcc}, which handles all of the generic boundary
+    conditions (like reflecting, extrapolation, etc.).  The specific
+    `{\tt fill}' routines can then supply the problem-specific
+    boundary conditions, which are typically just Dirichlet boundary
+    conditions.  The code implementing these specific conditions
+    should {\em follow} the {\tt filcc} call.
+
+    \begin{itemize}
+    \item {\tt ca\_hypfill}:
+      This handles the boundary filling for the hyperbolic system.
+
+    \item {\tt ca\_denfill}: At times, we need to fill just the density
+      (always assumed to be the first element in the hyperbolic state)
+      instead of the entire state.  When the fill patch routine is called
+      with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
+      use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
+
+    \item {\tt ca\_grav?fill}: These routines will the ghostcells with the
+      gravitational acceleration.  By default, they will just do something
+      like a first-order extrapolation.  These are needed for the hydro
+      routines to have the gravitational acceleration needed for the 
+      source terms to the interface states.
+
+    \item {\tt ca\_reactfill}
+    \end{itemize}
+
+    These routines that the following arguments:
+    \begin{itemize}
+    \item {\tt adv\_l1}, {\tt adv\_l2}, ({\tt adv\_l3}): the indicies of
+      the lower left corner of the box holding the data we are working on.
+      These indices refer to the entire box, including ghost cells.
+
+    \item {\tt adv\_h1}, {\tt adv\_h2}, ({\tt adv\_h3}): the indicies of
+      the upper right corner of the box holding the data we are working on.
+      These indices refer to the entire box, including ghost cells.
+
+    \item {\tt adv()}: the array of data whose ghost cells we are filling.
+      Depending on the routine, this may have an additional index refering
+      to the variable.
+    
+      This is dimensioned as:
+\begin{verbatim}
+  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)                             
+\end{verbatim}
+
+    \item {\tt domlo()}, {\tt domhi()}: the integer indices of the lower
+      left and upper right corners of the valid region of the {\em entire
+        domain}.  These are used to test against to see if we are filling
+      physical boundary ghost cells.
+
+      This changes according to refinement level: level-0 will
+      range from {\tt 0} to {\tt castro.max\_grid\_size},
+      and level-n will range from {\tt 0} to
+      $\mathtt{castro.max\_grid\_size} \cdot \prod_n \mathtt{castro.ref\_ratio(n)}$.
+
+    \item {\tt delta()}: is the zone width in each coordinate direction,
+      as in {\tt initdata()} above.
+
+    \item {\tt xlo()}: this is the physical coordinate of the lower
+      left corner of the box we are filling---including the ghost cells.
+
+      Note: this is different than how {\tt xlo()} was defined in
+      {\tt initdata()} above.
+
+    \item {\tt time}: the simulation time
+
+    \item {\tt bc()}: an array that holds the type of boundary conditions
+      to enforce at the physical boundaries for {\tt adv}.
+
+      Sometimes it appears of the form {\tt bc(:,:)} and sometimes
+      {\tt bc(:,:,:)}---the last index of the latter holds the variable
+      index, i.e., density, pressure, species, etc.
+
+      The first index is the coordinate direction and the second index
+      is the domain face ({\tt 1} is low, {\tt 2} is hi), so {\tt
+        bc(1,1)} is the lower $x$ boundary type, {\tt bc(1,2)} is
+      the upper $x$ boundary type, {\tt bc(2,1)} is the lower
+      $y$ boundary type, etc.
+
+      To interpret the array values, we test against the quantities
+      defined in {\tt bc\_types.fi} included in each subroutine,
+      for example, {\tt EXT\_DIR}, {\tt FOEXTRAP}, $\ldots$.  The
+      meaning of these are explained below.
+      
+    \end{itemize}
+    
+  \end{itemize}
 
 \end{itemize}
 
@@ -309,6 +416,9 @@ words from above:
 
 \item {\tt REFLECT\_ODD}: $F(-n) = -F(n)$ true reflection from interior cells
 \end{itemize}
+
+
+\subsection{Filling the boundaries}
 
 Basically, boundary conditions are imposed on ``state variables'' every
 time that they're ``fillpatched'', as part of the fillpatch operation.
