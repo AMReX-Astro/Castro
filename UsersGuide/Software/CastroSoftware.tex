@@ -84,6 +84,59 @@ C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
 is a BoxLib macro that is used to interface with Fortran routines.
 \MarginPar{what is the purpose of mfi.isValid()?}
 
+The corresponding Fortran function will look like:
+{\color{red} Need to write the Fortran version here}
+
+
+
+\subsection{Helper Modules}
+
+There are a number of modules that make data available to the Fortran
+side of \castro\ or perform other useful tasks.
+
+\begin{itemize}
+\item {\tt prob\_params\_module}:
+
+  This module makes the physical domain lower left and upper right
+  coordinates ({\tt problo()} and {\tt probhi}) and problem center
+  ({\tt center}) available.
+
+  Here {\tt center} is the center to
+  be used for the multipole expansion in gravity, certain diagnostics,
+  construction of the radial velocity, etc.  It is not necessarily
+  the center of the domain (e.g., for a problem modeling an octant
+  of a star, it would be the origin).  This is either set by
+  {\tt castro.center} or in the problem's {\tt probinit()}
+  subroutine.
+
+  This module also provides the type of physical boundary
+  condition in force at each domain edge (and the integer
+  keys needed to interpret them).
+
+\item {\tt meth\_params\_module}:
+
+  This module provides the integer keys used to access the state
+  arrays for both the conserved variables ({\tt URHO}, {\tt UMX}, $\ldots$)
+  and primitive variables ({\tt QRHO}, {\tt QU}, $\ldots$), as well
+  as the number of scalar variables.
+
+  It also provides the values of most of the {\tt castro.{\em xxxx}}
+  runtime parameters.
+
+\item {\tt model\_parser\_module}:
+
+  This module is built if {\tt USE\_MODELPARSER = TRUE} is set in the
+  problem's {\tt GNUmakefile}.  It then provides storage for the an
+  initial model and routines to read it in and interpolate onto the
+  \castro\ grid.
+
+\item {\tt fundamental\_constants\_module}:
+
+  This provides the CGS values of many physical constants.
+  
+\end{itemize}
+
+  
 \subsection{Other Quantities}
 
 The following is a list of variables, routines, etc used in \castro. It
@@ -264,8 +317,12 @@ For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) sta
 \begin{lstlisting}
    for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
                               time, State_Type, strtComp, NUM_STATE);
-        fpi.isValid();
-        ++fpi)
+         fpi.isValid(); ++fpi)
+   {
+     FArrayBox &state = fpi();
+
+     // work on the state FAB
+   }           
 \end{lstlisting}
 Here the {\tt FillPatchIterator} is the thing that distributes the
 grids over processors and makes parallel ``just work''. This fills the
