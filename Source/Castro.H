@@ -670,6 +670,9 @@ protected:
     // put phi in the plotfile
     static int plot_phiGrav;
 
+    // How often to compute integral sums
+    static int sum_interval;
+
     // Display center of mass diagnostics
     static int show_center_of_mass;
 

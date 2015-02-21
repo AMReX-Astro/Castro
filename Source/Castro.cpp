@@ -57,7 +57,6 @@ using std::string;
 
 
 
-static int  sum_interval = -1;
 static Real fixed_dt     = -1.0;
 static Real initial_dt   = -1.0;
 static Real dt_cutoff    = 0.0;
@@ -178,6 +177,7 @@ int          Castro::do_sponge  = 0;
 int          Castro::print_fortran_warnings  = 0;
 int          Castro::print_energy_diagnostics  = 0;
 
+int          Castro::sum_interval = -1;
 int          Castro::show_center_of_mass = 0;
 
 #ifdef SGS
