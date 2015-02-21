@@ -277,18 +277,21 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
   \item the {\tt *fill} routines:
 
     The following routines handle how \castro\ fills ghostcells {\em
-      at physical boundaries} for specific data.
+      at physical boundaries} for specific data.  Most problem
+    setups won't need to do anything special here.
 
-    The idea is that
-    these routines are registered in {\tt Castro\_setup.cpp}, and
-    called as needed.  By default, they just pass the arguments
-    through to {\tt filcc}, which handles all of the generic boundary
-    conditions (like reflecting, extrapolation, etc.).  The specific
-    `{\tt fill}' routines can then supply the problem-specific
-    boundary conditions, which are typically just Dirichlet boundary
-    conditions.  The code implementing these specific conditions
+    The idea is that these routines are registered in {\tt
+      Castro\_setup.cpp}, and called as needed.  By default, they just
+    pass the arguments through to {\tt filcc}, which handles all of
+    the generic boundary conditions (like reflecting, extrapolation,
+    etc.).  The specific `{\tt fill}' routines can then supply the
+    problem-specific boundary conditions, which are typically just
+    Dirichlet boundary conditions (usually this means looking to see
+    if the {\tt bc()} flag at a boundary is {\tt EXT\_DIR}.  The
+    problem-specific code implementing these specific conditions
     should {\em follow} the {\tt filcc} call.
-
+    
+    
     \begin{itemize}
     \item {\tt ca\_hypfill}:
       This handles the boundary filling for the hyperbolic system.
