@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_error_module
   use probdata_module
   use eos_module
   use meth_params_module, only: small_temp
@@ -25,10 +26,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer, parameter :: maxlen = 127
   character :: probin*(maxlen)
 
-  if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
-  end if
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -52,10 +50,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = 0.0d0
 
   xmin = problo(1)
-  if (xmin /= 0.d0) then
-     print *, 'ERROR: xmin should be 0!'
-     stop
-  endif
+  if (xmin /= 0.d0) call bl_error("ERROR: xmin should be 0!")
+
 
   xmax = probhi(1)
 
