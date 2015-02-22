@@ -184,19 +184,6 @@ never regrid for any level. Note that this is not compatible with {\tt
 amr.regrid\_on\_restart = 1}.
 
 
-\subsection{Tagging}
-
-\begin{itemize}
-\item {\tt castro.allow\_untagging}: are cells allowed to be ``untagged''? (0 or 1; default: 0)
-\end{itemize}
-
-Typically cells at a given level can be tagged as needing refinement
-by any of a number of criteria, but cannot be ``untagged'', i.e., once
-tagged no other criteria can untag them.  If we set {\tt
-castro.allow\_untagging = 1} then the user is allowed to ``untag'' cells
-in the Fortran tagging routines
-
-
 \subsection{Regridding}
 
 The details of the regridding strategy are described in a later section; here we 

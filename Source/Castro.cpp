@@ -137,7 +137,6 @@ int          Castro::deterministic = 0;
 int          Castro::grown_factor = 1;
 int          Castro::star_at_center = -1;
 int          Castro::moving_center = 0;
-int          Castro::allow_untagging = 0;
 int          Castro::normalize_species = 0;
 int          Castro::fix_mass_flux = 0;
 int          Castro::allow_negative_energy = 1;
@@ -381,7 +380,6 @@ Castro::read_params ()
 
     pp.query("moving_center",moving_center);
 
-    pp.query("allow_untagging",allow_untagging);
     pp.query("normalize_species",normalize_species);
     pp.query("fix_mass_flux",fix_mass_flux);
     pp.query("allow_negative_energy",allow_negative_energy);
@@ -2547,14 +2545,9 @@ Castro::errorEst (TagBoxArray& tags,
 				      lo,hi, &ncomp, domain_lo, domain_hi,
 				      dx, xlo, prob_lo, &time, &level);
 		//
-		// Don't forget to set the tags in the TagBox.
+		// Now update the tags in the TagBox.
 		//
-		if (allow_untagging == 1) 
-		{
-		    tagfab.tags_and_untags(itags, tilebx);
-		} else {
-		    tagfab.tags(itags, tilebx);
-		}
+                tagfab.tags_and_untags(itags, tilebx);
 	    }
 	}
 
@@ -2596,14 +2589,9 @@ Castro::errorEst (TagBoxArray& tags,
 			      dx, prob_lo, &time, &level);
 
 	    //
-	    // Don't forget to set the tags in the TagBox.
+	    // Now update the tags in the TagBox.
 	    //
-	    if (allow_untagging == 1) 
-	    {
-		tagfab.tags_and_untags(itags, tilebx);
-	    } else {
-		tagfab.tags(itags, tilebx);
-	    }
+            tagfab.tags_and_untags(itags, tilebx);
 	}
     }
 }

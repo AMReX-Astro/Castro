@@ -576,7 +576,6 @@ protected:
     static int       grown_factor;
     static int       star_at_center;
     static int       moving_center;
-    static int       allow_untagging;
     static int       normalize_species;
     static int       fix_mass_flux;
     static int       allow_negative_energy;

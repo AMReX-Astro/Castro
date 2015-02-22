@@ -8,13 +8,155 @@ as the coarse grids and the data at different levels are then synchronized.
 During the regridding step, increasingly finer grids
 are recursively embedded in coarse grids until the solution is
 sufficiently resolved.  An error estimation procedure based on
-user-specified criteria evaluates where additional refinement is needed
+user-specified criteria (described in Section \ref{sec:tagging}) 
+evaluates where additional refinement is needed
 and grid generation procedures dynamically create or
 remove rectangular fine grid patches as resolution requirements change.
 
 A good introduction to the style of AMR used here is in Lecture 1
 of the Adaptive Mesh Refinement Short Course at
 https://ccse.lbl.gov/people/jbb/index.html
+
+\section{Tagging for Refinement}
+\label{sec:tagging}
+
+CASTRO determines what zones should be tagged for refinement at the next 
+regridding step by using a set of built-in routines that test on 
+quantities such as the density and pressure and determining whether the 
+quantities themselves or their gradients pass a user-specified threshold. 
+This may then be extended if {\tt amr.n\_error\_buf} $> 0$ to a certain number 
+of zones beyond these tagged zones. This section describes the process 
+by which zones are tagged, and describes how to add customized tagging criteria.
+
+The routines for tagging cells are located in the {\tt Tagging\_*d.f90} files 
+in the respective {\tt Src\_*d} subdirectories. The main routines are 
+{\tt ca\_denerror}, {\tt ca\_temperror}, {\tt ca\_presserror}, {\tt ca\_velerror}, 
+and {\tt ca\_raderror}. They refine based on density, temperature, pressure, 
+velocity, and radiation (if enabled), respectively. The same approach is used 
+for all of them. As an example, we consider the density tagging routine. There 
+are four parameters that control tagging. If the density in a zone is greater than 
+the user-specified parameter {\tt denerr}, then that zone will be tagged 
+for refinement, but only if the current AMR level is less than the 
+user-specified parameter {\tt max\_denerr\_lev}. Similarly, 
+if the absolute density gradient between a zone and any adjacent zone 
+is greater than the user-specified parameter {\tt dengrad}, that zone 
+will be tagged for refinement, but only if we are currently on a level 
+below {\tt max\_dengrad\_lev}. Note that setting {\tt denerr} alone will 
+not do anything; you'll need to set {\tt max\_dengrad\_lev} $>= 1$ for
+this to have any effect.
+
+All four of these parameters are set in the {\tt \&tagging} namelist 
+in your {\tt probin} file. If left unmodified, they default to a value 
+that means we will never tag. The complete set of parameters that can 
+be controlled this way is the following:
+\begin{multicols}{5}
+\begin{itemize}
+  \setlength{\itemindent}{-3em}
+  \item {\tt denerr}
+  \item {\tt max\_denerr\_lev}
+  \item {\tt dengrad}
+  \item {\tt max\_dengrad\_lev}
+  \item {\tt temperr}
+  \item {\tt max\_temperr\_lev}
+  \item {\tt tempgrad}
+  \item {\tt max\_tempgrad\_lev}
+  \item {\tt velerr}
+  \item {\tt max\_velerr\_lev}
+  \item {\tt velgrad}
+  \item {\tt max\_velgrad\_lev}
+  \item {\tt presserr}
+  \item {\tt max\_presserr\_lev}
+  \item {\tt pressgrad}
+  \item {\tt max\_pressgrad\_lev}
+  \item {\tt raderr}
+  \item {\tt max\_raderr\_lev}
+  \item {\tt radgrad}
+  \item {\tt max\_radgrad\_lev}
+\end{itemize}
+\end{multicols}
+Since there are multiple algorithms for determining 
+whether a zone is tagged or not, it is worthwhile to specify 
+in detail what is happening to a zone in the code during this step. 
+We show this in the following pseudocode section. A zone 
+is tagged if the variable {\tt itag = SET}, and is not tagged 
+if {\tt itag = CLEAR} (these are mapped to 1 and 0, respectively).
+
+\begin{verbatim}
+itag = CLEAR
+
+for errfunc[k] from k = 1 ... N
+    // Three possibilities for itag: SET or CLEAR or remaining unchanged
+    call errfunc[k](itag)  
+end for
+\end{verbatim}
+
+In particular, notice that there is an order dependence of this operation; if {\tt errfunc[2]} 
+{\tt CLEAR}s a zone and then {\tt errfunc[3]} {\tt SET}s that zone, the final operation will 
+be to tag that zone (and vice versa). In practice by default this does not matter, because the 
+built-in tagging routines never explicitly perform a \texttt{CLEAR}. However, 
+it is possible to overwrite the {\tt Tagging\_*d.f90} file if you want to change how 
+{\tt ca\_denerror, ca\_temperror}, etc. operate. This is not recommended, and if you do so
+be aware that {\tt CLEAR}ing a zone this way may not have the desired effect.
+
+We provide also the ability for the user to define their own tagging criteria.
+This is done through the Fortran function {\tt set\_problem\_tags} in the 
+{\tt problem\_tagging\_*d.f90} files. This function is provided the entire 
+state (including density, temperature, velocity, etc.) and the array 
+of tagging status for every zone. As an example of how to use this, suppose we 
+have a 3D Cartesian simulation where we want to tag any zone that has a 
+density gradient greater than 10, but we don't care about any regions 
+outside a radius $r > 75$ from the problem origin; we leave them always unrefined. 
+We also want to ensure that the region $r \leq 10$ is always refined.
+In our {\tt probin} file we would set {\tt denerr = 10} and {\tt max\_denerr\_lev = 1}
+in the {\tt \&tagging} namelist. We would also make a copy of 
+{\tt problem\_tagging\_3d.f90} to our work directory and set it up as follows:
+\clearpage
+\begin{verbatim}
+subroutine set_problem_tags(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+                            state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3,&
+                            set,clear,&
+                            lo,hi,&
+                            dx,problo,time,level)
+
+  use bl_constants_module, only: ZERO, HALF
+  use prob_params_module, only: center
+  use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN, NVAR
+ 
+  implicit none
+  
+  integer         ,intent(in   ) :: lo(3),hi(3)
+  integer         ,intent(in   ) :: state_l1,state_l2,state_l3, &
+                                    state_h1,state_h2,state_h3
+  integer         ,intent(in   ) :: tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
+  double precision,intent(in   ) :: state(state_l1:state_h1, &
+                                          state_l2:state_h2, &
+                                          state_l3:state_h3,NVAR)
+  integer         ,intent(inout) :: tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
+  double precision,intent(in   ) :: problo(3),dx(3),time
+  integer         ,intent(in   ) :: level,set,clear
+
+  double precision :: x, y, z, r
+
+  do k = lo(3), hi(3)
+     z = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+     do j = lo(2), hi(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+        do i = lo(1), hi(1)
+           x = problo(1) + (dble(i) + HALF) * dx(1) - center(2)
+
+           r = (x**2 + y**2 + z**2)**(HALF)
+
+           if (r > 75.0) then
+             tag(i,j,k) = clear
+           elseif (r <= 10.0) then
+             tag(i,j,k) = set
+           endif
+        enddo
+     enddo
+  enddo
+  
+end subroutine set_problem_tags
+\end{verbatim}
 
 \section{Synchronization Algorithm}
 
