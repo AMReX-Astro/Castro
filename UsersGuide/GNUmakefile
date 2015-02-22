@@ -51,6 +51,7 @@ clean:
 	$(RM) $(pdf_source) CastroUserGuide.dvi
 	$(RM) CastroUserGuide.blg CastroUserGuide.log CastroUserGuide.toc
 	$(RM) CastroUserGuide.aux CastroUserGuide.ps CastroUserGuide.bbl CastroUserGuide.pdf
+	$(RM) CastroUserGuide.lot CastroUserGuide.lof CastroUsetGuide.out
 	$(RM) *~
 
 .PHONY: clean
