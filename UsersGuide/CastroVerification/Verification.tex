@@ -52,7 +52,7 @@ kept constant.  We use a CFL number of 0.9, an initial timestep shrink
 the timestep can increase ({\tt castro.change\_max}) of 1.05.
 \begin{figure}[h]
 \centering
-\includegraphics[width=4.75in]{CastroVerification/sod_3d}
+\includegraphics[width=4.75in]{sod_3d}
 \caption{\label{fig:sod} \castro\ solution for Sod's problem run in 3-d,
   with the newest ppm limiters, 
   along the $x$, $y$, and $z$ axes.  A coarse grid of 32 zones in the
@@ -61,7 +61,7 @@ the timestep can increase ({\tt castro.change\_max}) of 1.05.
 \end{figure}
 \begin{figure}[h]
 \centering
-\includegraphics[width=4.75in]{CastroVerification/sod_3d_ppm0}
+\includegraphics[width=4.75in]{sod_3d_ppm0}
 \caption{\label{fig:sod_ppm0} \castro\ solution for Sod's problem run in 3-d,
   with the piecewise-linear Godunov method with limiters,
   along the $x$, $y$, and $z$ axes.  A coarse grid of 32 zones in the
@@ -143,7 +143,7 @@ the timestep can increase ({\tt castro.change\_max}) of 1.05.  The PPM
 solver with the new limiters are used.
 \begin{figure}[h]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/test2_3d}
+\includegraphics[width=5.0in]{test2_3d}
 \caption{\label{fig:test2} \castro\ solution for the double rarefaction
   problem run in 3-d, along the $x$, $y$, and $z$ axes.  A coarse grid
   of 32 zones in the direction of propagation, with 2 levels of
@@ -203,7 +203,7 @@ solver with the new limiters are used.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/test3_3d}
+\includegraphics[width=5.0in]{test3_3d}
 \caption{\label{fig:test3} \castro\ solution for the strong shock
   problem run in 3-d, along the $x$, $y$, and $z$ axes.  A coarse grid
   of 32 zones in the direction of propagation, with 2 levels of
@@ -347,7 +347,7 @@ spherical Sedov explosion simulations to the analytic solution.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/sedov_sph}
+\includegraphics[width=5.0in]{sedov_sph}
 \caption{\label{fig:sedov_sph} \castro\ solution for the Sedov blast wave problem
   run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
   Each of these geometries produces a spherical Sedov explosion.}
@@ -358,7 +358,7 @@ spherical Sedov explosion simulations to the analytic solution.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/sedov_cyl}
+\includegraphics[width=5.0in]{sedov_cyl}
 \caption{\label{fig:sedov_cyl} \castro\ solution for the Sedov blast wave problem
   run in 2-d Cartesian coordinates.  This corresponds to a cylindrical
   Sedov explosion.}
@@ -388,7 +388,7 @@ half and no density perturbation.  We run to $t=2.5$ with piecewise
 linear, old PPM, and new PPM.  CFL=0.9.  See Figure \ref{fig:RT}.
 \begin{figure}[h]
 \centering
-\includegraphics[width=6.5in]{CastroVerification/RT_ppm_type}
+\includegraphics[width=6.5in]{RT_ppm_type}
 \caption{\label{fig:RT}Rayleigh-Taylor with different PPM types.}
 \end{figure}
 
@@ -456,7 +456,7 @@ Our implementation of this problem follows that of
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/radiating_source}
+\includegraphics[width=5.0in]{radiating_source}
 \caption{\label{fig:radsource} \castro\ solution for radiating source
   test problem.  Heating and cooling solutions are shown as a function
   of time, compared to the analytic solution.  The gray photon solver
@@ -484,7 +484,7 @@ the analytic solution is provided as {\tt analytic.f90}.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=5.0in]{CastroVerification/radiating_sphere}
+\includegraphics[width=5.0in]{radiating_sphere}
 \caption{\label{fig:radsphere} \castro\ solution for radiating sphere problem,
   showing the radiation energy density as a function of energy group.
   This test was run with 64 photon energy groups.}

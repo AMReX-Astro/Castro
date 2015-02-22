@@ -2,11 +2,7 @@ EPStoPDF = epstopdf
 
 ALL: CastroUserGuide.pdf 
 
-eps_source = $(wildcard *.eps) \
-	     $(wildcard Parallel/*.eps) \
-             $(wildcard ConvertCheckpoint/*.eps) \
-             $(wildcard Scaling/*.eps) \
-             $(wildcard CastroVerification/*.eps)
+eps_source = $(wildcard *.eps) $(wildcard */*.eps)
 
 pdf_source = $(eps_source:.eps=.pdf)
 
