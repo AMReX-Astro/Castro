@@ -110,8 +110,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   xmin = problo(1)
   if (xmin /= 0.d0) then
-     print *, 'ERROR: xmin should be 0!'
-     stop
+     call bl_error("ERROR: xmin should be 0!")
   endif
 
   xmax = probhi(1)
