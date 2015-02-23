@@ -1228,7 +1228,7 @@ subroutine ca_test_type_flux( lo, hi, &
 
   use rad_params_module, only : get_ispec, nradspec
 
-  integer,intent(in):: lo(2), hi(2)
+  integer,intent(in):: lo(3), hi(3)
   integer,intent(in)::t_l1,t_h1,t_l2,t_h2,t_l3,t_h3
   integer,intent(in)::f_l1,f_h1,f_l2,f_h2,f_l3,f_h3
   integer,intent(in)::x_l1,x_h1
