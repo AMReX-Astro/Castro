@@ -716,7 +716,8 @@ BL_FORT_PROC_DECL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
     BL_FORT_FAB_ARG(State),
     int* resetEint, Real* relative, Real* absolute);
 BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
-   (BL_FORT_FAB_ARG(SPa),
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG(SPa),
     D_DECL(BL_FORT_FAB_ARG(lamx),
 	   BL_FORT_FAB_ARG(lamy),
 	   BL_FORT_FAB_ARG(lamz)),

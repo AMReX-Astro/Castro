@@ -1199,7 +1199,7 @@ subroutine ca_compute_powerlaw_kappa( lo, hi,  &
 end subroutine ca_compute_powerlaw_kappa
 
 
-subroutine ca_spalpha( &
+subroutine ca_spalpha( lo, hi, &
      spa, spa_l1, spa_h1, &
      lam, lam_l1, lam_h1, &
      igroup)
@@ -1207,6 +1207,7 @@ subroutine ca_spalpha( &
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDalpha
   implicit none
+  integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: spa_l1, spa_h1
   integer, intent(in) :: lam_l1, lam_h1
   integer, intent(in) :: igroup
@@ -1215,10 +1216,12 @@ subroutine ca_spalpha( &
   integer :: i
 
   i = spa_l1
-  spa(i) = FLDalpha(lam(i,igroup))
+  if (i.ge.lo(1) .and. i.le.hi(1)) &
+       spa(i) = FLDalpha(lam(i,igroup))
 
   i = spa_h1
-  spa(i) = FLDalpha(lam(i+1,igroup))
+  if (i.ge.lo(1) .and. i.le.hi(1)) &
+       spa(i) = FLDalpha(lam(i+1,igroup))
 end subroutine ca_spalpha
 
 

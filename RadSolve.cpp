@@ -371,34 +371,37 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
   const Box& domainBox = geom.Domain();
 
   MultiFab spa(grids, 1, 0);
-  for (MFIter mfi(spa); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& reg  = grids[i]; 
+#ifdef _OPENMP
+#pragma omp
+#endif
+  for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
+      const Box& reg  = mfi.tilebox();
     
-    spa[mfi].setVal(1.e210);
+      spa[mfi].setVal(1.e210,reg,0);
     
-    bool nexttoboundary=false;
-    for (int idim=0; idim<BL_SPACEDIM; idim++) {
-      if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
-	  reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
-	nexttoboundary=true;
-	break;
+      bool nexttoboundary=false;
+      for (int idim=0; idim<BL_SPACEDIM; idim++) {
+	  if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
+	      reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
+	      nexttoboundary=true;
+	      break;
+	  }
+	  if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
+	      reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
+	      nexttoboundary=true;
+	      break;
+	  }
       }
-      if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
-	  reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
-	nexttoboundary=true;
-	break;
-      }
-    }
     
-    if (nexttoboundary) {
-      BL_FORT_PROC_CALL(CA_SPALPHA, ca_spalpha)
-	(BL_TO_FORTRAN(spa[mfi]),
-	 D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-		BL_TO_FORTRAN(lambda[1][mfi]),
-		BL_TO_FORTRAN(lambda[2][mfi])),
-	 &igroup);
-    }
+      if (nexttoboundary) {
+	  BL_FORT_PROC_CALL(CA_SPALPHA, ca_spalpha)
+	      (reg.loVect(), reg.hiVect(),
+	       BL_TO_FORTRAN(spa[mfi]),
+	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+		      BL_TO_FORTRAN(lambda[1][mfi]),
+		      BL_TO_FORTRAN(lambda[2][mfi])),
+	       &igroup);
+      }
   }
 
   if (hm) {

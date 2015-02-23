@@ -1276,7 +1276,7 @@ subroutine ca_compute_powerlaw_kappa( lo, hi,  &
 end subroutine ca_compute_powerlaw_kappa
 
 
-subroutine ca_spalpha( &
+subroutine ca_spalpha( lo, hi, &
      spa, spa_l1, spa_l2, spa_h1, spa_h2, &
      lmx, lmx_l1, lmx_l2, lmx_h1, lmx_h2, &
      lmy, lmy_l1, lmy_l2, lmy_h1, lmy_h2, &
@@ -1285,6 +1285,7 @@ subroutine ca_spalpha( &
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDalpha
   implicit none
+  integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: spa_l1, spa_h1, spa_l2, spa_h2
   integer, intent(in) :: lmx_l1, lmx_h1, lmx_l2, lmx_h2
   integer, intent(in) :: lmy_l1, lmy_h1, lmy_l2, lmy_h2
@@ -1295,8 +1296,8 @@ subroutine ca_spalpha( &
   integer :: i,j
   double precision :: lam
 
-  do j = spa_l2, spa_h2
-  do i = spa_l1, spa_h1
+  do j = lo(2), hi(2)
+  do i = lo(1), hi(1)
      if ( i.eq.spa_l1 .or. i.eq.spa_h1 .or.  &
           j.eq.spa_l2 .or. j.eq.spa_h2 ) then
         lam = 0.25d0*(lmx(i,j,igroup) + lmx(i+1,j  ,igroup)  &
