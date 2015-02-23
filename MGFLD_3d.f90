@@ -1270,18 +1270,19 @@ subroutine ca_test_type_flux( lo, hi, &
 
 end subroutine ca_test_type_flux
 
-subroutine ca_rhstoer( &
+subroutine ca_rhstoer( lo, hi, &
      rhs, rhs_l1, rhs_l2, rhs_l3, rhs_h1, rhs_h2, rhs_h3, &
      r, dt)
   implicit none
+  integer,intent(in):: lo(3), hi(3)
   integer,intent(in):: rhs_l1, rhs_h1, rhs_l2, rhs_h2, rhs_l3, rhs_h3
   double precision,intent(inout)::rhs ( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
   double precision,intent(in   )::   r( rhs_l1: rhs_h1)
   double precision,intent(in   ):: dt
   integer :: i, j, k
-  do k=rhs_l3, rhs_h3
-  do j=rhs_l2, rhs_h2
-  do i=rhs_l1, rhs_h1
+  do k=lo(3), hi(3)
+  do j=lo(2), hi(2)
+  do i=lo(1), hi(1)
      rhs(i,j,k) = rhs(i,j,k)*dt
   end do
   end do

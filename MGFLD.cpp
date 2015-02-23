@@ -1162,35 +1162,40 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 }
 
 
-void Radiation::rhstoEr(MultiFab& rhs, const BoxArray& grids, Real dt, int level)
+void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 {
-    Array<Real> r, s;
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {    
+	Array<Real> r, s;
 
-    for (MFIter ri(rhs); ri.isValid(); ++ri) 
-    {
-	int i = ri.index();
-	const Box &reg = grids[i];
+	for (MFIter ri(rhs,true); ri.isValid(); ++ri) 
+	{
+	    const Box &reg = ri.tilebox();
+	    
+	    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+	    if (CoordSys::IsCartesian()) 
+	    {
+		r.resize(reg.length(0), 1);
+		s.resize(reg.length(I), 1);
+	    }
+	    else if (CoordSys::IsRZ()) 
+	    {
+		parent->Geom(level).GetCellLoc(r, reg, 0);
+		s.resize(reg.length(I), 1);
+	    }
+	    else 
+	    {
+		parent->Geom(level).GetCellLoc(r, reg, 0);
+		parent->Geom(level).GetCellLoc(s, reg, I);
+		const Real *dx = parent->Geom(level).CellSize();
+		FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
+	    }
 
-	const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-	if (CoordSys::IsCartesian()) 
-	{
-	    r.resize(reg.length(0), 1);
-	    s.resize(reg.length(I), 1);
+	    BL_FORT_PROC_CALL(CA_RHSTOER, ca_rhstoer)
+		(reg.loVect(), reg.hiVect(),
+		 BL_TO_FORTRAN(rhs[ri]), r.dataPtr(), &dt);
 	}
-	else if (CoordSys::IsRZ()) 
-	{
-	    parent->Geom(level).GetCellLoc(r, reg, 0);
-	    s.resize(reg.length(I), 1);
-	}
-	else 
-	{
-	    parent->Geom(level).GetCellLoc(r, reg, 0);
-	    parent->Geom(level).GetCellLoc(s, reg, I);
-	    const Real *dx = parent->Geom(level).CellSize();
-	    FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-	}
-
-	BL_FORT_PROC_CALL(CA_RHSTOER, ca_rhstoer)
-	    (BL_TO_FORTRAN(rhs[ri]), r.dataPtr(), &dt);
     }
 }

@@ -390,7 +390,7 @@ protected:
   void MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state);
   void MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& state);
 
-  void rhstoEr(MultiFab& rhs, const BoxArray& grids, Real dt, int level);
+  void rhstoEr(MultiFab& rhs, Real dt, int level);
 
   // </ MGFLD>
 

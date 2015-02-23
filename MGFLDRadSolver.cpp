@@ -96,7 +96,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     for (int igroup=0; igroup<nGroups; igroup++) {
       rhs.setVal(0.0);
       deferred_sync(level, rhs, igroup);
-      rhstoEr(rhs, grids, delta_t, level);
+      rhstoEr(rhs, delta_t, level);
       MultiFab::Add(Er_new, rhs, 0, igroup, 1, 0);
     }
   }

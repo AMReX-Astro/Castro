@@ -722,7 +722,8 @@ BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
 	   BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
 BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
-   (BL_FORT_FAB_ARG(rhs),
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG(rhs),
     const Real* r, const Real* dt);
 
 // in RadDerive_?d.f90
