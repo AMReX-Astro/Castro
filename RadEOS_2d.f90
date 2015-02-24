@@ -9,13 +9,13 @@ subroutine ca_compute_c_v(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
   implicit none
-  integer, intent(in)           :: lo(2), hi(2)
-  integer, intent(in)           :: cv_l1, cv_l2, cv_h1, cv_h2
-  integer, intent(in)           :: temp_l1, temp_l2, temp_h1, temp_h2
-  integer, intent(in)           :: state_l1, state_l2, state_h1, state_h2
-  double precision, intent(out) :: cv(cv_l1:cv_h1,cv_l2:cv_h2)
-  double precision, intent(in)  :: temp(temp_l1:temp_h1,temp_l2:temp_h2)
-  double precision, intent(in)  :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  integer, intent(in)          :: lo(2), hi(2)
+  integer, intent(in)          :: cv_l1, cv_l2, cv_h1, cv_h2
+  integer, intent(in)          :: temp_l1, temp_l2, temp_h1, temp_h2
+  integer, intent(in)          :: state_l1, state_l2, state_h1, state_h2
+  double precision             :: cv(cv_l1:cv_h1,cv_l2:cv_h2)
+  double precision, intent(in) :: temp(temp_l1:temp_h1,temp_l2:temp_h2)
+  double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   integer           :: i, j
   double precision :: rhoInv
@@ -56,7 +56,7 @@ subroutine ca_get_rhoe(lo, hi, &
   integer         , intent(in) :: state_l1, state_l2, state_h1, state_h2
   double precision, intent(in) :: temp(temp_l1:temp_h1,temp_l2:temp_h2)
   double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision, intent(inout) :: rhoe(rhoe_l1:rhoe_h1,rhoe_l2:rhoe_h2)
+  double precision             :: rhoe(rhoe_l1:rhoe_h1,rhoe_l2:rhoe_h2)
 
   integer          :: i, j
   double precision :: rhoInv
@@ -93,7 +93,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   integer         , intent(in) :: temp_l1, temp_l2, temp_h1, temp_h2, &
        state_l1,state_l2,state_h1,state_h2
   double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision, intent(inout) :: temp(temp_l1:temp_h1,temp_l2:temp_h2) ! temp contains rhoe as input
+  double precision :: temp(temp_l1:temp_h1,temp_l2:temp_h2) ! temp contains rhoe as input
 
   integer :: i, j
   double precision :: rhoInv
@@ -132,7 +132,7 @@ subroutine ca_compute_temp_given_cv(lo,hi,  &
   integer         , intent(in) :: temp_l1, temp_l2, temp_h1, temp_h2, &
        state_l1,state_l2,state_h1,state_h2
   double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision, intent(inout) :: temp(temp_l1:temp_h1,temp_l2:temp_h2) ! temp contains rhoe
+  double precision :: temp(temp_l1:temp_h1,temp_l2:temp_h2) ! temp contains rhoe
   double precision, intent(in) :: const_c_v, c_v_exp_m, c_v_exp_n
 
   integer :: i, j
@@ -172,7 +172,7 @@ subroutine reset_eint_compute_temp( lo, hi, &
   implicit none
   integer, intent(in) :: lo(2), hi(2), resetei
   integer, intent(in) :: s_l1, s_h1, s_l2, s_h2
-  double precision, intent(inout) :: state(s_l1:s_h1,s_l2:s_h2,NVAR)
+  double precision :: state(s_l1:s_h1,s_l2:s_h2,NVAR)
   double precision, intent(inout) :: rela, abso
 
   integer :: i, j
@@ -271,15 +271,15 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
        small_temp, allow_negative_energy
 
   implicit none
-  integer         , intent(in   ) :: lo(2), hi(2)
-  integer         , intent(in   ) ::  temp_l1, temp_l2, temp_h1, temp_h2
-  integer         , intent(in   ) ::    re_l1,   re_l2,   re_h1,   re_h2
-  integer         , intent(in   ) ::    ye_l1,   ye_l2,   ye_h1,   ye_h2
-  integer         , intent(in   ) :: state_l1,state_l2,state_h1,state_h2
-  double precision, intent(in   ) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision, intent(in   ) ::  rhoe(   re_l1:   re_h1,   re_l2:   re_h2)
-  double precision, intent(in   ) ::    ye(   ye_l1:   ye_h1,   ye_l2:   ye_h2)
-  double precision, intent(inout) ::  temp( temp_l1: temp_h1, temp_l2: temp_h2)
+  integer         , intent(in) :: lo(2), hi(2)
+  integer         , intent(in) ::  temp_l1, temp_l2, temp_h1, temp_h2
+  integer         , intent(in) ::    re_l1,   re_l2,   re_h1,   re_h2
+  integer         , intent(in) ::    ye_l1,   ye_l2,   ye_h1,   ye_h2
+  integer         , intent(in) :: state_l1,state_l2,state_h1,state_h2
+  double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  double precision, intent(in) ::  rhoe(   re_l1:   re_h1,   re_l2:   re_h2)
+  double precision, intent(in) ::    ye(   ye_l1:   ye_h1,   ye_l2:   ye_h2)
+  double precision             ::  temp( temp_l1: temp_h1, temp_l2: temp_h2)
 
   integer          :: i, j
   double precision :: rhoInv
@@ -330,17 +330,17 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
   implicit none
-  integer         , intent(in   ) :: lo(2), hi(2)
-  integer         , intent(in   ) :: re_l1, re_h1, re_l2, re_h2
-  integer         , intent(in   ) :: rY_l1, rY_h1, rY_l2, rY_h2
-  integer         , intent(in   ) :: temp_l1, temp_h1, temp_l2, temp_h2
-  integer         , intent(in   ) :: ye_l1, ye_h1, ye_l2, ye_h2
-  integer         , intent(in   ) :: state_l1, state_h1, state_l2, state_h2
-  double precision, intent(in   ) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision, intent(out  ) :: rhoe(re_l1:re_h1,re_l2:re_h2)
-  double precision, intent(inout) :: rhoY(rY_l1:rY_h1,rY_l2:rY_h2)
-  double precision, intent(in   ) :: ye(ye_l1:ye_h1,ye_l2:ye_h2)
-  double precision, intent(in   ) :: temp(temp_l1:temp_h1,temp_l2:temp_h2)
+  integer         , intent(in) :: lo(2), hi(2)
+  integer         , intent(in) :: re_l1, re_h1, re_l2, re_h2
+  integer         , intent(in) :: rY_l1, rY_h1, rY_l2, rY_h2
+  integer         , intent(in) :: temp_l1, temp_h1, temp_l2, temp_h2
+  integer         , intent(in) :: ye_l1, ye_h1, ye_l2, ye_h2
+  integer         , intent(in) :: state_l1, state_h1, state_l2, state_h2
+  double precision, intent(in) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  double precision             :: rhoe(re_l1:re_h1,re_l2:re_h2)
+  double precision             :: rhoY(rY_l1:rY_h1,rY_l2:rY_h2)
+  double precision, intent(in) :: ye(ye_l1:ye_h1,ye_l2:ye_h2)
+  double precision, intent(in) :: temp(temp_l1:temp_h1,temp_l2:temp_h2)
 
   integer          :: i, j
   double precision :: rhoInv
