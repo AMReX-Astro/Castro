@@ -413,13 +413,18 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     int nTest = Test.nComp();
     int ilambda = nTest;
     if (nTest > 0) {
-      for (MFIter ti(Test); ti.isValid(); ++ti) {
-	BL_FORT_PROC_CALL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
-	  (BL_TO_FORTRAN(Test[ti]), &nTest, &ilambda,
-	   D_DECL(BL_TO_FORTRAN(lambda[0][ti]),
-		  BL_TO_FORTRAN(lambda[1][ti]),
-		  BL_TO_FORTRAN(lambda[2][ti])));
-      }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	for (MFIter ti(Test,true); ti.isValid(); ++ti) {
+	    const Box& bx = ti.tilebox();
+	    BL_FORT_PROC_CALL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(Test[ti]), &nTest, &ilambda,
+		 D_DECL(BL_TO_FORTRAN(lambda[0][ti]),
+			BL_TO_FORTRAN(lambda[1][ti]),
+			BL_TO_FORTRAN(lambda[2][ti])));
+	}
     }
   }
 

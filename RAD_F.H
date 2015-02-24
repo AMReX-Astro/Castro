@@ -256,7 +256,8 @@ BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
     const Real* dx, const int* limiter, const int* comoving); 
 
 BL_FORT_PROC_DECL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
-   (BL_FORT_FAB_ARG(test), const int* ntest, const int* n,
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(test), const int* ntest, const int* n,
     D_DECL(const BL_FORT_FAB_ARG(lamx),
 	   const BL_FORT_FAB_ARG(lamy),
 	   const BL_FORT_FAB_ARG(lamz)));
@@ -702,7 +703,8 @@ BL_FORT_PROC_DECL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
     const Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* igroup);
 BL_FORT_PROC_DECL(CA_TEST_TYPE_FLUX_LAB, ca_test_type_flux_lab)
-   (BL_FORT_FAB_ARG(test), 
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(test), 
     const BL_FORT_FAB_ARG(flx),
     D_DECL(const BL_FORT_FAB_ARG(lamx),
 	   const BL_FORT_FAB_ARG(lamy),
