@@ -19,7 +19,7 @@ subroutine ca_accel_acoe( lo, hi,  &
   double precision, intent(in ) :: eta1(eta1_l1:eta1_h1)
   double precision, intent(in ) :: spc ( spc_l1: spc_h1,0:ngroups-1)
   double precision, intent(in ) :: kap ( kap_l1: kap_h1,0:ngroups-1)
-  double precision, intent(out) :: aco ( aco_l1: aco_h1)
+  double precision              :: aco ( aco_l1: aco_h1)
   double precision, intent(in) :: dt, tau
 
   integer :: i
@@ -58,7 +58,7 @@ subroutine ca_accel_rhs( lo, hi, &
   double precision, intent(in ) ::Erl ( Erl_l1: Erl_h1,0:ngroups-1)
   double precision, intent(in ) :: kap( kap_l1: kap_h1,0:ngroups-1)
   double precision, intent(in ) ::etaT(etaT_l1:etaT_h1)
-  double precision, intent(out) :: rhs(rhs_l1:rhs_h1)
+  double precision              :: rhs(rhs_l1:rhs_h1)
   double precision, intent(in) :: dt
 
   integer :: i 
@@ -89,7 +89,7 @@ subroutine ca_accel_spec(lo, hi, &
   integer,intent(in)::spec_l1,spec_h1
   double precision,intent(in )::kap ( kap_l1: kap_h1,0:ngroups-1)
   double precision,intent(in )::mugT(mugT_l1:mugT_h1,0:ngroups-1)
-  double precision,intent(out)::spec(spec_l1:spec_h1,0:ngroups-1)
+  double precision            ::spec(spec_l1:spec_h1,0:ngroups-1)
   double precision,intent(in) :: dt, tau
 
   integer :: i 
@@ -250,7 +250,7 @@ subroutine ca_compute_coupt( lo, hi, &
   integer, intent(in) :: kpp_l1, kpp_h1 
   integer, intent(in) ::  eg_l1,  eg_h1
   integer, intent(in) ::  jg_l1,  jg_h1
-  double precision, intent(out):: cpt(cpt_l1:cpt_h1)
+  double precision             :: cpt(cpt_l1:cpt_h1)
   double precision, intent(in) :: kpp(kpp_l1:kpp_h1,0:ngroups-1)
   double precision, intent(in) ::  eg( eg_l1: eg_h1,0:ngroups-1)
   double precision, intent(in) ::  jg( jg_l1: jg_h1,0:ngroups-1)
@@ -292,10 +292,10 @@ subroutine ca_compute_etat( lo, hi, &
   integer, intent(in) :: dedT_l1, dedT_h1
   integer, intent(in) ::  Ers_l1,  Ers_h1
   integer, intent(in) ::  rho_l1,  rho_h1
-  double precision, intent(out)  :: etaT(etaT_l1:etaT_h1)
-  double precision, intent(out)  :: etTz(etTz_l1:etTz_h1)
-  double precision, intent(out)  :: eta1(eta1_l1:eta1_h1)
-  double precision, intent(inout):: djdT(djdT_l1:djdT_h1,0:ngroups-1)
+  double precision               :: etaT(etaT_l1:etaT_h1)
+  double precision               :: etTz(etTz_l1:etTz_h1)
+  double precision               :: eta1(eta1_l1:eta1_h1)
+  double precision               :: djdT(djdT_l1:djdT_h1,0:ngroups-1)
   double precision, intent(in )  :: dkdT(dkdT_l1:dkdT_h1,0:ngroups-1)
   double precision, intent(in )  :: dedT(dedT_l1:dedT_h1)
   double precision, intent(in )  :: Ers ( Ers_l1: Ers_h1,0:ngroups-1)
@@ -346,8 +346,8 @@ subroutine ca_compute_emissivity( lo, hi, &
   integer, intent(in) ::    T_l1,    T_h1
   integer, intent(in) ::  kap_l1,  kap_h1
   integer, intent(in) :: dkdT_l1, dkdT_h1
-  double precision, intent(out) :: jg  (  jg_l1:  jg_h1,0:ngroups-1)
-  double precision, intent(out) :: djdT(djdT_l1:djdT_h1,0:ngroups-1)
+  double precision              :: jg  (  jg_l1:  jg_h1,0:ngroups-1)
+  double precision              :: djdT(djdT_l1:djdT_h1,0:ngroups-1)
   double precision, intent(in ) ::    T(   T_l1:   T_h1)
   double precision, intent(in ) ::  kap( kap_l1: kap_h1,0:ngroups-1)
   double precision, intent(in ) :: dkdT(dkdT_l1:dkdT_h1,0:ngroups-1)
@@ -485,9 +485,9 @@ subroutine ca_compute_kappas(lo, hi, &
   integer, intent(in) :: do_stme, use_dkdT
   double precision, intent(in)   :: stt(stt_l1:stt_h1,NVAR)
   double precision, intent(in)   ::   T(  T_l1:  T_h1)
-  double precision, intent(inout):: kpp(kpp_l1:kpp_h1, 0:ngroups-1)
-  double precision, intent(inout):: kpr(kpr_l1:kpr_h1, 0:ngroups-1)
-  double precision, intent(out)  :: kpT(kpT_l1:kpT_h1, 0:ngroups-1)
+  double precision               :: kpp(kpp_l1:kpp_h1, 0:ngroups-1)
+  double precision               :: kpr(kpr_l1:kpr_h1, 0:ngroups-1)
+  double precision               :: kpT(kpT_l1:kpT_h1, 0:ngroups-1)
   double precision, intent(in)   :: c_kpp, kpp_m, kpp_n, kpp_p 
   double precision, intent(in)   :: c_kpr, kpr_m, kpr_n, kpr_p 
   double precision, intent(in)   :: c_sct, sct_m, sct_n, sct_p 
@@ -557,7 +557,7 @@ subroutine ca_compute_rhs( lo, hi, &
   integer,intent(in):: re2_l1, re2_h1
   integer,intent(in):: Ers_l1, Ers_h1
   integer,intent(in):: res_l1, res_h1
-  double precision,intent(out)::rhs ( rhs_l1: rhs_h1)
+  double precision            ::rhs ( rhs_l1: rhs_h1)
   double precision,intent(in )::jg  (  jg_l1:  jg_h1,0:ngroups-1)
   double precision,intent(in )::mugT(mugT_l1:mugT_h1,0:ngroups-1)
   double precision,intent(in )::cpT ( cpT_l1: cpT_h1)
@@ -611,7 +611,7 @@ subroutine ca_compute_rhs_so( lo, hi, & ! MG Su-Olson
   integer,intent(in):: Er2_l1, Er2_h1
   integer,intent(in):: re2_l1, re2_h1
   integer,intent(in):: res_l1, res_h1
-  double precision,intent(out)::rhs ( rhs_l1: rhs_h1)
+  double precision            ::rhs ( rhs_l1: rhs_h1)
   double precision,intent(in )::jg  (  jg_l1:  jg_h1,0:ngroups-1)
   double precision,intent(in )::mugT(mugT_l1:mugT_h1,0:ngroups-1)
   double precision,intent(in )::cpT ( cpT_l1: cpT_h1)
@@ -660,7 +660,7 @@ subroutine ca_local_accel( lo, hi,  &
   integer,intent(in):: kap_l1, kap_h1
   integer,intent(in)::etaT_l1,etaT_h1
   integer,intent(in)::mugT_l1,mugT_h1
-  double precision,intent(inout)::Ern ( Ern_l1: Ern_h1,0:ngroups-1)
+  double precision              ::Ern ( Ern_l1: Ern_h1,0:ngroups-1)
   double precision,intent(in   )::Erl ( Erl_l1: Erl_h1,0:ngroups-1)
   double precision,intent(in   )::kap ( kap_l1: kap_h1,0:ngroups-1)
   double precision,intent(in   )::etaT(etaT_l1:etaT_h1)
@@ -709,7 +709,7 @@ subroutine ca_state_update( lo, hi, &
   double precision, intent(in)   :: rhoe( rhoe_l1: rhoe_h1)
   double precision, intent(in)   :: temp( temp_l1: temp_h1)
   double precision, intent(in)   ::  msk(  msk_l1:  msk_h1)
-  double precision, intent(inout)::state(state_l1:state_h1, NVAR)
+  double precision               ::state(state_l1:state_h1, NVAR)
   double precision, intent(inout) :: derat, dTrat
 
   integer :: i
@@ -759,7 +759,7 @@ subroutine ca_update_matter( lo, hi,  &
   integer,intent(in):: kpp_l1,  kpp_h1
   integer,intent(in)::mugT_l1, mugT_h1
   integer,intent(in)::Snew_l1, Snew_h1
-  double precision,intent(out)::re_n(re_n_l1:re_n_h1)
+  double precision            ::re_n(re_n_l1:re_n_h1)
   double precision,intent(in )::Er_n(Er_n_l1:Er_n_h1,0:ngroups-1)
   double precision,intent(in )::Er_l(Er_l_l1:Er_l_h1,0:ngroups-1)
   double precision,intent(in )::re_s(re_s_l1:re_s_h1)
@@ -814,13 +814,13 @@ subroutine ca_ncupdate_matter( lo, hi,  &
   integer,intent(in)::etTz_l1, etTz_h1
   integer,intent(in):: kpp_l1,  kpp_h1
   integer,intent(in)::  jg_l1,   jg_h1
-  double precision,intent(inout)::Tp_n(Tp_n_l1:Tp_n_h1)
-  double precision,intent(in   )::Er_n(Er_n_l1:Er_n_h1,0:ngroups-1)
-  double precision,intent(in   )::re_s(re_s_l1:re_s_h1)
-  double precision,intent(in   )::re_2(re_2_l1:re_2_h1)
-  double precision,intent(in   )::etTz(etTz_l1:etTz_h1)
-  double precision,intent(in   ):: kpp( kpp_l1: kpp_h1,0:ngroups-1)
-  double precision,intent(in   )::  jg(  jg_l1:  jg_h1,0:ngroups-1)
+  double precision           ::Tp_n(Tp_n_l1:Tp_n_h1)
+  double precision,intent(in)::Er_n(Er_n_l1:Er_n_h1,0:ngroups-1)
+  double precision,intent(in)::re_s(re_s_l1:re_s_h1)
+  double precision,intent(in)::re_2(re_2_l1:re_2_h1)
+  double precision,intent(in)::etTz(etTz_l1:etTz_h1)
+  double precision,intent(in):: kpp( kpp_l1: kpp_h1,0:ngroups-1)
+  double precision,intent(in)::  jg(  jg_l1:  jg_h1,0:ngroups-1)
   double precision,intent(in) :: dt
 
    integer :: i,g
@@ -877,9 +877,9 @@ subroutine ca_opacs( lo, hi,  &
   double precision, intent(in ) :: Snew(Snew_l1:Snew_h1,NVAR)
   double precision, intent(in ) :: T   (   T_l1:   T_h1)
   double precision, intent(in ) :: Ts  (  Ts_l1:  Ts_h1)
-  double precision, intent(inout) :: kpp ( kpp_l1: kpp_h1,0:ngroups-1)
-  double precision, intent(inout) :: kpr ( kpr_l1: kpr_h1,0:ngroups-1)
-  double precision, intent(inout) :: dkdT(dkdT_l1:dkdT_h1,0:ngroups-1)
+  double precision :: kpp ( kpp_l1: kpp_h1,0:ngroups-1)
+  double precision :: kpr ( kpr_l1: kpr_h1,0:ngroups-1)
+  double precision :: dkdT(dkdT_l1:dkdT_h1,0:ngroups-1)
   integer, intent(in) :: use_dkdT, validStar, lag_opac
 
   integer :: i, g
@@ -957,8 +957,8 @@ subroutine ca_compute_rosseland( lo, hi, &
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) ::  kpr_l1,  kpr_h1
   integer, intent(in) :: stat_l1, stat_h1 
-  double precision, intent(out) :: kpr ( kpr_l1: kpr_h1,0:ngroups-1)
-  double precision, intent(in ) :: stat(stat_l1:stat_h1,NVAR)
+  double precision             :: kpr ( kpr_l1: kpr_h1,0:ngroups-1)
+  double precision, intent(in) :: stat(stat_l1:stat_h1,NVAR)
 
   integer :: i, g
   double precision :: kp, kr, nu, rho, temp, Ye
@@ -1003,8 +1003,8 @@ subroutine ca_compute_planck( lo, hi,  &
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) ::  kpp_l1,  kpp_h1
   integer, intent(in) :: stat_l1, stat_h1 
-  double precision, intent(out) :: kpp ( kpp_l1: kpp_h1,0:ngroups-1)
-  double precision, intent(in ) :: stat(stat_l1:stat_h1,NVAR)
+  double precision             :: kpp ( kpp_l1: kpp_h1,0:ngroups-1)
+  double precision, intent(in) :: stat(stat_l1:stat_h1,NVAR)
 
   integer :: i, g
   double precision :: kp, kr, nu, rho, temp, Ye
@@ -1055,9 +1055,9 @@ subroutine ca_accel_ccoe( lo, hi, &
   integer, intent(in) :: bcgr_l1, bcgr_h1
   integer, intent(in) :: spec_l1, spec_h1
   integer, intent(in) :: ccoe_l1, ccoe_h1
-  double precision, intent(in   ) :: bcgr(bcgr_l1:bcgr_h1)
-  double precision, intent(in   ) :: spec(spec_l1:spec_h1, 0:ngroups-1)
-  double precision, intent(inout) :: ccoe(ccoe_l1:ccoe_h1, 0:1)
+  double precision, intent(in) :: bcgr(bcgr_l1:bcgr_h1)
+  double precision, intent(in) :: spec(spec_l1:spec_h1, 0:ngroups-1)
+  double precision             :: ccoe(ccoe_l1:ccoe_h1, 0:1)
   double precision, intent(in) :: dx(1)
   integer, intent(in) :: idim, igroup
 
@@ -1087,9 +1087,9 @@ subroutine ca_test_type_flux( lo, hi, &
   integer,intent(in)::f_l1,f_h1
   integer,intent(in)::x_l1,x_h1
   integer,intent(in) :: nt, idim, igroup
-  double precision,intent(inout)::t(t_l1:t_h1,0:nt-1)
-  double precision,intent(in   )::f(f_l1:f_h1)
-  double precision,intent(in   )::x(x_l1:x_h1)
+  double precision           ::t(t_l1:t_h1,0:nt-1)
+  double precision,intent(in)::f(f_l1:f_h1)
+  double precision,intent(in)::x(x_l1:x_h1)
 
   integer ispec, it, i
 
@@ -1105,9 +1105,9 @@ end subroutine ca_test_type_flux
 subroutine ca_rhstoer(lo, hi, rhs, rhs_l1, rhs_h1, r, dt)
   implicit none
   integer,intent(in):: lo(1), hi(1), rhs_l1, rhs_h1
-  double precision,intent(inout)::rhs ( rhs_l1: rhs_h1)
-  double precision,intent(in   )::   r(lo(1):hi(1))
-  double precision,intent(in   ):: dt
+  double precision           ::rhs ( rhs_l1: rhs_h1)
+  double precision,intent(in)::   r(lo(1):hi(1))
+  double precision,intent(in):: dt
   integer :: i
   do i=lo(1),hi(1)
      rhs(i) = rhs(i)*dt/r(i)
@@ -1132,8 +1132,8 @@ subroutine ca_compute_powerlaw_kappa_s( lo, hi, &
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: k_l1, k_h1, &
                          u_l1, u_h1
-  double precision, intent(out) :: kappa(k_l1:k_h1, 0:ngroups-1) 
-  double precision, intent(in ) ::     u(u_l1:u_h1, NVAR)
+  double precision             :: kappa(k_l1:k_h1, 0:ngroups-1) 
+  double precision, intent(in) ::     u(u_l1:u_h1, NVAR)
   double precision, intent(in) :: kappa0, m, n, p, Tfloor, kfloor
   double precision, intent(in) :: s0, sm, sn, sp
 
@@ -1174,8 +1174,8 @@ subroutine ca_compute_powerlaw_kappa( lo, hi,  &
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: k_l1, k_h1, &
                          u_l1, u_h1
-  double precision, intent(out) :: kappa(k_l1:k_h1, 0:ngroups-1) 
-  double precision, intent(in ) ::     u(u_l1:u_h1, NVAR)
+  double precision             :: kappa(k_l1:k_h1, 0:ngroups-1) 
+  double precision, intent(in) ::     u(u_l1:u_h1, NVAR)
   double precision, intent(in) :: kappa0, m, n, p, Tfloor, kfloor
 
   integer :: i, g
@@ -1211,8 +1211,8 @@ subroutine ca_spalpha( lo, hi, &
   integer, intent(in) :: spa_l1, spa_h1
   integer, intent(in) :: lam_l1, lam_h1
   integer, intent(in) :: igroup
-  double precision, intent(out) :: spa(spa_l1:spa_h1)
-  double precision, intent(in ) :: lam(lam_l1:lam_h1, 0:ngroups-1)
+  double precision             :: spa(spa_l1:spa_h1)
+  double precision, intent(in) :: lam(lam_l1:lam_h1, 0:ngroups-1)
   integer :: i
 
   i = spa_l1

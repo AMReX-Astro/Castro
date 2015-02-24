@@ -19,14 +19,12 @@ subroutine ca_accel_acoe_neut( lo, hi,  &
   integer, intent(in) ::  spc_l1, spc_h1, spc_l2, spc_h2, spc_l3, spc_h3
   integer, intent(in) ::  kap_l1, kap_h1, kap_l2, kap_h2, kap_l3, kap_h3
   integer, intent(in) ::  aco_l1, aco_h1, aco_l2, aco_h2, aco_l3, aco_h3
-  double precision,intent(in )::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
-  double precision,intent(in )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(in )::spc ( spc_l1: spc_h1, spc_l2: spc_h2, spc_l3: spc_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,&
-       0:ngroups-1)
-  double precision,intent(out)::aco ( aco_l1: aco_h1, aco_l2: aco_h2, aco_l3: aco_h3)
+  double precision,intent(in)::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision,intent(in)::spc ( spc_l1: spc_h1, spc_l2: spc_h2, spc_l3: spc_h3,0:ngroups-1)
+  double precision,intent(in)::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,0:ngroups-1)
+  double precision           ::aco ( aco_l1: aco_h1, aco_l2: aco_h2, aco_l3: aco_h3)
   double precision,intent(in) :: dt, tau
 
   integer :: i, j, k, g
@@ -80,17 +78,14 @@ subroutine ca_accel_rhs_neut( lo, hi,  &
   integer, intent(in) ::theT_l1,theT_h1,theT_l2,theT_h2,theT_l3,theT_h3
   integer, intent(in) ::theY_l1,theY_h1,theY_l2,theY_h2,theY_l3,theY_h3
   integer, intent(in) :: rhs_l1, rhs_h1, rhs_l2, rhs_h2, rhs_l3, rhs_h3
-  double precision,intent(in )::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,&
-       0:ngroups-1)
-  double precision,intent(in ):: kap( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(in )::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(in )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(out):: rhs( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
+  double precision,intent(in)::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,0:ngroups-1)
+  double precision,intent(in)::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,0:ngroups-1)
+  double precision,intent(in):: kap( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,0:ngroups-1)
+  double precision,intent(in)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision,intent(in)::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision           :: rhs( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
   double precision,intent(in) :: dt
 
   integer :: i, j, k, g
@@ -146,22 +141,16 @@ subroutine ca_accel_spec_neut( lo, hi, &
   integer,intent(in)::mugT_l1,mugT_h1,mugT_l2,mugT_h2,mugT_l3,mugT_h3
   integer,intent(in)::mugY_l1,mugY_h1,mugY_l2,mugY_h2,mugY_l3,mugY_h3
   integer,intent(in)::spec_l1,spec_h1,spec_l2,spec_h2,spec_l3,spec_h3
-  double precision,intent(in )::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(in )::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(in )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(in )::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,&
-       0:ngroups-1)
-  double precision,intent(out)::spec(spec_l1:spec_h1,spec_l2:spec_h2,spec_l3:spec_h3,&
-       0:ngroups-1)
+  double precision,intent(in)::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,0:ngroups-1)
+  double precision,intent(in)::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,0:ngroups-1)
+  double precision,intent(in)::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,0:ngroups-1)
+  double precision,intent(in)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision,intent(in)::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision,intent(in)::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,0:ngroups-1)
+  double precision,intent(in)::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,0:ngroups-1)
+  double precision           ::spec(spec_l1:spec_h1,spec_l2:spec_h2,spec_l3:spec_h3,0:ngroups-1)
   double precision,intent(in) :: dt, tau
 
   integer :: i, j, k, g
@@ -334,12 +323,9 @@ subroutine ca_check_conv_er_neut( lo, hi,  &
   integer,intent(in)::etYz_l1,etYz_h1,etYz_l2,etYz_h2,etYz_l3,etYz_h3
   integer,intent(in)::thTz_l1,thTz_h1,thTz_l2,thTz_h2,thTz_l3,thTz_h3
   integer,intent(in)::thYz_l1,thYz_h1,thYz_l2,thYz_h2,thYz_l3,thYz_h3
-  double precision,intent(in):: Ern( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,&
-       0:ngroups-1)
-  double precision,intent(in):: Erl( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,&
-       0:ngroups-1)
-  double precision,intent(in):: kap( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,&
-       0:ngroups-1)
+  double precision,intent(in):: Ern( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,0:ngroups-1)
+  double precision,intent(in):: Erl( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,0:ngroups-1)
+  double precision,intent(in):: kap( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,0:ngroups-1)
   double precision,intent(in)::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2,etTz_l3:etTz_h3)
   double precision,intent(in)::etYz(etYz_l1:etYz_h1,etYz_l2:etYz_h2,etYz_l3:etYz_h3)
   double precision,intent(in)::thTz(thTz_l1:thTz_h1,thTz_l2:thTz_h2,thTz_l3:thTz_h3)
@@ -398,8 +384,8 @@ subroutine ca_compute_coupty( lo, hi,  &
   integer, intent(in) :: kpp_l1, kpp_h1, kpp_l2, kpp_h2, kpp_l3, kpp_h3
   integer, intent(in) ::  eg_l1,  eg_h1,  eg_l2,  eg_h2,  eg_l3,  eg_h3
   integer, intent(in) ::  jg_l1,  jg_h1,  jg_l2,  jg_h2,  jg_l3,  jg_h3
-  double precision, intent(out):: cpt(cpt_l1:cpt_h1,cpt_l2:cpt_h2,cpt_l3:cpt_h3)
-  double precision, intent(out):: cpy(cpy_l1:cpy_h1,cpy_l2:cpy_h2,cpy_l3:cpy_h3)
+  double precision             :: cpt(cpt_l1:cpt_h1,cpt_l2:cpt_h2,cpt_l3:cpt_h3)
+  double precision             :: cpy(cpy_l1:cpy_h1,cpy_l2:cpy_h2,cpy_l3:cpy_h3)
   double precision, intent(in) :: kpp(kpp_l1:kpp_h1,kpp_l2:kpp_h2,kpp_l3:kpp_h3,0:ngroups-1)
   double precision, intent(in) ::  eg( eg_l1: eg_h1, eg_l2: eg_h2, eg_l3: eg_h3,0:ngroups-1)
   double precision, intent(in) ::  jg( jg_l1: jg_h1, jg_l2: jg_h2, jg_l3: jg_h3,0:ngroups-1)
@@ -455,13 +441,13 @@ subroutine ca_compute_dedx( lo, hi,  &
   integer, intent(in) ::  Yes_l1,  Yes_h1,  Yes_l2,  Yes_h2,  Yes_l3,  Yes_h3
   integer, intent(in) :: dedT_l1, dedT_h1, dedT_l2, dedT_h2, dedT_l3, dedT_h3
   integer, intent(in) :: dedY_l1, dedY_h1, dedY_l2, dedY_h2, dedY_l3, dedY_h3
-  double precision, intent(in ) :: S   (   S_l1:   S_h1,   S_l2:   S_h2,   S_l3:   S_h3,NVAR)
-  double precision, intent(in ) :: T   (   T_l1:   T_h1,   T_l2:   T_h2,   T_l3:   T_h3)
-  double precision, intent(in ) :: Ye  (  Ye_l1:  Ye_h1,  Ye_l2:  Ye_h2,  Ye_l3:  Ye_h3)
-  double precision, intent(in ) :: Ts  (  Ts_l1:  Ts_h1,  Ts_l2:  Ts_h2,  Ts_l3:  Ts_h3)
-  double precision, intent(in ) :: Yes ( Yes_l1: Yes_h1, Yes_l2: Yes_h2, Yes_l3: Yes_h3)
-  double precision, intent(out) :: dedT(dedT_l1:dedT_h1,dedT_l2:dedT_h2,dedT_l3:dedT_h3)
-  double precision, intent(out) :: dedY(dedY_l1:dedY_h1,dedY_l2:dedY_h2,dedY_l3:dedY_h3)
+  double precision, intent(in) :: S   (   S_l1:   S_h1,   S_l2:   S_h2,   S_l3:   S_h3,NVAR)
+  double precision, intent(in) :: T   (   T_l1:   T_h1,   T_l2:   T_h2,   T_l3:   T_h3)
+  double precision, intent(in) :: Ye  (  Ye_l1:  Ye_h1,  Ye_l2:  Ye_h2,  Ye_l3:  Ye_h3)
+  double precision, intent(in) :: Ts  (  Ts_l1:  Ts_h1,  Ts_l2:  Ts_h2,  Ts_l3:  Ts_h3)
+  double precision, intent(in) :: Yes ( Yes_l1: Yes_h1, Yes_l2: Yes_h2, Yes_l3: Yes_h3)
+  double precision             :: dedT(dedT_l1:dedT_h1,dedT_l2:dedT_h2,dedT_l3:dedT_h3)
+  double precision             :: dedY(dedY_l1:dedY_h1,dedY_l2:dedY_h2,dedY_l3:dedY_h3)
   integer, intent(in) :: validStar
 
   integer :: i, j, k
@@ -574,29 +560,24 @@ subroutine ca_compute_eta_the( lo, hi, &
   integer, intent(in) :: dedY_l1, dedY_h1, dedY_l2, dedY_h2, dedY_l3, dedY_h3
   integer, intent(in) ::  Ers_l1,  Ers_h1,  Ers_l2,  Ers_h2,  Ers_l3,  Ers_h3
   integer, intent(in) ::  rho_l1,  rho_h1,  rho_l2,  rho_h2,  rho_l3,  rho_h3
-  double precision,intent(out)  ::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(out)  ::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2,etTz_l3:etTz_h3)
-  double precision,intent(out)  ::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(out)  ::etYz(etYz_l1:etYz_h1,etYz_l2:etYz_h2,etYz_l3:etYz_h3)
-  double precision,intent(out)  ::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
-  double precision,intent(out)  ::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(out)  ::thTz(thTz_l1:thTz_h1,thTz_l2:thTz_h2,thTz_l3:thTz_h3)
-  double precision,intent(out)  ::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(out)  ::thYz(thYz_l1:thYz_h1,thYz_l2:thYz_h2,thYz_l3:thYz_h3)
-  double precision,intent(out)  ::the1(the1_l1:the1_h1,the1_l2:the1_h2,the1_l3:the1_h3)
-  double precision,intent(inout)::djdT(djdT_l1:djdT_h1,djdT_l2:djdT_h2,djdT_l3:djdT_h3,&
-       0:ngroups-1)
-  double precision,intent(inout)::djdY(djdY_l1:djdY_h1,djdY_l2:djdY_h2,djdY_l3:djdY_h3,&
-       0:ngroups-1)
-  double precision,intent(in )  ::dkdT(dkdT_l1:dkdT_h1,dkdT_l2:dkdT_h2,dkdT_l3:dkdT_h3,&
-       0:ngroups-1)
-  double precision,intent(in )  ::dkdY(dkdY_l1:dkdY_h1,dkdY_l2:dkdY_h2,dkdY_l3:dkdY_h3,&
-       0:ngroups-1)
-  double precision,intent(in )  ::dedT(dedT_l1:dedT_h1,dedT_l2:dedT_h2,dedT_l3:dedT_h3)
-  double precision,intent(in )  ::dedY(dedY_l1:dedY_h1,dedY_l2:dedY_h2,dedY_l3:dedY_h3)
-  double precision,intent(in )  ::Ers ( Ers_l1: Ers_h1, Ers_l2: Ers_h2, Ers_l3: Ers_h3,&
-       0:ngroups-1)
-  double precision,intent(in )  ::rho ( rho_l1: rho_h1, rho_l2: rho_h2, rho_l3: rho_h3)
+  double precision           ::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision           ::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2,etTz_l3:etTz_h3)
+  double precision           ::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision           ::etYz(etYz_l1:etYz_h1,etYz_l2:etYz_h2,etYz_l3:etYz_h3)
+  double precision           ::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
+  double precision           ::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision           ::thTz(thTz_l1:thTz_h1,thTz_l2:thTz_h2,thTz_l3:thTz_h3)
+  double precision           ::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision           ::thYz(thYz_l1:thYz_h1,thYz_l2:thYz_h2,thYz_l3:thYz_h3)
+  double precision           ::the1(the1_l1:the1_h1,the1_l2:the1_h2,the1_l3:the1_h3)
+  double precision           ::djdT(djdT_l1:djdT_h1,djdT_l2:djdT_h2,djdT_l3:djdT_h3,0:ngroups-1)
+  double precision           ::djdY(djdY_l1:djdY_h1,djdY_l2:djdY_h2,djdY_l3:djdY_h3,0:ngroups-1)
+  double precision,intent(in)::dkdT(dkdT_l1:dkdT_h1,dkdT_l2:dkdT_h2,dkdT_l3:dkdT_h3,0:ngroups-1)
+  double precision,intent(in)::dkdY(dkdY_l1:dkdY_h1,dkdY_l2:dkdY_h2,dkdY_l3:dkdY_h3,0:ngroups-1)
+  double precision,intent(in)::dedT(dedT_l1:dedT_h1,dedT_l2:dedT_h2,dedT_l3:dedT_h3)
+  double precision,intent(in)::dedY(dedY_l1:dedY_h1,dedY_l2:dedY_h2,dedY_l3:dedY_h3)
+  double precision,intent(in)::Ers ( Ers_l1: Ers_h1, Ers_l2: Ers_h2, Ers_l3: Ers_h3,0:ngroups-1)
+  double precision,intent(in)::rho ( rho_l1: rho_h1, rho_l2: rho_h2, rho_l3: rho_h3)
   double precision,intent(in) :: dt, tau
 
   integer :: i, j, k
@@ -696,29 +677,24 @@ subroutine ca_compute_rhs_neut( lo, hi, &
   integer,intent(in):: Ers_l1, Ers_h1, Ers_l2, Ers_h2, Ers_l3, Ers_h3
   integer,intent(in):: res_l1, res_h1, res_l2, res_h2, res_l3, res_h3
   integer,intent(in):: rYs_l1, rYs_h1, rYs_l2, rYs_h2, rYs_l3, rYs_h3
-  double precision,intent(out)::rhs ( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
-  double precision,intent(in )::jg  (  jg_l1:  jg_h1,  jg_l2:  jg_h2,  jg_l3:  jg_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::cpT ( cpT_l1: cpT_h1, cpT_l2: cpT_h2, cpT_l3: cpT_h3)
-  double precision,intent(in )::cpY ( cpY_l1: cpY_h1, cpY_l2: cpY_h2, cpY_l3: cpY_h3)
-  double precision,intent(in )::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(in )::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(in )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(in )::Er2 ( Er2_l1: Er2_h1, Er2_l2: Er2_h2, Er2_l3: Er2_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::re2 ( re2_l1: re2_h1, re2_l2: re2_h2, re2_l3: re2_h3)
-  double precision,intent(in )::rY2 ( rY2_l1: rY2_h1, rY2_l2: rY2_h2, rY2_l3: rY2_h3)
-  double precision,intent(in )::Ers ( Ers_l1: Ers_h1, Ers_l2: Ers_h2, Ers_l3: Ers_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::res ( res_l1: res_h1, res_l2: res_h2, res_l3: res_h3)
-  double precision,intent(in )::rYs ( rYs_l1: rYs_h1, rYs_l2: rYs_h2, rYs_l3: rYs_h3)
-  double precision,intent(in) ::   r(lo(1):hi(1))
-  double precision,intent(in) :: dt, tau             
+  double precision           ::rhs ( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
+  double precision,intent(in)::jg  (  jg_l1:  jg_h1,  jg_l2:  jg_h2,  jg_l3:  jg_h3,0:ngroups-1)
+  double precision,intent(in)::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,0:ngroups-1)
+  double precision,intent(in)::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,0:ngroups-1)
+  double precision,intent(in)::cpT ( cpT_l1: cpT_h1, cpT_l2: cpT_h2, cpT_l3: cpT_h3)
+  double precision,intent(in)::cpY ( cpY_l1: cpY_h1, cpY_l2: cpY_h2, cpY_l3: cpY_h3)
+  double precision,intent(in)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision,intent(in)::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision,intent(in)::Er2 ( Er2_l1: Er2_h1, Er2_l2: Er2_h2, Er2_l3: Er2_h3,0:ngroups-1)
+  double precision,intent(in)::re2 ( re2_l1: re2_h1, re2_l2: re2_h2, re2_l3: re2_h3)
+  double precision,intent(in)::rY2 ( rY2_l1: rY2_h1, rY2_l2: rY2_h2, rY2_l3: rY2_h3)
+  double precision,intent(in)::Ers ( Ers_l1: Ers_h1, Ers_l2: Ers_h2, Ers_l3: Ers_h3,0:ngroups-1)
+  double precision,intent(in)::res ( res_l1: res_h1, res_l2: res_h2, res_l3: res_h3)
+  double precision,intent(in)::rYs ( rYs_l1: rYs_h1, rYs_l2: rYs_h2, rYs_l3: rYs_h3)
+  double precision,intent(in)::   r(lo(1):hi(1))
+  double precision,intent(in):: dt, tau             
   integer, intent(in) :: igroup
 
   integer :: i, j, k
@@ -768,21 +744,16 @@ subroutine ca_local_accel_neut( lo, hi,  &
   integer,intent(in)::theY_l1,theY_h1,theY_l2,theY_h2,theY_l3,theY_h3
   integer,intent(in)::mugT_l1,mugT_h1,mugT_l2,mugT_h2,mugT_l3,mugT_h3
   integer,intent(in)::mugY_l1,mugY_h1,mugY_l2,mugY_h2,mugY_l3,mugY_h3
-  double precision,intent(inout)::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(in   )::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(in   )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in   )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(in   )::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,&
-       0:ngroups-1)
-  double precision,intent(in) :: dt, tau
+  double precision           ::Ern ( Ern_l1: Ern_h1, Ern_l2: Ern_h2, Ern_l3: Ern_h3,0:ngroups-1)
+  double precision,intent(in)::Erl ( Erl_l1: Erl_h1, Erl_l2: Erl_h2, Erl_l3: Erl_h3,0:ngroups-1)
+  double precision,intent(in)::kap ( kap_l1: kap_h1, kap_l2: kap_h2, kap_l3: kap_h3,0:ngroups-1)
+  double precision,intent(in)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision,intent(in)::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision,intent(in)::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,0:ngroups-1)
+  double precision,intent(in)::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,0:ngroups-1)
+  double precision,intent(in):: dt, tau
 
   integer :: i, j, k
   double precision :: cdt1, rt, ry, p, q, r, s 
@@ -852,25 +823,18 @@ subroutine ca_opac_emis_neut( lo, hi,  &
   integer, intent(in) :: djdY_l1, djdY_h1, djdY_l2, djdY_h2, djdY_l3, djdY_h3
   integer, intent(in) :: dkdT_l1, dkdT_h1, dkdT_l2, dkdT_h2, dkdT_l3, dkdT_h3
   integer, intent(in) :: dkdY_l1, dkdY_h1, dkdY_l2, dkdY_h2, dkdY_l3, dkdY_h3
-  double precision, intent(in ) :: Snew(Snew_l1:Snew_h1,Snew_l2:Snew_h2,Snew_l3:Snew_h3,NVAR)
-  double precision, intent(in ) :: T   (   T_l1:   T_h1,   T_l2:   T_h2,   T_l3:   T_h3)
-  double precision, intent(in ) :: Ye  (  Ye_l1:  Ye_h1,  Ye_l2:  Ye_h2,  Ye_l3:  Ye_h3)
-  double precision, intent(in ) :: Ts  (  Ts_l1:  Ts_h1,  Ts_l2:  Ts_h2,  Ts_l3:  Ts_h3)
-  double precision, intent(in ) :: Yes ( Yes_l1: Yes_h1, Yes_l2: Yes_h2, Yes_l3: Yes_h3)
-  double precision, intent(inout) :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,&
-       0:ngroups-1)
-  double precision, intent(inout) :: kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,&
-       0:ngroups-1)
-  double precision, intent(out  ) :: jg  (   j_l1:   j_h1,   j_l2:   j_h2,   j_l3:   j_h3,&
-       0:ngroups-1)
-  double precision, intent(out  ) :: djdT(djdT_l1:djdT_h1,djdT_l2:djdT_h2,djdT_l3:djdT_h3,&
-       0:ngroups-1)
-  double precision, intent(out  ) :: djdY(djdY_l1:djdY_h1,djdY_l2:djdY_h2,djdY_l3:djdY_h3,&
-       0:ngroups-1)
-  double precision, intent(inout) :: dkdT(dkdT_l1:dkdT_h1,dkdT_l2:dkdT_h2,dkdT_l3:dkdT_h3,&
-       0:ngroups-1)
-  double precision, intent(inout) :: dkdY(dkdY_l1:dkdY_h1,dkdY_l2:dkdY_h2,dkdY_l3:dkdY_h3,&
-       0:ngroups-1)
+  double precision,intent(in)::Snew(Snew_l1:Snew_h1,Snew_l2:Snew_h2,Snew_l3:Snew_h3,NVAR)
+  double precision,intent(in)::T   (   T_l1:   T_h1,   T_l2:   T_h2,   T_l3:   T_h3)
+  double precision,intent(in)::Ye  (  Ye_l1:  Ye_h1,  Ye_l2:  Ye_h2,  Ye_l3:  Ye_h3)
+  double precision,intent(in)::Ts  (  Ts_l1:  Ts_h1,  Ts_l2:  Ts_h2,  Ts_l3:  Ts_h3)
+  double precision,intent(in)::Yes ( Yes_l1: Yes_h1, Yes_l2: Yes_h2, Yes_l3: Yes_h3)
+  double precision           ::kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,0:ngroups-1)
+  double precision           ::kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,0:ngroups-1)
+  double precision           ::jg  (   j_l1:   j_h1,   j_l2:   j_h2,   j_l3:   j_h3,0:ngroups-1)
+  double precision           ::djdT(djdT_l1:djdT_h1,djdT_l2:djdT_h2,djdT_l3:djdT_h3,0:ngroups-1)
+  double precision           ::djdY(djdY_l1:djdY_h1,djdY_l2:djdY_h2,djdY_l3:djdY_h3,0:ngroups-1)
+  double precision           ::dkdT(dkdT_l1:dkdT_h1,dkdT_l2:dkdT_h2,dkdT_l3:dkdT_h3,0:ngroups-1)
+  double precision           ::dkdY(dkdY_l1:dkdY_h1,dkdY_l2:dkdY_h2,dkdY_l3:dkdY_h3,0:ngroups-1)
   integer, intent(in) :: use_dkdT, validStar, lag_opac
 
   integer :: i, j, k, g, inu
@@ -1003,12 +967,11 @@ subroutine ca_state_update_neut( lo, hi, &
   integer, intent(in) ::    Ye_l1,    Ye_h1,    Ye_l2,    Ye_h2,    Ye_l3,    Ye_h3
   integer, intent(in) ::  temp_l1,  temp_h1,  temp_l2,  temp_h2,  temp_l3,  temp_h3
   integer, intent(in) ::   msk_l1,   msk_h1,   msk_l2,   msk_h2,   msk_l3,   msk_h3
-  double precision,intent(in)   :: rhoe( rhoe_l1: rhoe_h1, rhoe_l2: rhoe_h2, rhoe_l3: rhoe_h3)
-  double precision,intent(in)   ::   Ye(   Ye_l1:   Ye_h1,   Ye_l2:   Ye_h2,   Ye_l3:   Ye_h3)
-  double precision,intent(in)   :: temp( temp_l1: temp_h1, temp_l2: temp_h2, temp_l3: temp_h3)
-  double precision,intent(in)   ::  msk(  msk_l1:  msk_h1,  msk_l2:  msk_h2,  msk_l3:  msk_h3)
-  double precision,intent(inout)::state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3&
-       ,NVAR)
+  double precision,intent(in):: rhoe( rhoe_l1: rhoe_h1, rhoe_l2: rhoe_h2, rhoe_l3: rhoe_h3)
+  double precision,intent(in)::   Ye(   Ye_l1:   Ye_h1,   Ye_l2:   Ye_h2,   Ye_l3:   Ye_h3)
+  double precision,intent(in):: temp( temp_l1: temp_h1, temp_l2: temp_h2, temp_l3: temp_h3)
+  double precision,intent(in)::  msk(  msk_l1:  msk_h1,  msk_l2:  msk_h2,  msk_l3:  msk_h3)
+  double precision           ::state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
   double precision, intent(inout) :: derat, dTrat, dye
 
   integer :: i, j, k
@@ -1088,33 +1051,28 @@ subroutine ca_update_matter_neut( lo, hi,  &
   integer,intent(in)::mugT_l1, mugT_h1, mugT_l2, mugT_h2, mugT_l3, mugT_h3
   integer,intent(in)::mugY_l1, mugY_h1, mugY_l2, mugY_h2, mugY_l3, mugY_h3
   integer,intent(in)::Snew_l1, Snew_h1, Snew_l2, Snew_h2, Snew_l3, Snew_h3
-  double precision,intent(out)::re_n(re_n_l1:re_n_h1,re_n_l2:re_n_h2,re_n_l3:re_n_h3)
-  double precision,intent(out)::rY_n(rY_n_l1:rY_n_h1,rY_n_l2:rY_n_h2,rY_n_l3:rY_n_h3)
-  double precision,intent(out)::Ye_n(Ye_n_l1:Ye_n_h1,Ye_n_l2:Ye_n_h2,Ye_n_l3:Ye_n_h3)
-  double precision,intent(in )::Er_n(Er_n_l1:Er_n_h1,Er_n_l2:Er_n_h2,Er_n_l3:Er_n_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::Er_l(Er_l_l1:Er_l_h1,Er_l_l2:Er_l_h2,Er_l_l3:Er_l_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::re_s(re_s_l1:re_s_h1,re_s_l2:re_s_h2,re_s_l3:re_s_h3)
-  double precision,intent(in )::rY_s(rY_s_l1:rY_s_h1,rY_s_l2:rY_s_h2,rY_s_l3:rY_s_h3)
-  double precision,intent(in )::re_2(re_2_l1:re_2_h1,re_2_l2:re_2_h2,re_2_l3:re_2_h3)
-  double precision,intent(in )::rY_2(rY_2_l1:rY_2_h1,rY_2_l2:rY_2_h2,rY_2_l3:rY_2_h3)
-  double precision,intent(in )::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
-  double precision,intent(in )::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
-  double precision,intent(in )::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
-  double precision,intent(in )::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
-  double precision,intent(in )::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
-  double precision,intent(in )::the1(the1_l1:the1_h1,the1_l2:the1_h2,the1_l3:the1_h3)
-  double precision,intent(in ):: cpt( cpt_l1: cpt_h1, cpt_l2: cpt_h2, cpt_l3: cpt_h3)
-  double precision,intent(in ):: cpy( cpy_l1: cpy_h1, cpy_l2: cpy_h2, cpy_l3: cpy_h3)
-  double precision,intent(in ):: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::Snew(Snew_l1:Snew_h1,Snew_l2:Snew_h2,Snew_l3:Snew_h3,NVAR)
-  double precision,intent(in) :: dt, tau
+  double precision           ::re_n(re_n_l1:re_n_h1,re_n_l2:re_n_h2,re_n_l3:re_n_h3)
+  double precision           ::rY_n(rY_n_l1:rY_n_h1,rY_n_l2:rY_n_h2,rY_n_l3:rY_n_h3)
+  double precision           ::Ye_n(Ye_n_l1:Ye_n_h1,Ye_n_l2:Ye_n_h2,Ye_n_l3:Ye_n_h3)
+  double precision,intent(in)::Er_n(Er_n_l1:Er_n_h1,Er_n_l2:Er_n_h2,Er_n_l3:Er_n_h3,0:ngroups-1)
+  double precision,intent(in)::Er_l(Er_l_l1:Er_l_h1,Er_l_l2:Er_l_h2,Er_l_l3:Er_l_h3,0:ngroups-1)
+  double precision,intent(in)::re_s(re_s_l1:re_s_h1,re_s_l2:re_s_h2,re_s_l3:re_s_h3)
+  double precision,intent(in)::rY_s(rY_s_l1:rY_s_h1,rY_s_l2:rY_s_h2,rY_s_l3:rY_s_h3)
+  double precision,intent(in)::re_2(re_2_l1:re_2_h1,re_2_l2:re_2_h2,re_2_l3:re_2_h3)
+  double precision,intent(in)::rY_2(rY_2_l1:rY_2_h1,rY_2_l2:rY_2_h2,rY_2_l3:rY_2_h3)
+  double precision,intent(in)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2,etaT_l3:etaT_h3)
+  double precision,intent(in)::etaY(etaY_l1:etaY_h1,etaY_l2:etaY_h2,etaY_l3:etaY_h3)
+  double precision,intent(in)::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2,eta1_l3:eta1_h3)
+  double precision,intent(in)::theT(theT_l1:theT_h1,theT_l2:theT_h2,theT_l3:theT_h3)
+  double precision,intent(in)::theY(theY_l1:theY_h1,theY_l2:theY_h2,theY_l3:theY_h3)
+  double precision,intent(in)::the1(the1_l1:the1_h1,the1_l2:the1_h2,the1_l3:the1_h3)
+  double precision,intent(in):: cpt( cpt_l1: cpt_h1, cpt_l2: cpt_h2, cpt_l3: cpt_h3)
+  double precision,intent(in):: cpy( cpy_l1: cpy_h1, cpy_l2: cpy_h2, cpy_l3: cpy_h3)
+  double precision,intent(in):: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,0:ngroups-1)
+  double precision,intent(in)::mugT(mugT_l1:mugT_h1,mugT_l2:mugT_h2,mugT_l3:mugT_h3,0:ngroups-1)
+  double precision,intent(in)::mugY(mugY_l1:mugY_h1,mugY_l2:mugY_h2,mugY_l3:mugY_h3,0:ngroups-1)
+  double precision,intent(in)::Snew(Snew_l1:Snew_h1,Snew_l2:Snew_h2,Snew_l3:Snew_h3,NVAR)
+  double precision,intent(in):: dt, tau
 
   integer :: i,j,k,g
   double precision :: cdt, H1, Theta, Thbar1, Hbar 
@@ -1195,22 +1153,19 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
   integer,intent(in)::thYz_l1, thYz_h1, thYz_l2, thYz_h2, thYz_l3, thYz_h3
   integer,intent(in):: kpp_l1,  kpp_h1,  kpp_l2,  kpp_h2,  kpp_l3,  kpp_h3
   integer,intent(in)::  jg_l1,   jg_h1,   jg_l2,   jg_h2,   jg_l3,   jg_h3
-  double precision,intent(inout)::Tp_n(Tp_n_l1:Tp_n_h1,Tp_n_l2:Tp_n_h2,Tp_n_l3:Tp_n_h3)
-  double precision,intent(inout)::Ye_n(Ye_n_l1:Ye_n_h1,Ye_n_l2:Ye_n_h2,Ye_n_l3:Ye_n_h3)
-  double precision,intent(in   )::Er_n(Er_n_l1:Er_n_h1,Er_n_l2:Er_n_h2,Er_n_l3:Er_n_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::re_s(re_s_l1:re_s_h1,re_s_l2:re_s_h2,re_s_l3:re_s_h3)
-  double precision,intent(in   )::rY_s(rY_s_l1:rY_s_h1,rY_s_l2:rY_s_h2,rY_s_l3:rY_s_h3)
-  double precision,intent(in   )::re_2(re_2_l1:re_2_h1,re_2_l2:re_2_h2,re_2_l3:re_2_h3)
-  double precision,intent(in   )::rY_2(rY_2_l1:rY_2_h1,rY_2_l2:rY_2_h2,rY_2_l3:rY_2_h3)
-  double precision,intent(in   )::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2,etTz_l3:etTz_h3)
-  double precision,intent(in   )::etYz(etYz_l1:etYz_h1,etYz_l2:etYz_h2,etYz_l3:etYz_h3)
-  double precision,intent(in   )::thTz(thTz_l1:thTz_h1,thTz_l2:thTz_h2,thTz_l3:thTz_h3)
-  double precision,intent(in   )::thYz(thYz_l1:thYz_h1,thYz_l2:thYz_h2,thYz_l3:thYz_h3)
-  double precision,intent(in   ):: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,&
-       0:ngroups-1)
-  double precision,intent(in   )::  jg(  jg_l1:  jg_h1,  jg_l2:  jg_h2,  jg_l3:  jg_h3,&
-       0:ngroups-1)
+  double precision           ::Tp_n(Tp_n_l1:Tp_n_h1,Tp_n_l2:Tp_n_h2,Tp_n_l3:Tp_n_h3)
+  double precision           ::Ye_n(Ye_n_l1:Ye_n_h1,Ye_n_l2:Ye_n_h2,Ye_n_l3:Ye_n_h3)
+  double precision,intent(in)::Er_n(Er_n_l1:Er_n_h1,Er_n_l2:Er_n_h2,Er_n_l3:Er_n_h3,0:ngroups-1)
+  double precision,intent(in)::re_s(re_s_l1:re_s_h1,re_s_l2:re_s_h2,re_s_l3:re_s_h3)
+  double precision,intent(in)::rY_s(rY_s_l1:rY_s_h1,rY_s_l2:rY_s_h2,rY_s_l3:rY_s_h3)
+  double precision,intent(in)::re_2(re_2_l1:re_2_h1,re_2_l2:re_2_h2,re_2_l3:re_2_h3)
+  double precision,intent(in)::rY_2(rY_2_l1:rY_2_h1,rY_2_l2:rY_2_h2,rY_2_l3:rY_2_h3)
+  double precision,intent(in)::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2,etTz_l3:etTz_h3)
+  double precision,intent(in)::etYz(etYz_l1:etYz_h1,etYz_l2:etYz_h2,etYz_l3:etYz_h3)
+  double precision,intent(in)::thTz(thTz_l1:thTz_h1,thTz_l2:thTz_h2,thTz_l3:thTz_h3)
+  double precision,intent(in)::thYz(thYz_l1:thYz_h1,thYz_l2:thYz_h2,thYz_l3:thYz_h3)
+  double precision,intent(in):: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,0:ngroups-1)
+  double precision,intent(in)::  jg(  jg_l1:  jg_h1,  jg_l2:  jg_h2,  jg_l3:  jg_h3,0:ngroups-1)
   double precision,intent(in) :: dt
 
    integer :: i,j,k,g
@@ -1268,9 +1223,8 @@ subroutine ca_compute_rosseland_neut( lo, hi, &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) ::  kpr_l1,  kpr_h1,  kpr_l2,  kpr_h2,  kpr_l3,  kpr_h3
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2, stat_l3, stat_h3 
-  double precision,intent(out)::kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,&
-       0:ngroups-1)
-  double precision,intent(in )::stat(stat_l1:stat_h1,stat_l2:stat_h2,stat_l3:stat_h3,NVAR)
+  double precision           ::kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,0:ngroups-1)
+  double precision,intent(in)::stat(stat_l1:stat_h1,stat_l2:stat_h2,stat_l3:stat_h3,NVAR)
 
   integer :: i, j, k, g, inu
   double precision :: ab, sc, delta, eta, er, der, rho, temp, Ye
@@ -1318,9 +1272,8 @@ subroutine ca_compute_planck_neut( lo, hi,  &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) ::  kpp_l1,  kpp_h1,  kpp_l2,  kpp_h2,  kpp_l3,  kpp_h3
   integer, intent(in) :: stat_l1, stat_h1, stat_l2, stat_h2, stat_l3, stat_h3 
-  double precision, intent(out) :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,&
-       0:ngroups-1)
-  double precision, intent(in ) :: stat(stat_l1:stat_h1,stat_l2:stat_h2,stat_l3:stat_h3,NVAR)
+  double precision           :: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2, kpp_l3: kpp_h3,0:ngroups-1)
+  double precision,intent(in)::stat(stat_l1:stat_h1,stat_l2:stat_h2,stat_l3:stat_h3,NVAR)
 
   integer :: i, j, k, g, inu
   double precision :: ab, sc, delta, eta, er, der, rho, temp, Ye

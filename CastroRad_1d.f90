@@ -424,8 +424,8 @@ subroutine ca_get_v_dcf( lo, hi, &
   double precision, intent(in ) ::  kp( kp_l1: kp_h1)
   double precision, intent(in ) :: kp2(kp2_l1:kp2_h1)
   double precision, intent(in) :: dtemp, dtime, sigma, c
-  double precision, intent(out) ::   v(  v_l1:  v_h1)
-  double precision, intent(out) :: dcf(dcf_l1:dcf_h1)
+  double precision ::   v(  v_l1:  v_h1)
+  double precision :: dcf(dcf_l1:dcf_h1)
 
   integer :: i
   double precision :: etainv, fac0, fac2, alpha, frc
@@ -465,7 +465,7 @@ subroutine ca_compute_dcoefs( lo, hi, &
        & dcf_l1, dcf_h1, &
        idir
 
-  double precision, intent(out) ::   d(  d_l1:  d_h1)
+  double precision              ::   d(  d_l1:  d_h1)
   double precision, intent(in)  :: lam(lam_l1:lam_h1)
   double precision, intent(in)  ::   v(  v_l1:  v_h1)
   double precision, intent(in)  :: dcf(dcf_l1:dcf_h1)
@@ -500,7 +500,7 @@ subroutine ca_update_dcf(lo, hi, &
   double precision, intent(in) :: etainv(eti_l1:eti_h1)
   double precision, intent(in) :: kp(kp_l1:kp_h1)
   double precision, intent(in) :: kr(kr_l1:kr_h1)
-  double precision, intent(out) :: dcf(dcf_l1:dcf_h1)
+  double precision             :: dcf(dcf_l1:dcf_h1)
 
   integer :: i
 
@@ -520,7 +520,7 @@ subroutine ca_set_dterm_face( lo, hi, &
   double precision, intent(in) :: dx
   double precision, intent(in) :: Er(Er_l1:Er_h1)
   double precision, intent(in) :: dc(dc_l1:dc_h1)
-  double precision, intent(out) :: dtf(dtf_l1:dtf_h1)
+  double precision             :: dtf(dtf_l1:dtf_h1)
   integer :: i
 
   do i=lo(1),hi(1)
@@ -538,8 +538,8 @@ subroutine ca_face2center( lo, hi, &
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: foox_l1, foox_h1
   integer, intent(in) :: fooc_l1, fooc_h1
-  double precision, intent(in)  :: foox(foox_l1:foox_h1)
-  double precision, intent(out) :: fooc(fooc_l1:fooc_h1)
+  double precision, intent(in) :: foox(foox_l1:foox_h1)
+  double precision             :: fooc(fooc_l1:fooc_h1)
 
   integer :: i
 

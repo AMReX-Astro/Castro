@@ -1205,8 +1205,8 @@ subroutine ca_get_v_dcf( lo, hi, &
   double precision, intent(in ) ::  kp( kp_l1: kp_h1,  kp_l2: kp_h2,  kp_l3: kp_h3)
   double precision, intent(in ) :: kp2(kp2_l1:kp2_h1, kp2_l2:kp2_h2, kp2_l3:kp2_h3)
   double precision, intent(in) :: dtemp, dtime, sigma, c
-  double precision, intent(out) ::   v(  v_l1:  v_h1,   v_l2:  v_h2,   v_l3:  v_h3, 3)
-  double precision, intent(out) :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
+  double precision              ::   v(  v_l1:  v_h1,   v_l2:  v_h2,   v_l3:  v_h3, 3)
+  double precision              :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
 
   integer :: i, j, k
   double precision :: etainv, fac0, fac2, alpha, frc
@@ -1252,7 +1252,7 @@ subroutine ca_compute_dcoefs( lo, hi, &
        & dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3, &
        idir
 
-  double precision, intent(out) ::   d(  d_l1:  d_h1,   d_l2:  d_h2,   d_l3:  d_h3)
+  double precision              ::   d(  d_l1:  d_h1,   d_l2:  d_h2,   d_l3:  d_h3)
   double precision, intent(in)  :: lam(lam_l1:lam_h1, lam_l2:lam_h2, lam_l3:lam_h3)
   double precision, intent(in)  ::   v(  v_l1:  v_h1,   v_l2:  v_h2,   v_l3:  v_h3, 3)
   double precision, intent(in)  :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
@@ -1323,7 +1323,7 @@ subroutine ca_update_dcf( lo, hi, &
   double precision, intent(in) :: etainv(eti_l1:eti_h1, eti_l2:eti_h2, eti_l3:eti_h3)
   double precision, intent(in) :: kp(kp_l1:kp_h1, kp_l2:kp_h2, kp_l3:kp_h3)
   double precision, intent(in) :: kr(kr_l1:kr_h1, kr_l2:kr_h2, kr_l3:kr_h3)
-  double precision, intent(out) :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
+  double precision             :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
 
   integer :: i, j, k
 
@@ -1351,7 +1351,7 @@ subroutine ca_set_dterm_face( lo, hi, &
   double precision, intent(in) :: dx(3)
   double precision, intent(in) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3)
   double precision, intent(in) :: dc(dc_l1:dc_h1,dc_l2:dc_h2,dc_l3:dc_h3)
-  double precision, intent(out) :: dtf(dtf_l1:dtf_h1,dtf_l2:dtf_h2,dtf_l3:dtf_h3)
+  double precision             :: dtf(dtf_l1:dtf_h1,dtf_l2:dtf_h2,dtf_l3:dtf_h3)
   integer :: i, j, k
 
   if (idir .eq. 0) then
@@ -1399,7 +1399,7 @@ subroutine ca_face2center( lo, hi, &
   double precision, intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2,foox_l3:foox_h3)
   double precision, intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2,fooy_l3:fooy_h3)
   double precision, intent(in)  :: fooz(fooz_l1:fooz_h1,fooz_l2:fooz_h2,fooz_l3:fooz_h3)
-  double precision, intent(out) :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,fooc_l3:fooc_h3)
+  double precision              :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,fooc_l3:fooc_h3)
 
   integer :: i,j,k
 
