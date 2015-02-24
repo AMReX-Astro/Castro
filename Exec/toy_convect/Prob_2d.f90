@@ -15,7 +15,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       H_min, cutoff_density, interp_BC, zero_vels, gravity
+       H_min, cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -40,7 +40,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   cutoff_density = 50.d0
   interp_BC = .false.
   zero_vels = .false.
-  gravity = 0.0
 
   ! Read namelists
   untin = 9
@@ -208,7 +207,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
 
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
   use interpolate_module
   use eos_module
   use network, only: nspec
@@ -309,7 +308,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                        ! pressure needed from HSE
                        p_want = pres_above - &
-                            delta(2)*0.5d0*(dens_zone + adv(i,j+1,URHO))*gravity
+                            delta(2)*0.5d0*(dens_zone + adv(i,j+1,URHO))*const_grav
 
                        ! pressure from EOS
                        eos_state%rho = dens_zone
@@ -324,7 +323,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                        ! Newton-Raphson - we want to zero A = p_want - p(rho)
                        A = p_want - pres_zone
-                       drho = A/(dpdr + 0.5*delta(2)*gravity)
+                       drho = A/(dpdr + 0.5*delta(2)*const_grav)
 
                        dens_zone = max(0.9_dp_t*dens_zone, &
                                        min(dens_zone + drho, 1.1_dp_t*dens_zone))

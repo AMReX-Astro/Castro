@@ -25,7 +25,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-         
+
   ! set namelist defaults here
   frac = 0.5d0
   rho_1 = 1.0d0
@@ -42,7 +42,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! set local variable defaults
   split(1) = frac*(problo(1)+probhi(1))
   split(2) = frac*(problo(2)+probhi(2))
-  
+
   L_x = probhi(1) - problo(1)
 
 end subroutine PROBINIT
@@ -50,16 +50,16 @@ end subroutine PROBINIT
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -78,20 +78,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
        UEDEN, UEINT, UFS, UTEMP
   use bl_constants_module, only: ZERO, HALF, M_PI
   use eos_module, only : gamma_const
-  
+
   implicit none
-        
+
   integer :: level, nscal
   integer :: lo(2), hi(2)
   integer :: state_l1,state_l2,state_h1,state_h2
   double precision :: xlo(2), xhi(2), time, delta(2)
   double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  
+
   integer :: i,j
   double precision :: x,y,pres,presmid,pertheight
-  
+
   presmid  = p0_base - rho_1*split(2)
-        
+
   state(:,:,UMX)   = ZERO
   state(:,:,UMY)   = ZERO
   state(:,:,UTEMP) = ZERO
@@ -100,7 +100,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      y = (j+HALF)*delta(2)
 
      do i = lo(1), hi(1)
-        
+
         if (y .lt. split(2)) then
            pres = p0_base - rho_1*y
            state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
@@ -110,10 +110,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
            state(i,j,UEINT) = pres / (gamma_const - 1.0d0)
         end if
-        
+
      enddo
   enddo
-        
+
   do j = lo(2), hi(2)
      y = (j+HALF)*delta(2)
 
@@ -127,7 +127,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,URHO) = rho_1 + ((rho_2-rho_1)/2.0d0)* &
              (1+tanh((y-pertheight)/0.005d0))
         state(i,j,UFS) = state(i,j,URHO)
-        
+
      enddo
   enddo
 
@@ -137,7 +137,7 @@ end subroutine ca_initdata
 ! ::: -----------------------------------------------------------
 subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
- 
+
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use eos_module, only : gamma_const
   use probdata_module, only: p0_base
@@ -157,18 +157,18 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
      call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
                 domlo,domhi,delta,xlo,bc(1,1,n))
   enddo
-      
+
   do n=1,NVAR
      !        XLO
      if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
         call bl_error('SHOULD NEVER GET HERE bc(1,1,n) .eq. EXT_DIR) ')
      end if
-         
+
      !        XHI
      if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
         call bl_error('SHOULD NEVER GET HERE bc(1,2,n) .eq. EXT_DIR) ')
      end if
-         
+
      !        YLO
      if ( bc(2,1,n).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
         do j=adv_l2,domlo(2)-1
@@ -181,18 +181,18 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                  pres = p0_base - y
                  adv(i,j,n) = pres / (gamma_const - 1.0d0)
               end if
-                  
+
               if (n .eq. UFS)   adv(i,j,n) = 1.0
               if (n .eq. UTEMP) adv(i,j,n) = 0.0
            end do
         end do
      end if
-         
+
      !        YHI
      if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
         call bl_error('SHOULD NEVER GET HERE bc(2,2,n) .eq. EXT_DIR) ')
      end if
-     
+
   end do
 
 end subroutine ca_hypfill
@@ -236,7 +236,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
      call bl_error('SHOULD NEVER GET HERE bc(2,2,1) .eq. EXT_DIR) ')
   end if
-  
+
 end subroutine ca_denfill
 
 
@@ -252,7 +252,7 @@ subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   integer :: domlo(2), domhi(2)
   double precision :: delta(2), xlo(2), time
   double precision :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
-  
+
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
 end subroutine ca_gravxfill
@@ -273,5 +273,5 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   double precision :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
-  
+
 end subroutine ca_gravyfill

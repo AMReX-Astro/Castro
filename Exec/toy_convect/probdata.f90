@@ -14,6 +14,5 @@ module probdata_module
 
   ! lower boundary
   logical         , save :: interp_BC, zero_vels
-  double precision, save :: gravity   ! should match gravity in inputs file
 
 end module probdata_module
