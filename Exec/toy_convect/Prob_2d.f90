@@ -3,7 +3,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use model_parser_module
   use bl_error_module
-  
+
   implicit none
 
   integer init, namlen
@@ -20,7 +20,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  ! Build "probin" filename from C++ land -- 
+  ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
   if (namlen .gt. maxlen) call bl_error("probin file name too long")
@@ -28,7 +28,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-  
+
 
   ! Namelist defaults
   apply_vel_field = .false.
@@ -52,11 +52,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Read initial model
   call read_model_file(model_name)
 
-  
+
   do i = 1, npts_model
      print *, i, model_r(i), model_state(i,idens_model)
   enddo
-  
+
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices)
 
@@ -71,16 +71,16 @@ end subroutine PROBINIT
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -102,24 +102,24 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use model_parser_module
 
   implicit none
-        
+
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
   double precision xlo(2), xhi(2), time, delta(2)
   double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  
+
   double precision xdist,ydist,x,y,r,upert(2)
   integer i,j,n,vortex
 
   double precision temppres(state_l1:state_h1,state_l2:state_h2)
-        
+
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
      y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
 
-     do i = lo(1), hi(1)   
+     do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
                                       model_state(:,idens_model))
@@ -129,7 +129,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
         enddo
-        
+
      enddo
   enddo
 
@@ -147,16 +147,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      end do
   end do
 
-  do j = lo(2), hi(2)     
-     do i = lo(1), hi(1)   
-        
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
+
         state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEINT)
         state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)
 
         do n = 1,nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
         end do
-        
+
      enddo
   enddo
 
@@ -169,31 +169,31 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do j = lo(2), hi(2)
         y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
         ydist = y - velpert_height_loc
-        
-        do i = lo(1), hi(1)   
+
+        do i = lo(1), hi(1)
            x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5d0)
 
            upert = 0.d0
 
            ! loop over each vortex
            do vortex = 1, num_vortices
-              
+
               xdist = x - xloc_vortices(vortex)
-              
+
               r = sqrt(xdist**2 + ydist**2)
-              
+
               upert(1) = upert(1) - (ydist/velpert_scale) * &
                    velpert_amplitude * exp( -r**2/(2.d0*velpert_scale**2)) &
                    * (-1.d0)**vortex
-              
+
               upert(2) = upert(2) + (xdist/velpert_scale) * &
                    velpert_amplitude * exp(-r**2/(2.d0*velpert_scale**2)) &
                    * (-1.d0)**vortex
            enddo
-           
+
            state(i,j,UMX) = state(i,j,URHO) * upert(1)
-           state(i,j,UMY) = state(i,j,URHO) * upert(2)                  
-           
+           state(i,j,UMY) = state(i,j,URHO) * upert(2)
+
         end do
      end do
 
@@ -206,7 +206,7 @@ end subroutine ca_initdata
 
 subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
-  
+
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use interpolate_module
@@ -221,18 +221,17 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   integer domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
-  
-  integer i,j,q,n,iter,MAX_ITER
+
+  integer i,j,q,n,iter
   double precision y
   double precision pres_above,p_want,pres_zone, A
   double precision drho,dpdr,temp_zone,eint,X_zone(nspec),dens_zone
-  double precision TOL
+
+  integer, parameter :: MAX_ITER = 100 
+  double precision, parameter :: TOL = 1.d-8
   logical converged_hse
 
   type (eos_t) :: eos_state
-
-  MAX_ITER = 100
-  TOL = 1.d-8
 
   do n = 1,NVAR
      call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
@@ -240,10 +239,10 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   enddo
 
   do n = 1, NVAR
-         
+
      !        XLO
      if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-        
+
         ! we are periodic in x -- we should never get here
         call bl_error("ERROR: invalid BC in Prob_2d.f90")
 
@@ -263,20 +262,20 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
         ! this do loop counts backwards since we want to work downward
         do j=domlo(2)-1,adv_l2,-1
            y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
-           
+
            do i=adv_l1,adv_h1
-              
+
               ! set all the variables even though we're testing on URHO
               if (n .eq. URHO) then
 
                  if (interp_BC) then
 
                     dens_zone = interpolate(y,npts_model,model_r, &
-                                            model_state(:,idens_model)) 
+                                            model_state(:,idens_model))
 
                     temp_zone = interpolate(y,npts_model,model_r, &
                                             model_state(:,itemp_model))
-                        
+
                     do q = 1, nspec
                        X_zone(q) = interpolate(y,npts_model,model_r, &
                                                model_state(:,ispec_model-1+q))
@@ -285,14 +284,14 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                  else
 
                     ! HSE integration to get density, pressure
-                        
+
                     ! initial guesses
                     dens_zone = adv(i,j+1,URHO)
 
                     ! temperature and species held constant in BCs
                     temp_zone = adv(i,j+1,UTEMP)
                     X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
-                        
+
                     ! get pressure in zone above
                     eos_state%rho = adv(i,j+1,URHO)
                     eos_state%T = adv(i,j+1,UTEMP)
@@ -326,7 +325,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                        ! Newton-Raphson - we want to zero A = p_want - p(rho)
                        A = p_want - pres_zone
                        drho = A/(dpdr + 0.5*delta(2)*gravity)
-                           
+
                        dens_zone = max(0.9_dp_t*dens_zone, &
                                        min(dens_zone + drho, 1.1_dp_t*dens_zone))
 
@@ -338,15 +337,15 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                        endif
 
                     enddo
-                        
+
                     if (.not. converged_hse) call bl_error("ERROR: failure to converge in -Y BC")
-                           
+
                  endif
 
 
                  ! velocity
                  if (zero_vels) then
-                        
+
                     ! zero normal momentum causes pi waves to pass through
                     adv(i,j,UMY) = 0.d0
 
@@ -370,13 +369,13 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  adv(i,j,URHO) = dens_zone
                  adv(i,j,UEINT) = dens_zone*eint
-                 adv(i,j,UEDEN) = dens_zone*eint + & 
+                 adv(i,j,UEDEN) = dens_zone*eint + &
                       0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
                  adv(i,j,UTEMP) = temp_zone
                  adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
               end if
-              
+
            end do
         end do
      end if
@@ -388,12 +387,12 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
            y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
 
            do i=adv_l1,adv_h1
-                  
+
               ! set all the variables even though we're testing on URHO
               if (n .eq. URHO) then
-                     
+
                  dens_zone = interpolate(y,npts_model,model_r, &
-                                         model_state(:,idens_model)) 
+                                         model_state(:,idens_model))
 
                  temp_zone = interpolate(y,npts_model,model_r, &
                                          model_state(:,itemp_model))
@@ -425,7 +424,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
                  adv(i,j,UTEMP) = temp_zone
                  adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-                 
+
               end if
 
            end do
@@ -453,7 +452,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   integer domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
-  
+
   integer i,j
   double precision y
 
@@ -510,7 +509,7 @@ subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   integer :: domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
-  
+
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
 end subroutine ca_gravxfill
@@ -529,9 +528,9 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   integer :: domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
-  
+
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
-  
+
 end subroutine ca_gravyfill
 
 ! ::: -----------------------------------------------------------
@@ -542,13 +541,13 @@ subroutine ca_reactfill(react,react_l1,react_l2, &
   use probdata_module
   implicit none
   include 'bc_types.fi'
-  
+
   integer :: react_l1,react_l2,react_h1,react_h2
   integer :: bc(2,2,*)
   integer :: domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision react(react_l1:react_h1,react_l2:react_h2)
-  
+
   call filcc(react,react_l1,react_l2,react_h1,react_h2,domlo,domhi,delta,xlo,bc)
-  
+
 end subroutine ca_reactfill
