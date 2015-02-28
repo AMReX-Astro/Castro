@@ -81,7 +81,7 @@ public:
                                      Array<PArray<MultiFab> >& grad_phi, int is_new,
                                      int use_previous_phi_as_guess = 0);
 
-  Real computeAvg    (int level, MultiFab* mf);
+  Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
   void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
                                         PArray<MultiFab>& cmlgp);

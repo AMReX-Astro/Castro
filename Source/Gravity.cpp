@@ -548,7 +548,7 @@ Gravity::solve_for_phi (int               level,
 #if (BL_SPACEDIM == 3)
     if ( (level == 0) && Geometry::isAllPeriodic() )
     {
-       Real sum = computeAvg(level,&Rhs);
+	Real sum = computeAvg(level,&Rhs, false);
 
        const Real* dx = parent->Geom(0).CellSize();
        Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
@@ -2946,7 +2946,7 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
 
 #if (BL_SPACEDIM == 3)
 Real
-Gravity::computeAvg (int level, MultiFab* mf)
+Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 {
     BL_PROFILE("Gravity::computeAvg()");
 
@@ -2957,7 +2957,7 @@ Gravity::computeAvg (int level, MultiFab* mf)
 
     BL_ASSERT(mf != 0);
 
-    if (level < parent->finestLevel())
+    if (level < parent->finestLevel() && mask)
     {
 	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
 	const MultiFab* mask = fine_level->build_fine_mask();
