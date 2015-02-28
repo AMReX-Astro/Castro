@@ -781,7 +781,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 
        if (verbose && ParallelDescriptor::IOProcessor())
           std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << std::endl;
-       CrseRhs.plus(-local_correction,1,0,0);
+       CrseRhs.plus(-local_correction,0,1,0);
     }
 
     // delta_phi needs a ghost cell for the solve
@@ -1144,7 +1144,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     {
        Real sum = 0;
        for (int lev = 0; lev < nlevs; lev++) 
-          sum += computeAvg(lev,Rhs_p[lev]);
+          sum += computeAvg(level+lev,Rhs_p[lev]);
 
        const Real* dx = parent->Geom(0).CellSize();
        Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
@@ -1197,7 +1197,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     {
        Real sum = 0;
        for (int lev = 0; lev < nlevs; lev++) 
-          sum += computeAvg(lev,Rhs_p[lev]);
+          sum += computeAvg(level+lev,Rhs_p[lev]);
 
        const Real* dx = parent->Geom(0).CellSize();
        Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
