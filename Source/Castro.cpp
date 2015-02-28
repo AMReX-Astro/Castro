@@ -1577,6 +1577,8 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+    delete fine_mask;
+    fine_mask = 0;
 
 #ifdef PARTICLES
     if (level == lbase) ParticleRedistribute();
@@ -1593,9 +1595,6 @@ Castro::post_regrid (int lbase,
        }
     }
 #endif
-
-    delete fine_mask;
-    fine_mask = 0;
 }
 
 void
