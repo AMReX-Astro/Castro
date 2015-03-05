@@ -920,6 +920,7 @@ contains
              end if
 
              uout(i,j,URHO ) = uout(i_set,j_set,URHO )
+             uout(i,j,UTEMP) = uout(i_set,j_set,UTEMP)
              uout(i,j,UEINT) = uout(i_set,j_set,UEINT)
              uout(i,j,UEDEN) = uout(i_set,j_set,UEDEN)
              uout(i,j,UMX  ) = uout(i_set,j_set,UMX  )
