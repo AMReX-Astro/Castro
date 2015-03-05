@@ -101,13 +101,10 @@ Castro::sum_integrated_quantities ()
 	Real foo[nfoo] = {mass, D_DECL(xmom,ymom,zmom), rho_E};
 #endif
 
-	std::ostream& data_log1 = parent->DataLog(0);
-	std::ostream& data_log2 = parent->DataLog(1);
-	    
 	Real coms[BL_SPACEDIM] = {D_DECL(com_xloc, com_yloc, com_zloc)};
 
 #ifdef BL_LAZY
-        Lazy::QueueReduction( [=, &data_log1, &data_log2] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
 
 	ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
@@ -159,6 +156,8 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " DISS_SGS    = "   << diss_sgs  << '\n';
 	    std::cout << "TIME= " << time << " TURB_SRC    = "   << turb_src  << '\n';
 	    std::cout << "TIME= " << time << " DE+DK-TURB_SRC = "   << delta_E+delta_K-turb_src  << '\n';
+
+   	    std::ostream& data_log1 = parent->DataLog(0);
 	    
 	    if (time == 0.0) {
 		data_log1 << std::setw(14) <<  "      time    ";
@@ -177,42 +176,44 @@ Castro::sum_integrated_quantities ()
 	    data_log1 << std::setw(16) <<  std::setprecision(10) << Etot-sum_turb_src;
 	    data_log1 << std::setw(14) <<  std::setprecision(6) << rms_mach << std::endl;
 
+	    std::ostream& data_log2 = parent->DataLog(1);
+
 		// Write the quantities that represent changes from prev_time to cur_time
-	   if (time == 0.0) {
-	       data_log2 << std::setw(14) <<  "      time    ";
-	       data_log2 << std::setw(14) <<  "      delta_E ";
-	       data_log2 << std::setw(14) <<  "      delta_K ";
-	       data_log2 << std::setw(14) <<  "      prod_sgs";
-	       data_log2 << std::setw(14) <<  "      diss_sgs";
-	       data_log2 << std::setw(14) <<  "      turb_src" << std::endl;
-           }
-
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << time;
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << delta_E;
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << delta_K;
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << prod_sgs;
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << diss_sgs;
-	   data_log2 << std::setw(14) <<  std::setprecision(6) << turb_src << std::endl;
+	    if (time == 0.0) {
+		data_log2 << std::setw(14) <<  "      time    ";
+		data_log2 << std::setw(14) <<  "      delta_E ";
+		data_log2 << std::setw(14) <<  "      delta_K ";
+		data_log2 << std::setw(14) <<  "      prod_sgs";
+		data_log2 << std::setw(14) <<  "      diss_sgs";
+		data_log2 << std::setw(14) <<  "      turb_src" << std::endl;
+	    }
+	    
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << time;
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << delta_E;
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << delta_K;
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << prod_sgs;
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << diss_sgs;
+	    data_log2 << std::setw(14) <<  std::setprecision(6) << turb_src << std::endl;
 #endif
-
-	   if (show_center_of_mass) {
-	       com_xloc = com_xloc / mass;
-	       Real com_xvel = xmom / mass;
-	       std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com_xloc  << '\n';
-	       std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_xvel  << '\n';
+	    
+	    if (show_center_of_mass) {
+		com_xloc = com_xloc / mass;
+		Real com_xvel = xmom / mass;
+		std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com_xloc  << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_xvel  << '\n';
 #if (BL_SPACEDIM>=2)
-	       com_yloc = com_yloc / mass;
-	       Real com_yvel = ymom / mass;
-	       std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com_yloc  << '\n';
-	       std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_yvel  << '\n';
+		com_yloc = com_yloc / mass;
+		Real com_yvel = ymom / mass;
+		std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com_yloc  << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_yvel  << '\n';
 #endif
 #if (BL_SPACEDIM==3)
-	       com_zloc = com_zloc / mass;
-	       Real com_zvel = zmom / mass;
-	       std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com_zloc  << '\n';
-	       std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_zvel  << '\n';
+		com_zloc = com_zloc / mass;
+		Real com_zvel = zmom / mass;
+		std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com_zloc  << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_zvel  << '\n';
 #endif
-	   }
+	    }
 	}
 #ifdef BL_LAZY
 	});
