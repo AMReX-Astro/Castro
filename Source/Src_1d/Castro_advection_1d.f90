@@ -604,6 +604,7 @@ contains
           end if
 
           uout(i,URHO ) = uout(i_set,URHO )
+          uout(i,UTEMP) = uout(i_set,UTEMP)
           uout(i,UEINT) = uout(i_set,UEINT)
           uout(i,UEDEN) = uout(i_set,UEDEN)
           uout(i,UMX  ) = uout(i_set,UMX  )

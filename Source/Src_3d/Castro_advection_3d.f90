@@ -1410,6 +1410,7 @@ contains
                 end if
                 
                 uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
+                uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
                 uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
                 uout(i,j,k,UEDEN) = uout(i_set,j_set,k_set,UEDEN)
                 uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
