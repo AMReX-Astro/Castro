@@ -67,6 +67,7 @@ std::string Radiation::current_group_name = "Radiation";
 Real Radiation:: flatten_pp_threshold = -1.0;
 int Radiation::first_order_hydro = 0;
 int Radiation::pure_hydro = 0;
+int Radiation ::do_real_eos = 1;
 
 // static initialization, must be called before Castro::variableSetUp
 

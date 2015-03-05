@@ -73,7 +73,7 @@ public:
   static int first_order_hydro;
   static int pure_hydro;
 
-  int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
+  static int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
 
   Radiation(Amr* Parent, class Castro* castro, int restart = 0);
   ~Radiation() { }
