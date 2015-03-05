@@ -3323,7 +3323,7 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
         Castro::theDMPC()->AssignDensity(PartMF, base_level, 1, finest_level);
         for (int lev = 0; lev < num_levels; lev++)
         {
-            if (PartMF[lev].contains_nan())
+            if (PartMF[lev].contains_nan(true))
             {
                 std::cout << "Testing particle density at level " << base_level+lev << std::endl;
                 BoxLib::Abort("...PartMF has NaNs in Gravity::actual_multilevel_solve()");

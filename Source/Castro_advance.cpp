@@ -152,11 +152,11 @@ Castro::advance_hydro (Real time,
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    if (S_old.contains_nan(Density,S_old.nComp(),0))
+    if (S_old.contains_nan(Density,S_old.nComp(),0,true))
     {
         for (int i = 0; i < S_old.nComp(); i++)
         {
-            if (S_old.contains_nan(Density+i,1,0))
+            if (S_old.contains_nan(Density+i,1,0,true))
             {
                 std::cout << "Testing component i for NaNs: " << i << std::endl;
                 BoxLib::Abort("S_old has NaNs in this component::advance_hydro()");
@@ -896,11 +896,11 @@ Castro::advance_hydro (Real time,
     
     dt_new = dt/courno;
 
-    if (S_new.contains_nan(Density,S_new.nComp(),0))
+    if (S_new.contains_nan(Density,S_new.nComp(),0,true))
     {
         for (int i = 0; i < S_new.nComp(); i++)
         {
-            if (S_new.contains_nan(Density + i, 1, 0))
+	if (S_new.contains_nan(Density + i, 1, 0,true))
             {
                 std::cout << "Testing component i for NaNs: " << i << std::endl;
                 BoxLib::Abort("S_new has NaNs in this component::advance_hydro()");
