@@ -11,6 +11,10 @@
 #include <ErrorList.H>
 #include <FluxRegister.H>
 
+#ifdef BL_LAZY
+#include <Lazy.H>
+#endif
+
 #ifdef PARTICLES
 #include "Particles.H"
 typedef ParticleContainer<1+BL_SPACEDIM> DarkMatterParticleContainer;  // mass + velocities
@@ -404,23 +408,23 @@ public:
   void time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerm, Real cur_time, Real dt);
 #endif
 
-    Real volWgtSum (const std::string& name, Real time);
+    Real volWgtSum (const std::string& name, Real time, bool local=false);
 
-    Real volWgtSquaredSum (const std::string& name, Real time);
+    Real volWgtSquaredSum (const std::string& name, Real time, bool local=false);
 
-    Real locWgtSum (const std::string& name, Real time, int idir);
+    Real locWgtSum (const std::string& name, Real time, int idir, bool local=false);
 
-    Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2);
+    Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2, bool local=false);
 
-    Real volWgtSumMF (MultiFab* mf, int comp);
+    Real volWgtSumMF (MultiFab* mf, int comp, bool local=false);
 
-    Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir);
+    Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir, bool local=false);
 
-    Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir);
+    Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir, bool local=false);
 
-    Real volProductSum (const std::string& name1, const std::string& name2, Real time);
+    Real volProductSum (const std::string& name1, const std::string& name2, Real time, bool local=false);
 
-    Real locSquaredSum (const std::string& name, Real time, int idir);
+    Real locSquaredSum (const std::string& name, Real time, int idir, bool local=false);
 
     Real get_point_mass ();
 
@@ -509,7 +513,7 @@ protected:
 
     // integrate derived quantities over domain
 
-    Real sumDerive (const std::string& name, Real time);
+    Real sumDerive (const std::string& name, Real time, bool local=false);
 
     void sum_integrated_quantities ();
 
