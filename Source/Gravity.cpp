@@ -607,10 +607,15 @@ Gravity::solve_for_phi (int               level,
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::solve_for_phi() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
@@ -2298,10 +2303,15 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
@@ -2419,10 +2429,15 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_radial_phi() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 
 #else
@@ -2574,10 +2589,15 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 
 }
@@ -2767,10 +2787,15 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
     
 }
@@ -3260,10 +3285,15 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 

@@ -560,6 +560,9 @@ Castro::advance_hydro (Real time,
 	    BL_PROFILE_VAR_STOP(CA_UMDRV_RAD);
 
 	    if (radiation->verbose>=1) {
+#ifdef BL_LAZY
+	        Lazy::QueueReduction( [=] () mutable {
+#endif
 		ParallelDescriptor::ReduceIntMax(nstep_fsp, ParallelDescriptor::IOProcessorNumber());
 		if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
 		    std::cout << "Radiation f-space advection on level " << level 
@@ -571,6 +574,9 @@ Castro::advance_hydro (Real time,
 			std::cout<< " substeps.\n";
 		    }
 		}
+#ifdef BL_LAZY
+	        });
+#endif
 	    }
 	    
 	}
@@ -740,6 +746,9 @@ Castro::advance_hydro (Real time,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
 			       xmom_added_grav, ymom_added_grav, zmom_added_grav,
 			       xmom_added_rot,  ymom_added_rot,  zmom_added_rot};
+#ifdef BL_LAZY
+	       Lazy::QueueReduction( [=] () mutable {
+#endif
 	       ParallelDescriptor::ReduceRealSum(foo, 15, ParallelDescriptor::IOProcessorNumber());
 	       if (ParallelDescriptor::IOProcessor()) 
 	       {
@@ -815,6 +824,9 @@ Castro::advance_hydro (Real time,
 		   }
 #endif
 	       }
+#ifdef BL_LAZY
+	       });
+#endif
 	    }
 
 #ifdef RADIATION
@@ -1107,10 +1119,13 @@ Castro::advance_hydro (Real time,
 
         if (print_energy_diagnostics)
         {
+	    const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
+#ifdef BL_LAZY
+            Lazy::QueueReduction( [=] () mutable {
+#endif
 	    ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
 	    if (ParallelDescriptor::IOProcessor()) {
-		const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 		E_added = foo[0];
 		D_EXPR(xmom_added = foo[1],
 		       ymom_added = foo[2],
@@ -1125,6 +1140,9 @@ Castro::advance_hydro (Real time,
 		std::cout << "zmom added from grav. corr. terms              : " << zmom_added*cell_vol << std::endl;
 #endif
 	    }
+#ifdef BL_LAZY
+	    });
+#endif
         }	
 
 	computeTemp(S_new);
@@ -1193,10 +1211,13 @@ Castro::advance_hydro (Real time,
 
         if (print_energy_diagnostics)
         {
+	    const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
+#ifdef BL_LAZY
+            Lazy::QueueReduction( [=] () mutable {
+#endif
 	    ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
 	    if (ParallelDescriptor::IOProcessor()) {
-		const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 		E_added = foo[0];
 		D_EXPR(xmom_added = foo[1],
 		       ymom_added = foo[2],
@@ -1211,6 +1232,9 @@ Castro::advance_hydro (Real time,
 		std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
 #endif
 	    }
+#ifdef BL_LAZY
+	    });
+#endif
         }	
 
 	computeTemp(S_new);
