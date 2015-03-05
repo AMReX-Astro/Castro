@@ -277,8 +277,6 @@ Castro::advance_hydro (Real time,
     }
 #endif
     
-    Real dt_new = dt;
-        
     //
     // Get pointers to Flux registers, or set pointer to zero if not there.
     //
@@ -882,19 +880,10 @@ Castro::advance_hydro (Real time,
 #endif
     }
 
-    ParallelDescriptor::ReduceRealMax(courno);
-
-    // Note that we can wrap this Abort call inside the IOProcessor test because the courno test is
-    //      identical on all processors
-    if (ParallelDescriptor::IOProcessor()) 
-    {
-       if (courno > 1.0) {
-  	  std::cout << "OOPS -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-          BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
-       }
+    if (courno > 1.0) {
+	std::cout << "OOPS -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+	BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
     }
-    
-    dt_new = dt/courno;
 
     if (S_new.contains_nan(Density,S_new.nComp(),0,true))
     {
@@ -1256,7 +1245,7 @@ Castro::advance_hydro (Real time,
     delete [] u_gdnv;
 #endif
 
-    return dt_new;
+    return dt;
 }
 
 #ifndef SGS
@@ -1271,8 +1260,6 @@ Castro::advance_no_hydro (Real time,
     if (do_hydro)  
        BoxLib::Abort("In advance_no_hydro but do_hydro is true");
     
-    Real dt_new = dt;
-
 #ifdef SGS
     BoxLib::Abort("In advance_no_hydro but SGS is defined");
 #endif
@@ -1479,6 +1466,6 @@ Castro::advance_no_hydro (Real time,
     }
 #endif
 
-    return dt_new;
+    return dt;
 }
 #endif
