@@ -1657,6 +1657,14 @@ Castro::post_init (Real stop_time)
     }
 #endif
 
+// Allow the user to define their own post_init functions.
+
+#ifdef do_problem_post_init
+
+    problem_post_init();
+
+#endif
+
     if ( (sum_interval > 0) && (parent->levelSteps(0)%sum_interval == 0) )
         sum_integrated_quantities();
 
