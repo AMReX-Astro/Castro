@@ -713,6 +713,28 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 #endif
     }
 
+    // Subtract off RHS average (on coarse level) from all levels to ensure solvability
+
+    if (Geometry::isAllPeriodic()) {
+       Real local_correction = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+       for (MFIter mfi(CrseRhs,true); mfi.isValid(); ++mfi) {
+           local_correction += CrseRhs[mfi].sum(mfi.tilebox(),0,1);
+       }
+       ParallelDescriptor::ReduceRealSum(local_correction);
+       
+       local_correction = local_correction / grids[crse_level].numPts();
+
+       if (verbose && ParallelDescriptor::IOProcessor())
+          std::cout << "WARNING: Adjusting RHS in solve_for_delta_phi by " << local_correction << std::endl;
+
+       for (int lev = crse_level; lev <= fine_level; lev++) {
+	 Rhs_p[lev-crse_level]->plus(-local_correction,0,1,0);
+       }
+    }
+
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
     {
       mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
@@ -772,22 +794,6 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 
     const Geometry& crse_geom = parent->Geom(crse_level);
     const Box&    crse_domain = crse_geom.Domain();
-    if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
-       Real local_correction = 0.0;
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:local_correction)
-#endif
-       for (MFIter mfi(CrseRhs,true); mfi.isValid(); ++mfi) {
-           local_correction += CrseRhs[mfi].sum(mfi.tilebox(),0,1);
-       }
-       ParallelDescriptor::ReduceRealSum(local_correction);
-       
-       local_correction = local_correction / grids[crse_level].numPts();
-
-       if (verbose && ParallelDescriptor::IOProcessor())
-          std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << std::endl;
-       CrseRhs.plus(-local_correction,0,1,0);
-    }
 
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
