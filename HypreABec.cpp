@@ -7,16 +7,6 @@
 
 #include <Using.H>
 
-// utilities.h defines the timing and memory functions.  Our timing is
-// done by RunStats, but the memory functions are used because of code
-// inherited from the hypre examples.  Perhaps these calls should be
-// eliminated, since they do nothing we really need.
-
-//#include "utilities.h"    // included by struct_mv.h
-
-// The only reason we need struct_mv.h is because there is no
-// public interface to matrix-vector multiply.
-
 #include "_hypre_struct_mv.h"
 
 static int ispow2(int i)
