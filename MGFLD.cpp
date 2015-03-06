@@ -651,15 +651,19 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   solver.levelSolve(level, accel, 0, rhs, 0.01);
 
   // update Er_new
-  for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& reg  = grids[i];
-    const Box& jbox = Er_new[mfi].box();
-    const Box& sbox = spec[mfi].box();
-    FORT_LJUPNA(Er_new[mfi].dataPtr(), dimlist(jbox),
-		dimlist(reg),
-		spec[mfi].dataPtr(), dimlist(sbox),
-		accel[mfi].dataPtr(), nGroups);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
+      const Box& reg  = mfi.tilebox();
+      const Box& jbox = Er_new[mfi].box();
+      const Box& sbox = spec[mfi].box();
+      const Box& abox = accel[mfi].box();
+      FORT_LJUPNA(Er_new[mfi].dataPtr(), dimlist(jbox),
+		  dimlist(reg),
+		  spec[mfi].dataPtr(), dimlist(sbox),
+		  accel[mfi].dataPtr(), dimlise(abox),
+		  nGroups);
   }
 
   mgbd.unsetCorrection();

@@ -1213,6 +1213,9 @@ void Radiation::extrapolateBorders(MultiFab& f, int indx)
 
   BL_ASSERT(f.nGrow() >= 1);
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for(MFIter mfi(f); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box& fbox = f[mfi].box();

@@ -1001,7 +1001,8 @@ extern "C" {
 
   void FORT_LJUPNA(Real* jnew, intS, intS,
                    Real* spec, intS,
-                   Real* accel, const int& nTotal);
+                   Real* accel, intS,
+		   const int& nTotal);
 
 
   void FORT_RFFACE(Real* fine, intS, Real* cres, intS,
