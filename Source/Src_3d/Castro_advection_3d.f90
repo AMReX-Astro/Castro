@@ -1347,8 +1347,8 @@ contains
                 do kk = -1,1
                    do jj = -1,1
                       do ii = -1,1
-                         if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. k+kk.ge.uout_l3 .and. &
-                             i+ii.le.uout_h1 .and. j+jj.le.uout_h2 .and. k+kk.le.uout_h3) then
+                         if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
+                             i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
                               if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
                                   i_set = i+ii
                                   j_set = j+jj

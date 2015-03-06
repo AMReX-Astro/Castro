@@ -858,8 +858,8 @@ contains
              max_dens = uout(i,j,URHO)
              do jj = -1,1
                 do ii = -1,1
-                   if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. &
-                       i+ii.le.uout_h1 .and. j+jj.le.uout_h2) then
+                   if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. &
+                       i+ii.le.hi(1) .and. j+jj.le.hi(2)) then
                         if (uout(i+ii,j+jj,URHO) > max_dens) then
                            i_set = i+ii
                            j_set = j+jj
