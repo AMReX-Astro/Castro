@@ -887,9 +887,10 @@ extern "C" {
 		   const Real& p, const Real& xf, const Real& Tc,
 		   const Real* dx, const Real* xlo, const int* lo);
 
-  void FORT_CFRHOE(Real* frhoe, intS, Real* state, intS);
+  void FORT_CFRHOE(intS, Real* frhoe, intS, Real* state, intS);
 
-  void FORT_GTEMP(Real* temp, intS,
+  void FORT_GTEMP(intS,
+		  Real* temp, intS,
 		  Real* con, Real* em, Real* en,
                   Real* state, intS);
 
@@ -898,8 +899,10 @@ extern "C" {
 		const Real* con, const Real* em, const Real* en, const Real* tf,
 		const Real* state, intS);
 
-  void FORT_CEXCH(Real* exch, intS,
-		  Real* er, intS, Real* fkp,
+  void FORT_CEXCH(intS,
+		  Real* exch, intS,
+		  Real* er, intS, 
+		  Real* fkp, intS,
 		  const Real& sigma, const Real& c);
 
   void FORT_EXTRP1(Real* frhoes, intS,
@@ -915,9 +918,13 @@ extern "C" {
                    Real* state, intS,
 		   const Real& sigma, const Real& c, const Real& delta_t);
 
-  void FORT_CETA2(Real* eta, Real* etainv, intS,
-		  Real* frho, intS, Real* temp, Real* c_v,
-		  Real* fkp, Real* er, intS,
+  void FORT_CETA2(intS,
+		  Real* eta, Real* etainv, intS,
+		  Real* frho, intS, 
+		  Real* temp, intS,
+		  Real* c_v, intS,
+		  Real* fkp, intS,
+		  Real* er, intS,
 		  const Real& dT, const Real& delta_t, const Real& sigma,
 		  const Real& c, const Real& underr, const int& lagpla);
 
@@ -952,10 +959,12 @@ extern "C" {
 
   void FORT_CETOT(Real* state, intS, intS, Real* rhoe);
 
-  void FORT_FKPN(Real* fkp, intS,
+  void FORT_FKPN(intS,
+		 Real* fkp, intS,
 		 Real* con, Real* em, Real* en,
 		 Real* ep, const Real& xnu, Real* tf,
-		 Real* temp, Real* state, intS);
+		 Real* temp, intS, 
+		 Real* state, intS);
 
   void FORT_ROSSE1(Real* kappar, intS, intS,
 		   Real* con, Real* em, Real* en,

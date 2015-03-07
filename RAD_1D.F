@@ -615,15 +615,17 @@ c construct scaled gradient:
       enddo
       end
 
-      subroutine cfrhoe(frhoe,
-     @  dims(reg),
+      subroutine cfrhoe( dims(reg),
+     @  frhoe,
+     @  dims(fb),
      @  state,
      @  dims(sb))
       implicit none
       INCLUDE 'StateLayout.H'
       integer dimdec(reg)
+      integer dimdec(fb)
       integer dimdec(sb)
-      real*8 frhoe(dimv(reg))
+      real*8 frhoe(dimv(fb))
       real*8 state(dimv(sb), 0:SVSIZE-1)
 c      real*8 kin
       integer i
@@ -637,15 +639,16 @@ c         frhoe(i) = state(i,EDEN) - kin
 
 c temp contains frhoe on input:
 
-      subroutine gtemp(temp,
-     @  dims(reg),
-     @  const, em, en, state,
-     @  dims(sb))
+      subroutine gtemp(dims(reg),
+     @  temp, dims(tb),
+     @  const, em, en, 
+     @  state, dims(sb))
       implicit none
       INCLUDE 'StateLayout.H'
       integer dimdec(reg)
+      integer dimdec(tb)
       integer dimdec(sb)
-      real*8 temp(dimv(reg))
+      real*8 temp(dimv(tb))
       real*8 const(0:1), em(0:1), en(0:1)
       real*8 state(dimv(sb), 0:SVSIZE-1)
       real*8 alpha, teff, ex, frhoal
@@ -709,16 +712,19 @@ c temp contains temp on input:
 
 c exch contains temp on input:
 
-      subroutine cexch(exch,
-     @  dims(reg),
-     @  er, dims(ebox),
-     @  fkp, sigma, c)
+      subroutine cexch( dims(reg),
+     @  exch, dims(xbox),
+     @  er  , dims(ebox),
+     @  fkp , dims(kbox),
+     @  sigma, c)
       implicit none
       integer dimdec(reg)
+      integer dimdec(xbox)
       integer dimdec(ebox)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(ebox))
-      real*8 fkp(dimv(reg))
+      integer dimdec(kbox)
+      real*8 exch(dimv(xbox))
+      real*8 er  (dimv(ebox))
+      real*8 fkp (dimv(kbox))
       real*8 sigma, c
       integer i
       do i = regl0, regh0
@@ -825,23 +831,28 @@ c exch contains temp on input:
       enddo
       end
 
-      subroutine ceta2(eta, etainv,
-     @  dims(reg),
-     @  frho,
-     @  dims(sb),
-     @  temp, cv, fkp,
+      subroutine ceta2(dims(reg),
+     @  eta, etainv, dims(etab),
+     @  frho, dims(sb),
+     @  temp, dims(tb),
+     @  cv, dims(cb),
+     @  fkp, dims(fb),
      @  er, dims(ebox),
      @  dtemp, dtime, sigma, c, underr, lagpla)
       implicit none
       integer dimdec(reg)
+      integer dimdec(etab)
       integer dimdec(sb)
+      integer dimdec(tb)
+      integer dimdec(cb)
+      integer dimdec(fb)
       integer dimdec(ebox)
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
+      real*8 eta(dimv(etab))
+      real*8 etainv(dimv(etab))
       real*8 frho(dimv(sb))
-      real*8 temp(dimv(reg))
-      real*8 cv(dimv(reg))
-      real*8 fkp(dimv(reg))
+      real*8 temp(dimv(tb))
+      real*8 cv(dimv(cb))
+      real*8 fkp(dimv(fb))
       real*8 er(dimv(ebox))
       real*8 dtemp, dtime, sigma, c, underr
       integer lagpla
@@ -1093,20 +1104,22 @@ c     @                 state(i,DEN)
       enddo
       end
 
-      subroutine fkpn(fkp,
-     @  dims(reg),
+      subroutine fkpn( dims(reg),
+     @  fkp, dims(fb),
      @  const, em, en,
-     @  ep, nu,
-     @  tf, temp, state,
-     @  dims(sb))
+     @  ep, nu, tf, 
+     @  temp, dims(tb),
+     @  state, dims(sb))
       implicit none
       INCLUDE 'StateLayout.H'
       integer dimdec(reg)
+      integer dimdec(fb)
+      integer dimdec(tb)
       integer dimdec(sb)
-      real*8 fkp(dimv(reg))
+      real*8 fkp(dimv(fb))
       real*8 const(0:1), em(0:1), en(0:1), tf(0:1)
       real*8 ep(0:1), nu
-      real*8 temp(dimv(reg))
+      real*8 temp(dimv(tb))
       real*8 state(dimv(sb), 0:SVSIZE-1)
       real*8 teff
       integer i

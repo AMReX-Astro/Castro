@@ -63,11 +63,13 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   MultiFab Er_lim; // will only be allocated if needed
 
-  for (MFIter mfi(frhoem); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& reg = grids[i];
-    get_frhoe(frhoem[mfi], S_new[mfi], reg);
-    frhoes[mfi].copy(frhoem[mfi]);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
+      const Box& reg = mfi.tilebox();
+      get_frhoe(frhoem[mfi], S_new[mfi], reg);
+      frhoes[mfi].copy(frhoem[mfi],reg);
   }
 
   // Rosseland mean in grid interiors can be updated within the loop,
@@ -90,9 +92,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   // If we had scattering, that would also contribute to kappa_H.
   MultiFab kh_cell(grids,1,1);
 
-  for (MFIter mfi(kh_cell); mfi.isValid(); ++mfi) {
-    kh_cell[mfi].copy(kappa_r[mfi]);
-  }
+  MultiFab::Copy(kh_cell, kappa_r, 0, 0, 1, 1);
 
   MultiFab eta(grids,1,0);
   MultiFab etainv(grids,1,0);  // this is 1-eta, to avoid loss of accuracy
@@ -180,24 +180,16 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       // only updates cells in interior of fine level:
       update_rosseland_from_temp(kappa_r, temp, S_new, castro->Geom());
 
-      for (MFIter mfi(kh_cell); mfi.isValid(); ++mfi) {
-        kh_cell[mfi].copy(kappa_r[mfi]);
-      }
+      MultiFab::Copy(kh_cell, kappa_r, 0, 0, 1, 1);
     }
 
     if (!use_analytic_solution && !Test_Type_lambda) {
       MultiFab& Test = castro->get_new_data(Test_Type);
       if (Test.nComp() > 0) {
-	for (MFIter ti(Test); ti.isValid(); ++ti) {
-	  Test[ti].copy(kappa_r[ti], 0, 0, 1);
-	}
+	  MultiFab::Copy(Test, kappa_r, 0, 0, 1, 0);
       }
       if (Test.nComp() > 1) {
-	for (MFIter ti(Test); ti.isValid(); ++ti) {
-	  Test[ti].copy(fkp[ti], 0, 1, 1);
-	  //Test[ti].copy(temp[ti]);
-	  //Test[ti].copy(eta[ti]);
-	}
+	  MultiFab::Copy(Test, fkp, 0, 1, 1, 0);
       }
     }
 
@@ -404,9 +396,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   // update dflux[level] (== dflux_old)
-  for (MFIter doi(dflux_old); doi.isValid(); ++doi) {
-    dflux_old[doi].copy(dflux_new[doi]);
-  }
+  MultiFab::Copy(dflux_old, dflux_new, 0, 0, 1, 0);
 
   if (Test_Type_lambda) {
     MultiFab& Test = castro->get_new_data(Test_Type);
