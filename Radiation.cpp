@@ -901,6 +901,9 @@ void Radiation::analytic_solution(int level)
     const Geometry& geom = parent->Geom(level);
     const Real *dx = geom.CellSize();
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
     for (MFIter ti(T_new); ti.isValid(); ++ti) {
       int i = ti.index();
       const Box &reg = grids[i];
@@ -1018,16 +1021,20 @@ void Radiation::compute_exchange(MultiFab& exch,
                                  MultiFab& Er,
                                  MultiFab& fkp, int igroup)
 {
-  const BoxArray& grids = exch.boxArray();
-
-  for (MFIter exi(exch); exi.isValid(); ++exi) {
-    int i = exi.index();
-    const Box& reg = grids[i];
-    const Box& ebox = Er[exi].box();
-    FORT_CEXCH(exch[exi].dataPtr(), dimlist(reg),
-	       Er[exi].dataPtr(0), dimlist(ebox),
-	       fkp[exi].dataPtr(), sigma, c);
-  }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif 
+    for (MFIter exi(exch,true); exi.isValid(); ++exi) {
+	const Box& reg = exi.tilebox();
+	const Box& xbox = exch[exi].box();
+	const Box& ebox =   Er[exi].box();
+	const Box& kbox =  fkp[exi].box();
+	FORT_CEXCH(dimlist(reg),
+		   exch[exi].dataPtr(), dimlist(xbox),
+		   Er  [exi].dataPtr(), dimlist(ebox),
+		   fkp [exi].dataPtr(), dimlist(kbox),
+		   sigma, c);
+    }
 }
 
 void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
@@ -1036,42 +1043,39 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                             Real delta_t, Real c,
                             Real underrel, int lag_planck, int igroup)
 {
-  const BoxArray& grids = eta.boxArray();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Fab c_v;
+	for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+	    const Box& bx = mfi.tilebox();
+	    
+	    if (lag_planck) {
+		eta[mfi].copy(fkp[mfi],bx);
+	    }
+	    else {
+		// This is the only case where we need a direct call for
+		// Planck mean as a function of temperature.
+		temp[mfi].plus(dT, bx, 0, 1);
+		get_planck_from_temp(eta[mfi], temp[mfi], state[mfi], bx, igroup);
+		temp[mfi].plus(-dT, bx, 0, 1);
+	    }
 
-  // violating these just needs a fancier Fortran call:
-  BL_ASSERT(eta.nGrow()   == 0);
-  BL_ASSERT(temp.nGrow()  == 0);
-  BL_ASSERT(fkp.nGrow()   == 0);
+	    c_v.resize(bx);
+	    get_c_v(c_v, temp[mfi], state[mfi], bx);
 
-  for (MFIter mfi(eta); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& reg = grids[i];
-
-    if (lag_planck) {
-      eta[mfi].copy(fkp[mfi]);
+	    FORT_CETA2( dimlist(bx),
+			eta[mfi].dataPtr(), etainv[mfi].dataPtr(), dimlist(eta[mfi].box()),
+			state[mfi].dataPtr(Density), dimlist(state[mfi].box()),
+			temp[mfi].dataPtr(), dimlist(temp[mfi].box()),
+			c_v.dataPtr(), dimlist(bx),
+			fkp[mfi].dataPtr(), dimlist(fkp[mfi].box()),
+			Er[mfi].dataPtr(igroup), dimlist(Er[mfi].box()),
+			dT, delta_t, sigma, c,
+			underrel, lag_planck);
+	}
     }
-    else {
-      // This is the only case where we need a direct call for
-      // Planck mean as a function of temperature.
-      temp[mfi].plus(dT, 0, 1);
-      get_planck_from_temp(eta[mfi], temp[mfi], state[mfi], reg, igroup);
-      temp[mfi].plus(-dT, 0, 1);
-    }
-
-    // This is the only case in the radiation algorithm (outside of
-    // Jeff's branch) where we need to return c_v.
-    Fab c_v(reg);
-    get_c_v(c_v, temp[mfi], state[mfi], reg);
-
-    const Box& sbox = state[mfi].box();
-    const Box& ebox = Er[mfi].box();
-    FORT_CETA2(eta[mfi].dataPtr(), etainv[mfi].dataPtr(), dimlist(reg),
-	       state[mfi].dataPtr(Density), dimlist(sbox),
-	       temp[mfi].dataPtr(), c_v.dataPtr(),
-	       fkp[mfi].dataPtr(), Er[mfi].dataPtr(igroup), dimlist(ebox),
-	       dT, delta_t, sigma, c,
-	       underrel, lag_planck);
-  }
 }
 
 void Radiation::internal_energy_update(Real& relative, Real& absolute,
@@ -1213,6 +1217,9 @@ void Radiation::extrapolateBorders(MultiFab& f, int indx)
 
   BL_ASSERT(f.nGrow() >= 1);
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for(MFIter mfi(f); mfi.isValid(); ++mfi) {
     int i = mfi.index();
     const Box& fbox = f[mfi].box();
@@ -1389,16 +1396,14 @@ void Radiation::get_frhoe(Fab& frhoe,
                           Fab& state,
                           const Box& reg)
 {
-    BL_ASSERT(reg == frhoe.box());
+    const Box& fbox = frhoe.box();
     const Box& sbox = state.box();
-    FORT_CFRHOE(frhoe.dataPtr(), dimlist(reg), state.dataPtr(), dimlist(sbox));
+    FORT_CFRHOE(dimlist(reg), frhoe.dataPtr(), dimlist(fbox), state.dataPtr(), dimlist(sbox));
 }
 
 void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
                         const Box& reg)
 {
-    BL_ASSERT(reg == c_v.box());
-
     if (do_real_eos == 1) {
 	BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
 	    (reg.loVect(), reg.hiVect(),
@@ -1406,7 +1411,7 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
     }
     else if (do_real_eos == 0) {
 	if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
-	    c_v.setVal(const_c_v[0]);
+	    c_v.setVal(const_c_v[0],reg,0,1);
 	}
 	else {
 	    FORT_GCV(dimlist(reg),
@@ -1428,44 +1433,45 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
                                     Fab& state, const Box& reg,
 				    int igroup, Real delta_t)
 {
-  BL_ASSERT(reg == fkp.box());
-  BL_ASSERT(reg == temp.box());
+    const Box& fbox = fkp.box();
+    const Box& tbox = temp.box();
+    const Box& sbox = state.box();
 
-  const Box& sbox = state.box();
-
-  if (do_real_eos > 0) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-  }
-  else if (do_real_eos == 0) {
-    FORT_GTEMP(temp.dataPtr(), dimlist(reg),
-	       const_c_v.dataPtr(),
-	       c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-	       state.dataPtr(), dimlist(sbox));
-  }
-  else {
-    BoxLib::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
-  }
-
-  if (use_opacity_table_module) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-  }
-  else {
-    FORT_FKPN(fkp.dataPtr(), dimlist(reg),
-	      const_kappa_p.dataPtr(),
-	      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-	      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-	      prop_temp_floor.dataPtr(),
-	      temp.dataPtr(), state.dataPtr(), dimlist(sbox));
-  }
-
-  int numfloor = 0;
-  FORT_NFLOOR(temp.dataPtr(), dimlist(reg), dimlist(reg),
-              numfloor, temp_floor, temp.nComp());
-  if (verbose > 2 && numfloor > 0) {
-    cout << numfloor << " temperatures raised to floor" << endl;
-  }
+    if (do_real_eos > 0) {
+	BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
+	    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+    }
+    else if (do_real_eos == 0) {
+	FORT_GTEMP(dimlist(reg),
+		   temp.dataPtr(), dimlist(tbox),
+		   const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		   state.dataPtr(), dimlist(sbox));
+    }
+    else {
+	BoxLib::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
+    }
+    
+    if (use_opacity_table_module) {
+	BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
+	    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+    }
+    else {
+	FORT_FKPN( dimlist(reg),
+		   fkp.dataPtr(), dimlist(fbox),
+		   const_kappa_p.dataPtr(),
+		   kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		   kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		   prop_temp_floor.dataPtr(),
+		   temp.dataPtr(), dimlist(tbox), 
+		   state.dataPtr(), dimlist(sbox));
+    }
+    
+    int numfloor = 0;
+    FORT_NFLOOR(temp.dataPtr(), dimlist(tbox), dimlist(reg),
+		numfloor, temp_floor, temp.nComp());
+    if (verbose > 2 && numfloor > 0) {
+	cout << numfloor << " temperatures raised to floor" << endl;
+    }
 }
 
 void Radiation::get_rosseland_and_temp(Fab& kappa_r,
@@ -1474,22 +1480,21 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
                                        const Box& reg,
 				       int igroup)
 {
-  BL_ASSERT(reg == kappa_r.box());
-  BL_ASSERT(reg == temp.box());
   BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
   const Box& kbox = kappa_r.box();
   const Box& sbox = state.box();
+  const Box& tbox = temp.box();
 
   if (do_real_eos > 0) {
     BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
       (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
   }
   else if (do_real_eos == 0) {
-    FORT_GTEMP(temp.dataPtr(), dimlist(reg),
-	       const_c_v.dataPtr(),
-	       c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-	       state.dataPtr(), dimlist(sbox));
+      FORT_GTEMP(dimlist(reg),
+		 temp.dataPtr(), dimlist(tbox),
+		 const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		 state.dataPtr(), dimlist(sbox));
   }
   else {
     BoxLib::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
@@ -1529,22 +1534,23 @@ void Radiation::get_planck_from_temp(Fab& fkp, Fab& temp,
                                      Fab& state, const Box& reg,
 				     int igroup)
 {
-  BL_ASSERT(reg == fkp.box());
-  BL_ASSERT(reg == temp.box());
-
-  const Box& sbox = state.box();
-
   if (use_opacity_table_module) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+      BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
+	  (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
   }
   else {
-    FORT_FKPN(fkp.dataPtr(), dimlist(reg),
-	      const_kappa_p.dataPtr(),
-	      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-	      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-	      prop_temp_floor.dataPtr(),
-	      temp.dataPtr(), state.dataPtr(), dimlist(sbox));
+      const Box& fbox = fkp.box();
+      const Box& tbox = temp.box();
+      const Box& sbox = state.box();
+
+      FORT_FKPN(dimlist(reg),
+		fkp.dataPtr(), dimlist(fbox),
+		const_kappa_p.dataPtr(),
+		kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		prop_temp_floor.dataPtr(),
+		temp.dataPtr(), dimlist(tbox),
+		state.dataPtr(), dimlist(sbox));
   }
 }
 
@@ -1591,11 +1597,16 @@ void Radiation::get_rosseland_from_temp(Fab& kappa_r,
 void Radiation::get_frhoe(MultiFab& frhoe,
                           MultiFab& state)
 {
-  const BoxArray& grids = frhoe.boxArray();
-  for (MFIter si(state); si.isValid(); ++si) {
-    int i = si.index();
-    get_frhoe(frhoe[si], state[si], grids[i]);
-  }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter si(state,true); si.isValid(); ++si) {
+	const Box& reg = si.tilebox();
+	const Box& fbox = frhoe[si].box();
+	const Box& sbox = state[si].box();
+	FORT_CFRHOE(dimlist(reg), frhoe[si].dataPtr(), dimlist(fbox), 
+		    state[si].dataPtr(), dimlist(sbox));
+    }
 }
 
 // temp contains frhoe on input:
@@ -2211,9 +2222,9 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
 	    }
 	    else if (do_real_eos == 0) {
-		FORT_GTEMP(temp.dataPtr(), dimlist(reg),
-			   const_c_v.dataPtr(),
-			   c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		FORT_GTEMP(dimlist(reg),
+			   temp.dataPtr(), dimlist(reg),
+			   const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
 			   S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    }
 	    
@@ -2261,22 +2272,24 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    
 	    
 	    kp.resize(reg);
-	    FORT_FKPN(kp.dataPtr(), dimlist(reg),
-		      const_kappa_p.dataPtr(),
-		      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-		      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-		      prop_temp_floor.dataPtr(),
-		      temp.dataPtr(), 
-		      S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    FORT_FKPN( dimlist(reg),
+		       kp.dataPtr(), dimlist(reg),
+		       const_kappa_p.dataPtr(),
+		       kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		       kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		       prop_temp_floor.dataPtr(),
+		       temp.dataPtr(), dimlist(temp.box()),
+		       S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    kp2.resize(reg);
 	    temp.plus(dT, 0, 1);
-	    FORT_FKPN(kp2.dataPtr(), dimlist(reg),
-		      const_kappa_p.dataPtr(),
-		      kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
-		      kappa_p_exp_p.dataPtr(), nugroup[igroup],
-		      prop_temp_floor.dataPtr(),
-		      temp.dataPtr(), 
-		      S[mfi].dataPtr(), dimlist(S[mfi].box()));
+	    FORT_FKPN( dimlist(reg),
+		       kp2.dataPtr(), dimlist(reg),
+		       const_kappa_p.dataPtr(),
+		       kappa_p_exp_m.dataPtr(), kappa_p_exp_n.dataPtr(),
+		       kappa_p_exp_p.dataPtr(), nugroup[igroup],
+		       prop_temp_floor.dataPtr(),
+		       temp.dataPtr(), dimlist(temp.box()),
+		       S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    temp.plus(-dT, 0, 1);
 	    
 	    BL_FORT_PROC_CALL(CA_GET_V_DCF, ca_get_v_dcf)

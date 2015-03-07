@@ -651,15 +651,19 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   solver.levelSolve(level, accel, 0, rhs, 0.01);
 
   // update Er_new
-  for (MFIter mfi(spec); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& reg  = grids[i];
-    const Box& jbox = Er_new[mfi].box();
-    const Box& sbox = spec[mfi].box();
-    FORT_LJUPNA(Er_new[mfi].dataPtr(), dimlist(jbox),
-		dimlist(reg),
-		spec[mfi].dataPtr(), dimlist(sbox),
-		accel[mfi].dataPtr(), nGroups);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
+      const Box& reg  = mfi.tilebox();
+      const Box& jbox = Er_new[mfi].box();
+      const Box& sbox = spec[mfi].box();
+      const Box& abox = accel[mfi].box();
+      FORT_LJUPNA(Er_new[mfi].dataPtr(), dimlist(jbox),
+		  dimlist(reg),
+		  spec[mfi].dataPtr(), dimlist(sbox),
+		  accel[mfi].dataPtr(), dimlist(abox),
+		  nGroups);
   }
 
   mgbd.unsetCorrection();
@@ -971,12 +975,8 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     }
 
     MultiFab Er_wide(grids, nGroups, ngrow+1);
-    for (MFIter mfi(Er_wide); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      const Box &bx = grids[i];
-      Er_wide[mfi].copy(Erborder[mfi], 0, 0, nGroups);
-      Er_wide[mfi].setComplement(-1.0, bx, 0, nGroups);
-    }
+    Er_wide.setVal(-1.0);
+    MultiFab::Copy(Er_wide, Erborder, 0, 0, nGroups, 0);
     
     Er_wide.FillBoundary();
     
@@ -1134,29 +1134,31 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
   Ye_new.mult(0.5, 0);
 #endif
 
-  for (MFIter mfi(rhoe_new); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box& bx = grids[i]; 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
 #ifdef NEUTRINO    
-    BL_FORT_PROC_CALL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
-      (bx.loVect(), bx.hiVect(),
-       BL_TO_FORTRAN(rhoe_new[mfi]),
-       BL_TO_FORTRAN(rhoYe_new[mfi]),
-       BL_TO_FORTRAN(temp_new[mfi]), 
-       BL_TO_FORTRAN(Ye_new[mfi]),
-       BL_TO_FORTRAN(S_new[mfi]));
+      BL_FORT_PROC_CALL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(rhoe_new[mfi]),
+	   BL_TO_FORTRAN(rhoYe_new[mfi]),
+	   BL_TO_FORTRAN(temp_new[mfi]), 
+	   BL_TO_FORTRAN(Ye_new[mfi]),
+	   BL_TO_FORTRAN(S_new[mfi]));
 #else
-    if (do_real_eos > 0) {
-      BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
-      	(bx.loVect(), bx.hiVect(),
-      	 BL_TO_FORTRAN(rhoe_new[mfi]),
-      	 BL_TO_FORTRAN(temp_new[mfi]), 
-      	 BL_TO_FORTRAN(S_new[mfi]));
-    }
-    else {
-      BoxLib::Abort("do_real_eos == 0 not supported in bisect_matter");
-    }
+      if (do_real_eos > 0) {
+	  BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(rhoe_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]), 
+	       BL_TO_FORTRAN(S_new[mfi]));
+      }
+      else {
+	  BoxLib::Abort("do_real_eos == 0 not supported in bisect_matter");
+      }
 #endif
   }
 }

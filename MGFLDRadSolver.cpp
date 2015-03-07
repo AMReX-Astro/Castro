@@ -132,30 +132,36 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 #endif
 
-  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
-    rho[mfi].copy(S_new[mfi],Density,0,1);
+      const Box &gbx = mfi.growntilebox(1);
+      const Box &bx  = mfi.tilebox();
 
-    rhoe_new[mfi].copy(S_new[mfi],Eint,0,1);
-    temp_new[mfi].copy(S_new[mfi],Temp,0,1);
+      rho[mfi].copy(S_new[mfi],gbx,Density,gbx,0,1);
+
+      rhoe_new[mfi].copy(S_new[mfi], bx,Eint, bx,0,1);
+      rhoe_old[mfi].copy(rhoe_new[mfi], bx);
+
+      temp_new[mfi].copy(S_new[mfi],gbx,Temp,gbx,0,1);
     
-    rhoe_old[mfi].copy(rhoe_new[mfi]);
-
 #ifdef NEUTRINO
-    if (castro->NumAux > 0) {
-      rhoYe_new[mfi].copy(S_new[mfi],FirstAux,0,1);
-      Ye_new[mfi].copy(S_new[mfi],FirstAux,0,1); // not Ye yet
-    }
-    else {
-      rhoYe_new[mfi].copy(S_new[mfi],Density,0,1);
-      Ye_new[mfi].copy(S_new[mfi],Density,0,1); 
-    }
-    rhoYe_old[mfi].copy(rhoYe_new[mfi]);
+      if (castro->NumAux > 0) {
+	  rhoYe_new[mfi].copy(S_new[mfi], bx,FirstAux, bx,0,1);
+	  Ye_new   [mfi].copy(S_new[mfi],gbx,FirstAux,gbx,0,1); // not Ye yet
+      }
+      else {
+	  rhoYe_new[mfi].copy(S_new[mfi], bx,Density, bx,0,1);
+	  Ye_new   [mfi].copy(S_new[mfi],gbx,Density,gbx,0,1); 
+      }
+      rhoYe_old[mfi].copy(rhoYe_new[mfi], bx);
 
 #else
-    if (castro->NumAux > 0) {
-      Ye_new[mfi].copy(S_new[mfi],FirstAux,0,1); // not Ye yet
-    }
+      if (castro->NumAux > 0) {
+	  Ye_new[mfi].copy(S_new[mfi],gbx,FirstAux,gbx,0,1); // not Ye yet
+      }
 #endif
   }
 
@@ -271,17 +277,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       // It's OK that Ye_star and temp_star do not have valid value for it==1
     }
 
-    for (MFIter mfi(rhoe_star); mfi.isValid(); ++mfi) {
-      rhoe_star[mfi].copy(rhoe_new[mfi]);
-      temp_star[mfi].copy(temp_new[mfi]);
+    MultiFab::Copy(rhoe_star, rhoe_new, 0, 0, 1, 0);
+    MultiFab::Copy(temp_star, temp_new, 0, 0, 1, 0);
 #ifdef NEUTRINO
-      rhoYe_star[mfi].copy(rhoYe_new[mfi]);
-      Ye_star[mfi].copy(Ye_new[mfi]);
+    MultiFab::Copy(rhoYe_star, rhoYe_new, 0, 0, 1, 0);
+    MultiFab::Copy(Ye_star, Ye_new, 0, 0, 1, 0);
 #endif
-    }
-
-    int nghost = 0;
-    MultiFab::Copy(Er_star, Er_new, 0, 0, nGroups, nghost);
+    MultiFab::Copy(Er_star, Er_new, 0, 0, nGroups, 0);
 
     if (limiter>0 && inner_update_limiter==0) {
       Er_star.FillBoundary();
@@ -315,8 +317,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     do {
       innerIteration++;
 
-      int nghost = 0;
-      MultiFab::Copy(Er_pi, Er_new, 0, 0, nGroups, nghost);
+      MultiFab::Copy(Er_pi, Er_new, 0, 0, nGroups, 0);
 
       if (limiter>0 && inner_update_limiter>0) { 
 	if (innerIteration <= inner_update_limiter) {
@@ -413,8 +414,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	  accel_allowed = false;
 	  if (relative_in>10.*relative_in_prev && 
 	      absolute_in>10.*absolute_in_prev) {
-	    int nghost = 0;
-	    MultiFab::Copy(Er_new, Er_star, 0, 0, nGroups, nghost);
+	    MultiFab::Copy(Er_new, Er_star, 0, 0, nGroups, 0);
 	  }
 	}
 	relative_in_prev = relative_in;

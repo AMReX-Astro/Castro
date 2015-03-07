@@ -45,16 +45,18 @@
       subroutine ljupna(jnew, jboxl0, jboxh0, &
            regl0, regh0, &
            spec, sboxl0, sboxh0, &
-           accel, nTotal)
+           accel, aboxl0, aboxh0, &
+           nTotal)
 
         implicit none
         integer nTotal
         integer  regl0,  regh0
         integer jboxl0, jboxh0
         integer sboxl0, sboxh0
+        integer aboxl0, aboxh0
         real*8 jnew(jboxl0:jboxh0, 0:nTotal-1)
         real*8 spec(sboxl0:sboxh0, 0:nTotal-1)
-        real*8 accel(regl0:regh0)
+        real*8 accel(aboxl0:aboxh0)
 
         integer i, n
         do n = 0, nTotal - 1

@@ -304,9 +304,9 @@ subroutine ca_compute_etat( lo, hi, &
   integer, intent(in) :: dedT_l1, dedT_h1, dedT_l2, dedT_h2
   integer, intent(in) ::  Ers_l1,  Ers_h1,  Ers_l2,  Ers_h2
   integer, intent(in) ::  rho_l1,  rho_h1,  rho_l2,  rho_h2
-  double precision,intent(out)::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2)
-  double precision,intent(out)::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2)
-  double precision,intent(out)::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2)
+  double precision            ::etaT(etaT_l1:etaT_h1,etaT_l2:etaT_h2)
+  double precision            ::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2)
+  double precision            ::eta1(eta1_l1:eta1_h1,eta1_l2:eta1_h2)
   double precision            ::djdT(djdT_l1:djdT_h1,djdT_l2:djdT_h2,0:ngroups-1)
   double precision,intent(in )::dkdT(dkdT_l1:dkdT_h1,dkdT_l2:dkdT_h2,0:ngroups-1)
   double precision,intent(in )::dedT(dedT_l1:dedT_h1,dedT_l2:dedT_h2)
