@@ -129,9 +129,9 @@ contains
     
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo,Symmetry
-    use meth_params_module, only : NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-         URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-         small_dens, small_pres
+    use meth_params_module, only : NVAR, QRHO, QU, QV, QPRES, QREINT, &
+         URHO, UMX, UMY, UEDEN, UEINT, small_dens, small_pres, &
+         npassive, qpass_map, upass_map
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
@@ -186,7 +186,7 @@ contains
     double precision :: eddf, f1
     integer :: i, j, g
     
-    integer iadv, ispec, iaux, n, nq
+    integer ipassive, n, nq
     double precision :: qavg
     
     !************************************************************
@@ -404,38 +404,13 @@ contains
              end do
           end if
           
-          do iadv = 1, nadv
-             n = UFA + iadv - 1
-             nq = QFA + iadv - 1
-             if (ustar .gt. 0.d0) then
+          do ipassive = 1, npassive
+             n = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+             
+             if (ustar .gt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. 0.d0) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. 0.d0) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. 0.d0) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. 0.d0) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. 0.d0) then
+             else if (ustar .lt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
              else 
                 qavg = 0.5d0 * (ql(i,j,nq) + qr(i,j,nq))

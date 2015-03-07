@@ -103,10 +103,10 @@ contains
                            ugdnv,ug_l1,ug_h1, &
                            ilo,ihi,domlo,domhi)
     
-    use network, only : nspec, naux
-    use meth_params_module, only : NVAR, QRHO, QU, QPRES, QREINT, QFA, QFS, QFX, &
-         URHO, UMX, UEDEN, UEINT, UFA, UFS, UFX, nadv, small_dens, small_pres, &
-         fix_mass_flux
+    use network, only : nspec
+    use meth_params_module, only : NVAR, QRHO, QU, QPRES, QREINT, &
+         URHO, UMX, UEDEN, UEINT, small_dens, small_pres, &
+         fix_mass_flux, npassive, qpass_map, upass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
@@ -147,10 +147,11 @@ contains
     double precision ro, uo, po, reo, co, gamco, reo_g, po_g, co_g, gamco_g
     double precision sgnm, spin, spout, ushock, frac
     double precision rhoetot, scr
-    
+
+    double precision qavg
     double precision wsmall, csmall
-    integer iadv, n, nq
-    integer k,ispec, iaux
+    integer n, nq
+    integer k, ipassive
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
     
     double precision :: regdnv_g, pgdnv_g, pgdnv_t
@@ -330,33 +331,17 @@ contains
           end do
        end if
        
-       do iadv = 1, nadv
-          n = UFA + iadv - 1
-          nq = QFA + iadv - 1
-          if (ustar .ge. 0.d0) then
+       do ipassive = 1, npassive
+          n = upass_map(ipassive)
+          nq = qpass_map(ipassive)
+          
+          if (ustar .gt. ZERO) then
              uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else
+          else if (ustar .lt. ZERO) then
              uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          endif
-       enddo
-       
-       do ispec = 1, nspec
-          n  = UFS + ispec - 1
-          nq = QFS + ispec - 1
-          if (ustar .ge. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
           else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          endif
-       enddo
-       
-       do iaux = 1, naux
-          n  = UFX + iaux - 1
-          nq = QFX + iaux - 1
-          if (ustar .ge. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
+             qavg = HALF * (ql(k,nq) + qr(k,nq))
+             uflx(k,n) = uflx(k,URHO)*qavg
           endif
        enddo
        
