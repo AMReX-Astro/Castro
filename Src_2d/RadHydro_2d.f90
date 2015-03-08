@@ -8,9 +8,9 @@ module rad_advection_module
 
 contains
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 subroutine ctoprim_rad(lo,hi, &
      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
      Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
@@ -24,13 +24,15 @@ subroutine ctoprim_rad(lo,hi, &
 !     if iflaten=1.  Declared dimensions of q,c,gamc,csml,flatn are given
 !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
 !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-!     routine that computes flatn).  
+!     routine that computes flatn).
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
-       QVAR, QRHO, QU, QV, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
-       nadv, allow_negative_energy, small_temp
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
+                                 QVAR, QRHO, QU, QV, QGAME, QREINT, QPRES, &
+                                 QTEMP, QFS, QFX, &
+                                 nadv, allow_negative_energy, small_temp, &
+                                 npassive, upass_map, qpass_map
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
@@ -70,7 +72,7 @@ subroutine ctoprim_rad(lo,hi, &
 
   integer          :: i, j, g
   integer          :: ngp, ngf, loq(2), hiq(2)
-  integer          :: iadv, ispec, iaux, n, nq
+  integer          :: n, nq, ipassive
   double precision :: courx, coury, courmx, courmy
 
   double precision :: csrad2, prad, Eddf, gamr
@@ -90,7 +92,7 @@ subroutine ctoprim_rad(lo,hi, &
 !     The temperature is used as an initial guess for the eos call and will be overwritten
   do j = loq(2),hiq(2)
      do i = loq(1),hiq(1)
-        
+
         if (uin(i,j,URHO) .le. 0.d0) then
            print *,'   '
            print *,'>>> Error: Castro_2d::ctoprim ',i,j
@@ -98,7 +100,7 @@ subroutine ctoprim_rad(lo,hi, &
            print *,'    '
            call bl_error("Error:: Castro_2d.f90 :: ctoprim")
         end if
-        
+
         q(i,j,QRHO) = uin(i,j,URHO)
         q(i,j,QU) = uin(i,j,UMX)/uin(i,j,URHO)
         q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
@@ -108,10 +110,11 @@ subroutine ctoprim_rad(lo,hi, &
      enddo
   enddo
 
-!    Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-  do iadv = 1, nadv
-     n  = UFA + iadv - 1
-     nq = QFA + iadv - 1
+  ! Load advected / species / and auxiliary quatities, c, into q,
+  ! assuming they arrived in uin as rho.c
+  do ipassive = 1, npassive
+     n  = upass_map(ipassive)
+     nq = qpass_map(ipassive)
      do j = loq(2),hiq(2)
         do i = loq(1),hiq(1)
            q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
@@ -119,29 +122,8 @@ subroutine ctoprim_rad(lo,hi, &
      enddo
   enddo
 
-!     Load chemical species, c, into q, assuming they arrived in uin as rho.c
-  do ispec = 1, nspec
-     n  = UFS + ispec - 1
-     nq = QFS + ispec - 1
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
-           q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-        enddo
-     enddo
-  enddo
-  
-!     Load auxiliary variables which are needed in the EOS
-  do iaux = 1, naux
-     n  = UFX + iaux - 1
-     nq = QFX + iaux - 1
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
-           q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-        enddo
-     enddo
-  enddo
 
-!     Get gamc, p, T, c, csml using q state 
+  ! Get gamc, p, T, c, csml using q state
   do j = loq(2), hiq(2)
      do i = loq(1), hiq(1)
 
@@ -168,7 +150,7 @@ subroutine ctoprim_rad(lo,hi, &
         end if
 
         call eos(eos_input_re, eos_state)
-        
+
         q(i,j,QTEMP) = eos_state % T
         q(i,j,QPRES) = eos_state % p
         dpdrho(i,j)  = eos_state % dpdr_e
@@ -197,14 +179,14 @@ subroutine ctoprim_rad(lo,hi, &
 
 !     Make this "rho e" instead of "e"
         q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
-        q(i,j,qreitot) = q(i,j,QREINT) + sum(q(i,j,qrad:qradhi)) 
+        q(i,j,qreitot) = q(i,j,QREINT) + sum(q(i,j,qrad:qradhi))
      enddo
   enddo
 
 !     Compute sources in terms of Q
   do j = lo(2)-1, hi(2)+1
      do i = lo(1)-1, hi(1)+1
-        
+
         srcQ(i,j,QRHO  ) = src(i,j,URHO)
         srcQ(i,j,QU    ) = (src(i,j,UMX) - q(i,j,QU) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
         srcQ(i,j,QV    ) = (src(i,j,UMY) - q(i,j,QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
@@ -216,19 +198,13 @@ subroutine ctoprim_rad(lo,hi, &
                 dpdrho(i,j) * srcQ(i,j,QRHO)! + &
 !                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
 !                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
-        
-        do ispec = 1,nspec
-           srcQ(i,j,QFS+ispec-1) = ( src(i,j,UFS+ispec-1) - q(i,j,QFS+ispec-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
+
+        do ipassive = 1, npassive
+           n  = upass_map(ipassive)
+           nq = qpass_map(ipassive)
+           srcQ(i,j,nq) = (src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO))/q(i,j,QRHO)
         enddo
-        
-        do iaux = 1,naux
-           srcQ(i,j,QFX+iaux-1) = ( src(i,j,UFX+iaux-1) - q(i,j,QFX+iaux-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-        enddo
-        
-        do iadv = 1,nadv
-           srcQ(i,j,QFA+iadv-1) = ( src(i,j,UFA+iadv-1) - q(i,j,QFA+iadv-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-        enddo
-        
+
      end do
   end do
 
@@ -259,7 +235,7 @@ subroutine ctoprim_rad(lo,hi, &
            print *,'>>> ... v, c                ',q(i,j,QV), c(i,j)
            print *,'>>> ... density             ',q(i,j,QRHO)
         end if
-        
+
      enddo
   enddo
   courno = max( courmx, courmy )
@@ -302,7 +278,7 @@ end subroutine ctoprim_rad
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH2D     Compute hyperbolic fluxes using unsplit second
 ! ::: ::               order Godunov integrator.
-! ::: :: 
+! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: c           => (const)  sound speed
@@ -342,13 +318,13 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      uy_xfc, ux_yfc, &
      dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2)
 
-  use network, only : nspec, naux
-  use meth_params_module, only : NVAR, ppm_type 
+  use network, only : nspec
+  use meth_params_module, only : NVAR, ppm_type
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
   use riemann_rad_module, only : cmpflx_rad
   use trace_ppm_rad_module, only : trace_ppm_rad
-  
+
   implicit none
 
   integer lam_l1,lam_l2,lam_h1,lam_h2
@@ -505,7 +481,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
        gamc,gamcg, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
        1, ilo1, ihi1, ilo2, ihi2)
 
-  call transx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, & 
+  call transx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
        qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
         fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
        rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
@@ -519,7 +495,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
        area1, area1_l1, area1_l2, area1_h1, area1_h2, &
        vol, vol_l1, vol_l2, vol_h1, vol_h2, &
        ilo1, ihi1, ilo2-1, ihi2+1)
-  
+
   call cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
        qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
         flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
@@ -534,8 +510,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   do j = ilo2,ihi2
      do i = ilo1,ihi1
-        pggdx = 0.5d0*(pgdx(i+1,j  )+pgdx(i,j)) 
-        pggdy = 0.5d0*(pgdy(i  ,j+1)+pgdy(i,j)) 
+        pggdx = 0.5d0*(pgdx(i+1,j  )+pgdx(i,j))
+        pggdy = 0.5d0*(pgdy(i  ,j+1)+pgdy(i,j))
         pdivu(i,j) = (pggdx*(ugdx(i+1,j  )*area1(i+1,j  )-ugdx(i,j)*area1(i,j)) &
              +        pggdy*(ugdy(i  ,j+1)*area2(i  ,j+1)-ugdy(i,j)*area2(i,j)) ) / vol(i,j)
      end do
@@ -548,11 +524,11 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
 end subroutine umeth2d_rad
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
-subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &   
+subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
       fy, fy_l1, fy_l2, fy_h1, fy_h2, &
      rfy,rfy_l1,rfy_l2,rfy_h1,rfy_h2, &
@@ -563,10 +539,11 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      srcQ, src_l1, src_l2, src_h1, src_h2, &
      grav, gv_l1, gv_l2, gv_h1, gv_h2, &
      hdt, cdtdy, ilo, ihi, jlo, jhi)
-  
-  use network, only : nspec, naux
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UEDEN, UFA, UFS, UFX, nadv
+
+  use network, only : nspec
+  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                 URHO, UMX, UMY, UEDEN, &
+                                 npassive, upass_map, qpass_map
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -602,8 +579,8 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   double precision hdt, cdtdy
 
   integer i, j, g
-  integer n, nq, iadv, ispec, iaux
-  
+  integer n, nq, ipassive
+
   double precision rr,rrnew
   double precision ugp, ugm, dup, pav, du, pnewr,pnewl
   double precision rrr, rur, rvr, rer, ekinr, rhoekinr
@@ -620,51 +597,25 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
 
   ! NOTE: it is better *not* to protect against small density in this routine
 
-  do iadv = 1, nadv
-     n  = UFA + iadv - 1
-     nq = QFA + iadv - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
+  do ipassive = 1, npassive
+     n  = upass_map(ipassive)
+     nq = qpass_map(ipassive)
+     do j = jlo, jhi
+        do i = ilo, ihi
 
            rr = qp(i,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
+           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
 
            compo = rr*qp(i,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
+           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n))
 
            qpo(i,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
 
            rr = qm(i+1,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
+           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
 
            compo = rr*qm(i+1,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-                  
-           qmo(i+1,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-        enddo
-     enddo
-  enddo
-
-  do ispec = 1, nspec 
-     n  = UFS + ispec - 1
-     nq = QFS + ispec - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
-           
-           rr = qp(i,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-           
-           compo = rr*qp(i,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-           
-           qpo(i,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-
-           rr = qm(i+1,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-
-           compo = rr*qm(i+1,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
+           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n))
 
            qmo(i+1,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
 
@@ -672,34 +623,9 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      enddo
   enddo
 
-  do iaux = 1, naux 
-     n  = UFX + iaux - 1
-     nq = QFX + iaux - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
-           
-           rr = qp(i,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-           
-           compo = rr*qp(i,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-           
-           qpo(i,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-           rr = qm(i+1,j,QRHO)
-           rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO)) 
-           
-           compo = rr*qm(i+1,j,nq)
-           compn = compo - cdtdy*(fy(i,j+1,n)-fy(i,j,n)) 
-           
-           qmo(i+1,j,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-        enddo
-     enddo
-  enddo
-  
-  do j = jlo, jhi 
-     do i = ilo, ihi 
+
+  do j = jlo, jhi
+     do i = ilo, ihi
         lambda(:) = lam(i,j,:)
         pggp = pgdy(i,j+1)
         pggm = pgdy(i,j)
@@ -724,10 +650,10 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         rel = qm(i+1,j,QREINT) + ekinl
         erl(:) = qm(i+1,j,qrad:qradhi)
 
-!           Add transverse predictor   
-        rrnewr = rrr - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO)) 
+!           Add transverse predictor
+        rrnewr = rrr - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO))
 
-        runewr = rur - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX)) 
+        runewr = rur - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX))
         lamge(:) = lambda(:) * (ergp(:)-ergm(:))
         dmom = -cdtdy*((pggp-pggm) + sum(lamge))
         rvnewr = rvr - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) &
@@ -756,10 +682,10 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         ernewr(:) = err(:) - cdtdy*(rfy(i,j+1,:) - rfy(i,j,:)) &
              + der(:)
 
-        rrnewl = rrl - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO)) 
-        runewl = rul - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX)) 
+        rrnewl = rrl - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO))
+        runewl = rul - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX))
         rvnewl = rvl - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) &
-             + dmom 
+             + dmom
         renewl = rel - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN)) &
              + dre
         ernewl(:) = erl(:) - cdtdy*(rfy(i,j+1,:) - rfy(i,j,:)) &
@@ -782,7 +708,7 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qpo(i,j,qrad:qradhi) = ernewr(:)
         qpo(i,j,qptot  ) = sum(lambda*ernewr) + qpo(i,j,QPRES)
         qpo(i,j,qreitot) = sum(qpo(i,j,qrad:qradhi)) + qpo(i,j,QREINT)
-        
+
         rhotmp =  rrnewl
         qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
         qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) + hdt*grav(i,j,1)
@@ -793,17 +719,17 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i+1,j,qrad:qradhi) = ernewl(:)
         qmo(i+1,j,qptot  ) = sum(lambda*ernewl) + qmo(i+1,j,QPRES)
         qmo(i+1,j,qreitot) = sum(qmo(i+1,j,qrad:qradhi)) + qmo(i+1,j,QREINT)
-        
+
      enddo
   enddo
 
 end subroutine transy_rad
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
-subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &   
+subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
       fx,  fx_l1,  fx_l2,  fx_h1,  fx_h2, &
      rfx, rfx_l1, rfx_l2, rfx_h1, rfx_h2, &
@@ -817,10 +743,11 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      area1, area1_l1, area1_l2, area1_h1, area1_h2, &
      vol, vol_l1, vol_l2, vol_h1, vol_h2, &
      ilo, ihi, jlo, jhi)
-  
-  use network, only : nspec, naux
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-       URHO, UMX, UMY, UEDEN, UFA, UFS, UFX, nadv
+
+  use network, only : nspec
+  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                 URHO, UMX, UMY, UEDEN, &
+                                 npassive, upass_map, qpass_map
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -841,7 +768,7 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   integer area1_l1, area1_l2, area1_h1, area1_h2
   integer vol_l1, vol_l2, vol_h1, vol_h2
   integer ilo, ihi, jlo, jhi
-  
+
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
   double precision qm (qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
   double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
@@ -858,11 +785,10 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
   double precision hdt, cdtdx
-  
+
   integer i, j, g
-  integer n, nq, iadv
-  integer ispec, iaux
-  
+  integer n, nq, ipassive
+
   double precision rr, rrnew, compo, compn
   double precision rrr, rur, rvr, rer, ekinr, rhoekinr
   double precision rrnewr, runewr, rvnewr, renewr
@@ -870,37 +796,37 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   double precision rrnewl, runewl, rvnewl, renewl
   double precision ugp, ugm, dup, pav, du, pnewl,pnewr
   double precision rhotmp
-  
+
   double precision pggp, pggm, dre, dmom
   double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, lamge, luge, &
        der, ernewr, ernewl
   double precision eddf, f1, ugc, divu
-  
+
   ! NOTE: it is better *not* to protect against small density in this routine
-  
-  do iadv = 1, nadv
-     n  = UFA + iadv - 1
-     nq = QFA + iadv - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
-           
+
+  do ipassive = 1, npassive
+     n  = upass_map(ipassive)
+     nq = qpass_map(ipassive)
+     do j = jlo, jhi
+        do i = ilo, ihi
+
            rr = qp(i,j,  QRHO)
            rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
+                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
+
            compo = rr*qp(i,j  ,nq)
            compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-           
+                area1(i  ,j)*fx(i  ,j,n))/vol(i,j)
+
            qpo(i,j  ,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
+
            rr = qm(i,j+1,QRHO)
            rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
+                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
+
            compo = rr*qm(i,j+1,nq)
            compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
+                area1(i  ,j)*fx(i  ,j,n))/vol(i,j)
 
            qmo(i,j+1,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
 
@@ -908,68 +834,9 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      enddo
   enddo
 
-  do ispec = 1, nspec
-     n  = UFS + ispec - 1
-     nq = QFS + ispec - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
-           
-           rr = qp(i  ,j,QRHO)
-           rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
-           compo = rr*qp(i,j  ,nq)
-           compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-           
-           qpo(i,j  ,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-           rr = qm(i,j+1,QRHO)
-           rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
-           compo  = rr*qm(i,j+1,nq)
-           compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-           
-           qmo(i,j+1,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-        enddo
-     enddo
-  enddo
-  
-  do iaux = 1, naux
-     n  = UFX + iaux - 1
-     nq = QFX + iaux - 1
-     do j = jlo, jhi 
-        do i = ilo, ihi 
-           
-           rr = qp(i  ,j,QRHO)
-           rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
-           compo = rr*qp(i,j  ,nq)
-           compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-           
-           qpo(i,j  ,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-           rr = qm(i,j+1,QRHO)
-           rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j) 
-           
-           compo = rr*qm(i,j+1,nq)
-           compn = compo - hdt*(area1(i+1,j)*fx(i+1,j,n)- &
-                area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
-           
-           qmo(i,j+1,nq) = compn/rrnew + hdt*srcQ(i,j,nq)
-           
-        enddo
-     enddo
-  enddo
-  
-  do j = jlo, jhi 
-     do i = ilo, ihi 
+
+  do j = jlo, jhi
+     do i = ilo, ihi
         lambda(:) = lam(i,j,:)
         pggp = pgdx(i+1,j)
         pggm = pgdx(i,j)
@@ -994,16 +861,16 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         rel = qm(i,j+1,QREINT) + ekinl
         erl(:) = qm(i,j+1,qrad:qradhi)
 
-!           Add transverse predictor  
+!           Add transverse predictor
         rrnewr = rrr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-             area1(i,j)*fx(i,j,URHO))/vol(i,j) 
+             area1(i,j)*fx(i,j,URHO))/vol(i,j)
         lamge(:) = lambda(:) * (ergp(:)-ergm(:))
-        dmom = -0.5d0*hdt*(area1(i+1,j)+area1(i,j))*((pggp-pggm)+sum(lamge))/vol(i,j) 
+        dmom = -0.5d0*hdt*(area1(i+1,j)+area1(i,j))*((pggp-pggm)+sum(lamge))/vol(i,j)
         runewr = rur - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
              area1(i,j)*fx(i,j,UMX))/vol(i,j) &
              + dmom
         rvnewr = rvr - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
-             area1(i,j)*fx(i,j,UMY))/vol(i,j) 
+             area1(i,j)*fx(i,j,UMY))/vol(i,j)
         luge(:) = ugc * lamge(:)
         dre = -cdtdx*sum(luge)
         renewr = rer - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
@@ -1032,12 +899,12 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
              + der(:)
 
         rrnewl = rrl - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-             area1(i,j)*fx(i,j,URHO))/vol(i,j) 
+             area1(i,j)*fx(i,j,URHO))/vol(i,j)
         runewl = rul - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
              area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-             + dmom 
+             + dmom
         rvnewl = rvl - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
-             area1(i,j)*fx(i,j,UMY))/vol(i,j) 
+             area1(i,j)*fx(i,j,UMY))/vol(i,j)
         renewl = rel - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
              area1(i,j)*fx(i,j,UEDEN))/vol(i,j) &
              + dre
@@ -1063,7 +930,7 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qpo(i,j,qrad:qradhi) = ernewr(:)
         qpo(i,j,qptot)   = sum(lambda*ernewr) + qpo(i,j,QPRES)
         qpo(i,j,qreitot) = sum(qpo(i,j,qrad:qradhi)) + qpo(i,j,QREINT)
-                 
+
         !           Convert back to non-conservation form
         rhotmp = rrnewl
         qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
@@ -1075,15 +942,15 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i,j+1,qrad:qradhi) = ernewl(:)
         qmo(i,j+1,qptot)   = sum(lambda*ernewl) + qmo(i,j+1,QPRES)
         qmo(i,j+1,qreitot) = sum(qmo(i,j+1,qrad:qradhi)) + qmo(i,j+1,QREINT)
- 
+
      enddo
   enddo
 
 end subroutine transx_rad
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
 subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
@@ -1172,7 +1039,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
 
   integer i, j, n, g
 
-  double precision div1 
+  double precision div1
   double precision SrU, SrV
   double precision rho, Up, Vp, SrE
 
@@ -1203,7 +1070,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      if ( n.eq.UTEMP) then
         flux1(:,:,n) = 0.d0
         flux2(:,:,n) = 0.d0
-     else 
+     else
         do j = lo(2),hi(2)
            do i = lo(1),hi(1)+1
               div1 = .5d0*(div(i,j) + div(i,j+1))
@@ -1253,7 +1120,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   do n = 1, NVAR
      if (n .eq. UTEMP) then
         uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
-     else 
+     else
         do j = lo(2),hi(2)
            do i = lo(1),hi(1)
               uout(i,j,n) = uin(i,j,n) + dt * &
@@ -1270,7 +1137,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      do i = lo(1),hi(1)
         Erout(i,j,g) = Erin(i,j,g) + dt * &
              ( rflux1(i,j,g) - rflux1(i+1,j,g) &
-             +   rflux2(i,j,g) - rflux2(i,j+1,g) ) / vol(i,j) 
+             +   rflux2(i,j,g) - rflux2(i,j+1,g) ) / vol(i,j)
      enddo
   enddo
   end do
@@ -1289,21 +1156,21 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         rho = uin(i,j,URHO)
         Up  = uin(i,j,UMX) / rho
         Vp  = uin(i,j,UMY) / rho
-        
+
         SrU = rho * grav(i,j,1)
         SrV = rho * grav(i,j,2)
-        
+
         ! This doesn't work (in 1-d)
         ! SrE = SrU*(Up + SrU*dt/(2*rho)) &
         !      +SrV*(Vp + SrV*dt/(2*rho))
-        
+
         ! This does work (in 1-d)
         SrE = uin(i,j,UMX) * grav(i,j,1) + uin(i,j,UMY) * grav(i,j,2)
-        
+
         uout(i,j,UMX)   = uout(i,j,UMX)   + dt * SrU
         uout(i,j,UMY)   = uout(i,j,UMY)   + dt * SrV
         uout(i,j,UEDEN) = uout(i,j,UEDEN) + dt * SrE
-        
+
      enddo
   enddo
 
@@ -1344,20 +1211,20 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
 
            ux = 0.5d0*(ugdx(i,j) + ugdx(i+1,j))
            uy = 0.5d0*(ugdy(i,j) + ugdy(i,j+1))
-           
+
            divu = (ugdx(i+1,j  )*area1(i+1,j  ) - ugdx(i,j)*area1(i,j) &
                 +  ugdy(i  ,j+1)*area2(i  ,j+1) - ugdy(i,j)*area2(i,j) &
-                & ) / vol(i,j) 
+                & ) / vol(i,j)
 
-           dudx(1) = (ugdx(i+1,j)-ugdx(i,j))/dx 
-           dudx(2) = (uy_xfc(i+1,j)-uy_xfc(i,j))/dx 
+           dudx(1) = (ugdx(i+1,j)-ugdx(i,j))/dx
+           dudx(2) = (uy_xfc(i+1,j)-uy_xfc(i,j))/dx
 
-           dudy(1) = (ux_yfc(i,j+1)-ux_yfc(i,j))/dy 
-           dudy(2) = (ugdy(i,j+1)-ugdy(i,j))/dy 
+           dudy(1) = (ux_yfc(i,j+1)-ux_yfc(i,j))/dy
+           dudy(2) = (ugdy(i,j+1)-ugdy(i,j))/dy
 
            ! Note that for single group, fspace_type is always 1
            do g=0, ngroups-1
-              
+
               nhat(1) = (ergdx(i+1,j,g)-ergdx(i,j,g))/dx
               nhat(2) = (ergdy(i,j+1,g)-ergdy(i,j,g))/dy
 
@@ -1376,7 +1243,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                  Eddfxp = Edd_factor(lmgdx(i+1,j  ,g))
                  Eddfxm = Edd_factor(lmgdx(i  ,j  ,g))
                  Eddfyp = Edd_factor(lmgdy(i  ,j+1,g))
-                 Eddfym = Edd_factor(lmgdy(i  ,j  ,g)) 
+                 Eddfym = Edd_factor(lmgdy(i  ,j  ,g))
 
                  f1xp = 0.5d0*(1.d0-Eddfxp)
                  f1xm = 0.5d0*(1.d0-Eddfxm)
@@ -1385,15 +1252,15 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
 
                  Gf1E(1) = (f1xp*ergdx(i+1,j,g) - f1xm*ergdx(i,j,g)) / dx
                  Gf1E(2) = (f1yp*ergdy(i,j+1,g) - f1ym*ergdy(i,j,g)) / dy
-              
+
                  Egdc = 0.25d0*(ergdx(i,j,g)+ergdx(i+1,j,g)+ergdy(i,j,g)+ergdy(i,j+1,g))
 
                  Erout(i,j,g) = Erout(i,j,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
                       - dt*f2*Egdc*nnColonDotGu
               end if
-              
+
            end do
-           
+
            if (ngroups.gt.1) then
               ustar = Erout(i,j,:) / Erscale
               call advect_in_fspace(ustar, af, dt, nstep_fsp)
@@ -1419,7 +1286,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      enddo
   end do
 
-  do j = lo(2),hi(2)+1 
+  do j = lo(2),hi(2)+1
      do i = lo(1),hi(1)
         flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
         flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
@@ -1427,12 +1294,12 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   enddo
 
   do g = 0, ngroups-1
-     do j = lo(2),hi(2)+1 
+     do j = lo(2),hi(2)+1
         do i = lo(1),hi(1)
            rflux2(i,j,g) = dt * rflux2(i,j,g)
         enddo
      enddo
-  end do  
+  end do
 
 end subroutine consup_rad
 
