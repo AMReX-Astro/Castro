@@ -484,8 +484,8 @@ contains
           drhoe_g = rhoe_g_ref - Ip(i,j,1,2,QREINT)
           der(:)  = er_ref(:)  - Ip(i,j,1,2,qrad:qradhi)
 
-          dup    = u    - Ip(i,j,1,3,QU)
-          dptotp = ptot - Ip(i,j,1,3,qptot)
+          dup    = u_ref    - Ip(i,j,1,3,QU)
+          dptotp = ptot_ref - Ip(i,j,1,3,qptot)
 
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
