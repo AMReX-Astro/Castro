@@ -546,18 +546,11 @@ Gravity::solve_for_phi (int               level,
     }
 
 #if (BL_SPACEDIM == 3)
-    if ( (level == 0) && Geometry::isAllPeriodic() )
+    if ( Geometry::isAllPeriodic() )
     {
-	Real sum = computeAvg(level,&Rhs, false);
-
-       const Real* dx = parent->Geom(0).CellSize();
-       Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
-
-       sum = sum / domain_vol;
-       Rhs.plus(-sum,0,1,0);
-
-       if (verbose && ParallelDescriptor::IOProcessor()) 
-          std::cout << " ... subtracting " << sum << " to ensure solvability " << std::endl;
+	Rhs.plus(-mass_offset,0,1,0);
+	if (verbose && ParallelDescriptor::IOProcessor()) 
+	    std::cout << " ... subtracting " << mass_offset << " to ensure solvability " << std::endl;
     }
 #endif
 
@@ -638,8 +631,8 @@ Gravity::solve_for_delta_phi (int                        crse_level,
       std::cout << "...                    up to fine_level = " << fine_level << std::endl;
     }
 
-    const Geometry& geom = parent->Geom(crse_level);
-    MacBndry bndry(grids[crse_level],1,geom);
+    const Geometry& crse_geom = parent->Geom(crse_level);
+    MacBndry bndry(grids[crse_level],1,crse_geom);
 
     IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
                                         : IntVect::TheZeroVector();
@@ -715,7 +708,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 
     // Subtract off RHS average (on coarse level) from all levels to ensure solvability
 
-    if (Geometry::isAllPeriodic()) {
+    if (Geometry::isAllPeriodic() && (grids[crse_level].numPts() == crse_geom.Domain().numPts())) {
        Real local_correction = 0.0;
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:local_correction)
@@ -1153,37 +1146,14 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 #if (BL_SPACEDIM == 3)
     if ( Geometry::isAllPeriodic() )
     {
-       Real sum = 0;
-       for (int lev = 0; lev < nlevs; lev++) 
-          sum += computeAvg(level+lev,Rhs_p[lev]);
-
-       const Real* dx = parent->Geom(0).CellSize();
-       Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
-
-       sum = sum / domain_vol;
-//     if (verbose && ParallelDescriptor::IOProcessor()) 
-//        std::cout << " ... current avg vs mass_offset " << sum << " " << mass_offset
-//                  << " ... diff is " << (sum-mass_offset) <<  std::endl;
-
-       Real eps = 1.e-10 * std::abs(mass_offset);
-       if (std::abs(sum - mass_offset) > eps)
-       {
-          if (ParallelDescriptor::IOProcessor()) 
-          {
-              std::cout << " ... current avg vs mass_offset " << sum << " " << mass_offset
-                        << " ... diff is " << (sum-mass_offset) <<  std::endl;
-              std::cout << " ... Gravity::actual_multilevel_solve -- total mass has changed!" << std::endl;;
-          }
-//        BoxLib::Error("Gravity::actual_multilevel_solve -- total mass has changed!");
-       }
-
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
-          std::cout << " ... subtracting average density " << mass_offset << 
-                       " from RHS at each level " << std::endl;
-
-       for (int lev = 0; lev < nlevs; lev++) {
-	   (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
-       }
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << " ... subtracting average density " << mass_offset 
+		      << " from RHS in solve at levels " 
+		      << level << " to " << level+nlevs-1 << std::endl;
+	}
+	for (int lev = 0; lev < nlevs; lev++) {
+	    (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
+	}
     }
 #endif
      
@@ -1202,25 +1172,6 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     }
      
 //  **********************************************************************************************
-
-#if (BL_SPACEDIM == 3)
-    if (Geometry::isAllPeriodic() )
-    {
-       Real sum = 0;
-       for (int lev = 0; lev < nlevs; lev++) 
-          sum += computeAvg(level+lev,Rhs_p[lev]);
-
-       const Real* dx = parent->Geom(0).CellSize();
-       Real domain_vol = grids[0].d_numPts() * dx[0] * dx[1] * dx[2];
-       sum = sum / domain_vol;
-
-       if (verbose && ParallelDescriptor::IOProcessor()) 
-          std::cout << " ... subtracting " << sum << " to ensure solvability " << std::endl;
-   
-       for (int lev = 0; lev < nlevs; lev++)  
-          (*Rhs_p[lev]).plus(-sum,0,1,0);
-    }
-#endif
 
     IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
                                    : IntVect::TheZeroVector();
@@ -2913,46 +2864,53 @@ Gravity::make_mg_bc ()
 }
 
 void
-Gravity::set_mass_offset (Real time)
+Gravity::set_mass_offset (Real time, bool multi_level)
 {
-    Real old_mass_offset = 0;
-
-    if (parent->finestLevel() > 0) old_mass_offset = mass_offset;
-
-    mass_offset = 0;
-
     const Geometry& geom = parent->Geom(0);
 
-    if (geom.isAllPeriodic()) 
-    {
-       // Note: we must loop over levels because the volWgtSum routine zeros out
-       //       crse regions under fine regions
-       for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-          Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
-          mass_offset += cs->volWgtSum("density", time);
+    if (!geom.isAllPeriodic()) {
+	mass_offset = 0.0;
+    } 
+    else {
+	Real old_mass_offset = mass_offset;
+	mass_offset = 0.0;
+
+	if (multi_level)
+	{
+	    for (int lev = 0; lev <= parent->finestLevel(); lev++) {
+		Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
+		mass_offset += cs->volWgtSum("density", time);    
+	    }
+	} 
+	else 
+	{
+	    Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
+	    mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
+	}
 
 #ifdef PARTICLES
-          if ( Castro::theDMPC() )
-             mass_offset   += Castro::theDMPC()->sumParticleMass(lev);
+	if ( Castro::theDMPC() ) {
+	    for (int lev = 0; lev <= parent->finestLevel(); lev++) {
+                mass_offset += Castro::theDMPC()->sumParticleMass(lev);
+            }
+        }
 #endif
-       }
  
-       mass_offset = mass_offset / geom.ProbSize();
-       if (verbose && ParallelDescriptor::IOProcessor()) 
-          std::cout << "Defining average density to be " << mass_offset << std::endl;
-    }
+	mass_offset = mass_offset / geom.ProbSize();
+	if (verbose && ParallelDescriptor::IOProcessor()) 
+	    std::cout << "Defining average density to be " << mass_offset << std::endl;
 
-    Real diff = std::abs(mass_offset - old_mass_offset);
-    Real eps = 1.e-10 * std::abs(old_mass_offset);
-    if (diff > eps && old_mass_offset > 0)
-    {
-       if (ParallelDescriptor::IOProcessor())
-       {
-          std::cout << " ... new vs old mass_offset " << mass_offset << " " << old_mass_offset
-                    << " ... diff is " << diff <<  std::endl;
-          std::cout << " ... Gravity::set_mass_offset -- total mass has changed!" << std::endl;;
-       }
-//     BoxLib::Error("Gravity::set_mass_offset -- total mass has changed!");
+	Real diff = std::abs(mass_offset - old_mass_offset);
+	Real eps = 1.e-10 * std::abs(old_mass_offset);
+	if (diff > eps && old_mass_offset > 0)
+	{
+	    if (ParallelDescriptor::IOProcessor())
+	    {
+	        std::cout << " ... new vs old mass_offset " << mass_offset << " " << old_mass_offset
+			  << " ... diff is " << diff <<  std::endl;
+		std::cout << " ... Gravity::set_mass_offset -- total mass has changed!" << std::endl;;
+            }
+        }
     }
 }
 

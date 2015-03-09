@@ -1567,6 +1567,10 @@ Castro::postCoarseTimeStep (Real cumtime)
     //
     // postCoarseTimeStep() is only called by level 0.
     //
+#ifdef GRAVITY
+    gravity->set_mass_offset(cumtime, 0);
+#endif
+
 #ifdef PARTICLES
     if (Castro::theDMPC() && particle_move_type == "Random")
         ParticleMoveRandom();

@@ -29,7 +29,7 @@ public:
   int NoComposite();
   int test_results_of_solves ();
   
-  void set_mass_offset(Real time);
+  void set_mass_offset(Real time, bool multi_level=true);
 
   MultiFab* get_phi_prev(int level);
   MultiFab* get_phi_curr(int level);

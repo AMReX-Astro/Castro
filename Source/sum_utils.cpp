@@ -45,7 +45,8 @@ Castro::sumDerive (const std::string& name,
 Real
 Castro::volWgtSum (const std::string& name,
                    Real               time,
-		   bool               local)
+		   bool               local,
+		   bool               finemask)
 {
     BL_PROFILE("Castro::volWgtSum()");
 
@@ -55,7 +56,7 @@ Castro::volWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    if (level < parent->finestLevel())
+    if (level < parent->finestLevel() && finemask)
     {
 	const MultiFab* mask = getLevel(level+1).build_fine_mask();
 	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);

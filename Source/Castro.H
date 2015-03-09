@@ -408,7 +408,7 @@ public:
   void time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerm, Real cur_time, Real dt);
 #endif
 
-    Real volWgtSum (const std::string& name, Real time, bool local=false);
+    Real volWgtSum (const std::string& name, Real time, bool local=false, bool finemask=true);
 
     Real volWgtSquaredSum (const std::string& name, Real time, bool local=false);
 
