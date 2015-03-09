@@ -302,6 +302,9 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
       with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
       use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
 
+      (Note: it seems that this may be used for more than just
+      density, but it is only used for tagging and the plotfile)
+      
     \item {\tt ca\_grav?fill}: These routines fill will the ghostcells
       of the gravitational acceleration grids with the gravitational
       acceleration.
