@@ -13,7 +13,6 @@ contains
                            dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                            qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                            grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                           rot,rt_l1,rt_l2,rt_h1,rt_h2, &
                            ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec
@@ -53,7 +52,7 @@ contains
     double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
+    !double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
 
     double precision dx, dy, dt
 
@@ -119,6 +118,10 @@ contains
        call bl_error("ERROR: ppm_reference_eigenvectors not implemented with radiation")
     endif
 
+    if (ppm_trace_rot == 1) then
+       call bl_error("ERROR: ppm_trace_rot not implemented with radiation")
+    endif
+    
     dtdx = dt/dx
     dtdy = dt/dy
 
@@ -131,10 +134,10 @@ contains
        allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
     endif
 
-    if (ppm_trace_rot == 1) then
-       allocate(Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
-       allocate(Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
-    endif
+    !if (ppm_trace_rot == 1) then
+    !   allocate(Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+    !   allocate(Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+    !endif
 
     !allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     !allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
@@ -203,15 +206,15 @@ contains
 
     ! if desired, do parabolic reconstruction of the rotational
     ! source -- we'll use this for the force on the velocity
-    if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-       do n = 1,2
-          call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   flatn, &
-                   Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
-       enddo
-    endif
+    !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+    !   do n = 1,2
+    !      call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
+    !               q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+    !               flatn, &
+    !               Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
+    !               ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+    !   enddo
+    !endif
 
 
     !-------------------------------------------------------------------------
@@ -309,10 +312,10 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dum = dum - halfdt*Im_r(i,j,1,1,igx)
-             dup = dup - halfdt*Im_r(i,j,1,3,igx)
-          endif
+          !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+          !   dum = dum - halfdt*Im_r(i,j,1,1,igx)
+          !   dup = dup - halfdt*Im_r(i,j,1,3,igx)
+          !endif
 
 
           ! these are analogous to the beta's from the original
@@ -397,9 +400,9 @@ contains
                 dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
              endif
 
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
-             endif
+             !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             !   dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
+             !endif
 
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
@@ -495,10 +498,10 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dum = dum - halfdt*Ip_r(i,j,1,1,igx)
-             dup = dup - halfdt*Ip_r(i,j,1,3,igx)
-          endif
+          !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+          !   dum = dum - halfdt*Ip_r(i,j,1,1,igx)
+          !   dup = dup - halfdt*Ip_r(i,j,1,3,igx)
+          !endif
 
           ! these are analogous to the beta's from the original
           ! PPM paper (except we work with rho instead of tau).
@@ -579,9 +582,9 @@ contains
                 dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
              endif
 
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
-             endif
+             !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             !   dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
+             !endif
 
              if (u < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
@@ -817,10 +820,10 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dvm = dvm - halfdt*Im_r(i,j,2,1,igy)
-             dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
-          endif
+          !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+          !   dvm = dvm - halfdt*Im_r(i,j,2,1,igy)
+          !   dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
+          !endif
 
           ! these are analogous to the beta's from the original PPM
           ! paper (except we work with rho instead of tau).  This
@@ -900,9 +903,9 @@ contains
                 du  = du  + halfdt*Im_g(i,j,2,2,igx)
              endif
 
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Im_r(i,j,2,2,igx)
-             endif
+             !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             !   du  = du  + halfdt*Im_r(i,j,2,2,igx)
+             !endif
 
              if (v > ZERO) then
                 if (ppm_reference_edge_limit == 1) then
@@ -994,10 +997,10 @@ contains
           ! if we are doing rotation tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dvm = dvm - halfdt*Ip_r(i,j,2,1,igy)
-             dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
-          endif
+          !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+          !   dvm = dvm - halfdt*Ip_r(i,j,2,1,igy)
+          !   dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
+          !endif
 
           ! these are analogous to the beta's from the original PPM
           ! paper.  This is simply (l . dq), where dq = qref - I(q)
@@ -1076,9 +1079,9 @@ contains
                 du  = du  + halfdt*Ip_g(i,j,2,2,igx)
              endif
 
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Ip_r(i,j,2,2,igx)
-             endif
+             !if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             !   du  = du  + halfdt*Ip_r(i,j,2,2,igx)
+             !endif
 
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
@@ -1170,9 +1173,9 @@ contains
        deallocate(Ip_g,Im_g)
     endif
 
-    if (ppm_trace_rot == 1) then
-       deallocate(Ip_r,Im_r)
-    endif
+    !if (ppm_trace_rot == 1) then
+    !   deallocate(Ip_r,Im_r)
+    !endif
 
   end subroutine trace_ppm_rad
 
