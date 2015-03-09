@@ -63,7 +63,7 @@ contains
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
     double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
-
+    
     double precision dtdx, dtdy
     double precision cc, csq, Clag, rho, u, v, p, ptot, rhoe, enth, cgassq
     double precision drho, du, dv, drhoe, dptot
@@ -71,7 +71,8 @@ contains
     double precision dum, dvm, dptotm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
-
+    double precision :: ptot_ref, rhoe_g_ref
+    double precision, dimension(0:ngroups-1) :: er_ref
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
 
     double precision alpham, alphap, alpha0, alphae
@@ -135,8 +136,8 @@ contains
        allocate(Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
     endif
 
-    allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
-    allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
+    !allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
+    !allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
     halfdt = HALF * dt
 
@@ -292,7 +293,7 @@ contains
           dptot   = ptot_ref   - Im(i,j,1,2,qptot)
           drhoe   = rhoe_ref   - Im(i,j,1,2,qreitot)
           drhoe_g = rhoe_g_ref - Im(i,j,1,2,QREINT)
-          der(:)  = er(:)_ref  - Im(i,j,1,2,qrad:qradhi)
+          der(:)  = er_ref(:)  - Im(i,j,1,2,qrad:qradhi)
 
           dup    = u_ref    - Im(i,j,1,3,QU)
           dptotp = ptot_ref - Im(i,j,1,3,qptot)
