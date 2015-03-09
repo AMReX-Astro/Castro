@@ -14,17 +14,16 @@ contains
                            qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                            grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                            rot,rt_l1,rt_l2,rt_h1,rt_h2, &
-                           gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                            ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec
     use bl_constants_module
     use meth_params_module, only : QRHO, QU, QV, &
-         QREINT, QPRES, QFA, QFS, QFX, &
+         QREINT, QPRES, &
          small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, &
-         ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals, &
+         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
+         ppm_flatten_before_integrals, ppm_predict_gammae, &
          npassive, qpass_map, do_grav, do_rotation
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
@@ -55,7 +54,6 @@ contains
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
     double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
 
@@ -68,14 +66,13 @@ contains
 
     double precision dtdx, dtdy
     double precision cc, csq, Clag, rho, u, v, p, ptot, rhoe, enth, cgassq
-    double precision dum, dvm, dptotm
     double precision drho, du, dv, drhoe, dptot
     double precision dup, dvp, dptotp
+    double precision dum, dvm, dptotm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: gam
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
 
     double precision alpham, alphap, alpha0, alphae
     double precision alphau, alphav
@@ -183,13 +180,13 @@ contains
     end do
 
     ! trace the gas gamma to the edge
-    if (ppm_temp_fix /= 1) then
-          call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   flatn, &
-                   Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
-       endif
+    !if (ppm_temp_fix /= 1) then
+    !      call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
+    !               q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+    !               flatn, &
+    !               Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
+    !               ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+    !   endif
 
     ! if desired, do parabolic reconstruction of the gravitational
     ! acceleration -- we'll use this for the force on the velocity
@@ -242,6 +239,7 @@ contains
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
           h_g = (p+rhoe_g) / rho
+
           ptot = q(i,j,qptot)
           rhoe = q(i,j,qreitot)
           enth = ( (rhoe+ptot)/rho )/csq
@@ -254,9 +252,6 @@ contains
           !-------------------------------------------------------------------
 
           ! set the reference state
-
-          ! *m are the jumps carried by u-c
-          ! *p are the jumps carried by u+c
           if (ppm_reference == 0 .or. &
                (ppm_reference == 1 .and. u - cc >= ZERO .and. &
                 ppm_reference_edge_limit == 0)) then
@@ -264,9 +259,11 @@ contains
              rho_ref  = rho
              u_ref    = u
 
+             p_ref      = p
+             rhoe_g_ref = rhoe_g
+
              ptot_ref = ptot
              rhoe_ref = rhoe
-             rhoe_g_ref = rhoe_g
 
              er_ref(:) = er(:)
           else
@@ -276,12 +273,17 @@ contains
              rho_ref  = Im(i,j,1,1,QRHO)
              u_ref    = Im(i,j,1,1,QU)
 
+             p_ref    = Im(i,j,1,1,QPRES)
+             rhoe_g_ref = Im(i,j,1,1,QREINT)
+
              ptot_ref = Im(i,j,1,1,qptot)
              rhoe_ref = Im(i,j,1,1,qreitot)
-             rhoe_g_ref = Im(i,j,1,1,QREINT)
 
              er_ref(:) = Im(i,j,1,1,qrad:qradhi)
           endif
+
+          ! *m are the jumps carried by u-c
+          ! *p are the jumps carried by u+c
 
           dum    = u_ref    - Im(i,j,1,1,QU)
           dptotm = ptot_ref - Im(i,j,1,1,qptot)
@@ -445,9 +447,11 @@ contains
              rho_ref  = rho
              u_ref    = u
 
+             p_ref      = p
+             rhoe_g_ref = rhoe_g
+
              ptot_ref = ptot
              rhoe_ref = rhoe
-             rhoe_g_ref = rhoe_g
 
              er_ref(:) = er(:)
           else
@@ -455,15 +459,18 @@ contains
              rho_ref  = Ip(i,j,1,3,QRHO)
              u_ref    = Ip(i,j,1,3,QU)
 
+             p_ref      = Ip(i,j,1,3,QPRES)
+             rhoe_g_ref = Ip(i,j,1,3,QREINT)
+
              ptot_ref = Ip(i,j,1,3,qptot)
              rhoe_ref = Ip(i,j,1,3,qreitot)
-             rhoe_g_ref = Ip(i,j,1,3,QREINT)
 
              er_ref(:) = Ip(i,j,1,3,qrad:qradhi)
           endif
 
           !  *m are the jumps carried by u-c
           !  *p are the jumps carried by u+c
+
           dum    = u_ref    - Ip(i,j,1,1,QU)
           dptotm = ptot_ref - Ip(i,j,1,1,qptot)
 
@@ -593,9 +600,9 @@ contains
 
                 qxm(i+1,j,QRHO)   = xi1*rho  + xi*qxm(i+1,j,QRHO)
                 qxm(i+1,j,QU)     = xi1*u    + xi*qxm(i+1,j,QU)
+                qxm(i+1,j,QV)     = xi1*v    + xi*qxm(i+1,j,QV)
                 qxm(i+1,j,QREINT) = xi1*rhoe_g + xi*qxm(i+1,j,QREINT)
                 qxm(i+1,j,QPRES)  = xi1*p    + xi*qxm(i+1,j,QPRES)
-                qxm(i+1,j,QV)     = xi1*v    + xi*qxm(i+1,j,QV)
 
                 qxm(i+1,j,qrad:qradhi) = xi1*er(:) + xi*qxm(i+1,j,qrad:qradhi)
 
@@ -643,6 +650,10 @@ contains
        end do
     end do
 
+
+    !-------------------------------------------------------------------------
+    ! Now do the passively advected quantities
+    !-------------------------------------------------------------------------
 
     ! We do all passively advected quantities in one loop
     do ipassive = 1, npassive
@@ -758,9 +769,11 @@ contains
              rho_ref  = rho
              v_ref    = v
 
+             p_ref      = p
+             rhoe_g_ref = rhoe_g
+
              ptot_ref = ptot
              rhoe_ref = rhoe
-             rhoe_g_ref = rhoe_g
 
              er_ref(:) = er(:)
           else
@@ -768,13 +781,18 @@ contains
              rho_ref  = Im(i,j,2,1,QRHO)
              v_ref    = Im(i,j,2,1,QV)
 
+             p_ref = Im(i,j,2,1,QPRES)
+             rhoe_g_ref = Im(i,j,2,1,QREINT)
+
              ptot_ref = Im(i,j,2,1,qptot)
              rhoe_ref = Im(i,j,2,1,qreitot)
-             rhoe_g_ref = Im(i,j,2,1,QREINT)
 
              er_ref(:) = Im(i,j,2,1,qrad:qradhi)
           endif
 
+          ! *m are the jumps carried by v-c
+          ! *p are the jumps carried by v+c
+          
           dvm    = v_ref    - Im(i,j,2,1,QV)
           dptotm = ptot_ref - Im(i,j,2,1,qptot)
 
@@ -803,9 +821,9 @@ contains
              dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
           endif
 
-          ! these are analogous to the beta's from the original PPM 
-          ! paper (except we work with rho instead of tau).  This 
-          ! is simply (l . dq), where dq = qref - I(q)          
+          ! these are analogous to the beta's from the original PPM
+          ! paper (except we work with rho instead of tau).  This
+          ! is simply (l . dq), where dq = qref - I(q)
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0 = drho - dptot/csq
@@ -860,7 +878,7 @@ contains
 
              ! enforce small_*
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
-             
+
              do g=0, ngroups-1
                 if (qyp(i,j,qrad+g) < ZERO) then
                    er_foo = - qyp(i,j,qrad+g)
@@ -911,12 +929,12 @@ contains
 
                 qyp(i,j,qptot)   = xi1*ptot + xi*qyp(i,j,qptot)
                 qyp(i,j,qreitot) = xi1*rhoe + xi*qyp(i,j,qreitot)
-                
+
              endif
 
           end if
 
-          !-------------------------------------------------------------------          
+          !-------------------------------------------------------------------
           ! minus state on face j+1
           !-------------------------------------------------------------------
 
@@ -928,9 +946,11 @@ contains
              rho_ref  = rho
              v_ref    = v
 
+             p_ref      = p
+             rhoe_g_ref = rhoe_g
+
              ptot_ref = ptot
              rhoe_ref = rhoe
-             rhoe_g_ref = rhoe_g
 
              er_ref(:) = er(:)
           else
@@ -938,16 +958,18 @@ contains
              rho_ref = Ip(i,j,2,3,QRHO)
              v_ref   = Ip(i,j,2,3,QV)
 
+             rhoe_g_ref = Ip(i,j,2,3,QREINT)
+             p_ref      = Ip(i,j,2,3,QPRES)             
+
              ptot_ref = Ip(i,j,2,3,qptot)
              rhoe_ref = Ip(i,j,2,3,qreitot)
-             rhoe_g_ref = Ip(i,j,2,3,QREINT)
 
              er_ref(:) = Ip(i,j,2,3,qrad:qradhi)
           endif
 
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
-          
+
           dvm    = v_ref    - Ip(i,j,2,1,QV)
           dptotm = ptot_ref - Ip(i,j,2,1,qptot)
 
@@ -976,8 +998,8 @@ contains
              dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
           endif
 
-          ! these are analogous to the beta's from the original PPM 
-          ! paper.  This is simply (l . dq), where dq = qref - I(q)          
+          ! these are analogous to the beta's from the original PPM
+          ! paper.  This is simply (l . dq), where dq = qref - I(q)
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0 = drho - dptot/csq
@@ -1021,7 +1043,7 @@ contains
           if (j .le. ihi2) then
              qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0
              qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g             
+             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
              qym(i,j+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -1032,7 +1054,7 @@ contains
 
              ! enforce small_*
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
-             
+
              do g=0, ngroups-1
                 if (qym(i,j+1,qrad+g) < ZERO) then
                    er_foo = - qym(i,j+1,qrad+g)
@@ -1083,7 +1105,7 @@ contains
 
                 qym(i,j+1,qptot)   = xi1*ptot + xi*qym(i,j+1,qptot)
                 qym(i,j+1,qreitot) = xi1*rhoe + xi*qym(i,j+1,qreitot)
-                
+
              endif
 
           end if
@@ -1100,7 +1122,7 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do i = ilo1-1, ihi1+1
-          
+
           ! plus state on face j
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
@@ -1119,7 +1141,7 @@ contains
                 qyp(i,j,n) = q(i,j,n) + HALF*xi*(Im(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
-          
+
           ! minus state on face j+1
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
@@ -1138,7 +1160,7 @@ contains
                 qym(i,j+1,n) = q(i,j,n) + HALF*xi*(Ip(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
-          
+
        enddo
     enddo
 
@@ -1150,7 +1172,7 @@ contains
     if (ppm_trace_rot == 1) then
        deallocate(Ip_r,Im_r)
     endif
-    
+
   end subroutine trace_ppm_rad
 
 end module trace_ppm_rad_module
