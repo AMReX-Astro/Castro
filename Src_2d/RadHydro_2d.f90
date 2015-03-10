@@ -544,7 +544,7 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map
+                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -701,19 +701,19 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
 !           convert back to non-conservation form
         rhotmp =  rrnewr
         qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
-        qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) + hdt*grav(i,j,1)
-        qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) + hdt*grav(i,j,2)
+        qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) 
+        qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
         rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
         qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
         qpo(i,j,QPRES ) =  pnewr            + hdt*srcQ(i,j,QPRES)
         qpo(i,j,qrad:qradhi) = ernewr(:)
         qpo(i,j,qptot  ) = sum(lambda*ernewr) + qpo(i,j,QPRES)
         qpo(i,j,qreitot) = sum(qpo(i,j,qrad:qradhi)) + qpo(i,j,QREINT)
-
+        
         rhotmp =  rrnewl
         qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
-        qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) + hdt*grav(i,j,1)
-        qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) + hdt*grav(i,j,2)
+        qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) 
+        qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
         rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
         qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
         qmo(i+1,j,QPRES ) = pnewl             + hdt*srcQ(i,j,QPRES)
@@ -721,6 +721,17 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i+1,j,qptot  ) = sum(lambda*ernewl) + qmo(i+1,j,QPRES)
         qmo(i+1,j,qreitot) = sum(qmo(i+1,j,qrad:qradhi)) + qmo(i+1,j,QREINT)
 
+        ! if ppm_trace_grav == 1, then we already added the
+        ! piecewise parabolic traced gravity to the normal edge
+        ! states
+        if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+           qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,1)
+           qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,2)
+
+           qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*grav(i,j,1)
+           qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*grav(i,j,2)
+        endif
+        
      enddo
   enddo
 
@@ -748,7 +759,7 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map
+                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -923,8 +934,8 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         !           Convert back to non-conservation form
         rhotmp = rrnewr
         qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
-        qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU)  + hdt*grav(i,j,1)
-        qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  + hdt*grav(i,j,2)
+        qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU) 
+        qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV) 
         rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
         qpo(i,j,QREINT)= renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
         qpo(i,j,QPRES) =  pnewr            + hdt*srcQ(i,j,QPRES)
@@ -935,8 +946,8 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         !           Convert back to non-conservation form
         rhotmp = rrnewl
         qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
-        qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU)  + hdt*grav(i,j,1)
-        qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV)  + hdt*grav(i,j,2)
+        qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
+        qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
         rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
         qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
         qmo(i,j+1,QPRES) = pnewl +hdt*srcQ(i,j,QPRES)
@@ -944,6 +955,17 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i,j+1,qptot)   = sum(lambda*ernewl) + qmo(i,j+1,QPRES)
         qmo(i,j+1,qreitot) = sum(qmo(i,j+1,qrad:qradhi)) + qmo(i,j+1,QREINT)
 
+        ! if ppm_trace_grav == 1, then we already added the
+        ! piecewise parabolic traced gravity to the normal edge
+        ! states
+        if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+           qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,1)
+           qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,2)
+
+           qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*grav(i,j,1)
+           qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*grav(i,j,2)
+        endif
+        
      enddo
   enddo
 
