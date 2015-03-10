@@ -488,103 +488,6 @@ c exch contains temp on input:
       enddo
       end
 
-      subroutine extrp1(frhoes,
-     @  dims(reg),
-     @  frhoem, exch, state,
-     @  dims(sb), dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 exch(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 dt
-      integer i
-      do i = regl0, regh0
-         frhoes(i) = frhoem(i) - dt * exch(i)
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp3(exch,
-     @  dims(reg),
-     @  er, fkp, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, t, t3
-      integer i, it
-      do i = regl0, regh0
-         b = state(i,DEN)
-         t = max(exch(i), tiny)
-         a = fkp(i) * 4.d0 * sigma
-         b = b * cv(i) / dt
-         d = b * t + fkp(i) * c * er(i)
-         do it = 1, 10
-            t3 = t**3
-            t = t - (t * (a * t3 + b) - d) / (4.d0 * a * t3 + b)
-         enddo
-         exch(i) = fkp(i) *
-     @      (4.d0 * sigma * t**4 - c * er(i))
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp4(exch,
-     @  dims(reg),
-     @  er, fkp, kpen, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 kpen(0:1)
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, e, en, t, t3, tn
-      integer i, it
-      en = kpen(0)
-      do i = regl0, regh0
-         b = state(i,DEN)
-         t = max(exch(i), tiny)
-         e = fkp(i) * t**en
-         a = e * 4.d0 * sigma
-         e = e * c * er(i)
-         b = b * cv(i) / dt
-         d = b * t
-         do it = 1, 20
-            tn = t**(-en)
-            t3 = t**3 * tn
-            tn = t - (t * (a * t3 + b) - e * tn - d) /
-     @         ((4.d0 - en) * a * t3 + b + en * e * tn / t)
-            if (tn .le. tiny) then
-               t = 0.5d0 * t
-            else
-               t = tn
-            endif
-         enddo
-         exch(i) = (a * t**4 - e) * t**(-en)
-      enddo
-      end
-
       subroutine ceta2(dims(reg),
      @  eta, etainv, dims(etab),
      @  frho, dims(sb),
@@ -713,51 +616,6 @@ c         eta(i) = 1.d0 - underr * (1.d0 - eta(i))
          absres = max(absres, chg)
          relres = max(relres, chg / (tot + tiny))
       enddo
-      end
-
-c#define PRINTMAX
-
-c convergence check for multigroup
-      subroutine cconv(relres, absres, frhoes, frhoess,
-     +   dims(fbox),
-     +   dims(reg))
-      implicit none
-      integer dimdec(fbox)
-      integer dimdec(reg)
-      real*8 frhoes(dimv(fbox))
-      real*8 frhoess(dimv(fbox))
-      real*8 relres, absres
-      real*8 chg, tot
-      integer i
-
-#ifdef PRINTMAX
-      integer isave
-      isave = regl0 - 1
-#endif
-
-      do i = regl0, regh0
-
-         chg = abs(frhoes(i) - frhoess(i))
-         tot = abs(frhoes(i))
-
-#ifdef PRINTMAX
-         if (chg / (tot + tiny) .gt. relres) then
-            isave = i
-         endif
-#endif
-
-         absres = max(absres, chg)
-         relres = max(relres, chg / (tot + tiny))
-
-      enddo
-
-#ifdef PRINTMAX
-      if (isave .ge. regl0) then
-         i = isave
-         print *, "MAX IS ", i, abs(frhoes(i) - frhoess(i)), abs(frhoes(i))
-      endif
-#endif
-
       end
 
 c nonconservative form based on delta B
@@ -1006,4 +864,64 @@ c *********************************
       integer idim, irat(0:0)
       fine(fboxl0) = crse(cboxl0)
       end
+
+      subroutine bextrp(f, fboxl0, fboxh0, regl0, regh0)
+      implicit none
+      integer fboxl0, fboxh0
+      integer  regl0,  regh0
+      real*8 f(fboxl0:fboxh0)
+      integer i
+
+c     i direction first:
+      i = regl0
+      f(i-1) = 2.d0 * f(i) - f(i+1)
+      i = regh0
+      f(i+1) = 2.d0 * f(i) - f(i-1)
+      end subroutine bextrp
+
+
+      subroutine lbcoefna(bcoef, 
+     @      bcgrp, bboxl0, bboxh0, 
+     @      regl0, regh0, 
+     @      spec, sboxl0, sboxh0, 
+     @      idim)
+      implicit none
+      integer idim
+      integer  regl0,  regh0
+      integer bboxl0, bboxh0
+      integer sboxl0, sboxh0
+      real*8 bcoef(bboxl0:bboxh0)
+      real*8 bcgrp(bboxl0:bboxh0)
+      real*8 spec(sboxl0:sboxh0)
+      integer i
+      if (idim .eq. 0) then
+         do i = regl0, regh0
+            bcoef(i) = bcoef(i) 
+     @          + 0.5d0 * (spec(i-1) + spec(i)) * bcgrp(i)
+         enddo
+      endif
+      end subroutine lbcoefna
+
+
+      subroutine ljupna(jnew, jboxl0, jboxh0, 
+     @      regl0, regh0, 
+     @      spec, sboxl0, sboxh0, 
+     @      accel, aboxl0, aboxh0, 
+     @      nTotal)
+      implicit none
+      integer nTotal
+      integer  regl0,  regh0
+      integer jboxl0, jboxh0
+      integer sboxl0, sboxh0
+      integer aboxl0, aboxh0
+      real*8 jnew(jboxl0:jboxh0, 0:nTotal-1)
+      real*8 spec(sboxl0:sboxh0, 0:nTotal-1)
+      real*8 accel(aboxl0:aboxh0)
+      integer i, n
+      do n = 0, nTotal - 1
+      do i = regl0, regh0
+         jnew(i,n) = jnew(i,n) + spec(i,n) * accel(i)
+      enddo
+      enddo
+      end subroutine ljupna
 

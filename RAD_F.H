@@ -19,38 +19,27 @@
 #  define   FORT_SCGRD3  scgrd3_
 #  define   FORT_LRHS    lrhs_
 #  define   FORT_ANATW2  anatw2_
+#  define   FORT_CFRHOE  cfrhoe_
 #  define   FORT_GTEMP   gtemp_
 #  define   FORT_GCV     gcv_
-#  define   FORT_CFRHOE  cfrhoe_
 #  define   FORT_CEXCH   cexch_
-#  define   FORT_EXTRP1  extrp1_
-#  define   FORT_EXTRP3  extrp3_
-#  define   FORT_EXTRP4  extrp4_
 #  define   FORT_CETA2   ceta2_
 #  define   FORT_CEUP    ceup_
 #  define   FORT_CEUPDTERM    ceupdterm_
-#  define   FORT_CCONV   cconv_
 #  define   FORT_NCEUP   nceup_
 #  define   FORT_CETOT   cetot_
 #  define   FORT_FKPN    fkpn_
 #  define   FORT_ROSSE1  rosse1_
 #  define   FORT_ROSSE1S  rosse1s_
 #  define   FORT_NFLOOR  nfloor_
+#  define   FORT_LACOEFMGFLD  lacoefmgfld_
+#  define   FORT_RFFACE  rfface_
 #  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
-#  define   FORT_CCONV_ER cconv_er_
-#  define   FORT_CCONV_ER2 cconv_er2_
-#  define   FORT_GET_SPEC getspec_
 #  define   FORT_BEXTRP bextrp_
 #  define   FORT_LBCOEFNA lbcoefna_
-#  define   FORT_LRHSNA lrhsna_
 #  define   FORT_LJUPNA ljupna_
-#  define   FORT_RFFACE  rfface_
-// <MGFLD>
-#  define   FORT_CETOTMGFLD   cetotmgfld_
-#  define   FORT_LACOEFMGFLD  lacoefmgfld_
-// </ MGFLD>
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
@@ -68,38 +57,27 @@
 #  define   FORT_SCGRD3  SCGRD3
 #  define   FORT_LRHS    LRHS
 #  define   FORT_ANATW2  ANATW2
+#  define   FORT_CFRHOE  CFRHOE
 #  define   FORT_GTEMP   GTEMP
 #  define   FORT_GCV     GCV
-#  define   FORT_CFRHOE  CFRHOE
 #  define   FORT_CEXCH   CEXCH
-#  define   FORT_EXTRP1  EXTRP1
-#  define   FORT_EXTRP3  EXTRP3
-#  define   FORT_EXTRP4  EXTRP4
 #  define   FORT_CETA2   CETA2
 #  define   FORT_CEUP    CEUP
 #  define   FORT_CEUPDTERM    CEUPDTERM
-#  define   FORT_CCONV   CCONV
 #  define   FORT_NCEUP   NCEUP
 #  define   FORT_CETOT   CETOT
 #  define   FORT_FKPN    FKPN
 #  define   FORT_ROSSE1  ROSSE1
 #  define   FORT_ROSSE1S  ROSSE1S
 #  define   FORT_NFLOOR  NFLOOR
+#  define   FORT_LACOEFMGFLD  LACOEFMGFLD
+#  define   FORT_RFFACE  RFFACE
 #  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
-#  define   FORT_CCONV_ER CCONV_ER
-#  define   FORT_CCONV_ER2 CCONV_ER2
-#  define   FORT_GET_SPEC GETSPEC
 #  define   FORT_BEXTRP BEXTRP
 #  define   FORT_LBCOEFNA LBCOEFNA
-#  define   FORT_LRHSNA LRHSNA
 #  define   FORT_LJUPNA LJUPNA
-#  define   FORT_RFFACE  RFFACE
-// <MGFLD>
-#  define   FORT_CETOTMGFLD   CETOTMGFLD
-#  define   FORT_LACOEFMGFLD  LACOEFMGFLD
-// </ MGFLD>
 
 #endif
 
@@ -858,19 +836,6 @@ extern "C" {
 		  Real* fkp, intS,
 		  const Real& sigma, const Real& c);
 
-  void FORT_EXTRP1(Real* frhoes, intS,
-		   Real* frhoem, Real* exch, Real* state, intS,
-		   const Real& delta_t);
-
-  void FORT_EXTRP3(Real* exch, intS,
-		   Real* er, Real* fkp, Real* cv, Real* state, intS,
-		   const Real& sigma, const Real& c, const Real& delta_t);
-
-  void FORT_EXTRP4(Real* exch, intS,
-		   Real* er, Real* fkp, Real* kpen, Real* cv,
-                   Real* state, intS,
-		   const Real& sigma, const Real& c, const Real& delta_t);
-
   void FORT_CETA2(intS,
 		  Real* eta, Real* etainv, intS,
 		  Real* frho, intS, 
@@ -894,9 +859,6 @@ extern "C" {
 		      Real* dflux_old, Real* dflux_new,
 		      Real* exch, Real* dterm, 
 		      const Real& delta_t, const Real& theta);
-
-  void FORT_CCONV(Real& relres, Real& absres,
-		  Real* frhoes, Real* frhoess, intS, intS);
 
   void FORT_NCEUP(intS, Real& relres, Real& absres,
 		  Real* frhoes, intS,
@@ -935,19 +897,20 @@ extern "C" {
   void FORT_NFLOOR(Real* dest, intS, intS,
 		   int& nflr, const Real& flr, const int& nvar);
 
+  void FORT_LACOEFMGFLD(Real* a, intS, intS,
+			Real* kappa, intS,
+			Real* r, Real* s,
+			const Real& delta_t, const Real& c);
+
+  void FORT_RFFACE(Real* fine, intS, Real* cres, intS,
+                   const int& idim, const int* irat);
+
   void FORT_RADBNDRY(Real* bf, intS, intS,
 		     const Real* dx, const Real* xlo, const Real& time,
                      const int& dir, const int& face);
 
   void FORT_RADBNDRY2(Real* bf, intS, int* tfab, intS,
 		      const Real* dx, const Real* xlo, const Real& time);
-
-  // <MGFLD>
-  void FORT_LACOEFMGFLD(Real* a, intS, intS,
-			Real* kappa, intS,
-			Real* r, Real* s,
-			const Real& delta_t, const Real& c);
-  // </ MGFLD>
 
   void FORT_BEXTRP(Real* f, intS, intS);
 
@@ -963,10 +926,6 @@ extern "C" {
                    Real* spec, intS,
                    Real* accel, intS,
 		   const int& nTotal);
-
-
-  void FORT_RFFACE(Real* fine, intS, Real* cres, intS,
-                   const int& idim, const int* irat);
 };
 
 #endif

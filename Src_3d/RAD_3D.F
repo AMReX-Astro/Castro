@@ -942,115 +942,6 @@ c exch contains temp on input:
       enddo
       end
 
-      subroutine extrp1(frhoes,
-     @  dims(reg),
-     @  frhoem, exch, state,
-     @  dims(sb), dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 exch(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 dt
-      integer i, j, k
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               frhoes(i,j,k) = frhoem(i,j,k) - dt * exch(i,j,k)
-            enddo
-         enddo
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp3(exch,
-     @  dims(reg),
-     @  er, fkp, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, t, t3
-      integer i, j, k, it
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               b = state(i,j,k,DEN)
-               t = max(exch(i,j,k), tiny)
-               a = fkp(i,j,k) * 4.d0 * sigma
-               b = b * cv(i,j,k) / dt
-               d = b * t + fkp(i,j,k) * c * er(i,j,k)
-               do it = 1, 10
-                  t3 = t**3
-                  t = t - (t * (a * t3 + b) - d) / (4.d0 * a * t3 + b)
-               enddo
-               exch(i,j,k) = fkp(i,j,k) *
-     @            (4.d0 * sigma * t**4 - c * er(i,j,k))
-            enddo
-         enddo
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp4(exch,
-     @  dims(reg),
-     @  er, fkp, kpen, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 kpen(0:1)
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, e, en, t, t3, tn
-      integer i, j, k, it
-      en = kpen(0)
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               b = state(i,j,k,DEN)
-               t = max(exch(i,j,k), tiny)
-               e = fkp(i,j,k) * t**en
-               a = e * 4.d0 * sigma
-               e = e * c * er(i,j,k)
-               b = b * cv(i,j,k) / dt
-               d = b * t
-               do it = 1, 20
-                  tn = t**(-en)
-                  t3 = t**3 * tn
-                  tn = t - (t * (a * t3 + b) - e * tn - d) /
-     @               ((4.d0 - en) * a * t3 + b + en * e * tn / t)
-                  if (tn .le. tiny) then
-                     t = 0.5d0 * t
-                  else
-                     t = tn
-                  endif
-               enddo
-               exch(i,j,k) = (a * t**4 - e) * t**(-en)
-            enddo
-         enddo
-      enddo
-      end
-
       subroutine ceta2(dims(reg),
      @  eta, etainv, dims(etab),
      @  frho, dims(sb),
@@ -1186,34 +1077,6 @@ c               eta(i,j,k) = 1.d0 - underr * (1.d0 - eta(i,j,k))
                frhoes(i,j,k) = tmp
                absres = max(absres, chg)
                relres = max(relres, chg / (tot + tiny))
-            enddo
-         enddo
-      enddo
-      end
-
-c convergence check for multigroup
-      subroutine cconv(relres, absres, frhoes, frhoess,
-     @   dims(fbox),
-     @   dims(reg))
-      implicit none
-      integer dimdec(fbox)
-      integer dimdec(reg)
-      real*8 frhoes(dimv(fbox))
-      real*8 frhoess(dimv(fbox))
-      real*8 relres, absres
-      real*8 chg, tot
-      integer i, j, k
-
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-
-               chg = abs(frhoes(i,j,k) - frhoess(i,j,k))
-               tot = abs(frhoes(i,j,k))
-
-               absres = max(absres, chg)
-               relres = max(relres, chg / (tot + tiny))
-
             enddo
          enddo
       enddo
@@ -1522,3 +1385,124 @@ c *********************************
       endif
       end
 
+
+      subroutine bextrp(
+     @ f, fboxl0, fboxl1, fboxl2, fboxh0, fboxh1, fboxh2,
+     @ regl0, regl1, regl2, regh0, regh1, regh2)
+
+      implicit none
+      integer fboxl0, fboxl1, fboxl2, fboxh0, fboxh1, fboxh2
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      real*8 f(fboxl0:fboxh0,fboxl1:fboxh1,fboxl2:fboxh2)
+      integer i, j, k
+
+c     i direction first:
+      do k = regl2, regh2
+         do j = regl1, regh1
+            i = regl0
+            f(i-1,j,k) = 2.d0 * f(i,j,k) - f(i+1,j,k)
+            i = regh0
+            f(i+1,j,k) = 2.d0 * f(i,j,k) - f(i-1,j,k)
+         enddo
+      enddo
+      
+c     j direction second, including edges:
+      do k = regl2, regh2
+         do i = regl0 - 1, regh0 + 1
+            j = regl1
+            f(i,j-1,k) = 2.d0 * f(i,j,k) - f(i,j+1,k)
+            j = regh1
+            f(i,j+1,k) = 2.d0 * f(i,j,k) - f(i,j-1,k)
+         enddo
+      enddo
+      
+c     k direction third, including corners:
+      do j = regl1 - 1, regh1 + 1
+         do i = regl0 - 1, regh0 + 1
+            k = regl2
+            f(i,j,k-1) = 2.d0 * f(i,j,k) - f(i,j,k+1)
+            k = regh2
+            f(i,j,k+1) = 2.d0 * f(i,j,k) - f(i,j,k-1)
+         enddo
+      enddo
+      
+c   corner results are the same whichever direction we extrapolate first
+      end subroutine bextrp
+
+
+      subroutine lbcoefna(bcoef, 
+     @      bcgrp, bboxl0, bboxl1, bboxl2, bboxh0, bboxh1, bboxh2, 
+     @      regl0, regl1, regl2, regh0, regh1, regh2, 
+     @      spec, sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2, 
+     @      idim)
+
+      implicit none
+      integer idim
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      integer bboxl0, bboxl1, bboxl2, bboxh0, bboxh1, bboxh2
+      integer sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2
+      real*8 bcoef(bboxl0:bboxh0,bboxl1:bboxh1,bboxl2:bboxh2)
+      real*8 bcgrp(bboxl0:bboxh0,bboxl1:bboxh1,bboxl2:bboxh2)
+      real*8 spec(sboxl0:sboxh0,sboxl1:sboxh1,sboxl2:sboxh2)
+      integer i, j, k
+      if (idim .eq. 0) then
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @         + 0.5d0 * (spec(i-1,j,k) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      else if (idim .eq. 1) then
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @          + 0.5d0 * (spec(i,j-1,k) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      else
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @          + 0.5d0 * (spec(i,j,k-1) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      endif
+
+      end subroutine lbcoefna
+
+
+      subroutine ljupna(
+     @      jnew, jboxl0, jboxl1, jboxl2, jboxh0, jboxh1, jboxh2, 
+     @      regl0, regl1, regl2, regh0, regh1, regh2, 
+     @      spec, sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2, 
+     @      accel, aboxl0, aboxl1, aboxl2, aboxh0, aboxh1, aboxh2, 
+     @      nTotal)
+
+      implicit none
+      integer nTotal
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      integer jboxl0, jboxl1, jboxl2, jboxh0, jboxh1, jboxh2
+      integer sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2
+      integer aboxl0, aboxl1, aboxl2, aboxh0, aboxh1, aboxh2
+      real*8 jnew(jboxl0:jboxh0,jboxl1:jboxh1,jboxl2:jboxh2,0:nTotal-1)
+      real*8 spec(sboxl0:sboxh0,sboxl1:sboxh1,sboxl2:sboxh2,0:nTotal-1)
+      real*8 accel(aboxl0:aboxh0,aboxl1:aboxh1,aboxl2:aboxh2)
+
+      integer i, j, k, n
+      do n = 0, nTotal - 1
+      do k = regl2, regh2
+      do j = regl1, regh1
+      do i = regl0, regh0
+         jnew(i,j,k,n) = jnew(i,j,k,n) + spec(i,j,k,n) * accel(i,j,k)
+      enddo
+      enddo
+      enddo
+      enddo
+
+      end subroutine ljupna

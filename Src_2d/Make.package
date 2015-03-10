@@ -9,7 +9,7 @@ F$(CA_BASE)_sources += RAD_$(DIM)D.F HABEC_$(DIM)D.F
 
 
 f90$(CA_BASE)_sources += RadDerive_$(DIM)d.f90 \
-                         RadN_$(DIM)d.f90 SGFLD_$(DIM)d.f90 \
+                         SGFLD_$(DIM)d.f90 \
                          RadHydro_$(DIM)d.f90 riemann_rad_$(DIM)d.f90 trace_ppm_rad_$(DIM)d.f90 \
                          MGFLD_$(DIM)d.f90 \
                          RadEOS_$(DIM)d.f90 \
