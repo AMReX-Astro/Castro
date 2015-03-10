@@ -26,6 +26,9 @@ class RadSolve {
   void levelBndry(MGRadBndry& mgbd, const int comp);
 
   void cellCenteredApplyMetrics(int level, MultiFab& acoefs);
+  static void getCellCenterMetric(const Geometry& geom, const Box& reg, Array<Real>& r, Array<Real>& s);
+  static void getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
+			    Array<Real>& r, Array<Real>& s);
 
   void setLevelACoeffs(int level, const MultiFab &a);
   void setLevelBCoeffs(int level, const MultiFab &b, int dir);
@@ -34,12 +37,6 @@ class RadSolve {
   void levelACoeffs(int level,
 		    MultiFab& fkp, MultiFab& eta, MultiFab& etainv,
 		    Real c, Real delta_t, Real theta);
-
-  void computeBCoeffs(MultiFab& bcoefs, int idim,
-                      MultiFab& kappa_r, int kcomp,
-                      MultiFab& Erborder, int igroup,
-                      Real c, int limiter,
-                      const Geometry& geom);
 
   void levelBCoeffs(int level,
                     Tuple<MultiFab, BL_SPACEDIM>& lambda,

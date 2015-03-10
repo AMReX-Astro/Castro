@@ -16,10 +16,6 @@
 #  define   FORT_SACOEF  sacoef_
 #  define   FORT_LACOEF  lacoef_
 #  define   FORT_KAVG    kavg_
-#  define   FORT_BCLIM0  bclim0_
-#  define   FORT_BCLIM1  bclim1_
-#  define   FORT_BCLIM2  bclim2_
-#  define   FORT_BCLIM3  bclim3_
 #  define   FORT_BCLIM   bclim_
 #  define   FORT_FLXLIM  flxlim_
 #  define   FORT_EDDFAC  eddfac_
@@ -75,10 +71,6 @@
 #  define   FORT_SACOEF  SACOEF
 #  define   FORT_LACOEF  LACOEF
 #  define   FORT_KAVG    KAVG
-#  define   FORT_BCLIM0  BCLIM0
-#  define   FORT_BCLIM1  BCLIM1
-#  define   FORT_BCLIM2  BCLIM2
-#  define   FORT_BCLIM3  BCLIM3
 #  define   FORT_BCLIM   BCLIM
 #  define   FORT_FLXLIM  FLXLIM
 #  define   FORT_EDDFAC  EDDFAC
@@ -832,26 +824,6 @@ extern "C" {
 		   const Real& c, const Real& dt, const Real& theta);
 
   Real FORT_KAVG(const Real& a, const Real& b, const Real& d, const int& iopt);
-
-  void FORT_BCLIM0(Real* bcoefs, intS, intS, const int&,
-		   Real* kappa_r, intS, Real* q, Real* r, Real* s,
-		   const Real& c, const Real* dx);
-
-  void FORT_BCLIM1(Real* bcoefs, intS, intS, const int&,
-		   Real* kappa_r, intS, Real* Er, Real* q, Real* r, Real* s,
-		   const Real& c, const Real* dx, const int& limiter);
-
-  void FORT_BCLIM2(Real* bcoefs, intS, intS, const int&,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
-		   Real* q, Real* r, Real* s,
-		   const Real& c, const Real* dx, const int& limiter);
-
-  void FORT_BCLIM3(Real* bcoefs, intS, intS, const int&,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
-		   Real* q, Real* r, Real* s,
-		   const Real& c, const Real* dx, const int& limiter);
 
   void FORT_BCLIM(Real* bcoefs, Real* lambda, intS, intS, const int& idim,
                   Real* kappa_r, intS,
