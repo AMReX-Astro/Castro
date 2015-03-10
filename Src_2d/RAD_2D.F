@@ -844,17 +844,18 @@ c construct coefficients:
       subroutine scgrd2(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, d, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), d, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 d(dimv(kbox))
+      real*8 d(dimv(dbox))
       real*8 dx(2)
       real*8 kavg
       integer i, j
@@ -985,17 +986,18 @@ c construct coefficients:
       subroutine scgrd3(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, d, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), d, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 d(dimv(kbox))
+      real*8 d(dimv(dbox))
       real*8 dx(2)
       real*8 kavg
       integer i, j

@@ -1329,18 +1329,19 @@ c construct coefficients:
       subroutine scgrd2(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, da, db, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), da, db, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 da(dimv(kbox))
-      real*8 db(dimv(kbox))
+      real*8 da(dimv(dbox))
+      real*8 db(dimv(dbox))
       real*8 dx(3)
       real*8 kavg
       integer i, j, k
@@ -1669,20 +1670,25 @@ c     gradient assembly
       subroutine scgrd3(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), da, db, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 dx(1)
+      real*8 da(dimv(dbox))
+      real*8 db(dimv(dbox))
+      real*8 dx(3)
       real*8 kavg
       integer i
       real*8 kap
+      print *, "scgrd3 not implemented in 3d"
+      stop
       end
 
       subroutine lrhs(rhs,

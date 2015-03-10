@@ -866,13 +866,23 @@ extern "C" {
 		   Real* kappa_r, intS, Real* Er, const Real* dx);
 
   void FORT_SCGRD2(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
+		   Real* kappa_r, intS, Real* Er, 
+#if (BL_SPACEDIM >= 2)
+		   intS, Real* dtmp1, 
+#endif
+#if (BL_SPACEDIM == 3)
+		   Real* dtmp2,
+#endif
                    const Real* dx);
 
   void FORT_SCGRD3(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
+		   Real* kappa_r, intS, Real* Er, 
+#if (BL_SPACEDIM >= 2)
+		   intS, Real* dtmp1, 
+#endif
+#if (BL_SPACEDIM == 3)
+		   Real* dtmp2,
+#endif
                    const Real* dx);
 
   void FORT_LRHS(Real* rhs, intS, intS,

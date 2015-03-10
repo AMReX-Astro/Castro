@@ -2154,8 +2154,6 @@ void Radiation::scaledGradient(int level,
                                int limiter, int nGrow_Er, int Rcomp)
 {
   BL_PROFILE("Radiation::scaledGradient");
-  const BoxArray& grids = parent->boxArray(level);
-
   BL_ASSERT(kappa_r.nGrow() == 1);
 
   int Ercomp = igroup;
@@ -2163,6 +2161,7 @@ void Radiation::scaledGradient(int level,
   MultiFab Erbtmp;
   if (nGrow_Er == 0) { // default value
     if (limiter > 0) {
+      const BoxArray& grids = parent->boxArray(level);
       Erbtmp.define(grids,1,1,Fab_allocate);
       Erbtmp.setVal(-1.0);
       MultiFab::Copy(Erbtmp, Er, igroup, 0, 1, 0);
@@ -2210,22 +2209,34 @@ void Radiation::scaledGradient(int level,
 	      }
 	      else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
-		  dtmp.resize(BoxLib::grow(reg,1), BL_SPACEDIM - 1);
+		  const Box& dbox = BoxLib::grow(reg,1);
+		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  FORT_SCGRD2(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
 			      idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-			      D_DECL(Erborder[mfi].dataPtr(Ercomp),
-				     dtmp.dataPtr(0), dtmp.dataPtr(1)),
+			      Erborder[mfi].dataPtr(Ercomp),
+#if (BL_SPACEDIM >= 2)
+			      dimlist(dbox), dtmp.dataPtr(0), 
+#endif
+#if (BL_SPACEDIM == 3)
+			      dtmp.dataPtr(1),
+#endif
 			      dx);
 	      }
 	      else {
 #if (BL_SPACEDIM >= 2)
-		  dtmp.resize(BoxLib::grow(reg,1), BL_SPACEDIM - 1);
+		  const Box& dbox = BoxLib::grow(reg,1);
+		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  FORT_SCGRD3(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
 			      idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-			      D_DECL(Erborder[mfi].dataPtr(Ercomp),
-				     dtmp.dataPtr(0), dtmp.dataPtr(1)),
+			      Erborder[mfi].dataPtr(Ercomp),
+#if (BL_SPACEDIM >= 2)
+			      dimlist(dbox), dtmp.dataPtr(0), 
+#endif
+#if (BL_SPACEDIM == 3)
+			      dtmp.dataPtr(1),
+#endif
 			      dx);
 	      }
 	  }
