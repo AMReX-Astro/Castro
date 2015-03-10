@@ -230,9 +230,9 @@ c in the 3D source only to enable the code to link.
       integer dimdec(abox)
       integer dimdec(reg)
       real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
+      real*8 fkp(dimv(abox))
+      real*8 eta(dimv(abox))
+      real*8 etainv(dimv(abox))
       real*8 r(regl0:regh0)
       real*8 s(regl1:regh1)
       real*8 c, dt, theta

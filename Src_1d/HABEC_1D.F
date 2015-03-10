@@ -1006,7 +1006,7 @@ c Right face of grid
       end
 
       subroutine setabecflux(
-     &     dir,
+     &     dims(reg), dir,
      &     density, dims(density),
      &     dcoef, dims(dcoef),
      &     beta,
@@ -1014,6 +1014,7 @@ c Right face of grid
      &     flux, dims(flux))
 
       implicit none
+      integer dimdec(reg)
       integer dimdec(density)
       integer dimdec(dcoef)
       integer dimdec(flux)
@@ -1031,7 +1032,7 @@ c...     x-direction
 
          fac = - beta / dx(1)
 
-         do i = fluxl0,fluxh0
+         do i = regl0,regh0
             flux(i) = dcoef(i) * (density(i) - density(i-1)) * fac
          end do
 
