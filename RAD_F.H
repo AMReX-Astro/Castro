@@ -7,13 +7,8 @@
 #ifdef BL_FORT_USE_UNDERSCORE
 #  define   FORT_SETLAYOUT setlayout_
 #  define   FORT_MULTRS  multrs_
-#  define   FORT_DIVR    divr_
-#  define   FORT_DIVRS   divrs_
 #  define   FORT_SPHC    sphc_
 #  define   FORT_SPHE    sphe_
-#  define   FORT_MACOEF  macoef_
-#  define   FORT_MRHS    mrhs_
-#  define   FORT_SACOEF  sacoef_
 #  define   FORT_LACOEF  lacoef_
 #  define   FORT_KAVG    kavg_
 #  define   FORT_BCLIM   bclim_
@@ -32,7 +27,6 @@
 #  define   FORT_EXTRP3  extrp3_
 #  define   FORT_EXTRP4  extrp4_
 #  define   FORT_CETA2   ceta2_
-#  define   FORT_SSUP    ssup_
 #  define   FORT_CEUP    ceup_
 #  define   FORT_CEUPDTERM    ceupdterm_
 #  define   FORT_CCONV   cconv_
@@ -62,13 +56,8 @@
 
 #  define   FORT_SETLAYOUT SETLAYOUT
 #  define   FORT_MULTRS  MULTRS
-#  define   FORT_DIVR    DIVR
-#  define   FORT_DIVRS   DIVRS
 #  define   FORT_SPHC    SPHC
 #  define   FORT_SPHE    SPHE
-#  define   FORT_MACOEF  MACOEF
-#  define   FORT_MRHS    MRHS
-#  define   FORT_SACOEF  SACOEF
 #  define   FORT_LACOEF  LACOEF
 #  define   FORT_KAVG    KAVG
 #  define   FORT_BCLIM   BCLIM
@@ -87,7 +76,6 @@
 #  define   FORT_EXTRP3  EXTRP3
 #  define   FORT_EXTRP4  EXTRP4
 #  define   FORT_CETA2   CETA2
-#  define   FORT_SSUP    SSUP
 #  define   FORT_CEUP    CEUP
 #  define   FORT_CEUPDTERM    CEUPDTERM
 #  define   FORT_CCONV   CCONV
@@ -797,26 +785,9 @@ extern "C" {
 
   void FORT_MULTRS(Real* d, intS, intS, Real* r, Real* s);
 
-  void FORT_DIVR(Real* d, intS, intS, Real* r);
-
-  void FORT_DIVRS(Real* d, intS, intS, Real* r, Real* s);
-
   void FORT_SPHC(Real* r, Real* s, intS, const Real* dx);
 
   void FORT_SPHE(Real* r, Real* s, const int& idim, intS, const Real* dx);
-
-  void FORT_MACOEF(Real* acoefs, intS, intS,
-		   Real* fkp, Real* r, Real* s, const Real& c);
-
-  void FORT_MRHS(Real* rhs, intS, intS,
-		 Real* temp, Real* fkp,
-		 Real* Ert, Real* r, Real* s,
-		 const Real& sigma);
-
-  void FORT_SACOEF(Real* acoefs, intS, intS,
-		   Real* fkp, Real* etainv,
-		   Real* r, Real* s,
-		   const Real& c, const Real& dt);
 
   void FORT_LACOEF(Real* acoefs, intS, intS,
 		   Real* fkp, Real* eta, Real* etainv,
@@ -909,10 +880,6 @@ extern "C" {
 		  Real* er, intS,
 		  const Real& dT, const Real& delta_t, const Real& sigma,
 		  const Real& c, const Real& underr, const int& lagpla);
-
-  void FORT_SSUP(Real* ptemp1, Real* ptemp0, intS,
-                 Real* ecorr, Real* eta, Real* etainv, Real* fkp,
-                 const Real& c, const Real& delta_t);
 
   void FORT_CEUP(intS, Real& relres, Real& absres,
 		 Real* frhoes, intS,

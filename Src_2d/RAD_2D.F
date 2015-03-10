@@ -51,41 +51,6 @@ c#define BIGKP 1.d0
       enddo
       end
 
-      subroutine divr(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      integer i, j
-      do j = regl1, regh1
-         do i = regl0, regh0
-            d(i,j) = d(i,j) / r(i)
-         enddo
-      enddo
-      end
-
-      subroutine divrs(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r, s)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      real*8 s(dboxl1:dboxh1)
-      integer i, j
-      do j = regl1, regh1
-         do i = regl0, regh0
-            d(i,j) = d(i,j) / (r(i) * s(j))
-         enddo
-      enddo
-      end
-
       subroutine sphc(r, s,
      @  dims(reg), dx)
       implicit none
@@ -136,75 +101,6 @@ c#define BIGKP 1.d0
             s(j) = sin(s(j))
          enddo
       endif
-      end
-
-      subroutine macoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, r, s, c)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 c
-      integer i, j
-      do j = regl1, regh1
-         do i = regl0, regh0
-            a(i,j) = r(i) * s(j) * fkp(i,j) * c
-         enddo
-      enddo
-      end
-
-      subroutine mrhs(rhs,
-     @  dims(rbox),
-     @  dims(reg),
-     @  temp, fkp, ert, r, s,
-     @  sigma)
-      implicit none
-      integer dimdec(rbox)
-      integer dimdec(reg)
-      real*8 rhs(dimv(rbox))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 ert(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 sigma
-      integer i, j
-      real*8 bs
-      do j = regl1, regh1
-         do i = regl0, regh0
-            bs = 4.d0 * sigma * fkp(i,j) * temp(i,j)**4
-            rhs(i,j) = r(i) * s(j) * (bs - ert(i,j))
-         enddo
-      enddo
-      end
-
-      subroutine sacoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, etainv, r, s, c, dt)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 c, dt
-      integer i, j
-      real*8 dtm, eki
-      dtm = 1.d0 / dt
-      do j = regl1, regh1
-         do i = regl0, regh0
-            eki = fkp(i,j) * etainv(i,j)
-            a(i,j) = r(i) * s(j) * (eki * c + dtm)
-         enddo
-      enddo
       end
 
       subroutine lacoef(a,
@@ -720,15 +616,15 @@ c construct coefficients:
       integer dimdec(ebox)
       integer dimdec(reg)
       real*8 rhs(dimv(rbox))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 frhoes(dimv(reg))
-      real*8 dfo(dimv(reg))
+      real*8 temp(dimv(rbox))
+      real*8 fkp(dimv(rbox))
+      real*8 eta(dimv(rbox))
+      real*8 etainv(dimv(rbox))
+      real*8 frhoem(dimv(rbox))
+      real*8 frhoes(dimv(rbox))
+      real*8 dfo(dimv(rbox))
       real*8 ero(dimv(ebox))
-      real*8 edot(dimv(reg))
+      real*8 edot(dimv(rbox))
       real*8 r(regl0:regh0)
       real*8 s(regl1:regh1)
       real*8 dt, sigma, c, theta
@@ -1062,34 +958,6 @@ c     @             fac2 * (eta(i,j) - fkp(i,j)) * er(i,j)
             etainv(i,j) = underr * frc / (d + frc)
             eta(i,j) = 1.d0 - etainv(i,j)
 c            eta(i,j) = 1.d0 - underr * (1.d0 - eta(i,j))
-         enddo
-      enddo
-      end
-
-      subroutine ssup(ptemp1, ptemp0,
-     @  dims(reg),
-     @  ecorr, eta, etainv, fkp, c, dt)
-      implicit none
-c      integer dimdec(sb)
-      integer dimdec(reg)
-c      real*8 state(dimv(sb), 0:SVSIZE-1)
-c      real*8 state(dimv(reg))
-      real*8 ptemp1(dimv(reg))
-      real*8 ptemp0(dimv(reg))
-      real*8 ecorr(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 c, dt
-      real*8 fac, up
-      integer i, j
-      fac = c * dt
-      do j = regl1, regh1
-         do i = regl0, regh0
-            up = fac * ecorr(i,j) * fkp(i,j) * etainv(i,j)
-            ptemp1(i,j) = ptemp0(i,j) + up
-c            state(i,j,EDEN) = state(i,j,EDEN) + up
-c            state(i,j) = state(i,j) + up
          enddo
       enddo
       end

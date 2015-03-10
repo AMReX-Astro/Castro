@@ -49,37 +49,6 @@ c#define BIGKP 1.d0
       enddo
       end
 
-      subroutine divr(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      integer i
-      do i = regl0, regh0
-         d(i) = d(i) / r(i)
-      enddo
-      end
-
-      subroutine divrs(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r, s)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      real*8 s(1)
-      integer i
-      do i = regl0, regh0
-         d(i) = d(i) / (r(i))
-      enddo
-      end
-
       subroutine sphc(r, s,
      @  dims(reg), dx)
       implicit none
@@ -107,69 +76,6 @@ c#define BIGKP 1.d0
       integer i
       do i = regl0, regh0
          r(i) = r(i)**2
-      enddo
-      end
-
-      subroutine macoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, r, s, c)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(1)
-      real*8 c
-      integer i
-      do i = regl0, regh0
-         a(i) = r(i) * fkp(i) * c
-      enddo
-      end
-
-      subroutine mrhs(rhs,
-     @  dims(rbox),
-     @  dims(reg),
-     @  temp, fkp, ert, r, s,
-     @  sigma)
-      implicit none
-      integer dimdec(rbox)
-      integer dimdec(reg)
-      real*8 rhs(dimv(rbox))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 ert(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(1)
-      real*8 sigma
-      integer i
-      real*8 bs
-      do i = regl0, regh0
-         bs = 4.d0 * sigma * fkp(i) * temp(i)**4
-         rhs(i) = r(i) * (bs - ert(i))
-      enddo
-      end
-
-      subroutine sacoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, etainv, r, s, c, dt)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(1)
-      real*8 c, dt
-      integer i
-      real*8 dtm, eki
-      dtm = 1.d0 / dt
-      do i = regl0, regh0
-         eki = fkp(i) * etainv(i)
-         a(i) = r(i) * (eki * c + dtm)
       enddo
       end
 
@@ -736,28 +642,6 @@ c     @          fac2 * (eta(i) - fkp(i)) * er(i)
          etainv(i) = underr * frc / (d + frc)
          eta(i) = 1.d0 - etainv(i)
 c         eta(i) = 1.d0 - underr * (1.d0 - eta(i))
-      enddo
-      end
-
-      subroutine ssup(ptemp1, ptemp0,
-     @  dims(reg),
-     @  ecorr, eta, etainv, fkp, c, dt)
-      implicit none
-      integer dimdec(reg)
-      real*8 ptemp1(dimv(reg))
-      real*8 ptemp0(dimv(reg))
-      real*8 ecorr(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 c, dt
-      real*8 fac, up
-      integer i
-      fac = c * dt
-      do i = regl0, regh0
-         up = fac * ecorr(i) * fkp(i) * etainv(i)
-         ptemp1(i) = ptemp0(i) + up
-c            state(i,EDEN) = state(i,EDEN) + up
       enddo
       end
 
