@@ -1183,24 +1183,17 @@ c construct coefficients:
 
       subroutine flxlim(lambda,
      @  dims(rbox),
-     @  dims(reg), limiter, n)
+     @  dims(reg), limiter)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
-      integer n, limiter
+      integer limiter
       real*8 lambda(dimv(rbox)), FLDlambda
       integer i, j, k
-      real*8 r
-      integer dir(0:2)
-      dir(0) = 0
-      dir(1) = 0
-      dir(2) = 0
-      dir(n) = 1
-      do k = regl2, regh2 + dir(2)
-         do j = regl1, regh1 + dir(1)
-            do i = regl0, regh0 + dir(0)
-               r = lambda(i,j,k)
-               lambda(i,j,k) = FLDlambda(r,limiter)
+      do k = regl2, regh2
+         do j = regl1, regh1
+            do i = regl0, regh0
+               lambda(i,j,k) = FLDlambda(lambda(i,j,k),limiter)
             enddo
          enddo
       enddo
@@ -1336,18 +1329,19 @@ c construct coefficients:
       subroutine scgrd2(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, da, db, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), da, db, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 da(dimv(kbox))
-      real*8 db(dimv(kbox))
+      real*8 da(dimv(dbox))
+      real*8 db(dimv(dbox))
       real*8 dx(3)
       real*8 kavg
       integer i, j, k
@@ -1676,20 +1670,25 @@ c     gradient assembly
       subroutine scgrd3(r,
      @  dims(rbox),
      @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, dx)
+     @  n, kappar, dims(kbox), er,
+     @  dims(dbox), da, db, dx)
       implicit none
       integer dimdec(rbox)
       integer dimdec(reg)
       integer dimdec(kbox)
+      integer dimdec(dbox)
       integer n
       real*8 r(dimv(rbox))
       real*8 kappar(dimv(kbox))
       real*8 er(dimv(kbox))
-      real*8 dx(1)
+      real*8 da(dimv(dbox))
+      real*8 db(dimv(dbox))
+      real*8 dx(3)
       real*8 kavg
       integer i
       real*8 kap
+      print *, "scgrd3 not implemented in 3d"
+      stop
       end
 
       subroutine lrhs(rhs,
@@ -2095,19 +2094,20 @@ c            state(i,j,k,EDEN) = state(i,j,k,EDEN) + up
       enddo
       end
 
-      subroutine ceup(relres, absres, frhoes,
-     @  dims(reg),
+      subroutine ceup( dims(reg), relres, absres, 
+     @  frhoes, dims(grd),
      @  frhoem, eta, etainv, dfo, dfn, exch,
      @  dt, theta)
       implicit none
       integer dimdec(reg)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 dfo(dimv(reg))
-      real*8 dfn(dimv(reg))
-      real*8 exch(dimv(reg))
+      integer dimdec(grd)
+      real*8 frhoes(dimv(grd))
+      real*8 frhoem(dimv(grd))
+      real*8 eta(dimv(grd))
+      real*8 etainv(dimv(grd))
+      real*8 dfo(dimv(grd))
+      real*8 dfn(dimv(grd))
+      real*8 exch(dimv(grd))
       real*8 dt, theta, relres, absres
       real*8 tmp, chg, tot
       integer i, j, k
@@ -2132,20 +2132,21 @@ c            state(i,j,k,EDEN) = state(i,j,k,EDEN) + up
       enddo
       end
 
-      subroutine ceupdterm(relres, absres, frhoes,
-     @  dims(reg),
+      subroutine ceupdterm( dims(reg), relres, absres, 
+     @  frhoes, dims(grd),
      @  frhoem, eta, etainv, dfo, dfn, exch, dterm,
      @  dt, theta)
       implicit none
       integer dimdec(reg)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 dfo(dimv(reg))
-      real*8 dfn(dimv(reg))
-      real*8 exch(dimv(reg))
-      real*8 dterm(dimv(reg))
+      integer dimdec(grd)
+      real*8 frhoes(dimv(grd))
+      real*8 frhoem(dimv(grd))
+      real*8 eta(dimv(grd))
+      real*8 etainv(dimv(grd))
+      real*8 dfo(dimv(grd))
+      real*8 dfn(dimv(grd))
+      real*8 exch(dimv(grd))
+      real*8 dterm(dimv(grd))
       real*8 dt, theta, relres, absres
       real*8 tmp, chg, tot
       integer i, j, k
@@ -2200,8 +2201,8 @@ c convergence check for multigroup
       end
 
 c nonconservative form based on delta B
-      subroutine nceup(relres, absres, frhoes,
-     @  dims(reg),
+      subroutine nceup(dims(reg), relres, absres, 
+     @  frhoes, dims(grd),
      @  frhoem, eta, etainv,
      @  er, dims(ebox),
      @  dfo, dfn, temp, fkp, cv,
@@ -2210,17 +2211,18 @@ c nonconservative form based on delta B
       implicit none
       INCLUDE 'StateLayout.H'
       integer dimdec(reg)
+      integer dimdec(grd)
       integer dimdec(sb)
       integer dimdec(ebox)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
+      real*8 frhoes(dimv(grd))
+      real*8 frhoem(dimv(grd))
+      real*8 eta(dimv(grd))
+      real*8 etainv(dimv(grd))
       real*8 er(dimv(ebox))
-      real*8 dfo(dimv(reg))
-      real*8 dfn(dimv(reg))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
+      real*8 dfo(dimv(grd))
+      real*8 dfn(dimv(grd))
+      real*8 temp(dimv(grd))
+      real*8 fkp(dimv(grd))
       real*8 cv(dimv(reg))
       real*8 state(dimv(sb), 0:SVSIZE-1)
       real*8 sigma, c, dt, theta, relres, absres
@@ -2260,16 +2262,16 @@ c nonconservative form based on delta B
       enddo
       end
 
-      subroutine cetot(state,
-     @  dims(sb),
-     @  dims(reg),
-     @  frhoe)
+      subroutine cetot(dims(reg),
+     @  state, dims(sb),
+     @  frhoe, dims(fb))
       implicit none
       INCLUDE 'StateLayout.H'
-      integer dimdec(sb)
       integer dimdec(reg)
+      integer dimdec(sb)
+      integer dimdec(fb)
       real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 frhoe(dimv(reg))
+      real*8 frhoe(dimv(fb))
       real*8 kin
       integer i, j, k
       do k = regl2, regh2
@@ -2320,22 +2322,23 @@ c     @                       state(i,j,k,DEN)
       enddo
       end
 
-      subroutine rosse1(kappar,
-     @  dims(kbox),
-     @  dims(reg),
+      subroutine rosse1( dims(reg),
+     @  kappar, dims(kbox),
      @  const, em, en,
      @  ep, nu,
-     @  tf, kfloor, temp, state,
-     @  dims(sb))
+     @  tf, kfloor, 
+     @  temp, dims(tb),
+     @  state, dims(sb))
       implicit none
       INCLUDE 'StateLayout.H'
-      integer dimdec(kbox)
       integer dimdec(reg)
+      integer dimdec(kbox)
+      integer dimdec(tb)
       integer dimdec(sb)
       real*8 kappar(dimv(kbox))
       real*8 const(0:1), em(0:1), en(0:1), tf(0:1)
       real*8 ep(0:1), nu
-      real*8 temp(dimv(reg))
+      real*8 temp(dimv(tb))
       real*8 state(dimv(sb), 0:SVSIZE-1)
       real*8 kfloor
       real*8 kf, teff
@@ -2355,26 +2358,27 @@ c     @                       state(i,j,k,DEN)
       enddo
       end
 
-      subroutine rosse1s(kappar,
-     @  dims(kbox),
-     @  dims(reg),
+      subroutine rosse1s( dims(reg),
+     @  kappar, dims(kbox),
      @  const, em, en,
      @  ep, 
      @  sconst, sem, sen,
      @  sep, 
      @  nu,
-     @  tf, kfloor, temp, state,
-     @  dims(sb))
+     @  tf, kfloor, 
+     @  temp, dims(tb),
+     @  state, dims(sb))
       implicit none
       INCLUDE 'StateLayout.H'
-      integer dimdec(kbox)
       integer dimdec(reg)
+      integer dimdec(kbox)
+      integer dimdec(tb)
       integer dimdec(sb)
       real*8 kappar(dimv(kbox))
       real*8 const(0:1), em(0:1), en(0:1), tf(0:1)
       real*8 ep(0:1), nu
       real*8 sconst(0:1), sem(0:1), sen(0:1), sep(0:1)
-      real*8 temp(dimv(reg))
+      real*8 temp(dimv(tb))
       real*8 state(dimv(sb), 0:SVSIZE-1)
       real*8 kfloor
       real*8 kf, teff, sct

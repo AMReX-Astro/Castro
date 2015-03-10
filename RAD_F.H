@@ -858,7 +858,7 @@ extern "C" {
                   Real* r, Real* s,
                   const Real& c, const Real* dx);
 
-  void FORT_FLXLIM(Real* lambda, intS, intS, const int& limiter, const int& idim);
+  void FORT_FLXLIM(Real* lambda, intS, intS, const int& limiter);
 
   void FORT_EDDFAC(Real* efact, intS, intS, const int& limiter, const int& idim);
 
@@ -866,13 +866,23 @@ extern "C" {
 		   Real* kappa_r, intS, Real* Er, const Real* dx);
 
   void FORT_SCGRD2(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
+		   Real* kappa_r, intS, Real* Er, 
+#if (BL_SPACEDIM >= 2)
+		   intS, Real* dtmp1, 
+#endif
+#if (BL_SPACEDIM == 3)
+		   Real* dtmp2,
+#endif
                    const Real* dx);
 
   void FORT_SCGRD3(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS,
-		   D_DECL(Real* Er, Real* dtmp1, Real* dtmp2),
+		   Real* kappa_r, intS, Real* Er, 
+#if (BL_SPACEDIM >= 2)
+		   intS, Real* dtmp1, 
+#endif
+#if (BL_SPACEDIM == 3)
+		   Real* dtmp2,
+#endif
                    const Real* dx);
 
   void FORT_LRHS(Real* rhs, intS, intS,
@@ -932,14 +942,14 @@ extern "C" {
                  Real* ecorr, Real* eta, Real* etainv, Real* fkp,
                  const Real& c, const Real& delta_t);
 
-  void FORT_CEUP(Real& relres, Real& absres,
+  void FORT_CEUP(intS, Real& relres, Real& absres,
 		 Real* frhoes, intS,
 		 Real* frhoem, Real* eta, Real* etainv,
 		 Real* dflux_old, Real* dflux_new,
 		 Real* exch,
 		 const Real& delta_t, const Real& theta);
 
-  void FORT_CEUPDTERM(Real& relres, Real& absres,
+  void FORT_CEUPDTERM(intS, Real& relres, Real& absres,
 		      Real* frhoes, intS,
 		      Real* frhoem, Real* eta, Real* etainv,
 		      Real* dflux_old, Real* dflux_new,
@@ -949,7 +959,7 @@ extern "C" {
   void FORT_CCONV(Real& relres, Real& absres,
 		  Real* frhoes, Real* frhoess, intS, intS);
 
-  void FORT_NCEUP(Real& relres, Real& absres,
+  void FORT_NCEUP(intS, Real& relres, Real& absres,
 		  Real* frhoes, intS,
 		  Real* frhoem, Real* eta, Real* etainv,
 		  Real* er, intS, Real* dflux_old, Real* dflux_new,
@@ -957,7 +967,7 @@ extern "C" {
 		  const Real& sigma, const Real& c,
 		  const Real& delta_t, const Real& theta);
 
-  void FORT_CETOT(Real* state, intS, intS, Real* rhoe);
+  void FORT_CETOT(intS, Real* state, intS, Real* rhoe, intS);
 
   void FORT_FKPN(intS,
 		 Real* fkp, intS,
@@ -966,20 +976,22 @@ extern "C" {
 		 Real* temp, intS, 
 		 Real* state, intS);
 
-  void FORT_ROSSE1(Real* kappar, intS, intS,
+  void FORT_ROSSE1(intS,
+		   Real* kappar, intS,
 		   Real* con, Real* em, Real* en,
 		   Real* ep, const Real& xnu,
 		   Real* tf, const Real& kfloor,
-		   Real* temp, Real* state, intS);
+		   Real* temp, intS, Real* state, intS);
 
-  void FORT_ROSSE1S(Real* kappar, intS, intS,
+  void FORT_ROSSE1S(intS,
+		    Real* kappar, intS,
 		    Real* con, Real* em, Real* en,
 		    Real* ep, 
 		    Real* scon, Real* sem, Real* sen,
 		    Real* sep, 
 		    const Real& xnu,
 		    Real* tf, const Real& kfloor,
-		    Real* temp, Real* state, intS);
+		    Real* temp, intS, Real* state, intS);
 
   void FORT_NFLOOR(Real* dest, intS, intS,
 		   int& nflr, const Real& flr, const int& nvar);

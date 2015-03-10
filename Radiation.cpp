@@ -1089,20 +1089,33 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
                                        Real delta_t)
 {
   BL_PROFILE("Radiation::internal_energy_update");
-  const BoxArray& grids = frhoes.boxArray();
 
   relative = 0.0;
   absolute = 0.0;
-  Real theta = 1.0;
 
-  for (MFIter mfi(eta); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &reg = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Real relative_priv = 0.0;
+      Real absolute_priv = 0.0;
+      Real theta = 1.0;
 
-    FORT_CEUP(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
-	      frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-	      dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-	      exch[mfi].dataPtr(), delta_t, theta);
+      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+	  const Box &reg = mfi.tilebox();
+	  FORT_CEUP( dimlist(reg), relative_priv, absolute_priv, 
+		     frhoes[mfi].dataPtr(), dimlist(frhoes[mfi].box()),
+		     frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+		     dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+		     exch[mfi].dataPtr(), delta_t, theta);
+      }
+#ifdef _OPENMP
+#pragma omp critical (rad_ceup)
+#endif
+      {
+	  relative = std::max(relative, relative_priv);
+	  absolute = std::max(absolute, absolute_priv);
+      }
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1121,20 +1134,33 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
 				       Real delta_t)
 {
   BL_PROFILE("Radiation::internal_energy_update_d");
-  const BoxArray& grids = frhoes.boxArray();
 
   relative = 0.0;
   absolute = 0.0;
-  Real theta = 1.0;
 
-  for (MFIter mfi(eta); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &reg = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Real relative_priv = 0.0;
+      Real absolute_priv = 0.0;
+      Real theta = 1.0;
 
-    FORT_CEUPDTERM(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
-		   frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		   dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-		   exch[mfi].dataPtr(), Dterm[mfi].dataPtr(), delta_t, theta);
+      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+	  const Box &reg = mfi.tilebox();
+	  FORT_CEUPDTERM(dimlist(reg), relative_priv, absolute_priv, 
+			 frhoes[mfi].dataPtr(), dimlist(frhoes[mfi].box()),
+			 frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+			 dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+			 exch[mfi].dataPtr(), Dterm[mfi].dataPtr(), delta_t, theta);
+      }
+#ifdef _OPENMP
+#pragma omp critical (rad_ceupdterm)
+#endif
+      {
+	  relative = std::max(relative, relative_priv);
+	  absolute = std::max(absolute, absolute_priv);
+      }
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1154,28 +1180,44 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
                                               MultiFab& state,
                                               Real delta_t)
 {
-  const BoxArray& grids = frhoes.boxArray();
+  BL_PROFILE("Radiation::nonconservative_energy_update");
 
   relative = 0.0;
   absolute = 0.0;
-  Real theta = 1.0;
 
-  for (MFIter mfi(eta); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &reg = grids[i];
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Real relative_priv = 0.0;
+      Real absolute_priv = 0.0;
+      Real theta = 1.0;
+      Fab c_v;
 
-    Fab c_v(reg);
-    get_c_v(c_v, temp[mfi], state[mfi], reg);
+      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+	  const Box &reg = mfi.tilebox();
+	  const Box& sbox = state[mfi].box();
+	  const Box& ebox = Er_new[mfi].box();
 
-    const Box& sbox = state[mfi].box();
-    const Box& ebox = Er_new[mfi].box();
-    FORT_NCEUP(relative, absolute, frhoes[mfi].dataPtr(), dimlist(reg),
-	       frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-	       Er_new[mfi].dataPtr(), dimlist(ebox),
-               dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-	       temp[mfi].dataPtr(), fkp[mfi].dataPtr(), c_v.dataPtr(),
-	       state[mfi].dataPtr(), dimlist(sbox),
-               sigma, c, delta_t, theta);
+	  c_v.resize(reg);
+	  get_c_v(c_v, temp[mfi], state[mfi], reg);
+
+	  FORT_NCEUP(dimlist(reg), relative_priv, absolute_priv, 
+		     frhoes[mfi].dataPtr(), dimlist(frhoes[mfi].box()),
+		     frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+		     Er_new[mfi].dataPtr(), dimlist(ebox),
+		     dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
+		     temp[mfi].dataPtr(), fkp[mfi].dataPtr(), c_v.dataPtr(),
+		     state[mfi].dataPtr(), dimlist(sbox),
+		     sigma, c, delta_t, theta);
+      }
+#ifdef _OPENMP
+#pragma omp critical (rad_ceupdterm)
+#endif
+      {
+	  relative = std::max(relative, relative_priv);
+	  absolute = std::max(absolute, absolute_priv);
+      }
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1186,28 +1228,30 @@ void Radiation::state_update(MultiFab& state,
                              MultiFab& frhoes,
 			     MultiFab& temp)
 {
-  const BoxArray& grids = frhoes.boxArray();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter si(state,true); si.isValid(); ++si) {
+	const Box& sbox = state[si].box();
+	const Box& fbox = frhoes[si].box();
+	const Box& reg = si.tilebox();
+	FORT_CETOT(dimlist(reg),
+		   state[si].dataPtr(), dimlist(sbox),
+		   frhoes[si].dataPtr(), dimlist(fbox));
 
-  for (MFIter si(state); si.isValid(); ++si) {
-    int i = si.index();
-    const Box& sbox = state[si].box();
-    const Box& reg = grids[i];
-    FORT_CETOT(state[si].dataPtr(), dimlist(sbox), dimlist(reg),
-	       frhoes[si].dataPtr());
+	if (do_real_eos == 0) {
 
-    if (do_real_eos == 0) {
+	    temp[si].copy(frhoes[si],reg);
+	    
+	    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
+		(reg.loVect(), reg.hiVect(), 
+		 BL_TO_FORTRAN(temp[si]), 
+		 BL_TO_FORTRAN(state[si]),
+		 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 
-      temp[si].copy(frhoes[si]);
-
-      BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-	(reg.loVect(), reg.hiVect(), 
-	 BL_TO_FORTRAN(temp[si]), 
-	 BL_TO_FORTRAN(state[si]),
-	 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
-
-      state[si].copy(temp[si],0,Temp,1);
+	    state[si].copy(temp[si],reg,0,reg,Temp,1);
+	}
     }
-  }
 }
 
 
@@ -1500,31 +1544,35 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
     BoxLib::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
   }
 
-  state.copy(temp,0,Temp,1);
+  state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
       (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering[0] > 0.0) {
-    FORT_ROSSE1S(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
-		 const_kappa_r.dataPtr(),
-		 kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		 kappa_r_exp_p.dataPtr(), 
-		 const_scattering.dataPtr(),
-		 scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
-		 scattering_exp_p.dataPtr(), 
-		 nugroup[igroup],
-		 prop_temp_floor.dataPtr(), kappa_r_floor,
-		 temp.dataPtr(), state.dataPtr(), dimlist(sbox));
+      FORT_ROSSE1S(dimlist(reg),
+		   kappa_r.dataPtr(igroup), dimlist(kbox),
+		   const_kappa_r.dataPtr(),
+		   kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+		   kappa_r_exp_p.dataPtr(), 
+		   const_scattering.dataPtr(),
+		   scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
+		   scattering_exp_p.dataPtr(), 
+		   nugroup[igroup],
+		   prop_temp_floor.dataPtr(), kappa_r_floor,
+		   temp.dataPtr(), dimlist(tbox),
+		   state.dataPtr(), dimlist(sbox));
   }
   else {
-    FORT_ROSSE1(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
-		const_kappa_r.dataPtr(),
-		kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		kappa_r_exp_p.dataPtr(), nugroup[igroup],
-		prop_temp_floor.dataPtr(), kappa_r_floor,
-		temp.dataPtr(), state.dataPtr(), dimlist(sbox));
+      FORT_ROSSE1(dimlist(reg),
+		  kappa_r.dataPtr(igroup), dimlist(kbox),
+		  const_kappa_r.dataPtr(),
+		  kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+		  kappa_r_exp_p.dataPtr(), nugroup[igroup],
+		  prop_temp_floor.dataPtr(), kappa_r_floor,
+		  temp.dataPtr(), dimlist(tbox),
+		  state.dataPtr(), dimlist(sbox));
   }
 }
 
@@ -1560,37 +1608,41 @@ void Radiation::get_rosseland_from_temp(Fab& kappa_r,
                                         const Box& reg,
 					int igroup)
 {
-  BL_ASSERT(reg == temp.box());
   BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
   const Box& kbox = kappa_r.box();
   const Box& sbox = state.box();
+  const Box& tbox = temp.box();
 
-  state.copy(temp,0,Temp,1);
+  state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
     BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
 	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering[0] > 0.0) {
-    FORT_ROSSE1S(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
-		 const_kappa_r.dataPtr(),
-		 kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		 kappa_r_exp_p.dataPtr(), 
-		 const_scattering.dataPtr(),
-		 scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
-		 scattering_exp_p.dataPtr(), 
-		 nugroup[igroup],
-		 prop_temp_floor.dataPtr(), kappa_r_floor,
-		 temp.dataPtr(), state.dataPtr(), dimlist(sbox));
+      FORT_ROSSE1S(dimlist(reg),
+		   kappa_r.dataPtr(igroup), dimlist(kbox), 
+		   const_kappa_r.dataPtr(),
+		   kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+		   kappa_r_exp_p.dataPtr(), 
+		   const_scattering.dataPtr(),
+		   scattering_exp_m.dataPtr(), scattering_exp_n.dataPtr(),
+		   scattering_exp_p.dataPtr(), 
+		   nugroup[igroup],
+		   prop_temp_floor.dataPtr(), kappa_r_floor,
+		   temp.dataPtr(), dimlist(tbox),
+		   state.dataPtr(), dimlist(sbox));
   }
   else {
-    FORT_ROSSE1(kappa_r.dataPtr(igroup), dimlist(kbox), dimlist(reg),
-		const_kappa_r.dataPtr(),
-		kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
-		kappa_r_exp_p.dataPtr(), nugroup[igroup],
-		prop_temp_floor.dataPtr(), kappa_r_floor,
-		temp.dataPtr(), state.dataPtr(), dimlist(sbox));
+      FORT_ROSSE1(dimlist(reg),
+		  kappa_r.dataPtr(igroup), dimlist(kbox),
+		  const_kappa_r.dataPtr(),
+		  kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
+		  kappa_r_exp_p.dataPtr(), nugroup[igroup],
+		  prop_temp_floor.dataPtr(), kappa_r_floor,
+		  temp.dataPtr(), dimlist(tbox),
+		  state.dataPtr(), dimlist(sbox));
   }
 }
 
@@ -1616,13 +1668,14 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
                                     MultiFab& state,
 				    int igroup, Real delta_t)
 {
-  BL_PROFILE("Radiation::get_planck_and_temp");
-  const BoxArray& grids = fkp.boxArray();
-  for (MFIter si(state); si.isValid(); ++si) {
-    int i = si.index();
-    get_planck_and_temp(fkp[si], temp[si], state[si], grids[i],
-			igroup, delta_t);
-  }
+    BL_PROFILE("Radiation::get_planck_and_temp");
+#ifdef _OPENMP
+#pragma omp parallel 
+#endif
+    for (MFIter si(state,true); si.isValid(); ++si) {
+	get_planck_and_temp(fkp[si], temp[si], state[si], si.tilebox(),
+			    igroup, delta_t);
+    }
 }
 
 // Uses filPatch to fill state data in a ghost cell around each grid
@@ -1637,23 +1690,30 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  if(Radiation::nGroups == 0) kappa_r.setVal(0.);
+  if(Radiation::nGroups == 0) {
+      kappa_r.setVal(0.);
+      return;
+  }
 
   Real time = castro->get_state_data(State_Type).curTime();
   MultiFab& S_new = castro->get_new_data(State_Type);
   int nstate = S_new.nComp();
 
   FillPatchIterator fpi(*castro, S_new, 1, time, State_Type, 0, nstate);
-  for( ; fpi.isValid(); ++fpi) {
+  MultiFab& state = fpi.get_mf();
 
-    FArrayBox &state = fpi();
-
-    const Box& reg = kappa_r[fpi].box();
-
-    Fab temp(reg);
-    get_frhoe(temp, state, reg);
-
-    get_rosseland_and_temp(kappa_r[fpi], temp, state, reg, igroup);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Fab temp;
+      for(MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
+      {
+	  const Box& reg = mfi.growntilebox();
+	  temp.resize(reg);
+	  get_frhoe(temp, state[mfi], reg);
+	  get_rosseland_and_temp(kappa_r[mfi], temp, state[mfi], reg, igroup);
+      }
   }
 }
 
@@ -1670,10 +1730,11 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   BL_ASSERT(kappa_r.nGrow() == 1);
   BL_ASSERT(temp.nGrow()    == 0);
 
-  const BoxArray& grids = kappa_r.boxArray();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (MFIter si(state); si.isValid(); ++si) {
-    int i = si.index();
-    get_rosseland_from_temp(kappa_r[si], temp[si], state[si], grids[i], igroup);
+      get_rosseland_from_temp(kappa_r[si], temp[si], state[si], si.tilebox(), igroup);
   }
 
   kappa_r.FillBoundary();
@@ -1921,6 +1982,9 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
               // Call fortran here:  based on Castro::avgDown
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
               for (MFIter mfi(flev_data); mfi.isValid(); ++mfi) {
                 const int        i        = mfi.index();
                 const int        ncomp    = 1;
@@ -2090,8 +2154,6 @@ void Radiation::scaledGradient(int level,
                                int limiter, int nGrow_Er, int Rcomp)
 {
   BL_PROFILE("Radiation::scaledGradient");
-  const BoxArray& grids = parent->boxArray(level);
-
   BL_ASSERT(kappa_r.nGrow() == 1);
 
   int Ercomp = igroup;
@@ -2099,13 +2161,11 @@ void Radiation::scaledGradient(int level,
   MultiFab Erbtmp;
   if (nGrow_Er == 0) { // default value
     if (limiter > 0) {
+      const BoxArray& grids = parent->boxArray(level);
       Erbtmp.define(grids,1,1,Fab_allocate);
-      for (MFIter mfi(Erbtmp); mfi.isValid(); ++mfi) {
-	int i = mfi.index();
-	const Box &bx = grids[i];
-	Erbtmp[mfi].setVal(-1.0);
-	Erbtmp[mfi].copy(Er[mfi], bx, igroup, bx, 0, 1);
-      }
+      Erbtmp.setVal(-1.0);
+      MultiFab::Copy(Erbtmp, Er, igroup, 0, 1, 0);
+
       // Values in ghost cells are set to -1, indicating that one-sided
       // differences should be used in computing the gradient term for
       // the flux limiter.  In order to make the solution independent
@@ -2125,43 +2185,62 @@ void Radiation::scaledGradient(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-
-    for (MFIter mfi(Er); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      const Box &rbox = R[idim][mfi].box();
-      const Box &reg  = grids[i];
-      const Box &kbox = kappa_r[mfi].box();
-
-      if (limiter == 0) {
-        R[idim][mfi].setVal(0.0);
-      }
-      else if (limiter%10 == 1) {
-        FORT_SCGRD1(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-                    Erborder[mfi].dataPtr(Ercomp), dx);
-      }
-      else if (limiter%10 == 2) {
-#if (BL_SPACEDIM >= 2)
-        Fab dtmp(kbox, BL_SPACEDIM - 1);
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
-        FORT_SCGRD2(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-                    D_DECL(Erborder[mfi].dataPtr(Ercomp),
-                           dtmp.dataPtr(0), dtmp.dataPtr(1)),
-                    dx);
-      }
-      else {
+  {
+      Fab dtmp;
+      for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+
+	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
+	      const Box &rbox = R[idim][mfi].box();
+	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
+	      const Box &kbox = kappa_r[mfi].box();
+
+	      const Box& reg = BoxLib::enclosedCells(nbox);
+
+	      if (limiter == 0) {
+		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
+	      }
+	      else if (limiter%10 == 1) {
+		  FORT_SCGRD1(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+			      idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+			      Erborder[mfi].dataPtr(Ercomp), dx);
+	      }
+	      else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
-        Fab dtmp(kbox, BL_SPACEDIM - 1);
+		  const Box& dbox = BoxLib::grow(reg,1);
+		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
-        FORT_SCGRD3(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
-                    idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-                    D_DECL(Erborder[mfi].dataPtr(Ercomp),
-                           dtmp.dataPtr(0), dtmp.dataPtr(1)),
-                    dx);
+		  FORT_SCGRD2(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+			      idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+			      Erborder[mfi].dataPtr(Ercomp),
+#if (BL_SPACEDIM >= 2)
+			      dimlist(dbox), dtmp.dataPtr(0), 
+#endif
+#if (BL_SPACEDIM == 3)
+			      dtmp.dataPtr(1),
+#endif
+			      dx);
+	      }
+	      else {
+#if (BL_SPACEDIM >= 2)
+		  const Box& dbox = BoxLib::grow(reg,1);
+		  dtmp.resize(dbox, BL_SPACEDIM - 1);
+#endif
+		  FORT_SCGRD3(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
+			      idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+			      Erborder[mfi].dataPtr(Ercomp),
+#if (BL_SPACEDIM >= 2)
+			      dimlist(dbox), dtmp.dataPtr(0), 
+#endif
+#if (BL_SPACEDIM == 3)
+			      dtmp.dataPtr(1),
+#endif
+			      dx);
+	      }
+	  }
       }
-    }
   }
 }
 
@@ -2173,18 +2252,17 @@ void Radiation::fluxLimiter(int level,
                             int limiter, int lamcomp)
 {
   BL_PROFILE("Radiation::fluxLimiter");
-  const BoxArray& grids = parent->boxArray(level);
-
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-
-    for (MFIter mfi(lambda[idim]); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      const Box &rbox = lambda[idim][mfi].box();
-      const Box &reg  = grids[i];
-
-      FORT_FLXLIM(lambda[idim][mfi].dataPtr(lamcomp), dimlist(rbox),
-                  dimlist(reg), limiter, idim);
-    }
+      for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
+	  const Box &rbox = lambda[idim][mfi].box();
+	  const Box &reg  = mfi.tilebox();
+	  
+	  FORT_FLXLIM(lambda[idim][mfi].dataPtr(lamcomp), dimlist(rbox),
+		      dimlist(reg), limiter);
+      }
   }
 }
 
@@ -2212,7 +2290,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	Fab temp, c_v, kp, kp2;
 	for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& reg = mfi.growntilebox(1);
+	    const Box& reg = mfi.growntilebox();
 	    
 	    temp.resize(reg);
 	    get_frhoe(temp, S[mfi], reg);
@@ -2239,8 +2317,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
 	    }
 	    else if (const_scattering[0] > 0.0) {
-		FORT_ROSSE1S(kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
-			     dimlist(reg),
+		FORT_ROSSE1S(dimlist(reg),
+			     kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
 			     const_kappa_r.dataPtr(),
 			     kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
 			     kappa_r_exp_p.dataPtr(), 
@@ -2249,17 +2327,17 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 			     scattering_exp_p.dataPtr(), 
 			     nugroup[igroup],
 			     prop_temp_floor.dataPtr(), kappa_r_floor,
-			     temp.dataPtr(), 
+			     temp.dataPtr(), dimlist(temp.box()),
 			     S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    }
 	    else {
-		FORT_ROSSE1(kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
-			    dimlist(reg),
+		FORT_ROSSE1(dimlist(reg),
+			    kappa_r[mfi].dataPtr(igroup), dimlist(kappa_r[mfi].box()), 
 			    const_kappa_r.dataPtr(),
 			    kappa_r_exp_m.dataPtr(), kappa_r_exp_n.dataPtr(),
 			    kappa_r_exp_p.dataPtr(), nugroup[igroup],
 			    prop_temp_floor.dataPtr(), kappa_r_floor,
-			    temp.dataPtr(), 
+			    temp.dataPtr(), dimlist(temp.box()),
 			    S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    }
 	    
