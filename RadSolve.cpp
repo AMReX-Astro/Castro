@@ -273,7 +273,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
 
   MultiFab spa(grids, 1, 0);
 #ifdef _OPENMP
-#pragma omp
+#pragma omp parallel
 #endif
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
@@ -637,7 +637,7 @@ void RadSolve::levelFlux(int level,
   const Real* dx = parent->Geom(level).CellSize();
 
 #ifdef _OPENMP
-#pragam omp parallel
+#pragma omp parallel
 #endif
   for (int n = 0; n < BL_SPACEDIM; n++) {
     const MultiFab *bp; //, *cp;
