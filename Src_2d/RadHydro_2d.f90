@@ -544,7 +544,8 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav
+                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav, &
+                                 ppm_type
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -759,7 +760,8 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav
+                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav, &
+                                 ppm_type
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
