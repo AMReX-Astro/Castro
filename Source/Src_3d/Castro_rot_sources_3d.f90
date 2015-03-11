@@ -135,31 +135,35 @@ contains
              old_zmom = uout(i,j,k,UMZ)
              ! ****   End Diagnostics ****
 
-             r = (/ x, y, z /)
+             if ( rot_source_type .le. 3 ) then
 
-             dens = uin(i,j,k,URHO)
-             
-             v = (/ uin(i,j,k,UMX)/dens, &
-                    uin(i,j,k,UMY)/dens, &
-                    uin(i,j,k,UMZ)/dens /)
+                r = (/ x, y, z /)
 
-             omegacrossr = cross_product(omega,r)
-             omegacrossv = cross_product(omega,v)
-             omegadotr   = dot_product(omega,r)
+                dens = uin(i,j,k,URHO)
 
-             ! momentum sources: this is the Coriolis force
-             ! (-2 rho omega x v) and the centrifugal force
-             ! (-rho omega x ( omega x r))
+                v = (/ uin(i,j,k,UMX)/dens, &
+                       uin(i,j,k,UMY)/dens, &
+                       uin(i,j,k,UMZ)/dens /)
 
-             Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+                omegacrossr = cross_product(omega,r)
+                omegacrossv = cross_product(omega,v)
+                omegadotr   = dot_product(omega,r)
 
-             SrU = Sr(1)
-             SrV = Sr(2)
-             SrW = Sr(3)
+                ! momentum sources: this is the Coriolis force
+                ! (-2 rho omega x v) and the centrifugal force
+                ! (-rho omega x ( omega x r))
 
-             uout(i,j,k,UMX) = uout(i,j,k,UMX) + SrU * dt
-             uout(i,j,k,UMY) = uout(i,j,k,UMY) + SrV * dt
-             uout(i,j,k,UMZ) = uout(i,j,k,UMZ) + SrW * dt
+                Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+
+                SrU = Sr(1)
+                SrV = Sr(2)
+                SrW = Sr(3)
+
+                uout(i,j,k,UMX) = uout(i,j,k,UMX) + SrU * dt
+                uout(i,j,k,UMY) = uout(i,j,k,UMY) + SrV * dt
+                uout(i,j,k,UMZ) = uout(i,j,k,UMZ) + SrW * dt
+
+             endif
 
              ! Kinetic energy source: this is v . the momentum source.
              ! We don't apply in the case of the conservative energy
@@ -179,7 +183,7 @@ contains
 
              else if (rot_source_type .eq. 4) then
 
-                ! Do nothing here, for the conservative gravity option.
+                ! Do nothing here, for the conservative rotation option.
 
              else 
                 call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
@@ -231,7 +235,7 @@ end module rot_sources_module
                          vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                          xmom_added,ymom_added,zmom_added,E_added)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
     use rot_sources_module, only: cross_product, get_omega
@@ -272,6 +276,10 @@ end module rot_sources_module
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
     double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+
+    double precision :: mom1, mom2
+
+    integer :: idir1, idir2
 
     omega = get_omega()
 
@@ -351,11 +359,15 @@ end module rot_sources_module
              SrVcorr = HALF * (Sr_new(2) - Sr_old(2))
              SrWcorr = HALF * (Sr_new(3) - Sr_old(3))
 
-             ! Correct state with correction terms
+             if (rot_source_type .le. 3) then
 
-             unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr * dt
-             unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
-             unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
+                ! Correct state with correction terms
+
+                unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr * dt
+                unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
+                unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
+
+             endif
 
              if (rot_source_type == 1) then
 
@@ -396,6 +408,30 @@ end module rot_sources_module
                 unew(i,j,k,UEDEN) = old_rhoeint + new_ke
 
              else if (rot_source_type == 4) then
+
+                ! Coupled momentum update.
+
+                ! Figure out which directions are updated, and then determine the right 
+                ! array index relative to UMX (this works because UMX, UMY, UMZ are consecutive
+                ! in the state array).
+
+                idir1 = UMX - 1 + MOD(rot_axis    , 2)
+                idir2 = UMX - 1 + MOD(rot_axis + 1, 2)
+
+                ! Update with the centrifugal term and the time-level n Coriolis term.
+
+                unew(i,j,k,idir1) = unew(i,j,k,idir1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
+                                + dt * omega(rot_axis) * uold(i,j,k,idir2)
+                unew(i,j,k,idir2) = unew(i,j,k,idir2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
+                                - dt * omega(rot_axis) * uold(i,j,k,idir1)
+
+                ! Now do the implicit solve for the time-level n+1 Coriolis term.
+
+                mom1 = unew(i,j,k,idir1)
+                mom2 = unew(i,j,k,idir2)
+
+                unew(i,j,k,idir1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
+                unew(i,j,k,idir2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
                 ! Conservative energy formulation.
 
