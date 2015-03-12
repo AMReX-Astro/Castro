@@ -475,6 +475,15 @@ Gravity::solve_for_phi (int               level,
 
     }
 
+#if (BL_SPACEDIM == 3)
+    if ( Geometry::isAllPeriodic() )
+    {
+	Rhs.plus(-mass_offset,0,1,0);
+	if (verbose && ParallelDescriptor::IOProcessor()) 
+	    std::cout << " ... subtracting " << mass_offset << " to ensure solvability " << std::endl;
+    }
+#endif
+
     Rhs.mult(Ggravity);
 
     MacBndry bndry(grids[level],1,geom);
@@ -534,15 +543,6 @@ Gravity::solve_for_phi (int               level,
         xb[0][i] = 0.5 * dx_crse[i];
       }
     }
-
-#if (BL_SPACEDIM == 3)
-    if ( Geometry::isAllPeriodic() )
-    {
-	Rhs.plus(-mass_offset,0,1,0);
-	if (verbose && ParallelDescriptor::IOProcessor()) 
-	    std::cout << " ... subtracting " << mass_offset << " to ensure solvability " << std::endl;
-    }
-#endif
 
     MultiFab* phi_p[1];
     MultiFab* Rhs_p[1];
