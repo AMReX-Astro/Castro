@@ -12,13 +12,14 @@ contains
        qxm,qxp,qpd_l1,qpd_h1, &
        ilo,ihi,domlo,domhi,dx,dt)
 
+    use bl_constants_module
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
          small_dens, ppm_type, fix_mass_flux, &
          ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, ppm_predict_gammae, &
-         npassive, qpass_map
+         npassive, qpass_map, do_grav
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
@@ -61,6 +62,9 @@ contains
     double precision drho, drhoe, dptot
     double precision dup, dptotp
 
+    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, ptot_ref, rhoe_ref
+    double precision, dimension(0:ngroups-1) :: er_ref
+    
     double precision alpham, alphap, alpha0, alphae
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
 
@@ -161,7 +165,7 @@ contains
 
     if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
        call ppm(grav(:),gv_l1,gv_h1, &
-                q(:,:,QU:),c, &
+                q(:,QU:),c, &
                 flatn, &
                 Ip_g(:,:,1),Im_g(:,:,1), &
                 ilo,ilo,dx,dt)
@@ -351,7 +355,6 @@ contains
              qxp(i,QU)     = xi1*u    + xi*qxp(i,QU)
              qxp(i,QREINT) = xi1*rhoe_g + xi*qxp(i,QREINT)
              qxp(i,QPRES)  = xi1*p    + xi*qxp(i,QPRES)
-             qxp(i,QV)     = xi1*v    + xi*qxp(i,QV)
              
              qxp(i,qrad:qradhi) = xi1*er(:) + xi*qxp(i,qrad:qradhi)
              
@@ -511,7 +514,6 @@ contains
              
              qxm(i+1,QRHO)   = xi1*rho  + xi*qxm(i+1,QRHO)
              qxm(i+1,QU)     = xi1*u    + xi*qxm(i+1,QU)
-             qxm(i+1,QV)     = xi1*v    + xi*qxm(i+1,QV)
              qxm(i+1,QREINT) = xi1*rhoe_g + xi*qxm(i+1,QREINT)
              qxm(i+1,QPRES)  = xi1*p    + xi*qxm(i+1,QPRES)
 
@@ -592,7 +594,7 @@ contains
        n = qpass_map(ipassive)
 
        ! plus state on face i
-       do i = ilo1, ihi1+1
+       do i = ilo, ihi+1
           u = q(i,QU)
 
           if (ppm_flatten_before_integrals == 0) then
@@ -633,7 +635,7 @@ contains
        enddo
 
        ! minus state on face i+1
-       do i = ilo1-1, ihi1
+       do i = ilo-1, ihi
           u = q(i,QU)
 
           if (ppm_flatten_before_integrals == 0) then
