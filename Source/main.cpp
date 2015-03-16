@@ -132,7 +132,7 @@ main (int   argc,
     }
 
     if (!amrptr->okToContinue()) {
-      std::cout << "Stopping simulation because dt < dt_cutoff." << std::endl;
+      std::cout << "Stopping simulation because we are not OK to continue." << std::endl;
     }
 
 #ifdef HAS_DUMPMODEL
