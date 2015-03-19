@@ -44,52 +44,13 @@ c in the 3D source only to enable the code to link.
       integer dimdec(dbox)
       integer dimdec(reg)
       real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      real*8 s(dboxl1:dboxh1)
+      real*8 r(regl0:regh0)
+      real*8 s(regl1:regh1)
       integer i, j, k
       do k = regl2, regh2
          do j = regl1, regh1
             do i = regl0, regh0
                d(i,j,k) = d(i,j,k) * r(i) * s(j)
-            enddo
-         enddo
-      enddo
-      end
-
-      subroutine divr(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      integer i, j, k
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               d(i,j,k) = d(i,j,k) / r(i)
-            enddo
-         enddo
-      enddo
-      end
-
-      subroutine divrs(d,
-     @  dims(dbox),
-     @  dims(reg),
-     @  r, s)
-      implicit none
-      integer dimdec(dbox)
-      integer dimdec(reg)
-      real*8 d(dimv(dbox))
-      real*8 r(dboxl0:dboxh0)
-      real*8 s(dboxl1:dboxh1)
-      integer i, j, k
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               d(i,j,k) = d(i,j,k) / (r(i) * s(j))
             enddo
          enddo
       enddo
@@ -147,81 +108,6 @@ c in the 3D source only to enable the code to link.
       endif
       end
 
-      subroutine macoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, r, s, c)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 c
-      integer i, j, k
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               a(i,j,k) = r(i) * s(j) * fkp(i,j,k) * c
-            enddo
-         enddo
-      enddo
-      end
-
-      subroutine mrhs(rhs,
-     @  dims(rbox),
-     @  dims(reg),
-     @  temp, fkp, ert, r, s,
-     @  sigma)
-      implicit none
-      integer dimdec(rbox)
-      integer dimdec(reg)
-      real*8 rhs(dimv(rbox))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 ert(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 sigma
-      integer i, j, k
-      real*8 bs
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               bs = 4.d0 * sigma * fkp(i,j,k) * temp(i,j,k)**4
-               rhs(i,j,k) = r(i) * s(j) * (bs - ert(i,j,k))
-            enddo
-         enddo
-      enddo
-      end
-
-      subroutine sacoef(a,
-     @  dims(abox),
-     @  dims(reg),
-     @  fkp, etainv, r, s, c, dt)
-      implicit none
-      integer dimdec(abox)
-      integer dimdec(reg)
-      real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 r(regl0:regh0)
-      real*8 s(regl1:regh1)
-      real*8 c, dt
-      integer i, j, k
-      real*8 dtm, eki
-      dtm = 1.d0 / dt
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               eki = fkp(i,j,k) * etainv(i,j,k)
-               a(i,j,k) = r(i) * s(j) * (eki * c + dtm)
-            enddo
-         enddo
-      enddo
-      end
-
       subroutine lacoef(a,
      @  dims(abox),
      @  dims(reg),
@@ -230,9 +116,9 @@ c in the 3D source only to enable the code to link.
       integer dimdec(abox)
       integer dimdec(reg)
       real*8 a(dimv(abox))
-      real*8 fkp(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
+      real*8 fkp(dimv(abox))
+      real*8 eta(dimv(abox))
+      real*8 etainv(dimv(abox))
       real*8 r(regl0:regh0)
       real*8 s(regl1:regh1)
       real*8 c, dt, theta
@@ -288,847 +174,6 @@ c#define KAVG(a,b,d) KAVG2(a,b,d)
          kavg = KAVG1(a,b)
       else
          kavg = KAVG2(a,b,d)
-      endif
-      end
-
-      subroutine bclim0(b,
-     @  dims(bbox),
-     @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  q, r, s, c, dx)
-      implicit none
-      integer dimdec(bbox)
-      integer dimdec(reg)
-      integer dimdec(kbox)
-      integer n
-      real*8 b(dimv(bbox))
-      real*8 kappar(dimv(kbox))
-      real*8 q(regl0:regh0+1)
-      real*8 r(regl0:regh0+1)
-      real*8 s(regl1:regh1+1)
-      real*8 c, dx(3)
-      real*8 kavg
-      integer i, j, k
-      if (n .eq. 0) then
-         do k = regl2, regh2
-            do j = regl1, regh1
-               do i = regl0, regh0 + 1
-                  b(i,j,k) = r(i) * s(j) * (c / 3.d0) /
-     @               KAVG(kappar(i-1,j,k), kappar(i,j,k), dx(1))
-               enddo
-            enddo
-         enddo
-      elseif (n .eq. 1) then
-         do k = regl2, regh2
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  b(i,j,k) = r(i) * s(j) * (c / 3.d0) /
-     @               KAVG(kappar(i,j-1,k), kappar(i,j,k), dx(2))
-               enddo
-            enddo
-         enddo
-      else
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  b(i,j,k) = r(i) * s(j) * (c / 3.d0) /
-     @               KAVG(kappar(i,j,k-1), kappar(i,j,k), dx(3))
-               enddo
-            enddo
-         enddo
-      endif
-      end
-
-      subroutine bclim1(b,
-     @  dims(bbox),
-     @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, q, r, s, c, dx, limiter)
-      implicit none
-      integer dimdec(bbox)
-      integer dimdec(reg)
-      integer dimdec(kbox)
-      integer n, limiter
-      real*8 b(dimv(bbox))
-      real*8 kappar(dimv(kbox))
-      real*8 er(dimv(kbox))
-      real*8 q(regl0:regh0+1)
-      real*8 r(regl0:regh0+1)
-      real*8 s(regl1:regh1+1)
-      real*8 c, dx(3)
-      real*8 kavg
-      integer i, j, k
-      real*8 kap, par, lambda, FLDlambda
-      if (n .eq. 0) then
-c x faces:
-         do k = regl2, regh2
-            do j = regl1, regh1
-c x derivatives, gradient assembly:
-               do i = regl0, regh0 + 1
-                  b(i,j,k) = abs(er(i,j,k) - er(i-1,j,k)) / dx(1)
-               enddo
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i+1,j,k) - er(i,j,k)) / dx(1)
-               endif
-               i = regh0 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i-1,j,k) - er(i-2,j,k)) / dx(1)
-               endif
-c construct coefficients:
-               do i = regl0, regh0 + 1
-                  kap = KAVG(kappar(i-1,j,k), kappar(i,j,k), dx(1))
-                  par = b(i,j,k) /
-     @                  (kap * max(er(i-1,j,k), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      elseif (n .eq. 1) then
-c y faces:
-         do k = regl2, regh2
-c y derivatives, gradient assembly:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  b(i,j,k) = abs(er(i,j,k) - er(i,j-1,k)) / dx(2)
-               enddo
-            enddo
-            do i = regl0, regh0
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i,j+1,k) - er(i,j,k)) / dx(2)
-               endif
-               j = regh1 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i,j-1,k) - er(i,j-2,k)) / dx(2)
-               endif
-            enddo
-c construct coefficients:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j-1,k), kappar(i,j,k), dx(2))
-                  par = b(i,j,k) /
-     @                  (kap * max(er(i,j-1,k), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      else
-c z faces:
-c z derivatives, gradient assembly:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  b(i,j,k) = abs(er(i,j,k) - er(i,j,k-1)) / dx(3)
-               enddo
-            enddo
-         enddo
-         do j = regl1, regh1
-            do i = regl0, regh0
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i,j,k+1) - er(i,j,k)) / dx(3)
-               endif
-               k = regh2 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = abs(er(i,j,k-1) - er(i,j,k-2)) / dx(3)
-               endif
-            enddo
-         enddo
-c construct coefficients:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j,k-1), kappar(i,j,k), dx(3))
-                  par = b(i,j,k) /
-     @                  (kap * max(er(i,j,k-1), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      endif
-      end
-
-      subroutine bclim2(b,
-     @  dims(bbox),
-     @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, d1, d2, q, r, s, c, dx, limiter)
-      implicit none
-      integer dimdec(bbox)
-      integer dimdec(reg)
-      integer dimdec(kbox)
-      integer n, limiter
-      real*8 b(dimv(bbox))
-      real*8 kappar(dimv(kbox))
-      real*8 er(dimv(kbox))
-      real*8 d1(dimv(kbox))
-      real*8 d2(dimv(kbox))
-      real*8 q(regl0:regh0+1)
-      real*8 r(regl0:regh0+1)
-      real*8 s(regl1:regh1+1)
-      real*8 c, dx(3)
-      real*8 kavg
-      integer i, j, k
-      real*8 kap, par, lambda, FLDlambda
-      if (n .eq. 0) then
-c x faces:
-c y and z derivatives:
-         do k = regl2, regh2
-            do j = regl1, regh1
-               do i = regl0 - 1, regh0 + 1
-                  d1(i,j,k) = er(i,j+1,k) - er(i,j-1,k)
-                  d2(i,j,k) = er(i,j,k+1) - er(i,j,k-1)
-               enddo
-            enddo
-c check y derivatives at regl1 - 1 and regh1 + 1:
-            do i = regl0 - 1, regh0 + 1
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               endif
-               j = regh1
-               if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-c check z derivatives at regl2 - 1 and regh2 + 1:
-         do j = regl1, regh1
-            do i = regl0 - 1, regh0 + 1
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               endif
-               k = regh2
-               if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-         enddo
-         do k = regl2, regh2
-            do j = regl1, regh1
-c check y derivatives at regl0 - 1 and regh0 + 1:
-c (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
-               i = regl0 - 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-               i = regh0 + 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-c check z derivatives at regl0 - 1 and regh0 + 1:
-c (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
-               i = regl0 - 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-               i = regh0 + 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-c x derivatives, gradient assembly:
-               do i = regl0, regh0 + 1
-                  b(i,j,k) = ((er(i,j,k) - er(i-1,j,k)) / dx(1)) ** 2 +
-     @                       ((d1(i-1,j,k) + d1(i,j,k)) /
-     @                        (4.d0 * dx(2))) ** 2 +
-     @                       ((d2(i-1,j,k) + d2(i,j,k)) /
-     @                        (4.d0 * dx(3))) ** 2
-               enddo
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i+1,j,k) - er(i,j,k)) / dx(1)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(2))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-               i = regh0 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i-1,j,k) - er(i-2,j,k)) / dx(1))**2 +
-     @                       (d1(i-1,j,k) /
-     @                        (2.d0 * dx(2))) ** 2 +
-     @                       (d2(i-1,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-c construct coefficients:
-               do i = regl0, regh0 + 1
-                  kap = KAVG(kappar(i-1,j,k), kappar(i,j,k), dx(1))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i-1,j,k), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      elseif (n .eq. 1) then
-c y faces:
-c x and z derivatives:
-         do k = regl2, regh2
-            do j = regl1 - 1, regh1 + 1
-               do i = regl0, regh0
-                  d1(i,j,k) = er(i+1,j,k) - er(i-1,j,k)
-                  d2(i,j,k) = er(i,j,k+1) - er(i,j,k-1)
-               enddo
-c check x derivatives at regl0 - 1 and regh0 + 1:
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               endif
-               i = regh0
-               if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-            enddo
-         enddo
-c check z derivatives at regl2 - 1 and regh2 + 1
-         do j = regl1 - 1, regh1 + 1
-            do i = regl0, regh0
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               endif
-               k = regh2
-               if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-         enddo
-         do k = regl2, regh2
-            do i = regl0, regh0
-c check x derivatives at regl1 - 1 and regh1 + 1:
-c (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
-               j = regl1 - 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-               j = regh1 + 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-c check z derivatives at regl1 - 1 and regh1 + 1:
-c (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
-               j = regl1 - 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-               j = regh1 + 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-c y derivatives, gradient assembly:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  b(i,j,k) = ((er(i,j,k) - er(i,j-1,k)) / dx(2)) ** 2 +
-     @                       ((d1(i,j-1,k) + d1(i,j,k)) /
-     @                        (4.d0 * dx(1))) ** 2 +
-     @                       ((d2(i,j-1,k) + d2(i,j,k)) /
-     @                        (4.d0 * dx(3))) ** 2
-               enddo
-            enddo
-            do i = regl0, regh0
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j+1,k) - er(i,j,k)) / dx(2)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-               j = regh1 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j-1,k) - er(i,j-2,k)) / dx(2))**2 +
-     @                       (d1(i,j-1,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j-1,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-            enddo
-c construct coefficients:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j-1,k), kappar(i,j,k), dx(2))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i,j-1,k), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      else
-c z faces:
-c x and y derivatives:
-         do k = regl2 - 1, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  d1(i,j,k) = er(i+1,j,k) - er(i-1,j,k)
-                  d2(i,j,k) = er(i,j+1,k) - er(i,j-1,k)
-               enddo
-c check x derivatives at regl0 - 1 and regh0 + 1:
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               endif
-               i = regh0
-               if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-            enddo
-c check y derivatives at regl1 - 1 and regh1 + 1:
-            do i = regl0, regh0
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               endif
-               j = regh1
-               if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-         do j = regl1, regh1
-            do i = regl0, regh0
-c check x derivatives at regl2 - 1 and regh2 + 1:
-c (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
-               k = regl2 - 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-               k = regh2 + 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-c check y derivatives at regl2 - 1 and regh2 + 1:
-c (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
-               k = regl2 - 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-               k = regh2 + 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-c z derivatives, gradient assembly:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  b(i,j,k) = ((er(i,j,k) - er(i,j,k-1)) / dx(3)) ** 2 +
-     @                       ((d1(i,j,k-1) + d1(i,j,k)) /
-     @                        (4.d0 * dx(1))) ** 2 +
-     @                       ((d2(i,j,k-1) + d2(i,j,k)) /
-     @                        (4.d0 * dx(2))) ** 2
-               enddo
-            enddo
-         enddo
-         do j = regl1, regh1
-            do i = regl0, regh0
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j,k+1) - er(i,j,k)) / dx(3)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(2))) ** 2
-               endif
-               k = regh2 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j,k-1) - er(i,j,k-2)) / dx(3))**2 +
-     @                       (d1(i,j,k-1) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k-1) /
-     @                        (2.d0 * dx(2))) ** 2
-               endif
-            enddo
-         enddo
-c construct coefficients:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j,k-1), kappar(i,j,k), dx(3))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i,j,k-1), er(i,j,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      endif
-      end
-
-      subroutine bclim3(b,
-     @  dims(bbox),
-     @  dims(reg),
-     @  n, kappar, dims(kbox),
-     @  er, d1, d2, q, r, s, c, dx, limiter)
-      implicit none
-      integer dimdec(bbox)
-      integer dimdec(reg)
-      integer dimdec(kbox)
-      integer n, limiter
-      real*8 b(dimv(bbox))
-      real*8 kappar(dimv(kbox))
-      real*8 er(dimv(kbox))
-      real*8 d1(dimv(kbox))
-      real*8 d2(dimv(kbox))
-      real*8 q(regl0:regh0+1)
-      real*8 r(regl0:regh0+1)
-      real*8 s(regl1:regh1+1)
-      real*8 c, dx(3)
-      real*8 kavg
-      integer i, j, k
-      real*8 kap, par, lambda, FLDlambda
-      if (n .eq. 0) then
-c x faces:
-c y and z derivatives:
-         do k = regl2, regh2
-            do j = regl1, regh1
-               do i = regl0 - 1, regh0 + 1
-                  d1(i,j,k) = er(i,j+1,k) - er(i,j-1,k)
-                  d2(i,j,k) = er(i,j,k+1) - er(i,j,k-1)
-               enddo
-            enddo
-c check y derivatives at regl1 - 1 and regh1 + 1:
-            do i = regl0 - 1, regh0 + 1
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               endif
-               j = regh1
-               if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-c check z derivatives at regl2 - 1 and regh2 + 1:
-         do j = regl1, regh1
-            do i = regl0 - 1, regh0 + 1
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               endif
-               k = regh2
-               if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-         enddo
-         do k = regl2, regh2
-            do j = regl1, regh1
-c check y derivatives at regl0 - 1 and regh0 + 1:
-c (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
-               i = regl0 - 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-               i = regh0 + 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-c check z derivatives at regl0 - 1 and regh0 + 1:
-c (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
-               i = regl0 - 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-               i = regh0 + 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-c x derivatives, gradient assembly:
-               do i = regl0, regh0 + 1
-                  b(i,j,k) = ((er(i,j,k) - er(i-1,j,k)) / dx(1)) ** 2 +
-     @                       ((d1(i-1,j,k) + d1(i,j,k)) /
-     @                        (4.d0 * dx(2))) ** 2 +
-     @                       ((d2(i-1,j,k) + d2(i,j,k)) /
-     @                        (4.d0 * dx(3))) ** 2
-               enddo
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i+1,j,k) - er(i,j,k)) / dx(1)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(2))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-               i = regh0 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i-1,j,k) - er(i-2,j,k)) / dx(1))**2 +
-     @                       (d1(i-1,j,k) /
-     @                        (2.d0 * dx(2))) ** 2 +
-     @                       (d2(i-1,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-c construct coefficients:
-               do i = regl0, regh0 + 1
-                  kap = KAVG(kappar(i-1,j,k), kappar(i,j,k), dx(1))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i-1,j,k),   er(i,j,k),
-     @                             er(i-1,j-1,k), er(i,j-1,k),
-     @                             er(i-1,j+1,k), er(i,j+1,k),
-     @                             er(i-1,j,k-1), er(i,j,k-1),
-     @                             er(i-1,j,k+1), er(i,j,k+1), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      elseif (n .eq. 1) then
-c y faces:
-c x and z derivatives:
-         do k = regl2, regh2
-            do j = regl1 - 1, regh1 + 1
-               do i = regl0, regh0
-                  d1(i,j,k) = er(i+1,j,k) - er(i-1,j,k)
-                  d2(i,j,k) = er(i,j,k+1) - er(i,j,k-1)
-               enddo
-c check x derivatives at regl0 - 1 and regh0 + 1:
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               endif
-               i = regh0
-               if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-            enddo
-         enddo
-c check z derivatives at regl2 - 1 and regh2 + 1:
-         do j = regl1 - 1, regh1 + 1
-            do i = regl0, regh0
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               endif
-               k = regh2
-               if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-         enddo
-         do k = regl2, regh2
-            do i = regl0, regh0
-c check x derivatives at regl1 - 1 and regh1 + 1:
-c (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
-               j = regl1 - 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-               j = regh1 + 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-c check z derivatives at regl1 - 1 and regh1 + 1:
-c (check at k-1 and k+1.  if value at k is bad it will not be used at all.)
-               j = regl1 - 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-               j = regh1 + 1
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k+1) - er(i,j,k))
-               else if (er(i,j,k+1) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j,k-1))
-               endif
-            enddo
-c y derivatives, gradient assembly:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  b(i,j,k) = ((er(i,j,k) - er(i,j-1,k)) / dx(2)) ** 2 +
-     @                       ((d1(i,j-1,k) + d1(i,j,k)) /
-     @                        (4.d0 * dx(1))) ** 2 +
-     @                       ((d2(i,j-1,k) + d2(i,j,k)) /
-     @                        (4.d0 * dx(3))) ** 2
-               enddo
-            enddo
-            do i = regl0, regh0
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j+1,k) - er(i,j,k)) / dx(2)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-               j = regh1 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j-1,k) - er(i,j-2,k)) / dx(2))**2 +
-     @                       (d1(i,j-1,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j-1,k) /
-     @                        (2.d0 * dx(3))) ** 2
-               endif
-            enddo
-c construct coefficients:
-            do j = regl1, regh1 + 1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j-1,k), kappar(i,j,k), dx(2))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i,j-1,k),   er(i,j,k),
-     @                             er(i-1,j-1,k), er(i-1,j,k),
-     @                             er(i+1,j-1,k), er(i+1,j,k),
-     @                             er(i,j-1,k-1), er(i,j,k-1),
-     @                             er(i,j-1,k+1), er(i,j,k+1), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
-      else
-c z faces:
-c x and y derivatives:
-         do k = regl2 - 1, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  d1(i,j,k) = er(i+1,j,k) - er(i-1,j,k)
-                  d2(i,j,k) = er(i,j+1,k) - er(i,j-1,k)
-               enddo
-c check x derivatives at regl0 - 1 and regh0 + 1:
-               i = regl0
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               endif
-               i = regh0
-               if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-            enddo
-c check y derivatives at regl1 - 1 and regh1 + 1:
-            do i = regl0, regh0
-               j = regl1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               endif
-               j = regh1
-               if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-         do j = regl1, regh1
-            do i = regl0, regh0
-c check x derivatives at regl2 - 1 and regh2 + 1:
-c (check at i-1 and i+1.  if value at i is bad it will not be used at all.)
-               k = regl2 - 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-               k = regh2 + 1
-               if (er(i-1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i+1,j,k) - er(i,j,k))
-               else if (er(i+1,j,k) .eq. -1.d0) then
-                  d1(i,j,k) = 2.d0 * (er(i,j,k) - er(i-1,j,k))
-               endif
-c check y derivatives at regl2 - 1 and regh2 + 1:
-c (check at j-1 and j+1.  if value at j is bad it will not be used at all.)
-               k = regl2 - 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-               k = regh2 + 1
-               if (er(i,j-1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j+1,k) - er(i,j,k))
-               else if (er(i,j+1,k) .eq. -1.d0) then
-                  d2(i,j,k) = 2.d0 * (er(i,j,k) - er(i,j-1,k))
-               endif
-            enddo
-         enddo
-c z derivatives, gradient assembly:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  b(i,j,k) = ((er(i,j,k) - er(i,j,k-1)) / dx(3)) ** 2 +
-     @                       ((d1(i,j,k-1) + d1(i,j,k)) /
-     @                        (4.d0 * dx(1))) ** 2 +
-     @                       ((d2(i,j,k-1) + d2(i,j,k)) /
-     @                        (4.d0 * dx(2))) ** 2
-               enddo
-            enddo
-         enddo
-         do j = regl1, regh1
-            do i = regl0, regh0
-               k = regl2
-               if (er(i,j,k-1) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j,k+1) - er(i,j,k)) / dx(3)) ** 2 +
-     @                       (d1(i,j,k) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k) /
-     @                        (2.d0 * dx(2))) ** 2
-               endif
-               k = regh2 + 1
-               if (er(i,j,k) .eq. -1.d0) then
-                  b(i,j,k) = ((er(i,j,k-1) - er(i,j,k-2)) / dx(3))**2 +
-     @                       (d1(i,j,k-1) /
-     @                        (2.d0 * dx(1))) ** 2 +
-     @                       (d2(i,j,k-1) /
-     @                        (2.d0 * dx(2))) ** 2
-               endif
-            enddo
-         enddo
-c construct coefficients:
-         do k = regl2, regh2 + 1
-            do j = regl1, regh1
-               do i = regl0, regh0
-                  kap = KAVG(kappar(i,j,k-1), kappar(i,j,k), dx(3))
-                  par = sqrt(b(i,j,k)) /
-     @                  (kap * max(er(i,j,k-1),   er(i,j,k),
-     @                             er(i-1,j,k-1), er(i-1,j,k),
-     @                             er(i+1,j,k-1), er(i+1,j,k),
-     @                             er(i,j-1,k-1), er(i,j-1,k),
-     @                             er(i,j+1,k-1), er(i,j+1,k), tiny))
-                  lambda = FLDlambda(par,limiter)
-                  b(i,j,k) = r(i) * s(j) * c * lambda / kap
-               enddo
-            enddo
-         enddo
       endif
       end
 
@@ -1702,15 +747,15 @@ c     gradient assembly
       integer dimdec(ebox)
       integer dimdec(reg)
       real*8 rhs(dimv(rbox))
-      real*8 temp(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 frhoes(dimv(reg))
-      real*8 dfo(dimv(reg))
+      real*8 temp(dimv(rbox))
+      real*8 fkp(dimv(rbox))
+      real*8 eta(dimv(rbox))
+      real*8 etainv(dimv(rbox))
+      real*8 frhoem(dimv(rbox))
+      real*8 frhoes(dimv(rbox))
+      real*8 dfo(dimv(rbox))
       real*8 ero(dimv(ebox))
-      real*8 edot(dimv(reg))
+      real*8 edot(dimv(rbox))
       real*8 r(regl0:regh0)
       real*8 s(regl1:regh1)
       real*8 dt, sigma, c, theta
@@ -1897,115 +942,6 @@ c exch contains temp on input:
       enddo
       end
 
-      subroutine extrp1(frhoes,
-     @  dims(reg),
-     @  frhoem, exch, state,
-     @  dims(sb), dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 frhoes(dimv(reg))
-      real*8 frhoem(dimv(reg))
-      real*8 exch(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 dt
-      integer i, j, k
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               frhoes(i,j,k) = frhoem(i,j,k) - dt * exch(i,j,k)
-            enddo
-         enddo
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp3(exch,
-     @  dims(reg),
-     @  er, fkp, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, t, t3
-      integer i, j, k, it
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               b = state(i,j,k,DEN)
-               t = max(exch(i,j,k), tiny)
-               a = fkp(i,j,k) * 4.d0 * sigma
-               b = b * cv(i,j,k) / dt
-               d = b * t + fkp(i,j,k) * c * er(i,j,k)
-               do it = 1, 10
-                  t3 = t**3
-                  t = t - (t * (a * t3 + b) - d) / (4.d0 * a * t3 + b)
-               enddo
-               exch(i,j,k) = fkp(i,j,k) *
-     @            (4.d0 * sigma * t**4 - c * er(i,j,k))
-            enddo
-         enddo
-      enddo
-      end
-
-c exch contains temp on input:
-
-      subroutine extrp4(exch,
-     @  dims(reg),
-     @  er, fkp, kpen, cv, state,
-     @  dims(sb),
-     @  sigma, c, dt)
-      implicit none
-      INCLUDE 'StateLayout.H'
-      integer dimdec(reg)
-      integer dimdec(sb)
-      real*8 exch(dimv(reg))
-      real*8 er(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 kpen(0:1)
-      real*8 cv(dimv(reg))
-      real*8 state(dimv(sb), 0:SVSIZE-1)
-      real*8 sigma, c, dt
-      real*8 a, b, d, e, en, t, t3, tn
-      integer i, j, k, it
-      en = kpen(0)
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               b = state(i,j,k,DEN)
-               t = max(exch(i,j,k), tiny)
-               e = fkp(i,j,k) * t**en
-               a = e * 4.d0 * sigma
-               e = e * c * er(i,j,k)
-               b = b * cv(i,j,k) / dt
-               d = b * t
-               do it = 1, 20
-                  tn = t**(-en)
-                  t3 = t**3 * tn
-                  tn = t - (t * (a * t3 + b) - e * tn - d) /
-     @               ((4.d0 - en) * a * t3 + b + en * e * tn / t)
-                  if (tn .le. tiny) then
-                     t = 0.5d0 * t
-                  else
-                     t = tn
-                  endif
-               enddo
-               exch(i,j,k) = (a * t**4 - e) * t**(-en)
-            enddo
-         enddo
-      enddo
-      end
-
       subroutine ceta2(dims(reg),
      @  eta, etainv, dims(etab),
      @  frho, dims(sb),
@@ -2063,32 +999,6 @@ c     @                fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
                etainv(i,j,k) = underr * frc / (d + frc)
                eta(i,j,k) = 1.d0 - etainv(i,j,k)
 c               eta(i,j,k) = 1.d0 - underr * (1.d0 - eta(i,j,k))
-            enddo
-         enddo
-      enddo
-      end
-
-      subroutine ssup(ptemp1, ptemp0,
-     @  dims(reg),
-     @  ecorr, eta, etainv, fkp, c, dt)
-      implicit none
-      integer dimdec(reg)
-      real*8 ptemp1(dimv(reg))
-      real*8 ptemp0(dimv(reg))
-      real*8 ecorr(dimv(reg))
-      real*8 eta(dimv(reg))
-      real*8 etainv(dimv(reg))
-      real*8 fkp(dimv(reg))
-      real*8 c, dt
-      real*8 fac, up
-      integer i, j, k
-      fac = c * dt
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-               up = fac * ecorr(i,j,k) * fkp(i,j,k) * etainv(i,j,k)
-               ptemp1(i,j,k) = ptemp0(i,j,k) + up
-c            state(i,j,k,EDEN) = state(i,j,k,EDEN) + up
             enddo
          enddo
       enddo
@@ -2167,34 +1077,6 @@ c            state(i,j,k,EDEN) = state(i,j,k,EDEN) + up
                frhoes(i,j,k) = tmp
                absres = max(absres, chg)
                relres = max(relres, chg / (tot + tiny))
-            enddo
-         enddo
-      enddo
-      end
-
-c convergence check for multigroup
-      subroutine cconv(relres, absres, frhoes, frhoess,
-     @   dims(fbox),
-     @   dims(reg))
-      implicit none
-      integer dimdec(fbox)
-      integer dimdec(reg)
-      real*8 frhoes(dimv(fbox))
-      real*8 frhoess(dimv(fbox))
-      real*8 relres, absres
-      real*8 chg, tot
-      integer i, j, k
-
-      do k = regl2, regh2
-         do j = regl1, regh1
-            do i = regl0, regh0
-
-               chg = abs(frhoes(i,j,k) - frhoess(i,j,k))
-               tot = abs(frhoes(i,j,k))
-
-               absres = max(absres, chg)
-               relres = max(relres, chg / (tot + tiny))
-
             enddo
          enddo
       enddo
@@ -2503,3 +1385,124 @@ c *********************************
       endif
       end
 
+
+      subroutine bextrp(
+     @ f, fboxl0, fboxl1, fboxl2, fboxh0, fboxh1, fboxh2,
+     @ regl0, regl1, regl2, regh0, regh1, regh2)
+
+      implicit none
+      integer fboxl0, fboxl1, fboxl2, fboxh0, fboxh1, fboxh2
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      real*8 f(fboxl0:fboxh0,fboxl1:fboxh1,fboxl2:fboxh2)
+      integer i, j, k
+
+c     i direction first:
+      do k = regl2, regh2
+         do j = regl1, regh1
+            i = regl0
+            f(i-1,j,k) = 2.d0 * f(i,j,k) - f(i+1,j,k)
+            i = regh0
+            f(i+1,j,k) = 2.d0 * f(i,j,k) - f(i-1,j,k)
+         enddo
+      enddo
+      
+c     j direction second, including edges:
+      do k = regl2, regh2
+         do i = regl0 - 1, regh0 + 1
+            j = regl1
+            f(i,j-1,k) = 2.d0 * f(i,j,k) - f(i,j+1,k)
+            j = regh1
+            f(i,j+1,k) = 2.d0 * f(i,j,k) - f(i,j-1,k)
+         enddo
+      enddo
+      
+c     k direction third, including corners:
+      do j = regl1 - 1, regh1 + 1
+         do i = regl0 - 1, regh0 + 1
+            k = regl2
+            f(i,j,k-1) = 2.d0 * f(i,j,k) - f(i,j,k+1)
+            k = regh2
+            f(i,j,k+1) = 2.d0 * f(i,j,k) - f(i,j,k-1)
+         enddo
+      enddo
+      
+c   corner results are the same whichever direction we extrapolate first
+      end subroutine bextrp
+
+
+      subroutine lbcoefna(bcoef, 
+     @      bcgrp, bboxl0, bboxl1, bboxl2, bboxh0, bboxh1, bboxh2, 
+     @      regl0, regl1, regl2, regh0, regh1, regh2, 
+     @      spec, sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2, 
+     @      idim)
+
+      implicit none
+      integer idim
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      integer bboxl0, bboxl1, bboxl2, bboxh0, bboxh1, bboxh2
+      integer sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2
+      real*8 bcoef(bboxl0:bboxh0,bboxl1:bboxh1,bboxl2:bboxh2)
+      real*8 bcgrp(bboxl0:bboxh0,bboxl1:bboxh1,bboxl2:bboxh2)
+      real*8 spec(sboxl0:sboxh0,sboxl1:sboxh1,sboxl2:sboxh2)
+      integer i, j, k
+      if (idim .eq. 0) then
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @         + 0.5d0 * (spec(i-1,j,k) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      else if (idim .eq. 1) then
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @          + 0.5d0 * (spec(i,j-1,k) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      else
+         do k = regl2, regh2
+         do j = regl1, regh1
+         do i = regl0, regh0
+            bcoef(i,j,k) = bcoef(i,j,k) 
+     @          + 0.5d0 * (spec(i,j,k-1) + spec(i,j,k)) * bcgrp(i,j,k)
+         enddo
+         enddo
+         enddo
+      endif
+
+      end subroutine lbcoefna
+
+
+      subroutine ljupna(
+     @      jnew, jboxl0, jboxl1, jboxl2, jboxh0, jboxh1, jboxh2, 
+     @      regl0, regl1, regl2, regh0, regh1, regh2, 
+     @      spec, sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2, 
+     @      accel, aboxl0, aboxl1, aboxl2, aboxh0, aboxh1, aboxh2, 
+     @      nTotal)
+
+      implicit none
+      integer nTotal
+      integer  regl0,  regl1,  regl2,  regh0,  regh1,  regh2
+      integer jboxl0, jboxl1, jboxl2, jboxh0, jboxh1, jboxh2
+      integer sboxl0, sboxl1, sboxl2, sboxh0, sboxh1, sboxh2
+      integer aboxl0, aboxl1, aboxl2, aboxh0, aboxh1, aboxh2
+      real*8 jnew(jboxl0:jboxh0,jboxl1:jboxh1,jboxl2:jboxh2,0:nTotal-1)
+      real*8 spec(sboxl0:sboxh0,sboxl1:sboxh1,sboxl2:sboxh2,0:nTotal-1)
+      real*8 accel(aboxl0:aboxh0,aboxl1:aboxh1,aboxl2:aboxh2)
+
+      integer i, j, k, n
+      do n = 0, nTotal - 1
+      do k = regl2, regh2
+      do j = regl1, regh1
+      do i = regl0, regh0
+         jnew(i,j,k,n) = jnew(i,j,k,n) + spec(i,j,k,n) * accel(i,j,k)
+      enddo
+      enddo
+      enddo
+      enddo
+
+      end subroutine ljupna

@@ -193,7 +193,7 @@ extern "C" {
                            const Real* dx,
                            Real* Flux, intS);
 
-  void FORT_SET_ABEC_FLUX(int*,
+  void FORT_SET_ABEC_FLUX(intS, int*,
 			  Real*, intS,
 			  Real*, intS,
 			  const Real*,

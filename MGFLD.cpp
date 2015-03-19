@@ -1174,26 +1174,9 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 
 	for (MFIter ri(rhs,true); ri.isValid(); ++ri) 
 	{
-	    const Box &reg = ri.tilebox();
-	    
-	    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-	    if (CoordSys::IsCartesian()) 
-	    {
-		r.resize(reg.length(0), 1);
-		s.resize(reg.length(I), 1);
-	    }
-	    else if (CoordSys::IsRZ()) 
-	    {
-		parent->Geom(level).GetCellLoc(r, reg, 0);
-		s.resize(reg.length(I), 1);
-	    }
-	    else 
-	    {
-		parent->Geom(level).GetCellLoc(r, reg, 0);
-		parent->Geom(level).GetCellLoc(s, reg, I);
-		const Real *dx = parent->Geom(level).CellSize();
-		FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-	    }
+	    const Box &reg = ri.tilebox();	    
+
+	    RadSolve::getCellCenterMetric(parent->Geom(level), reg, r, s);
 
 	    BL_FORT_PROC_CALL(CA_RHSTOER, ca_rhstoer)
 		(reg.loVect(), reg.hiVect(),

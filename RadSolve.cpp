@@ -174,33 +174,23 @@ void RadSolve::levelClear()
 void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 {
   BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
-  const BoxArray& grids = parent->boxArray(level);
-
-  Array<Real> r, s;
-
   BL_ASSERT(cc.nGrow() == 0);
 
-  for (MFIter mfi(cc); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &reg = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Array<Real> r, s;
 
-    FORT_MULTRS(cc[mfi].dataPtr(), dimlist(reg), dimlist(reg),
-                r.dataPtr(), s.dataPtr());
+      for (MFIter mfi(cc,true); mfi.isValid(); ++mfi) 
+      {
+	  const Box &reg = mfi.tilebox();
+
+	  getCellCenterMetric(parent->Geom(level), reg, r, s);
+	  
+	  FORT_MULTRS(cc[mfi].dataPtr(), dimlist(cc[mfi].box()), dimlist(reg),
+		      r.dataPtr(), s.dataPtr());
+      }
   }
 }
 
@@ -246,32 +236,24 @@ void RadSolve::levelACoeffs(int level,
   int Ncomp  = 1;
   int Nghost = 0;
 
-  Array<Real> r, s;
-
   MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
 
-  for (MFIter mfi(fkp); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &abox = acoefs[mfi].box();
-    const Box &reg  = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
-    FORT_LACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
-		fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		r.dataPtr(), s.dataPtr(), c, delta_t, theta);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Array<Real> r, s;
+
+      for (MFIter mfi(fkp,true); mfi.isValid(); ++mfi) {
+	  const Box &abox = acoefs[mfi].box();
+	  const Box &reg  = mfi.tilebox();
+
+	  getCellCenterMetric(parent->Geom(level), reg, r, s);
+
+	  FORT_LACOEF(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+		      fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
+		      r.dataPtr(), s.dataPtr(), c, delta_t, theta);
+      }
   }
 
   if (hd) {
@@ -279,87 +261,6 @@ void RadSolve::levelACoeffs(int level,
   }
   else if (hm) {
     hm->aCoefficients(level, acoefs);
-  }
-}
-
-void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
-                              MultiFab& kappa_r, int kcomp,
-                              MultiFab& Erborder, int igroup,
-                              Real c, int limiter,
-                              const Geometry& geom)
-{
-  BL_PROFILE("RadSolve::computeBCoeffs");
-  const BoxArray& grids = kappa_r.boxArray(); // valid region only
-
-  BL_ASSERT(kappa_r.nGrow() == 1);
-
-  Array<Real> q, r, s;
-
-  const Real *dx = geom.CellSize();
-
-  for (MFIter mfi(bcoefs); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &bbox = bcoefs[mfi].box();
-    const Box &reg  = grids[i];
-    const Box &kbox = kappa_r[mfi].box();
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      q.resize(reg.length(0)+1, 1);
-      r.resize(reg.length(0)+1, 1);
-      s.resize(reg.length(I)+1, 1);
-    }
-    else if (Geometry::IsRZ()) {
-      q.resize(reg.length(0)+1, 1);
-      if (idim == 0) {
-        geom.GetEdgeLoc(r, reg, 0);
-      }
-      else {
-        geom.GetCellLoc(r, reg, 0);
-      }
-      s.resize(reg.length(I)+1, 1);
-    }
-    else {
-      if (idim == 0) {
-        geom.GetEdgeLoc(q, reg, 0);
-        geom.GetEdgeLoc(r, reg, 0);
-        geom.GetCellLoc(s, reg, I);
-      }
-      else {
-        geom.GetCellLoc(q, reg, 0);
-        geom.GetCellLoc(r, reg, 0);
-        geom.GetEdgeLoc(s, reg, I);
-      }
-      FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
-    }
-    if (limiter == 0) {
-      FORT_BCLIM0(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
-		  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-		  q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx);
-    }
-    else if (limiter%10 == 1) {
-      FORT_BCLIM1(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-                  Erborder[mfi].dataPtr(igroup),
-                  q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
-    }
-    else if (limiter%10 == 2) {
-#if (BL_SPACEDIM >= 2)
-      Fab dtmp(kbox, BL_SPACEDIM - 1);
-#endif
-      FORT_BCLIM2(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-        D_DECL(Erborder[mfi].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
-                  q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
-    }
-    else {
-#if (BL_SPACEDIM >= 2)
-      Fab dtmp(kbox, BL_SPACEDIM - 1);
-#endif
-      FORT_BCLIM3(bcoefs[mfi].dataPtr(), dimlist(bbox), dimlist(reg),
-                  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-        D_DECL(Erborder[mfi].dataPtr(igroup), dtmp.dataPtr(0), dtmp.dataPtr(1)),
-                  q.dataPtr(), r.dataPtr(), s.dataPtr(), c, dx, limiter);
-    }
   }
 }
 
@@ -372,7 +273,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
 
   MultiFab spa(grids, 1, 0);
 #ifdef _OPENMP
-#pragma omp
+#pragma omp parallel
 #endif
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
@@ -421,11 +322,7 @@ void RadSolve::levelBCoeffs(int level,
                             Real c, int lamcomp)
 {
   BL_PROFILE("RadSolve::levelBCoeffs");
-  const BoxArray& grids = parent->boxArray(level);
-
   BL_ASSERT(kappa_r.nGrow() == 1);
-
-  Array<Real> r, s;
 
   const Geometry& geom = parent->Geom(level);
   const Real* dx       = geom.CellSize();
@@ -434,36 +331,25 @@ void RadSolve::levelBCoeffs(int level,
 
     MultiFab bcoefs(lambda[idim].boxArray(), 1, 0, Fab_allocate);
 
-    for (MFIter mfi(lambda[idim]); mfi.isValid(); ++mfi) {
-      int i = mfi.index();
-      const Box &bbox = lambda[idim][mfi].box();
-      const Box &reg  = grids[i];
-      const Box &kbox = kappa_r[mfi].box();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Array<Real> r, s;
 
-      const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-      if (Geometry::IsCartesian()) {
-        r.resize(reg.length(0)+1, 1);
-        s.resize(reg.length(I)+1, 1);
-      }
-      else if (Geometry::IsRZ()) {
-        if (idim == 0) {
-          geom.GetEdgeLoc(r, reg, 0);
-        }
-        else {
-          geom.GetCellLoc(r, reg, 0);
-        }
-        s.resize(reg.length(I)+1, 1);
-      }
-      else { // support only 1D spherical here
-        geom.GetEdgeLoc(r, reg, 0);
-        geom.GetCellLoc(s, reg, I);
-        FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
-      }
+	for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
+	    const Box &bbox = lambda[idim][mfi].box();
+	    const Box &kbox = kappa_r[mfi].box();
 
-      FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[idim][mfi].dataPtr(lamcomp),
-                 dimlist(bbox), dimlist(reg),
-                 idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-                 r.dataPtr(), s.dataPtr(), c, dx);
+	    const Box &ndbox  = mfi.tilebox();
+	    getEdgeMetric(idim, geom, ndbox, r, s);
+
+	    const Box& reg = BoxLib::enclosedCells(ndbox);
+	    FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[idim][mfi].dataPtr(lamcomp),
+		       dimlist(bbox), dimlist(reg),
+		       idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+		       r.dataPtr(), s.dataPtr(), c, dx);
+	}
     }
 
     if (hd) {
@@ -495,27 +381,8 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 	    
 	    for (MFIter mfi(dcoefs,true); mfi.isValid(); ++mfi) {
 		const Box& ndbx = mfi.tilebox();
-		const Box& ccbx = BoxLib::enclosedCells(ndbx, idim);
 
-		// metric terms
-		const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-		if (Geometry::IsCartesian()) {
-		    r.resize(ndbx.length(0), 1.0);
-		}
-		else if (Geometry::IsRZ()) {
-		    if (idim == 0) {
-			parent->Geom(level).GetEdgeLoc(r, ccbx, 0);
-		    }
-		    else {
-			parent->Geom(level).GetCellLoc(r, ccbx, 0);
-		    }
-		}
-		else {
-		    parent->Geom(level).GetEdgeLoc(r, ccbx, 0);
-		    parent->Geom(level).GetCellLoc(s, ccbx, I);
-		    const Real *dx = parent->Geom(level).CellSize();
-		    FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(ndbx), dx);
-		}
+		getEdgeMetric(idim, parent->Geom(level), ndbx, r, s);
 
 		BL_FORT_PROC_CALL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
 		    (ndbx.loVect(), ndbx.hiVect(),
@@ -541,7 +408,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
                         int igroup, Real nu, Real dnu)
 {
   BL_PROFILE("RadSolve::levelRhs");
-  const BoxArray& grids = parent->boxArray(level);
+  BL_ASSERT(rhs.nGrow() == 0);
 
   rhs.setVal(0.0);
   if (fine_corr) {
@@ -559,38 +426,28 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
     fine_corr->Reflux(rhs, scale, igrouptmp, 0, 1, parent->Geom(level));
   }
 
-  Array<Real> r, s, rf;
-
-  for (MFIter ri(rhs); ri.isValid(); ++ri) {
-    int i = ri.index();
-    const Box &rbox = rhs[ri].box();
-    const Box &ebox = Er_old[ri].box();
-    const Box &reg  = grids[i];
-    const Real *dx  = parent->Geom(level).CellSize();
-
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
-
-    FORT_LRHS(rhs[ri].dataPtr(), dimlist(rbox), dimlist(reg),
-	      temp[ri].dataPtr(),
-	      fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
-	      rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
-	      dflux_old[ri].dataPtr(),
-	      Er_old[ri].dataPtr(0), dimlist(ebox),
-	      Edot[ri].dataPtr(),
-	      r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Array<Real> r, s;
+      
+      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
+	  const Box &rbox = rhs[ri].box();
+	  const Box &ebox = Er_old[ri].box();
+	  const Box &reg  = ri.tilebox();
+	  
+	  getCellCenterMetric(parent->Geom(level), reg, r, s);
+	  
+	  FORT_LRHS(rhs[ri].dataPtr(), dimlist(rbox), dimlist(reg),
+		    temp[ri].dataPtr(),
+		    fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
+		    rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
+		    dflux_old[ri].dataPtr(),
+		    Er_old[ri].dataPtr(0), dimlist(ebox),
+		    Edot[ri].dataPtr(),
+		    r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
+      }
   }
 }
 
@@ -600,7 +457,6 @@ void RadSolve::levelSolve(int level,
                           Real sync_absres_factor)
 {
   BL_PROFILE("RadSolve::levelSolve");
-//  const BoxArray& grids = parent->boxArray(level);
 
   // Set coeffs, build solver, solve
   if (hd) {
@@ -687,12 +543,9 @@ void RadSolve::levelFlux(int level,
 void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Flux,
 				     MultiFab& flx, int igroup)
 {
-    const BoxArray& grids = parent->boxArray(level);
-
     int nflx = flx.nComp();
     
     const Geometry& geom = parent->Geom(level);
-    const Real *dx = geom.CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -706,34 +559,10 @@ void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Fl
 		const Box &ccbx  = mfi.tilebox();
 		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
 
-		int rlo, rhi;
+		getEdgeMetric(idim, geom, ndbx, r, s);
 
-		const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-		if (Geometry::IsCartesian()) {
-		    r.resize(ccbx.length(0)+1, 1);
-		    rlo = ndbx.smallEnd(0);
-		    rhi = ndbx.bigEnd  (0);
-		}
-		else if (Geometry::IsRZ()) {
-		    if (idim == 0) {
-			geom.GetEdgeLoc(r, ccbx, 0);
-			rlo = ndbx.smallEnd(0);
-			rhi = ndbx.bigEnd  (0);
-		    }
-		    else {
-			geom.GetCellLoc(r, ccbx, 0);
-			rlo = ccbx.smallEnd(0);
-			rhi = ccbx.bigEnd  (0);
-		    }
-		}
-		else {
-		    geom.GetEdgeLoc(r, ccbx, 0);
-		    geom.GetCellLoc(s, ccbx, I);
-		    rlo = ndbx.smallEnd(0);
-		    rhi = ndbx.bigEnd  (0);
-
-		    FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(ndbx), dx);
-		}
+		int rlo = ndbx.smallEnd(0);
+		int rhi = rlo + r.size() - 1;
 
 		BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
 		    (ccbx.loVect(), ccbx.hiVect(),
@@ -751,12 +580,9 @@ void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,
 				     MultiFab& Er, Tuple<MultiFab, BL_SPACEDIM>& Flux,
 				     MultiFab& flx)
 {
-  const BoxArray& grids = parent->boxArray(level);
-
   int nflx = flx.nComp();
 
   const Geometry& geom = parent->Geom(level);
-  const Real *dx = geom.CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -770,34 +596,10 @@ void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,
 		const Box &ccbx  = mfi.tilebox();
 		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
 
-		int rlo, rhi;
-		
-		const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-		if (Geometry::IsCartesian()) {
-		    r.resize(ccbx.length(0)+1, 1);
-		    rlo = ndbx.smallEnd(0);
-		    rhi = ndbx.bigEnd  (0);
-		}
-		else if (Geometry::IsRZ()) {
-		    if (idim == 0) {
-			geom.GetEdgeLoc(r, ccbx, 0);
-			rlo = ndbx.smallEnd(0);
-			rhi = ndbx.bigEnd  (0);
-		    }
-		    else {
-			geom.GetCellLoc(r, ccbx, 0);
-			rlo = ccbx.smallEnd(0);
-			rhi = ccbx.bigEnd  (0);
-		    }
-		}
-		else {
-		    geom.GetEdgeLoc(r, ccbx, 0);
-		    geom.GetCellLoc(s, ccbx, I);
-		    rlo = ndbx.smallEnd(0);
-		    rhi = ndbx.bigEnd  (0);
+		getEdgeMetric(idim, geom, ndbx, r, s);
 
-		    FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(ndbx), dx);
-		}
+		int rlo = ndbx.smallEnd(0);
+		int rhi = rlo + r.size() - 1;
 
 		BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX_LAB, ca_test_type_flux_lab)
 		    (ccbx.loVect(), ccbx.hiVect(),
@@ -825,9 +627,7 @@ void RadSolve::levelFlux(int level,
   // grow a larger MultiFab to hold Er so we can difference across faces
   MultiFab Erborder(grids, 1, 1);
   Erborder.setVal(0.0);
-  for (MFIter ei(Er); ei.isValid(); ++ei) {
-    Erborder[ei].copy(Er[ei], igroup, 0, 1);
-  }
+  MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
   Erborder.FillBoundary(); // zeroes left in off-level boundaries
   if (parent->Geom(level).isAnyPeriodic()) {
@@ -836,8 +636,11 @@ void RadSolve::levelFlux(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (int n = 0; n < BL_SPACEDIM; n++) {
-      const MultiFab *bp; //, *cp;
+    const MultiFab *bp; //, *cp;
     if (hd) {
       bp = &hd->bCoefficients(n);
     }
@@ -853,13 +656,15 @@ void RadSolve::levelFlux(int level,
     // }
     MultiFab &bcoef = *(MultiFab*)bp;
     //    MultiFab &ccoef = *(MultiFab*)cp;
-    for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-      FORT_SET_ABEC_FLUX(&n,
-                         Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
-                         bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
-                         &beta,
-                         dx,
-                         Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
+
+    for (MFIter fi(Flux[n],true); fi.isValid(); ++fi) {
+	const Box& reg = fi.tilebox();
+	FORT_SET_ABEC_FLUX(dimlist(reg), &n,
+			   Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
+			   bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
+			   &beta,
+			   dx,
+			   Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
     }
   }
 
@@ -908,10 +713,7 @@ void RadSolve::levelFluxReg(int level,
     }
     for (int n = 0; n < BL_SPACEDIM; n++) {
       const Real scale = volume / dx[n];
-      for (MFIter fi(Flux[n]); fi.isValid(); ++fi) {
-        int i = fi.index();
-        flux_out->FineAdd(Flux[n][fi], n, i, 0, igroup, 1, scale);
-      }
+      flux_out->FineAdd(Flux[n], n, 0, igroup, 1, scale);
     }
   }
 }
@@ -932,9 +734,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   // grow a larger MultiFab to hold Er so we can difference across faces
   MultiFab Erborder(grids, 1, 1);
   Erborder.setVal(0.0);
-  for (MFIter ei(Er); ei.isValid(); ++ei) {
-    Erborder[ei].copy(Er[ei], igroup, 0, 1);
-  }
+  MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
   Erborder.FillBoundary(); // zeroes left in off-level boundaries
   if (parent->Geom(level).isAnyPeriodic()) {
@@ -973,7 +773,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       Array<Real> rc, re, s;
       
       if (Geometry::IsSPHERICAL()) {
-      for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
+	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
 	      int i = fi.index();
 	      const Box &reg = grids[i];
 	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
@@ -1029,44 +829,30 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
                               Real c, const Geometry& geom)
 {
   BL_PROFILE("RadSolve::computeBCoeffs (MGFLD)");
-  const BoxArray& grids = kappa_r.boxArray(); // valid region only
-
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  Array<Real> r, s;
+  const Real* dx = geom.CellSize();
 
-  const Real* dx       = geom.CellSize();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Array<Real> r, s;
 
-  for (MFIter mfi(lambda); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &bbox = lambda[mfi].box();
-    const Box &reg  = grids[i];
-    const Box &kbox = kappa_r[mfi].box();
+      for (MFIter mfi(lambda,true); mfi.isValid(); ++mfi) {
+	  const Box &bbox = lambda[mfi].box();
+	  const Box &kbox = kappa_r[mfi].box();
 
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0)+1, 1);
-      s.resize(reg.length(I)+1, 1);
-    }
-    else if (Geometry::IsRZ()) {
-      if (idim == 0) {
-	geom.GetEdgeLoc(r, reg, 0);
-      }
-      else {
-	geom.GetCellLoc(r, reg, 0);
-      }
-      s.resize(reg.length(I)+1, 1);
-    }
-    else { // support only 1D spherical here
-      geom.GetEdgeLoc(r, reg, 0);
-      geom.GetCellLoc(s, reg, I);
-      FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(bbox), dx);
-    }
+	  const Box &ndbx  = mfi.tilebox();
+	  const Box &reg   = BoxLib::enclosedCells(ndbx);
+
+	  getEdgeMetric(idim, geom, ndbx, r, s);
     
-    FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[mfi].dataPtr(lamcomp),
-	       dimlist(bbox), dimlist(reg),
-	       idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
-	       r.dataPtr(), s.dataPtr(), c, dx);
+	  FORT_BCLIM(bcoefs[mfi].dataPtr(), lambda[mfi].dataPtr(lamcomp),
+		     dimlist(bbox), dimlist(reg),
+		     idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+		     r.dataPtr(), s.dataPtr(), c, dx);
+      }
   }
 }
 
@@ -1080,36 +866,26 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 
   int Ncomp = 1;
   int Nghost = 0;
-
-  Array<Real> r, s;
-
   MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
 
-  for (MFIter mfi(kpp); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
-    const Box &abox = acoefs[mfi].box();
-    const Box &reg = grids[i];
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
-      r.resize(reg.length(0), 1);
-      s.resize(reg.length(I), 1);
-    }
-    else if (Geometry::IsRZ()) {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      s.resize(reg.length(I), 1);
-    }
-    else {
-      parent->Geom(level).GetCellLoc(r, reg, 0);
-      parent->Geom(level).GetCellLoc(s, reg, I);
-      const Real *dx = parent->Geom(level).CellSize();
-      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-    }
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  {
+      Array<Real> r, s;
 
-    const Box &kbox = kpp[mfi].box();
-    Real dt_ptc = delta_t/(1.0+ptc_tau);
-    FORT_LACOEFMGFLD(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
-		     kpp[mfi].dataPtr(igroup), dimlist(kbox),
-		     r.dataPtr(), s.dataPtr(), dt_ptc, c);
+      for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
+	  const Box &abox = acoefs[mfi].box();
+	  const Box &reg = mfi.tilebox();
+	  
+	  getCellCenterMetric(parent->Geom(level), reg, r, s);
+	  
+	  const Box &kbox = kpp[mfi].box();
+	  Real dt_ptc = delta_t/(1.0+ptc_tau);
+	  FORT_LACOEFMGFLD(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+			   kpp[mfi].dataPtr(igroup), dimlist(kbox),
+			   r.dataPtr(), s.dataPtr(), dt_ptc, c);
+      }
   }
 
   // set a coefficients
@@ -1163,22 +939,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 	       &time, &delta_t, &igroup);
 
 #else
-
-	  const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-	  if (CoordSys::IsCartesian()) {
-	      r.resize(reg.length(0), 1);
-	      s.resize(reg.length(I), 1);
-	  }
-	  else if (CoordSys::IsRZ()) {
-	      parent->Geom(level).GetCellLoc(r, reg, 0);
-	      s.resize(reg.length(I), 1);
-	  }
-	  else {
-	      parent->Geom(level).GetCellLoc(r, reg, 0);
-	      parent->Geom(level).GetCellLoc(s, reg, I);
-	      const Real *dx = parent->Geom(level).CellSize();
-	      FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
-	  }
+	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 
 #ifdef NEUTRINO
 	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
@@ -1242,3 +1003,55 @@ void RadSolve::restoreHypreMulti()
     hem->d2Multiplier() = d2Multi;  
   }
 }
+
+void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<Real>& r, Array<Real>& s)
+{
+    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+    if (Geometry::IsCartesian()) {
+	r.resize(reg.length(0), 1);
+	s.resize(reg.length(I), 1);
+    }
+    else if (Geometry::IsRZ()) {
+	geom.GetCellLoc(r, reg, 0);
+	s.resize(reg.length(I), 1);
+    }
+    else {
+	geom.GetCellLoc(r, reg, 0);
+	geom.GetCellLoc(s, reg, I);
+	const Real *dx = geom.CellSize();
+	FORT_SPHC(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
+    }
+}
+	
+void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
+			     Array<Real>& r, Array<Real>& s)
+{
+    const Box& reg = BoxLib::enclosedCells(edgebox);
+    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+    if (Geometry::IsCartesian()) {
+	r.resize(reg.length(0)+1, 1);
+	s.resize(reg.length(I)+1, 1);
+    }
+    else if (Geometry::IsRZ()) {
+	if (idim == 0) {
+	    geom.GetEdgeLoc(r, reg, 0);
+	}
+	else {
+	    geom.GetCellLoc(r, reg, 0);
+	}
+	s.resize(reg.length(I)+1, 1);
+    }
+    else {
+      if (idim == 0) {
+        geom.GetEdgeLoc(r, reg, 0);
+        geom.GetCellLoc(s, reg, I);
+      }
+      else {
+        geom.GetCellLoc(r, reg, 0);
+        geom.GetEdgeLoc(s, reg, I);
+      }
+      const Real *dx = geom.CellSize();
+      FORT_SPHE(r.dataPtr(), s.dataPtr(), idim, dimlist(edgebox), dx);
+    }
+}
+

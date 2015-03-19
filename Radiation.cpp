@@ -2389,12 +2389,11 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiFab& kr,
 			   const Geometry& geom)
 {
-    int ng = dcf.nGrow();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
-	const Box& bx = mfi.growntilebox(ng);
+	const Box& bx = mfi.growntilebox();
 	BL_FORT_PROC_CALL(CA_UPDATE_DCF, ca_update_dcf)
 	    (bx.loVect(), bx.hiVect(),
 	     BL_TO_FORTRAN(dcf[mfi]),
@@ -2500,34 +2499,40 @@ void Radiation::set_current_group(int igroup)
 
 void Radiation::computeTemp(MultiFab& State, int resetEint)
 {
-  Real relative = 0.0;
-  Real absolute = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+	Real relative = 0.0;
+	Real absolute = 0.0;
+	FArrayBox temp;
 
-  for (MFIter mfi(State); mfi.isValid(); ++mfi) {
-    const Box& bx = mfi.validbox();
+	for (MFIter mfi(State,true); mfi.isValid(); ++mfi) {
+	    const Box& bx = mfi.tilebox();
 
-    if (do_real_eos == 0) {
-      BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-	(BL_TO_FORTRAN(State[mfi]),
-	 bx.loVect(), bx.hiVect(),verbose);
+	    if (do_real_eos == 0) {
+		BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
+		    (BL_TO_FORTRAN(State[mfi]),
+		     bx.loVect(), bx.hiVect(),verbose);
 
-      FArrayBox temp(bx);
-      temp.copy(State[mfi],Eint,0,1);
-
-      BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-	(bx.loVect(), bx.hiVect(), 
-	 BL_TO_FORTRAN(temp), 
-	 BL_TO_FORTRAN(State[mfi]),
-	 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
-
-      State[mfi].copy(temp,0,Temp,1);
+		temp.resize(bx);
+		temp.copy(State[mfi],bx,Eint,bx,0,1);
+		
+		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
+		    (bx.loVect(), bx.hiVect(), 
+		     BL_TO_FORTRAN(temp), 
+		     BL_TO_FORTRAN(State[mfi]),
+		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		
+		State[mfi].copy(temp,bx,0,bx,Temp,1);
+	    }
+	    else {
+		BL_FORT_PROC_CALL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
+		    (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]),
+		     &resetEint, &relative, &absolute);
+	    }
+	}
     }
-    else {
-      BL_FORT_PROC_CALL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
-	(bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]),
-	 &resetEint, &relative, &absolute);
-    }
-  }
 }
 
 
