@@ -399,8 +399,8 @@ end module rot_sources_module
              ! array index relative to UMX (this works because UMX, UMY, UMZ are consecutive
              ! in the state array).
 
-             idir1 = UMX - 1 + MOD(rot_axis    , 2)
-             idir2 = UMX - 1 + MOD(rot_axis + 1, 2)
+             idir1 = UMX + MOD(rot_axis    , 3)
+             idir2 = UMX + MOD(rot_axis + 1, 3)
 
              ! Update with the centrifugal term and the time-level n Coriolis term.
 
