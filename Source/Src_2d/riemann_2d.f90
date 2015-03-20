@@ -26,7 +26,8 @@ contains
     use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
-                                   use_colglaz, ppm_temp_fix, hybrid_riemann
+                                   use_colglaz, ppm_temp_fix, hybrid_riemann, &
+                                   small_temp, allow_negative_energy
 
 
     implicit none
@@ -124,7 +125,14 @@ contains
              eos_state % xn  = qm(i,j,QFS:QFS-1+nspec)
              eos_state % aux = qm(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_re, eos_state, .false.)
+             ! Protect against negative energies
+
+             if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+                eos_state % T = small_temp
+                call eos(eos_input_rt, eos_state, .false.)                
+             else
+                call eos(eos_input_re, eos_state, .false.)
+             endif
 
              qm(i,j,QREINT) = qm(i,j,QRHO)*eos_state%e
              qm(i,j,QPRES) = eos_state%p
@@ -138,7 +146,14 @@ contains
              eos_state % xn  = qp(i,j,QFS:QFS-1+nspec)
              eos_state % aux = qp(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_re, eos_state, .false.)
+             ! Protect against negative energies
+
+             if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+                eos_state % T = small_temp
+                call eos(eos_input_rt, eos_state, .false.)                
+             else
+                call eos(eos_input_re, eos_state, .false.)
+             endif
 
              qp(i,j,QREINT) = qp(i,j,QRHO)*eos_state%e
              qp(i,j,QPRES) = eos_state%p  
