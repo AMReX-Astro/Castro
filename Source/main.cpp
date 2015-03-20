@@ -131,7 +131,7 @@ main (int   argc,
 
     }
 
-    if (!amrptr->okToContinue()) {
+    if (!amrptr->okToContinue() && ParallelDescriptor::IOProcessor()) {
       std::cout << "Stopping simulation because we are not OK to continue." << std::endl;
     }
 
