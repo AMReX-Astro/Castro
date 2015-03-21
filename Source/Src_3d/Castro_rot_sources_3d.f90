@@ -279,7 +279,7 @@ end module rot_sources_module
 
     double precision :: mom1, mom2
 
-    integer :: idir1, idir2
+    integer :: idir1, idir2, midx1, midx2
 
     omega = get_omega()
 
@@ -415,23 +415,26 @@ end module rot_sources_module
                 ! array index relative to UMX (this works because UMX, UMY, UMZ are consecutive
                 ! in the state array).
 
-                idir1 = UMX + MOD(rot_axis    , 3)
-                idir2 = UMX + MOD(rot_axis + 1, 3)
+                idir1 = 1 + MOD(rot_axis    , 3)
+                idir2 = 1 + MOD(rot_axis + 1, 3)
+
+                midx1 = UMX + idir1 - 1
+                midx2 = UMX + idir2 - 1
 
                 ! Update with the centrifugal term and the time-level n Coriolis term.
 
-                unew(i,j,k,idir1) = unew(i,j,k,idir1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
-                                + dt * omega(rot_axis) * uold(i,j,k,idir2)
-                unew(i,j,k,idir2) = unew(i,j,k,idir2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
-                                - dt * omega(rot_axis) * uold(i,j,k,idir1)
+                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
+                                + dt * omega(rot_axis) * uold(i,j,k,midx2)
+                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
+                                - dt * omega(rot_axis) * uold(i,j,k,midx1)
 
                 ! Now do the implicit solve for the time-level n+1 Coriolis term.
 
-                mom1 = unew(i,j,k,idir1)
-                mom2 = unew(i,j,k,idir2)
+                mom1 = unew(i,j,k,midx1)
+                mom2 = unew(i,j,k,midx2)
 
-                unew(i,j,k,idir1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
-                unew(i,j,k,idir2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
+                unew(i,j,k,midx1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
+                unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
                 ! Conservative energy formulation.
 
