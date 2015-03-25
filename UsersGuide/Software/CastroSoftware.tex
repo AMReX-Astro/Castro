@@ -302,11 +302,26 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
       with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
       use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
 
-    \item {\tt ca\_grav?fill}: These routines will the ghostcells with the
-      gravitational acceleration.  By default, they will just do something
-      like a first-order extrapolation.  These are needed for the hydro
-      routines to have the gravitational acceleration needed for the 
-      source terms to the interface states.
+      (Note: it seems that this may be used for more than just
+      density, but it is only used for tagging and the plotfile)
+      
+    \item {\tt ca\_grav?fill}: These routines fill will the ghostcells
+      of the gravitational acceleration grids with the gravitational
+      acceleration.
+
+      Note: for constant gravity, these routines will never be called.
+      For one of the Poisson-type gravities, you only need to do
+      something special here if you are implementing an {\tt Interior}
+      boundary type (which you can test for by comparing {\tt
+        bc(:,:,:)} to {\tt EXT\_DIR}.
+
+      For the other standard physical boundary types, the ghost cell
+      filling will be handled automatically by the default {\tt filcc}
+      call in these routines.
+
+      The gravitational acceleration in the ghost cells is used during
+      the hydrodynamics portion of the code in predicting the
+      interface states.
 
     \item {\tt ca\_reactfill}
     \end{itemize}

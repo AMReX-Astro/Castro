@@ -10,7 +10,8 @@
 
 Real
 Castro::sumDerive (const std::string& name,
-                   Real           time)
+                   Real               time,
+		   bool               local)
 {
     Real sum     = 0.0;
     MultiFab* mf = derive(name, time, 0);
@@ -35,14 +36,17 @@ Castro::sumDerive (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
 
 Real
 Castro::volWgtSum (const std::string& name,
-                   Real               time)
+                   Real               time,
+		   bool               local,
+		   bool               finemask)
 {
     BL_PROFILE("Castro::volWgtSum()");
 
@@ -52,7 +56,7 @@ Castro::volWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    if (level < parent->finestLevel())
+    if (level < parent->finestLevel() && finemask)
     {
 	const MultiFab* mask = getLevel(level+1).build_fine_mask();
 	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
@@ -97,14 +101,16 @@ Castro::volWgtSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
 
 Real
 Castro::volWgtSquaredSum (const std::string& name,
-                          Real               time)
+                          Real               time,
+			  bool               local)
 {
     BL_PROFILE("Castro::volWgtSquaredSum()");
 
@@ -159,7 +165,8 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -167,7 +174,8 @@ Castro::volWgtSquaredSum (const std::string& name,
 Real
 Castro::locWgtSum (const std::string& name,
                    Real               time,
-                   int                idir)
+                   int                idir,
+		   bool               local)
 {
     BL_PROFILE("Castro::locWgtSum()");
 
@@ -227,7 +235,8 @@ Castro::locWgtSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -237,7 +246,8 @@ Real
 Castro::locWgtSum2D (const std::string& name,
                      Real               time,
                      int                idir1,
-                     int                idir2)
+                     int                idir2,
+		     bool               local)
 {
     BL_PROFILE("Castro::locWgtSum2D()");
 
@@ -289,14 +299,15 @@ Castro::locWgtSum2D (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
 #endif
 
 Real
-Castro::volWgtSumMF (MultiFab* mf, int comp) 
+Castro::volWgtSumMF (MultiFab* mf, int comp, bool local) 
 {
     BL_PROFILE("Castro::volWgtSumMF()");
 
@@ -342,7 +353,8 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
         sum += s;
     }
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -352,7 +364,8 @@ Real
 Castro::volWgtSumOneSide (const std::string& name,
                           Real               time, 
                           int                side,
-                          int                bdir)
+                          int                bdir,
+			  bool               local)
 {
     BL_PROFILE("Castro::volWgtSumOneSide()");
 
@@ -455,7 +468,8 @@ Castro::volWgtSumOneSide (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -465,7 +479,8 @@ Castro::locWgtSumOneSide (const std::string& name,
                           Real               time,
                           int                idir, 
                           int                side,
-                          int                bdir)
+                          int                bdir,
+			  bool               local)
 {
     BL_PROFILE("Castro::locWgtSumOneSide()");
 
@@ -566,7 +581,8 @@ Castro::locWgtSumOneSide (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 
@@ -576,7 +592,7 @@ Castro::locWgtSumOneSide (const std::string& name,
 Real
 Castro::volProductSum (const std::string& name1, 
                        const std::string& name2,
-                       Real time)
+                       Real time, bool local)
 {
     BL_PROFILE("Castro::volProductSum()");
 
@@ -637,7 +653,8 @@ Castro::volProductSum (const std::string& name1,
     if ( name2 != "phi" )
       delete mf2;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -646,7 +663,8 @@ Castro::volProductSum (const std::string& name1,
 Real
 Castro::locSquaredSum (const std::string& name,
                        Real               time,
-                       int                idir)
+                       int                idir,
+		       bool               local)
 {
     BL_PROFILE("Castro::locSquaredSum()");
 
@@ -682,7 +700,8 @@ Castro::locSquaredSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }

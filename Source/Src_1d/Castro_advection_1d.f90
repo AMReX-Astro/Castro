@@ -546,7 +546,7 @@ contains
           
           max_dens = uout(i,URHO)
           do ii = -1,1
-             if (i+ii.ge.uout_l1 .and. i+ii.le.uout_h1) then
+             if (i+ii.ge.lo(1) .and. i+ii.le.hi(1)) then
                 if (uout(i+ii,URHO) .gt. max_dens) then
                    i_set = i+ii
                    max_dens = uout(i_set,URHO)
@@ -604,6 +604,7 @@ contains
           end if
 
           uout(i,URHO ) = uout(i_set,URHO )
+          uout(i,UTEMP) = uout(i_set,UTEMP)
           uout(i,UEINT) = uout(i_set,UEINT)
           uout(i,UEDEN) = uout(i_set,UEDEN)
           uout(i,UMX  ) = uout(i_set,UMX  )

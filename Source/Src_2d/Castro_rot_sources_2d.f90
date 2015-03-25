@@ -146,17 +146,21 @@ contains
           omegacrossv = cross_product(omega,v)
           omegadotr   = dot_product(omega,r)
 
-          ! momentum sources: this is the Coriolis force
-          ! (-2 rho omega x v) and the centrifugal force
-          ! (-rho omega x ( omega x r))
+          if (rot_source_type .le. 3) then
 
-          Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+              ! momentum sources: this is the Coriolis force
+              ! (-2 rho omega x v) and the centrifugal force
+              ! (-rho omega x ( omega x r))
 
-          SrU = Sr(1)
-          SrV = Sr(2)
+              Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
 
-          uout(i,j,UMX) = uout(i,j,UMX) + SrU * dt
-          uout(i,j,UMY) = uout(i,j,UMY) + SrV * dt
+              SrU = Sr(1)
+              SrV = Sr(2)
+
+              uout(i,j,UMX) = uout(i,j,UMX) + SrU * dt
+              uout(i,j,UMY) = uout(i,j,UMY) + SrV * dt
+
+          endif
 
           ! Kinetic energy source: this is v . the momentum source.
           ! We don't apply in the case of the conservative energy
@@ -176,7 +180,7 @@ contains
 
           else if (rot_source_type .eq. 4) then
 
-             ! Do nothing here, for the conservative gravity option.
+             ! Do nothing here, for the conservative rotation option.
 
           else 
              call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
@@ -225,7 +229,7 @@ end module rot_sources_module
                          vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                          xmom_added,ymom_added,E_added)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
     use rot_sources_module, only: cross_product, get_omega
@@ -264,6 +268,10 @@ end module rot_sources_module
     double precision :: E_added, xmom_added, ymom_added
 
     double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1)
+
+    double precision :: mom1, mom2
+
+    integer :: idir1, idir2, midx1, midx2
 
     omega = get_omega()
 
@@ -336,10 +344,14 @@ end module rot_sources_module
           SrUcorr = HALF * (Sr_new(1) - Sr_old(1))
           SrVcorr = HALF * (Sr_new(2) - Sr_old(2))
 
-          ! Correct state with correction terms
+          if (rot_source_type .le. 3) then
 
-          unew(i,j,UMX) = unew(i,j,UMX) + SrUcorr * dt
-          unew(i,j,UMY) = unew(i,j,UMY) + SrVcorr * dt
+              ! Correct state with correction terms
+
+              unew(i,j,UMX) = unew(i,j,UMX) + SrUcorr * dt
+              unew(i,j,UMY) = unew(i,j,UMY) + SrVcorr * dt
+
+          endif
 
           if (rot_source_type == 1) then
 
@@ -380,6 +392,33 @@ end module rot_sources_module
              unew(i,j,UEDEN) = old_rhoeint + new_ke
 
           else if (rot_source_type == 4) then
+
+             ! Coupled momentum update. This won't work if rot_axis /= 3.
+
+             ! Figure out which directions are updated, and then determine the right 
+             ! array index relative to UMX (this works because UMX, UMY, UMZ are consecutive
+             ! in the state array).
+
+             idir1 = 1 + MOD(rot_axis    , 3)
+             idir2 = 1 + MOD(rot_axis + 1, 3)
+
+             midx1 = UMX + idir1 - 1
+             midx2 = UMX + idir2 - 1
+
+             ! Update with the centrifugal term and the time-level n Coriolis term.
+
+             unew(i,j,midx1) = unew(i,j,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
+                             + dt * omega(rot_axis) * uold(i,j,midx2)
+             unew(i,j,midx2) = unew(i,j,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
+                             - dt * omega(rot_axis) * uold(i,j,midx1)
+
+             ! Now do the implicit solve for the time-level n+1 Coriolis term.
+
+             mom1 = unew(i,j,midx1)
+             mom2 = unew(i,j,midx2)
+
+             unew(i,j,midx1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
+             unew(i,j,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
              ! Conservative energy formulation.
 

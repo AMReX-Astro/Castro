@@ -85,10 +85,15 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
-
-       if (ParallelDescriptor::IOProcessor()) 
-          std::cout << "reactState time = " << run_time << '\n';
+	if (ParallelDescriptor::IOProcessor()) 
+	    std::cout << "reactState time = " << run_time << '\n';
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 

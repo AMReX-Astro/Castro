@@ -158,9 +158,12 @@ You may then want to create an alias to {\tt amrvis2d}, for example
 alias amrvis2d /tmp/Amrvis/amrvis2d...ex
 \end{verbatim}
 
-\item Return to the {\tt Castro/Exec/Sedov} directory.  Type {\tt
-  amrvis2d plt00152} to see a single plotfile, or {\tt amrvis2d -a
-  plt*}, which will animate the sequence of plotfiles.
+\item Return to the {\tt Castro/Exec/Sedov} directory.  You should
+  have a number of output files, including some in the form {\tt *pltXXXXX},
+  where {\tt XXXXX} is a number corresponding to the timestep the file
+  was output.  {\tt
+    amrvis2d {\em filename}} to see a single plotfile, or {\tt amrvis2d -a
+  *plt*}, which will animate the sequence of plotfiles.
 
   Try playing
   around with this---you can change which variable you are

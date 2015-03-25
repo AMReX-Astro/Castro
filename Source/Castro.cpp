@@ -1567,6 +1567,10 @@ Castro::postCoarseTimeStep (Real cumtime)
     //
     // postCoarseTimeStep() is only called by level 0.
     //
+#ifdef GRAVITY
+    gravity->set_mass_offset(cumtime, 0);
+#endif
+
 #ifdef PARTICLES
     if (Castro::theDMPC() && particle_move_type == "Random")
         ParticleMoveRandom();
@@ -2355,10 +2359,15 @@ Castro::reflux ()
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
@@ -2936,7 +2945,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum0 = volWgtSumMF(&S_new,Eden);
+        sum0 = volWgtSumMF(&S_new,Eden,true);
     }
 
     // Synchronize (rho e) and (rho E) so they are consistent with each other
@@ -2955,9 +2964,17 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum = volWgtSumMF(&S_new,Eden);
+        sum = volWgtSumMF(&S_new,Eden,true);
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+	ParallelDescriptor::ReduceRealSum(sum0);
+	ParallelDescriptor::ReduceRealSum(sum);
         if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
             std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
