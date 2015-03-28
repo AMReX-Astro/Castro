@@ -17,7 +17,8 @@
                           mass_added,eint_added,eden_added,&
                           xmom_added_flux, &
                           xmom_added_grav, &
-                          E_added_flux, E_added_grav)
+                          xmom_added_sponge, &
+                          E_added_flux, E_added_grav, E_added_sponge)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
                                      do_sponge, &
@@ -63,8 +64,8 @@
       double precision, allocatable:: srcQ(:,:)
       double precision, allocatable:: pdivu(:)
 
-      double precision :: dx,E_added_flux,E_added_grav
-      double precision :: xmom_added_flux, xmom_added_grav
+      double precision :: dx,E_added_flux,E_added_grav,E_added_sponge
+      double precision :: xmom_added_flux, xmom_added_grav, xmom_added_sponge
       double precision :: mass_added, eint_added, eden_added
       integer i,ngf,ngq
       integer q_l1, q_h1
@@ -143,7 +144,8 @@
          call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
 
       if (do_sponge .eq. 1) &
-           call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi)
+           call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi,&
+                       E_added_sponge,xmom_added_sponge)
 
       deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 

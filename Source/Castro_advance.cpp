@@ -580,12 +580,13 @@ Castro::advance_hydro (Real time,
 	}
 	else {
 #endif
-	    Real E_added_grav = 0.;
-	    Real E_added_flux = 0.;
-	    Real E_added_rot  = 0.;
-	    Real mass_added   = 0.;
-	    Real eint_added   = 0.;
-	    Real eden_added   = 0.;
+	    Real E_added_grav    = 0.;
+	    Real E_added_flux    = 0.;
+	    Real E_added_rot     = 0.;
+	    Real E_added_sponge  = 0.;
+	    Real mass_added      = 0.;
+	    Real eint_added      = 0.;
+	    Real eden_added      = 0.;
 	    Real xmom_added_flux = 0.;
 	    Real ymom_added_flux = 0.;
 	    Real zmom_added_flux = 0.;
@@ -595,24 +596,29 @@ Castro::advance_hydro (Real time,
 	    Real xmom_added_rot  = 0.;
 	    Real ymom_added_rot  = 0.;
 	    Real zmom_added_rot  = 0.;
+	    Real xmom_added_sponge = 0.;
+	    Real ymom_added_sponge = 0.;
+	    Real zmom_added_sponge = 0.;
 
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 	    
 #ifdef _OPENMP
 	    bool tiling = true;
 #ifdef POINTMASS
-#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
+#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
-                     reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot ) \
+                     reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
+                     reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
                      reduction(+:mass_change_at_center)
 #else
-#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot) \
+#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
-                     reduction(+:xmom_added_rot ,ymom_added_rot ,zmom_added_rot )
+                     reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
+                     reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
 #endif
 #else
 	    bool tiling = false;
@@ -700,10 +706,17 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 	                 zmom_added_rot,
 #endif
+	                 xmom_added_sponge, 
+#if (BL_SPACEDIM >= 2)
+	                 ymom_added_sponge, 
+#endif
+#if (BL_SPACEDIM == 3)
+	                 zmom_added_sponge,
+#endif
 #if (BL_SPACEDIM > 1)
 	                 E_added_rot, 
 #endif
-                         E_added_flux, E_added_grav);
+                         E_added_flux, E_added_grav, E_added_sponge);
 	    
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
@@ -739,15 +752,16 @@ Castro::advance_hydro (Real time,
 	    if (print_energy_diagnostics)
 	    {
 	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-	       Real foo[15] = {mass_added, eint_added, eden_added, 
-			       E_added_flux, E_added_grav, E_added_rot,
+	       Real foo[19] = {mass_added, eint_added, eden_added, 
+			       E_added_flux, E_added_grav, E_added_rot, E_added_sponge,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
 			       xmom_added_grav, ymom_added_grav, zmom_added_grav,
-			       xmom_added_rot,  ymom_added_rot,  zmom_added_rot};
+			       xmom_added_rot,  ymom_added_rot,  zmom_added_rot,
+                               xmom_added_sponge, ymom_added_sponge, zmom_added_sponge};
 #ifdef BL_LAZY
 	       Lazy::QueueReduction( [=] () mutable {
 #endif
-	       ParallelDescriptor::ReduceRealSum(foo, 15, ParallelDescriptor::IOProcessorNumber());
+	       ParallelDescriptor::ReduceRealSum(foo, 19, ParallelDescriptor::IOProcessorNumber());
 	       if (ParallelDescriptor::IOProcessor()) 
 	       {
 		   mass_added = foo[0];
@@ -756,15 +770,19 @@ Castro::advance_hydro (Real time,
 		   E_added_flux = foo[3];
 		   E_added_grav = foo[4];
 		   E_added_rot  = foo[5];
-		   xmom_added_flux = foo[6];
-		   ymom_added_flux = foo[7];
-		   zmom_added_flux = foo[8];
-		   xmom_added_grav = foo[9];
-		   ymom_added_grav = foo[10];
-		   zmom_added_grav = foo[11];
-		   xmom_added_rot  = foo[12];
-		   ymom_added_rot  = foo[13];
-		   zmom_added_rot  = foo[14];
+		   E_added_sponge = foo[6];
+		   xmom_added_flux = foo[7];
+		   ymom_added_flux = foo[8];
+		   zmom_added_flux = foo[9];
+		   xmom_added_grav = foo[10];
+		   ymom_added_grav = foo[11];
+		   zmom_added_grav = foo[12];
+		   xmom_added_rot  = foo[13];
+		   ymom_added_rot  = foo[14];
+		   zmom_added_rot  = foo[15];
+		   xmom_added_sponge  = foo[16];
+		   ymom_added_sponge  = foo[17];
+		   zmom_added_sponge  = foo[18];		   
 		   if (std::abs(mass_added) != 0)
 		   {
 		      std::cout << "   Mass added from negative density correction : " << 
@@ -821,6 +839,22 @@ Castro::advance_hydro (Real time,
 #endif
 		   }
 #endif
+
+		   if (do_sponge) 
+		   {	 
+		      std::cout << "(rho E) added from sponge                     : " << 
+				    E_added_sponge*cell_vol << std::endl;
+		      std::cout << "xmom added from sponge                        : " << 
+				    xmom_added_sponge*cell_vol << std::endl;
+#if (BL_SPACEDIM >= 2)
+		      std::cout << "ymom added from sponge                        : " << 
+				    ymom_added_sponge*cell_vol << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
+		      std::cout << "zmom added from sponge                        : " << 
+				    zmom_added_sponge*cell_vol << std::endl;
+#endif
+		   }
 	       }
 #ifdef BL_LAZY
 	       });

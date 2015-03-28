@@ -22,7 +22,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                     xmom_added_grav,ymom_added_grav,zmom_added_grav,&
                     xmom_added_rot,ymom_added_rot,zmom_added_rot,&
-                    E_added_rot,E_added_flux,E_added_grav)
+                    xmom_added_sponge,ymom_added_sponge,zmom_added_sponge,&
+                    E_added_rot,E_added_flux,E_added_grav,E_added_sponge)
 
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                  normalize_species, do_grav, do_rotation
@@ -65,11 +66,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot,E_added_sponge
   double precision mass_added,eint_added,eden_added
   double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
   double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
+  double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:,:)
@@ -166,7 +168,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
               div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux,&
               xmom_added_flux,ymom_added_flux,zmom_added_flux)
-  
+
   ! Add the radiative cooling -- for SGS only.
   ! if (radiative_cooling_type.eq.2) then
   !    call post_step_radiative_cooling(lo,hi,dt, &
@@ -202,12 +204,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                          lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
                          xmom_added_rot,ymom_added_rot,zmom_added_rot)
   endif
-  
+
   ! Impose sponge
   if (do_sponge .eq. 1) then
      call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
                  time,dt, &
-                 dx,dy,dz,domlo,domhi)
+                 dx,dy,dz,domlo,domhi, &
+                 E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
 
   deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu,rot)

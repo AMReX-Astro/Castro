@@ -305,11 +305,19 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      Real& zmom_added_rot,
 #endif
+     Real& xmom_added_sponge,
+#if (BL_SPACEDIM >= 2)
+     Real& ymom_added_sponge,
+#endif
+#if (BL_SPACEDIM == 3)
+     Real& zmom_added_sponge,
+#endif
 #if (BL_SPACEDIM > 1)
      Real& E_added_rot,
 #endif
      Real& E_added_flux,
-     Real& E_added_grav);
+     Real& E_added_grav,
+     Real& E_added_sponge);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)

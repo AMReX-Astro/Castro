@@ -9,7 +9,7 @@ module sponge_module
 contains
 
   subroutine sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
-       time,dt,dx,dy,dz,domlo,domhi)
+       time,dt,dx,dy,dz,domlo,domhi,E_added,xmom_added,ymom_added,zmom_added)
 
     use meth_params_module, only : NVAR
     
@@ -19,6 +19,7 @@ contains
     double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
     double precision :: time, dt
     double precision :: dx, dy, dz
+    double precision :: E_added, xmom_added, ymom_added, zmom_added
 
     !
     ! Note that subroutine sponge is called inside OpenMP parallel region.
