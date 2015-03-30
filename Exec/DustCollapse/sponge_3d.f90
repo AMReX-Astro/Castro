@@ -10,7 +10,8 @@ contains
 
   subroutine sponge(uout,uout_l1,uout_l2,uout_l3,&
        uout_h1,uout_h2,uout_h3,lo,hi,t,dt, &
-       dx,dy,dz,domlo,domhi)
+       dx,dy,dz,domlo,domhi, &
+       E_added,xmom_added,ymom_added,zmom_added)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN
     use prob_params_module, only : center
@@ -21,11 +22,12 @@ contains
     integer          :: uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
     double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
     double precision :: t,dt,dx,dy,dz
+    double precision :: E_added, xmom_added, ymom_added, zmom_added
 
     integer :: i,j,k,n
 
     double precision :: sponge_kappa, smdamp, sponge_mult, x, y, z, radius, r_sp, r_tp
-    double precision :: r, r_guess, dr, ke_old, ke_new
+    double precision :: r, r_guess, dr, ke_old, ke_new, momold
 
     logical :: converged
 
@@ -94,14 +96,23 @@ contains
                 ke_old = 0.5d0 * ( uout(i,j,k,UMX)**2+uout(i,j,k,UMY)**2+uout(i,j,k,UMZ)**2) &
                      / uout(i,j,k,URHO)
 
+                momold = uout(i,j,k,UMX)
                 uout(i,j,k,UMX  ) = uout(i,j,k,UMX  ) * sponge_mult
+                xmom_added = xmom_added + (uout(i,j,k,UMX) - momold)
+
+                momold = uout(i,j,k,UMY)
                 uout(i,j,k,UMY  ) = uout(i,j,k,UMY  ) * sponge_mult
+                ymom_added = ymom_added + (uout(i,j,k,UMY) - momold)
+
+                momold = uout(i,j,k,UMZ)
                 uout(i,j,k,UMZ  ) = uout(i,j,k,UMZ  ) * sponge_mult
+                zmom_added = zmom_added + (uout(i,j,k,UMZ) - momold)
 
                 ke_new = 0.5d0 * ( uout(i,j,k,UMX)**2+uout(i,j,k,UMY)**2+uout(i,j,k,UMZ)**2) &
                      / uout(i,j,k,URHO)
 
                 uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + (ke_new-ke_old)
+                E_added = E_added + (ke_new-ke_old)
              endif
 
           enddo
