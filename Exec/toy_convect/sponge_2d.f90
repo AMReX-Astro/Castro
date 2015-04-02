@@ -5,7 +5,8 @@ contains
 
   subroutine sponge(uout,uout_l1,uout_l2,&
                     uout_h1,uout_h2,lo,hi,t,dt, &
-                    dx,dy,domlo,domhi)
+                    dx,dy,domlo,domhi, &
+                    E_added,xmom_added,ymom_added)
 
     use bl_constants_module, only : M_PI
     use meth_params_module , only : NVAR, URHO, UMX, UMY, UEDEN
@@ -16,6 +17,7 @@ contains
     double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision :: t,dt
     double precision :: dx,dy
+    double precision :: E_added, xmom_added, ymom_added
     
     integer          :: i,j
     double precision :: rho, ke_old, ke_new, fac
@@ -27,6 +29,10 @@ contains
     sponge_kappa = 1000.d0
     
     sponge_start_density = sponge_center_density * sponge_start_factor
+
+    E_added = 0.0d0
+    xmom_added = 0.0d0
+    ymom_added = 0.0d0             
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
@@ -52,6 +58,8 @@ contains
              ke_new = 0.5d0 * (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / rho
              
              uout(i,j,UEDEN) = uout(i,j,UEDEN) + (ke_new-ke_old)
+
+             E_added = ke_new-ke_old
              
           endif
           
