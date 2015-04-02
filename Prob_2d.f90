@@ -16,7 +16,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       H_min, cutoff_density, interp_BC, zero_vels, gravity
+       interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -38,11 +38,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   velpert_amplitude = 1.0d2
   velpert_height_loc = 6.5d3
   num_vortices = 1
-  H_min = 1.d-4
-  cutoff_density = 50.d0
   interp_BC = .false.
   zero_vels = .false.
-  gravity = 0.0
 
   ! Read namelists
   untin = 9
@@ -60,11 +57,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
         print *, i, model_r(i), model_state(i,idens_model)
      enddo
   endif
-
-  ! set local variable defaults
-  center(1) = 0.5*(problo(1)+probhi(1))
-  center(2) = 0.5*(problo(2)+probhi(2))
-
 
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices)
@@ -126,7 +118,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
         
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
 
      do i = lo(1), hi(1)   
 
@@ -172,6 +164,42 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ! Initial velocities = 0
   state(:,:,UMX:UMY) = 0.d0
 
+  ! Now add the velocity perturbation
+  if (apply_vel_field) then
+
+     do j = lo(2), hi(2)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
+        ydist = y - velpert_height_loc
+
+        do i = lo(1), hi(1)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5d0)
+
+           upert = 0.d0
+
+           ! loop over each vortex
+           do vortex = 1, num_vortices
+
+              xdist = x - xloc_vortices(vortex)
+
+              r = sqrt(xdist**2 + ydist**2)
+
+              upert(1) = upert(1) - (ydist/velpert_scale) * &
+                   velpert_amplitude * exp( -r**2/(2.d0*velpert_scale**2)) &
+                   * (-1.d0)**vortex
+
+              upert(2) = upert(2) + (xdist/velpert_scale) * &
+                   velpert_amplitude * exp(-r**2/(2.d0*velpert_scale**2)) &
+                   * (-1.d0)**vortex
+           enddo
+
+           state(i,j,UMX) = state(i,j,URHO) * upert(1)
+           state(i,j,UMY) = state(i,j,URHO) * upert(2)
+
+        end do
+     end do
+
+  endif
+  
 end subroutine ca_initdata
 
 
@@ -181,7 +209,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
  
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
   use interpolate_module
   use eos_module
   use network, only: nspec
@@ -237,7 +265,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
         
         ! this do loop counts backwards since we want to work downward
         do j=domlo(2)-1,adv_l2,-1
-           y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+           y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
            
            do i=adv_l1,adv_h1
               
@@ -269,24 +297,24 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                     temp_zone = adv(i,j+1,UTEMP)
                     X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
                         
-
                     ! get pressure in zone above
                     eos_state%rho = adv(i,j+1,URHO)
                     eos_state%T = adv(i,j+1,UTEMP)
                     eos_state%xn(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
 
                     call eos(eos_input_rt, eos_state)
-                    
-                    pres_above = eos_state%p
-                    eint = eos_state%e
 
+                    eint = eos_state%e                    
+                    pres_above = eos_state%p
+
+                    
                     converged_hse = .FALSE.
 
                     do iter = 1, MAX_ITER
 
                        ! pressure needed from HSE
                        p_want = pres_above - &
-                            delta(2)*0.5d0*(dens_zone + adv(i,j+1,URHO))*gravity
+                            delta(2)*0.5d0*(dens_zone + adv(i,j+1,URHO))*const_grav
 
                        ! pressure from EOS
                        eos_state%rho = dens_zone
@@ -295,13 +323,13 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                        call eos(eos_input_rt, eos_state)
 
-                       dpdr = eos_state%dpdr
                        pres_zone = eos_state%p
+                       dpdr = eos_state%dpdr
                        eint = eos_state%e
 
                        ! Newton-Raphson - we want to zero A = p_want - p(rho)
                        A = p_want - pres_zone
-                       drho = A/(dpdr + 0.5*delta(2)*gravity)
+                       drho = A/(dpdr + 0.5*delta(2)*const_grav)
                            
                        dens_zone = max(0.9_dp_t*dens_zone, &
                                        min(dens_zone + drho, 1.1_dp_t*dens_zone))
@@ -363,7 +391,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
      if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
 
         do j=domhi(2)+1,adv_h2
-           y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+           y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
 
            do i=adv_l1,adv_h1
                   
@@ -393,8 +421,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  call eos(eos_input_rt, eos_state)
 
-                 eint = eos_state%e
                  pres_zone = eos_state%p
+                 eint = eos_state%e
 
                  adv(i,j,URHO) = dens_zone
                  adv(i,j,UEINT) = dens_zone*eint
@@ -456,7 +484,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   !     YLO
   if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
      do j=adv_l2,domlo(2)-1
-        y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
         do i=adv_l1,adv_h1
            adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
         end do
@@ -466,7 +494,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   !     YHI
   if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
      do j=domhi(2)+1,adv_h2
-        y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-adv_l2)+ 0.5d0)
         do i=adv_l1,adv_h1
            adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
         end do
