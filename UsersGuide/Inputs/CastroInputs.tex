@@ -343,6 +343,9 @@ The following parameters affect the timestep choice:
 
 \item {\tt castro.dt\_cutoff}: time step below which calculation will abort
    (Real $> 0$; default: 0.0)
+
+\item {\tt castro.hard\_cfl\_limit}: whether or not to abort the simulation if the hydrodynamics
+   update creates velocities that violate the CFL criterion (Integer; default: 1)
 \end{itemize}
 
 As an example, consider:

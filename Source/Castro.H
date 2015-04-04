@@ -611,6 +611,7 @@ protected:
     static int       use_pslope;
     static int       grav_source_type;
     static int       spherical_star;
+    static int       hard_cfl_limit;
 
     static Real      difmag;
     static Real      small_dens;

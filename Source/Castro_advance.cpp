@@ -915,8 +915,9 @@ Castro::advance_hydro (Real time,
     }
 
     if (courno > 1.0) {
-	std::cout << "OOPS -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-	BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+	if (hard_cfl_limit == 1)
+	  BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
     }
 
     if (S_new.contains_nan(Density,S_new.nComp(),0,true))

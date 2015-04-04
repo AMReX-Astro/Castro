@@ -157,6 +157,8 @@ int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
 
+int          Castro::hard_cfl_limit = 1;
+
 int          Castro::use_flattening = 1;
 int          Castro::ppm_flatten_before_integrals = 0;
 
@@ -408,6 +410,7 @@ Castro::read_params ()
     pp.query("grav_source_type",grav_source_type);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
+    pp.query("hard_cfl_limit",hard_cfl_limit);
 
     pp.query("dual_energy_update_E_from_e",dual_energy_update_E_from_e);
     pp.query("dual_energy_eta1",dual_energy_eta1);
