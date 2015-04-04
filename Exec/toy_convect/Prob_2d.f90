@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use parallel
   use probdata_module
   use model_parser_module
   use bl_error_module
@@ -15,7 +16,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       H_min, cutoff_density, interp_BC, zero_vels
+       interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -36,8 +37,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   velpert_amplitude = 1.0d2
   velpert_height_loc = 6.5d3
   num_vortices = 1
-  H_min = 1.d-4
-  cutoff_density = 50.d0
   interp_BC = .false.
   zero_vels = .false.
 
@@ -52,9 +51,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   call read_model_file(model_name)
 
 
-  do i = 1, npts_model
-     print *, i, model_r(i), model_state(i,idens_model)
-  enddo
+  if (parallel_IOProcessor()) then
+     do i = 1, npts_model
+        print *, i, model_r(i), model_state(i,idens_model)
+     enddo
+  endif  
 
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices)
