@@ -135,35 +135,31 @@ contains
              old_zmom = uout(i,j,k,UMZ)
              ! ****   End Diagnostics ****
 
-             if ( rot_source_type .le. 3 ) then
+             r = (/ x, y, z /)
 
-                r = (/ x, y, z /)
+             dens = uin(i,j,k,URHO)
 
-                dens = uin(i,j,k,URHO)
+             v = (/ uin(i,j,k,UMX)/dens, &
+                    uin(i,j,k,UMY)/dens, &
+                    uin(i,j,k,UMZ)/dens /)
 
-                v = (/ uin(i,j,k,UMX)/dens, &
-                       uin(i,j,k,UMY)/dens, &
-                       uin(i,j,k,UMZ)/dens /)
+             omegacrossr = cross_product(omega,r)
+             omegacrossv = cross_product(omega,v)
+             omegadotr   = dot_product(omega,r)
 
-                omegacrossr = cross_product(omega,r)
-                omegacrossv = cross_product(omega,v)
-                omegadotr   = dot_product(omega,r)
+             ! momentum sources: this is the Coriolis force
+             ! (-2 rho omega x v) and the centrifugal force
+             ! (-rho omega x ( omega x r))
 
-                ! momentum sources: this is the Coriolis force
-                ! (-2 rho omega x v) and the centrifugal force
-                ! (-rho omega x ( omega x r))
+             Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
 
-                Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+             SrU = Sr(1)
+             SrV = Sr(2)
+             SrW = Sr(3)
 
-                SrU = Sr(1)
-                SrV = Sr(2)
-                SrW = Sr(3)
-
-                uout(i,j,k,UMX) = uout(i,j,k,UMX) + SrU * dt
-                uout(i,j,k,UMY) = uout(i,j,k,UMY) + SrV * dt
-                uout(i,j,k,UMZ) = uout(i,j,k,UMZ) + SrW * dt
-
-             endif
+             uout(i,j,k,UMX) = uout(i,j,k,UMX) + SrU * dt
+             uout(i,j,k,UMY) = uout(i,j,k,UMY) + SrV * dt
+             uout(i,j,k,UMZ) = uout(i,j,k,UMZ) + SrW * dt
 
              ! Kinetic energy source: this is v . the momentum source.
              ! We don't apply in the case of the conservative energy
@@ -186,7 +182,7 @@ contains
                 ! Do nothing here, for the conservative rotation option.
 
              else 
-                call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+                call bl_error("Error:: Castro_rot_sources_3d.f90 :: bogus rot_source_type")
              end if
 
              ! **** Start Diagnostics ****
@@ -423,9 +419,9 @@ end module rot_sources_module
 
                 ! Update with the centrifugal term and the time-level n Coriolis term.
 
-                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
+                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
                                 + dt * omega(rot_axis) * uold(i,j,k,midx2)
-                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
+                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) & 
                                 - dt * omega(rot_axis) * uold(i,j,k,midx1)
 
                 ! Now do the implicit solve for the time-level n+1 Coriolis term.
@@ -450,7 +446,7 @@ end module rot_sources_module
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 
              else 
-                call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+                call bl_error("Error:: Castro_rot_sources_3d.f90 :: bogus rot_source_type")
              end if
 
              ! **** Start Diagnostics ****

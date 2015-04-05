@@ -146,21 +146,17 @@ contains
           omegacrossv = cross_product(omega,v)
           omegadotr   = dot_product(omega,r)
 
-          if (rot_source_type .le. 3) then
+          ! momentum sources: this is the Coriolis force
+          ! (-2 rho omega x v) and the centrifugal force
+          ! (-rho omega x ( omega x r))
 
-              ! momentum sources: this is the Coriolis force
-              ! (-2 rho omega x v) and the centrifugal force
-              ! (-rho omega x ( omega x r))
+          Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
 
-              Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+          SrU = Sr(1)
+          SrV = Sr(2)
 
-              SrU = Sr(1)
-              SrV = Sr(2)
-
-              uout(i,j,UMX) = uout(i,j,UMX) + SrU * dt
-              uout(i,j,UMY) = uout(i,j,UMY) + SrV * dt
-
-          endif
+          uout(i,j,UMX) = uout(i,j,UMX) + SrU * dt
+          uout(i,j,UMY) = uout(i,j,UMY) + SrV * dt
 
           ! Kinetic energy source: this is v . the momentum source.
           ! We don't apply in the case of the conservative energy
@@ -183,7 +179,7 @@ contains
              ! Do nothing here, for the conservative rotation option.
 
           else 
-             call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+             call bl_error("Error:: Castro_rot_sources_2d.f90 :: bogus rot_source_type")
           end if
 
           ! **** Start Diagnostics ****
@@ -407,9 +403,9 @@ end module rot_sources_module
 
              ! Update with the centrifugal term and the time-level n Coriolis term.
 
-             unew(i,j,midx1) = unew(i,j,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon + rhoo) &
+             unew(i,j,midx1) = unew(i,j,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
                              + dt * omega(rot_axis) * uold(i,j,midx2)
-             unew(i,j,midx2) = unew(i,j,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon + rhoo) & 
+             unew(i,j,midx2) = unew(i,j,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) & 
                              - dt * omega(rot_axis) * uold(i,j,midx1)
 
              ! Now do the implicit solve for the time-level n+1 Coriolis term.
@@ -432,7 +428,7 @@ end module rot_sources_module
              unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr
 
           else 
-             call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+             call bl_error("Error:: Castro_rot_sources_2d.f90 :: bogus rot_source_type")
           end if
 
           ! **** Start Diagnostics ****
