@@ -18,7 +18,7 @@ USE_REACT  = TRUE
 EOS_dir     := helmeos
 
 # This sets the EOS directory in $(CASTRO_DIR)/Networks
-NETWORK_HOME := $(ASTRODEV_DIR)/networks
+NETWORK_HOME := $(MICROPHYSICS_DIR)/networks
 Network_dir := aprox13
 
 Bpack   := ./Make.package
