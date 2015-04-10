@@ -72,6 +72,13 @@ reacting_bubble:
   paper III algorithm paper.
 
 
+test_convect:
+
+  This is a version of the MAESTRO test_convect problem that was used
+  in MAESTRO paper III, and later in the appendix of the sub-Chandra II
+  MAESTRO paper.
+  
+
 toy_convect:
 
   A simple nova-like convection problem with an external heating
