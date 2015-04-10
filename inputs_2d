@@ -25,12 +25,17 @@ castro.do_grav = 1
 castro.do_sponge = 1
 
 castro.ppm_type = 1
-castro.use_colglaz = 1
+castro.use_colglaz = 0
 castro.ppm_reference = 1
 castro.ppm_reference_eigenvectors = 1
 castro.ppm_reference_edge_limit = 1
 
+castro.use_flattening = 1
+castro.ppm_flatten_before_integrals = 1
+
 castro.allow_negative_energy = 0
+
+castro.small_temp = 5.e6
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e10
