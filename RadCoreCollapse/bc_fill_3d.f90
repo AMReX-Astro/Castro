@@ -138,7 +138,6 @@
 
 !     XLO
       if ( bc(1,1,1).eq. FOEXTRAP .and. adv_l1.lt.domlo(1)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
             do i = adv_l1, domlo(1)-1
@@ -198,12 +197,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     XHI
       if ( bc(1,2,1).eq. FOEXTRAP .and. adv_h1.gt.domhi(1)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
             do i = domhi(1)+1, adv_h1
@@ -262,12 +259,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     YLO
       if ( bc(2,1,1).eq. FOEXTRAP .and. adv_l2.lt.domlo(2)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
             do j = adv_l2, domlo(2)-1
@@ -326,12 +321,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     YHI
       if ( bc(2,2,1).eq. FOEXTRAP .and. adv_h2.gt.domhi(2)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
             do j = domhi(2)+1, adv_h2
@@ -390,12 +383,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     ZLO
       if ( bc(3,1,1).eq. FOEXTRAP .and. adv_l3.lt.domlo(3)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
             do k = adv_l3, domlo(3)-1
@@ -454,12 +445,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     ZHI
       if ( bc(3,2,1).eq. FOEXTRAP .and. adv_h3.gt.domhi(3)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,n,ghi,gmd,glo,den,minvar,maxvar)
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
             do k = domhi(3)+1, adv_h3
@@ -518,7 +507,6 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
       if ( ( bc(1,1,1).eq. FOEXTRAP .and. adv_l1.lt.domlo(1) ) .or. &
@@ -621,7 +609,6 @@
 
 !     XLO
       if ( bc(1,1,1).eq. FOEXTRAP .and. adv_l1.lt.domlo(1)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
             do i = adv_l1, domlo(1)-1
@@ -660,12 +647,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     XHI
       if ( bc(1,2,1).eq. FOEXTRAP .and. adv_h1.gt.domhi(1)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do j = adv_l2, adv_h2
             do i = domhi(1)+1, adv_h1
@@ -704,12 +689,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     YLO
       if ( bc(2,1,1).eq. FOEXTRAP .and. adv_l2.lt.domlo(2)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
             do j = adv_l2, domlo(2)-1
@@ -748,12 +731,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     YHI
       if ( bc(2,2,1).eq. FOEXTRAP .and. adv_h2.gt.domhi(2)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do k = adv_l3, adv_h3
          do i = adv_l1, adv_h1
             do j = domhi(2)+1, adv_h2
@@ -792,12 +773,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     ZLO
       if ( bc(3,1,1).eq. FOEXTRAP .and. adv_l3.lt.domlo(3)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
             do k = adv_l3, domlo(3)-1
@@ -836,12 +815,10 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
 !     ZHI
       if ( bc(3,2,1).eq. FOEXTRAP .and. adv_h3.gt.domhi(3)) then
-!$omp parallel do private(i,j,k,x,y,z,r,index,cen,xi,ghi,gmd,glo,den,minvar,maxvar)
          do j = adv_l2, adv_h2
          do i = adv_l1, adv_h1
             do k = domhi(3)+1, adv_h3
@@ -880,7 +857,6 @@
             end do
          end do
          end do
-!$omp end parallel do
       end if            
 
       if ( ( bc(1,1,1).eq. FOEXTRAP .and. adv_l1.lt.domlo(1) ) .or. &
