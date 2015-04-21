@@ -134,6 +134,8 @@ int          Castro::rot_axis = 3;
 
 int          Castro::deterministic = 0;
 
+int          Castro::bndry_func_thread_safe = 1;
+
 int          Castro::grown_factor = 1;
 int          Castro::star_at_center = -1;
 int          Castro::moving_center = 0;
@@ -522,6 +524,9 @@ Castro::read_params ()
 #endif
 
    pp.query("deterministic", deterministic);
+
+   pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
+   StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
 
    pp.query("job_name",job_name);  
 

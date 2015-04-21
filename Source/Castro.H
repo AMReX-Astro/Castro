@@ -723,6 +723,10 @@ protected:
     // set it to true to make OMP deterministic
     static int deterministic;  
 
+    // Is boundary function for inflow (i.e., ext_dir) thread safe?
+    // Note that other boundary functions must be thread safe too.
+    static int bndry_func_thread_safe;
+
     // Name of the probin file and its length.
     static std::string probin_file;
 
