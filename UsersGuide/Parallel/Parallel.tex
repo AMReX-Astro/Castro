@@ -211,9 +211,9 @@ work in the ghost cells of tiles.
 \subsection{Practical Details in Working with Tiling}
 
 With tiling, the OpenMP is now all in C++, and not in Fortran for all
-modules except reactions, initdata, and boundary filling functions
-(such as {\tt hypfill}..  Note that the OpenMP pragma does not have a
-{\tt for}---this is not used when working with an iterator.
+modules except reactions and initdata.  Note that the OpenMP pragma
+does not have a {\tt for}---this is not used when working with an
+iterator.
 
 It is the responsibility of the coder to make sure that the routines with
 in a tiled region are safe to use with OpenMP.  In particular, note that:
