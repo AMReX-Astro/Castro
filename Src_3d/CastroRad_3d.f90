@@ -108,6 +108,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer ngq,ngf,iflaten
   integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   double precision dx,dy,dz, mass_added,eint_added,eden_added
+  double precision E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ngq = NHYP
   ngf = 1
@@ -233,8 +234,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
       
   ! Impose sponge
   if (do_sponge .eq. 1) then
+     E_added_sponge = 0.d0
+     xmom_added_sponge = 0.d0
+     ymom_added_sponge = 0.d0
+     zmom_added_sponge = 0.d0
      call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
-          time,dt,dx,dy,dz,domlo,domhi)
+          time,dt,dx,dy,dz,domlo,domhi, &
+          E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
   
   deallocate(q,gamc,gamcg,flatn,c,cg,csml,div,srcQ,pdivu,ergdx,ergdy,ergdz,lmgdx,lmgdy,lmgdz)

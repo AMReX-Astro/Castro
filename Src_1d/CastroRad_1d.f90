@@ -69,6 +69,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: pdivu(:)
   
   double precision dx,mass_added,eint_added,eden_added
+  double precision E_added_sponge,xmom_added_sponge
   integer i,ngf,ngq,iflaten
   integer q_l1, q_h1
 
@@ -169,7 +170,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
   
   if (do_sponge .eq. 1) &
-       call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi)
+       call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi,&
+                   E_added_sponge,xmom_added_sponge)
   
   deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
 
