@@ -1708,17 +1708,18 @@ contains
                 endif
                 
                 qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
+
+             else
+                
+                ! Update gammae with its transverse terms             
+                qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
+                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                
+                ! and compute the p edge state from this and (rho e)
+                qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
+                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
+                
              end if
-
-          else
-
-             ! Update gammae with its transverse terms             
-             qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
-                  cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
-             qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
 
           endif
 
