@@ -41,9 +41,16 @@ int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
-int Radiation::Test_Type_lambda = 0;
-int Radiation::Test_Type_Flux = 0;
-int Radiation::Test_Type_Flux_lab = 0;
+int Radiation::use_analytic_solution = 0;
+int Radiation::plot_lambda   = 0;
+int Radiation::plot_flux     = 0;
+int Radiation::plot_kappa_p  = 0;
+int Radiation::plot_kappa_r  = 0;
+int Radiation::plot_lab_flux = 0;
+int Radiation::icomp_lambda  = -1;
+int Radiation::icomp_flux    = -1;
+int Radiation::icomp_kp      = -1;
+int Radiation::icomp_kr      = -1;
 int Radiation::filter_lambda_T = 0;
 int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
@@ -120,9 +127,22 @@ void Radiation::read_static_params()
     }
   }
 
+  pp.query("use_analytic_solution", use_analytic_solution);
+
+  pp.query("plot_lambda", plot_lambda);
+  pp.query("plot_flux", plot_flux);
+  pp.query("plot_lab_flux", plot_lab_flux);
+  pp.query("plot_kappa_p", plot_kappa_p);
+  pp.query("plot_kappa_r", plot_kappa_r);
+  
+  // for backward compatibility
+  int Test_Type_lambda = 0, Test_Type_Flux = 0, Test_Type_Flux_lab = 0;
   pp.query("Test_Type_lambda", Test_Type_lambda);
   pp.query("Test_Type_Flux", Test_Type_Flux);
   pp.query("Test_Type_Flux_lab", Test_Type_Flux_lab);
+  plot_lambda = plot_lambda || Test_Type_lambda;
+  plot_flux = plot_flux || Test_Type_Flux;
+  plot_lab_flux = plot_lab_flux || Test_Type_Flux_lab;
 
   pp.query("filter_lambda_T", filter_lambda_T);
   filter_lambda_S = filter_lambda_T - 1;
@@ -221,9 +241,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   ParmParse pp("radiation");
 
   do_sync = 1; pp.query("do_sync", do_sync);
-
-  use_analytic_solution = 0;
-  pp.query("use_analytic_solution", use_analytic_solution);
 
   {
     Real stefbol;

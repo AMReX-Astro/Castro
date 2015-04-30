@@ -183,16 +183,6 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       MultiFab::Copy(kh_cell, kappa_r, 0, 0, 1, 1);
     }
 
-    if (!use_analytic_solution && !Test_Type_lambda) {
-      MultiFab& Test = castro->get_new_data(Test_Type);
-      if (Test.nComp() > 0) {
-	  MultiFab::Copy(Test, kappa_r, 0, 0, 1, 0);
-      }
-      if (Test.nComp() > 1) {
-	  MultiFab::Copy(Test, fkp, 0, 1, 1, 0);
-      }
-    }
-
     // solve linear system:
 
     solver.levelACoeffs(level, fkp, eta, etainv, c, delta_t, 1.0);
@@ -332,16 +322,6 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   solver.levelClear();
 
-  if (Test_Type_Flux) {
-    MultiFab& flx = castro->get_new_data(Test_Type);
-    if (Test_Type_Flux_lab && comoving) { // compute lab frame flux
-      solver.levelFluxFaceToCenter(level, S_new, lambda, Er_new, Ff_new, flx);
-    }
-    else {
-      solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
-    }
-  }
-
   // update flux registers:
   if (flux_in) {
     for (OrientationIter face; face; ++face) {
@@ -398,24 +378,39 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   // update dflux[level] (== dflux_old)
   MultiFab::Copy(dflux_old, dflux_new, 0, 0, 1, 0);
 
-  if (Test_Type_lambda) {
-    MultiFab& Test = castro->get_new_data(Test_Type);
-    int nTest = Test.nComp();
-    int ilambda = nTest;
-    if (nTest > 0) {
+  MultiFab& Test = castro->get_new_data(Test_Type);
+  int nTest = Test.nComp();
+
+  if (plot_lambda) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	for (MFIter ti(Test,true); ti.isValid(); ++ti) {
-	    const Box& bx = ti.tilebox();
-	    BL_FORT_PROC_CALL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(Test[ti]), &nTest, &ilambda,
-		 D_DECL(BL_TO_FORTRAN(lambda[0][ti]),
-			BL_TO_FORTRAN(lambda[1][ti]),
-			BL_TO_FORTRAN(lambda[2][ti])));
-	}
-    }
+      for (MFIter mfi(Test,true); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.tilebox();
+	  int scomp = 0;
+	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
+	      (bx.loVect(), bx.hiVect(),
+	       scomp, icomp_lambda, nGroups, nGroups, nTest,
+	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+		      BL_TO_FORTRAN(lambda[1][mfi]),
+		      BL_TO_FORTRAN(lambda[2][mfi])),
+	       BL_TO_FORTRAN(Test[mfi]));
+      }
+  }
+
+  if (plot_flux) {
+      solver.levelFluxFaceToCenter(level, Ff_new, Test, icomp_flux);
+      if (plot_lab_flux) {
+	  // xxxxxxxxxx
+      }
+  }
+
+  if (plot_kappa_p) {
+      MultiFab::Copy(Test, fkp, 0, icomp_kp, 1, 0);
+  }
+
+  if (plot_kappa_r) {
+      MultiFab::Copy(Test, kappa_r, 0, icomp_kp, 1, 0);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

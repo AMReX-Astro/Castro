@@ -1183,32 +1183,32 @@ subroutine ca_accel_ccoe( lo, hi, &
 end subroutine ca_accel_ccoe
 
 
-subroutine ca_test_type_flux( lo, hi, &
+subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_l2, t_l3, t_h1, t_h2, t_h3, &
      f, f_l1, f_l2, f_l3, f_h1, f_h2, f_h3, &
-     x, x_l1, x_h1, nt, idim, igroup)
+     x, x_l1, x_h1, nt, idim, iflx)
 
-  use rad_params_module, only : get_ispec, nradspec
+  use rad_params_module, only : ngroups
+  implicit none
 
   integer,intent(in):: lo(3), hi(3)
   integer,intent(in)::t_l1,t_h1,t_l2,t_h2,t_l3,t_h3
   integer,intent(in)::f_l1,f_h1,f_l2,f_h2,f_l3,f_h3
   integer,intent(in)::x_l1,x_h1
-  integer,intent(in) :: nt, idim, igroup
+  integer,intent(in) :: nt, idim, iflx
   double precision           ::t(t_l1:t_h1,t_l2:t_h2,t_l3:t_h3,0:nt-1)
   double precision,intent(in)::f(f_l1:f_h1,f_l2:f_h2,f_l3:f_h3)
   double precision,intent(in)::x(x_l1:x_h1)
 
-  integer ispec, it, i, j, k
+  integer it, i, j, k
 
-  ispec = get_ispec(igroup)
-  it = idim*nradspec + ispec
+  it = idim*ngroups + iflx
 
   if (idim .eq. 0) then
      do k=lo(3), hi(3)
         do j=lo(2), hi(2)
            do i=lo(1), hi(1)
-              t(i,j,k,it) = t(i,j,k,it) + (f(i,j,k) + f(i+1,j,k)) / 2.d0
+              t(i,j,k,it) = (f(i,j,k) + f(i+1,j,k)) * 0.5d0
            end do
         end do
      end do
@@ -1216,7 +1216,7 @@ subroutine ca_test_type_flux( lo, hi, &
      do k=lo(3), hi(3)
         do j=lo(2), hi(2)
            do i=lo(1), hi(1)
-              t(i,j,k,it) = t(i,j,k,it) + (f(i,j,k) + f(i,j+1,k)) / 2.d0
+              t(i,j,k,it) = (f(i,j,k) + f(i,j+1,k)) * 0.5d0
            end do
         end do
      end do
@@ -1224,13 +1224,13 @@ subroutine ca_test_type_flux( lo, hi, &
      do k=lo(3), hi(3)
         do j=lo(2), hi(2)
            do i=lo(1), hi(1)
-              t(i,j,k,it) = t(i,j,k,it) + (f(i,j,k) + f(i,j,k+1)) / 2.d0
+              t(i,j,k,it) = (f(i,j,k) + f(i,j,k+1)) * 0.5d0
            end do
         end do
      end do
   end if
 
-end subroutine ca_test_type_flux
+end subroutine ca_flux_face2center
 
 subroutine ca_rhstoer( lo, hi, &
      rhs, rhs_l1, rhs_l2, rhs_l3, rhs_h1, rhs_h2, rhs_h3, &

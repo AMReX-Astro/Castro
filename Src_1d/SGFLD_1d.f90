@@ -1,22 +1,4 @@
 
-subroutine ca_test_type_lambda(lo, hi, &
-     test, test_l1, test_h1, ntest, n, &
-     lam, lam_l1, lam_h1)
-
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1), test_l1, test_h1, ntest, n, lam_l1, lam_h1
-  double precision, intent(in) :: lam(lam_l1:lam_h1)
-  double precision :: test(test_l1:test_h1,ntest)
-  integer :: i
-
-  do i = lo(1), hi(1)
-     test(i,n) = (lam(i) + lam(i+1)) / 2.d0
-  end do
-
-end subroutine ca_test_type_lambda
-
-
 subroutine ca_test_type_flux_lab( lo, hi, &
      flab, fl_l1, fl_h1, &
      fcom, fc_l1, fc_h1, &

@@ -499,49 +499,8 @@ void RadSolve::levelSolve(int level,
   }
 }
 
-
-void RadSolve::levelFlux(int level,
-                         FluxRegister* flux_in, FluxRegister* flux_out,
-                         MultiFab& Er, int igroup)
-{
-  BL_PROFILE("RadSolve::levelFlux");
-  const BoxArray& grids = parent->boxArray(level);
-
-  Tuple<MultiFab, BL_SPACEDIM> Flux;
-  for (int n = 0; n < BL_SPACEDIM; n++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(n);
-    Flux[n].define(edge_boxes, 1, 0, Fab_allocate);
-  }
-
-  levelFlux(level, Flux, Er, igroup);
-
-  levelFluxReg(level, flux_in, flux_out, Flux, igroup);
-}
-
-void RadSolve::levelFlux(int level,
-                         FluxRegister* flux_in, FluxRegister* flux_out,
-                         MultiFab& Er, int igroup, MultiFab& flx)
-{
-  BL_PROFILE("RadSolve::levelFlux");
-  const BoxArray& grids = parent->boxArray(level);
-
-  Tuple<MultiFab, BL_SPACEDIM> Flux;
-  for (int n = 0; n < BL_SPACEDIM; n++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(n);
-    Flux[n].define(edge_boxes, 1, 0, Fab_allocate);
-  }
-
-  levelFlux(level, Flux, Er, igroup);
-
-  levelFluxReg(level, flux_in, flux_out, Flux, igroup);
-
-  levelFluxFaceToCenter(level, Flux, flx, igroup);
-}
-
-void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Flux,
-				     MultiFab& flx, int igroup)
+void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDIM>& Flux,
+				     MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
     
@@ -564,57 +523,15 @@ void RadSolve::levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Fl
 		int rlo = ndbx.smallEnd(0);
 		int rhi = rlo + r.size() - 1;
 
-		BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
+		BL_FORT_PROC_CALL(CA_FLUX_FACE2CENTER,ca_flux_face2center)
 		    (ccbx.loVect(), ccbx.hiVect(),
 		     BL_TO_FORTRAN(flx[mfi]),
 		     BL_TO_FORTRAN(Flux[idim][mfi]),
 		     r.dataPtr(), &rlo, &rhi, 
-		     &nflx, &idim, &igroup);
+		     &nflx, &idim, &iflx);
 	    }
 	}
     }
-}
-
-void RadSolve::levelFluxFaceToCenter(int level, MultiFab& state,
-				     Tuple<MultiFab, BL_SPACEDIM>& lambda,
-				     MultiFab& Er, Tuple<MultiFab, BL_SPACEDIM>& Flux,
-				     MultiFab& flx)
-{
-  int nflx = flx.nComp();
-
-  const Geometry& geom = parent->Geom(level);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-	Array<Real> r, s;
-
-	for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi)
-	    {
-		const Box &ccbx  = mfi.tilebox();
-		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
-
-		getEdgeMetric(idim, geom, ndbx, r, s);
-
-		int rlo = ndbx.smallEnd(0);
-		int rhi = rlo + r.size() - 1;
-
-		BL_FORT_PROC_CALL(CA_TEST_TYPE_FLUX_LAB, ca_test_type_flux_lab)
-		    (ccbx.loVect(), ccbx.hiVect(),
-		     BL_TO_FORTRAN(flx[mfi]),
-		     BL_TO_FORTRAN(Flux[idim][mfi]),
-		     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-			    BL_TO_FORTRAN(lambda[1][mfi]),
-			    BL_TO_FORTRAN(lambda[2][mfi])),
-		     BL_TO_FORTRAN(Er[mfi]),
-		     BL_TO_FORTRAN(state[mfi]),
-		     r.dataPtr(), &rlo, &rhi, 
-		     &nflx, &idim);
-	    }
-	}
-  }
 }
 
 void RadSolve::levelFlux(int level,
@@ -691,7 +608,7 @@ void RadSolve::levelFlux(int level,
 
 void RadSolve::levelFluxReg(int level,
                             FluxRegister* flux_in, FluxRegister* flux_out,
-                            Tuple<MultiFab, BL_SPACEDIM>& Flux,
+                            const Tuple<MultiFab, BL_SPACEDIM>& Flux,
                             int igroup)
 {
   BL_PROFILE("RadSolve::levelFluxReg");
@@ -812,8 +729,13 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
       for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
 	  const Box& bx = fi.tilebox();
+	  int scomp = 0;
+	  int dcomp = 0;
+	  int ncomp = 1;
+	  int nf = 1;
+	  int nc = 1;
 	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	      (bx.loVect(), bx.hiVect(),
+	      (bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
 	       D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
 		      BL_TO_FORTRAN(Dterm_face[1][fi]),
 		      BL_TO_FORTRAN(Dterm_face[2][fi])),

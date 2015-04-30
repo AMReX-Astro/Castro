@@ -213,8 +213,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab coupY;
 #endif
 
-  MultiFab flx_foo;
-  MultiFab& flx = (Test_Type_Flux) ? castro->get_new_data(Test_Type) : flx_foo;
+  MultiFab& Test = castro->get_new_data(Test_Type);
 
   // multigroup boundary object
   MGRadBndry mgbd(grids, nGroups, castro->Geom());
@@ -243,6 +242,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   // point to flux_trial (or NULL) for appropriate levels
   FluxRegister* flux_in = (level < fine_level) ? &flux_trial[level+1] : NULL;
   FluxRegister* flux_out = (level > 0) ? &flux_trial[level] : NULL;
+
+  Tuple<MultiFab, BL_SPACEDIM> Flux;
+  for (int n = 0; n < BL_SPACEDIM; n++) {
+    BoxArray edge_boxes(grids);
+    edge_boxes.surroundingNodes(n);
+    Flux[n].define(edge_boxes, 1, 0, Fab_allocate);
+  }
 
   // Er_step: starting state of the inner iteration (e.g., ^(2))
   // There used to be an extra velocity term update
@@ -337,10 +343,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       compute_coupling(coupT, coupY, kappa_p, Er_pi, jg);
 
-      if (Test_Type_Flux) {
-	flx.setVal(0.0);
-      }
-
       for (int igroup=0; igroup<nGroups; ++igroup) {
 
 	set_current_group(igroup);
@@ -370,15 +372,14 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
 	  // solve Er equation and put solution in Er_new(igroup)
 	  solver.levelSolve(level, Er_new, igroup, rhs, 0.01);
-
-	  if (Test_Type_Flux) {
-	    solver.levelFlux(level, flux_in, flux_out, Er_new, igroup, flx);
-	  }
-	  else {
-	    solver.levelFlux(level, flux_in, flux_out, Er_new, igroup);
-	  }
 	} // end src and rhs block
 
+	solver.levelFlux(level, Flux, Er_new, igroup);
+	solver.levelFluxReg(level, flux_in, flux_out, Flux, igroup);
+	  
+	if (plot_flux) {
+	    solver.levelFluxFaceToCenter(level, Flux, Test, icomp_flux+igroup);
+	}
       } // end loop over groups
       
       // Check for convergence *before* acceleration step:
@@ -695,6 +696,25 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 #ifdef NEUTRINO
     cout << "Delta Ye           = " << dye   << endl;
 #endif
+  }
+
+  int nTest = Test.nComp();
+
+  if (plot_lambda) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(Test,true); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.tilebox();
+	  int scomp = 0;
+	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
+	      (bx.loVect(), bx.hiVect(),
+	       scomp, icomp_lambda, nGroups, nGroups, nTest,
+	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+		      BL_TO_FORTRAN(lambda[1][mfi]),
+		      BL_TO_FORTRAN(lambda[2][mfi])),
+	       BL_TO_FORTRAN(Test[mfi]));
+      }
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

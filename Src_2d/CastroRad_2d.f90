@@ -858,26 +858,29 @@ end subroutine ca_set_dterm_face
 
 
 subroutine ca_face2center( lo, hi, &
+     scomp, dcomp, ncomp, nf, nc, &
      foox, foox_l1, foox_l2, foox_h1, foox_h2, &
      fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
      fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2)
 
   implicit none
 
-  integer, intent(in) :: lo(2), hi(2)
+  integer, intent(in) :: lo(2), hi(2), scomp,dcomp,ncomp,nf,nc
   integer, intent(in) :: foox_l1, foox_l2, foox_h1, foox_h2
   integer, intent(in) :: fooy_l1, fooy_l2, fooy_h1, fooy_h2
   integer, intent(in) :: fooc_l1, fooc_l2, fooc_h1, fooc_h2
-  double precision, intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2)
-  double precision, intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2)
-  double precision              :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2)
+  double precision, intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2,0:nf-1)
+  double precision, intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2,0:nf-1)
+  double precision              :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,0:nc-1)
 
-  integer :: i,j
+  integer :: i,j,n
 
-  do j=lo(2), hi(2)
-     do i=lo(1), hi(1)
-        fooc(i,j) = (foox(i,j) + foox(i+1,j) &
-             &     + fooy(i,j) + fooy(i,j+1) )/4.d0
+  do n = 0, ncomp-1
+     do j=lo(2), hi(2)
+        do i=lo(1), hi(1)
+           fooc(i,j,dcomp+n) = (foox(i,j,scomp+n) + foox(i+1,j,scomp+n) &
+                &             + fooy(i,j,scomp+n) + fooy(i,j+1,scomp+n)) * 0.25d0
+        end do
      end do
   end do
 

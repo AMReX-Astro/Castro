@@ -55,24 +55,14 @@ class RadSolve {
 		  Real sync_absres_factor);
 
   void levelFlux(int level,
-		 FluxRegister* flux_in, FluxRegister* flux_out,
-                 MultiFab& Er, int igroup);
-  void levelFlux(int level,
-		 FluxRegister* flux_in, FluxRegister* flux_out,
-                 MultiFab& Er, int igroup, MultiFab& flx);
-  void levelFlux(int level,
                  Tuple<MultiFab, BL_SPACEDIM>& Flux,
                  MultiFab& Er, int igroup);
   void levelFluxReg(int level,
                     FluxRegister* flux_in, FluxRegister* flux_out,
-                    Tuple<MultiFab, BL_SPACEDIM>& Flux,
+                    const Tuple<MultiFab, BL_SPACEDIM>& Flux,
                     int igroup);
-  void levelFluxFaceToCenter(int level, Tuple<MultiFab, BL_SPACEDIM>& Flux,
-			     MultiFab& flx, int igroup);
-  void levelFluxFaceToCenter(int level, MultiFab& S_new,
-			     Tuple<MultiFab, BL_SPACEDIM>& lambda,
-			     MultiFab& Er, Tuple<MultiFab, BL_SPACEDIM>& Flux,
-			     MultiFab& flx);
+  void levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDIM>& Flux,
+			     MultiFab& flx, int iflx);
   void levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup);
   void levelClear();
 

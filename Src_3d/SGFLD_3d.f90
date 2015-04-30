@@ -1,37 +1,3 @@
-
-subroutine ca_test_type_lambda( lo, hi, &
-     test, test_l1, test_l2, test_l3, test_h1, test_h2, test_h3, &
-     ntest, n, &
-     lamx, lamx_l1, lamx_l2, lamx_l3, lamx_h1, lamx_h2, lamx_h3, &
-     lamy, lamy_l1, lamy_l2, lamy_l3, lamy_h1, lamy_h2, lamy_h3, &
-     lamz, lamz_l1, lamz_l2, lamz_l3, lamz_h1, lamz_h2, lamz_h3 )
-
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3), ntest, n, &
-       test_l1, test_l2, test_l3, test_h1, test_h2, test_h3, &
-       lamx_l1, lamx_l2, lamx_l3, lamx_h1, lamx_h2, lamx_h3, &
-       lamy_l1, lamy_l2, lamy_l3, lamy_h1, lamy_h2, lamy_h3, &
-       lamz_l1, lamz_l2, lamz_l3, lamz_h1, lamz_h2, lamz_h3 
-  double precision, intent(in) :: lamx(lamx_l1:lamx_h1,lamx_l2:lamx_h2,lamx_l3:lamx_h3)
-  double precision, intent(in) :: lamy(lamy_l1:lamy_h1,lamy_l2:lamy_h2,lamy_l3:lamy_h3)
-  double precision, intent(in) :: lamz(lamz_l1:lamz_h1,lamz_l2:lamz_h2,lamz_l3:lamz_h3)
-  double precision             :: test(test_l1:test_h1,test_l2:test_h2,test_l3:test_h3,ntest)
-  integer :: i,j,k
-
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           test(i,j,k,n) = (lamx(i,j,k) + lamx(i+1,j,k) &
-                &   +       lamy(i,j,k) + lamy(i,j+1,k) &
-                &   +       lamz(i,j,k) + lamz(i,j,k+1) ) / 6.d0
-        end do
-     end do
-  end do
-
-end subroutine ca_test_type_lambda
-
-
 subroutine ca_test_type_flux_lab( lo, hi, &
      flab, fl_l1, fl_l2, fl_l3, fl_h1, fl_h2, fl_h3, &
      fcom, fc_l1, fc_l2, fc_l3, fc_h1, fc_h2, fc_h3, &

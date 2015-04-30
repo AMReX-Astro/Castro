@@ -45,7 +45,11 @@ public:
   static int Er_Lorentz_term; 
   static int fspace_advection_type;
 
-  static int Test_Type_lambda, Test_Type_Flux, Test_Type_Flux_lab;
+  static int use_analytic_solution; // compare against an analytic solution
+
+  static int plot_lambda, plot_flux, plot_kappa_p, plot_kappa_r;
+  static int plot_lab_flux;
+  static int icomp_lambda, icomp_flux, icomp_kp, icomp_kr;
 
   static int filter_lambda_T, filter_lambda_S;
   static int filter_prim_int, filter_prim_T, filter_prim_S;
@@ -440,8 +444,6 @@ protected:
   Real underfac;         // factor controlling progressive underrelaxation
 
   int do_sync;               // perform sync (if false zero out sync source)
-
-  int use_analytic_solution; // compare against an analytic solution
 
   Real kappa_r_floor, temp_floor;
 

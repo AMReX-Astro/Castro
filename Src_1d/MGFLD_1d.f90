@@ -1074,33 +1074,29 @@ subroutine ca_accel_ccoe( lo, hi, &
 end subroutine ca_accel_ccoe
 
 
-subroutine ca_test_type_flux( lo, hi, &
+subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_h1, &
      f, f_l1, f_h1, &
      x, x_l1, x_h1, &
-     nt, idim, igroup)
-
-  use rad_params_module, only : get_ispec
+     nt, idim, it)
+  implicit none
 
   integer,intent(in):: lo(1), hi(1)
   integer,intent(in)::t_l1,t_h1
   integer,intent(in)::f_l1,f_h1
   integer,intent(in)::x_l1,x_h1
-  integer,intent(in) :: nt, idim, igroup
+  integer,intent(in) :: nt, idim, it
   double precision           ::t(t_l1:t_h1,0:nt-1)
   double precision,intent(in)::f(f_l1:f_h1)
   double precision,intent(in)::x(x_l1:x_h1)
 
-  integer ispec, it, i
-
-  ispec = get_ispec(igroup)
-  it = ispec
+  integer i
 
   do i=lo(1),hi(1)
-     t(i,it) = t(i,it) + (f(i)/(x(i)+1.d-50) + f(i+1)/x(i+1)) / 2.d0
+     t(i,it) = (f(i)/(x(i)+1.d-50) + f(i+1)/x(i+1)) * 0.5d0
   end do
 
-end subroutine ca_test_type_flux
+end subroutine ca_flux_face2center
 
 subroutine ca_rhstoer(lo, hi, rhs, rhs_l1, rhs_h1, r, dt)
   implicit none

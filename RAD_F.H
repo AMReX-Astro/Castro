@@ -213,13 +213,6 @@ BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
     const int lo[], const int hi[],
     const Real* dx, const int* limiter, const int* comoving); 
 
-BL_FORT_PROC_DECL(CA_TEST_TYPE_LAMBDA, ca_test_type_lambda)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(test), const int* ntest, const int* n,
-    D_DECL(const BL_FORT_FAB_ARG(lamx),
-	   const BL_FORT_FAB_ARG(lamy),
-	   const BL_FORT_FAB_ARG(lamz)));
-
 BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Er),
@@ -228,7 +221,8 @@ BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
     const Real* dx, const int* idir);
 
 BL_FORT_PROC_DECL(CA_FACE2CENTER, ca_face2center)
-    (const int lo[], const int hi[],
+    (const int lo[], const int hi[], 
+     const int& scomp, const int& dcomp, const int& ncomp, const int& nf, const int& nc,
      D_DECL(const BL_FORT_FAB_ARG(foox),
 	    const BL_FORT_FAB_ARG(fooy),
 	    const BL_FORT_FAB_ARG(fooz)),
@@ -654,23 +648,12 @@ BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
     const BL_FORT_FAB_ARG(spec),
     BL_FORT_FAB_ARG(ccoe),
     const Real* dx, const int* idim, const int* igroup);
-BL_FORT_PROC_DECL(CA_TEST_TYPE_FLUX, ca_test_type_flux)
+BL_FORT_PROC_DECL(CA_FLUX_FACE2CENTER, ca_flux_face2center)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(test), 
     const BL_FORT_FAB_ARG(flx),
     const Real* x, const int* xlo, const int* xhi, 
-    const int* ntest, const int* idim, const int* igroup);
-BL_FORT_PROC_DECL(CA_TEST_TYPE_FLUX_LAB, ca_test_type_flux_lab)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(test), 
-    const BL_FORT_FAB_ARG(flx),
-    D_DECL(const BL_FORT_FAB_ARG(lamx),
-	   const BL_FORT_FAB_ARG(lamy),
-	   const BL_FORT_FAB_ARG(lamz)),
-    const BL_FORT_FAB_ARG(Er),
-    const BL_FORT_FAB_ARG(state),
-    const Real* x, const int* xlo, const int* xhi, 
-    const int* ntest, const int* idim);
+    const int* ntest, const int* idim, const int* iflx);
 BL_FORT_PROC_DECL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(State),

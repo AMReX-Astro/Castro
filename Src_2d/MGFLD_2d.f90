@@ -1133,42 +1133,42 @@ subroutine ca_accel_ccoe( lo, hi, &
 end subroutine ca_accel_ccoe
 
 
-subroutine ca_test_type_flux( lo, hi, &
+subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_l2, t_h1, t_h2, &
      f, f_l1, f_l2, f_h1, f_h2, &
-     x, x_l1, x_h1, nt, idim, igroup)
+     x, x_l1, x_h1, nt, idim, iflx)
 
-  use rad_params_module, only : get_ispec, nradspec
+  use rad_params_module, only : ngroups
+  implicit none
 
   integer,intent(in):: lo(2), hi(2)
   integer,intent(in)::t_l1,t_h1,t_l2,t_h2
   integer,intent(in)::f_l1,f_h1,f_l2,f_h2
   integer,intent(in)::x_l1,x_h1
-  integer,intent(in) :: nt, idim, igroup
+  integer,intent(in) :: nt, idim, iflx
   double precision           ::t(t_l1:t_h1,t_l2:t_h2,0:nt-1)
   double precision,intent(in)::f(f_l1:f_h1,f_l2:f_h2)
   double precision,intent(in)::x(x_l1:x_h1)
 
-  integer ispec, it, i, j
+  integer it, i, j
 
-  ispec = get_ispec(igroup)
-  it = idim*nradspec + ispec
+  it = idim*ngroups + iflx
 
   if (idim .eq. 0) then
      do j=lo(2), hi(2)
         do i=lo(1), hi(1)
-           t(i,j,it) = t(i,j,it) + (f(i,j)/(x(i)+1.d-50) + f(i+1,j)/x(i+1)) / 2.d0
+           t(i,j,it) = (f(i,j)/(x(i)+1.d-50) + f(i+1,j)/x(i+1)) * 0.5d0
         end do
      end do
   else 
      do j=lo(2), hi(2)
         do i=lo(1), hi(1)
-           t(i,j,it) = t(i,j,it) + (f(i,j)/x(i) + f(i,j+1)/x(i)) / 2.d0
+           t(i,j,it) = (f(i,j)/x(i) + f(i,j+1)/x(i)) * 0.5d0
         end do
      end do
   end if
 
-end subroutine ca_test_type_flux
+end subroutine ca_flux_face2center
 
 subroutine ca_rhstoer( lo, hi, &
      rhs, rhs_l1, rhs_l2, rhs_h1, rhs_h2, &
