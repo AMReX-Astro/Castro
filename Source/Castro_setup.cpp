@@ -1,5 +1,6 @@
 #include <winstd.H>
 #include <cstdio>
+#include <sstream>
 
 #include "LevelBld.H"
 #include <ParmParse.H>
@@ -574,69 +575,153 @@ Castro::variableSetUp ()
       }
     }
 
-    // In the following ncomp == 0 would be fine, except that it
-    // violates an assertion in StateDescriptor.cpp.  I think we could
-    // run with ncomp == 0 just by taking out that assertion.
-    ncomp = 2;
-    ncomp = (Radiation::Test_Type_lambda) ? 1 : ncomp;
-    int nspec = (Radiation::nNeutrinoSpecies>0) ? Radiation::nNeutrinoSpecies : 1;
-    if (Radiation::Test_Type_Flux) {
-      ncomp = nspec * BL_SPACEDIM;
-      if (Radiation::Test_Type_lambda) {
-	ncomp++;  // SGFLD only
-      }
+    ncomp = 0;
+    if (Radiation::use_analytic_solution) {
+	ncomp += 2;
     }
-
+    if (Radiation::plot_lambda) {
+	ncomp += Radiation::nGroups;
+    }
+    if (Radiation::plot_flux) {
+	ncomp += Radiation::nGroups*BL_SPACEDIM;
+    }
+    if (Radiation::plot_kappa_p) {
+	ncomp += Radiation::nGroups;
+    }
+    if (Radiation::plot_kappa_r) {
+	ncomp += Radiation::nGroups;
+    }
     ngrow = 0;
     desc_lst.addDescriptor(Test_Type, IndexType::TheCellType(),
-                           StateDescriptor::Point, ngrow, ncomp,
-                           &cell_cons_interp);
+                           StateDescriptor::Point, ngrow, std::max(ncomp,1),
+                           &cell_cons_interp,false,false);
     set_scalar_bc(bc,phys_bc);
 
-    if (Radiation::Test_Type_Flux) {
-      Array<std::string> radname(3);
-      if (Radiation::nNeutrinoSpecies>0) {
-	radname[0] = "nue";
-	radname[1] = "nuae";
-	radname[2] = "numu";
-      }
-      else {
-	radname[0] = "rad";
-      }
+    if (ncomp == 0) {
+	int i = 0;
+	std::string test_name = "test";
+	desc_lst.setComponent(Test_Type, 0, test_name, bc,
+			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+    } else {
+	int i = 0;
 
-      Array<std::string> dimname(BL_SPACEDIM);
-      dimname[0] = "x";
+	Array<std::string> dimname(BL_SPACEDIM);
+	dimname[0] = "x";
 #if (BL_SPACEDIM >= 2)
-      dimname[1] = "y";
+ 	dimname[1] = "y";
 #endif      
 #if (BL_SPACEDIM >= 3)
-      dimname[2] = "z";
+ 	dimname[2] = "z";
 #endif      
-      
-      int icomp = 0;
-      for (int idim=0; idim<BL_SPACEDIM; idim++) {
-	for (int ispec=0; ispec<nspec; ispec++) {
-	  desc_lst.setComponent(Test_Type, icomp, "F"+dimname[idim]+radname[ispec], bc,
-				BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-	  icomp++;
+	
+	if (Radiation::use_analytic_solution) {
+	    desc_lst.setComponent(Test_Type, i++, "Texact", bc,
+				  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+	    desc_lst.setComponent(Test_Type, i++, "Terror", bc,
+				  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
 	}
-      }
-      if (Radiation::Test_Type_lambda) {
-	desc_lst.setComponent(Test_Type, icomp, "lambda", bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-      }
-    }
-    else if (Radiation::Test_Type_lambda) {
-      desc_lst.setComponent(Test_Type, 0, "lambda", bc,
-			    BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));      
-    }
-    else {
-      char test_name[10];
-      for (int i = 0; i < ncomp; i++){
-	sprintf(test_name, "test%d", i);
-	desc_lst.setComponent(Test_Type, i, test_name, bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-      }
+	if (Radiation::plot_lambda) {
+	    Radiation::icomp_lambda = i;
+	    if (!Radiation::do_multigroup) {
+		desc_lst.setComponent(Test_Type, i++, "lambda", bc,
+				      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+		
+	    } else if (Radiation::nNeutrinoSpecies == 0) {
+		for (int g=0; g<Radiation::nGroups; ++g) {
+		    char test_name[12];
+		    sprintf(test_name, "lambda%d", g);
+		    desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));		
+		}
+	    } else {
+		for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
+		    for (int g=0; g<Radiation::nNeutrinoGroups[n]; ++g) {
+			char test_name[16];
+			sprintf(test_name, "lambdas%dg%d", n, g);
+			desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));	
+		    }
+		}
+	    }
+	}
+	if (Radiation::plot_flux) {
+	    Radiation::icomp_flux = i;
+	    if (!Radiation::do_multigroup) {
+		for (int idim=0; idim<BL_SPACEDIM; idim++) {
+		    desc_lst.setComponent(Test_Type, i++, "F"+dimname[idim]+"rad", bc,
+					  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+		}
+		
+	    } else if (Radiation::nNeutrinoSpecies == 0) {
+		for (int idim=0; idim<BL_SPACEDIM; idim++) {
+		    for (int g=0; g<Radiation::nGroups; ++g) {
+			std::ostringstream ss;
+			ss << "F" << dimname[idim] << "rad" << g;
+			desc_lst.setComponent(Test_Type, i++, ss.str(), bc,
+					      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+		    }
+		}
+	    } else {
+		for (int idim=0; idim<BL_SPACEDIM; idim++) {
+		    for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
+			for (int g=0; g<Radiation::nNeutrinoGroups[n]; ++g) {
+			    std::ostringstream ss;
+			    ss << "F" << dimname[idim] << "s" << n << "g" << g;
+			    desc_lst.setComponent(Test_Type, i++, ss.str(), bc,
+						  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+			}
+		    }
+		}
+	    }
+	}
+	if (Radiation::plot_kappa_p) {
+	    Radiation::icomp_kp = i;
+	    if (!Radiation::do_multigroup) {
+		desc_lst.setComponent(Test_Type, i++, "kp", bc,
+				      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+		
+	    } else if (Radiation::nNeutrinoSpecies == 0) {
+		for (int g=0; g<Radiation::nGroups; ++g) {
+		    char test_name[12];
+		    sprintf(test_name, "kp%d", g);
+		    desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));		
+		}
+	    } else {
+		for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
+		    for (int g=0; g<Radiation::nNeutrinoGroups[n]; ++g) {
+			char test_name[16];
+			sprintf(test_name, "kps%dg%d", n, g);
+			desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));	
+		    }
+		}
+	    }
+	}
+	if (Radiation::plot_kappa_r) {
+	    Radiation::icomp_kr = i;
+	    if (!Radiation::do_multigroup) {
+		desc_lst.setComponent(Test_Type, i++, "kr", bc,
+				      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+		
+	    } else if (Radiation::nNeutrinoSpecies == 0) {
+		for (int g=0; g<Radiation::nGroups; ++g) {
+		    char test_name[12];
+		    sprintf(test_name, "kr%d", g);
+		    desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					  BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));		
+		}
+	    } else {
+		for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
+		    for (int g=0; g<Radiation::nNeutrinoGroups[n]; ++g) {
+			char test_name[16];
+			sprintf(test_name, "krs%dg%d", n, g);
+			desc_lst.setComponent(Test_Type, i++, test_name, bc,
+					      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));	
+		    }
+		}
+	    }
+	}
     }
 #endif
 
