@@ -726,7 +726,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(Test, kappa_r, 0, icomp_kp, nGroups, 0);
+      MultiFab::Copy(Test, kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

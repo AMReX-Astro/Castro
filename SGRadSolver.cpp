@@ -88,12 +88,6 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     get_rosseland(kappa_r, castro); // fills everywhere, incl ghost cells
   }
 
-  // Cell-centered kappa_H -- need ghost cell(s)
-  // If we had scattering, that would also contribute to kappa_H.
-  MultiFab kh_cell(grids,1,1);
-
-  MultiFab::Copy(kh_cell, kappa_r, 0, 0, 1, 1);
-
   MultiFab eta(grids,1,0);
   MultiFab etainv(grids,1,0);  // this is 1-eta, to avoid loss of accuracy
 
@@ -173,14 +167,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
     underrel *= underfac;
 
-    if (it == 1) {
-      //update_rosseland_from_temp(kappa_r, temp, S_new, castro->Geom());
-    }
-    else if (it <= update_rosseland + 1) {
+    if (it > 1 && it <= update_rosseland + 1) {
       // only updates cells in interior of fine level:
       update_rosseland_from_temp(kappa_r, temp, S_new, castro->Geom());
-
-      MultiFab::Copy(kh_cell, kappa_r, 0, 0, 1, 1);
     }
 
     // solve linear system:
@@ -194,7 +183,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       // lambda now contains flux limiter
     }
 
-    solver.levelBCoeffs(level, lambda, kh_cell, 0, c);
+    solver.levelBCoeffs(level, lambda, kappa_r, 0, c);
 
     if (have_Sanchez_Pomraning) {
       solver.levelSPas(level, lambda, 0, lo_bc, hi_bc);
@@ -410,7 +399,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(Test, kappa_r, 0, icomp_kp, 1, 0);
+      MultiFab::Copy(Test, kappa_r, 0, icomp_kr, 1, 0);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
