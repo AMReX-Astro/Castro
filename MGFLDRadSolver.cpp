@@ -717,6 +717,18 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       }
   }
 
+  if (plot_flux && plot_lab_flux) {
+      // xxxxxxxx
+  }
+
+  if (plot_kappa_p) {
+      MultiFab::Copy(Test, kappa_p, 0, icomp_kp, nGroups, 0);
+  }
+
+  if (plot_kappa_r) {
+      MultiFab::Copy(Test, kappa_r, 0, icomp_kp, nGroups, 0);
+  }
+
   if (verbose && ParallelDescriptor::IOProcessor()) {
     cout << "                                     done" << endl;
   }
