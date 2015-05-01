@@ -81,6 +81,8 @@ public:
 
   static int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
 
+  PArray<MultiFab> plotvar;
+
   Radiation(Amr* Parent, class Castro* castro, int restart = 0);
   ~Radiation() { }
 
@@ -473,8 +475,6 @@ protected:
 
   // divergence of flux
   PArray<MultiFab> dflux;
-
-  PArray<MultiFab> plotvar;
 
   Array<Real> xnu, nugroup, dnugroup;
   std::string group_units;
