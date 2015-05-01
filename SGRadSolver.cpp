@@ -367,39 +367,36 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   // update dflux[level] (== dflux_old)
   MultiFab::Copy(dflux_old, dflux_new, 0, 0, 1, 0);
 
-  MultiFab& Test = castro->get_new_data(Test_Type);
-  int nTest = Test.nComp();
-
   if (plot_lambda) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(Test,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
 	  const Box& bx = mfi.tilebox();
 	  int scomp = 0;
 	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
 	      (bx.loVect(), bx.hiVect(),
-	       scomp, icomp_lambda, nGroups, nGroups, nTest,
+	       scomp, icomp_lambda, nGroups, nGroups, nplotvar,
 	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
 		      BL_TO_FORTRAN(lambda[1][mfi]),
 		      BL_TO_FORTRAN(lambda[2][mfi])),
-	       BL_TO_FORTRAN(Test[mfi]));
+	       BL_TO_FORTRAN(plotvar[level][mfi]));
       }
   }
 
   if (plot_flux) {
-      solver.levelFluxFaceToCenter(level, Ff_new, Test, icomp_flux);
-      if (plot_lab_flux) {
+      solver.levelFluxFaceToCenter(level, Ff_new, plotvar[level], icomp_flux);
+      if (comoving && plot_lab_flux) {
 	  // xxxxxxxxxx
       }
   }
 
   if (plot_kappa_p) {
-      MultiFab::Copy(Test, fkp, 0, icomp_kp, 1, 0);
+      MultiFab::Copy(plotvar[level], fkp, 0, icomp_kp, 1, 0);
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(Test, kappa_r, 0, icomp_kr, 1, 0);
+      MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, 1, 0);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

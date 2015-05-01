@@ -213,8 +213,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab coupY;
 #endif
 
-  MultiFab& Test = castro->get_new_data(Test_Type);
-
   // multigroup boundary object
   MGRadBndry mgbd(grids, nGroups, castro->Geom());
   getBndryDataMG(mgbd, Er_new, time, level);
@@ -378,7 +376,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	solver.levelFluxReg(level, flux_in, flux_out, Flux, igroup);
 	  
 	if (plot_flux) {
-	    solver.levelFluxFaceToCenter(level, Flux, Test, icomp_flux+igroup);
+	    solver.levelFluxFaceToCenter(level, Flux, plotvar[level], icomp_flux+igroup);
 	}
       } // end loop over groups
       
@@ -698,22 +696,20 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 #endif
   }
 
-  int nTest = Test.nComp();
-
   if (plot_lambda) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(Test,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
 	  const Box& bx = mfi.tilebox();
 	  int scomp = 0;
 	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
 	      (bx.loVect(), bx.hiVect(),
-	       scomp, icomp_lambda, nGroups, nGroups, nTest,
+	       scomp, icomp_lambda, nGroups, nGroups, nplotvar,
 	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
 		      BL_TO_FORTRAN(lambda[1][mfi]),
 		      BL_TO_FORTRAN(lambda[2][mfi])),
-	       BL_TO_FORTRAN(Test[mfi]));
+	       BL_TO_FORTRAN(plotvar[level][mfi]));
       }
   }
 
@@ -722,11 +718,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (plot_kappa_p) {
-      MultiFab::Copy(Test, kappa_p, 0, icomp_kp, nGroups, 0);
+      MultiFab::Copy(plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(Test, kappa_r, 0, icomp_kr, nGroups, 0);
+      MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

@@ -50,6 +50,8 @@ public:
   static int plot_lambda, plot_flux, plot_kappa_p, plot_kappa_r;
   static int plot_lab_flux;
   static int icomp_lambda, icomp_flux, icomp_kp, icomp_kr;
+  static int nplotvar;   // extra plot variables
+  static Array<std::string> plotvar_names;
 
   static int filter_lambda_T, filter_lambda_S;
   static int filter_prim_int, filter_prim_T, filter_prim_S;
@@ -471,6 +473,8 @@ protected:
 
   // divergence of flux
   PArray<MultiFab> dflux;
+
+  PArray<MultiFab> plotvar;
 
   Array<Real> xnu, nugroup, dnugroup;
   std::string group_units;

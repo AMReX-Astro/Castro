@@ -12,6 +12,7 @@
 #include "PROB_AMR_F.H"
 
 #include <Using.H>
+#include <sstream>
 
 // Radiation test problems and static parameters.  Some of these are
 // initialized with inputs values in the function read_static_params.
@@ -51,6 +52,8 @@ int Radiation::icomp_lambda  = -1;
 int Radiation::icomp_flux    = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
+int Radiation::nplotvar      = 0;
+Array<std::string>  Radiation::plotvar_names;
 int Radiation::filter_lambda_T = 0;
 int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
@@ -126,23 +129,6 @@ void Radiation::read_static_params()
       pp.query("Er_Lorentz_term", Er_Lorentz_term);
     }
   }
-
-  pp.query("use_analytic_solution", use_analytic_solution);
-
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_flux", plot_flux);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  
-  // for backward compatibility
-  int Test_Type_lambda = 0, Test_Type_Flux = 0, Test_Type_Flux_lab = 0;
-  pp.query("Test_Type_lambda", Test_Type_lambda);
-  pp.query("Test_Type_Flux", Test_Type_Flux);
-  pp.query("Test_Type_Flux_lab", Test_Type_Flux_lab);
-  plot_lambda = plot_lambda || Test_Type_lambda;
-  plot_flux = plot_flux || Test_Type_Flux;
-  plot_lab_flux = plot_lab_flux || Test_Type_Flux_lab;
 
   pp.query("filter_lambda_T", filter_lambda_T);
   filter_lambda_S = filter_lambda_T - 1;
@@ -225,6 +211,117 @@ void Radiation::read_static_params()
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       BoxLib::Error("Unknown Radiation::SolverType");    
   }
+
+  pp.query("use_analytic_solution", use_analytic_solution);
+
+  pp.query("plot_lambda", plot_lambda);
+  pp.query("plot_flux", plot_flux);
+  pp.query("plot_lab_flux", plot_lab_flux);
+  pp.query("plot_kappa_p", plot_kappa_p);
+  pp.query("plot_kappa_r", plot_kappa_r);
+  
+  // set up the extra plot variables
+  {
+      if (use_analytic_solution) {
+	  // This is for the special Thermal Wave test
+	  plotvar_names.push_back("Texact");
+	  plotvar_names.push_back("Terror");
+      }
+      if (plot_lambda) {
+	  icomp_lambda = plotvar_names.size();
+	  if (!do_multigroup) {
+	      plotvar_names.push_back("lambda");
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int g=0; g<nGroups; ++g) {
+		  std::ostringstream ss;
+		  ss << "lambda" << g;
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else {
+	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
+		      std::ostringstream ss;
+		      ss << "lambdas" << s << "g" << g;
+		      plotvar_names.push_back(ss.str());		      
+		  }
+	      }
+	  }
+      }
+      if (plot_flux) {
+	  icomp_flux = plotvar_names.size();
+	  std::string frame = (comoving && !plot_lab_flux) ? "com" : "lab";
+	  Array<std::string> dimname;
+	  dimname.push_back("x");
+	  dimname.push_back("y");
+	  dimname.push_back("z");
+	  if (!do_multigroup) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  std::ostringstream ss;
+		  ss << "Fr" << frame << dimname[idim];
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int g=0; g<nGroups; ++g) {
+		      std::ostringstream ss;
+		      ss << "Fr" << frame << "g" << g << dimname[idim];
+		      plotvar_names.push_back(ss.str());
+		  }
+	      }
+	  } else {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
+			  std::ostringstream ss;
+			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
+			  plotvar_names.push_back(ss.str());
+		      }
+		  }
+	      }
+	  }
+      }
+      if (plot_kappa_p) {
+	  icomp_kp = plotvar_names.size();
+	  if (!do_multigroup) {
+	      plotvar_names.push_back("kappa_P");
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int g=0; g<nGroups; ++g) {
+		  std::ostringstream ss;
+		  ss << "kappa_P" << g;
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else {
+	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
+		      std::ostringstream ss;
+		      ss << "kappa_Ps" << s << "g" << g;
+		      plotvar_names.push_back(ss.str());		      
+		  }
+	      }
+	  }
+      }
+      if (plot_kappa_r) {
+	  icomp_kr = plotvar_names.size();
+	  if (!do_multigroup) {
+	      plotvar_names.push_back("kappa_R");
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int g=0; g<nGroups; ++g) {
+		  std::ostringstream ss;
+		  ss << "kappa_R" << g;
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else {
+	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
+		      std::ostringstream ss;
+		      ss << "kappa_Rs" << s << "g" << g;
+		      plotvar_names.push_back(ss.str());		      
+		  }
+	      }
+	  }
+      }
+      nplotvar = plotvar_names.size();
+  }
 }
 
 Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
@@ -232,7 +329,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     flux_cons(PArrayManage),
     flux_cons_old(PArrayManage), 
     flux_trial(PArrayManage),
-    dflux(PArrayManage)
+    dflux(PArrayManage),
+    plotvar(PArrayManage)
 {
   // castro is passed in, rather than obtained from parent, because this
   // routine will be called in some cases before any AmrLevels have
@@ -620,6 +718,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   dflux.resize(levels);
 
+  plotvar.resize(levels);
+
   delta_t_old.resize(levels, 0.0);
 
   delta_e_rat_level.resize(levels, 0.0);
@@ -676,6 +776,11 @@ void Radiation::regrid(int level, const BoxArray& grids)
     delete dflux.remove(level);
   dflux.set(level, new MultiFab(grids, 1, 0));
 
+  if (plotvar.defined(level))
+      delete plotvar.remove(level);
+  if (nplotvar > 0)
+      plotvar.set(level, new MultiFab(grids, nplotvar, 0));
+
   // This array will not be used on the finest level.  I create it here,
   // though, in case a finer level is created before this level is next
   // regridded:
@@ -703,6 +808,10 @@ void Radiation::close(int level)
 
     if (dflux.defined(level))
       delete dflux.remove(level);
+
+    if (plotvar.defined(level))
+	delete plotvar.remove(level);
+
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       cout << "                                       done" << endl;
     }
@@ -869,7 +978,7 @@ void Radiation::analytic_solution(int level)
   Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
 
-  Real time = castro->get_state_data(Test_Type).curTime();
+  Real time = castro->get_state_data(Rad_Type).curTime();
 
   if (RadTests::do_thermal_wave_cgs) {
 
@@ -904,7 +1013,7 @@ void Radiation::analytic_solution(int level)
     }
 
     MultiFab& S_new = castro->get_new_data(State_Type);
-    MultiFab& T_new = castro->get_new_data(Test_Type);
+    MultiFab& T_new = plotvar[level];
     
     MultiFab temp(grids,1,0);
     
