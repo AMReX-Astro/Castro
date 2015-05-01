@@ -13,3 +13,9 @@ https://ccse.lbl.gov/BoxLib/index.html
 There is a User's Guide in `Castro/UsersGuide/` (type `make` to build
 from LaTeX source) that will guide you through running your first
 problem.
+
+
+## Mailing list
+
+You can subscribe to the castro-help mailing list at google groups:
+https://groups.google.com/forum/#!forum/castro-help
