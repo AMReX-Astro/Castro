@@ -778,8 +778,10 @@ void Radiation::regrid(int level, const BoxArray& grids)
 
   if (plotvar.defined(level))
       delete plotvar.remove(level);
-  if (nplotvar > 0)
+  if (nplotvar > 0) {
       plotvar.set(level, new MultiFab(grids, nplotvar, 0));
+      plotvar[level].setVal(0.0);
+  }
 
   // This array will not be used on the finest level.  I create it here,
   // though, in case a finer level is created before this level is next
