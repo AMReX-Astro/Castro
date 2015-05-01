@@ -33,7 +33,6 @@ typedef FabArray<IntFab> IntMultiFab;
 enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
-                 Test_Type,
 #endif
 #ifdef GRAVITY
                  Gravity_Type,

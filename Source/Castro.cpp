@@ -768,8 +768,6 @@ Castro::initData ()
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);
-    // extra state quantity for graphic debugging:
-    MultiFab &Test_new = get_new_data(Test_Type);
     // For Radiation, S_new has one ghost cell.  
     // So let's set all components to zero.
     S_new.setVal(0.);
@@ -840,10 +838,6 @@ Castro::initData ()
             // Initialize flux components to 0
             Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
                               Rad_new.nComp() - Radiation::nGroups);
-          }
-
-          if (Test_new.nComp() > 0) {
-            Test_new[mfi].setVal(0.0);
           }
       }
     }
