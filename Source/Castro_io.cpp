@@ -402,6 +402,10 @@ Castro::writePlotFile (const std::string& dir,
       if (gravity->get_gravity_type() == "PoissonGrav" && plot_phiGrav) n_data_items++;
 #endif
 
+#ifdef RADIATION
+    if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
+#endif
+
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -435,6 +439,11 @@ Castro::writePlotFile (const std::string& dir,
 #ifdef GRAVITY
         if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
             os << "phiGrav" << '\n';
+#endif
+
+#ifdef RADIATION
+	for (i=0; i<Radiation::nplotvar; ++i)
+	    os << Radiation::plotvar_names[i] << '\n';
 #endif
 
         os << BL_SPACEDIM << '\n';
@@ -763,6 +772,13 @@ Castro::writePlotFile (const std::string& dir,
     //
     if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
         MultiFab::Copy(plotMF,*gravity->get_phi_curr(level),0,cnt++,1,nGrow);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::nplotvar > 0) {
+	MultiFab::Copy(plotMF,radiation->plotvar[level],0,cnt,Radiation::nplotvar,0);
+	cnt += Radiation::nplotvar;
+    }
 #endif
 
     //
