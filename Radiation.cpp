@@ -229,7 +229,11 @@ void Radiation::read_static_params()
       }
       if (plot_lambda) {
 	  icomp_lambda = plotvar_names.size();
-	  if (!do_multigroup) {
+
+	  int limiter = 2;
+	  pp.query("limiter", limiter);
+
+	  if (!do_multigroup || limiter == 0) {
 	      plotvar_names.push_back("lambda");
 	  } else if (nNeutrinoSpecies == 0) {
 	      for (int g=0; g<nGroups; ++g) {

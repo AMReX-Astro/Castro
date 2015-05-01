@@ -697,6 +697,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (plot_lambda) {
+      int nlambda = lambda[0].nComp();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -705,7 +706,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	  int scomp = 0;
 	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
 	      (bx.loVect(), bx.hiVect(),
-	       scomp, icomp_lambda, nGroups, nGroups, nplotvar,
+	       scomp, icomp_lambda, nlambda, nlambda, nplotvar,
 	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
 		      BL_TO_FORTRAN(lambda[1][mfi]),
 		      BL_TO_FORTRAN(lambda[2][mfi])),
