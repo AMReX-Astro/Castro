@@ -404,9 +404,9 @@ end module rot_sources_module
              ! Update with the centrifugal term and the time-level n Coriolis term.
 
              unew(i,j,midx1) = unew(i,j,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
-                             + dt * omega(rot_axis) * uold(i,j,midx2)
+                             - dt * omega(rot_axis) * uold(i,j,midx2)
              unew(i,j,midx2) = unew(i,j,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) & 
-                             - dt * omega(rot_axis) * uold(i,j,midx1)
+                             + dt * omega(rot_axis) * uold(i,j,midx1)
 
              ! Now do the implicit solve for the time-level n+1 Coriolis term.
 

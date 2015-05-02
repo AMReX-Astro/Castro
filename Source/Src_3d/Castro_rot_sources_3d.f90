@@ -405,7 +405,8 @@ end module rot_sources_module
 
              else if (rot_source_type == 4) then
 
-                ! Coupled momentum update.
+                ! Coupled momentum update
+                ! See Section 2.4 in the first wdmerger paper.
 
                 ! Figure out which directions are updated, and then determine the right 
                 ! array index relative to UMX (this works because UMX, UMY, UMZ are consecutive
@@ -417,14 +418,19 @@ end module rot_sources_module
                 midx1 = UMX + idir1 - 1
                 midx2 = UMX + idir2 - 1
 
-                ! Update with the centrifugal term and the time-level n Coriolis term.
+                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
+                ! and do part of the corrector step for the Coriolis term (subtract 1/2 the old term). We cannot do 
+                ! the new-time Coriolis term yet because of the implicit coupling (see below).
 
                 unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
-                                + dt * omega(rot_axis) * uold(i,j,k,midx2)
+                                - dt * omega(rot_axis) * uold(i,j,k,midx2)
                 unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) & 
-                                - dt * omega(rot_axis) * uold(i,j,k,midx1)
+                                + dt * omega(rot_axis) * uold(i,j,k,midx1)
 
-                ! Now do the implicit solve for the time-level n+1 Coriolis term.
+                ! Now do the implicit solve for the time-level n+1 Coriolis term. 
+                ! It would be nice if this all could be generalized so that we don't 
+                ! have to break it up by coordinate axis (in case the user wants to 
+                ! rotate about multiple axes).
 
                 mom1 = unew(i,j,k,midx1)
                 mom2 = unew(i,j,k,midx2)
