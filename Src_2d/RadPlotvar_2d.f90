@@ -37,8 +37,8 @@ subroutine ca_er_com2lab(lo, hi, &
      vyc2 = Snew(i,j,UMY)*rhoInv*c2
      
      do g = 0, ngroups-1
-        Elab(i,j,g) = Ecom(i,j,g) + 2.d0*(vxc2*F(i,j,ifx+g) &
-             &                          + vyc2*F(i,j,ify+g))
+        Elab(i,j,g+ier) = Ecom(i,j,g) + 2.d0*(vxc2*F(i,j,ifx+g) &
+             &                              + vyc2*F(i,j,ify+g))
      end do
      
      if (ngroups > 1) then
@@ -53,7 +53,7 @@ subroutine ca_er_com2lab(lo, hi, &
            nufnux(ngroups) = -nufnux(ngroups-1)
            nufnuy(ngroups) = -nufnuy(ngroups-1)              
            do g=0,ngroups-1
-              Elab(i,j,g) = Elab(i,j,g) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
+              Elab(i,j,g+ier) = Elab(i,j,g+ier) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
                    &                    - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
            end do
            
@@ -68,8 +68,8 @@ subroutine ca_er_com2lab(lo, hi, &
            nufnux(ng0) = -nufnux(ng0-1)
            nufnuy(ng0) = -nufnuy(ng0-1)              
            do g=0,ng0-1
-              Elab(i,j,g) = Elab(i,j,g) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
-                   &                    - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
+              Elab(i,j,g+ier) = Elab(i,j,g+ier) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
+                   &                            - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
            end do
            
            if (nnuspec >= 2) then
@@ -83,8 +83,8 @@ subroutine ca_er_com2lab(lo, hi, &
               nufnux(ng0+ng1) = -nufnux(ng0+ng1-1)
               nufnuy(ng0+ng1) = -nufnuy(ng0+ng1-1)              
               do g=ng0,ng0+ng1-1
-                 Elab(i,j,g) = Elab(i,j,g) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
-                      &                    - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
+                 Elab(i,j,g+ier) = Elab(i,j,g+ier) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
+                      &                            - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
               end do
               
            end if
@@ -100,8 +100,8 @@ subroutine ca_er_com2lab(lo, hi, &
               nufnux(ngroups) = -nufnux(ngroups-1)
               nufnuy(ngroups) = -nufnuy(ngroups-1)              
               do g=ng0+ng1,ngroups-1
-                 Elab(i,j,g) = Elab(i,j,g) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
-                      &                    - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
+                 Elab(i,j,g+ier) = Elab(i,j,g+ier) - vxc2*0.5d0*(nufnux(g+1)-nufnux(g-1)) &
+                      &                            - vyc2*0.5d0*(nufnuy(g+1)-nufnuy(g-1))
               end do
               
            end if
