@@ -47,9 +47,10 @@ public:
 
   static int use_analytic_solution; // compare against an analytic solution
 
-  static int plot_lambda, plot_flux, plot_kappa_p, plot_kappa_r;
-  static int plot_lab_flux;
-  static int icomp_lambda, icomp_flux, icomp_kp, icomp_kr;
+  static int plot_lambda, plot_kappa_p, plot_kappa_r;
+  static int plot_lab_Er, plot_lab_flux, plot_com_flux;
+  static int icomp_lambda, icomp_kp, icomp_kr;
+  static int icomp_lab_Er, icomp_lab_Fr, icomp_com_Fr; 
   static int nplotvar;   // extra plot variables
   static Array<std::string> plotvar_names;
 
@@ -401,6 +402,16 @@ protected:
   void rhstoEr(MultiFab& rhs, Real dt, int level);
 
   // </ MGFLD>
+
+  void save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACEDIM>& lambda);
+  void save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
+			      const MultiFab& Ecom, const MultiFab& F, int iflx);
+  void save_lab_flux_in_plotvar(int level, const MultiFab& Snew, 
+				const Tuple<MultiFab,BL_SPACEDIM>& lambda,
+				const MultiFab& Er, const MultiFab& F, int iflx);
+  void save_com_flux_in_plotvar(int level, const MultiFab& Snew, 
+				const Tuple<MultiFab,BL_SPACEDIM>& lambda,
+				const MultiFab& Er, const MultiFab& F, int iflx);
 
 protected:
 

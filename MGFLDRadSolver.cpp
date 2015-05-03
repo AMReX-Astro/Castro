@@ -248,6 +248,18 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     Flux[n].define(edge_boxes, 1, 0, Fab_allocate);
   }
 
+  PArray<MultiFab> flxsave(1, PArrayManage);
+  MultiFab* flxcc;
+  int icomp_flux = -1;
+  if (plot_com_flux) {
+      flxcc = &(plotvar[level]);
+      icomp_flux = icomp_com_Fr;
+  } else if (plot_lab_Er || plot_lab_flux) {
+      flxsave.set(0, new MultiFab(grids, nGroups*BL_SPACEDIM, 0, Fab_allocate));
+      flxcc = &(flxsave[0]);
+      icomp_flux = 0;
+  } 
+
   // Er_step: starting state of the inner iteration (e.g., ^(2))
   // There used to be an extra velocity term update
   MultiFab& Er_step = Er_old;
@@ -375,9 +387,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	solver.levelFlux(level, Flux, Er_new, igroup);
 	solver.levelFluxReg(level, flux_in, flux_out, Flux, igroup);
 	  
-	if (plot_flux) {
-	    solver.levelFluxFaceToCenter(level, Flux, plotvar[level], icomp_flux+igroup);
-	}
+	if (icomp_flux >= 0) 
+	    solver.levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
+
       } // end loop over groups
       
       // Check for convergence *before* acceleration step:
@@ -697,25 +709,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (plot_lambda) {
-      int nlambda = lambda[0].nComp();
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
-	  const Box& bx = mfi.tilebox();
-	  int scomp = 0;
-	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	      (bx.loVect(), bx.hiVect(),
-	       scomp, icomp_lambda, nlambda, nlambda, nplotvar,
-	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-		      BL_TO_FORTRAN(lambda[1][mfi]),
-		      BL_TO_FORTRAN(lambda[2][mfi])),
-	       BL_TO_FORTRAN(plotvar[level][mfi]));
-      }
-  }
-
-  if (plot_flux && plot_lab_flux) {
-      // xxxxxxxx
+      save_lambda_in_plotvar(level, lambda);
   }
 
   if (plot_kappa_p) {
@@ -724,6 +718,18 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   if (plot_kappa_r) {
       MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
+  }
+
+  if (icomp_lab_Er >= 0) {
+      save_lab_Er_in_plotvar(level, S_new, Er_new, *flxcc, icomp_flux);
+  }
+
+  // if (plot_com_flux) {
+  //     already done when calling solver.levelFluxFaceToCenter()
+  // }
+
+  if (plot_lab_flux) {
+      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {

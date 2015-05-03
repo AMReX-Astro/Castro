@@ -44,14 +44,17 @@ int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
 int Radiation::use_analytic_solution = 0;
 int Radiation::plot_lambda   = 0;
-int Radiation::plot_flux     = 0;
 int Radiation::plot_kappa_p  = 0;
 int Radiation::plot_kappa_r  = 0;
+int Radiation::plot_lab_Er   = 0;
 int Radiation::plot_lab_flux = 0;
+int Radiation::plot_com_flux = 0;
 int Radiation::icomp_lambda  = -1;
-int Radiation::icomp_flux    = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
+int Radiation::icomp_lab_Er  = -1;
+int Radiation::icomp_lab_Fr  = -1;
+int Radiation::icomp_com_Fr  = -1;
 int Radiation::nplotvar      = 0;
 Array<std::string>  Radiation::plotvar_names;
 int Radiation::filter_lambda_T = 0;
@@ -215,10 +218,11 @@ void Radiation::read_static_params()
   pp.query("use_analytic_solution", use_analytic_solution);
 
   pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_flux", plot_flux);
-  pp.query("plot_lab_flux", plot_lab_flux);
   pp.query("plot_kappa_p", plot_kappa_p);
   pp.query("plot_kappa_r", plot_kappa_r);
+  if (comoving) pp.query("plot_lab_Er", plot_lab_Er);
+  pp.query("plot_lab_flux", plot_lab_flux);
+  pp.query("plot_com_flux", plot_com_flux);
   
   // set up the extra plot variables
   {
@@ -247,39 +251,6 @@ void Radiation::read_static_params()
 		      std::ostringstream ss;
 		      ss << "lambdas" << s << "g" << g;
 		      plotvar_names.push_back(ss.str());		      
-		  }
-	      }
-	  }
-      }
-      if (plot_flux) {
-	  icomp_flux = plotvar_names.size();
-	  std::string frame = (comoving && !plot_lab_flux) ? "com" : "lab";
-	  Array<std::string> dimname;
-	  dimname.push_back("x");
-	  dimname.push_back("y");
-	  dimname.push_back("z");
-	  if (!do_multigroup) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  std::ostringstream ss;
-		  ss << "Fr" << frame << dimname[idim];
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int g=0; g<nGroups; ++g) {
-		      std::ostringstream ss;
-		      ss << "Fr" << frame << "g" << g << dimname[idim];
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  } else {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-			  std::ostringstream ss;
-			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
-			  plotvar_names.push_back(ss.str());
-		      }
 		  }
 	      }
 	  }
@@ -320,6 +291,92 @@ void Radiation::read_static_params()
 		      std::ostringstream ss;
 		      ss << "kappa_Rs" << s << "g" << g;
 		      plotvar_names.push_back(ss.str());		      
+		  }
+	      }
+	  }
+      }
+      if (plot_lab_Er) {
+	  icomp_lab_Er = plotvar_names.size();
+	  if (!do_multigroup) {
+	      plotvar_names.push_back("Erlab");
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int g=0; g<nGroups; ++g) {
+		  std::ostringstream ss;
+		  ss << "Erlab" << g;
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else {
+	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		  for (int g=0; g<nNeutrinoGroups[s]; ++g) {
+		      std::ostringstream ss;
+		      ss << "Erlab" << "s" << s << "g" << g;
+		      plotvar_names.push_back(ss.str());
+		  }
+	      }
+	  }
+      }
+      if (plot_lab_flux) {
+	  icomp_lab_Fr = plotvar_names.size();
+	  std::string frame = "lab";
+	  Array<std::string> dimname;
+	  dimname.push_back("x");
+	  dimname.push_back("y");
+	  dimname.push_back("z");
+	  if (!do_multigroup) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  std::ostringstream ss;
+		  ss << "Fr" << frame << dimname[idim];
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int g=0; g<nGroups; ++g) {
+		      std::ostringstream ss;
+		      ss << "Fr" << frame << g << dimname[idim];
+		      plotvar_names.push_back(ss.str());
+		  }
+	      }
+	  } else {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
+			  std::ostringstream ss;
+			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
+			  plotvar_names.push_back(ss.str());
+		      }
+		  }
+	      }
+	  }
+      }
+      if (plot_com_flux) {
+	  icomp_com_Fr = plotvar_names.size();
+	  std::string frame = "com";
+	  Array<std::string> dimname;
+	  dimname.push_back("x");
+	  dimname.push_back("y");
+	  dimname.push_back("z");
+	  if (!do_multigroup) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  std::ostringstream ss;
+		  ss << "Fr" << frame << dimname[idim];
+		  plotvar_names.push_back(ss.str());
+	      }
+	  } else if (nNeutrinoSpecies == 0) {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int g=0; g<nGroups; ++g) {
+		      std::ostringstream ss;
+		      ss << "Fr" << frame << g << dimname[idim];
+		      plotvar_names.push_back(ss.str());
+		  }
+	      }
+	  } else {
+	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
+		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
+			  std::ostringstream ss;
+			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
+			  plotvar_names.push_back(ss.str());
+		      }
 		  }
 	      }
 	  }
@@ -2736,3 +2793,4 @@ void Radiation::filter_prim(int level, MultiFab& State)
 	   &time, &level);
   }
 }
+

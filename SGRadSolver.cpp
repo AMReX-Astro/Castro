@@ -368,27 +368,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab::Copy(dflux_old, dflux_new, 0, 0, 1, 0);
 
   if (plot_lambda) {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
-	  const Box& bx = mfi.tilebox();
-	  int scomp = 0;
-	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	      (bx.loVect(), bx.hiVect(),
-	       scomp, icomp_lambda, nGroups, nGroups, nplotvar,
-	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-		      BL_TO_FORTRAN(lambda[1][mfi]),
-		      BL_TO_FORTRAN(lambda[2][mfi])),
-	       BL_TO_FORTRAN(plotvar[level][mfi]));
-      }
-  }
-
-  if (plot_flux) {
-      solver.levelFluxFaceToCenter(level, Ff_new, plotvar[level], icomp_flux);
-      if (comoving && plot_lab_flux) {
-	  // xxxxxxxxxx
-      }
+      save_lambda_in_plotvar(level, lambda);
   }
 
   if (plot_kappa_p) {
@@ -397,6 +377,32 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   if (plot_kappa_r) {
       MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, 1, 0);
+  }
+
+  if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
+      // We no long need fkp, so we can reuse it.
+      MultiFab& flx = fkp;
+      solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
+
+      if (plot_lab_Er > 0) {
+	  save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);
+      }
+
+      if (plot_lab_flux > 0) {
+	  if (comoving) {
+	      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+	  } else {
+	      MultiFab::Copy(plotvar[level], flx, 0, icomp_lab_Fr, 1, 0);
+	  }
+      }
+
+      if (plot_com_flux > 0) {
+	  if (comoving) {
+	      MultiFab::Copy(plotvar[level], flx, 0, icomp_com_Fr, 1, 0);
+	  } else {
+	      save_com_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+	  }
+      }
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
