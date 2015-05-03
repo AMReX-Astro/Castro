@@ -92,7 +92,6 @@ radiation.highestGroupMeV  = 300.0 100.0 300.0
 radiation.plot_neutrino_group_energies_per_MeV = 1
 radiation.plot_neutrino_group_energies_total   = 1
 
-radiation.plot_flux = 1
 radiation.plot_lab_flux = 1
 
 radiation.use_dkdT = 1

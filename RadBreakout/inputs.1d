@@ -47,7 +47,7 @@ xgraph.graph = pres       pressure       100 -1
 xgraph.graph = Ye         Ye             100 -1
 xgraph.graph = Frlab      Fxrad          100 -1
 xgraph.graph = lambda     lambda      100 -1
-radiation.plot_flux = 1
+radiation.plot_com_flux = 1   # comoving frame flux
 radiation.plot_lab_flux = 1   # lab frame flux
 radiation.plot_lambda = 1  
 
