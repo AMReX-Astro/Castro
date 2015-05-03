@@ -226,7 +226,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      do g = 0, ngroups-1
         f1 = (1.d0-f(i,j,k,g))
         f2 = (3.d0*f(i,j,k,g)-1.d0)
-        foo = 1.d0/sqrt(Fi(i,j,k,ifix+g)**2+Fi(i,j,k,ifiy+g)**2+Fi(i,j,k,ifiz+g)**2)
+        foo = 1.d0/sqrt(Fi(i,j,k,ifix+g)**2+Fi(i,j,k,ifiy+g)**2+Fi(i,j,k,ifiz+g)**2+1.d-50)
         nx = Fi(i,j,k,ifix+g)*foo
         ny = Fi(i,j,k,ifiy+g)*foo
         nz = Fi(i,j,k,ifiz+g)*foo

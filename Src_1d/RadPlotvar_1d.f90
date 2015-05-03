@@ -159,7 +159,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      do g = 0, ngroups-1
         f1 = (1.d0-f(i,g))
         f2 = (3.d0*f(i,g)-1.d0)
-        foo = 1.d0/abs(Fi(i,ifix+g))
+        foo = 1.d0/abs(Fi(i,ifix+g)+1.d-50)
         nx = Fi(i,ifix+g)*foo
         vdotn = vx*nx
         vdotpx(g) = 0.5d0*Er(i,g)*(f1*vx + f2*vdotn*nx)
