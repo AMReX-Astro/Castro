@@ -380,8 +380,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
-      // We no long need fkp, so we can reuse it.
-      MultiFab& flx = fkp;
+      MultiFab flx(grids, BL_SPACEDIM, 0);
       solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
       if (plot_lab_Er) {
