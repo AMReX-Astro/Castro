@@ -720,7 +720,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
-  if (icomp_lab_Er >= 0) {
+  if (plot_lab_Er) {
       save_lab_Er_in_plotvar(level, S_new, Er_new, *flxcc, icomp_flux);
   }
 

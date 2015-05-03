@@ -755,7 +755,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_FCC, ca_compute_fcc)
      BL_FORT_FAB_ARG(fcc));
 
 BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
-    (const int lo[], const int hi[], const Real& fflag,
+    (const int lo[], const int hi[], const Real& flag,
      const BL_FORT_FAB_ARG(Snew),
      const BL_FORT_FAB_ARG(f),
      const BL_FORT_FAB_ARG(Er), 

@@ -144,7 +144,7 @@ subroutine ca_compute_fcc(lo, hi, &
 end subroutine ca_compute_fcc
 
 
-subroutine ca_transform_flux (lo, hi, fflag, &
+subroutine ca_transform_flux (lo, hi, flag, &
      Snew,  S_l1,  S_l2,  S_h1,  S_h2, &
      f,     f_l1,  f_l2,  f_h1,  f_h2, &
      Er,   Er_l1, Er_l2, Er_h1, Er_h2, &
@@ -155,7 +155,7 @@ subroutine ca_transform_flux (lo, hi, fflag, &
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
-  double precision, intent(in) :: fflag
+  double precision, intent(in) :: flag
   integer, intent(in) ::  S_l1,  S_l2,  S_h1,  S_h2
   integer, intent(in) ::  f_l1,  f_l2,  f_h1,  f_h2
   integer, intent(in) :: Er_l1, Er_l2, Er_h1, Er_h2
@@ -184,8 +184,8 @@ subroutine ca_transform_flux (lo, hi, fflag, &
   do j = lo(2), hi(2)
   do i = lo(1), hi(1)
      rhoInv = 1.d0/Snew(i,j,URHO)
-     vx = Snew(i,j,UMX)*rhoInv*fflag
-     vy = Snew(i,j,UMY)*rhoInv*fflag
+     vx = Snew(i,j,UMX)*rhoInv*flag
+     vy = Snew(i,j,UMY)*rhoInv*flag
 
      do g = 0, ngroups-1
         f1 = (1.d0-f(i,j,g))

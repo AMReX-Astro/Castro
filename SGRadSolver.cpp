@@ -384,11 +384,11 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       MultiFab& flx = fkp;
       solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
-      if (plot_lab_Er > 0) {
+      if (plot_lab_Er) {
 	  save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);
       }
 
-      if (plot_lab_flux > 0) {
+      if (plot_lab_flux) {
 	  if (comoving) {
 	      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
 	  } else {
@@ -396,7 +396,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 	  }
       }
 
-      if (plot_com_flux > 0) {
+      if (plot_com_flux) {
 	  if (comoving) {
 	      MultiFab::Copy(plotvar[level], flx, 0, icomp_com_Fr, 1, 0);
 	  } else {

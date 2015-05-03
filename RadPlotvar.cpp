@@ -45,7 +45,7 @@ void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew,
 					 const Tuple<MultiFab,BL_SPACEDIM>& lambda,
 					 const MultiFab& Er, const MultiFab& Fr, int iflx)
 {
-    const Real fflag = 1.0;  // comovinng --> lab
+    const Real flag = 1.0;  // comovinng --> lab
 
     int nflx = Fr.nComp();
     int nlambda = lambda[0].nComp();
@@ -67,7 +67,7 @@ void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew,
 		 BL_TO_FORTRAN(f));
 
 	    BL_FORT_PROC_CALL(CA_TRANSFORM_FLUX, ca_transform_flux)
-		(bx.loVect(), bx.hiVect(), fflag,
+		(bx.loVect(), bx.hiVect(), flag,
 		 BL_TO_FORTRAN(Snew[mfi]),
 		 BL_TO_FORTRAN(f),
 		 BL_TO_FORTRAN(Er[mfi]),
@@ -81,7 +81,7 @@ void Radiation::save_com_flux_in_plotvar(int level, const MultiFab& Snew,
 					 const Tuple<MultiFab,BL_SPACEDIM>& lambda,
 					 const MultiFab& Er, const MultiFab& Fr, int iflx)
 {
-    const Real fflag = -1.0;  // lab --> comoving
+    const Real flag = -1.0;  // lab --> comoving
 
     int nflx = Fr.nComp();
     int nlambda = lambda[0].nComp();
@@ -103,7 +103,7 @@ void Radiation::save_com_flux_in_plotvar(int level, const MultiFab& Snew,
 		 BL_TO_FORTRAN(f));
 
 	    BL_FORT_PROC_CALL(CA_TRANSFORM_FLUX, ca_transform_flux)
-		(bx.loVect(), bx.hiVect(), fflag,
+		(bx.loVect(), bx.hiVect(), flag,
 		 BL_TO_FORTRAN(Snew[mfi]),
 		 BL_TO_FORTRAN(f),
 		 BL_TO_FORTRAN(Er[mfi]),
