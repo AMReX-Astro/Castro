@@ -196,8 +196,8 @@ subroutine ca_transform_flux (lo, hi, flag, &
         vdotn = vx*nx+vy*ny
         vdotpx(g) = 0.5d0*Er(i,j,g)*(f1*vx + f2*vdotn*nx)
         vdotpy(g) = 0.5d0*Er(i,j,g)*(f1*vy + f2*vdotn*ny)
-        Fo(i,j,ifix+g) = Fi(i,j,ifix+g) + vx*Er(i,j,g) + vdotpx(g)
-        Fo(i,j,ifiy+g) = Fi(i,j,ifiy+g) + vy*Er(i,j,g) + vdotpy(g)
+        Fo(i,j,ifox+g) = Fi(i,j,ifix+g) + vx*Er(i,j,g) + vdotpx(g)
+        Fo(i,j,ifoy+g) = Fi(i,j,ifiy+g) + vy*Er(i,j,g) + vdotpy(g)
      end do
 
      if (ngroups > 1) then

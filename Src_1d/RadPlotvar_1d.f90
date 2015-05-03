@@ -163,7 +163,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
         nx = Fi(i,ifix+g)*foo
         vdotn = vx*nx
         vdotpx(g) = 0.5d0*Er(i,g)*(f1*vx + f2*vdotn*nx)
-        Fo(i,ifix+g) = Fi(i,ifix+g) + vx*Er(i,g) + vdotpx(g)
+        Fo(i,ifox+g) = Fi(i,ifix+g) + vx*Er(i,g) + vdotpx(g)
      end do
 
      if (ngroups > 1) then
