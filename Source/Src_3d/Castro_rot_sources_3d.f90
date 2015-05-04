@@ -38,6 +38,9 @@ contains
   subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
                                  q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
 
+    ! fill_rotation_field returns the sources to the velocity
+    ! equations (not the conserved momentum equations) that are used
+    ! in predicting the interface states
     use meth_params_module, only: QVAR, QU, QV, QW
     use prob_params_module, only: problo, center
     use bl_constants_module
