@@ -171,8 +171,6 @@ Castro::advance_hydro (Real time,
 
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
-    get_old_data(Test_Type).setVal(0.0);
-    get_new_data(Test_Type).setVal(0.0);
     if (do_radiation) {
       get_old_data(Rad_Type).setBndry(0.0);
       get_new_data(Rad_Type).setBndry(0.0);      
@@ -1327,8 +1325,6 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef RADIATION
     // Make sure these are filled to avoid check/plot file errors:
-    get_old_data(Test_Type).setVal(0.0);
-    get_new_data(Test_Type).setVal(0.0);
     if (do_radiation) {
       get_old_data(Rad_Type).setBndry(0.0);
       get_new_data(Rad_Type).setBndry(0.0);      

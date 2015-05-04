@@ -38,6 +38,9 @@ contains
   subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
                                  q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
 
+    ! fill_rotation_field returns the sources to the velocity
+    ! equations (not the conserved momentum equations) that are used
+    ! in predicting the interface states
     use meth_params_module, only: QVAR, QU, QV, QW
     use prob_params_module, only: problo, center
     use bl_constants_module
@@ -61,8 +64,10 @@ contains
 
     do k = lo(3)-1, hi(3)+1
        z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+
        do j = lo(2)-1, hi(2)+1
           y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+
           do i = lo(1)-1, hi(1)+1
              x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
@@ -84,11 +89,15 @@ contains
   end subroutine fill_rotation_field
 
 
-
   subroutine add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                             uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                             lo,hi,dx,dt,E_added,xmom_added,ymom_added,zmom_added)
 
+    ! Here we add dt * S_rot^n -- the time-level n rotation source to
+    ! the momentum equation.  Note that uin here is the state at time
+    ! n -- no sources should have been added to it (including
+    ! gravity).
+    
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
@@ -120,8 +129,10 @@ contains
     
     do k = lo(3), hi(3)
        z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+
        do j = lo(2), hi(2)
           y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+
           do i = lo(1), hi(1)
              x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
 
@@ -439,7 +450,8 @@ end module rot_sources_module
                 unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
                 ! Conservative energy formulation.
-
+                ! note that the fluxes here have already been normalized by A (the cell face)
+                ! and dt
                 SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) - phi(i-1,j,k)) + &
                           HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) - phi(i  ,j,k)) + &
                           HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) - phi(i,j-1,k)) + &
