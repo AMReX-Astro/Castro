@@ -747,6 +747,8 @@ Castro::initData ()
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
+    S_new.setVal(0.);
+
     // make sure dx = dy = dz -- that's all we guarantee to support
     const Real SMALL = 1.e-13;
 #if (BL_SPACEDIM == 2)
@@ -768,9 +770,7 @@ Castro::initData ()
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);
-    // For Radiation, S_new has one ghost cell.  
-    // So let's set all components to zero.
-    S_new.setVal(0.);
+    Rad_new.setVal(0.);
 #endif
 
 #ifdef REACTIONS
@@ -788,10 +788,6 @@ Castro::initData ()
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
-  
-          // Temp unused for GammaLaw,
-          //   set it here so that pltfiles have defined numbers
-          S_new[mfi].setVal(0.,Temp);
   
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
