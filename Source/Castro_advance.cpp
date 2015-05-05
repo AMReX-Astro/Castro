@@ -304,15 +304,6 @@ Castro::advance_hydro (Real time,
       rad_current = &getRADFluxReg(level);
 #endif
     
-    AmrLevel &levelData = *this;
-    Geometry g = levelData.Geom();
-    MultiFab levelVolume;
-    g.GetVolume(levelVolume,grids,NUM_GROW);
-    
-    MultiFab levelArea[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM ; i++)
-	g.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
-    
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
     
@@ -451,7 +442,6 @@ Castro::advance_hydro (Real time,
 	    bool tiling = false;
 #endif
 	    {
-		FArrayBox grid_volume, dloga, area[BL_SPACEDIM];
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
 	    
 		int priv_nstep_fsp = -1;
@@ -463,7 +453,6 @@ Castro::advance_hydro (Real time,
 		for (MFIter mfi(S_new,tiling); mfi.isValid(); ++mfi) 
 		{
 		    const Box &bx    = mfi.tilebox();
-		    const Box& bx_g4 = BoxLib::grow(bx,NUM_GROW);
 
 		    FArrayBox &state = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
@@ -471,19 +460,6 @@ Castro::advance_hydro (Real time,
 		    FArrayBox &Er = Erborder[mfi];
 		    FArrayBox &lam = lamborder[mfi];
 		    FArrayBox &Erout = Er_new[mfi];
-		
-		    grid_volume.resize(bx_g4,1);
-		    grid_volume.copy(levelVolume[mfi]);
-		
-		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-			area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-			area[i].copy(levelArea[i][mfi]);
-		    }
-		
-#if (BL_SPACEDIM <=2)
-		    dloga.resize(bx_g4);
-		    dloga.copy(dLogArea[0][mfi]);
-#endif
 		
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM ; i++)  {
@@ -513,13 +489,13 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(rad_flux[0]), 
 				BL_TO_FORTRAN(rad_flux[1]), 
 				BL_TO_FORTRAN(rad_flux[2])), 
-			 D_DECL(BL_TO_FORTRAN(area[0]), 
-				BL_TO_FORTRAN(area[1]), 
-				BL_TO_FORTRAN(area[2])), 
+			 D_DECL(BL_TO_FORTRAN(area[0][mfi]), 
+				BL_TO_FORTRAN(area[1][mfi]), 
+				BL_TO_FORTRAN(area[2][mfi])), 
 #if (BL_SPACEDIM < 3) 
-			 BL_TO_FORTRAN(dloga), 
+			 BL_TO_FORTRAN(dLogArea[0][mfi]), 
 #endif
-			 BL_TO_FORTRAN(grid_volume), 
+			 BL_TO_FORTRAN(volume[mfi]), 
 			 &cflLoc, verbose, &priv_nstep_fsp);
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -539,7 +515,7 @@ Castro::advance_hydro (Real time,
 			    (&mass_change_at_center,
 			     bx.loVect(), bx.hiVect(),
 			     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-			     BL_TO_FORTRAN(grid_volume),
+			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif	
 		}
@@ -622,7 +598,6 @@ Castro::advance_hydro (Real time,
 	    bool tiling = false;
 #endif
 	    {
-		FArrayBox grid_volume, dloga, area[BL_SPACEDIM];
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
 		
 		Real cflLoc = -1.0e+200;
@@ -633,23 +608,9 @@ Castro::advance_hydro (Real time,
 		for (MFIter mfi(S_new,tiling); mfi.isValid(); ++mfi)
 		{
 		    const Box& bx  = mfi.tilebox();
-		    const Box& bx_g4 = BoxLib::grow(bx,NUM_GROW);
 		    
 		    FArrayBox &state = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
-		    
-		    grid_volume.resize(bx_g4,1);
-		    grid_volume.copy(levelVolume[mfi]);
-		    
-		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-			area[i].resize(BoxLib::surroundingNodes(bx_g4,i));
-			area[i].copy(levelArea[i][mfi]);
-		    }
-		    
-#if (BL_SPACEDIM <=2)
-		    dloga.resize(bx_g4);
-		    dloga.copy(dLogArea[0][mfi]);
-#endif
 		    
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -672,13 +633,13 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
 				BL_TO_FORTRAN(flux[2])), 
-			 D_DECL(BL_TO_FORTRAN(area[0]), 
-				BL_TO_FORTRAN(area[1]), 
-				BL_TO_FORTRAN(area[2])), 
+			 D_DECL(BL_TO_FORTRAN(area[0][mfi]), 
+				BL_TO_FORTRAN(area[1][mfi]), 
+				BL_TO_FORTRAN(area[2][mfi])), 
 #if (BL_SPACEDIM < 3) 
-			 BL_TO_FORTRAN(dloga), 
+			 BL_TO_FORTRAN(dLogArea[0][mfi]), 
 #endif
-			 BL_TO_FORTRAN(grid_volume), 
+			 BL_TO_FORTRAN(volume[mfi]), 
 			 &cflLoc, verbose, 
 			 mass_added, eint_added, eden_added, 
 			 xmom_added_flux, 
@@ -732,7 +693,7 @@ Castro::advance_hydro (Real time,
 			    (&mass_change_at_center, 
 			     bx.loVect(), bx.hiVect(),
 			     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
-			     BL_TO_FORTRAN(grid_volume),
+			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif
 		}
@@ -954,13 +915,13 @@ Castro::advance_hydro (Real time,
 		if (sgs_current)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
-		      sgs_current->FineAdd(sgs_fluxes[dir],levelArea[dir],dir,0,0,NUM_STATE,dt);
+		      sgs_current->FineAdd(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,dt);
                   }
 		
 		if (sgs_fine)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
-		      sgs_fine->CrseInit(sgs_fluxes[dir],levelArea[dir],dir,0,0,NUM_STATE,-dt);
+		      sgs_fine->CrseInit(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,-dt);
                   }
               }
 	  }
@@ -997,13 +958,13 @@ Castro::advance_hydro (Real time,
 		if (sgs_current)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
-		      sgs_current->FineAdd(sgs_fluxes[dir],levelArea[dir],dir,0,0,NUM_STATE,dt);
+		      sgs_current->FineAdd(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,dt);
                   }
 		
 		if (sgs_fine)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
-		      sgs_fine->CrseInit(sgs_fluxes[dir],levelArea[dir],dir,0,0,NUM_STATE,-dt);
+		      sgs_fine->CrseInit(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,-dt);
                   }
 	      }
 	  }
@@ -1094,18 +1055,12 @@ Castro::advance_hydro (Real time,
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
 	{
-	    FArrayBox grid_volume;
 	    FArrayBox single_cell_fab(Box(IntVect::TheZeroVector(),IntVect::TheZeroVector()));
 	    
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
 		
-		Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-		
-		grid_volume.resize(bx_g4,1);
-		grid_volume.copy(levelVolume[mfi]);
-	
 #if (BL_SPACEDIM == 3)
 		FArrayBox& phi_prev_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
 		    (*gravity->get_phi_prev(level))[mfi] : single_cell_fab;
@@ -1127,7 +1082,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN(fluxes[2][mfi]),
 #endif
 		     dx,dt,
-		     BL_TO_FORTRAN(grid_volume),
+		     BL_TO_FORTRAN(volume[mfi]),
 		     xmom_added,
 #if (BL_SPACEDIM >= 2)
 		     ymom_added,
@@ -1196,16 +1151,9 @@ Castro::advance_hydro (Real time,
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
 	{
-	    FArrayBox grid_volume;
-
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-		
-		Box bx_g4(BoxLib::grow(bx,NUM_GROW));
-		
-		grid_volume.resize(bx_g4,1);
-		grid_volume.copy(levelVolume[mfi]);
 		
 		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
 		    (bx.loVect(), bx.hiVect(),
@@ -1219,7 +1167,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN(fluxes[2][mfi]),
 #endif
 		     dx,dt,
-		     BL_TO_FORTRAN(grid_volume),
+		     BL_TO_FORTRAN(volume[mfi]),
 		     xmom_added,
 #if (BL_SPACEDIM >= 2)
 		     ymom_added,
