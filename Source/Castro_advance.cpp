@@ -432,14 +432,11 @@ Castro::advance_hydro (Real time,
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv_rad()", CA_UMDRV_RAD);
 
 #ifdef _OPENMP
-	    bool tiling = true;
 #ifdef POINTMASS
 #pragma omp parallel reduction(+:mass_change_at_center)
 #else
 #pragma omp parallel
 #endif
-#else
-	    bool tiling = false;
 #endif
 	    {
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
@@ -450,7 +447,7 @@ Castro::advance_hydro (Real time,
 		const int*  domain_lo = geom.Domain().loVect();
 		const int*  domain_hi = geom.Domain().hiVect();
 	    
-		for (MFIter mfi(S_new,tiling); mfi.isValid(); ++mfi) 
+		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi) 
 		{
 		    const Box &bx    = mfi.tilebox();
 
@@ -468,7 +465,6 @@ Castro::advance_hydro (Real time,
 			rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
-		
 		
 		    BL_FORT_PROC_CALL(CA_UMDRV_RAD,ca_umdrv_rad)
 			(&is_finest_level,&time,
@@ -577,7 +573,6 @@ Castro::advance_hydro (Real time,
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 	    
 #ifdef _OPENMP
-	    bool tiling = true;
 #ifdef POINTMASS
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added) \
@@ -594,8 +589,6 @@ Castro::advance_hydro (Real time,
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
 #endif
-#else
-	    bool tiling = false;
 #endif
 	    {
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
@@ -605,7 +598,7 @@ Castro::advance_hydro (Real time,
 		const int*  domain_lo = geom.Domain().loVect();
 		const int*  domain_hi = geom.Domain().hiVect();
 		
-		for (MFIter mfi(S_new,tiling); mfi.isValid(); ++mfi)
+		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
 		    const Box& bx  = mfi.tilebox();
 		    
