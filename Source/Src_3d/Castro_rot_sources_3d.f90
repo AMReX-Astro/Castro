@@ -63,13 +63,13 @@ contains
     omega = get_omega()
 
     do k = lo(3)-1, hi(3)+1
-       z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+       z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
        do j = lo(2)-1, hi(2)+1
-          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+          y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
 
           do i = lo(1)-1, hi(1)+1
-             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
+             x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              r = (/ x, y, z /)
 
@@ -128,13 +128,13 @@ contains
     omega2 = dot_product(omega,omega)
     
     do k = lo(3), hi(3)
-       z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+       z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
        do j = lo(2), hi(2)
-          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+          y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
 
           do i = lo(1), hi(1)
-             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
+             x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              ! **** Start Diagnostics ****
              old_re = uout(i,j,k,UEDEN)
@@ -295,11 +295,11 @@ end module rot_sources_module
     if (rot_source_type == 4) then
 
        do k = lo(3)-1, hi(3)+1
-          z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+          z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
           do j = lo(2)-1, hi(2)+1
-             y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+             y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
              do i = lo(1)-1, hi(1)+1
-                x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
+                x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
                 
                 r = (/ x, y, z /)
                 omegacrossr = cross_product(omega,r)
@@ -313,11 +313,11 @@ end module rot_sources_module
     endif
 
     do k = lo(3), hi(3)
-       z = problo(3) + dx(3)*(float(k)+HALF) - center(3)
+       z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
        do j = lo(2), hi(2)
-          y = problo(2) + dx(2)*(float(j)+HALF) - center(2)
+          y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
           do i = lo(1), hi(1)
-             x = problo(1) + dx(1)*(float(i)+HALF) - center(1)
+             x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              ! **** Start Diagnostics ****
              old_re = unew(i,j,k,UEDEN)
