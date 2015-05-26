@@ -417,11 +417,16 @@ end module rot_sources_module
              unew(i,j,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
              ! Conservative energy formulation.
+             ! The fluxes here have already been multiplied by dA (the area of the relevant cell face)
+             ! and dt, so rhoflux / vol has units of density and is the total amount of fluid moved 
+             ! between the two zones. 1/2 * (phi_left + phi_right) is the second-order accurate reconstruction 
+             ! of phi on the zone boundary, so the resultant expression is the flux of energy 
+             ! through the zone boundary.
 
-             SrEcorr = HALF * flux1(i  ,j,URHO) * (phi(i  ,j) - phi(i-1,j)) + &
-                       HALF * flux1(i+1,j,URHO) * (phi(i+1,j) - phi(i  ,j)) + &
-                       HALF * flux2(i,j  ,URHO) * (phi(i,j  ) - phi(i,j-1)) + &
-                       HALF * flux2(i,j+1,URHO) * (phi(i,j+1) - phi(i,j  )) 
+             SrEcorr = HALF * flux1(i  ,j,URHO) * (phi(i  ,j) + phi(i-1,j)) - &
+                       HALF * flux1(i+1,j,URHO) * (phi(i+1,j) + phi(i  ,j)) + &
+                       HALF * flux2(i,j  ,URHO) * (phi(i,j  ) + phi(i,j-1)) - &
+                       HALF * flux2(i,j+1,URHO) * (phi(i,j+1) + phi(i,j  )) 
 
              SrEcorr = SrEcorr / vol(i,j)
 
