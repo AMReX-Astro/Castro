@@ -242,6 +242,11 @@ end module rot_sources_module
                          vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                          xmom_added,ymom_added,zmom_added,E_added)
 
+    ! Corrector step for the rotation source terms. This is applied after the hydrodynamics 
+    ! update to fix the time-level n prediction and add the time-level n+1 data.
+    ! This subroutine exists outside of the Fortran module above because it needs to be called 
+    ! directly from C++.
+
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
@@ -293,6 +298,8 @@ end module rot_sources_module
     omega2 = dot_product(omega,omega)
 
     if (rot_source_type == 4) then
+
+       ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
 
        do k = lo(3)-1, hi(3)+1
           z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
@@ -450,14 +457,18 @@ end module rot_sources_module
                 unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
                 ! Conservative energy formulation.
-                ! note that the fluxes here have already been normalized by A (the cell face)
-                ! and dt
-                SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) - phi(i-1,j,k)) + &
-                          HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) - phi(i  ,j,k)) + &
-                          HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) - phi(i,j-1,k)) + &
-                          HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) - phi(i,j  ,k)) + &
-                          HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) - phi(i,j,k-1)) + &
-                          HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) - phi(i,j,k  ))
+                ! The fluxes here have already been multiplied by dA (the area of the relevant cell face)
+                ! and dt, so rhoflux / vol has units of density and is the total amount of fluid moved 
+                ! between the two zones. 1/2 * (phi_left + phi_right) is the second-order accurate reconstruction 
+                ! of phi on the zone boundary, so the resultant expression is the flux of energy 
+                ! through the zone boundary.
+
+                SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) + phi(i-1,j,k)) - &
+                          HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) + phi(i  ,j,k)) + &
+                          HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) + phi(i,j-1,k)) - &
+                          HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) + phi(i,j  ,k)) + &
+                          HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) + phi(i,j,k-1)) - &
+                          HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) + phi(i,j,k  ))
 
                 SrEcorr = SrEcorr / vol(i,j,k)
 

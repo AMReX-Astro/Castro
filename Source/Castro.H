@@ -2,10 +2,6 @@
 #ifndef _Castro_H_
 #define _Castro_H_
 
-//
-// $Id: Castro.H,v 1.86 2011-09-09 00:49:27 cmalone Exp $
-//
-
 #include <BC_TYPES.H>
 #include <AmrLevel.H>
 #include <ErrorList.H>
@@ -728,6 +724,8 @@ protected:
 
     // Name of the probin file and its length.
     static std::string probin_file;
+
+    static IntVect hydro_tile_size;
 
 /* problem-specific includes */
 #include <Problem.H>

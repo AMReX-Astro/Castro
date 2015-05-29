@@ -191,6 +191,14 @@ std::string  Castro::job_name = "";
 
 std::string  Castro::probin_file = "probin";
 
+#if BL_SPACEDIM == 1
+IntVect      Castro::hydro_tile_size(1024);
+#elif BL_SPACEDIM == 2
+IntVect      Castro::hydro_tile_size(1024,1024);
+#else
+IntVect      Castro::hydro_tile_size(1024,16,1024);
+#endif
+
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
 
@@ -533,6 +541,11 @@ Castro::read_params ()
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
+    Array<int> tilesize(BL_SPACEDIM);
+    if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
+    {
+	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
+    }
 }
 
 Castro::Castro ()
