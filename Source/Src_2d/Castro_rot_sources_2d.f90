@@ -263,8 +263,8 @@ end module rot_sources_module
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added
 
-    double precision, allocatable :: phi
-    double precision, allocatable :: drho1, drho2
+    double precision, allocatable :: phi(:,:)
+    double precision, allocatable :: drho1(:,:), drho2(:,:)
 
     double precision :: mom1, mom2
 
