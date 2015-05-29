@@ -180,32 +180,71 @@ end module grav_sources_module
       double precision old_xmom, old_ymom, old_zmom, xmom_added, ymom_added, zmom_added
       double precision rho_E_added, flux_added
 
-!      double precision, allocatable :: grav(:,:,:,:)
       double precision, allocatable :: phi(:,:,:)
+      double precision, allocatable :: drho1(:,:,:)
+      double precision, allocatable :: drho2(:,:,:)
+      double precision, allocatable :: drho3(:,:,:)
  
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
-      ! 4: Conservative gravity approach from the AREPO code paper (Springel 2010).
+      ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
       if (grav_source_type .eq. 4) then
-         allocate(phi (lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
-!         allocate(grav(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1),3)
+         allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
+         allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)))
+         allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3)))
+         allocate(drho3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1))
+
+         ! For our purposes, we want the time-level n+1/2 phi because we are 
+         ! using fluxes evaluated at that time. To second order we can 
+         ! average the new and old potentials.
+
+         ! We will also negate the answer so that phi is negative,
+         ! the usual physics convention, which will make the energy 
+         ! update more easy to understand.
 
          do k = lo(3)-1, hi(3)+1
             do j = lo(2)-1, hi(2)+1
                do i = lo(1)-1, hi(1)+1
-                  phi(i,j,k)    = HALF * (pnew(i,j,k) + pold(i,j,k))               
+                  phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))               
                enddo
-               ! do n=1,3
-               !    do i = lo(1)-1, hi(1)+1
-               !       grav(i,j,k,n) = HALF * (gnew(i,j,k,n) + gold(i,j,k,n))
-               !    end do                  
-               ! end do
             enddo
          end do
+
+         ! Construct the mass changes using the density flux from the hydro step. 
+         ! Note that in the hydrodynamics step, these fluxes were already 
+         ! multiplied by dA and dt, so dividing by the cell volume is enough to 
+         ! get the density change (flux * dt / dx). This will be fine in the usual 
+         ! case where the volume is the same in every cell, but may need to be 
+         ! generalized when this assumption does not hold.
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)+1
+                  drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)+1
+               do i = lo(1), hi(1)
+                  drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)+1
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
       end if
 
       do k = lo(3),hi(3)
@@ -286,14 +325,24 @@ end module grav_sources_module
 
                else if (grav_source_type .eq. 4) then
 
-                  SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) - phi(i-1,j,k)) + &
-                            HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) - phi(i  ,j,k)) + &
-                            HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) - phi(i,j-1,k)) + &
-                            HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) - phi(i,j  ,k)) + &
-                            HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) - phi(i,j,k-1)) + &
-                            HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) - phi(i,j,k  ))
+                  ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
+                  ! the change in the gravitational potential energy, (1/2) rho * phi.
+                  ! This must be true for the total energy, rho * E_g + (1/2) rho * phi, to be conserved.
+                  ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
+                  ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
+                  ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new gravitational
+                  ! energy is equal to the mass changed multiplied by the difference between these two
+                  ! potentials. This is a generalization of the cell-centered approach implemented in 
+                  ! the other source options, which effectively are equal to 
+                  ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
+                  ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
 
-                  SrEcorr = SrEcorr / vol(i,j,k)
+                  SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                       drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                       drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                       drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                       drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                       drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
 
                   unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 
@@ -315,6 +364,11 @@ end module grav_sources_module
             enddo
          enddo
       enddo
+      
+      if (grav_source_type .eq. 4) then
+         deallocate(phi)
+         deallocate(drho1,drho2,drho3)
+      endif
 
       end subroutine ca_corrgsrc
 
