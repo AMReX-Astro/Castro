@@ -259,15 +259,15 @@ Castro::read_params ()
 
     pp.query("v",verbose);
 //  verbose = (verbose ? 1 : 0);
-    pp.get("init_shrink",init_shrink);
-    pp.get("cfl",cfl);
+    pp.query("init_shrink",init_shrink);
+    pp.query("cfl",cfl);
     pp.query("change_max",change_max);
     pp.query("fixed_dt",fixed_dt);
     pp.query("initial_dt",initial_dt);
     pp.query("sum_interval",sum_interval);
     pp.query("do_reflux",do_reflux);
     do_reflux = (do_reflux ? 1 : 0);
-    pp.get("dt_cutoff",dt_cutoff);
+    pp.query("dt_cutoff",dt_cutoff);
 
     pp.query("dump_old",dump_old);
 
