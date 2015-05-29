@@ -263,7 +263,8 @@ end module rot_sources_module
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added
 
-    double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1)
+    double precision, allocatable :: phi
+    double precision, allocatable :: drho1, drho2
 
     double precision :: mom1, mom2
 
@@ -275,6 +276,8 @@ end module rot_sources_module
 
     if (rot_source_type == 4) then
 
+       allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1))
+
        do j = lo(2)-1, hi(2)+1
           y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
           do i = lo(1)-1, hi(1)+1
@@ -285,6 +288,21 @@ end module rot_sources_module
 
              phi(i,j) = - HALF * dot_product(omegacrossr,omegacrossr)
 
+          enddo
+       enddo
+
+       allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2)))
+       allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1))
+
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)+1
+             drho1(i,j) = flux1(i,j,URHO) / vol(i,j)
+          enddo
+       enddo
+
+       do j = lo(2), hi(2)+1
+          do i = lo(1), hi(1)
+             drho2(i,j) = flux2(i,j,URHO) / vol(i,j)
           enddo
        enddo
 
@@ -417,18 +435,11 @@ end module rot_sources_module
              unew(i,j,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
              ! Conservative energy formulation.
-             ! The fluxes here have already been multiplied by dA (the area of the relevant cell face)
-             ! and dt, so rhoflux / vol has units of density and is the total amount of fluid moved 
-             ! between the two zones. 1/2 * (phi_left + phi_right) is the second-order accurate reconstruction 
-             ! of phi on the zone boundary, so the resultant expression is the flux of energy 
-             ! through the zone boundary.
 
-             SrEcorr = HALF * flux1(i  ,j,URHO) * (phi(i  ,j) + phi(i-1,j)) - &
-                       HALF * flux1(i+1,j,URHO) * (phi(i+1,j) + phi(i  ,j)) + &
-                       HALF * flux2(i,j  ,URHO) * (phi(i,j  ) + phi(i,j-1)) - &
-                       HALF * flux2(i,j+1,URHO) * (phi(i,j+1) + phi(i,j  )) 
-
-             SrEcorr = SrEcorr / vol(i,j)
+             SrEcorr = - ( drho1(i  ,j) * (phi(i,j) - phi(i-1,j)) - &
+                           drho1(i+1,j) * (phi(i,j) - phi(i+1,j)) + &
+                           drho2(i,j  ) * (phi(i,j) - phi(i,j-1)) - &
+                           drho2(i,j+1) * (phi(i,j) - phi(i,j+1)) )
 
              unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr
 
@@ -448,5 +459,10 @@ end module rot_sources_module
 
        enddo
     enddo
+
+    if (rot_source_type .eq. 4) then
+       deallocate(phi)
+       deallocate(drho1,drho2)
+    endif
 
     end subroutine ca_corrrsrc

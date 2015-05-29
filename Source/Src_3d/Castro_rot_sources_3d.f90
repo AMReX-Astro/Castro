@@ -278,6 +278,7 @@ end module rot_sources_module
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
     double precision :: vnew(3),vold(3),omega(3)
+    double precision :: SrCor_old(3), SrCfg_old(3), SrCor_new(3), SrCfg_new(3)
     double precision :: Sr_old(3), Sr_new(3), SrUcorr, SrVcorr, SrWcorr, SrEcorr, SrE_old, SrE_new
     double precision :: rhoo, rhon, rhooinv, rhoninv
     double precision :: omegadotr,omegacrossr(3),omega2
@@ -287,7 +288,8 @@ end module rot_sources_module
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
-    double precision :: phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    double precision, allocatable :: phi
+    double precision, allocatable :: drho1, drho2, drho3
 
     double precision :: mom1, mom2
 
@@ -301,6 +303,8 @@ end module rot_sources_module
 
        ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
 
+       allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
+
        do k = lo(3)-1, hi(3)+1
           z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
           do j = lo(2)-1, hi(2)+1
@@ -313,6 +317,41 @@ end module rot_sources_module
 
                 phi(i,j,k) = - HALF * dot_product(omegacrossr,omegacrossr)
 
+             enddo
+          enddo
+       enddo
+
+       allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)))
+       allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3)))
+       allocate(drho3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1))
+
+       ! Construct the mass changes using the density flux from the hydro step. 
+       ! Note that in the hydrodynamics step, these fluxes were already 
+       ! multiplied by dA and dt, so dividing by the cell volume is enough to 
+       ! get the density change (flux * dt / dx). This will be fine in the usual 
+       ! case where the volume is the same in every cell, but may need to be 
+       ! generalized when this assumption does not hold.
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)+1
+                drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
+             enddo
+          enddo
+       enddo
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
+                drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
+             enddo
+          enddo
+       enddo
+
+       do k = lo(3), hi(3)+1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
              enddo
           enddo
        enddo
@@ -351,8 +390,11 @@ end module rot_sources_module
 
              omegacrossvold = cross_product(omega,vold)
 
-             Sr_old = -TWO * rhoo * omegacrossvold(:) - rhoo * (omegadotr * omega(:) - omega2 * r(:))
-             SrE_old = dot_product(vold, Sr_old)
+             SrCor_old = - TWO * rhoo * omegacrossvold(:) ! Coriolis force
+             SrCfg_old = - rhoo * (omegadotr * omega(:) - omega2 * r(:)) ! Centrifugal force
+             Sr_old = SrCor_old + SrCfg_old ! Momentum update: Coriolis + centrifugal
+
+             SrE_old = dot_product(vold, Sr_old) ! Energy update; only centrifugal term does work
 
              ! Define new source terms
 
@@ -365,7 +407,9 @@ end module rot_sources_module
 
              omegacrossvnew = cross_product(omega,vnew)
 
-             Sr_new = -TWO * rhon * omegacrossvnew(:) - rhon * (omegadotr * omega(:) - omega2 * r(:))
+             SrCor_new = - TWO * rhon * omegacrossvnew(:) ! Coriolis force
+             SrCfg_new = - rhon * (omegadotr * omega(:) - omega2 * r(:)) ! Centrifugal force
+             Sr_new = SrCor_new + SrCfg_new ! Momentum update: Coriolis + centrifugal
 
              ! Define correction terms
 
@@ -373,15 +417,11 @@ end module rot_sources_module
              SrVcorr = HALF * (Sr_new(2) - Sr_old(2))
              SrWcorr = HALF * (Sr_new(3) - Sr_old(3))
 
-             if (rot_source_type .le. 3) then
+             ! Correct state with correction terms
 
-                ! Correct state with correction terms
-
-                unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr * dt
-                unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
-                unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
-
-             endif
+             unew(i,j,k,UMX) = unew(i,j,k,UMX) + SrUcorr * dt
+             unew(i,j,k,UMY) = unew(i,j,k,UMY) + SrVcorr * dt
+             unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + SrWcorr * dt
 
              if (rot_source_type == 1) then
 
@@ -423,7 +463,7 @@ end module rot_sources_module
 
              else if (rot_source_type == 4) then
 
-                ! Coupled momentum update
+                ! Coupled momentum update.
                 ! See Section 2.4 in the first wdmerger paper.
 
                 ! Figure out which directions are updated, and then determine the right 
@@ -436,41 +476,43 @@ end module rot_sources_module
                 midx1 = UMX + idir1 - 1
                 midx2 = UMX + idir2 - 1
 
-                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
-                ! and do part of the corrector step for the Coriolis term (subtract 1/2 the old term). We cannot do 
-                ! the new-time Coriolis term yet because of the implicit coupling (see below).
-
-                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
-                                - dt * omega(rot_axis) * uold(i,j,k,midx2)
-                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) & 
-                                + dt * omega(rot_axis) * uold(i,j,k,midx1)
+                mom1 = unew(i,j,k,midx1)
+                mom2 = unew(i,j,k,midx2)
 
                 ! Now do the implicit solve for the time-level n+1 Coriolis term. 
                 ! It would be nice if this all could be generalized so that we don't 
                 ! have to break it up by coordinate axis (in case the user wants to 
                 ! rotate about multiple axes).
 
-                mom1 = unew(i,j,k,midx1)
-                mom2 = unew(i,j,k,midx2)
-
                 unew(i,j,k,midx1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
                 unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
 
-                ! Conservative energy formulation.
-                ! The fluxes here have already been multiplied by dA (the area of the relevant cell face)
-                ! and dt, so rhoflux / vol has units of density and is the total amount of fluid moved 
-                ! between the two zones. 1/2 * (phi_left + phi_right) is the second-order accurate reconstruction 
-                ! of phi on the zone boundary, so the resultant expression is the flux of energy 
-                ! through the zone boundary.
+                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
+                ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
-                SrEcorr = HALF * flux1(i  ,j,k,URHO) * (phi(i  ,j,k) + phi(i-1,j,k)) - &
-                          HALF * flux1(i+1,j,k,URHO) * (phi(i+1,j,k) + phi(i  ,j,k)) + &
-                          HALF * flux2(i,j  ,k,URHO) * (phi(i,j,  k) + phi(i,j-1,k)) - &
-                          HALF * flux2(i,j+1,k,URHO) * (phi(i,j+1,k) + phi(i,j  ,k)) + &
-                          HALF * flux3(i,j,k  ,URHO) * (phi(i,j,k  ) + phi(i,j,k-1)) - &
-                          HALF * flux3(i,j,k+1,URHO) * (phi(i,j,k+1) + phi(i,j,k  ))
+                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
+                                - dt * omega(rot_axis) * uold(i,j,k,midx2)
+                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) &
+                                + dt * omega(rot_axis) * uold(i,j,k,midx1)
 
-                SrEcorr = SrEcorr / vol(i,j,k)
+                ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
+                ! the change in the rotational potential energy, (1/2) rho * phi.
+                ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
+                ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
+                ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
+                ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new rotational
+                ! energy is equal to the mass changed multiplied by the difference between these two
+                ! potentials. This is a generalization of the cell-centered approach implemented in 
+                ! the other source options, which effectively are equal to 
+                ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
+                ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
+
+                SrEcorr = - ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                              drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                              drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                              drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                              drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) + &
+                              drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 
@@ -492,6 +534,11 @@ end module rot_sources_module
           enddo
        enddo
     enddo
+
+    if (rot_source_type .eq. 4) then
+       deallocate(phi)
+       deallocate(drho1,drho2,drho3)
+    endif
 
     end subroutine ca_corrrsrc
 
