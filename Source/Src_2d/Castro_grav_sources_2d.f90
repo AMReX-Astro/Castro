@@ -83,10 +83,6 @@ contains
                                     uout(i,j,URHO) 
                    uout(i,j,UEDEN) = old_rhoeint + new_ke
 
-               else if (grav_source_type .eq. 4) then
-
-                  ! Do nothing here for the conservative gravity option
-
                else 
                   call bl_error("Error:: Castro_grav_sources_2d.f90 :: bogus grav_source_type")
                end if
@@ -161,10 +157,6 @@ end module grav_sources_module
       ! 1: Original version ("does work")
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
-
-       if (grav_source_type .eq. 4 .and. coord_type .ne. 0) then
-          call bl_error("Error:: grav_source_type == 4 only enabled for Cartesian geometry.")
-       endif
 
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
