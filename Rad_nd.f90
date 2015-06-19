@@ -207,3 +207,105 @@
 
       end subroutine ca_setgroup
 
+! ::: -----------------------------------------------------------
+
+      subroutine ca_inelastic_sct (lo1,lo2,lo3,hi1,hi2,hi3, &
+           uu,uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3, &
+           Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3, &
+           ks,ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3, &
+           dt)
+        use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
+        use rad_params_module, only : ngroups, nugroup, dlognu
+        use radhydro_nd_module, only : inelastic_scatter
+        integer, intent(in) :: lo1,lo2,lo3,hi1,hi2,hi3
+        integer, intent(in) :: uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3
+        integer, intent(in) :: Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3
+        integer, intent(in) :: ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3
+        double precision, intent(inout) :: uu(uu_l1:uu_h1,uu_l2:uu_h2,uu_l3:uu_h3,NVAR)
+        double precision, intent(inout) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,0:ngroups-1)
+        double precision, intent(in   ) :: ks(ks_l1:ks_h1,ks_l2:ks_h2,ks_l3:ks_h3)
+        double precision, intent(in) :: dt
+
+        integer :: i, j, k
+        double precision :: Ertotold, Ertmp(0:ngroups-1), dEr
+        double precision :: Erscale(0:ngroups-1)
+
+        Erscale = nugroup*dlognu
+
+        do       k = lo3, hi3
+           do    j = lo2, hi2
+              do i = lo1, hi1
+                 Ertmp = Er(i,j,k,:)
+                 Ertotold = sum(Ertmp)
+                 Ertmp = Ertmp / Erscale
+
+                 call inelastic_scatter(uu(i,j,k,UTEMP), Ertmp, ks(i,j,k), dt, (/i,j,k/))
+
+                 Ertmp = Ertmp * Erscale
+                 dEr = sum(Ertmp) - Ertotold
+                 Er(i,j,k,:) = Ertmp
+                 uu(i,j,k,UEINT) = uu(i,j,k,UEINT) - dEr
+                 uu(i,j,k,UEDEN) = uu(i,j,k,UEDEN) - dEr
+              end do
+           end do
+        end do
+
+      end subroutine ca_inelastic_sct
+
+! ::: -----------------------------------------------------------
+
+      subroutine ca_compute_ros_sct(lo1,lo2,lo3,hi1,hi2,hi3, &
+           kpr,kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3, &
+           kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
+           sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3)
+        
+        use rad_params_module, only : ngroups, nugroup
+        use opacity_table_module, only : get_opacities
+        use network, only : naux
+        use meth_params_module, only : NVAR, URHO, UTEMP, UFX
+        
+        implicit none
+        
+        integer, intent(in) :: lo1,lo2,lo3,hi1,hi2,hi3
+        integer, intent(in) :: kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3
+        integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
+        integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
+        double precision, intent(inout) :: kpr(kpr_l1:kpr_h1,kpr_l2:kpr_h2,kpr_l3:kpr_h3,0:ngroups-1)
+        double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
+        double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
+        
+        integer :: i, j, k, g
+        double precision :: kp, kr, nu, rho, temp, Ye
+        logical, parameter :: comp_kp = .true.
+        logical, parameter :: comp_kr = .true.
+        
+        do g=0, ngroups-1
+           
+           nu = nugroup(g)
+           
+           do k = lo3, hi3
+           do j = lo2, hi2
+           do i = lo1, hi1
+              
+              rho = sta(i,j,k,URHO)
+              temp = sta(i,j,k,UTEMP)
+              if (naux > 0) then
+                 Ye = sta(i,j,k,UFX)
+              else
+                 Ye = 0.d0
+              end if
+              
+              call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+              
+              kpr(i,j,k,g) = kr
+              
+              if (g .eq. 0) then
+                 kps(i,j,k) = max(kr - kp, 0.d0)
+              end if
+              
+           end do
+           end do
+           end do
+        end do
+
+      end subroutine ca_compute_ros_sct

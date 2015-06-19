@@ -42,6 +42,7 @@ int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
+int Radiation::do_inelastic_scattering = 0;
 int Radiation::use_analytic_solution = 0;
 int Radiation::plot_lambda   = 0;
 int Radiation::plot_kappa_p  = 0;
@@ -214,6 +215,12 @@ void Radiation::read_static_params()
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       BoxLib::Error("Unknown Radiation::SolverType");    
   }
+
+
+#ifndef NEUTRINO
+  if (Radiation::nGroups > 1) 
+      pp.query("do_inelastic_scattering", do_inelastic_scattering);
+#endif
 
   pp.query("use_analytic_solution", use_analytic_solution);
 
@@ -723,6 +730,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     }
     if (SolverType == MGFLDSolver) {
       cout << "fspace_advection_type = " << fspace_advection_type << endl;
+      cout << "do_inelastic_scattering = " << do_inelastic_scattering << endl;
     }
     if (SolverType == SGFLDSolver && comoving == 0) {
       cout << "Er_Lorentz_term = " << Er_Lorentz_term << endl;
@@ -802,8 +810,15 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("first_order_hydro", first_order_hydro);
   pp.query("pure_hydro", pure_hydro);
 
+  if (pure_hydro || limiter == 0) {
+      if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
+	  cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << endl;
+      }
+      do_inelastic_scattering = 0;
+  }
+
   BL_FORT_PROC_CALL(CA_INIT_RADHYDRO_PARS, ca_init_radhydro_pars)
-      (fspace_advection_type, comoving, first_order_hydro, flatten_pp_threshold);
+      (fspace_advection_type, do_inelastic_scattering, comoving, first_order_hydro, flatten_pp_threshold);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids)

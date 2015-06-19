@@ -265,4 +265,97 @@ module radhydro_nd_module
 
     end subroutine weno5
 
+
+    subroutine inelastic_scatter(temp, u, ks, dt, pt_index)
+      use rad_params_module, only : ngroups, xnu, nugroup, dlognu
+      use fundamental_constants_module, only : k_B, m_e, c_light, hplanck
+      double precision, intent(in) :: temp, ks, dt
+      double precision, intent(inout) :: u(ngroups)
+      integer, intent(in), optional :: pt_index(:)
+
+      integer :: i
+      double precision :: theta, sigmadt, exparg
+      integer :: N, NRHS, LDB, INFO
+      double precision :: DL(ngroups-1), D(ngroups), DU(ngroups-1)
+      double precision :: B(ngroups,1)
+      double precision :: ah(2:ngroups), uxh(2:ngroups), bh(2:ngroups), cc(ngroups)
+
+      double precision, save :: tfac, gamma
+      double precision, allocatable, save :: x(:), xh(:), dlognuinv(:)
+      logical, save :: first_call = .true.
+!$omp threadprivate(tfac,gamma,x,xh,dlognuinv,first_call)
+
+      if (first_call) then
+         first_call = .false.
+         tfac = k_B/(m_e*c_light**2)
+         gamma = hplanck**2/(8.d0*3.141596565968186d0*(m_e*c_light)**3)
+         allocate(x(ngroups))
+         allocate(xh(2:ngroups))
+         allocate(dlognuinv(ngroups))
+         x = nugroup(0:ngroups-1) * (hplanck/(m_e*c_light**2))
+         xh = xnu(1:ngroups-1) * (hplanck/(m_e*c_light**2))
+         dlognuinv = 1.d0/dlognu
+      end if
+
+      theta = temp*tfac
+      sigmadt = ks*c_light*dt
+      
+      do i = 2, ngroups
+         uxh(i) = 0.5d0*(u(i-1)/x(i-1)+u(i)/x(i))
+         exparg = (x(i)-x(i-1))/theta
+         if (exparg .gt. 150.d0) then
+            bh(i) = 1.4d65
+         else
+            bh(i) = exp(exparg)
+         end if
+         ah(i) = sigmadt*(xh(i)**2+gamma*uxh(i))**2 / (bh(i)-1.d0)
+      end do
+
+      do i = 1, ngroups
+         cc(i) = 1.d0 / (x(i)**3+gamma*u(i))
+      end do
+
+      B(:,1) = u
+      i = 1
+      D (i  ) = 1.d0 + dlognuinv(i)*cc(i  )*ah(i+1)
+      DU(i  ) =       -dlognuinv(i)*cc(i+1)*ah(i+1)*bh(i+1)
+      do i = 2, ngroups-1
+         DL(i-1) =       -dlognuinv(i)*cc(i-1)*ah(i)
+         D (i  ) = 1.d0 + dlognuinv(i)*cc(i  )*(ah(i)*bh(i)+ah(i+1))
+         DU(i  ) =       -dlognuinv(i)*cc(i+1)*ah(i+1)*bh(i+1)
+      end do
+      i = ngroups
+      DL(i-1) =       -dlognuinv(i)*cc(i-1)*ah(i)
+      D (i  ) = 1.d0 + dlognuinv(i)*cc(i  )*ah(i)*bh(i)
+
+      ! if (pt_index(1) .eq. 32) then
+      !    print *, 'DL = ', DL
+      !    print *, 'D  = ', D
+      !    print *, 'DU = ', DU
+      !    print *, 'B  = ', B
+      !    print *, cc(ngroups), ah(ngroups), bh(ngroups), (x(ngroups)-x(ngroups-1))/theta, theta
+      ! end if
+
+      N = ngroups
+      NRHS = 1
+      LDB = ngroups
+      call dgtsv(n,nrhs,DL,D,DU,B,LDB,INFO)
+
+      ! print *, '-------------------------------------------'
+      ! print *, 'i = ', pt_index, sum(u), sum(B(:,1)), sum(u) - sum(B(:,1))
+      ! do i = 1, ngroups
+      !    print *, u(i), B(i,1)
+      ! end do
+      ! call flush(6)
+
+      if (INFO .eq. 0) then
+         u = B(:,1)
+      else
+         stop 'inelastic_scatter failed'
+      end if
+
+      ! if (pt_index(1) .eq. 32) stop
+
+    end subroutine inelastic_scatter
+
 end module radhydro_nd_module

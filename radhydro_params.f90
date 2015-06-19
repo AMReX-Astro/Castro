@@ -2,6 +2,7 @@ module radhydro_params_module
 
   integer, save :: QRADVAR, qrad, qradhi, qptot, qreitot 
   integer, save :: fspace_type
+  logical, save :: do_inelastic_scattering
   logical, save :: comoving
 
   logical, save :: first_order_hydro = .false.
@@ -9,12 +10,12 @@ module radhydro_params_module
 
 end module radhydro_params_module
 
-subroutine ca_init_radhydro_pars(fsp_type_in, com_in, foh,fppt)
+subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in, foh,fppt)
   use meth_params_module, only : QVAR
   use rad_params_module, only : ngroups
   use radhydro_params_module
   implicit none
-  integer, intent(in) :: fsp_type_in, com_in, foh
+  integer, intent(in) :: fsp_type_in, do_is_in, com_in, foh
   double precision, intent(in) :: fppt
 
   qptot  = QVAR+1
@@ -35,6 +36,8 @@ subroutine ca_init_radhydro_pars(fsp_type_in, com_in, foh,fppt)
      stop 
   end if
   
+  do_inelastic_scattering = (do_is_in .ne. 0)
+
   if (com_in .eq. 1) then
      comoving = .true.
   else if (com_in .eq. 0) then

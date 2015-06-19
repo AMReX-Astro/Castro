@@ -44,6 +44,7 @@ public:
   static int comoving;
   static int Er_Lorentz_term; 
   static int fspace_advection_type;
+  static int do_inelastic_scattering;    // Compton scattering for photon only
 
   static int use_analytic_solution; // compare against an analytic solution
 
@@ -165,7 +166,8 @@ public:
   void compute_limiter(int level, const BoxArray& grids,
 		       const MultiFab &Sborder, 
 		       const MultiFab &Erborder,
-		       MultiFab &lmaborder);
+		       MultiFab &lamborder,
+		       MultiFab &kappa_s);
 
   void estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
 		       FArrayBox& gPr, const Real* dx, const Box& box);
@@ -398,6 +400,7 @@ protected:
   // for the hyperbolic solver
   void MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state);
   void MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& state);
+  void MGFLD_compute_rosseland_scattering(MultiFab& kappa_r, MultiFab& kappa_s, const MultiFab& state);
 
   void rhstoEr(MultiFab& rhs, Real dt, int level);
 

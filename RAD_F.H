@@ -84,7 +84,8 @@
 #include <BLFort.H>
 
 BL_FORT_PROC_DECL(CA_INIT_RADHYDRO_PARS,ca_init_radhydro_pars)
-    (const int & fspace_advection_type, const int & comoving,
+    (const int & fspace_advection_type, const int & do_inelastic_scattering,
+     const int & comoving,
      const int & first_order_hydro, const Real & flatten_pp_threshold);
 
 BL_FORT_PROC_DECL(CA_INITRADCONSTANTS,ca_initradconstants)
@@ -570,6 +571,11 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
+BL_FORT_PROC_DECL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
+   (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+    BL_FORT_FAB_ARG(kpr),
+    BL_FORT_FAB_ARG(kps),
+    const BL_FORT_FAB_ARG(state));
 BL_FORT_PROC_DECL(CA_COMPUTE_PLANCK, ca_compute_planck)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpp),
@@ -761,7 +767,6 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      const BL_FORT_FAB_ARG(Er), 
      const BL_FORT_FAB_ARG(Fi), int& ifi, int& nfi, 
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
-
 
 extern "C" {
   void FORT_SETLAYOUT(int& Density, int& Xmom, int& Eden, int& Eint, int& Temp, 

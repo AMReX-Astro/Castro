@@ -950,7 +950,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 void Radiation::compute_limiter(int level, const BoxArray& grids,
 				const MultiFab &Sborder, 
 				const MultiFab &Erborder,
-				MultiFab &lamborder)
+				MultiFab &lamborder,
+				MultiFab & kps)
 { // it works for both single- and multi-group
   int ngrow = lamborder.nGrow();
 
@@ -968,7 +969,11 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     MultiFab kpr(grids,Radiation::nGroups,ngrow);  
 
     if (do_multigroup) {
-      MGFLD_compute_rosseland(kpr, Sborder); 
+	if (do_inelastic_scattering) {
+	    MGFLD_compute_rosseland_scattering(kpr, kps, Sborder);
+	} else {
+	    MGFLD_compute_rosseland(kpr, Sborder); 
+	}
     }
     else {
       SGFLD_compute_rosseland(kpr, Sborder); 
@@ -1120,6 +1125,62 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 #endif
     }
 }
+
+
+void Radiation::MGFLD_compute_rosseland_scattering(MultiFab& kappa_r, MultiFab& kappa_s, const MultiFab& state)
+{
+    BL_PROFILE("Radiation::MGFLD_compute_rosseland (MultiFab)");
+
+#ifdef NEUTRINO
+    BoxLib::Error("Neutrino solver does not support inelastic scattering");
+#endif
+
+    BL_ASSERT(kappa_r_exp_p[0] == 0.0 && kappa_p_exp_p[0] == 0.0 && scattering_exp_p[0] == 0.0);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.growntilebox();
+
+	if (use_opacity_table_module) {
+	    BL_FORT_PROC_CALL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
+		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		 BL_TO_FORTRAN(kappa_r[mfi]), 
+		 BL_TO_FORTRAN(kappa_s[mfi]), 
+		 BL_TO_FORTRAN(state[mfi]));
+	}
+	else {
+	    // a hack
+	    BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
+		(bx.loVect(), bx.hiVect(),
+		 BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+		 &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
+		 &prop_temp_floor[0], &kappa_r_floor);
+	    kappa_s[mfi].copy(kappa_r[mfi], bx, 0, bx, 0, 1);
+	    kappa_s[mfi].negate(bx);
+
+	    if (const_kappa_r[0] < 0.0) {
+		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+		     &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
+		     &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
+		     &prop_temp_floor[0], &kappa_r_floor);	 
+	    }
+	    else {
+		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
+		    (bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+		     &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
+		     &prop_temp_floor[0], &kappa_r_floor);	 
+	    }
+
+	    kappa_s[mfi].plus(kappa_r[mfi], bx, 0, 0);
+	}
+    }
+}
+
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
 			      MultiFab& rhoYe_new, MultiFab& Ye_new, 
