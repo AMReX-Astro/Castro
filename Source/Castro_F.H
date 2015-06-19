@@ -356,6 +356,13 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      Real* cflLoc,
      const int& verbose, 
      int* nstep_fsp); 
+
+BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
+    (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+     BL_FORT_FAB_ARG_3D(stateout),
+     BL_FORT_FAB_ARG_3D(Erout),
+     const BL_FORT_FAB_ARG_3D(kappa_s),
+     const Real& dt);
 #endif
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)

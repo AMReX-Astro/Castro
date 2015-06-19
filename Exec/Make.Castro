@@ -170,6 +170,14 @@ INCLUDE_LOCATIONS += $(BLAS_dir)
 VPATH_LOCATIONS   += $(BLAS_dir) 
 endif
 
+ifeq ($(USE_RAD), TRUE)
+LAPACK_dir    := $(TOP)/Util/LAPACK
+include $(LAPACK_dir)/Make.package
+EXTERN_CORE += $(TOP)/Util/LAPACK
+INCLUDE_LOCATIONS += $(LAPACK_dir) 
+VPATH_LOCATIONS   += $(LAPACK_dir) 
+endif
+
 ifeq ($(DIM), 1)
 DEFINES += -DHAS_XGRAPH
 include $(TOP)/Util/plot1d/Make.package

@@ -420,11 +420,16 @@ Castro::advance_hydro (Real time,
 	    MultiFab& Erborder = fpi_rad.get_mf();
 	    
 	    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+	    MultiFab kappa_s;
+	    if (radiation->do_inelastic_scattering) {
+		kappa_s.define(grids, 1, NUM_GROW, Fab_allocate);
+		kappa_s.setVal(0.0, NUM_GROW);
+	    }
 	    if (radiation->pure_hydro) {
 		lamborder.setVal(0.0, NUM_GROW);
 	    }
 	    else {
-		radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+		radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder, kappa_s);
 	    }
 
 	    int nstep_fsp = -1;
@@ -493,6 +498,15 @@ Castro::advance_hydro (Real time,
 #endif
 			 BL_TO_FORTRAN(volume[mfi]), 
 			 &cflLoc, verbose, &priv_nstep_fsp);
+
+		    if (radiation->do_inelastic_scattering) {
+			BL_FORT_PROC_CALL(CA_INELASTIC_SCT, ca_inelastic_sct)
+			    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(stateout),
+			     BL_TO_FORTRAN_3D(Erout),
+			     BL_TO_FORTRAN_3D(kappa_s[mfi]),
+			     dt);
+		    }
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
