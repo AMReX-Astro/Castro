@@ -233,16 +233,18 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use probdata_module
   use fundamental_constants_module, only: a_rad
   use interpolate_module
+  use rad_params_module, only : xnu
+  use blackbody_module, only : BGroup
 
   implicit none
   integer :: level, nrad
   integer :: lo(1), hi(1)
   integer :: rad_state_l1,rad_state_h1
   double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision ::  rad_state(rad_state_l1:rad_state_h1, nrad)
+  double precision ::  rad_state(rad_state_l1:rad_state_h1, 0:nrad-1)
 
   ! local variables
-  integer :: i,ii
+  integer :: i,ii,igroup
   double precision xcl, T, Tsub, xx, vtot, vsub, dx_sub
   integer, parameter :: nsub = 16
 
@@ -284,7 +286,14 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
      end do
      T = T / vtot
      ! set radiation energy density to a T**4
-     rad_state(i,:) = a_rad*T**4
+
+     if (nrad .eq. 1) then
+        rad_state(i,0) = a_rad*T**4
+     else
+        do igroup=0,nrad-1
+           rad_state(i,igroup) = BGroup(T, xnu(igroup), xnu(igroup+1))
+        end do
+     end if
 
   enddo
         
