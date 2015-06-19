@@ -267,6 +267,7 @@ module radhydro_nd_module
 
 
     subroutine inelastic_scatter(temp, u, ks, dt, pt_index)
+      ! reference: Larsen, Levermore, Pomraning, and Sanderson, 1985, JCP, 61, 359
       use rad_params_module, only : ngroups, xnu, nugroup, dlognu
       use fundamental_constants_module, only : k_B, m_e, c_light, hplanck
       double precision, intent(in) :: temp, ks, dt
