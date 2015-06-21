@@ -275,7 +275,7 @@ module radhydro_nd_module
       integer, intent(in), optional :: pt_index(:)
 
       integer :: i
-      double precision :: theta, sigmadt, exparg
+      double precision :: theta, sigmadt
       integer :: N, NRHS, LDB, INFO
       double precision :: DL(ngroups-1), D(ngroups), DU(ngroups-1)
       double precision :: B(ngroups,1)
@@ -303,12 +303,7 @@ module radhydro_nd_module
       
       do i = 2, ngroups
          uxh(i) = 0.5d0*(u(i-1)/x(i-1)+u(i)/x(i))
-         exparg = (x(i)-x(i-1))/theta
-         if (exparg .gt. 150.d0) then
-            bh(i) = 1.4d65
-         else
-            bh(i) = exp(exparg)
-         end if
+         bh(i) = exp(min(150.d0,(x(i)-x(i-1))/theta))
          ah(i) = sigmadt*(xh(i)**2+gamma*uxh(i))**2 / (bh(i)-1.d0)
       end do
 
