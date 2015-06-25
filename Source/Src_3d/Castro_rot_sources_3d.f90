@@ -41,7 +41,7 @@ contains
     ! fill_rotation_field returns the sources to the velocity
     ! equations (not the conserved momentum equations) that are used
     ! in predicting the interface states
-    use meth_params_module, only: QVAR, QU, QV, QW
+    use meth_params_module, only: QVAR, QU, QV, QW, NHYP
     use prob_params_module, only: problo, center
     use bl_constants_module
 
@@ -60,15 +60,19 @@ contains
     double precision :: v(3),omega(3)
     double precision :: omegadotr,omegacrossr(3),omegacrossomegacrossr(3),omegacrossv(3)
 
+    integer, parameter :: ngq = NHYP
+    
     omega = get_omega()
 
-    do k = lo(3)-1, hi(3)+1
+    ! fill all the rotation ghost cells, because we do tracing in the
+    ! PPM routines
+    do k = lo(3)-ngq, hi(3)+ngq
        z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
-       do j = lo(2)-1, hi(2)+1
+       do j = lo(2)-ngq, hi(2)+ngq
           y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
 
-          do i = lo(1)-1, hi(1)+1
+          do i = lo(1)-ngq, hi(1)+ngq
              x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              r = (/ x, y, z /)

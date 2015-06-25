@@ -108,7 +108,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
   allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
-  allocate(   rot(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
+  allocate(   rot(lo(1)-ngq:hi(1)+ngq,lo(2)-ngq:hi(2)+ngq,lo(3)-ngq:hi(3)+ngq,QVAR))
   
   dx = delta(1)
   dy = delta(2)
@@ -129,7 +129,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   if (do_rotation .eq. 1) then
      
-     call fill_rotation_field(rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+     call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq, &
+                              hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
                               q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                               lo,hi,delta)
 
@@ -141,7 +142,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-               rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+               rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq,hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
