@@ -111,7 +111,7 @@
       allocate(  pgdx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1))
       allocate(  pgdy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1))
 
-      allocate(   rot(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2))
+      allocate(   rot(lo(1)-ngq:hi(1)+ngq,lo(2)-ngq:hi(2)+ngq,2))
 
       dx = delta(1)
       dy = delta(2)
@@ -129,7 +129,7 @@
 
       if (do_rotation .eq. 1) then
 
-         call fill_rotation_field(rot,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1,&
+         call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,hi(1)+ngq,hi(2)+ngq,&
                                   q,q_l1,q_l2,q_h1,q_h2, &
                                   lo, hi, delta)
 
@@ -141,7 +141,7 @@
       call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                    srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                   rot, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
+                   rot, lo(1)-ngq,lo(2)-ngq,hi(1)+ngq,hi(2)+ngq, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &

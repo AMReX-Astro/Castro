@@ -42,7 +42,7 @@ contains
   subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
                                  q,q_l1,q_l2,q_h1,q_h2,lo,hi,dx)
 
-    use meth_params_module, only: QVAR, QU, QV, QW
+    use meth_params_module, only: QVAR, QU, QV, QW, NHYP
     use prob_params_module, only: problo, center
     use bl_constants_module
 
@@ -61,11 +61,14 @@ contains
     double precision :: v(3),omega(3)
     double precision :: omegadotr,omegacrossr(3),omegacrossomegacrossr(3),omegacrossv(3)
 
+    integer, parameter :: ngq = NHYP
+
     omega = get_omega()
 
-    do j = lo(2)-1, hi(2)+1
+    do j = lo(2)-ngq, hi(2)+ngq
        y = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
-       do i = lo(1)-1, hi(1)+1
+
+       do i = lo(1)-ngq, hi(1)+ngq
           x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
           r = (/ x, y, ZERO /)
