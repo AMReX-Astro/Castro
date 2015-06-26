@@ -1146,9 +1146,9 @@ void Radiation::MGFLD_compute_rosseland_scattering(MultiFab& kappa_r, MultiFab& 
 	if (use_opacity_table_module) {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
 		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		 BL_TO_FORTRAN(kappa_r[mfi]), 
-		 BL_TO_FORTRAN(kappa_s[mfi]), 
-		 BL_TO_FORTRAN(state[mfi]));
+		 BL_TO_FORTRAN_3D(kappa_r[mfi]), 
+		 BL_TO_FORTRAN_3D(kappa_s[mfi]), 
+		 BL_TO_FORTRAN_3D(state[mfi]));
 	}
 	else {
 	    // a hack
