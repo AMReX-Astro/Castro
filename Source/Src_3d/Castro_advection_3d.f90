@@ -186,10 +186,6 @@ contains
     allocate ( ugdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate (gegdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     
-    allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    
     allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
     allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
 
@@ -237,21 +233,27 @@ contains
     allocate ( fzx(ilo1:ihi1,ilo2-1:ihi2+1,2,NVAR))
     allocate ( fzy(ilo1-1:ihi1+1,ilo2:ihi2,2,NVAR))
 
-    ! x-index, y-index, z-index, dim, characteristics, variables
-    allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
-    allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
-    
-    ! for gravity (last index is x,y,z component)
-    allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-    allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-
-    ! for rotation (last index is x,y,z component)
-    allocate ( Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-    allocate ( Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-
-    ! for gamc -- needed for the reference state in eigenvectors
-    allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
-    allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+    if (ppm_type .gt. 0) then
+       ! x-index, y-index, z-index, dim, characteristics, variables
+       allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+       allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+       
+       ! for gravity (last index is x,y,z component)
+       allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       
+       ! for rotation (last index is x,y,z component)
+       allocate ( Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       allocate ( Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       
+       ! for gamc -- needed for the reference state in eigenvectors
+       allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+       allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+    else
+       allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+       allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+       allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    end if
 
     ! for the hybrid Riemann solver
     allocate(shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1,ilo3-1:ihi3+1))
@@ -652,7 +654,6 @@ contains
     deallocate(pgdnvtmpz1,ugdnvtmpz1,gegdnvtmpz1)
     deallocate(pgdnvtmpz2,ugdnvtmpz2,gegdnvtmpz2)
     deallocate(pgdnvzf,ugdnvzf,gegdnvzf)
-    deallocate(dqx,dqy,dqz)
     deallocate(qxm,qxp)
     deallocate(qmxy,qpxy)
     deallocate(qmxz,qpxz)
@@ -667,9 +668,14 @@ contains
     deallocate(fxy,fxz)
     deallocate(fyx,fyz)
     deallocate(fzx,fzy)
-    deallocate(Ip,Im)
-    deallocate(Ip_g,Im_g)
-    deallocate(Ip_gc,Im_gc)
+    if (ppm_type .gt. 0) then
+       deallocate(Ip,Im)
+       deallocate(Ip_g,Im_g)
+       deallocate(Ip_r,Im_r)
+       deallocate(Ip_gc,Im_gc)
+    else
+       deallocate(dqx,dqy,dqz)
+    end if
       
   end subroutine umeth3d
 
