@@ -86,15 +86,19 @@ contains
              
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
              
-             rr = qyp(i,j,kc,QRHO)
-             rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-             compu = rr*qyp(i,j,kc,nq) - compn
-             qypo(i,j,kc,nq) = compu/rrnew
+             if (j.ge.jlo+1) then
+                rr = qyp(i,j,kc,QRHO)
+                rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+                compu = rr*qyp(i,j,kc,nq) - compn
+                qypo(i,j,kc,nq) = compu/rrnew
+             end if
              
-             rr = qym(i,j+1,kc,QRHO)
-             rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-             compu = rr*qym(i,j+1,kc,nq) - compn
-             qymo(i,j+1,kc,nq) = compu/rrnew
+             if (j.le.jhi-1) then
+                rr = qym(i,j+1,kc,QRHO)
+                rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+                compu = rr*qym(i,j+1,kc,nq) - compn
+                qymo(i,j+1,kc,nq) = compu/rrnew
+             end if
              
           enddo
        enddo
@@ -114,54 +118,6 @@ contains
           ugm = ugdnvx(i,j,kc)
           gegp = gegdnvx(i+1,j,kc)
           gegm = gegdnvx(i,j,kc)
-          
-          ! Convert to conservation form
-          rrry = qyp(i,j,kc,QRHO)
-          rury = rrry*qyp(i,j,kc,QU)
-          rvry = rrry*qyp(i,j,kc,QV)
-          rwry = rrry*qyp(i,j,kc,QW)
-          ekenry = HALF*rrry* &
-               (qyp(i,j,kc,QU)**2 + qyp(i,j,kc,QV)**2 + qyp(i,j,kc,QW)**2)
-          rery = qyp(i,j,kc,QREINT) + ekenry
-          
-          rrly = qym(i,j+1,kc,QRHO)
-          ruly = rrly*qym(i,j+1,kc,QU)
-          rvly = rrly*qym(i,j+1,kc,QV)
-          rwly = rrly*qym(i,j+1,kc,QW)
-          ekenly = HALF*rrly* &
-               (qym(i,j+1,kc,QU)**2 + qym(i,j+1,kc,QV)**2 + qym(i,j+1,kc,QW)**2)
-          rely = qym(i,j+1,kc,QREINT) + ekenly
-          
-          ! Add transverse predictor
-          rrnewry = rrry - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-          runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))          
-          rvnewry = rvry - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
-          rwnewry = rwry - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
-          renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
-          
-          rrnewly = rrly - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-          runewly = ruly - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
-          rvnewly = rvly - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
-          rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
-          renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
-
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewry .lt. ZERO) then
-                rrnewry = rrry
-                runewry = rury
-                rvnewry = rvry
-                rwnewry = rwry
-                renewry = rery
-             endif
-             if (rrnewly .lt. ZERO) then
-                rrnewly = rrly 
-                runewly = ruly 
-                rvnewly = rvly 
-                rwnewly = rwly 
-                renewly = rely 
-             endif
-          endif
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -173,13 +129,41 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
-
+                    
           !----------------------------------------------------------------
           ! qypo state
           !----------------------------------------------------------------
                     
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
+
+             ! Convert to conservation form
+             rrry = qyp(i,j,kc,QRHO)
+             rury = rrry*qyp(i,j,kc,QU)
+             rvry = rrry*qyp(i,j,kc,QV)
+             rwry = rrry*qyp(i,j,kc,QW)
+             ekenry = HALF*rrry* &
+                  (qyp(i,j,kc,QU)**2 + qyp(i,j,kc,QV)**2 + qyp(i,j,kc,QW)**2)
+             rery = qyp(i,j,kc,QREINT) + ekenry
+             
+             ! Add transverse predictor
+             rrnewry = rrry - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+             runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))          
+             rvnewry = rvry - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
+             rwnewry = rwry - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
+             renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
+             
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewry .lt. ZERO) then
+                   rrnewry = rrry
+                   runewry = rury
+                   rvnewry = rvry
+                   rwnewry = rwry
+                   renewry = rery
+                endif
+             endif
+
              qypo(i,j,kc,QRHO) = rrnewry
              qypo(i,j,kc,QU) = runewry/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QV) = rvnewry/qypo(i,j,kc,QRHO)
@@ -251,6 +235,34 @@ contains
 
           ! Convert back to primitive form
           if (j.le.jhi-1) then
+
+             ! Convert to conservation form
+             rrly = qym(i,j+1,kc,QRHO)
+             ruly = rrly*qym(i,j+1,kc,QU)
+             rvly = rrly*qym(i,j+1,kc,QV)
+             rwly = rrly*qym(i,j+1,kc,QW)
+             ekenly = HALF*rrly* &
+                  (qym(i,j+1,kc,QU)**2 + qym(i,j+1,kc,QV)**2 + qym(i,j+1,kc,QW)**2)
+             rely = qym(i,j+1,kc,QREINT) + ekenly
+             
+             ! Add transverse predictor
+             rrnewly = rrly - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+             runewly = ruly - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
+             rvnewly = rvly - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
+             rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
+             renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
+             
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewly .lt. ZERO) then
+                   rrnewly = rrly 
+                   runewly = ruly 
+                   rvnewly = rvly 
+                   rwnewly = rwly 
+                   renewly = rely 
+                endif
+             endif
+
              qymo(i,j+1,kc,QRHO) = rrnewly
              qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QV) = rvnewly/qymo(i,j+1,kc,QRHO)
