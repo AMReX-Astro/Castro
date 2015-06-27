@@ -347,14 +347,12 @@ contains
                       flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-          endif
-          
-          ! temperature-based PPM
-          if (ppm_temp_fix == 1) then
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
+          else
+             ! temperature-based PPM
+             do iwave = 1, 3
+                do idim = 1, 3
+                   do j = ilo2-1, ihi2+1
+                      do i = ilo1-1, ihi1+1
                          eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
                          eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
                          eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
