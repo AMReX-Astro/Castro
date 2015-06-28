@@ -2378,7 +2378,7 @@ contains
                 rrl = qm(i,j+1,km,QRHO)
                 compl = rrl*qm(i,j+1,km,nq)
 
-                rrnewr = rrl + drr
+                rrnewl = rrl + drr
                 compnl = compl + dcompn
 
                 qmo(i,j+1,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
