@@ -443,6 +443,17 @@ contains
           ugm = ugdnvx(i,j,kc)
           gegp = gegdnvx(i+1,j,kc)
           gegm = gegdnvx(i,j,kc)
+
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
+
+          dup = pgp*ugp - pgm*ugm
+          pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
+          du = ugp-ugm
+          dge = gegp-gegm
           
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -466,19 +477,7 @@ contains
              rvnewrz = rvrz 
              rwnewrz = rwrz 
              renewrz = rerz 
-          endif
-
-          ! we need to augment our conserved system with either a p
-          ! equation or gammae (if we have ppm_predict_gammae = 1) to
-          ! be able to deal with the general EOS
-
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          uav = HALF*(ugp+ugm)
-          geav = HALF*(gegp+gegm)
-          du = ugp-ugm
-          dge = gegp-gegm
-          
+          endif          
                  
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
@@ -557,7 +556,18 @@ contains
           gegp = gegdnvx(i+1,j,km)
           gegm = gegdnvx(i,j,km)
           
+          ! we need to augment our conserved system with either a p
+          ! equation or gammae (if we have ppm_predict_gammae = 1) to
+          ! be able to deal with the general EOS
 
+          dup = pgp*ugp - pgm*ugm
+          pav = HALF*(pgp+pgm)
+          uav = HALF*(ugp+ugm)
+          geav = HALF*(gegp+gegm)
+          du = ugp-ugm         
+          dge = gegp-gegm
+
+          ! Convert to conservation form
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
@@ -580,17 +590,6 @@ contains
              rwnewlz = rwlz
              renewlz = relz
           endif
-
-          ! we need to augment our conserved system with either a p
-          ! equation or gammae (if we have ppm_predict_gammae = 1) to
-          ! be able to deal with the general EOS
-
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          uav = HALF*(ugp+ugm)
-          geav = HALF*(gegp+gegm)
-          du = ugp-ugm         
-          dge = gegp-gegm
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
