@@ -1995,6 +1995,42 @@ contains
           ugymm = ugdnvy(i,j,km)
           gegypm = gegdnvy(i,j+1,km)
           gegymm = gegdnvy(i,j,km)
+
+          duxp = pgxp*ugxp - pgxm*ugxm
+          pxav = HALF*(pgxp+pgxm)
+          uxav = HALF*(ugxp+ugxm)
+          gexav = HALF*(gegxp+gegxm)
+          dux = ugxp-ugxm
+          dgex = gegxp-gegxm
+          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
+          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+
+          duxpm = pgxpm*ugxpm - pgxmm*ugxmm
+          pxavm = HALF*(pgxpm+pgxmm)
+          uxavm = HALF*(ugxpm+ugxmm)
+          gexavm = HALF*(gegxpm+gegxmm)
+          duxm = ugxpm-ugxmm
+          dgexm = gegxpm-gegxmm
+          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
+          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
+          
+          duyp = pgyp*ugyp - pgym*ugym
+          pyav = HALF*(pgyp+pgym)
+          uyav = HALF*(ugyp+ugym)
+          geyav = HALF*(gegyp+gegym)
+          duy = ugyp-ugym
+          dgey = gegyp-gegym
+          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
+          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
+
+          duypm = pgypm*ugypm - pgymm*ugymm
+          pyavm = HALF*(pgypm+pgymm)
+          uyavm = HALF*(ugypm+ugymm)
+          geyavm = HALF*(gegypm+gegymm)
+          duym = ugypm-ugymm
+          dgeym = gegypm-gegymm
+          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
+          geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
           
           ! Convert to conservation form
           rrr = qp(i,j,kc,QRHO)
@@ -2057,43 +2093,6 @@ contains
 
           rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
           rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-
-          duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = HALF*(pgxp+pgxm)
-          uxav = HALF*(ugxp+ugxm)
-          gexav = HALF*(gegxp+gegxm)
-          dux = ugxp-ugxm
-          dgex = gegxp-gegxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
-
-          duxpm = pgxpm*ugxpm - pgxmm*ugxmm
-          pxavm = HALF*(pgxpm+pgxmm)
-          uxavm = HALF*(ugxpm+ugxmm)
-          gexavm = HALF*(gegxpm+gegxmm)
-          duxm = ugxpm-ugxmm
-          dgexm = gegxpm-gegxmm
-          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
-          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
-          
-          duyp = pgyp*ugyp - pgym*ugym
-          pyav = HALF*(pgyp+pgym)
-          uyav = HALF*(ugyp+ugym)
-          geyav = HALF*(gegyp+gegym)
-          duy = ugyp-ugym
-          dgey = gegyp-gegym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
-
-          duypm = pgypm*ugypm - pgymm*ugymm
-          pyavm = HALF*(pgypm+pgymm)
-          uyavm = HALF*(ugypm+ugymm)
-          geyavm = HALF*(gegypm+gegymm)
-          duym = ugypm-ugymm
-          dgeym = gegypm-gegymm
-          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
-          geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
-
 
           !-------------------------------------------------------------------
           ! qzpo state
