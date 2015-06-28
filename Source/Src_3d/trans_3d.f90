@@ -2342,7 +2342,7 @@ contains
     double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
     double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uxav, gexav, dgex, uzav, gezav, dgez
-    double precision compr, compl, compnr, compnl
+    double precision compr, compl, compnr, compnl, drr, dcompn
     
     integer ipassive
 
@@ -2359,24 +2359,30 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              
-             rrr = qp(i,j,km,QRHO)
-             rrl = qm(i,j+1,km,QRHO)
-             
-             compr = rrr*qp(i,j,km,nq)
-             compl = rrl*qm(i,j+1,km,nq)
-             
-             rrnewr = rrr - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
-                          - cdtdz*(fzx(i  ,j,kc,URHO) - fzx(i,j,km,URHO))
-             rrnewl = rrl - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
-                          - cdtdz*(fzx(i  ,j,kc,URHO) - fzx(i,j,km,URHO))
+             drr    = - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
+                      - cdtdz*(fzx(i  ,j,kc,URHO) - fzx(i,j,km,URHO))
+             dcompn = - cdtdx*(fxz(i+1,j,km,n   ) - fxz(i,j,km,n)) &
+                      - cdtdz*(fzx(i  ,j,kc,n   ) - fzx(i,j,km,n))
 
-             compnr = compr - cdtdx*(fxz(i+1,j,km,n) - fxz(i,j,km,n)) &
-                            - cdtdz*(fzx(i  ,j,kc,n) - fzx(i,j,km,n))
-             compnl = compl - cdtdx*(fxz(i+1,j,km,n) - fxz(i,j,km,n)) &
-                            - cdtdz*(fzx(i  ,j,kc,n) - fzx(i,j,km,n))
-             
-             qpo(i,j  ,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
-             qmo(i,j+1,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+             if (j.ge.jlo+1) then
+                rrr = qp(i,j,km,QRHO)
+                compr = rrr*qp(i,j,km,nq)
+
+                rrnewr = rrr + drr
+                compnr = compr + dcompn
+
+                qpo(i,j  ,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+             end if
+
+             if (j.le.jhi-1) then
+                rrl = qm(i,j+1,km,QRHO)
+                compl = rrl*qm(i,j+1,km,nq)
+
+                rrnewr = rrl + drr
+                compnl = compl + dcompn
+
+                qmo(i,j+1,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+             end if
 
           enddo
        enddo
@@ -2403,65 +2409,6 @@ contains
           gegzp = gegdnvz(i,j,kc)
           gegzm = gegdnvz(i,j,km)
 
-          ! Convert to conservation form
-          rrr = qp(i,j,km,QRHO)
-          rur = rrr*qp(i,j,km,QU)
-          rvr = rrr*qp(i,j,km,QV)
-          rwr = rrr*qp(i,j,km,QW)
-          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
-          rer = qp(i,j,km,QREINT) + ekenr
-          
-          rrl = qm(i,j+1,km,QRHO)
-          rul = rrl*qm(i,j+1,km,QU)
-          rvl = rrl*qm(i,j+1,km,QV)
-          rwl = rrl*qm(i,j+1,km,QW)
-          ekenl = HALF*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
-          rel = qm(i,j+1,km,QREINT) + ekenl
-          
-          ! Add transverse predictor
-          rrnewr = rrr - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
-                       - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
-          runewr = rur - cdtdx*(fxz(i+1,j,km,UMX) - fxz(i,j,km,UMX)) &
-                       - cdtdz*(fzx(i,j,kc,UMX) - fzx(i,j,km,UMX))
-          rvnewr = rvr - cdtdx*(fxz(i+1,j,km,UMY) - fxz(i,j,km,UMY)) &
-                       - cdtdz*(fzx(i,j,kc,UMY) - fzx(i,j,km,UMY))
-          rwnewr = rwr - cdtdx*(fxz(i+1,j,km,UMZ) - fxz(i,j,km,UMZ)) &
-                       - cdtdz*(fzx(i,j,kc,UMZ) - fzx(i,j,km,UMZ))
-          renewr = rer - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
-                       - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
-
-          rrnewl = rrl - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
-                       - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
-          runewl = rul - cdtdx*(fxz(i+1,j,km,UMX) - fxz(i,j,km,UMX)) &
-                       - cdtdz*(fzx(i,j,kc,UMX) - fzx(i,j,km,UMX))
-          rvnewl = rvl - cdtdx*(fxz(i+1,j,km,UMY) - fxz(i,j,km,UMY)) &
-                       - cdtdz*(fzx(i,j,kc,UMY) - fzx(i,j,km,UMY))
-          rwnewl = rwl - cdtdx*(fxz(i+1,j,km,UMZ) - fxz(i,j,km,UMZ)) &
-                       - cdtdz*(fzx(i,j,kc,UMZ) - fzx(i,j,km,UMZ))
-          renewl = rel - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
-                       - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
-
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewr .lt. ZERO) then
-                rrnewr = rrr 
-                runewr = rur
-                rvnewr = rvr 
-                rwnewr = rwr 
-                renewr = rer 
-             endif
-             if (rrnewl .lt. ZERO) then
-                rrnewl = rrl 
-                runewl = rul 
-                rvnewl = rvl 
-                rwnewl = rwl 
-                renewl = rel 
-             endif
-          endif
-
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-
           duxp = pgxp*ugxp - pgxm*ugxm
           pxav = HALF*(pgxp+pgxm)
           uxav = HALF*(ugxp+ugxm)
@@ -2480,19 +2427,50 @@ contains
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
           geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
 
-
           !-------------------------------------------------------------------
           ! qypo state
           !-------------------------------------------------------------------
 
           ! Convert back to primitive form
           if (j.ge.jlo+1) then
+             ! Convert to conservation form
+             rrr = qp(i,j,km,QRHO)
+             rur = rrr*qp(i,j,km,QU)
+             rvr = rrr*qp(i,j,km,QV)
+             rwr = rrr*qp(i,j,km,QW)
+             ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
+             rer = qp(i,j,km,QREINT) + ekenr
+             
+             ! Add transverse predictor
+             rrnewr = rrr - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
+                          - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
+             runewr = rur - cdtdx*(fxz(i+1,j,km,UMX) - fxz(i,j,km,UMX)) &
+                          - cdtdz*(fzx(i,j,kc,UMX) - fzx(i,j,km,UMX))
+             rvnewr = rvr - cdtdx*(fxz(i+1,j,km,UMY) - fxz(i,j,km,UMY)) &
+                          - cdtdz*(fzx(i,j,kc,UMY) - fzx(i,j,km,UMY))
+             rwnewr = rwr - cdtdx*(fxz(i+1,j,km,UMZ) - fxz(i,j,km,UMZ)) &
+                          - cdtdz*(fzx(i,j,kc,UMZ) - fzx(i,j,km,UMZ))
+             renewr = rer - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
+                          - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewr .lt. ZERO) then
+                   rrnewr = rrr 
+                   runewr = rur
+                   rvnewr = rvr 
+                   rwnewr = rwr 
+                   renewr = rer 
+                endif
+             end if
+
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
              qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
              qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -2562,12 +2540,44 @@ contains
           !-------------------------------------------------------------------          
 
           if (j.le.jhi-1) then
+             ! Convert to conservation form
+             rrl = qm(i,j+1,km,QRHO)
+             rul = rrl*qm(i,j+1,km,QU)
+             rvl = rrl*qm(i,j+1,km,QV)
+             rwl = rrl*qm(i,j+1,km,QW)
+             ekenl = HALF*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
+             rel = qm(i,j+1,km,QREINT) + ekenl
+             
+             ! Add transverse predictor
+             rrnewl = rrl - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
+                          - cdtdz*(fzx(i,j,kc,URHO) - fzx(i,j,km,URHO))
+             runewl = rul - cdtdx*(fxz(i+1,j,km,UMX) - fxz(i,j,km,UMX)) &
+                          - cdtdz*(fzx(i,j,kc,UMX) - fzx(i,j,km,UMX))
+             rvnewl = rvl - cdtdx*(fxz(i+1,j,km,UMY) - fxz(i,j,km,UMY)) &
+                          - cdtdz*(fzx(i,j,kc,UMY) - fzx(i,j,km,UMY))
+             rwnewl = rwl - cdtdx*(fxz(i+1,j,km,UMZ) - fxz(i,j,km,UMZ)) &
+                          - cdtdz*(fzx(i,j,kc,UMZ) - fzx(i,j,km,UMZ))
+             renewl = rel - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
+                          - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewl .lt. ZERO) then
+                   rrnewl = rrl 
+                   runewl = rul 
+                   rvnewl = rvl 
+                   rwnewl = rwl 
+                   renewl = rel 
+                endif
+             endif
+             
              qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
              qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
              qmo(i,j+1,km,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
              qmo(i,j+1,km,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -2636,12 +2646,15 @@ contains
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi 
+       do j = jlo+1, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
-             
+          end do
+       end do
+       do j = jlo, jhi-1 
+          do i = ilo, ihi 
              qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*grav(i,j,k3d,1)
              qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*grav(i,j,k3d,2)
              qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*grav(i,j,k3d,3)
@@ -2652,12 +2665,15 @@ contains
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi 
+       do j = jlo+1, jhi 
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
-             
+          end do
+       end do
+       do j = jlo, jhi-1 
+          do i = ilo, ihi              
              qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*rot(i,j,k3d,1)
              qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*rot(i,j,k3d,2)
              qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*rot(i,j,k3d,3)
@@ -2737,6 +2753,7 @@ contains
     double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uyav, geyav, dgey, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
+    double precision drr, dcompn
     
     integer ipassive
 
@@ -2753,25 +2770,30 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              
-             rrr = qp(i,j,km,QRHO)
-             rrl = qm(i+1,j,km,QRHO)
-             
-             compr = rrr*qp(i,j,km,nq)
-             compl = rrl*qm(i+1,j,km,nq)
-             
-             rrnewr = rrr - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
-                          - cdtdz*(fzy(i,j  ,kc,URHO) - fzy(i,j,km,URHO))
-             rrnewl = rrl - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
-                          - cdtdz*(fzy(i,j  ,kc,URHO) - fzy(i,j,km,URHO))
+             drr    = - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
+                      - cdtdz*(fzy(i,j  ,kc,URHO) - fzy(i,j,km,URHO))
+             dcompn = - cdtdy*(fyz(i,j+1,km,n   ) - fyz(i,j,km,n)) &
+                      - cdtdz*(fzy(i,j  ,kc,n   ) - fzy(i,j,km,n))
 
-             compnr = compr - cdtdy*(fyz(i,j+1,km,n) - fyz(i,j,km,n)) &
-                            - cdtdz*(fzy(i,j  ,kc,n) - fzy(i,j,km,n))
-             compnl = compl - cdtdy*(fyz(i,j+1,km,n) - fyz(i,j,km,n)) &
-                            - cdtdz*(fzy(i,j  ,kc,n) - fzy(i,j,km,n))
+             if (i.ge.ilo+1) then
+                rrr = qp(i,j,km,QRHO)
+                compr = rrr*qp(i,j,km,nq)
 
-             qpo(i  ,j,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
-             qmo(i+1,j,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
-             
+                rrnewr = rrr +drr
+                compnr = compr +dcompn
+
+                qpo(i  ,j,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+             end if
+
+             if (i.le.ihi-1) then
+                rrl = qm(i+1,j,km,QRHO)
+                compl = rrl*qm(i+1,j,km,nq)
+
+                rrnewl = rrl + drr
+                compnl = compl +dcompn
+
+                qmo(i+1,j,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+             end if
           enddo
        enddo
     enddo
@@ -2797,67 +2819,6 @@ contains
           ugzm = ugdnvz(i,j,km)
           gegzp = gegdnvz(i,j,kc)
           gegzm = gegdnvz(i,j,km)
-          
-          ! Convert to conservation form
-          rrr = qp(i,j,km,QRHO)
-          rur = rrr*qp(i,j,km,QU)
-          rvr = rrr*qp(i,j,km,QV)
-          rwr = rrr*qp(i,j,km,QW)
-          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
-               qp(i,j,km,QW)**2)
-          rer = qp(i,j,km,QREINT) + ekenr
-          
-          rrl = qm(i+1,j,km,QRHO)
-          rul = rrl*qm(i+1,j,km,QU)
-          rvl = rrl*qm(i+1,j,km,QV)
-          rwl = rrl*qm(i+1,j,km,QW)
-          ekenl = HALF*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
-               qm(i+1,j,km,QW)**2)
-          rel = qm(i+1,j,km,QREINT) + ekenl
-          
-          ! Add transverse predictor
-          rrnewr = rrr - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
-                       - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
-          runewr = rur - cdtdy*(fyz(i,j+1,km,UMX) - fyz(i,j,km,UMX)) &
-                       - cdtdz*(fzy(i,j,kc,UMX) - fzy(i,j,km,UMX))
-          rvnewr = rvr - cdtdy*(fyz(i,j+1,km,UMY) - fyz(i,j,km,UMY)) &
-                       - cdtdz*(fzy(i,j,kc,UMY) - fzy(i,j,km,UMY))
-          rwnewr = rwr - cdtdy*(fyz(i,j+1,km,UMZ) - fyz(i,j,km,UMZ)) &
-                       - cdtdz*(fzy(i,j,kc,UMZ) - fzy(i,j,km,UMZ))
-          renewr = rer - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
-                       - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
-
-          rrnewl = rrl - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
-                       - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
-          runewl = rul - cdtdy*(fyz(i,j+1,km,UMX) - fyz(i,j,km,UMX)) &
-                       - cdtdz*(fzy(i,j,kc,UMX) - fzy(i,j,km,UMX))
-          rvnewl = rvl - cdtdy*(fyz(i,j+1,km,UMY) - fyz(i,j,km,UMY)) &
-                       - cdtdz*(fzy(i,j,kc,UMY) - fzy(i,j,km,UMY))
-          rwnewl = rwl - cdtdy*(fyz(i,j+1,km,UMZ) - fyz(i,j,km,UMZ)) &
-                       - cdtdz*(fzy(i,j,kc,UMZ) - fzy(i,j,km,UMZ))
-          renewl = rel - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
-                       - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
-
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewr .lt. ZERO) then
-                rrnewr = rrr 
-                runewr = rur 
-                rvnewr = rvr 
-                rwnewr = rwr 
-                renewr = rer 
-             endif
-             if (rrnewl .lt. ZERO) then
-                rrnewl = rrl 
-                runewl = rul 
-                rvnewl = rvl 
-                rwnewl = rwl 
-                renewl = rel 
-             endif
-          endif
-
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
 
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
@@ -2876,7 +2837,7 @@ contains
           dgez = gegzp-gegzm
           pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
           geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
-
+          
 
           !-------------------------------------------------------------------
           ! qxpo state
@@ -2884,12 +2845,45 @@ contains
           
           ! Convert back to primitive form
           if (i.ge.ilo+1) then
+             ! Convert to conservation form
+             rrr = qp(i,j,km,QRHO)
+             rur = rrr*qp(i,j,km,QU)
+             rvr = rrr*qp(i,j,km,QV)
+             rwr = rrr*qp(i,j,km,QW)
+             ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
+                  qp(i,j,km,QW)**2)
+             rer = qp(i,j,km,QREINT) + ekenr
+             
+             ! Add transverse predictor
+             rrnewr = rrr - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
+                          - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
+             runewr = rur - cdtdy*(fyz(i,j+1,km,UMX) - fyz(i,j,km,UMX)) &
+                          - cdtdz*(fzy(i,j,kc,UMX) - fzy(i,j,km,UMX))
+             rvnewr = rvr - cdtdy*(fyz(i,j+1,km,UMY) - fyz(i,j,km,UMY)) &
+                          - cdtdz*(fzy(i,j,kc,UMY) - fzy(i,j,km,UMY))
+             rwnewr = rwr - cdtdy*(fyz(i,j+1,km,UMZ) - fyz(i,j,km,UMZ)) &
+                          - cdtdz*(fzy(i,j,kc,UMZ) - fzy(i,j,km,UMZ))
+             renewr = rer - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
+                          - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewr .lt. ZERO) then
+                   rrnewr = rrr 
+                   runewr = rur 
+                   rvnewr = rvr 
+                   rwnewr = rwr 
+                   renewr = rer 
+                endif
+             end if
+                
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
              qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
              qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -2957,12 +2951,45 @@ contains
           !-------------------------------------------------------------------
 
           if (i.le.ihi-1) then
+             ! Convert to conservation form
+             rrl = qm(i+1,j,km,QRHO)
+             rul = rrl*qm(i+1,j,km,QU)
+             rvl = rrl*qm(i+1,j,km,QV)
+             rwl = rrl*qm(i+1,j,km,QW)
+             ekenl = HALF*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
+                  qm(i+1,j,km,QW)**2)
+             rel = qm(i+1,j,km,QREINT) + ekenl
+             
+             ! Add transverse predictor
+             rrnewl = rrl - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
+                          - cdtdz*(fzy(i,j,kc,URHO) - fzy(i,j,km,URHO))
+             runewl = rul - cdtdy*(fyz(i,j+1,km,UMX) - fyz(i,j,km,UMX)) &
+                          - cdtdz*(fzy(i,j,kc,UMX) - fzy(i,j,km,UMX))
+             rvnewl = rvl - cdtdy*(fyz(i,j+1,km,UMY) - fyz(i,j,km,UMY)) &
+                          - cdtdz*(fzy(i,j,kc,UMY) - fzy(i,j,km,UMY))
+             rwnewl = rwl - cdtdy*(fyz(i,j+1,km,UMZ) - fyz(i,j,km,UMZ)) &
+                          - cdtdz*(fzy(i,j,kc,UMZ) - fzy(i,j,km,UMZ))
+             renewl = rel - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
+                          - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewl .lt. ZERO) then
+                   rrnewl = rrl 
+                   runewl = rul 
+                   rvnewl = rvl 
+                   rwnewl = rwl 
+                   renewl = rel 
+                endif
+             endif
+
              qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
              qmo(i+1,j,km,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
              qmo(i+1,j,km,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
              qmo(i+1,j,km,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -3032,11 +3059,12 @@ contains
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
-          do i = ilo, ihi 
+          do i = ilo+1, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
-             
+          end do
+          do i = ilo, ihi-1
              qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*grav(i,j,k3d,1)
              qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*grav(i,j,k3d,2)
              qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*grav(i,j,k3d,3)
@@ -3048,11 +3076,12 @@ contains
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
-          do i = ilo, ihi 
+          do i = ilo+1, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
-             
+          end do
+          do i = ilo, ihi-1             
              qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*rot(i,j,k3d,1)
              qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*rot(i,j,k3d,2)
              qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*rot(i,j,k3d,3)
