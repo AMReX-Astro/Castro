@@ -805,13 +805,7 @@ contains
 
              rho_K_contrib =  TWO3RD * rgdnv * qavg
 
-             if(idir.eq.1) then
-                uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
-             elseif(idir.eq.2) then
-                uflx(i,j,kflux,UMY) = uflx(i,j,kflux,UMY) + rho_K_contrib
-             elseif(idir.eq.3) then
-                uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,UMZ) + rho_K_contrib
-             endif
+             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
@@ -1132,13 +1126,7 @@ contains
 
              rho_K_contrib =  TWO3RD * rgdnv * qavg
 
-             if(idir.eq.1) then
-                uflx(i,j,kflux,UMX) = uflx(i,j,kflux,UMX) + rho_K_contrib
-             elseif(idir.eq.2) then
-                uflx(i,j,kflux,UMY) = uflx(i,j,kflux,UMY) + rho_K_contrib
-             elseif(idir.eq.3) then
-                uflx(i,j,kflux,UMZ) = uflx(i,j,kflux,UMZ) + rho_K_contrib
-             endif
+             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 
              uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + ugdnv(i,j,kc) * rho_K_contrib
           end if
