@@ -415,15 +415,9 @@ contains
 
     double precision :: us1d(ilo:ihi)
 
-    integer :: iu, iv1, iv2, im1, im2, im3, ijk(3)
-    logical :: special_bnd_lo, special_bnd_hi
-
-    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
-         .or.         physbc_lo(idir) .eq. SlipWall &
-         .or.         physbc_lo(idir) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
-         .or.         physbc_hi(idir) .eq. SlipWall &
-         .or.         physbc_hi(idir) .eq. NoSlipWall)
+    integer :: iu, iv1, iv2, im1, im2, im3
+    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
+    double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
     if (idir .eq. 1) then
        iu = QU
@@ -448,12 +442,44 @@ contains
        im3 = UMY
     end if
 
+    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
+         .or.         physbc_lo(idir) .eq. SlipWall &
+         .or.         physbc_lo(idir) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
+         .or.         physbc_hi(idir) .eq. SlipWall &
+         .or.         physbc_hi(idir) .eq. NoSlipWall)
+
+    if (idir .eq. 1) then
+       special_bnd_lo_x = special_bnd_lo
+       special_bnd_hi_x = special_bnd_hi
+    else
+       special_bnd_lo_x = .false.
+       special_bnd_hi_x = .false.
+    end if
+
+    bnd_fac_z = ONE
+    if (idir.eq.3) then
+       if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
+            k3d .eq. domhi(3)+1 .and. special_bnd_lo ) then
+          bnd_fac_z = ZERO
+       end if
+    end if
+
     tol = cg_tol
     iter_max = cg_maxiter
 
     allocate (pstar_hist(iter_max))
 
     do j = jlo, jhi
+
+       bnd_fac_y = ONE
+       if (idir .eq. 2) then
+          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
+               j .eq. domhi(2)+1 .and. special_bnd_lo ) then
+             bnd_fac_y = ZERO
+          end if
+       end if
+
        do i = ilo, ihi
 
           ! left state
@@ -765,13 +791,13 @@ contains
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          ijk(1) = i
-          ijk(2) = j
-          ijk(3) = k3d
-          if ( (ijk(idir).eq.domlo(idir)   .and. special_bnd_lo) .or. &
-               (ijk(idir).eq.domhi(idir)+1 .and. special_bnd_hi) ) then
-             ugdnv(i,j,kc) = ZERO
+          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
+               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
+             bnd_fac_x = ZERO
+          else
+             bnd_fac_x = ONE
           end if
+          ugdnv(i,j,kc) = ugdnv(i,j,kc) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
@@ -945,15 +971,9 @@ contains
 
     double precision :: us1d(ilo:ihi)
 
-    integer :: iu, iv1, iv2, im1, im2, im3, ijk(3)
-    logical :: special_bnd_lo, special_bnd_hi
-
-    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
-         .or.         physbc_lo(idir) .eq. SlipWall &
-         .or.         physbc_lo(idir) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
-         .or.         physbc_hi(idir) .eq. SlipWall &
-         .or.         physbc_hi(idir) .eq. NoSlipWall)
+    integer :: iu, iv1, iv2, im1, im2, im3
+    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
+    double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
     if (idir .eq. 1) then
        iu = QU
@@ -978,7 +998,39 @@ contains
        im3 = UMY
     end if
 
+    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
+         .or.         physbc_lo(idir) .eq. SlipWall &
+         .or.         physbc_lo(idir) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
+         .or.         physbc_hi(idir) .eq. SlipWall &
+         .or.         physbc_hi(idir) .eq. NoSlipWall)
+
+    if (idir .eq. 1) then
+       special_bnd_lo_x = special_bnd_lo
+       special_bnd_hi_x = special_bnd_hi
+    else
+       special_bnd_lo_x = .false.
+       special_bnd_hi_x = .false.
+    end if
+
+    bnd_fac_z = ONE
+    if (idir.eq.3) then
+       if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
+            k3d .eq. domhi(3)+1 .and. special_bnd_lo ) then
+          bnd_fac_z = ZERO
+       end if
+    end if
+
     do j = jlo, jhi
+
+       bnd_fac_y = ONE
+       if (idir .eq. 2) then
+          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
+               j .eq. domhi(2)+1 .and. special_bnd_lo ) then
+             bnd_fac_y = ZERO
+          end if
+       end if
+
        do i = ilo, ihi
 
           rl = max(ql(i,j,kc,QRHO),small_dens)
@@ -1090,13 +1142,13 @@ contains
           pgdnv(i,j,kc) = max(pgdnv(i,j,kc),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          ijk(1) = i
-          ijk(2) = j
-          ijk(3) = k3d
-          if ( (ijk(idir).eq.domlo(idir)   .and. special_bnd_lo) .or. &
-               (ijk(idir).eq.domhi(idir)+1 .and. special_bnd_hi) ) then
-             ugdnv(i,j,kc) = ZERO
+          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
+               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
+             bnd_fac_x = ZERO
+          else
+             bnd_fac_x = ONE
           end if
+          ugdnv(i,j,kc) = ugdnv(i,j,kc) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
