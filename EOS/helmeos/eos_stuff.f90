@@ -17,6 +17,11 @@ module eos_module
   private itemp, idens, iener, ienth, ientr, ipres 
   public eos_init, eos
 
+  interface eos
+     module procedure scalar_eos
+     module procedure vector_eos
+  end interface eos
+
 contains
 
   ! EOS initialization routine -- this is used by both MAESTRO and CASTRO
@@ -63,10 +68,55 @@ contains
 
 
 
+  subroutine scalar_eos(input, state, do_eos_diag, pt_index, state_len)
+
+    integer,           intent(in   ) :: input
+    type (eos_t),      intent(inout) :: state
+    logical, optional, intent(in   ) :: do_eos_diag
+    integer, optional, intent(in   ) :: pt_index(:)
+    integer, optional, intent(in   ) :: state_len
+
+    type (eos_t) :: vector_state(1)
+    integer :: vector_state_len
+
+    if (present(state_len)) then
+       if (state_len .ne. 1) then
+          call bl_error("Cannot use a scalar EOS type variable and set state_len /= 1.")
+       endif
+    endif
+
+    vector_state_len = 1
+
+    vector_state(1) = state
+
+    if (present(do_eos_diag) .and. present(pt_index)) then
+
+       call vector_eos(input, vector_state, do_eos_diag, pt_index, vector_state_len)
+
+    else if (present(do_eos_diag) .and. (.not. present(pt_index))) then
+
+       call vector_eos(input, vector_state, do_eos_diag, state_len=vector_state_len)
+
+    else if (present(pt_index) .and. (.not. present(do_eos_diag))) then
+
+       call vector_eos(input, vector_state, pt_index=pt_index,state_len=vector_state_len)
+
+    else
+
+       call vector_eos(input, vector_state, state_len=vector_state_len)
+
+    endif
+
+    state = vector_state(1)
+
+  end subroutine scalar_eos
+
+
   !---------------------------------------------------------------------------
   ! The main interface
   !---------------------------------------------------------------------------
-  subroutine eos(input, state, do_eos_diag, pt_index, state_len)
+
+  subroutine vector_eos(input, state, do_eos_diag, pt_index, state_len)
 
     ! A generic wrapper for the Helmholtz electron/positron degenerate EOS.  
 
@@ -83,7 +133,7 @@ contains
     integer :: j, N
 
     ! Local variables and arrays
-    
+
     double precision :: ymass(nspec), ysum, yzsum
     double precision :: e_want, p_want, s_want, h_want
 
@@ -200,7 +250,7 @@ contains
        call composition_derivatives(state(j), .false.)
     enddo
 
-  end subroutine eos
+  end subroutine vector_eos
 
 
 
