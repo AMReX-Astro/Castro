@@ -460,7 +460,7 @@ contains
     bnd_fac_z = ONE
     if (idir.eq.3) then
        if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
-            k3d .eq. domhi(3)+1 .and. special_bnd_lo ) then
+            k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
           bnd_fac_z = ZERO
        end if
     end if
@@ -475,7 +475,7 @@ contains
        bnd_fac_y = ONE
        if (idir .eq. 2) then
           if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-               j .eq. domhi(2)+1 .and. special_bnd_lo ) then
+               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
              bnd_fac_y = ZERO
           end if
        end if
@@ -1016,7 +1016,7 @@ contains
     bnd_fac_z = ONE
     if (idir.eq.3) then
        if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
-            k3d .eq. domhi(3)+1 .and. special_bnd_lo ) then
+            k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
           bnd_fac_z = ZERO
        end if
     end if
@@ -1026,7 +1026,7 @@ contains
        bnd_fac_y = ONE
        if (idir .eq. 2) then
           if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-               j .eq. domhi(2)+1 .and. special_bnd_lo ) then
+               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
              bnd_fac_y = ZERO
           end if
        end if
