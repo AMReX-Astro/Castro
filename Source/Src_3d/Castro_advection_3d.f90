@@ -1324,7 +1324,7 @@ contains
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
     
     initial_mass = ZERO
       final_mass = ZERO
@@ -1390,20 +1390,20 @@ contains
                       uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
                    end do
 
-                   eos_state(1) % rho = small_dens
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = uout(i,j,k,UFS:UFS+nspec-1) / uout(i,j,k,URHO)
+                   eos_state % rho = small_dens
+                   eos_state % T   = small_temp
+                   eos_state % xn  = uout(i,j,k,UFS:UFS+nspec-1) / uout(i,j,k,URHO)
 
                    call eos(eos_input_rt, eos_state)
 
-                   uout(i,j,k,URHO ) = eos_state(1) % rho
-                   uout(i,j,k,UTEMP) = eos_state(1) % T
+                   uout(i,j,k,URHO ) = eos_state % rho
+                   uout(i,j,k,UTEMP) = eos_state % T
 
                    uout(i,j,k,UMX  ) = ZERO
                    uout(i,j,k,UMY  ) = ZERO
                    uout(i,j,k,UMZ  ) = ZERO
 
-                   uout(i,j,k,UEINT) = eos_state(1) % rho * eos_state(1) % e
+                   uout(i,j,k,UEINT) = eos_state % rho * eos_state % e
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
 
                 endif

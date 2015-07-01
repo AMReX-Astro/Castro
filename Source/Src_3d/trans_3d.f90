@@ -71,7 +71,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -183,14 +183,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qypo(i,j,kc,QREINT) < ZERO) then
-                      eos_state(1) % rho = qypo(i,j,kc,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
+                      eos_state % rho = qypo(i,j,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state(1) % e
-                      qypo(i,j,kc,QPRES) = eos_state(1) % p
+                      qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
+                      qypo(i,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -200,15 +200,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qypo(i,j,kc,QRHO)
-                   eos_state(1) % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
+                   eos_state % rho = qypo(i,j,kc,QRHO)
+                   eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
                 
                    call eos(eos_input_re, eos_state)
                 
-                   pnewry = eos_state(1) % p
-                   qypo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewry = eos_state % p
+                   qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
@@ -282,14 +282,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qymo(i,j+1,kc,QREINT) < ZERO) then
-                      eos_state(1) % rho = qymo(i,j+1,kc,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
+                      eos_state % rho = qymo(i,j+1,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state(1) % e
-                      qymo(i,j+1,kc,QPRES) = eos_state(1) % p
+                      qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
+                      qymo(i,j+1,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -299,15 +299,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qymo(i,j+1,kc,QRHO)
-                   eos_state(1) % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+                   eos_state % rho = qymo(i,j+1,kc,QRHO)
+                   eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
   
-                   pnewly = eos_state(1) % p
-                   qymo(i,j+1,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewly = eos_state % p
+                   qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
                 else
                    pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
                 endif
@@ -393,7 +393,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -498,14 +498,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qzpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qzpo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qzpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                 
-                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state(1) % e
-                   qzpo(i,j,kc,QPRES) = eos_state(1) % p
+                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                   qzpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -515,15 +515,15 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qzpo(i,j,kc,QRHO)
-                eos_state(1) % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
 
                 call eos(eos_input_re, eos_state)
 
-                pnewrz = eos_state(1) % p
-                qzpo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                pnewrz = eos_state % p
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
                 ! add the transverse term to the p evolution eq here
                 pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
@@ -610,14 +610,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qzmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qzmo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qzmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
                 
                    call eos(eos_input_rt, eos_state)
                    
-                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state(1) % e
-                   qzmo(i,j,kc,QPRES) = eos_state(1) % p
+                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   qzmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -627,15 +627,15 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qzmo(i,j,kc,QRHO)
-                eos_state(1) % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
 
-                pnewlz = eos_state(1) % p
-                qzmo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                pnewlz = eos_state % p
+                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
                 pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
              endif
@@ -720,7 +720,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
@@ -830,14 +830,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qxpo(i,j,kc,QREINT) < ZERO) then
-                      eos_state(1) % rho = qxpo(i,j,kc,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
+                      eos_state % rho = qxpo(i,j,kc,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state(1) % e
-                      qxpo(i,j,kc,QPRES) = eos_state(1) % p
+                      qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
+                      qxpo(i,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -847,15 +847,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.             
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qxpo(i,j,kc,QRHO)
-                   eos_state(1) % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
+                   eos_state % rho = qxpo(i,j,kc,QRHO)
+                   eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
 
-                   pnewrx = eos_state(1) % p
-                   qxpo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewrx = eos_state % p
+                   qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
@@ -928,14 +928,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qxmo(i+1,j,kc,QREINT) < ZERO) then
-                      eos_state(1) % rho = qxmo(i+1,j,kc,QRHO) 
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
+                      eos_state % rho = qxmo(i+1,j,kc,QRHO) 
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
                    
                       call eos(eos_input_rt, eos_state)
                       
-                      qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state(1) % e
-                      qxmo(i+1,j,kc,QPRES) = eos_state(1) % p
+                      qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
+                      qxmo(i+1,j,kc,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -945,15 +945,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.             
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qxmo(i+1,j,kc,QRHO)
-                   eos_state(1) % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+                   eos_state % rho = qxmo(i+1,j,kc,QRHO)
+                   eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
                    
                    call eos(eos_input_re, eos_state)
 
-                   pnewlx = eos_state(1) % p
-                   qxmo(i+1,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewlx = eos_state % p
+                   qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
@@ -1041,7 +1041,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1147,14 +1147,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qzpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qzpo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qzpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                    
-                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state(1) % e
-                   qzpo(i,j,kc,QPRES) = eos_state(1) % p
+                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                   qzpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -1164,15 +1164,15 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qzpo(i,j,kc,QRHO)
-                eos_state(1) % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
 
                 call eos(eos_input_re, eos_state)
                 
-                pnewrz = eos_state(1) % p
-                qzpo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                pnewrz = eos_state % p
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
                 ! add the transverse term to the p evolution eq here
                 pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
@@ -1260,14 +1260,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qzmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qzmo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qzmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
 
                    call eos(eos_input_rt, eos_state)
                    
-                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state(1) % e
-                   qzmo(i,j,kc,QPRES) = eos_state(1) % p
+                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                   qzmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -1277,15 +1277,15 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qzmo(i,j,kc,QRHO)
-                eos_state(1) % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
                 
-                pnewlz = eos_state(1) % p
-                qzmo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                pnewlz = eos_state % p
+                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
                 ! add the transverse term to the p evolution eq here
                 pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
@@ -1376,7 +1376,7 @@ contains
 
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
@@ -1497,14 +1497,14 @@ contains
 
                    ! if we are still negative, then we need to reset
                    if (qxpo(i,j,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qxpo(i,j,km,QRHO) 
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
+                      eos_state % rho = qxpo(i,j,km,QRHO) 
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
                      
                       call eos(eos_input_rt, eos_state)
                       
-                      qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state(1) % e
-                      qxpo(i,j,km,QPRES) = eos_state(1) % p
+                      qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
+                      qxpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1514,15 +1514,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qxpo(i,j,km,QRHO)
-                   eos_state(1) % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qxpo(i,j,km,QRHO)
+                   eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
 
-                   pnewrx = eos_state(1) % p
-                   qxpo(i,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewrx = eos_state % p
+                   qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
@@ -1595,14 +1595,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qypo(i,j,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qypo(i,j,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qypo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state(1) % e
-                      qypo(i,j,km,QPRES) = eos_state(1) % p
+                      qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
+                      qypo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1612,15 +1612,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qypo(i,j,km,QRHO)
-                   eos_state(1) % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qypo(i,j,km,QRHO)
+                   eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
                    
-                   pnewry = eos_state(1) % p
-                   qypo(i,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewry = eos_state % p
+                   qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
@@ -1694,14 +1694,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qxmo(i+1,j,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qxmo(i+1,j,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qxmo(i+1,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state(1) % e 
-                      qxmo(i+1,j,km,QPRES) = eos_state(1) % p
+                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e 
+                      qxmo(i+1,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -1711,15 +1711,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qxmo(i+1,j,km,QRHO)
-                   eos_state(1) % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qxmo(i+1,j,km,QRHO)
+                   eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
                    
                    call eos(eos_input_re, eos_state)
 
-                   pnewlx = eos_state(1) % p
-                   qxmo(i+1,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewlx = eos_state % p
+                   qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
@@ -1793,14 +1793,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qymo(i,j+1,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qymo(i,j+1,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qymo(i,j+1,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state(1) % e
-                      qymo(i,j+1,km,QPRES) =  eos_state(1) % p
+                      qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
+                      qymo(i,j+1,km,QPRES) =  eos_state % p
                    endif
                 endif
              endif
@@ -1810,15 +1810,15 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.             
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qymo(i,j+1,km,QRHO)
-                   eos_state(1) % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qymo(i,j+1,km,QRHO)
+                   eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
                    
                    call eos(eos_input_re, eos_state)
                 
-                   pnewly = eos_state(1) % p
-                   qymo(i,j+1,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   pnewly = eos_state % p
+                   qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
@@ -1921,7 +1921,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
     
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
@@ -2116,14 +2116,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qpo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qpo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                    
-                   qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state(1) % e
-                   qpo(i,j,kc,QPRES) = eos_state(1) % p
+                   qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
+                   qpo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -2133,16 +2133,16 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qpo(i,j,kc,QRHO)
-                eos_state(1) % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qpo(i,j,kc,QRHO)
+                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
 
-                pnewr = eos_state(1) % p
+                pnewr = eos_state % p
                 qpo(i,j,kc,QPRES ) = pnewr
-                qpo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho    
+                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
              else
                 ! add the transverse term to the p evolution eq here
                 pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
@@ -2187,14 +2187,14 @@ contains
                 
                 ! if we are still negative, then we need to reset
                 if (qmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state(1) % rho = qmo(i,j,kc,QRHO)
-                   eos_state(1) % T = small_temp
-                   eos_state(1) % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % rho = qmo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                    
-                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state(1) % e
-                   qmo(i,j,kc,QPRES) = eos_state(1) % p
+                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
+                   qmo(i,j,kc,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -2204,16 +2204,16 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state(1) % rho = qmo(i,j,kc,QRHO)
-                eos_state(1) % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
-                eos_state(1) % T   = small_temp
-                eos_state(1) % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % rho = qmo(i,j,kc,QRHO)
+                eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
 
-                pnewl = eos_state(1) % p
+                pnewl = eos_state % p
                 qmo(i,j,kc,QPRES ) = pnewl
-                qmo(i,j,kc,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              else
                 ! add the transverse term to the p evolution eq here
                 pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
@@ -2344,7 +2344,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
@@ -2483,14 +2483,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qpo(i,j,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qpo(i,j,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qpo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state(1) % e
-                      qpo(i,j,km,QPRES) = eos_state(1) % p
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                      qpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2501,16 +2501,16 @@ contains
 
                 if (transverse_use_eos .eq. 1) then
 
-                   eos_state(1) % rho = qpo(i,j,km,QRHO)
-                   eos_state(1) % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
 
-                   pnewr = eos_state(1) % p
+                   pnewr = eos_state % p
                    qpo(i,j,km,QPRES ) = pnewr
-                   qpo(i,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pxnew - pznew
@@ -2590,14 +2590,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qmo(i,j+1,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qmo(i,j+1,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qmo(i,j+1,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
 
-                      qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state(1) % e
-                      qmo(i,j+1,km,QPRES) = eos_state(1) % p
+                      qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
+                      qmo(i,j+1,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2608,16 +2608,16 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qmo(i,j+1,km,QRHO)
-                   eos_state(1) % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qmo(i,j+1,km,QRHO)
+                   eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
                    
                    call eos(eos_input_re, eos_state)
 
-                   pnewl = eos_state(1) % p
+                   pnewl = eos_state % p
                    qmo(i,j+1,km,QPRES ) = pnewl
-                   qmo(i,j+1,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
                    qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
@@ -2755,7 +2755,7 @@ contains
     
     integer ipassive
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -2896,14 +2896,14 @@ contains
                    
                    ! if we are still negative, then we need to reset
                    if (qpo(i,j,km,QREINT) .le. ZERO) then
-                      eos_state(1) % rho = qpo(i,j,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qpo(i,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
                       
-                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state(1) % e
-                      qpo(i,j,km,QPRES) = eos_state(1) % p
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                      qpo(i,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -2913,16 +2913,16 @@ contains
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qpo(i,j,km,QRHO)
-                   eos_state(1) % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
 
                    call eos(eos_input_re, eos_state)
 
-                   pnewr = eos_state(1) % p
+                   pnewr = eos_state % p
                    qpo(i,j,km,QPRES ) = pnewr
-                   qpo(i,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pynew - pznew
@@ -3002,14 +3002,14 @@ contains
 
                    ! if we are still negative, then we need to reset
                    if (qmo(i+1,j,km,QREINT) < ZERO) then
-                      eos_state(1) % rho = qmo(i+1,j,km,QRHO)
-                      eos_state(1) % T = small_temp
-                      eos_state(1) % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
+                      eos_state % rho = qmo(i+1,j,km,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
                       
                       call eos(eos_input_rt, eos_state)
 
-                      qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state(1) % e
-                      qmo(i+1,j,km,QPRES) = eos_state(1) % p
+                      qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
+                      qmo(i+1,j,km,QPRES) = eos_state % p
                    endif
                 endif
              endif
@@ -3019,16 +3019,16 @@ contains
                 ! Optionally, use the EOS To calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-                   eos_state(1) % rho = qmo(i+1,j,km,QRHO)
-                   eos_state(1) % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
-                   eos_state(1) % T   = small_temp
-                   eos_state(1) % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+                   eos_state % rho = qmo(i+1,j,km,QRHO)
+                   eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
                 
                    call eos(eos_input_re, eos_state)
                    
-                   pnewl = eos_state(1) % p
+                   pnewl = eos_state % p
                    qmo(i+1,j,km,QPRES ) = pnewl
-                   qmo(i+1,j,km,QREINT) = eos_state(1) % e * eos_state(1) % rho
+                   qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
                    pnewl = qm(i+1,j,km,QPRES) - pynew - pznew

@@ -404,7 +404,7 @@ contains
 
     double precision, allocatable :: pstar_hist(:)
 
-    type (eos_t) :: eos_state(1)
+    type (eos_t) :: eos_state
 
     double precision :: us1d(ilo:ihi)
 
@@ -467,16 +467,16 @@ contains
           if (rel <= ZERO .or. pl < small_pres) then
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
 
-             eos_state(1) % T   = small_temp
-             eos_state(1) % rho = rl
-             eos_state(1) % xn  = ql(i,j,kc,QFS:QFS-1+nspec)
-             eos_state(1) % aux = ql(i,j,kc,QFX:QFX-1+naux)
+             eos_state % T   = small_temp
+             eos_state % rho = rl
+             eos_state % xn  = ql(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % aux = ql(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
-             rel = rl*eos_state(1) % e
-             pl  = eos_state(1) % p
-             gcl = eos_state(1) % gam1
+             rel = rl*eos_state % e
+             pl  = eos_state % p
+             gcl = eos_state % gam1
           endif
 
           ! right state
@@ -494,16 +494,16 @@ contains
           if (rer <= ZERO .or. pr < small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
 
-             eos_state(1) % T   = small_temp
-             eos_state(1) % rho = rr
-             eos_state(1) % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
-             eos_state(1) % aux = qr(i,j,kc,QFX:QFX-1+naux)
+             eos_state % T   = small_temp
+             eos_state % rho = rr
+             eos_state % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % aux = qr(i,j,kc,QFX:QFX-1+naux)
 
              call eos(eos_input_rt, eos_state, .false.)
 
-             rer = rr*eos_state(1) % e
-             pr  = eos_state(1) % p
-             gcr = eos_state(1) % gam1
+             rer = rr*eos_state % e
+             pr  = eos_state % p
+             gcr = eos_state % gam1
           endif
 
 
