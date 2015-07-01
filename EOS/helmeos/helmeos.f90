@@ -330,56 +330,22 @@ contains
 
       converged = .false.
 
-!..start of vectorization loop, normal execution starts here
-
-      ! Note that for OpenACC, we do not seem to need to have a present clause
+      ! Note that for OpenACC, we do not need to have a present clause
       ! for the various constants and arrays -- the enter data constructs in helm_init
-      ! is enough for the Cray compiler to recognize they are present at runtime.
+      ! is enough for the compiler to recognize they are present at runtime.
 
-      if (use_acc) then
-         !$acc parallel loop if(use_acc) &
-         !$acc copy(den_row,temp_row) &
-         !$acc copyin(abar_row,zbar_row) &
-         !$acc copyin(input,var,dvar,v_want) &
-         !$acc copyout(ptot_row,dpt_row,dpd_row,dpe_row,dpdr_e_row) &
-         !$acc copyout(etot_row,det_row,ded_row,dea_row,dez_row) &
-         !$acc copyout(stot_row,dst_row,dsd_row) &
-         !$acc copyout(htot_row,dht_row,dhd_row) &
-         !$acc copyout(cs_row,cv_row,cp_row,gam1_row) &
-         !$acc copyout(etaele_row,pele_row,ppos_row,xne_row,xnp_row)
-         include 'helm_loop.dek'
-         !$acc end parallel loop
-      else
-         !$omp parallel do if(.not. use_acc) &
-         !$omp private(j, converged, xnew, xtol, dvdx, smallx, error) &
-         !$omp private(v, v1, v2, dv1dt, dv1dr, dv2dt, dv2dr, delr, error1, error2) &
-         !$omp private(told, rold, tnew, rnew, v1i, v2i) &
-         !$omp private(x, y, zz, zzi, deni, tempi, xni, dxnidd, dxnida) &
-         !$omp private(dpepdt,dpepdd,deepdt,deepdd,dsepdd,dsepdt) &
-         !$omp private(dpraddd,dpraddt,deraddd,deraddt,dpiondd,dpiondt) &
-         !$omp private(deiondd,deiondt,dsraddd,dsraddt,dsiondd,dsiondt) &
-         !$omp private(dse,dpe,dsp,kt,ktinv,prad,erad,srad,pion,eion) &
-         !$omp private(sion,xnem,pele,eele,sele,pres,ener,entr,dpresdd) &
-         !$omp private(dpresdt,denerdd,denerdt,dentrdd,dentrdt,cv,cp) &
-         !$omp private(gam1,gam2,gam3,chit,chid,nabad,sound,etaele) &
-         !$omp private(detadt,detadd,xnefer,dxnedt,dxnedd,s) &
-         !$omp private(temp,den,abar,zbar,ytot1,ye) &
-         !$omp private(dpradda,deradda,dsradda) &
-         !$omp private(dpionda,deionda,dsionda,dpepda,deepda,dsepda,dpresda,denerda,dentrda,detada,dxneda) &
-         !$omp private(dpraddz,deraddz,dsraddz,dpiondz,deiondz,dsiondz,dpepdz,deepdz,dsepdz) &
-         !$omp private(dpresdz,denerdz,dentrdz,detadz,dxnedz) &
-         !$omp private(iat,jat,free,df_d,df_t,df_tt,df_dt) &
-         !$omp private(xt,xd,mxt,mxd,si0t,si1t,si2t,si0mt,si1mt,si2mt) &
-         !$omp private(si0d,si1d,si2d,si0md,si1md,si2md,dsi0t,dsi1t,dsi2t,dsi0mt,dsi1mt,dsi2mt) &
-         !$omp private(dsi0d,dsi1d,dsi2d,dsi0md,dsi1md,dsi2md,ddsi0t,ddsi1t,ddsi2t,ddsi0mt,ddsi1mt,ddsi2mt) &
-         !$omp private(z,din,fi) &
-         !$omp private(dsdd,dsda,lami,inv_lami,lamida,lamidd,plasg,plasgdd,plasgdt,plasgda,plasgdz) &
-         !$omp private(ecoul,decouldd,decouldt,decoulda,decouldz) &
-         !$omp private(pcoul,dpcouldd,dpcouldt,dpcoulda,dpcouldz) &
-         !$omp private(scoul,dscouldd,dscouldt,dscoulda,dscouldz)
-         include 'helm_loop.dek'
-         !$omp end parallel do
-      endif
+      !$acc parallel loop if(use_acc) &
+      !$acc copy(den_row,temp_row) &
+      !$acc copyin(abar_row,zbar_row) &
+      !$acc copyin(input,var,dvar,v_want) &
+      !$acc copyout(ptot_row,dpt_row,dpd_row,dpe_row,dpdr_e_row) &
+      !$acc copyout(etot_row,det_row,ded_row,dea_row,dez_row) &
+      !$acc copyout(stot_row,dst_row,dsd_row) &
+      !$acc copyout(htot_row,dht_row,dhd_row) &
+      !$acc copyout(cs_row,cv_row,cp_row,gam1_row) &
+      !$acc copyout(etaele_row,pele_row,ppos_row,xne_row,xnp_row)
+      include 'helm_loop.dek'
+      !$acc end parallel loop
 
       state(:) % T    = temp_row
       state(:) % rho  = den_row
