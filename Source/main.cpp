@@ -109,6 +109,8 @@ main (int   argc,
            amrptr->RegridOnly(amrptr->cumTime());
            }
 
+    Real dRunTime2 = ParallelDescriptor::second();
+
     while ( amrptr->okToContinue()                            &&
            (amrptr->levelSteps(0) < max_step || max_step < 0) &&
            (amrptr->cumTime() < stop_time || stop_time < 0.0) )
@@ -127,6 +129,10 @@ main (int   argc,
 	xgraphptr->draw(amrptr->levelSteps(0),amrptr->cumTime());
 #endif
 
+    }
+
+    if (!amrptr->okToContinue() && ParallelDescriptor::IOProcessor()) {
+      std::cout << "Stopping simulation because we are not OK to continue." << std::endl;
     }
 
 #ifdef HAS_DUMPMODEL
@@ -157,13 +163,18 @@ main (int   argc,
     //
     const int IOProc = ParallelDescriptor::IOProcessorNumber();
 
-    Real dRunTime2 = ParallelDescriptor::second() - dRunTime1;
+    Real dRunTime3 = ParallelDescriptor::second();
 
-    ParallelDescriptor::ReduceRealMax(dRunTime2,IOProc);
+    Real runtime_total = dRunTime3 - dRunTime1;
+    Real runtime_timestep = dRunTime3 - dRunTime2;
+
+    ParallelDescriptor::ReduceRealMax(runtime_total,IOProc);
+    ParallelDescriptor::ReduceRealMax(runtime_timestep,IOProc);
 
     if (ParallelDescriptor::IOProcessor())
     {
-        std::cout << "Run time = " << dRunTime2 << std::endl;
+        std::cout << "Run time = " << runtime_total << std::endl;
+        std::cout << "Run time w/o init = " << runtime_timestep << std::endl;
     }
 
     if (CArena* arena = dynamic_cast<CArena*>(BoxLib::The_Arena()))

@@ -33,6 +33,7 @@ contains
   subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                     rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
@@ -47,11 +48,11 @@ contains
                      domlo, domhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, ppm_type
+    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
-    use riemann_module, only: cmpflx
+    use riemann_module, only: cmpflx, shock
     use bl_constants_module
 
     implicit none
@@ -60,6 +61,7 @@ contains
     integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer gv_l1, gv_l2, gv_h1, gv_h2
+    integer rt_l1, rt_l2, rt_h1, rt_h2
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
     integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
@@ -78,8 +80,9 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
-    double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2)
+    double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2,2)
+    double precision   rot( rt_l1: rt_h1, rt_l2: rt_h2,2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
     double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
@@ -93,13 +96,15 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
 
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable:: dq(:,:,:),  qm(:,:,:),   qp(:,:,:)
-    double precision, allocatable::qxm(:,:,:),qym(:,:,:)
-    double precision, allocatable::qxp(:,:,:),qyp(:,:,:)
+    double precision, allocatable::  qm(:,:,:),   qp(:,:,:)
+    double precision, allocatable:: qxm(:,:,:), qym(:,:,:)
+    double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
     
-    ! Work arrays to hold 3 planes of riemann state and conservative fluxes
-    double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable::   pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    ! Work arrays to hold riemann state and conservative fluxes
+    double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
+    double precision, allocatable ::  pgdxtmp(:,:) ,  ugdxtmp(:,:)
+    double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+    double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
     double precision :: dtdx
@@ -108,21 +113,39 @@ contains
 
     allocate ( pgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2))
     allocate ( ugdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+    allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+
+    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
+    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( fx(ilo1:ihi1+1,ilo2-1:ihi2+1,NVAR))
-    allocate ( fy(ilo1-1:ihi1+1,ilo2:ihi2+1,NVAR))
+    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NVAR))
+    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NVAR))
+
+    allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+
 
     ! Local constants
     dtdx = dt/dx
     hdtdx = HALF*dtdx
     hdtdy = HALF*dt/dy
     hdt = HALF*dt
+
+
+    ! multidimensional shock detection -- this will be used to do the
+    ! hybrid Riemann solver
+    if (hybrid_riemann == 1) then
+       call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+                  shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
+                  ilo1,ilo2,ihi1,ihi2,dx,dy)
+    else
+       shk(:,:) = ZERO
+    endif
+
     
     ! NOTE: Geometry terms need to be punched through
 
@@ -132,7 +155,7 @@ contains
     if (ppm_type .eq. 0) then
        call trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                  dq,qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
+                  qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                   grav,gv_l1,gv_l2,gv_h1,gv_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     else
@@ -140,6 +163,7 @@ contains
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                      rot,rt_l1,rt_l2,rt_h1,rt_h2, &
                       gamc,qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
@@ -150,7 +174,9 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
@@ -159,7 +185,9 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
@@ -169,9 +197,11 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
     
@@ -182,7 +212,9 @@ contains
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
     ! Correct the y-interface states (qym, qyp) by adding the
@@ -192,9 +224,11 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+                rot, rt_l1, rt_l2, rt_h1, rt_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                 vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -207,7 +241,9 @@ contains
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
 
@@ -222,9 +258,10 @@ contains
        end do
     end do
 
-    deallocate(dq,qm,qp,qxm,qxp,qym,qyp)
+    deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
-    deallocate(pgdxtmp,ugdxtmp)
+    deallocate(shk)
+    deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
     
   end subroutine umeth2d
 
@@ -235,7 +272,8 @@ contains
   subroutine ctoprim(lo,hi, &
                      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                      q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-                     src,srcQ,src_l1,src_l2,src_h1,src_h2, &
+                     src,src_l1,src_l2,src_h1,src_h2, &
+                     srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                      courno,dx,dy,dt,ngp,ngf)
     
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
@@ -248,10 +286,10 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
-                                   UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
-                                   QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   QFS, QFX, &
+                                   allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map, dual_energy_eta1
     use flatten_module
     use bl_constants_module
 
@@ -263,6 +301,7 @@ contains
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer q_l1,q_l2,q_h1,q_h2
     integer src_l1,src_l2,src_h1,src_h2
+    integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
     
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
@@ -271,7 +310,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2)
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
-    double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt, courno
     
     double precision, allocatable :: dpdrho(:,:)
@@ -281,20 +320,23 @@ contains
     integer          :: i, j
     integer          :: pt_index(2)
     integer          :: ngp, ngf, loq(2), hiq(2)
-    integer          :: iadv, ispec, iaux, n, nq
+    integer          :: n, nq
     double precision :: courx, coury, courmx, courmy
+    double precision :: kineng
+
+    integer :: ipassive
 
     type (eos_t) :: eos_state
     
-    allocate(     dpdrho(q_l1:q_h1,q_l2:q_h2))
-    allocate(     dpde(q_l1:q_h1,q_l2:q_h2))
-    allocate(  dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
+    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2))
+    allocate(   dpde(q_l1:q_h1,q_l2:q_h2))
+    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
     
     do i=1,2
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
-    
+
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
     ! call and will be overwritten
@@ -312,57 +354,41 @@ contains
           q(i,j,QRHO) = uin(i,j,URHO)
           q(i,j,QU) = uin(i,j,UMX)/uin(i,j,URHO)
           q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
-          q(i,j,QREINT ) = uin(i,j,UEINT)/q(i,j,QRHO)
+
+          ! Get the internal energy, which we'll use for determining the pressure.
+          ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+          ! then we risk serious numerical truncation error in the internal energy.
+          ! Therefore we'll use the result of the separately updated internal energy equation.
+          ! Otherwise, we'll set e = E - K.
+
+          kineng = HALF * q(i,j,QRHO) * (q(i,j,QU)**2 + q(i,j,QV)**2)
+
+          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
+             q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
+          else
+             q(i,j,QREINT) = uin(i,j,UEINT) / q(i,j,QRHO)
+          endif
+
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
-       enddo
-    enddo
-    
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n  = UFA + iadv - 1
-       nq = QFA + iadv - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
-    
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
-    
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
-       enddo
-    enddo
 
-    ! Get gamc, p, T, c, csml using q state 
-    do j = loq(2), hiq(2)
-       do i = loq(1), hiq(1)
+          ! Load passively-advected quatities, c, into q, assuming they
+          ! arrived in uin as rho.c 
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
 
-          pt_index(1) = i
-          pt_index(2) = j
+             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
+          enddo
+
+          ! Get gamc, p, T, c, csml using q state 
+          pt_index(:) = (/i, j/)
 
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
 
-          ! If necessary, reset the energy using small_temp
+          ! if necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then
              q(i,j,QTEMP) = small_temp
              eos_state % T = q(i,j,QTEMP)
@@ -393,16 +419,10 @@ contains
           gamc(i,j)   = eos_state % gam1
 
           csml(i,j) = max(small, small * c(i,j))
-       end do
-    end do
 
-    ! Make this "rho e" instead of "e"
-    do j = loq(2),hiq(2)
-       do i = loq(1),hiq(1)
+          ! Make this "rho e" instead of "e"
           q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
-
           q(i,j,QGAME) = q(i,j,QPRES)/q(i,j,QREINT) + ONE
-
        enddo
     enddo
     
@@ -423,19 +443,20 @@ contains
 !                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
 !                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
 
-          do ispec = 1,nspec
-             srcQ(i,j,QFS+ispec-1) = ( src(i,j,UFS+ispec-1) - q(i,j,QFS+ispec-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
+       enddo
+    enddo
 
-          do iaux = 1,naux
-             srcQ(i,j,QFX+iaux-1) = ( src(i,j,UFX+iaux-1) - q(i,j,QFX+iaux-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
+    ! and the passive advective quantities sources
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
+             srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
-          
-          do iadv = 1,nadv
-             srcQ(i,j,QFA+iadv-1) = ( src(i,j,UFA+iadv-1) - q(i,j,QFA+iadv-1) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
-          enddo
-          
-       end do
+       enddo
+
     end do
 
     ! Compute running max of Courant number over grids
@@ -503,11 +524,12 @@ contains
                      area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
-                     div,pdivu,lo,hi,dx,dy,dt,E_added_flux)
+                     div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+                     xmom_added_flux,ymom_added_flux)
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
     use bl_constants_module
@@ -539,6 +561,7 @@ contains
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
     double precision dx, dy, dt, E_added_flux
+    double precision xmom_added_flux, ymom_added_flux
     
     integer i, j, n
 
@@ -600,7 +623,14 @@ contains
                    E_added_flux = E_added_flux + dt * & 
                         ( flux1(i,j,n) - flux1(i+1,j,n) &
                         +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                   
+                else if (n .eq. UMX) then
+                   xmom_added_flux = xmom_added_flux + dt * &
+                        ( flux1(i,j,n) - flux1(i+1,j,n) &
+                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+                else if (n .eq. UMY) then
+                   ymom_added_flux = ymom_added_flux + dt * &
+                        ( flux1(i,j,n) - flux1(i+1,j,n) &
+                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
                 end if
              enddo
           enddo
@@ -774,9 +804,11 @@ contains
                                       uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                                       lo, hi, mass_added, eint_added, eden_added, verbose)
     use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, &
-                                   UFS, UFX, UFA, small_dens, nadv
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
+                                   UFS, UFX, UFA, small_dens, smalL_temp, nadv
     use bl_constants_module
+    use eos_type_module, only : eos_t
+    use eos_module, only : eos_input_rt, eos
 
     implicit none
 
@@ -789,13 +821,13 @@ contains
     
     ! Local variables
     integer                       :: i,ii,j,jj,n
-    double precision              :: min_dens
-    double precision, allocatable :: fac(:,:)
+    double precision              :: max_dens
+    integer                       :: i_set, j_set
     double precision              :: initial_mass, final_mass
     double precision              :: initial_eint, final_eint
     double precision              :: initial_eden, final_eden
-    
-    allocate(fac(lo(1):hi(1),lo(2):hi(2)))
+
+    type (eos_t) :: eos_state
     
     initial_mass = ZERO
     final_mass = ZERO
@@ -803,6 +835,8 @@ contains
     final_eint = ZERO
     initial_eden = ZERO
     final_eden = ZERO
+
+    max_dens = ZERO
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
@@ -821,74 +855,103 @@ contains
              
           else if (uout(i,j,URHO) < small_dens) then
              
-             min_dens = uin(i,j,URHO)
+             max_dens = uout(i,j,URHO)
              do jj = -1,1
                 do ii = -1,1
-                   min_dens = min(min_dens,uin(i+ii,j+jj,URHO))
-                   if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. &
-                       i+ii.le.uout_h1 .and. j+jj.le.uout_h2) then
-                      if (uout(i+ii,j+jj,URHO) > small_dens) &
-                           min_dens = min(min_dens,uout(i+ii,j+jj,URHO))
+                   if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. &
+                       i+ii.le.hi(1) .and. j+jj.le.hi(2)) then
+                        if (uout(i+ii,j+jj,URHO) > max_dens) then
+                           i_set = i+ii
+                           j_set = j+jj
+                           max_dens = uout(i_set,j_set,URHO)
+                        endif
                    endif
                 end do
              end do
+
+             ! If no neighboring zones are above small_dens, our only recourse 
+             ! is to set the density equal to small_dens, and the temperature 
+             ! equal to small_temp. We set the velocities to zero, 
+             ! though any choice here would be arbitrary.
+
+             if (max_dens < small_dens) then
+
+                do n = UFS, UFS+nspec-1
+                   uout(i,j,n) = uout(i_set,j_set,n) * (small_dens / uout(i,j,URHO))
+                end do
+                do n = UFX, UFX+naux-1
+                   uout(i,j,n) = uout(i_set,j_set,n) * (small_dens / uout(i,j,URHO))
+                end do
+                do n = UFA, UFA+nadv-1
+                   uout(i,j,n) = uout(i_set,j_set,n) * (small_dens / uout(i,j,URHO))
+                end do
+
+                eos_state % rho = small_dens
+                eos_state % T   = small_temp
+                eos_state % xn  = uout(i,j,UFS:UFS+nspec-1) / uout(i,j,URHO)
+
+                call eos(eos_input_rt, eos_state)
+
+                uout(i,j,URHO ) = eos_state % rho
+                uout(i,j,UTEMP) = eos_state % T
+
+                uout(i,j,UMX  ) = ZERO
+                uout(i,j,UMY  ) = ZERO
+
+                uout(i,j,UEINT) = eos_state % rho * eos_state % e
+                uout(i,j,UEDEN) = uout(i,j,UEINT)
+
+             endif
              
              if (verbose .gt. 0) then
                 if (uout(i,j,URHO) < ZERO) then
                    print *,'   '
                    print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                    print *,'>>> ... resetting negative density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
+                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
                    print *,'    '
                 else
                    print *,'   '
                    print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                    print *,'>>> ... resetting small density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',min_dens
+                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
                    print *,'    '
                 end if
              end if
-             
-             fac(i,j) = min_dens / uout(i,j,URHO)
-             
-          end if
-          
-       enddo
-    enddo
-    
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-          
-          if (uout(i,j,URHO) < small_dens) then
-             
-             uout(i,j,URHO ) = uout(i,j,URHO ) * fac(i,j)
-             uout(i,j,UEINT) = uout(i,j,UEINT) * fac(i,j)
-             uout(i,j,UEDEN) = uout(i,j,UEDEN) * fac(i,j)
-             uout(i,j,UMX  ) = uout(i,j,UMX  ) * fac(i,j)
-             uout(i,j,UMY  ) = uout(i,j,UMY  ) * fac(i,j)
-             
+
+             uout(i,j,URHO ) = uout(i_set,j_set,URHO )
+             uout(i,j,UTEMP) = uout(i_set,j_set,UTEMP)
+             uout(i,j,UEINT) = uout(i_set,j_set,UEINT)
+             uout(i,j,UEDEN) = uout(i_set,j_set,UEDEN)
+             uout(i,j,UMX  ) = uout(i_set,j_set,UMX  )
+             uout(i,j,UMY  ) = uout(i_set,j_set,UMY  )
+
              do n = UFS, UFS+nspec-1
-                uout(i,j,n) = uout(i,j,n) * fac(i,j)
+                uout(i,j,n) = uout(i_set,j_set,n)
              end do
              do n = UFX, UFX+naux-1
-                uout(i,j,n) = uout(i,j,n) * fac(i,j)
+                uout(i,j,n) = uout(i_set,j_set,n)
              end do
              do n = UFA, UFA+nadv-1
-                uout(i,j,n) = uout(i,j,n) * fac(i,j)
+                uout(i,j,n) = uout(i_set,j_set,n)
              end do
              
           end if
-          
-          final_mass = final_mass + uout(i,j,URHO)
+
+          final_mass = final_mass + uout(i,j,URHO )
           final_eint = final_eint + uout(i,j,UEINT)
-          final_eden = final_eden + uout(i,j,UEDEN)
+          final_eden = final_eden + uout(i,j,UEDEN)                
           
        enddo
     enddo
 
-    mass_added = mass_added + (final_mass - initial_mass)
-    eint_added = eint_added + (final_eint - initial_eint)
-    eden_added = eden_added + (final_eden - initial_eden)
+    if (max_dens /= ZERO) then
+    
+       mass_added = mass_added + (final_mass - initial_mass)
+       eint_added = eint_added + (final_eint - initial_eint)
+       eden_added = eden_added + (final_eden - initial_eden)
+
+    endif
     
   end subroutine enforce_minimum_density
 

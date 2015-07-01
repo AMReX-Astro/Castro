@@ -19,9 +19,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, T_l, T_r, frac, idir, &
        use_Tinit, &
-       denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velgrad,  max_velgrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, xcloud, cldradius
+       xcloud, cldradius
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -55,19 +53,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
 
-  denerr = 1.d20
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-
-  velgrad = 1.d20
-  max_velgrad_lev = -1
-
   xcloud = -1.0
   cldradius = -1.0
 
@@ -77,9 +62,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  center(1) = frac*(problo(1)+probhi(1))
-  center(2) = frac*(problo(2)+probhi(2))
-  center(3) = frac*(problo(3)+probhi(3))
+  split(1) = frac*(problo(1)+probhi(1))
+  split(2) = frac*(problo(2)+probhi(2))
+  split(3) = frac*(problo(3)+probhi(3))
   
   ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0d0
@@ -191,7 +176,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
 
            if (idir == 1) then
-              if (xcen <= center(1)) then      !! left of shock
+              if (xcen <= split(1)) then      !! left of shock
                  state(i,j,k,URHO) = rho_l
                  state(i,j,k,UMX) = rho_l*u_l
                  state(i,j,k,UMY) = 0.d0

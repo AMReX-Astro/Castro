@@ -1,0 +1,18 @@
+&fortin
+
+ model_name =  "model.hse"
+
+ apply_vel_field = T
+ velpert_height_loc = 1.2e8
+ velpert_scale = 5.d6
+ velpert_amplitude = 1.d5
+ num_vortices = 2
+
+ zero_vels = F
+ interp_BC = F
+
+/
+
+&extern
+ use_eos_coulomb = F
+/

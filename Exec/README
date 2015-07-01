@@ -1,0 +1,88 @@
+double_bubble:
+
+  Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal or
+  isentropic) and allow for the bubbles to have the same or a
+  different gamma from one another / the background atmosphere.  This
+  uses the multigamma EOS.
+
+
+Dustcollapse:
+
+  A pressureless cloud collapse that is a standard test problem for
+  gravity.  An analytic solution that describes the radius of the
+  sphere as a function of time is found in Colgate and White (1966).
+  This problem is also found in the FLASH User's Guide and Mönchmeyer
+  and Müller (1989).
+
+
+HCBubble
+
+
+KH:
+
+  A Kelvin-Helmholtz shear instability problem
+
+
+oddeven:
+  A grid-aligned shock hitting a very small density perturbation.
+  This demonstrates the odd-even decoupling problem that the
+  hybrid_riemann option prevents.
+
+
+reacting_bubble:
+
+  A reacting bubble rise problem that was featured in the Maestro
+  paper III algorithm paper.
+
+
+RT:
+
+  A Rayleigh-Taylor instability.  This problem setup was used in
+  the first Castro paper.
+
+
+RT_particles:
+
+  A Rayleigh-Taylor instability that uses particles.  It is intended
+  to be used in debugging the particle advection algorithm.
+
+
+Sedov:
+
+  The standard Sedov-Taylor blast wave problem.  This setup was used
+  in the original Castro paper.
+
+
+Sod:
+
+  A one-dimensional shock tube setup, including the classic Sod
+  problem.  This setup was used in the original Castro paper.
+
+
+Sod_stellar:
+
+  A version of the Sod shock tube for the general stellar equation
+  of state.  This setup and the included inputs files was used in
+  Zingale & Katz (2015).
+
+
+reacting_bubble:
+
+  A reacting bubble rise problem that was featured in the Maestro
+  paper III algorithm paper.
+
+
+test_convect:
+
+  This is a version of the MAESTRO test_convect problem that was used
+  in MAESTRO paper III, and later in the appendix of the sub-Chandra II
+  MAESTRO paper.
+  
+
+toy_convect:
+
+  A simple nova-like convection problem with an external heating
+  source.  This problem shows how to use the model parser to
+  initialize a 1-d atmosphere on the Castro grid, incorporate a custom
+  tagging routine, sponge the fluid above the atmosphere, and write a
+  custom diagnostics routine.

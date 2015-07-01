@@ -377,16 +377,33 @@ Castro::writePlotFile (const std::string& dir,
 	 ++it)
     {
         if (parent->isDerivePlotVar(it->name()))
-	{
+        {
+#ifdef PARTICLES
+            if (it->name() == "particle_count" ||
+                it->name() == "total_particle_count" ||
+                it->name() == "particle_mass_density" ||
+                it->name() == "total_density")
+            {
+                if (Castro::theDMPC())
+                {
+                    derive_names.push_back(it->name());
+                    num_derive++;
+                }
+            } else 
+#endif
             derive_names.push_back(it->name());
             num_derive++;
-	}
+	} 
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
 #ifdef GRAVITY
     if (do_grav) 
       if (gravity->get_gravity_type() == "PoissonGrav" && plot_phiGrav) n_data_items++;
+#endif
+
+#ifdef RADIATION
+    if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
 
     Real cur_time = state[State_Type].curTime();
@@ -422,6 +439,11 @@ Castro::writePlotFile (const std::string& dir,
 #ifdef GRAVITY
         if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
             os << "phiGrav" << '\n';
+#endif
+
+#ifdef RADIATION
+	for (i=0; i<Radiation::nplotvar; ++i)
+	    os << Radiation::plotvar_names[i] << '\n';
 #endif
 
         os << BL_SPACEDIM << '\n';
@@ -549,6 +571,12 @@ Castro::writePlotFile (const std::string& dir,
 	  jobInfoFile << "AstroDev git hash: " << githash3 << "\n";
 	}
 
+	const char* buildgithash = buildInfoGetBuildGitHash();
+	const char* buildgitname = buildInfoGetBuildGitName();
+	if (strlen(buildgithash) > 0){
+	  jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
+	}
+	
 	jobInfoFile << "\n\n";
 
 
@@ -744,6 +772,13 @@ Castro::writePlotFile (const std::string& dir,
     //
     if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
         MultiFab::Copy(plotMF,*gravity->get_phi_curr(level),0,cnt++,1,nGrow);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::nplotvar > 0) {
+	MultiFab::Copy(plotMF,radiation->plotvar[level],0,cnt,Radiation::nplotvar,0);
+	cnt += Radiation::nplotvar;
+    }
 #endif
 
     //

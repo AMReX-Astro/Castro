@@ -29,6 +29,7 @@ using std::string;
 #include <VisMF.H>
 #include <TagBox.H>
 #include <ParmParse.H>
+#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -56,7 +57,6 @@ using std::string;
 
 
 
-static int  sum_interval = -1;
 static Real fixed_dt     = -1.0;
 static Real initial_dt   = -1.0;
 static Real dt_cutoff    = 0.0;
@@ -99,9 +99,12 @@ Real         Castro::difmag        = 0.1;
 Real         Castro::small_dens    = -1.e200;
 Real         Castro::small_temp    = -1.e200;
 Real         Castro::small_pres    = -1.e200;
+Real         Castro::small_ener    = -1.e200;
 
-int          Castro::do_hydro = -1;
-int          Castro::do_react = -1;
+int          Castro::do_hydro    = -1;
+int          Castro::do_react    = -1;
+int          Castro::do_grav     = -1;
+int          Castro::do_rotation = -1;
 int          Castro::add_ext_src = 0;
 
 int          Castro::do_acc = -1;
@@ -113,7 +116,6 @@ Real         Castro::point_mass    = 0.0;
 #ifdef GRAVITY
 Gravity*     Castro::gravity  = 0;
 int          Castro::plot_phiGrav = 0;
-int          Castro::do_grav  = -1;
 #endif
 
 #ifdef DIFFUSION
@@ -127,14 +129,18 @@ Radiation*   Castro::radiation = 0;
 #endif
 
 #ifdef ROTATION
-int          Castro::do_rotation = -1;
-Real         Castro::rotational_period = 0.0;
+Real         Castro::rotational_period = -1.e200;
+int          Castro::rot_source_type = 1;
+int          Castro::rot_axis = 3;
 #endif
+
+int          Castro::deterministic = 0;
+
+int          Castro::bndry_func_thread_safe = 1;
 
 int          Castro::grown_factor = 1;
 int          Castro::star_at_center = -1;
 int          Castro::moving_center = 0;
-int          Castro::allow_untagging = 0;
 int          Castro::normalize_species = 0;
 int          Castro::fix_mass_flux = 0;
 int          Castro::allow_negative_energy = 1;
@@ -143,14 +149,19 @@ int          Castro::do_special_tagging = 0;
 int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
+int          Castro::ppm_trace_rot = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
+int          Castro::ppm_predict_gammae = 0;
 int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
 
+int          Castro::hybrid_riemann = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
+
+int          Castro::hard_cfl_limit = 1;
 
 int          Castro::use_flattening = 1;
 int          Castro::ppm_flatten_before_integrals = 0;
@@ -158,6 +169,10 @@ int          Castro::ppm_flatten_before_integrals = 0;
 int          Castro::transverse_use_eos = 0;
 int          Castro::transverse_reset_density = 0;
 int          Castro::transverse_reset_rhoe = 0;
+
+int          Castro::dual_energy_update_E_from_e = 1;
+Real         Castro::dual_energy_eta1 = 1.0e0;
+Real         Castro::dual_energy_eta2 = 1.0e-4;
 
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
@@ -167,6 +182,7 @@ int          Castro::do_sponge  = 0;
 int          Castro::print_fortran_warnings  = 0;
 int          Castro::print_energy_diagnostics  = 0;
 
+int          Castro::sum_interval = -1;
 int          Castro::show_center_of_mass = 0;
 
 #ifdef SGS
@@ -175,6 +191,15 @@ Real         Castro::sum_turb_src = 0.0;
 
 std::string  Castro::job_name = "";
 
+std::string  Castro::probin_file = "probin";
+
+#if BL_SPACEDIM == 1
+IntVect      Castro::hydro_tile_size(1024);
+#elif BL_SPACEDIM == 2
+IntVect      Castro::hydro_tile_size(1024,1024);
+#else
+IntVect      Castro::hydro_tile_size(1024,16,1024);
+#endif
 
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
@@ -236,15 +261,15 @@ Castro::read_params ()
 
     pp.query("v",verbose);
 //  verbose = (verbose ? 1 : 0);
-    pp.get("init_shrink",init_shrink);
-    pp.get("cfl",cfl);
+    pp.query("init_shrink",init_shrink);
+    pp.query("cfl",cfl);
     pp.query("change_max",change_max);
     pp.query("fixed_dt",fixed_dt);
     pp.query("initial_dt",initial_dt);
     pp.query("sum_interval",sum_interval);
     pp.query("do_reflux",do_reflux);
     do_reflux = (do_reflux ? 1 : 0);
-    pp.get("dt_cutoff",dt_cutoff);
+    pp.query("dt_cutoff",dt_cutoff);
 
     pp.query("dump_old",dump_old);
 
@@ -252,6 +277,7 @@ Castro::read_params ()
     pp.query("small_dens",small_dens);
     pp.query("small_temp",small_temp);
     pp.query("small_pres",small_pres);
+    pp.query("small_ener",small_ener);
 
 #ifdef POINTMASS
     pp.get("point_mass",point_mass);
@@ -370,7 +396,6 @@ Castro::read_params ()
 
     pp.query("moving_center",moving_center);
 
-    pp.query("allow_untagging",allow_untagging);
     pp.query("normalize_species",normalize_species);
     pp.query("fix_mass_flux",fix_mass_flux);
     pp.query("allow_negative_energy",allow_negative_energy);
@@ -379,11 +404,14 @@ Castro::read_params ()
     pp.query("ppm_type", ppm_type);
     pp.query("ppm_reference", ppm_reference);
     pp.query("ppm_trace_grav", ppm_trace_grav);
+    pp.query("ppm_trace_rot",ppm_trace_rot);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
+    pp.query("ppm_predict_gammae", ppm_predict_gammae);
     pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
+    pp.query("hybrid_riemann",hybrid_riemann);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
@@ -396,6 +424,11 @@ Castro::read_params ()
     pp.query("grav_source_type",grav_source_type);
     pp.query("spherical_star",spherical_star);
     pp.query("do_sponge",do_sponge);
+    pp.query("hard_cfl_limit",hard_cfl_limit);
+
+    pp.query("dual_energy_update_E_from_e",dual_energy_update_E_from_e);
+    pp.query("dual_energy_eta1",dual_energy_eta1);
+    pp.query("dual_energy_eta2",dual_energy_eta2);
 
     pp.query("show_center_of_mass",show_center_of_mass);
     pp.query("print_energy_diagnostics",print_energy_diagnostics);
@@ -438,6 +471,18 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
+    if (ppm_predict_gammae == 1 && ppm_tau_in_tracing != 1)
+      {
+	std::cerr << "ppm_predict_gammae == 1 needs ppm_tau_in_tracing == 1\n";
+	BoxLib::Error();
+      }
+
+    if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
+      {
+        std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
+        BoxLib::Error();
+      }
+
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
@@ -472,8 +517,16 @@ Castro::read_params ()
 
 #ifdef ROTATION
     pp.get("do_rotation",do_rotation);
-    if (do_rotation) pp.get("rotational_period",rotational_period);
+    if (do_rotation) {
+      pp.get("rotational_period",rotational_period);
+      if (rotational_period <= 0.0) {
+	std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
+	BoxLib::Error();
+      }
+    }
     else pp.query("rotational_period",rotational_period);
+    pp.query("rot_source_type",rot_source_type);
+    pp.query("rot_axis",rot_axis);
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
@@ -482,7 +535,21 @@ Castro::read_params ()
 #endif
 #endif
 
+   pp.query("deterministic", deterministic);
+
+   pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
+   StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
+
    pp.query("job_name",job_name);  
+
+   ParmParse ppa("amr");
+   ppa.query("probin_file",probin_file);
+
+    Array<int> tilesize(BL_SPACEDIM);
+    if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
+    {
+	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
+    }
 }
 
 Castro::Castro ()
@@ -494,6 +561,7 @@ Castro::Castro ()
 #ifdef RADIATION
     rad_flux_reg = 0;
 #endif
+    fine_mask = 0;
 }
 
 Castro::Castro (Amr&            papa,
@@ -530,6 +598,8 @@ Castro::Castro (Amr&            papa,
       rad_flux_reg->setVal(0.0);
     }
 #endif
+
+    fine_mask = 0;
 
 #ifdef GRAVITY
 
@@ -606,6 +676,7 @@ Castro::~Castro ()
       radiation->close(level);
     }
 #endif
+    delete fine_mask;
 }
 
 
@@ -693,6 +764,8 @@ Castro::initData ()
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
+    S_new.setVal(0.);
+
     // make sure dx = dy = dz -- that's all we guarantee to support
     const Real SMALL = 1.e-13;
 #if (BL_SPACEDIM == 2)
@@ -714,11 +787,7 @@ Castro::initData ()
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);
-    // extra state quantity for graphic debugging:
-    MultiFab &Test_new = get_new_data(Test_Type);
-    // For Radiation, S_new has one ghost cell.  
-    // So let's set all components to zero.
-    S_new.setVal(0.);
+    Rad_new.setVal(0.);
 #endif
 
 #ifdef REACTIONS
@@ -736,10 +805,6 @@ Castro::initData ()
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
-  
-          // Temp unused for GammaLaw,
-          //   set it here so that pltfiles have defined numbers
-          S_new[mfi].setVal(0.,Temp);
   
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
@@ -769,27 +834,23 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Rad_new[i].setVal(0.0);
+	  Rad_new[mfi].setVal(0.0);
 
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, lo, hi, Radiation::nGroups,
-	       BL_TO_FORTRAN(Rad_new[i]),dx,
+	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
 	       gridloc.lo(),gridloc.hi());
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver
-            Rad_new[i].mult(Radiation::Etorad, 
+            Rad_new[mfi].mult(Radiation::Etorad, 
                             0, Radiation::nGroups);
 	  }
 
           if (Rad_new.nComp() > Radiation::nGroups) {
             // Initialize flux components to 0
-            Rad_new[i].setVal(0.0, box, Radiation::nGroups,
+            Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
                               Rad_new.nComp() - Radiation::nGroups);
-          }
-
-          if (Test_new.nComp() > 0) {
-            Test_new[i].setVal(0.0);
           }
       }
     }
@@ -831,7 +892,7 @@ Castro::initData ()
 
         BL_FORT_PROC_CALL(CA_INITPHI,ca_initphi)
 	  (level, cur_time, lo, hi, 1,
-	   BL_TO_FORTRAN(LS_new[mfi.index()]),
+	   BL_TO_FORTRAN(LS_new[mfi]),
 	   BL_TO_FORTRAN(type),
 	   dx,gridloc.lo(),gridloc.hi());
       }
@@ -868,13 +929,7 @@ Castro::init (AmrLevel &old)
     setTimeLevel(cur_time,dt_old,dt_new);
 
     MultiFab& S_new = get_new_data(State_Type);
-    
-    for (FillPatchIterator fpi(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
-          fpi.isValid();
-          ++fpi)
-    {
-        S_new[fpi].copy(fpi());
-    }
+    FillPatch(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
 
     // Set E in terms of e + kinetic energy
     // enforce_consistent_e(S_new);
@@ -883,26 +938,18 @@ Castro::init (AmrLevel &old)
     if (do_radiation) {
       MultiFab& Er_new = get_new_data(Rad_Type);
       int ncomp = Er_new.nComp();
-      
-      for (FillPatchIterator fpi(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
-          fpi.isValid();
-          ++fpi)
-      {
-        Er_new[fpi].copy(fpi());
-      }
+
+      FillPatch(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
     }
 #endif
 
 #ifdef REACTIONS
-    MultiFab& React_new = get_new_data(Reactions_Type);
-    int ncomp = React_new.nComp();
-      
-      for (FillPatchIterator fpi(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
-          fpi.isValid();
-          ++fpi)
-      {
-        React_new[fpi].copy(fpi());
-      }
+    {
+	MultiFab& React_new = get_new_data(Reactions_Type);
+	int ncomp = React_new.nComp();
+
+        FillPatch(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
+    }
 
 #endif
 
@@ -910,11 +957,7 @@ Castro::init (AmrLevel &old)
     MultiFab& LS_new = get_new_data(LS_State_Type);
     int nGrowRegrid = 0;
     
-    for (FillPatchIterator fpi(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
-	 fpi.isValid(); ++fpi)
-      {
-	LS_new[fpi.index()].copy(fpi());
-      }
+    FillPatch(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
     
     // FIXME: Assumes that interpolated coarse data should rather just be setvald
     LStype.setVal(3); // This means we don't care about these points
@@ -1015,39 +1058,62 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
       if (Radiation::rad_hydro_combined) {
-	const MultiFab& radMF = get_new_data(Rad_Type);
-	for (MFIter mfi(stateMF); mfi.isValid(); ++mfi) {
-	  int i = mfi.index();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  {
+	      Real dt = 1.e200;
 
-	  const Box& box = mfi.validbox();
-	  Real dt = estdt;
-	  
-	  FArrayBox gPr(box);
-	  radiation->estimate_gamrPr(stateMF[i], radMF[i], gPr, dx, box);
+	      const MultiFab& radMF = get_new_data(Rad_Type);
+	      FArrayBox gPr;
 
-	  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
-	    (BL_TO_FORTRAN(stateMF[i]),
-	     BL_TO_FORTRAN(gPr),
-	     box.loVect(),box.hiVect(),dx,&dt);
+	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi) 
+	      {
+	          const Box& tbox = mfi.tilebox();
+	          const Box& vbox = mfi.validbox();
+		  
+		  gPr.resize(tbox);
+		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 	  
-	  estdt = std::min(estdt,dt);
-	}
+		  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+	               BL_TO_FORTRAN(gPr),
+	               tbox.loVect(),tbox.hiVect(),dx,&dt);
+              }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt_rad)	      
+#endif
+	      {
+	          estdt = std::min(estdt,dt);
+              }
+          }
       }
       else 
       {
 #endif
-       for (MFIter mfi(stateMF); mfi.isValid(); ++mfi)
-       {
-           const Box& box = mfi.validbox();
-           Real dt = estdt;
+	  
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  {
+	      Real dt = 1.e200;
+	      
+	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+	      {
+		  const Box& box = mfi.tilebox();
 
-   	      BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
-                  (BL_TO_FORTRAN(stateMF[mfi]),
-                   box.loVect(),box.hiVect(),
-                   dx,&dt);
-   
-           estdt = std::min(estdt,dt);
-       }
+		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+		       box.loVect(),box.hiVect(),
+		       dx,&dt);
+	      }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt)	      
+#endif
+	      {
+		  estdt = std::min(estdt,dt);
+	      }
+	  }
 
 #ifdef RADIATION
       }
@@ -1262,33 +1328,15 @@ Castro::post_timestep (int iteration)
 
 #ifdef RADIATION
     if (do_radiation && (level < finest_level)) {
-      if (Radiation::do_deferred_sync == 1) {
         // computeTemp is not needed before or after this call because
         // setup for deferred sync does not touch state, only flux registers.
         radiation->deferred_sync_setup(level);
 
 	if (do_reflux) {
-	  radiation->reflux(level);
-
-          // Since radiation->reflux does not touch the fluid state,
-          // we do need to recompute Temp here.
+	    radiation->reflux(level);
+	    // Since radiation->reflux does not touch the fluid state,
+	    // we do need to recompute Temp here.
 	}
-      }
-      else {
-
-        radiation->sync_solve(level);
-
-	if (do_reflux) {
-	  radiation->reflux(level);
-	}
-
-        // Rad sync touches these levels, so recompute temp on all of them.
-        for (int lev = level; lev <= finest_level; lev++) {
-          MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-          computeTemp(S_new);
-        }
-
-      }
     }
 #endif
 
@@ -1330,8 +1378,7 @@ Castro::post_timestep (int iteration)
 #ifdef GRAVITY
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-           for (MFIter mfi(drho_and_drhoU); mfi.isValid(); ++mfi)
-              drho_and_drhoU[mfi].plus(S_new_crse[mfi],Density,0,BL_SPACEDIM+1);
+	    MultiFab::Add(drho_and_drhoU, S_new_crse, Density, 0, BL_SPACEDIM+1, 0);
 
             MultiFab dphi(grids,1,0,Fab_allocate);
             dphi.setVal(0.);
@@ -1347,10 +1394,6 @@ Castro::post_timestep (int iteration)
             }
             gravity->gravity_sync(level,finest_level,drho_and_drhoU,dphi,grad_delta_phi_cc);
 
-            // Create sync src terms at coarser level (i.e. "level")
-            FArrayBox grad_phi_cc, sync_src;
-            FArrayBox dstate;
-
             for (int lev = level; lev <= finest_level; lev++)  
             {
               Real dt_lev = parent->dtLevel(lev);
@@ -1361,32 +1404,39 @@ Castro::post_timestep (int iteration)
               MultiFab grad_phi_cc(ba,BL_SPACEDIM,0,Fab_allocate);
               gravity->get_new_grav_vector(lev,grad_phi_cc,cur_time);
 
-              for (MFIter mfi(S_new_lev); mfi.isValid(); ++mfi)
-              {
-                const Box bx = mfi.validbox();
-                dstate.resize(bx,BL_SPACEDIM+1);
-                if (lev == level) {
-                   dstate.copy(drho_and_drhoU[mfi]);
-                } else {
-                   dstate.setVal(0.); 
-                }
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif
+	      {
+		  FArrayBox sync_src;
+		  FArrayBox dstate;
 
-                // Compute sync source
-                sync_src.resize(bx,BL_SPACEDIM+1);
-                int i = mfi.index();
-                BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
-                    (bx.loVect(), bx.hiVect(),
-                     BL_TO_FORTRAN(grad_phi_cc[i]),
-                     BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][i]),
-                     BL_TO_FORTRAN(S_new_lev[i]),
-                     BL_TO_FORTRAN(dstate),
-                     BL_TO_FORTRAN(sync_src),
-                     dt_lev);
+		  for (MFIter mfi(S_new_lev,true); mfi.isValid(); ++mfi)
+		  {
+		      const Box& bx = mfi.tilebox();
+		      dstate.resize(bx,BL_SPACEDIM+1);
+		      if (lev == level) {
+			  dstate.copy(drho_and_drhoU[mfi],bx);
+		      } else {
+			  dstate.setVal(0.); 
+		      }
+		      
+		      // Compute sync source
+		      sync_src.resize(bx,BL_SPACEDIM+1);
+		      BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
+			  (bx.loVect(), bx.hiVect(),
+			   BL_TO_FORTRAN(grad_phi_cc[mfi]),
+			   BL_TO_FORTRAN(grad_delta_phi_cc[lev-level][mfi]),
+			   BL_TO_FORTRAN(S_new_lev[mfi]),
+			   BL_TO_FORTRAN(dstate),
+			   BL_TO_FORTRAN(sync_src),
+			   dt_lev);
 
-                sync_src.mult(0.5*dt_lev);
-                S_new_lev[mfi].plus(sync_src,0,Xmom,BL_SPACEDIM);
-                S_new_lev[mfi].plus(sync_src,0,Eden,1);
-              }
+		      sync_src.mult(0.5*dt_lev);
+		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,BL_SPACEDIM);
+		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+		  }
+	      }
             }
 
             // Check the whole hierarchy after the syncs
@@ -1532,8 +1582,13 @@ Castro::postCoarseTimeStep (Real cumtime)
     //
     // postCoarseTimeStep() is only called by level 0.
     //
+#ifdef GRAVITY
+    gravity->set_mass_offset(cumtime, 0);
+#endif
+
 #ifdef PARTICLES
-    ParticleMoveRandom();
+    if (Castro::theDMPC() && particle_move_type == "Random")
+        ParticleMoveRandom();
 #endif
 }
 
@@ -1541,6 +1596,8 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+    delete fine_mask;
+    fine_mask = 0;
 
 #ifdef PARTICLES
     if (level == lbase) ParticleRedistribute();
@@ -1557,7 +1614,6 @@ Castro::post_regrid (int lbase,
        }
     }
 #endif
-
 }
 
 void
@@ -1618,6 +1674,14 @@ Castro::post_init (Real stop_time)
       //if (level == 0)
       //post_init_estDT();
     }
+#endif
+
+// Allow the user to define their own post_init functions.
+
+#ifdef do_problem_post_init
+
+    problem_post_init();
+
 #endif
 
     if ( (sum_interval > 0) && (parent->levelSteps(0)%sum_interval == 0) )
@@ -1704,9 +1768,12 @@ Castro::advance_aux(Real time, Real dt)
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
 
-    for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
     {
-        const Box& box = mfi.validbox();
+        const Box& box = mfi.tilebox();
         FArrayBox& old_fab = S_old[mfi];
         FArrayBox& new_fab = S_new[mfi];
 	BL_FORT_PROC_CALL(CA_AUXUPDATE,ca_auxupdate)
@@ -2028,7 +2095,7 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
    //   needs to have a layer of ghost cells for fluxes
    FArrayBox fluxx, fluxy, fluxz;
 
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp);
+   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
                           Old_fpi.isValid();++Old_fpi)
    {
         const Box& bx = grids[Old_fpi.index()];
@@ -2054,9 +2121,9 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
              BL_TO_FORTRAN_N(sgs_mf[Old_fpi],2),
              dx,&old_time,&dt);
 
-        sgs_fluxes[0][Old_fpi.index()].copy(fluxx,0,0,NUM_STATE);
-        sgs_fluxes[1][Old_fpi.index()].copy(fluxy,0,0,NUM_STATE);
-        sgs_fluxes[2][Old_fpi.index()].copy(fluxz,0,0,NUM_STATE);
+        sgs_fluxes[0][Old_fpi].copy(fluxx,0,0,NUM_STATE);
+        sgs_fluxes[1][Old_fpi].copy(fluxy,0,0,NUM_STATE);
+        sgs_fluxes[2][Old_fpi].copy(fluxz,0,0,NUM_STATE);
    }
    geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
 }
@@ -2078,7 +2145,7 @@ Castro::getNewSource (Real new_time, Real dt, MultiFab& ext_src, MultiFab* sgs_f
    for (int dir = 0; dir < BL_SPACEDIM; dir++) 
        sgs_fluxes[dir].setVal(0.0);
 
-   for (FillPatchIterator New_fpi(*this,S_new,4,new_time,State_Type,Density,ncomp);
+   for (FillPatchIterator New_fpi(*this,S_new,NUM_GROW,new_time,State_Type,Density,ncomp);
                           New_fpi.isValid();++New_fpi)
    {
         const Box& bx = grids[New_fpi.index()];
@@ -2112,24 +2179,31 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
    MultiFab& S_old = get_old_data(State_Type);
    const int ncomp = S_old.nComp();
 
-   ext_src.setVal(0.0,ext_src.nGrow());
+   ext_src.setVal(0.0);
 
    MultiFab levelArea[BL_SPACEDIM];
-   for (int i = 0; i < BL_SPACEDIM ; i++)
+   for (int i = 0; i < BL_SPACEDIM ; i++) {
        geom.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
-
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp);
-                          Old_fpi.isValid();++Old_fpi)
-   {
-        const Box& bx = grids[Old_fpi.index()];
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(ext_src[Old_fpi]),
-             prob_lo,dx,&old_time,&dt);
    }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
+
+   {
+       FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
+       const MultiFab& S_old_fp = Old_fpi.get_mf();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.growntilebox();
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(S_old_fp[mfi]),
+		BL_TO_FORTRAN(S_old_fp[mfi]),
+		BL_TO_FORTRAN(ext_src[mfi]),
+		prob_lo,dx,&old_time,&dt);
+       }
+   }
 }
 
 void
@@ -2138,24 +2212,30 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
    const Real* dx = geom.CellSize();
    const Real* prob_lo   = geom.ProbLo();
 
-   MultiFab& S_old = get_old_data(State_Type);
-   const int ncomp = S_old.nComp();
+   BL_ASSERT(ext_src.nGrow() == 0);
 
-   ext_src.setVal(0.0,ext_src.nGrow());
+   // Unlike getOldSource, there are no ghost cells in ext_src.
+   // So we don't need to call FillPatch for coarse-fine boundaries.
+   const MultiFab& S_old = get_old_data(State_Type);
+   const MultiFab& S_new = get_new_data(State_Type);
 
-   for (FillPatchIterator Old_fpi(*this,S_old,4,old_time,State_Type,Density,ncomp),
-                          New_fpi(*this,S_old,4,new_time,State_Type,Density,ncomp);
-                          Old_fpi.isValid() && New_fpi.isValid();++Old_fpi,++New_fpi)
+   ext_src.setVal(0.0);
+
    {
-        const Box& bx = grids[Old_fpi.index()];
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  Old_fpi()),
-             BL_TO_FORTRAN(  New_fpi()),
-             BL_TO_FORTRAN(ext_src[Old_fpi]),
-             prob_lo,dx,&new_time,&dt);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.tilebox();
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(S_old[mfi]),
+		BL_TO_FORTRAN(S_new[mfi]),
+		BL_TO_FORTRAN(ext_src[mfi]),
+		prob_lo,dx,&new_time,&dt);
+       }
    }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
 }
 
 #endif
@@ -2178,9 +2258,9 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
         int i = fpi.index();
         BL_FORT_PROC_CALL(CA_DEFINE_TAU,ca_define_tau)
                  (bx.loVect(), bx.hiVect(),
-                  BL_TO_FORTRAN(tau_diff[i]),
+                  BL_TO_FORTRAN(tau_diff[fpi]),
                   BL_TO_FORTRAN(fpi()),
-                  BL_TO_FORTRAN(grav_vector[i]),
+                  BL_TO_FORTRAN(grav_vector[fpi]),
                   dx_fine);
    }
 }
@@ -2203,14 +2283,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
      std::cerr << "ERROR:tau must == 0 if USE_TAU = FALSE " << std::endl;
 #endif
 
-   // Fill temperature at this level.
-   MultiFab Temperature(grids,1,1,Fab_allocate);
-   for (FillPatchIterator fpi(*this,S_old,1,time,State_Type,Temp,1);
-                          fpi.isValid();++fpi)
-   {
-       Temperature[fpi].copy(fpi(),fpi().box());
-   }
-
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
@@ -2223,21 +2295,30 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());
    const Real*       dx_fine = fine_geom.CellSize();
 
-   for (FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
-                          fpi.isValid();++fpi)
+   // Fill temperature at this level.
+   MultiFab Temperature(grids,1,1,Fab_allocate);
+
    {
-       Box bx(fpi.validbox());
-       int i = fpi.index();
-       BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-                (bx.loVect(), bx.hiVect(),
-                 BL_TO_FORTRAN(fpi()),
+       FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+       MultiFab& state_old = fpi.get_mf();
+       
+       MultiFab::Copy(Temperature, state_old, Temp, 0, 1, 1);
+
+       for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = grids[mfi.index()];
+
+	   BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(state_old[mfi]),
 #ifdef TAU
-                 BL_TO_FORTRAN((*tau)[i]),
+		BL_TO_FORTRAN((*tau)[mfi]),
 #endif
-                 D_DECL(BL_TO_FORTRAN(coeffs[0][i]),
-                        BL_TO_FORTRAN(coeffs[1][i]),
-                        BL_TO_FORTRAN(coeffs[2][i])),
-                 dx_fine);
+		D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
+		       BL_TO_FORTRAN(coeffs[1][mfi]),
+		       BL_TO_FORTRAN(coeffs[2][mfi])),
+		dx_fine);
+       }
    }
 
    if (Geometry::isAnyPeriodic())
@@ -2250,13 +2331,19 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
       // Fill temperature at next coarser level, if it exists.
       const BoxArray& crse_grids = getLevel(level-1).boxArray();
       MultiFab CrseTemp(crse_grids,1,1,Fab_allocate);
-      for (FillPatchIterator fpi(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
-          fpi.isValid();
-          ++fpi)
-      {
-        CrseTemp[fpi].copy(fpi());
-      }
+      FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
       diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
+   }
+
+   // Extrapolate to ghost cells
+   if (TempDiffTerm.nGrow() > 0) {
+       for (MFIter mfi(TempDiffTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+	       (bx.loVect(), bx.hiVect(),
+		BL_TO_FORTRAN(TempDiffTerm[mfi]));
+       }
    }
 }
 #endif
@@ -2287,10 +2374,15 @@ Castro::reflux ()
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
 
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
@@ -2326,9 +2418,12 @@ Castro::avgDown ()
 void
 Castro::enforce_nonnegative_species (MultiFab& S_new)
 {
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.tilebox();
        BL_FORT_PROC_CALL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
            (BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
     }
@@ -2337,9 +2432,12 @@ Castro::enforce_nonnegative_species (MultiFab& S_new)
 void
 Castro::enforce_consistent_e (MultiFab& S)
 {
-    for (MFIter mfi(S); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
     {
-        const Box& box     = mfi.validbox();
+        const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
         BL_FORT_PROC_CALL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
@@ -2377,14 +2475,16 @@ Castro::avgDown (int state_indx)
 
     crse_fvolume.copy(volume);
 
-    for (MFIter mfi(S_fine); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif    
+    for (MFIter mfi(crse_S_fine,true); mfi.isValid(); ++mfi)
     {
-        const int        i        = mfi.index();
-        const Box&       ovlp     = crse_S_fine_BA[i];
-        FArrayBox&       crse_fab = crse_S_fine[i];
-        const FArrayBox& crse_vol = crse_fvolume[i];
-        const FArrayBox& fine_fab = S_fine[i];
-        const FArrayBox& fine_vol = fvolume[i];
+        const Box&       ovlp     = mfi.tilebox();
+        FArrayBox&       crse_fab = crse_S_fine[mfi];
+        const FArrayBox& crse_vol = crse_fvolume[mfi];
+        const FArrayBox& fine_fab = S_fine[mfi];
+        const FArrayBox& fine_vol = fvolume[mfi];
 
 	BL_FORT_PROC_CALL(CA_AVGDOWN,ca_avgdown)
             (BL_TO_FORTRAN(crse_fab), ncomp,
@@ -2424,7 +2524,6 @@ Castro::errorEst (TagBoxArray& tags,
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
-    Array<int>  itags;
 
     for (int j = 0; j < err_list.size(); j++)
     {
@@ -2432,38 +2531,99 @@ Castro::errorEst (TagBoxArray& tags,
 
         BL_ASSERT(!(mf == 0));
 
-        for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-        {
-            int         idx     = mfi.index();
-            RealBox     gridloc = RealBox(grids[idx],geom.CellSize(),geom.ProbLo());
-            itags               = tags[idx].tags();
-            int*        tptr    = itags.dataPtr();
-            const int*  tlo     = tags[idx].box().loVect();
-            const int*  thi     = tags[idx].box().hiVect();
-            const int*  lo      = mfi.validbox().loVect();
-            const int*  hi      = mfi.validbox().hiVect();
-            const Real* xlo     = gridloc.lo();
-            Real*       dat     = (*mf)[mfi].dataPtr();
-            const int*  dlo     = (*mf)[mfi].box().loVect();
-            const int*  dhi     = (*mf)[mfi].box().hiVect();
-            const int   ncomp   = (*mf)[mfi].nComp();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	{
+	    Array<int>  itags;
 
-            err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
-				  &clearval, dat, ARLIM(dlo), ARLIM(dhi),
-				  lo,hi, &ncomp, domain_lo, domain_hi,
-				  dx, xlo, prob_lo, &time, &level);
-            //
-            // Don't forget to set the tags in the TagBox.
-            //
-            if (allow_untagging == 1) 
-            {
-               tags[idx].tags_and_untags(itags);
-            } else {
-               tags[idx].tags(itags);
-            }
-        }
+	    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	    {
+		// FABs
+		FArrayBox&  datfab  = (*mf)[mfi];
+		TagBox&     tagfab  = tags[mfi];
+
+		// tile box
+		const Box&  tilebx  = mfi.tilebox();
+
+		// physical tile box
+		const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
+
+		//fab box
+		const Box&  datbox  = datfab.box();
+
+		// We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+		// So we are going to get a temporary integer array.
+		tagfab.get_itags(itags, tilebx);
+
+		// data pointer and index space
+		int*        tptr    = itags.dataPtr();
+		const int*  tlo     = tilebx.loVect();
+		const int*  thi     = tilebx.hiVect();
+		//
+		const int*  lo      = tlo;
+		const int*  hi      = thi;
+		//
+		const Real* xlo     = pbx.lo();
+		//
+		Real*       dat     = datfab.dataPtr();
+		const int*  dlo     = datbox.loVect();
+		const int*  dhi     = datbox.hiVect();
+		const int   ncomp   = datfab.nComp();
+		
+		err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
+				      &clearval, dat, ARLIM(dlo), ARLIM(dhi),
+				      lo,hi, &ncomp, domain_lo, domain_hi,
+				      dx, xlo, prob_lo, &time, &level);
+		//
+		// Now update the tags in the TagBox.
+		//
+                tagfab.tags_and_untags(itags, tilebx);
+	    }
+	}
 
         delete mf;
+    }
+
+    // Now we'll tag any user-specified zones using the full state array.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+        Array<int>  itags;
+
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	{
+	    // tile box
+	    const Box&  tilebx  = mfi.tilebox();
+
+            TagBox&     tagfab  = tags[mfi];
+
+	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+	    // So we are going to get a temporary integer array.
+	    tagfab.get_itags(itags, tilebx);
+
+            // data pointer and index space
+	    int*        tptr    = itags.dataPtr();
+	    const int*  tlo     = tilebx.loVect();
+	    const int*  thi     = tilebx.hiVect();
+	    
+	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
+	                     (tptr,  ARLIM(tlo), ARLIM(thi),
+			      BL_TO_FORTRAN(S_new[mfi]),
+			      &tagval, &clearval, 
+			      tilebx.loVect(), tilebx.hiVect(), 
+			      dx, prob_lo, &time, &level);
+
+	    //
+	    // Now update the tags in the TagBox.
+	    //
+            tagfab.tags_and_untags(itags, tilebx);
+	}
     }
 }
 
@@ -2520,47 +2680,6 @@ Castro::derive (const std::string& name,
 #endif
 
     AmrLevel::derive(name,time,mf,dcomp);
-}
-
-Real
-Castro::sumDerive (const std::string& name,
-                   Real           time)
-{
-    Real sum     = 0.0;
-    MultiFab* mf = derive(name, time, 0);
-
-    BL_ASSERT(!(mf == 0));
-
-    BoxArray baf;
-
-    if (level < parent->finestLevel())
-    {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
-    }
-
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0);
-            }
-        }
-
-        sum += fab.sum(0);
-    }
-
-    delete mf;
-
-    ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
 }
 
 //
@@ -2744,7 +2863,7 @@ Castro::SyncInterp (MultiFab&      CrseSync,
             if (interpolater == &protected_interp)
             {
               cdata.mult(dt_clev);
-              FArrayBox& fine_state = (*fine_stateMF)[i];
+              FArrayBox& fine_state = (*fine_stateMF)[mfi];
               interpolater->protect(cdata,0,fdata,0,fine_state,state_comp,
                                     num_comp,fgrids[i],ratio,
                                     cgeom,fgeom,bc_interp);
@@ -2752,11 +2871,11 @@ Castro::SyncInterp (MultiFab&      CrseSync,
               cdata.mult(dt_clev_inv);
             }
             
-            FineSync[i].plus(fdata,0,dest_comp,num_comp);
+            FineSync[mfi].plus(fdata,0,dest_comp,num_comp);
         }
         else
         {
-            FineSync[i].copy(fdata,0,dest_comp,num_comp);
+            FineSync[mfi].copy(fdata,0,dest_comp,num_comp);
         }
     }
 
@@ -2774,16 +2893,9 @@ Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
   // live in the probin
-  std::string probin_file = "probin";
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
-  }
-
-  ParmParse pp("amr");
-  if (pp.contains("probin_file"))
-  {
-    pp.get("probin_file",probin_file);
   }
 
   int probin_file_length = probin_file.length();
@@ -2791,7 +2903,6 @@ Castro::extern_init ()
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
-
 
   BL_FORT_PROC_CALL(CA_EXTERN_INIT,ca_extern_init) 
     (probin_file_name.dataPtr(),
@@ -2809,7 +2920,7 @@ Castro::reset_old_sgs(Real dt)
 
    for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
    {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.validbox();
 
        BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
            (BL_TO_FORTRAN(S_old[mfi]),
@@ -2829,7 +2940,7 @@ Castro::reset_new_sgs(Real dt)
 
    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
    {
-       const Box bx = mfi.validbox();
+       const Box& bx = mfi.validbox();
 
        BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
            (BL_TO_FORTRAN(S_new[mfi]),
@@ -2849,25 +2960,36 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum0 = volWgtSumMF(&S_new,Eden);
+        sum0 = volWgtSumMF(&S_new,Eden,true);
     }
 
     // Synchronize (rho e) and (rho E) so they are consistent with each other
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
 
         BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-            (BL_TO_FORTRAN(S_new[mfi]),
-             bx.loVect(), bx.hiVect(), print_fortran_warnings);
+	    (BL_TO_FORTRAN(S_new[mfi]),
+	     bx.loVect(), bx.hiVect(), print_fortran_warnings);
     }
 
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum = volWgtSumMF(&S_new,Eden);
+        sum = volWgtSumMF(&S_new,Eden,true);
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+	ParallelDescriptor::ReduceRealSum(sum0);
+	ParallelDescriptor::ReduceRealSum(sum);
         if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
             std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
+#ifdef BL_LAZY
+	});
+#endif
     }
 }
 
@@ -2882,8 +3004,11 @@ Castro::computeTemp(MultiFab& State)
 #else
     reset_internal_energy(State);
 
-    for (MFIter mfi(State); mfi.isValid(); ++mfi)
-    { const Box bx = mfi.validbox();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+    { const Box& bx = mfi.tilebox();
 	BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
 	  (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]));
     }
@@ -2917,19 +3042,19 @@ Castro::get_numpts ()
      int numpts_1d;
 
      Box bx(geom.Domain());
-     int nx = bx.size()[0];
+     long nx = bx.size()[0];
 
 #if (BL_SPACEDIM == 1)
      numpts_1d = nx;
 #elif (BL_SPACEDIM == 2)
-     int ny = bx.size()[1];
+     long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;  
 #elif (BL_SPACEDIM == 3)
-     int ny = bx.size()[1];
-     int nz = bx.size()[2];
+     long ny = bx.size()[1];
+     long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+8;  // 8 is 4 ghostcells on each end
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif 
 
      if (verbose && ParallelDescriptor::IOProcessor())
@@ -3059,10 +3184,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     int owner = mf.DistributionMap()[0];
 
     // Define a cube 3-on-a-side around the point with the maximum density
-    for (FillPatchIterator fpi(*this,mf,0,time,State_Type,Density,1); fpi.isValid(); ++fpi)
-    {
-        mf[fpi].copy(fpi());
-    }
+    FillPatch(*this,mf,0,time,State_Type,Density,1);
 
     int mi[BL_SPACEDIM];
     for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
@@ -3131,4 +3253,37 @@ Castro::getCPUTime()
     previousCPUTimeUsed;
 
   return T;
+}
+
+
+MultiFab*
+Castro::build_fine_mask()
+{
+    BL_ASSERT(level > 0); // because we are building a mask for the coarser level
+
+    if (fine_mask != 0) return fine_mask;
+
+    BoxArray baf = parent->boxArray(level);
+    baf.coarsen(crse_ratio);
+
+    const BoxArray& bac = parent->boxArray(level-1);
+    fine_mask = new MultiFab(bac,1,0);
+    fine_mask->setVal(1.0);
+    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(*fine_mask); mfi.isValid(); ++mfi)
+    {
+        FArrayBox& fab = (*fine_mask)[mfi];
+
+	std::vector< std::pair<int,Box> > isects = baf.intersections(fab.box());
+
+	for (int ii = 0; ii < isects.size(); ii++)
+	{
+	    fab.setVal(0.0,isects[ii].second,0);
+	}
+    }
+
+    return fine_mask;
 }

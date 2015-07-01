@@ -34,7 +34,7 @@ module eos_aux_data_module
   real(kind=dp_t), save :: eos_minrho, eos_maxrho
   real(kind=dp_t), save :: eos_mintemp, eos_maxtemp
   real(kind=dp_t), save :: eos_minye, eos_maxye
-  ! this is a convenience for grabbing the ye auxilliary variable
+  ! this is a convenience for grabbing the ye variable
   ! it should be initialized in eos_init
   integer, save :: iye_eos = -1
 
@@ -51,7 +51,7 @@ contains
    character(len=256), intent(in) :: eos_input_file
    logical, intent(in) :: use_energy_shift
 
-   integer(HID_T) :: file_id,dset_id,dspace_id
+   integer(HID_T) :: file_id,dset_id
    integer(HSIZE_T) :: dims1(1),dims3(3)
    integer :: error,total_error
 
@@ -400,6 +400,10 @@ contains
                         eos_logrho,eos_logtemp,eos_ye, &
                         eos_table(:,:,:,idpdrhoe), &
                         state%dpdr_e,derivs,err)
+    call tri_interpolate(rho,temp,ye,nrho,ntemp,nye, &
+                        eos_logrho,eos_logtemp,eos_ye, &
+                        eos_table(:,:,:,idpderho), &
+                        state%dpde,derivs,err)
     
   end subroutine table_lookup
 

@@ -1,6 +1,6 @@
-
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_error_module
   use probdata_module
   implicit none
 
@@ -10,20 +10,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ rho1, rho2, u1, u2, pres, L, vfac, vmode, &
-       dengrad, velgrad, idir, center
+  namelist /fortin/ rho1, rho2, u1, u2, pres, L, vfac, vmode, idir
 
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
-  integer maxlen
-  parameter (maxlen=256)
+  ! Build "probin" filename -- the name of file containing fortin namelist.
+  integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
-  end if
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -44,11 +37,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   idir     = 1
 
-  dengrad = 1.d20
-  velgrad = 1.d20
-
-  center = 0.5d0 * (problo + probhi)
-
   !     Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')
@@ -56,6 +44,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
 end subroutine PROBINIT
+
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -79,12 +68,13 @@ end subroutine PROBINIT
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-     state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-     delta,xlo,xhi)
+                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+                       delta,xlo,xhi)
+
   use probdata_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
-       UEINT, UFS, UTEMP, small_temp
+                                 UEINT, UFS, UTEMP, small_temp
 
   implicit none
 
@@ -120,109 +110,109 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
         do i = lo(1), hi(1)
            xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
-
+           
            if (idir == 1) then
               ! flow in x-direction; use z-direction as shear; perturb vy,vz
-
-               ! this assumes 0 <= z <= 1
-               ! McNally Eqns. 1 and 3
-               if (zcen < 0.25d0) then
-                  rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
-                  u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
-               else if (zcen < 0.5d0) then
-                  rho = smooth(rho2,rhom,0.25d0,L,-zcen)
-                  u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
-               else if (zcen < 0.75d0) then
-                  rho = smooth(rho2,rhom,-0.75d0,L,zcen)
-                  u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
-               else
-                  rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
-                  u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
-               end if
-
-               ! momentum field
-               state(i,j,k,UMX) = u * rho
-               state(i,j,k,UMY) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
-               state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
-
+              
+              ! this assumes 0 <= z <= 1
+              ! McNally Eqns. 1 and 3
+              if (zcen < 0.25d0) then
+                 rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
+                 u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
+              else if (zcen < 0.5d0) then
+                 rho = smooth(rho2,rhom,0.25d0,L,-zcen)
+                 u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
+              else if (zcen < 0.75d0) then
+                 rho = smooth(rho2,rhom,-0.75d0,L,zcen)
+                 u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
+              else
+                 rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
+                 u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
+              end if
+              
+              ! momentum field
+              state(i,j,k,UMX) = u * rho
+              state(i,j,k,UMY) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+              state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
+              
            else if (idir == 2) then
               ! flow in y-direction; use z-direction as shear; perturb vx,vz
 
-               ! this assumes 0 <= z <= 1
-               ! McNally Eqns. 1 and 3
-               if (zcen < 0.25d0) then
-                  rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
-                  u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
-               else if (zcen < 0.5d0) then
-                  rho = smooth(rho2,rhom,0.25d0,L,-zcen)
-                  u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
-               else if (zcen < 0.75d0) then
-                  rho = smooth(rho2,rhom,-0.75d0,L,zcen)
-                  u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
-               else
-                  rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
-                  u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
-               end if
-
-               ! momentum field
-               state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
-               state(i,j,k,UMY) = u * rho
-               state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
-
+              ! this assumes 0 <= z <= 1
+              ! McNally Eqns. 1 and 3
+              if (zcen < 0.25d0) then
+                 rho = smooth(rho1,-rhom,-0.25d0,L,zcen)
+                 u   = smooth(u1  ,-um  ,-0.25d0,L,zcen)
+              else if (zcen < 0.5d0) then
+                 rho = smooth(rho2,rhom,0.25d0,L,-zcen)
+                 u   = smooth(u2  ,um  ,0.25d0,L,-zcen)
+              else if (zcen < 0.75d0) then
+                 rho = smooth(rho2,rhom,-0.75d0,L,zcen)
+                 u   = smooth(u2  ,um  ,-0.75d0,L,zcen)
+              else
+                 rho = smooth(rho1,-rhom,0.75d0,L,-zcen)
+                 u   = smooth(u1  ,-um  ,0.75d0,L,-zcen)
+              end if
+              
+              ! momentum field
+              state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+              state(i,j,k,UMY) = u * rho
+              state(i,j,k,UMZ) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
+              
            else if (idir == 3) then
               ! flow in z-direction; use y-direction as shear; perturb vx,vy
-
-               ! this assumes 0 <= y <= 1
-               ! McNally Eqns. 1 and 3
-               if (ycen < 0.25d0) then
-                  rho = smooth(rho1,-rhom,-0.25d0,L,ycen)
-                  u   = smooth(u1  ,-um  ,-0.25d0,L,ycen)
-               else if (ycen < 0.5d0) then
-                  rho = smooth(rho2,rhom,0.25d0,L,-ycen)
-                  u   = smooth(u2  ,um  ,0.25d0,L,-ycen)
-               else if (ycen < 0.75d0) then
-                  rho = smooth(rho2,rhom,-0.75d0,L,ycen)
-                  u   = smooth(u2  ,um  ,-0.75d0,L,ycen)
-               else
-                  rho = smooth(rho1,-rhom,0.75d0,L,-ycen)
-                  u   = smooth(u1  ,-um  ,0.75d0,L,-ycen)
-               end if
-
-               ! momentum field
-               state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
-               state(i,j,k,UMY) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
-               state(i,j,k,UMZ) = u * rho
-
+              
+              ! this assumes 0 <= y <= 1
+              ! McNally Eqns. 1 and 3
+              if (ycen < 0.25d0) then
+                 rho = smooth(rho1,-rhom,-0.25d0,L,ycen)
+                 u   = smooth(u1  ,-um  ,-0.25d0,L,ycen)
+              else if (ycen < 0.5d0) then
+                 rho = smooth(rho2,rhom,0.25d0,L,-ycen)
+                 u   = smooth(u2  ,um  ,0.25d0,L,-ycen)
+              else if (ycen < 0.75d0) then
+                 rho = smooth(rho2,rhom,-0.75d0,L,ycen)
+                 u   = smooth(u2  ,um  ,-0.75d0,L,ycen)
+              else
+                 rho = smooth(rho1,-rhom,0.75d0,L,-ycen)
+                 u   = smooth(u1  ,-um  ,0.75d0,L,-ycen)
+              end if
+              
+              ! momentum field
+              state(i,j,k,UMX) = rho * vfac*cos(vmode*pi*xcen) ! out of phase
+              state(i,j,k,UMY) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq 5
+              state(i,j,k,UMZ) = u * rho
+              
            else
 
               call bl_abort("invalid idir")
            end if
 
-            ! The rest of the variables
-            state(i,j,k,URHO) = rho
-
-            eos_state % rho = rho
-            eos_state % p   = pres
-            eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1)
-            eos_state % T   = small_temp ! Initial guess for the EOS
-
-            ! Get the temperature and internal energy assuming fixed pressure
-            call eos(eos_input_rp, eos_state)
-            state(i,j,k,UEINT) = eos_state % e * rho
-            state(i,j,k,UTEMP) = eos_state % T
-               
+           ! The rest of the variables
+           state(i,j,k,URHO) = rho
+           
+           eos_state % rho = rho
+           eos_state % p   = pres
+           eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1)
+           eos_state % T   = small_temp ! Initial guess for the EOS
+           
+           ! Get the temperature and internal energy assuming fixed pressure
+           call eos(eos_input_rp, eos_state)
+           state(i,j,k,UEINT) = eos_state % e * rho
+           state(i,j,k,UTEMP) = eos_state % T
+           
            !  Total energy
            state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
                 0.5d0 * ( state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + &
-                state(i,j,k,UMZ)**2 ) / state(i,j,k,URHO)
+                          state(i,j,k,UMZ)**2 ) / state(i,j,k,URHO)
 
            ! Convert mass fractions to conserved quantity
            state(i,j,k,UFS:) = state(i,j,k,UFS:) * rho
-
+           
         enddo
      enddo
   enddo
-
+  
 contains
   function smooth(a,b,offset,L,pos) result(r)
     ! this is the general form of the smooth function in McNally+ Eq 1 or 3
@@ -237,7 +227,7 @@ end subroutine ca_initdata
 ! ::: -----------------------------------------------------------
 
 subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-     domlo,domhi,delta,xlo,time,bc)
+                      domlo,domhi,delta,xlo,time,bc)
 
   use meth_params_module, only : NVAR
 
@@ -261,7 +251,7 @@ end subroutine ca_hypfill
 ! ::: -----------------------------------------------------------
 
 subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-     domlo,domhi,delta,xlo,time,bc)
+                      domlo,domhi,delta,xlo,time,bc)
 
   implicit none
   integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3

@@ -19,17 +19,19 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
-                    E_added_flux,E_added_grav)
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+                    xmom_added_grav,ymom_added_grav,zmom_added_grav,&
+                    xmom_added_rot,ymom_added_rot,zmom_added_rot,&
+                    xmom_added_sponge,ymom_added_sponge,zmom_added_sponge,&
+                    E_added_rot,E_added_flux,E_added_grav,E_added_sponge)
 
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
-                                 normalize_species
+                                 normalize_species, do_grav, do_rotation
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
-                               normalize_new_species
+       normalize_new_species
   use sponge_module, only : sponge
   use grav_sources_module, only : add_grav_source
-
-  ! This is used for IsoTurb only
-  ! use probdata_module   , only : radiative_cooling_type
+  use rot_sources_module, only : add_rot_source, fill_rotation_field
 
   implicit none
 
@@ -64,8 +66,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot,E_added_sponge
   double precision mass_added,eint_added,eden_added
+  double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
+  double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
+  double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
+  double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:,:)
@@ -76,43 +82,67 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, allocatable:: div(:,:,:)
   double precision, allocatable:: pdivu(:,:,:)
   double precision, allocatable:: srcQ(:,:,:,:)
+  double precision, allocatable:: rot(:,:,:,:)
   
   double precision dx,dy,dz
   integer ngq,ngf
-  
-  allocate(     q(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,QVAR))
-  allocate(  gamc(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate( flatn(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(     c(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
-  allocate(  csml(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3))
+  integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
+
+  ngq = NHYP
+  ngf = 1
+    
+  q_l1 = lo(1)-NHYP
+  q_l2 = lo(2)-NHYP
+  q_l3 = lo(3)-NHYP
+  q_h1 = hi(1)+NHYP
+  q_h2 = hi(2)+NHYP
+  q_h3 = hi(3)+NHYP
+
+  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR))
+  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
   allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
-  allocate(  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR))
+  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
+  allocate(   rot(lo(1)-ngq:hi(1)+ngq,lo(2)-ngq:hi(2)+ngq,lo(3)-ngq:hi(3)+ngq,QVAR))
   
   dx = delta(1)
   dy = delta(2)
   dz = delta(3)
-  
-  ngq = NHYP
-  ngf = 1
-  
+
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
   !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
   !    and set to correspond to coordinates of (lo:hi)
   ! 3) Translate source terms
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               src,srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+               q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+               src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
+  ! Compute the rotation field, which depends on position and velocity
+
+  if (do_rotation .eq. 1) then
+     
+     call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq, &
+                              hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
+                              q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+                              lo,hi,delta)
+
+  else
+     rot = 0.d0
+  endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d(q,c,gamc,csml,flatn,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+  call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+               rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq,hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -123,7 +153,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                pdivu, domlo, domhi)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+  call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
             dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
 
   ! Conservative update
@@ -137,7 +167,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
               area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
               vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-              div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
+              div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux,&
+              xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
   ! Add the radiative cooling -- for SGS only.
   ! if (radiative_cooling_type.eq.2) then
@@ -149,7 +180,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
                                uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                lo,hi,mass_added,eint_added,eden_added,verbose)
-  
+
   ! Enforce species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                                       uout_h1,uout_h2,uout_h3,lo,hi)
@@ -160,19 +191,30 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                 lo,hi)
   end if
 
-  call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                       grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                       lo,hi,dt,E_added_grav)
-  
+  if (do_grav .eq. 1) then
+     call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                          grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                          lo,hi,dt,E_added_grav,&
+                          xmom_added_grav,ymom_added_grav,zmom_added_grav)
+  endif
+
+  if (do_rotation .eq. 1) then
+     call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+                         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                         lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
+                         xmom_added_rot,ymom_added_rot,zmom_added_rot)
+  endif
+
   ! Impose sponge
   if (do_sponge .eq. 1) then
      call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
                  time,dt, &
-                 dx,dy,dz,domlo,domhi)
+                 dx,dy,dz,domlo,domhi, &
+                 E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
 
-  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu)
+  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu,rot)
 
 end subroutine ca_umdrv
 
@@ -222,10 +264,8 @@ end subroutine ca_check_initial_species
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
 ! ::  nvar	 => number of components in arrays
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -254,13 +294,7 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
   double precision fv(fv_l1:fv_h1,fv_l2:fv_h2,fv_l3:fv_h3)
   
   integer i, j, k, n, ic, jc, kc, ioff, joff, koff
-  integer lratx, lraty, lratz
   double precision   volfrac
-  
-  lratx   = lrat(1)
-  lraty   = lrat(2)
-  lratz   = lrat(3)
-  volfrac = ONE/float(lrat(1)*lrat(2)*lrat(3))
   
   do n = 1, nvar
      !
@@ -276,28 +310,26 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
      !
      ! Sum fine data.
      !
-     do koff = 0, lratz-1
-        !$OMP PARALLEL DO PRIVATE(i,j,k,ic,jc,kc,ioff,joff)
+     do koff = 0, lrat(3)-1
         do kc = lo(3),hi(3)
-           k = kc*lratz + koff
-           do joff = 0, lraty-1
+           k = kc*lrat(3) + koff
+           do joff = 0, lrat(2)-1
               do jc = lo(2), hi(2)
-                 j = jc*lraty + joff
-                 do ioff = 0, lratx-1
+                 j = jc*lrat(2) + joff
+                 do ioff = 0, lrat(1)-1
                     do ic = lo(1), hi(1)
-                       i = ic*lratx + ioff
+                       i = ic*lrat(1) + ioff
                        crse(ic,jc,kc,n) = crse(ic,jc,kc,n) + fine(i,j,k,n)
                     enddo
                  enddo
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
      enddo
      !
      ! Divide out by volume weight.
      !
-     !$OMP PARALLEL DO PRIVATE(ic,jc,kc)
+     volfrac = ONE/dble(lrat(1)*lrat(2)*lrat(3))
      do kc = lo(3), hi(3)
         do jc = lo(2), hi(2)
            do ic = lo(1), hi(1)
@@ -305,7 +337,6 @@ subroutine ca_avgdown(crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,nvar, &
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO
      
   enddo
 
@@ -321,7 +352,7 @@ subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
                                problo,numpts_1d)
   
   use meth_params_module, only : URHO, UMX, UMY, UMZ
-  use probdata_module
+  use prob_params_module, only : center
   use bl_constants_module
 
   implicit none
@@ -395,11 +426,11 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   use bl_constants_module
   
   implicit none
-
+  
   integer          :: lo(3), hi(3)
   integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
   double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-
+  
   ! Local variables
   integer          :: i,j,k,n
   integer          :: int_dom_spec
@@ -408,7 +439,6 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   
   double precision, parameter :: eps = -1.0d-16
   
-  !$OMP PARALLEL DO PRIVATE(i,j,k,n,dom_spec,int_dom_spec,any_negative,x)
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -488,8 +518,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
         enddo
      enddo
   enddo
-  !$OMP END PARALLEL DO
-
+  
 end subroutine ca_enforce_nonnegative_species
 
 ! :::
@@ -498,7 +527,7 @@ end subroutine ca_enforce_nonnegative_species
 
 subroutine get_center(center_out)
 
-  use probdata_module, only : center
+  use prob_params_module, only : center
   
   implicit none
   
@@ -514,7 +543,7 @@ end subroutine get_center
 
 subroutine set_center(center_in)
   
-  use probdata_module, only : center
+  use prob_params_module, only : center
   
   implicit none
   

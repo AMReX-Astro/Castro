@@ -7,7 +7,8 @@ subroutine reset_internal_e(u,u_l1,u_l2,u_h1,u_h2,lo,hi,verbose)
   use eos_module
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, &
-                                 small_temp, allow_negative_energy
+                                 small_temp, allow_negative_energy, dual_energy_eta2, &
+                                 dual_energy_update_E_from_e
   use bl_constants_module
 
   implicit none
@@ -37,14 +38,14 @@ subroutine reset_internal_e(u,u_l1,u_l2,u_h1,u_h2,lo,hi,verbose)
 
            rho_eint = u(i,j,UEDEN) - ke
 
-           if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,UEDEN) .gt. 1.d-4) then
+           if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,UEDEN) .gt. dual_energy_eta2) then
               ! Reset (rho e) if e is greater than 0.01% of E -- this
               ! is the conservative (and normal) method, i.e. we rely
               ! on the total E
 
                u(i,j,UEINT) = rho_eint
 
-            else if (u(i,j,UEINT) .gt. ZERO) then
+            else if (u(i,j,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e) then
               ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
                
                u(i,j,UEDEN) = u(i,j,UEINT) + ke

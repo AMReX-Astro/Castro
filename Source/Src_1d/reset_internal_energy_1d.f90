@@ -6,7 +6,8 @@
 
       use eos_module
       use network, only : nspec, naux
-      use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, small_temp, allow_negative_energy
+      use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, small_temp, allow_negative_energy, &
+                                     dual_energy_eta2, dual_energy_update_E_from_e
       use bl_constants_module
 
       implicit none
@@ -32,12 +33,12 @@
             rho_eint = u(i,UEDEN) - u(i,URHO) * ke
    
             ! Reset (rho e) if e is greater than 0.01% of E.
-            if (rho_eint .gt. ZERO .and. rho_eint / u(i,UEDEN) .gt. 1.d-4) then
+            if (rho_eint .gt. ZERO .and. rho_eint / u(i,UEDEN) .gt. dual_energy_eta2) then
    
                 u(i,UEINT) = rho_eint
    
             ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-            else if (u(i,UEINT) .gt. ZERO) then
+            else if (u(i,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e) then
 
                u(i,UEDEN) = u(i,UEINT) + u(i,URHO) * ke
 

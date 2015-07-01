@@ -6,10 +6,7 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -33,12 +30,8 @@
       double precision fine(f_l1:f_h1,f_l2:f_h2)
 
       integer i, j, ic, jc, ioff, joff
-      integer lratx, lraty
       double precision volfrac
 
-      lratx = lrat(1)
-      lraty = lrat(2)
-      volfrac = ONE/float(lrat(1)*lrat(2))
 !
 !     ::::: set coarse grid to zero on overlap
 !
@@ -50,18 +43,19 @@
 !
 !         ::::: sum fine data
 !
-      do joff = 0, lraty-1
+      do joff = 0, lrat(2)-1
          do jc = lo(2), hi(2)
-            j = jc*lraty + joff
-            do ioff = 0, lratx-1
+            j = jc*lrat(2) + joff
+            do ioff = 0, lrat(1)-1
                do ic = lo(1), hi(1)
-                  i = ic*lratx + ioff
+                  i = ic*lrat(1) + ioff
                   crse(ic,jc) = crse(ic,jc) + fine(i,j)
                enddo
             enddo
          enddo
       enddo
 
+      volfrac = ONE/dble(lrat(1)*lrat(2))
       do ic = lo(1), hi(1)
          do jc = lo(2), hi(2)
             crse(ic,jc) = volfrac*crse(ic,jc)
@@ -234,27 +228,6 @@
 
       end if
 
-
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do j=lo(2),hi(2)
-         do i=lo(1),-1
-            cc(i,j,1) = -cc(-i-1,j,1)
-            cc(i,j,2) =  cc(-i-1,j,2)
-         enddo
-         enddo
-      endif
-
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl2 .lt. 0 .and. bc_lo(2) .eq. symmetry_type) then
-         do i=lo(1),hi(1)
-         do j=lo(2),-1
-            cc(i,j,1) =  cc(i,-j-1,1)
-            cc(i,j,2) = -cc(i,-j-1,2)
-         enddo
-         enddo
-      endif
-
       end subroutine ca_avg_ec_to_cc
 
 ! ::
@@ -329,50 +302,46 @@
 ! ::
 
       subroutine ca_average_ec ( &
-           fx, fxl1, fxl2, fxh1, fxh2, &
-           fy, fyl1, fyl2, fyh1, fyh2, &
-           cx, cxl1, cxl2, cxh1, cxh2, &
-           cy, cyl1, cyl2, cyh1, cyh2, &
-           lo, hi, rr)
+           f, fl1, fl2, fh1, fh2, &
+           c, cl1, cl2, ch1, ch2, &
+           lo, hi, rr, idir)
 
       use bl_constants_module
       
       implicit none
 
       integer lo(2),hi(2)
-      integer fxl1, fxl2, fxh1, fxh2
-      integer fyl1, fyl2, fyh1, fyh2
-      integer cxl1, cxl2, cxh1, cxh2
-      integer cyl1, cyl2, cyh1, cyh2
-      double precision fx(fxl1:fxh1,fxl2:fxh2)
-      double precision fy(fyl1:fyh1,fyl2:fyh2)
-      double precision cx(cxl1:cxh1,cxl2:cxh2)
-      double precision cy(cyl1:cyh1,cyl2:cyh2)
-      integer rr(2)
+      integer fl1, fl2, fh1, fh2
+      integer cl1, cl2, ch1, ch2
+      double precision f(fl1:fh1,fl2:fh2)
+      double precision c(cl1:ch1,cl2:ch2)
+      integer rr(2), idir
       integer i,j,n,facx,facy
 
       facx = rr(1)
       facy = rr(2)
 
-      do j = lo(2), hi(2)
-         do i = lo(1), hi(1)+1
-            cx(i,j) = ZERO
-            do n = 0,facy-1
-              cx(i,j) = cx(i,j) + fx(facx*i,facy*j+n)
+      if (idir .eq. 0) then
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               c(i,j) = ZERO
+               do n = 0,facy-1
+                  c(i,j) = c(i,j) + f(facx*i,facy*j+n)
+               end do
+               c(i,j) = c(i,j) / facy
             end do
-            cx(i,j) = cx(i,j) / facy
          end do
-      end do
-
-      do i = lo(1), hi(1)
-         do j = lo(2), hi(2)+1
-            cy(i,j) = ZERO
-            do n = 0,facx-1
-              cy(i,j) = cy(i,j) + fy(facx*i+n,facy*j)
+      else 
+         do i = lo(1), hi(1)
+            do j = lo(2), hi(2)
+               c(i,j) = ZERO
+               do n = 0,facx-1
+                  c(i,j) = c(i,j) + f(facx*i+n,facy*j)
+               end do
+               c(i,j) = c(i,j) / facx
             end do
-            cy(i,j) = cy(i,j) / facx
          end do
-      end do
+      end if
 !
       end subroutine ca_average_ec
 
@@ -384,7 +353,7 @@
                                     rho,r_l1,r_l2,r_h1,r_h2, &
                                     radial_den,radial_vol,problo, &
                                     n1d,drdxfac,level)
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -467,7 +436,7 @@
                                          radial_mass,radial_vol,problo, &
                                          n1d,drdxfac,level)
       use bl_constants_module
-      use probdata_module
+      use prob_params_module, only: center
 
       implicit none
 
@@ -556,7 +525,7 @@
                                      grav,g_l1,g_l2,g_h1,g_h2, &
                                      radial_grav,problo,n1d,level)
 
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -577,9 +546,9 @@
       ! Note that we are interpolating onto the entire range of grav,
       ! including the ghost cells
 
-      do j = g_l2,g_h2
+      do j = lo(2), hi(2)
          y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
-         do i = g_l1,g_h1
+         do i = lo(1), hi(1)
             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
             r = sqrt( x**2 + y**2)
             index = int(r/dr)
@@ -637,7 +606,7 @@
                                     radial_phi,problo, &
                                     numpts_1d,fill_interior)
 
-      use probdata_module
+      use prob_params_module, only: center
       use bl_constants_module
 
       implicit none
@@ -660,7 +629,7 @@
       ! Note that when we interpolate into the ghost cells we use the
       ! location of the edge, not the cell center
 
-      do j = p_l2,p_h2
+      do j = lo(2), hi(2)
          if (j .gt. domhi(2)) then
             y = problo(2) + (dble(j  )     ) * dx(2) - center(2)
          else if (j .lt. domlo(2)) then
@@ -668,7 +637,7 @@
          else 
             y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
          end if
-         do i = p_l1,p_h1
+         do i = lo(1), hi(1)
             if (i .gt. domhi(1)) then
                x = problo(1) + (dble(i  )     ) * dx(1) - center(1)
             else if (i .lt. domlo(1)) then

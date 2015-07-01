@@ -1,8 +1,10 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_error_module
   use probdata_module
   use eos_module
   use meth_params_module, only: small_temp
+  use prob_params_module, only : center
   use network, only : nspec
   implicit none 
 
@@ -16,9 +18,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ &
        rho_0, r_0, p_0, rho_ambient, smooth_delta, &
-       denerr, dengrad, max_denerr_lev, max_dengrad_lev, &
-       velerr, velgrad, max_velerr_lev, max_velgrad_lev, &
-       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
        center_x, center_y, center_z
 
 !
@@ -27,10 +26,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer, parameter :: maxlen = 127
   character :: probin*(maxlen)
 
-  if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
-  end if
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -38,18 +34,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
 ! set namelist defaults
 
-  dengrad = 1.d20
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-  
-  presserr = 1.d20
-  pressgrad = 1.d20
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
-  velgrad = 1.d20
-  max_velgrad_lev = -1
-  
   rho_0 = 1.d9
   r_0 = 6.5d8
   p_0 = 1.d10
@@ -66,10 +50,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = 0.0d0
 
   xmin = problo(1)
-  if (xmin /= 0.d0) then
-     print *, 'ERROR: xmin should be 0!'
-     stop
-  endif
+  if (xmin /= 0.d0) call bl_error("ERROR: xmin should be 0!")
+
 
   xmax = probhi(1)
 
@@ -128,7 +110,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
-  
+  use prob_params_module, only : center
+
   implicit none
   
   integer          :: level, nscal

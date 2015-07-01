@@ -1,0 +1,4 @@
+This is a co-rotating vortices test problem. The configuration 
+comes from Lee and Koo, 1995 AIAA Journal 33, 1.
+Some data is missing there, for instance, the radii of the
+vortices or the distance between vortex centers.

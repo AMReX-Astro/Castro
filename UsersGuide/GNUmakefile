@@ -1,11 +1,8 @@
 EPStoPDF = epstopdf
 
-ALL: CastroUserGuide.ps CastroUserGuide.pdf 
+ALL: CastroUserGuide.pdf 
 
-eps_source = $(wildcard *.eps) \
-             $(wildcard ConvertCheckpoint/*.eps) \
-             $(wildcard Scaling/*.eps) \
-             $(wildcard CastroVerification/*.eps)
+eps_source = $(wildcard *.eps) $(wildcard */*.eps)
 
 pdf_source = $(eps_source:.eps=.pdf)
 
@@ -15,6 +12,7 @@ section_sources = Introduction/CastroIntroduction.tex \
                   UnitsAndConstants/CastroUnits.tex \
                   Equations/Equations.tex \
 	          Gravity/CastroGravity.tex \
+	          Diffusion/CastroDiffusion.tex \
 	          FlowChart/FlowChart.tex \
                   LevelSet/LevelSet.tex \
                   AMR/AMR.tex \
@@ -23,6 +21,7 @@ section_sources = Introduction/CastroIntroduction.tex \
                   Visualization/CastroVisualization.tex \
                   Software/CastroSoftware.tex \
                   CastroVerification/Verification.tex \
+                  Parallel/Parallel.tex \
                   Scaling/Scaling.tex \
                   Suggestions/Suggestions.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
@@ -33,12 +32,10 @@ CastroUserGuide.dvi: CastroUserGuide.tex $(eps_source) $(section_sources) $(eps_
 	bibtex CastroUserGuide
 	latex CastroUserGuide.tex < /dev/null
 	latex CastroUserGuide.tex < /dev/null
-	latex CastroUserGuide.tex < /dev/null
 
 CastroUserGuide.pdf: CastroUserGuide.tex $(pdf_source) $(section_sources) $(pdf_source)
 	pdflatex CastroUserGuide.tex < /dev/null
 	bibtex CastroUserGuide
-	pdflatex CastroUserGuide.tex < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 
@@ -54,6 +51,7 @@ clean:
 	$(RM) $(pdf_source) CastroUserGuide.dvi
 	$(RM) CastroUserGuide.blg CastroUserGuide.log CastroUserGuide.toc
 	$(RM) CastroUserGuide.aux CastroUserGuide.ps CastroUserGuide.bbl CastroUserGuide.pdf
+	$(RM) CastroUserGuide.lot CastroUserGuide.lof CastroUsetGuide.out
 	$(RM) *~
 
 .PHONY: clean

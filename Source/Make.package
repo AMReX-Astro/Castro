@@ -14,6 +14,7 @@ CEXE_headers += Problem_Derives.H
 
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
+CEXE_sources += Prob.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Problem_F.H
@@ -23,6 +24,7 @@ f90EXE_sources += Castro_nd.f90
 f90EXE_sources += Problem.f90
 f90EXE_sources += meth_params.f90
 f90EXE_sources += prob_params.f90
+f90EXE_sources += tagging_params.f90
 f90EXE_sources += interpolate.f90
 
 ifeq ($(USE_REACT), TRUE)
@@ -44,8 +46,4 @@ ifeq ($(USE_DIFFUSION), TRUE)
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
 CEXE_headers += Diffusion.H
-endif
-
-ifeq ($(USE_ROTATION), TRUE)
-CEXE_sources += Castro_rotation.cpp
 endif

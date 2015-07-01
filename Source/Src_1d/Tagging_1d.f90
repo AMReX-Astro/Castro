@@ -5,7 +5,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: var       => array of data
@@ -13,7 +13,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -23,7 +23,7 @@
                                  var,varl1,varh1, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer          :: set, clear, nd, level
@@ -36,8 +36,8 @@
       integer          :: i
 
       double precision :: error, num, denom
-      double precision ::  delu(varl1:varh1)
-      double precision :: delua(varl1:varh1)
+      double precision ::  delu(lo(1)-1:hi(1)+1)
+      double precision :: delua(lo(1)-1:hi(1)+1)
       double precision :: delu2, delu3, delu4
 
       double precision, parameter :: ctore=0.8
@@ -76,7 +76,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: den       => density array
@@ -84,7 +84,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -94,7 +94,7 @@
                              den,denl1,denh1, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -136,7 +136,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: temp      => temperature array
@@ -144,7 +144,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -155,7 +155,7 @@
                               temp,templ1,temph1,&
                               lo,hi,nd,domlo,domhi, &
                               delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -194,7 +194,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: press     => pressure array
@@ -202,7 +202,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -211,7 +211,7 @@
                                press,pressl1,pressh1, &
                                lo,hi,np,domlo,domhi, &
                                delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, np, level
       integer tagl1,tagh1
@@ -252,7 +252,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: vel       => velocity array
@@ -260,7 +260,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -270,7 +270,7 @@
                              vel,vell1,velh1, &
                              lo,hi,nv,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, nv, level
       integer tagl1,tagh1
@@ -304,7 +304,7 @@
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of tag array
+! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
 ! ::: rad       => radiation array
@@ -312,7 +312,7 @@
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::              corner of tag array
+! :::              corner of work region
 ! ::: problo    => phys loc of lower left corner of prob domain
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
@@ -322,7 +322,7 @@
                              rad,radl1,radh1, &
                              lo,hi,nr,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
       integer set, clear, nr, level
       integer tagl1,tagh1

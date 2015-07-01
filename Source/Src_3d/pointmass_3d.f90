@@ -4,12 +4,13 @@
        subroutine pm_add_to_grav(point_mass,&
                                  grav,grav_l1,grav_l2,grav_l3, &
                                       grav_h1,grav_h2,grav_h3, &
-                                 problo,dx)
+                                 problo,dx,lo,hi)
 
        use fundamental_constants_module, only : Gconst
-       use probdata_module             , only : center
+       use prob_params_module          , only : center
 
        implicit none
+       integer         , intent(in   ) :: lo(3), hi(3)
        integer         , intent(in   ) :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
        double precision, intent(in   ) :: point_mass
        double precision, intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3,3)
@@ -19,11 +20,11 @@
        double precision :: x,y,z,r,rsq,radial_force
 
 !      This computes radial gravity due to a point mass at center().
-       do k = grav_l3, grav_h3
+       do k = lo(3), hi(3)
           z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
-          do j = grav_l2, grav_h2
+          do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
-             do i = grav_l1, grav_h1
+             do i = lo(1), hi(1)
                 x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
 
                 rsq = x*x + y*y + z*z
@@ -51,7 +52,7 @@
            problo,dx,time,dt) 
 
       use meth_params_module, only : NVAR, URHO
-       use probdata_module  , only : center
+      use prob_params_module, only : center
 
       implicit none
 
@@ -101,8 +102,6 @@
       end do
       end do
 
-      delta_mass = max(ZERO, delta_mass)
-
       end subroutine pm_compute_delta_mass
 
 ! ::: 
@@ -115,7 +114,7 @@
            problo,dx,time,dt) 
 
       use meth_params_module, only : NVAR
-      use probdata_module   , only : center
+      use prob_params_module, only : center
 
       implicit none
 

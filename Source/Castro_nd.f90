@@ -257,20 +257,23 @@
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
-                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, &
+                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, small_ener_in, &
                                    allow_negative_energy_in, &
                                    ppm_type_in,ppm_reference_in, &
-                                   ppm_trace_grav_in, ppm_temp_fix_in, &
-                                   ppm_tau_in_tracing_in, ppm_reference_edge_limit_in, &
+                                   ppm_trace_grav_in, ppm_trace_rot_in, ppm_temp_fix_in, &
+                                   ppm_tau_in_tracing_in, ppm_predict_gammae_in, &
+                                   ppm_reference_edge_limit_in, &
                                    ppm_flatten_before_integrals_in, &
                                    ppm_reference_eigenvectors_in, &
-                                   use_colglaz_in, use_flattening_in, &
+                                   hybrid_riemann_in, use_colglaz_in, use_flattening_in, &
                                    transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in, &
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
-                                   grav_source_type_in, &
+                                   do_grav_in, grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   rot_period_in, const_grav_in, do_acc_in)
+                                   dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
+                                   do_rotation_in, rot_source_type_in, rot_axis_in, rot_period_in, &
+                                   const_grav_in, deterministic_in, do_acc_in)
 !                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
@@ -286,23 +289,29 @@
         integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux
         integer, intent(in) :: numadv
         integer, intent(in) :: allow_negative_energy_in, ppm_type_in
-        integer, intent(in) :: ppm_reference_in, ppm_trace_grav_in, ppm_temp_fix_in
-        integer, intent(in) :: ppm_tau_in_tracing_in, ppm_reference_edge_limit_in
+        integer, intent(in) :: ppm_reference_in, ppm_trace_grav_in, ppm_trace_rot_in, ppm_temp_fix_in
+        integer, intent(in) :: ppm_tau_in_tracing_in, ppm_predict_gammae_in
+        integer, intent(in) :: ppm_reference_edge_limit_in
         integer, intent(in) :: ppm_flatten_before_integrals_in
         integer, intent(in) :: ppm_reference_eigenvectors_in
-        integer, intent(in) :: use_colglaz_in, use_flattening_in
+        integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
-        integer, intent(in) :: use_pslope_in, grav_source_type_in
+        integer, intent(in) :: dual_energy_update_E_from_e_in
+        double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in
+        integer, intent(in) :: use_pslope_in
+        integer, intent(in) :: do_grav_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
         double precision, intent(in) :: difmag_in
-        double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in
+        double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in, small_ener_in
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: rot_period_in, const_grav_in
-        integer :: do_acc_in
+        integer, intent(in) :: do_acc_in
+        integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
+        integer, intent(in) :: deterministic_in
         integer :: iadv, ispec
 
         integer             :: QLAST
@@ -448,37 +457,54 @@
           small_pres = 1.d-8
         end if
 
+        if (small_ener_in > 0.d0) then
+           small_ener = small_ener_in
+        else
+           small_ener = 1.d-8
+        endif
+
         call eos_init(small_dens=small_dens_in, small_temp=small_temp_in)
 
         call eos_get_small_dens(small_dens)
         call eos_get_small_temp(small_temp)
 
-        allow_negative_energy      = allow_negative_energy_in
-        ppm_type                   = ppm_type_in
-        ppm_reference              = ppm_reference_in
-        ppm_trace_grav             = ppm_trace_grav_in
-        ppm_temp_fix               = ppm_temp_fix_in
-        ppm_tau_in_tracing         = ppm_tau_in_tracing_in
-        ppm_reference_edge_limit   = ppm_reference_edge_limit_in
+        allow_negative_energy        = allow_negative_energy_in
+        ppm_type                     = ppm_type_in
+        ppm_reference                = ppm_reference_in
+        ppm_trace_grav               = ppm_trace_grav_in
+        ppm_temp_fix                 = ppm_temp_fix_in
+        ppm_tau_in_tracing           = ppm_tau_in_tracing_in
+        ppm_predict_gammae           = ppm_predict_gammae_in
+        ppm_reference_edge_limit     = ppm_reference_edge_limit_in
         ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
-        ppm_reference_eigenvectors = ppm_reference_eigenvectors_in
-        use_colglaz                = use_colglaz_in
-        use_flattening             = use_flattening_in
-        transverse_use_eos         = transverse_use_eos_in
-        transverse_reset_density   = transverse_reset_density_in
-        transverse_reset_rhoe      = transverse_reset_rhoe_in
 
-        cg_tol                     = cg_tol_in
-        cg_maxiter                 = cg_maxiter_in
-        use_pslope                 = use_pslope_in
-        grav_source_type           = grav_source_type_in
-        do_sponge                  = do_sponge_in
-        normalize_species          = normalize_species_in
-        fix_mass_flux              = fix_mass_flux_in
-        rot_period                 = rot_period_in
-        const_grav                 = const_grav_in
+        ppm_reference_eigenvectors   = ppm_reference_eigenvectors_in
+        hybrid_riemann               = hybrid_riemann_in
+        use_colglaz                  = use_colglaz_in
+        use_flattening               = use_flattening_in
+        transverse_use_eos           = transverse_use_eos_in
+        transverse_reset_density     = transverse_reset_density_in
+        transverse_reset_rhoe        = transverse_reset_rhoe_in
 
-        do_acc                     = do_acc_in
+        cg_tol                       = cg_tol_in
+        cg_maxiter                   = cg_maxiter_in
+        use_pslope                   = use_pslope_in
+        do_grav                      = do_grav_in
+        grav_source_type             = grav_source_type_in
+        do_sponge                    = do_sponge_in
+        normalize_species            = normalize_species_in
+        fix_mass_flux                = fix_mass_flux_in
+        do_rotation                  = do_rotation_in
+        rot_period                   = rot_period_in
+        rot_source_type              = rot_source_type_in
+        rot_axis                     = rot_axis_in
+        const_grav                   = const_grav_in
+        deterministic                = deterministic_in .ne. 0
+        do_acc                       = do_acc_in
+
+        dual_energy_eta1             = dual_energy_eta1_in
+        dual_energy_eta2             = dual_energy_eta2_in
+        dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
 !       allocate(outflow_bc_lo(dm))
 !       allocate(outflow_bc_hi(dm))
@@ -496,11 +522,13 @@
 ! ::: 
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                    Outflow_in,Symmetry_in,SlipWall_in,NoSlipWall_in, &
-                                    coord_type_in)
+                                    Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                    coord_type_in, &
+                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in, center_in)
 
         ! Passing data from C++ into f90
 
+        use bl_constants_module, only: ZERO
         use prob_params_module
 
         implicit none 
@@ -509,6 +537,8 @@
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
+        double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
+        double precision, intent(in) :: center_in(dm)
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))
@@ -523,6 +553,17 @@
 
         coord_type = coord_type_in
 
+        problo(1) = xmin_in
+        problo(2) = ymin_in
+        problo(3) = zmin_in
+
+        probhi(1) = xmax_in
+        probhi(2) = ymax_in
+        probhi(3) = zmax_in
+
+        center       = ZERO
+        center(1:dm) = center_in(1:dm)
+
       end subroutine set_problem_params
 
 ! ::: 
@@ -530,7 +571,92 @@
 ! ::: 
 
       subroutine ca_set_special_tagging_flag(dummy,flag) 
-      use probdata_module
       double precision :: dummy 
       integer          :: flag
       end subroutine ca_set_special_tagging_flag
+
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
+
+      subroutine get_tagging_params(name, namlen)
+
+        use tagging_params_module
+
+        ! Initialize the tagging parameters
+
+        integer :: namlen
+        integer :: name(namlen)
+        
+        integer :: un, i, status
+
+        integer, parameter :: maxlen = 256
+        character (len=maxlen) :: probin
+
+        namelist /tagging/ &
+           denerr,     dengrad,   max_denerr_lev,   max_dengrad_lev, &
+           enterr,     entgrad,   max_enterr_lev,   max_entgrad_lev, &
+           velerr,     velgrad,   max_velerr_lev,   max_velgrad_lev, &
+           presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
+           temperr,   tempgrad,  max_temperr_lev,  max_tempgrad_lev, &
+           raderr,     radgrad,   max_raderr_lev,   max_radgrad_lev
+
+        ! Set namelist defaults
+        denerr = 1.d20
+        dengrad = 1.d20
+        max_denerr_lev = 10
+        max_dengrad_lev = 10
+
+        enterr = 1.d20
+        entgrad = 1.d20
+        max_enterr_lev = -1
+        max_entgrad_lev = -1
+
+        presserr = 1.d20
+        pressgrad = 1.d20
+        max_presserr_lev = -1
+        max_pressgrad_lev = -1
+
+        velerr  = 1.d20
+        velgrad = 1.d20
+        max_velerr_lev = -1
+        max_velgrad_lev = -1
+
+        temperr  = 1.d20
+        tempgrad = 1.d20
+        max_temperr_lev = -1
+        max_tempgrad_lev = -1
+
+        raderr  = 1.d20
+        radgrad = 1.d20
+        max_raderr_lev = -1
+        max_radgrad_lev = -1
+
+        ! create the filename
+        if (namlen > maxlen) then
+           print *, 'probin file name too long'
+           stop
+        endif
+
+        do i = 1, namlen
+           probin(i:i) = char(name(i))
+        end do
+
+        ! read in the namelist
+        un = 9
+        open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+        read (unit=un, nml=tagging, iostat=status)
+
+        if (status < 0) then
+           ! the namelist does not exist, so we just go with the defaults
+           continue
+
+        else if (status > 0) then
+           ! some problem in the namelist
+           print *, 'ERROR: problem in the tagging namelist'
+           stop
+        endif
+
+        close (unit=un)
+
+      end subroutine get_tagging_params

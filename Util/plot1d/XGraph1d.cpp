@@ -432,7 +432,7 @@ void XGraph1d::dumpXGraph(MultiFab& q, MultiFab& qf,int comp,
             fbox.coarsen(ratio);
             fbox &= cbox;
             if(fbox.ok()) {
-               q[i].setVal(blackout,fbox,0);
+               q[mfi].setVal(blackout,fbox,0);
             }
          }
       }
@@ -443,16 +443,16 @@ void XGraph1d::dumpXGraph(MultiFab& q, MultiFab& qf,int comp,
    std::vector< std::list<XGGrid> > xgg_lev(q.boxArray().size());
    for (MFIter mfi(q); mfi.isValid(); ++mfi) {
       const int i = mfi.index();
-      const int* nx = q[i].length();
-      amrptr->Geom(lev).CellCenter(q[i].box().smallEnd(),&xl);
+      const int* nx = q[mfi].length();
+      amrptr->Geom(lev).CellCenter(q[mfi].box().smallEnd(),&xl);
       bool is_data=false;
       XGGrid xggtmp;
       xgg_lev[i].push_back(xggtmp);
       for(int j = 0; j < *nx; j++) {
-         if(*(q[i].dataPtr(0)+j) != blackout) {
+         if(*(q[mfi].dataPtr(0)+j) != blackout) {
             XGPt ptmp;
             ptmp.x=xl+dx*j;
-            for(int c=0;c<comp;++c) ptmp.y[c]=*(q[i].dataPtr(c)+j);
+            for(int c=0;c<comp;++c) ptmp.y[c]=*(q[mfi].dataPtr(c)+j);
             xgg_lev[i].back().point.push_back(ptmp);
             is_data=true;
          } else if(is_data) {

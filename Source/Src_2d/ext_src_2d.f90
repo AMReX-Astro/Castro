@@ -38,6 +38,7 @@ subroutine ca_ext_src(lo,hi, &
   
   integer          :: i,j
   
-  src = ZERO
+  ! lo and hi specify work region
+  src(lo(1):hi(1),lo(2):hi(2),:) = ZERO  ! Fill work region only
   
 end subroutine ca_ext_src

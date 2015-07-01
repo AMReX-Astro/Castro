@@ -22,7 +22,7 @@
                                  var,varl1,varl2,varh1,varh2, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer          :: set, clear, nd, level
@@ -34,8 +34,8 @@
       double precision :: delta(2), xlo(2), problo(2), time
       integer          :: i,j
 
-      double precision ::  delu(2,varl1:varh1,varl2:varh2)
-      double precision :: delua(2,varl1:varh1,varl2:varh2)
+      double precision ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2)
+      double precision :: delua(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2)
       double precision :: delu2(4), delu3(4), delu4(4)
       double precision :: num, denom, error
 
@@ -48,16 +48,16 @@
       ! d/dx
       do j=lo(2)-1,hi(2)+1
       do i=lo(1)-1,hi(1)+1
-          delu(1,i,j) =     var(i+1,j) -      var(i-1,j)
-         delua(1,i,j) = abs(var(i+1,j)) + abs(var(i-1,j))
+          delu(i,j,1) =     var(i+1,j) -      var(i-1,j)
+         delua(i,j,1) = abs(var(i+1,j)) + abs(var(i-1,j))
       end do
       end do
 
       ! d/dy
       do j=lo(2)-1,hi(2)+1
       do i=lo(1)-1,hi(1)+1
-          delu(2,i,j) =     var(i,j+1) -      var(i,j-1)
-         delua(2,i,j) = abs(var(i,j+1)) + abs(var(i,j-1))
+          delu(i,j,2) =     var(i,j+1) -      var(i,j-1)
+         delua(i,j,2) = abs(var(i,j+1)) + abs(var(i,j-1))
       end do
       end do
 
@@ -65,24 +65,24 @@
       do i = lo(1),hi(1)
 
          ! d/dxdx
-         delu2(1) =     delu(1,i+1,j)  -     delu(1,i-1,j)
-         delu3(1) = abs(delu(1,i+1,j)) + abs(delu(1,i-1,j))
-         delu4(1) =    delua(1,i+1,j)  +    delua(1,i-1,j)
-
-         ! d/dydx
-         delu2(2) =     delu(1,i,j+1)  -     delu(1,i,j-1)
-         delu3(2) = abs(delu(1,i,j+1)) + abs(delu(1,i,j-1))
-         delu4(2) =    delua(1,i,j+1)  +    delua(1,i,j-1)
-
-         ! d/dxdy
-         delu2(3) =     delu(2,i+1,j)  -     delu(2,i-1,j)
-         delu3(3) = abs(delu(2,i+1,j)) + abs(delu(2,i-1,j))
-         delu4(3) =    delua(2,i+1,j)  +    delua(2,i-1,j)
-
-         ! d/dydy
-         delu2(4) =     delu(2,i,j+1)  -     delu(2,i,j-1)
-         delu3(4) = abs(delu(2,i,j+1)) + abs(delu(2,i,j-1))
-         delu4(4) =    delua(2,i,j+1)  +    delua(2,i,j-1)
+         delu2(1) =     delu(i+1,j,1)  -     delu(i-1,j,1)
+         delu3(1) = abs(delu(i+1,j,1)) + abs(delu(i-1,j,1))
+         delu4(1) =    delua(i+1,j,1)  +    delua(i-1,j,1)
+                                                         
+         ! d/dydx                                        
+         delu2(2) =     delu(i,j+1,1)  -     delu(i,j-1,1)
+         delu3(2) = abs(delu(i,j+1,1)) + abs(delu(i,j-1,1))
+         delu4(2) =    delua(i,j+1,1)  +    delua(i,j-1,1)
+                                                         
+         ! d/dxdy                                        
+         delu2(3) =     delu(i+1,j,2)  -     delu(i-1,j,2)
+         delu3(3) = abs(delu(i+1,j,2)) + abs(delu(i-1,j,2))
+         delu4(3) =    delua(i+1,j,2)  +    delua(i-1,j,2)
+                                                         
+         ! d/dydy                                        
+         delu2(4) =     delu(i,j+1,2)  -     delu(i,j-1,2)
+         delu3(4) = abs(delu(i,j+1,2)) + abs(delu(i,j-1,2))
+         delu4(4) =    delua(i,j+1,2)  +    delua(i,j-1,2)
 
          ! compute the error
          num   =  delu2(1)**2 + delu2(2)**2 + delu2(3)**2 + delu2(4)**2
@@ -124,7 +124,7 @@
                              den,denl1,denl2,denh1,denh2, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level
@@ -178,7 +178,7 @@
                              vel,vell1,vell2,velh1,velh2, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
-      use probdata_module
+      use tagging_params_module
       implicit none
 
       integer set, clear, nd, level

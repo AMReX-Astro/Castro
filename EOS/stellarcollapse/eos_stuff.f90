@@ -2,8 +2,7 @@ module eos_module
 
   use bl_types
   use bl_error_module
-  use bl_constants_module
-  use network, only: nspec, aion, zion, naux
+  use bl_constants_module, only: ZERO, HALF, TWO
   use eos_type_module
   use eos_data_module
   use eos_aux_data_module
@@ -15,7 +14,9 @@ module eos_module
   double precision, save, private :: ttol = 1.0d-8
   double precision, save, private :: dtol = 1.0d-8
 
-  public eos_init, eos
+  character(len=15) :: errfmt = '(3(e12.5,x))'
+
+  public eos_init, eos, get_munu
 
 contains
 
@@ -71,8 +72,7 @@ contains
     ! log(temperature), and electron fraction.  As such, the usual
     ! 'composition' variable passed to the EOS is the electron fraction.
     !
-    ! Make sure you use a network that accepts an auxiliary variable for ye,
-    ! and that you fill ye!
+    ! Make sure you use a network that uses ye as a species!
 
     implicit none
 
@@ -323,7 +323,7 @@ contains
                              eos_table(:,:,:,ivar), &
                              f, df, err)
         if (err) then
-           write(errstring,'(3(e12.5,x))') state%rho,state%T,state%aux(iye_eos)
+           write(errstring,trim(errfmt)) state%rho,state%T,state%aux(iye_eos)
            call bl_error('newton iter: failure to interpolate',trim(errstring))
         endif
 
@@ -498,6 +498,39 @@ contains
     call bl_error(err_string, zone_string)
 
   end subroutine eos_error
+
+
+  function get_munu(rho,T,ye) result(munu)
+    use interpolate_module 
+
+    real(kind=dp_t), intent(in   ) :: rho, T, ye
+    real(kind=dp_t)                :: munu
+
+    type(eos_t) :: state
+    real(kind=dp_t) :: derivs(3)
+    logical :: err
+    character(len=128) :: errstring
+
+    ! convert our values to table format before interpolating
+    state%rho = rho
+    state%T = T
+    state%aux(iye_eos) = ye
+    call convert_to_table_format(state)
+
+    ! look it up
+    call tri_interpolate(state%rho,state%T,state%aux(iye_eos),&
+                         nrho,ntemp,nye, &
+                         eos_logrho,eos_logtemp,eos_ye, &
+                         eos_table(:,:,:,imunu),&
+                         munu,derivs,err)
+
+    ! check return
+    if (err) then
+       write(errstring,trim(errfmt)) state%rho,state%T,state%aux(iye_eos)
+       call bl_error('get_munu: tri-interpolate failure:',trim(errstring))
+    endif
+    
+  end function get_munu
 
 
 end module eos_module

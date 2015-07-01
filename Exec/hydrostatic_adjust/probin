@@ -1,0 +1,14 @@
+&fortin
+  model_name='spherical.hse.640'
+
+  heating_time = 0.5d0
+  heating_rad = 0.0d0
+  heating_peak = 1.d16
+  heating_sigma = 1.d7
+  prob_type = 1
+
+  sponge_weighting = 1.d3
+  sponge_start_density = 1.d4
+  sponge_width_factor = 10.0d0
+
+/

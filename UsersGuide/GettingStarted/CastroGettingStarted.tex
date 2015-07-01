@@ -1,8 +1,8 @@
 
 \section{Downloading the Code}
 
-CASTRO is built on top of the BoxLib framework.  In order to run CASTRO, you must download
-two separate git modules.
+\castro\ is built on top of the \boxlib\ framework.  In order to run
+\castro\, you must download two separate git modules.
 
 \vspace{.1in}
 
@@ -12,23 +12,31 @@ two separate git modules.
 
 \begin{enumerate}
 
-\item Download the BoxLib repository by typing: 
+\item Download the \boxlib\ repository by typing: 
+\begin{verbatim}
+git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git
+\end{verbatim}
 
-\noindent {\tt git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git}
+This will create a directory called {\tt BoxLib/} on your machine.
+Put this somewhere out of the way and set the environment variable,
+{\tt BOXLIB\_HOME}, on your machine to the path name where you have
+put \boxlib.  You will want to periodically update \boxlib\ by typing
+\begin{verbatim}
+git pull
+\end{verbatim}
+in the \boxlib\ directory.  
 
-\noindent This will create a directory called {\tt BoxLib/} on your
-machine.  Put this somewhere out of the way and set the environment
-variable, {\tt BOXLIB\_HOME}, on your machine to the path name where
-you have put BoxLib.  You will want to periodically update BoxLib by
-typing
-
-\noindent {\tt git pull}
-
-in the BoxLib directory.  
-
-\item Now download the CASTRO repository by typing 
-
-\noindent {\tt git clone https://ccse.lbl.gov/pub/Downloads/Castro.git }
+\item Clone/fork the \castro\ repository from the \boxlib\ Codes {\sf
+  github} page (\url{https://github.com/BoxLib-Codes/Castro}).  To
+  clone via the commandline, simply type:
+\begin{verbatim}
+git clone https://github.com/BoxLib-Codes/Castro.git
+\end{verbatim}
+alternately, if you have a {\sf github} account with your
+machine's SSH-keys registered, you can do:
+\begin{verbatim}
+git clone ssh://git@github.com:/BoxLib-Codes/Castro.git
+\end{verbatim}
 
 \end{enumerate}
 
@@ -36,39 +44,50 @@ in the BoxLib directory.
 
 \section{Building the Code}
 
+In \castro\ each different problem setup is stored in its own
+sub-directory under {\tt Castro/Exec/}.  You build the
+\castro\ executable in the problem sub-directory.  Here we'll
+build the {\tt Sedov} problem:
+
 \begin{enumerate}
 
-\item From the directory in which you checked out the Castro git repo, type
+\item From the directory in which you checked out the Castro git repo,
+  type
+\begin{verbatim}
+cd Castro/Exec/Sedov
+\end{verbatim}
+This will put you into a directory in which you can run the Sedov
+problem in 1-d, 2-d or 3-d.
 
-{\tt cd Castro/Exec/Sedov}
-
-This will put you into a directory in which you can run the Sedov problem in 1-d, 2-d or 3-d.
 \item In {\tt Sedov/}, edit the {\tt GNUmakefile}, and set
 
 {\tt DIM = 2} (for example)
 
 {\tt COMP = gcc} (or your favorite C++ compiler)
 
-{\tt FCOMP = gfortran} (your favorite Fortran 90 compiler)
+{\tt FCOMP = gfortran} (or your favorite Fortran 90 compiler)
 
 {\tt DEBUG = FALSE}
 
-If you want to try other compilers than the GNU suite and they don't work, 
-please let us know.  
+If you want to try other compilers than the GNU suite and they don't
+work, please let us know.
 
 To build a serial (single-processor) code, set {\tt USE\_MPI = FALSE}.
 This will compile the code without the MPI library.  If you want to do
 a parallel run, then you would set {\tt USE\_MPI = TRUE}.  In this
 case, the build system will need to know about your MPI installation.
-This can be done by editing the makefiles in the BoxLib tree, but a
+This can be done by editing the makefiles in the \boxlib\ tree, but a
 simple method is to set the shell environment variable {\tt
   BOXLIB\_USE\_MPI\_WRAPPERS=1}.  If this is set, then the build
 system will fall back to using the local MPI compiler wrappers
 (e.g.\ {\tt mpic++} and {\tt mpif90}) to do the build.
 
-\item Now type {\tt make}. The resulting executable will look something like 
-{\tt Castro2d.Linux.gcc.gfortran.ex}, which means this is a 2-d version of the code, 
-made on a Linux machine, with {\tt COMP = gcc} and {\tt FCOMP = gfortran}.
+\item Now type {\tt make}.
+
+  The resulting executable will look something like {\tt
+    Castro2d.Linux.gcc.gfortran.ex}, which means this is a 2-d version
+  of the code, made on a Linux machine, with {\tt COMP = gcc} and {\tt
+    FCOMP = gfortran}.
 
 \end{enumerate}
 
@@ -76,70 +95,179 @@ made on a Linux machine, with {\tt COMP = gcc} and {\tt FCOMP = gfortran}.
 
 \begin{enumerate}
 
-\item Type:
+\item \castro\ takes an input file that overrides the runtime parameter defaults.
+  The code is run as:
+\begin{verbatim}
+Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl_in_cartcoords
+\end{verbatim}
 
-\noindent {\tt Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl\_in\_cartcoords} 
+This will run the 2-d cylindrical Sedov problem in Cartesian ($x$-$y$
+coordinates).  You can see other possible options, which should be
+clear by the names of the inputs files.
 
-\noindent This will run the 2-d cylindrical Sedov problem in Cartesian (x-y coordinates). 
-You can see other possible options, which should be clear by the names of the inputs files.
-
-\item You will notice that running the code generates directories that look like 
-{\tt plt00000}, {\tt plt00020}, etc, and {\tt chk00000}, {\tt chk00020}, etc. These are "plotfiles" and 
-"checkpoint" files. The plotfiles are used for visualization, the checkpoint files are 
-used for restarting the code.
+\item You will notice that running the code generates directories that
+  look like {\tt plt00000/}, {\tt plt00020/}, etc, and {\tt chk00000/},
+  {\tt chk00020/}, etc. These are ``plotfiles'' and ``checkpoint''
+  files. The plotfiles are used for visualization, the checkpoint
+  files are used for restarting the code.
 
 \end{enumerate}
 
 \section{Visualization of the Results}
 
+There are several options for visualizing the data.  The popular
+\visit\ package supports the \boxlib\ file format natively, as does
+the \yt\ python package.  The standard tool used within the
+\boxlib-community is \amrvis, which we demonstrate here.
+
 \begin{enumerate}
 
-\item To visualize the plotfiles, you can use a freely available visualization package
-like VisIt, or you can try ``Amrvis.'' To get Amrvis, type
+\item Get \amrvis:
+\begin{verbatim}
+git clone https://ccse.lbl.gov/pub/Downloads/Amrvis.git
+\end{verbatim}
 
-\noindent {\tt git clone https://ccse.lbl.gov/pub/Downloads/Amrvis.git}
-
-\noindent Then cd into {\tt Amrvis/}, edit the {\tt GNUmakefile} there
+Then cd into {\tt Amrvis/}, edit the {\tt GNUmakefile} there
 to set {\tt DIM = 2}, and again set {\tt COMP} and {\tt FCOMP} to compilers that
-you have. Leave {\tt DEBUG = FALSE}. Then type {\tt make}.  This will make an
-executable that looks like {\tt amrvis2d...ex}.
+you have. Leave {\tt DEBUG = FALSE}.
 
-If you want to build amrvis with {\tt DIM = 3}, you must first download and build {\tt volpack}.  Type
+Type {\tt make} to build, resulting in an executable that
+looks like {\tt amrvis2d...ex}.
 
-\noindent {\tt git clone https://ccse.lbl.gov/pub/Downloads/volpack.git}
+If you want to build amrvis with {\tt DIM = 3}, you must first
+download and build {\tt volpack}:
+\begin{verbatim}
+git clone https://ccse.lbl.gov/pub/Downloads/volpack.git
+\end{verbatim}
 
-\noindent Then cd into {\tt volpack/} and type {\tt make}.
+Then cd into {\tt volpack/} and type {\tt make}.
 
-\noindent Note: This requires the OSF/Motif libraries and headers. If you don't have these 
+Note: \amrvis\ requires the OSF/Motif libraries and headers. If you don't have these 
 you will need to install the development version of motif through your package manager. 
 {\tt lesstif} gives some functionality and will allow you to build the amrvis executable, 
-but amrvis will not run properly.
+but \amrvis\ may not run properly.
 
-\noindent Note: On most Linux distributions, motif library is provided
-by the openmotif package, and its header files (like {\tt Xm.h}) are
-provided by openmotif-devel. If those packages are not installed, then
-use the package management tool to install them, which varies from
-distribution to distribution, but is straightforward. I can provide
-detailed instructions if anyone needs them.
+On most Linux distributions, the motif library is provided by the
+{\tt openmotif} package, and its header files (like {\tt Xm.h}) are provided
+by {\tt openmotif-devel}. If those packages are not installed, then use the
+package management tool to install them, which varies from
+distribution to distribution, but is straightforward. 
 
-You may then want to create an alias to amrvis2d, for example
+You may then want to create an alias to {\tt amrvis2d}, for example
+\begin{verbatim}
+alias amrvis2d /tmp/Amrvis/amrvis2d...ex
+\end{verbatim}
 
-\noindent {\tt alias amrvis2d /tmp/Amrvis/amrvis2d...ex}
+\item Return to the {\tt Castro/Exec/Sedov} directory.  You should
+  have a number of output files, including some in the form {\tt *pltXXXXX},
+  where {\tt XXXXX} is a number corresponding to the timestep the file
+  was output.  {\tt
+    amrvis2d {\em filename}} to see a single plotfile, or {\tt amrvis2d -a
+  *plt*}, which will animate the sequence of plotfiles.
 
-\item Return to the {\tt Castro/Exec/Sedov} directory.  Type {\tt
-  amrvis2d plt00152} to see a single plotfile, or {\tt amrvis2d -a
-  plt*}, which will animate the sequence of plotfiles. Try playing
-  around with this -- note you can change which variable you are
-  looking at, you can select a region and click "Dataset" (under View)
+  Try playing
+  around with this---you can change which variable you are
+  looking at, select a region and click ``Dataset'' (under View)
   in order to look at the actual numbers, etc. You can also export the
-  pictures in several different formats -- under "File", see "Export".
+  pictures in several different formats under "File/Export".
 
 Please know that we do have a number of conversion routines to other
 formats (such as matlab), but it is hard to describe them all. If you
 would like to display the data in another format, please let us know
-(again, asalmgren@lbl.gov) and we will point you to whatever we have
+(again, {\tt asalmgren@lbl.gov}) and we will point you to whatever we have
 that can help.
 
 \end{enumerate}
 
-You have now completed a brief introduction to CASTRO. 
+You have now completed a brief introduction to \castro. 
+
+
+\section{Other Distributed Problem Setups}
+
+There are a number of standard problem setups that come with \castro.
+These can be used as a starting point toward writing your own setup.
+The standard problems are:
+\begin{itemize}
+
+\item {\tt double\_bubble}:
+
+  Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal or
+  isentropic) and allow for the bubbles to have the same or a
+  different $\gamma$ from one another / the background atmosphere.  This
+  uses the {\tt multigamma} EOS.
+
+  An analogous problem is implemented in \maestro.
+    
+\item {\tt DustCollapse}:
+
+  A pressureless cloud collapse that is a standard test problem for
+  gravity.  An analytic solution that describes the radius of the
+  sphere as a function of time is found in Colgate and
+  White~\cite{colgwhite}.  This problem is also found in the FLASH
+  User's Guide.
+  
+  
+\item {\tt HCBubble}
+  
+\item {\tt hydrostatic\_adjust}:
+
+  Model a 1-d stellar atmosphere (plane-parallel or
+  spherical/self-gravitating) and dump energy in via an analytic heat
+  source and watch the atmosphere's hydrostatic state adjust in
+  response.  This is the counterpart to the \maestro\ {\tt
+    test\_basestate} unit test.
+
+\item {\tt KH}:
+
+  A Kelvin-Helmholtz shear instability problem.
+  
+\item {\tt oddeven}:
+
+  A grid-aligned shock hitting a very small density perturbation.
+  This demonstrates the odd-even decoupling problem discussed in
+  \cite{quirk1997}.  This setup serves to test the {\tt
+    castro.hybrid\_riemann} option to hydrodynamics.
+  
+  
+\item {\tt reacting\_bubble}:
+
+  A reacting bubble in a stratified white dwarf atmosphere.  This
+  problem was featured in the \maestro\ reaction
+  paper~\cite{maestro:III}.
+
+  
+\item {\tt RT}:
+
+  A single-model Rayleigh-Taylor instability problem.
+  
+  
+\item {\tt RT\_particles}
+
+\item {\tt Sedov}:
+
+  The standard Sedov-Taylor blast wave problem.  This setup was used
+  in the first \castro\ paper~\cite{castro_I}.
+    
+\item {\tt Sod}:
+  
+  A one-dimensional shock tube setup, including the classic Sod
+  problem.  This setup was used in the original \castro\ paper.
+  
+\item {\tt Sod\_stellar}:
+
+  A version of the Sod shock tube for the general stellar equation of
+  state.  This setup and the included inputs files was used
+  in~\cite{zingalekatz}.
+
+  
+\item {\tt toy\_convect}:
+
+  A simple nova-like convection problem with an external heating
+  source.  This problem shows how to use the model parser to
+  initialize a 1-d atmosphere on the Castro grid, incorporate a custom
+  tagging routine, sponge the fluid above the atmosphere, and write a
+  custom diagnostics routine.
+
+  A \maestro\ version of this problem setup also exists.
+  
+\end{itemize}

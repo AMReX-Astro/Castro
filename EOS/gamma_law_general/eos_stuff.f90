@@ -90,17 +90,12 @@ contains
     integer, optional, intent(in   ) :: pt_index(:)
 
     ! Local variables
-    double precision :: ymass(nspec)
-    double precision :: mu
-    double precision :: dmudX, sum_y
     double precision :: dens, temp
 
     logical :: eos_diag
 
     ! Get the mass of a nucleon from Avogadro's number.
     double precision, parameter :: m_nucleon = ONE / n_A
-
-    integer :: k, n
 
     ! general sanity checks
     if (.not. initialized) call bl_error('EOS: not initialized')

@@ -9,8 +9,44 @@
 #endif
 
 Real
+Castro::sumDerive (const std::string& name,
+                   Real               time,
+		   bool               local)
+{
+    Real sum     = 0.0;
+    MultiFab* mf = derive(name, time, 0);
+
+    BL_ASSERT(!(mf == 0));
+
+    if (level < parent->finestLevel())
+    {
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif
+    {
+	for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	{
+	    sum += (*mf)[mfi].sum(mfi.tilebox(),0);
+	}
+    }
+
+    delete mf;
+
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
+
+    return sum;
+}
+
+Real
 Castro::volWgtSum (const std::string& name,
-                   Real               time)
+                   Real               time,
+		   bool               local,
+		   bool               finemask)
 {
     BL_PROFILE("Castro::volWgtSum()");
 
@@ -20,35 +56,30 @@ Castro::volWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
-    if (level < parent->finestLevel())
+    if (level < parent->finestLevel() && finemask)
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
-        Real s = 0.0;
-        const Box& box  = mfi.validbox();
+	Real s = 0.0;
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -70,14 +101,16 @@ Castro::volWgtSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
 
 Real
 Castro::volWgtSquaredSum (const std::string& name,
-                          Real               time)
+                          Real               time,
+			  bool               local)
 {
     BL_PROFILE("Castro::volWgtSquaredSum()");
 
@@ -87,35 +120,30 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -123,13 +151,13 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 #if(BL_SPACEDIM == 1) 
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 2)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
 #elif(BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_summass)
+	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
             (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
 #endif
         sum += s;
@@ -137,7 +165,8 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -145,7 +174,8 @@ Castro::volWgtSquaredSum (const std::string& name,
 Real
 Castro::locWgtSum (const std::string& name,
                    Real               time,
-                   int                idir)
+                   int                idir,
+		   bool               local)
 {
     BL_PROFILE("Castro::locWgtSum()");
 
@@ -155,35 +185,30 @@ Castro::locWgtSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -210,7 +235,8 @@ Castro::locWgtSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -220,7 +246,8 @@ Real
 Castro::locWgtSum2D (const std::string& name,
                      Real               time,
                      int                idir1,
-                     int                idir2)
+                     int                idir2,
+		     bool               local)
 {
     BL_PROFILE("Castro::locWgtSum2D()");
 
@@ -230,35 +257,30 @@ Castro::locWgtSum2D (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3)
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -277,14 +299,15 @@ Castro::locWgtSum2D (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
 #endif
 
 Real
-Castro::volWgtSumMF (MultiFab* mf, int comp) 
+Castro::volWgtSumMF (MultiFab* mf, int comp, bool local) 
 {
     BL_PROFILE("Castro::volWgtSumMF()");
 
@@ -293,20 +316,24 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if (BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
         //
@@ -326,7 +353,8 @@ Castro::volWgtSumMF (MultiFab* mf, int comp)
         sum += s;
     }
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -336,7 +364,8 @@ Real
 Castro::volWgtSumOneSide (const std::string& name,
                           Real               time, 
                           int                side,
-                          int                bdir)
+                          int                bdir,
+			  bool               local)
 {
     BL_PROFILE("Castro::volWgtSumOneSide()");
 
@@ -348,41 +377,34 @@ Castro::volWgtSumOneSide (const std::string& name,
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0);
-    const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect();
-    bool doSum;
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
 #if (BL_SPACEDIM == 2)
@@ -406,7 +428,7 @@ Castro::volWgtSumOneSide (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
         
-        doSum = false;
+        bool doSum = false;
         if ( side == 0 && *(lo + bdir) <= *(hiLeftPtr + bdir) ) {
           doSum = true;
           if ( *(hi + bdir) <= *(hiLeftPtr + bdir) ) {
@@ -446,7 +468,8 @@ Castro::volWgtSumOneSide (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -456,7 +479,8 @@ Castro::locWgtSumOneSide (const std::string& name,
                           Real               time,
                           int                idir, 
                           int                side,
-                          int                bdir)
+                          int                bdir,
+			  bool               local)
 {
     BL_PROFILE("Castro::locWgtSumOneSide()");
 
@@ -468,41 +492,34 @@ Castro::locWgtSumOneSide (const std::string& name,
     Real sum            = 0.0;
     const Real* dx      = geom.CellSize();
     MultiFab*   mf      = derive(name,time,0); 
-    const int* domlo    = geom.Domain().loVect(); 
     const int* domhi    = geom.Domain().hiVect(); 
-    bool doSum;
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif        
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 #if(BL_SPACEDIM < 3) 
-        const Real* rad = radius[mfi.index()].dataPtr();
-        int irlo        = lo[0]-radius_grow;
-        int irhi        = hi[0]+radius_grow;
+	const int i     = mfi.index();
+        const Real* rad = radius[i].dataPtr();
+	const int* vlo  =  grids[i].loVect();
+	const int* vhi  =  grids[i].hiVect();
+        int irlo        = vlo[0]-radius_grow;
+        int irhi        = vhi[0]+radius_grow;
 #endif
 
 #if (BL_SPACEDIM == 2)
@@ -524,7 +541,7 @@ Castro::locWgtSumOneSide (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         // 
 
-        doSum = false;
+        bool doSum = false;
         if ( side == 0 && *(lo + bdir) <= *(hiLeftPtr + bdir) ) {
           doSum = true;
           if ( *(hi + bdir) <= *(hiLeftPtr + bdir) ) {
@@ -564,7 +581,8 @@ Castro::locWgtSumOneSide (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 
@@ -574,7 +592,7 @@ Castro::locWgtSumOneSide (const std::string& name,
 Real
 Castro::volProductSum (const std::string& name1, 
                        const std::string& name2,
-                       Real time)
+                       Real time, bool local)
 {
     BL_PROFILE("Castro::volProductSum()");
 
@@ -605,30 +623,22 @@ Castro::volProductSum (const std::string& name1,
     BL_ASSERT(mf1 != 0);
     BL_ASSERT(mf2 != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf1, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf1); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf1,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab1 = (*mf1)[mfi];
         FArrayBox& fab2 = (*mf2)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab1.setVal(0,isects[ii].second,0,fab1.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
@@ -643,7 +653,8 @@ Castro::volProductSum (const std::string& name1,
     if ( name2 != "phi" )
       delete mf2;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }
@@ -652,7 +663,8 @@ Castro::volProductSum (const std::string& name1,
 Real
 Castro::locSquaredSum (const std::string& name,
                        Real               time,
-                       int                idir)
+                       int                idir,
+		       bool               local)
 {
     BL_PROFILE("Castro::locSquaredSum()");
 
@@ -662,29 +674,21 @@ Castro::locSquaredSum (const std::string& name,
 
     BL_ASSERT(mf != 0);
 
-    BoxArray baf;
-
     if (level < parent->finestLevel())
     {
-        baf = parent->boxArray(level+1);
-        baf.coarsen(fine_ratio);
+	const MultiFab* mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
     }
 
-    for (MFIter mfi(*mf); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:sum)
+#endif    
+    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
-        if (level < parent->finestLevel())
-        {
-            std::vector< std::pair<int,Box> > isects = baf.intersections(grids[mfi.index()]);
-
-            for (int ii = 0; ii < isects.size(); ii++)
-            {
-                fab.setVal(0,isects[ii].second,0,fab.nComp());
-            }
-        }
+    
         Real s = 0.0;
-        const Box& box  = mfi.validbox();
+        const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
@@ -696,7 +700,8 @@ Castro::locSquaredSum (const std::string& name,
 
     delete mf;
 
-    ParallelDescriptor::ReduceRealSum(sum);
+    if (!local)
+	ParallelDescriptor::ReduceRealSum(sum);
 
     return sum;
 }

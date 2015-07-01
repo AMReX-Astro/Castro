@@ -1,10 +1,12 @@
 module riemann_module
 
+  use bl_constants_module
+
   implicit none
 
   private
 
-  public cmpflx
+  public cmpflx, shock
 
 contains
 
@@ -16,33 +18,41 @@ contains
                     flx,flx_l1,flx_l2,flx_h1,flx_h2, &
                     pgd,pgd_l1,pgd_l2,pgd_h1,pgd_h2, &
                     ugd,ugd_l1,ugd_l2,ugd_h1,ugd_h2, &
+                    gegd,ggd_l1,ggd_l2,ggd_h1,ggd_h2, &
                     gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                    shk,s_l1,s_l2,s_h1,s_h2, &
                     idir,ilo,ihi,jlo,jhi,domlo,domhi)
 
     use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
-                                   use_colglaz, ppm_temp_fix
-    use bl_constants_module
+                                   use_colglaz, ppm_temp_fix, hybrid_riemann, &
+                                   small_temp, allow_negative_energy
+
 
     implicit none
 
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer flx_l1,flx_l2,flx_h1,flx_h2
-    integer pgd_l1,pgd_l2,pgd_h1,pgd_h2
-    integer ugd_l1,ugd_l2,ugd_h1,ugd_h2
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer idir,ilo,ihi,jlo,jhi
-    integer domlo(2),domhi(2)
+    integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
+    integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
+    integer, intent(in) :: pgd_l1,pgd_l2,pgd_h1,pgd_h2
+    integer, intent(in) :: ugd_l1,ugd_l2,ugd_h1,ugd_h2
+    integer, intent(in) :: ggd_l1,ggd_l2,ggd_h1,ggd_h2
+    integer, intent(in) :: qd_l1,qd_l2,qd_h1,qd_h2
+    integer, intent(in) :: s_l1,s_l2,s_h1,s_h2
+    integer, intent(in) :: idir,ilo,ihi,jlo,jhi
+    integer, intent(in) :: domlo(2),domhi(2)
     
-    double precision    qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision    qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision   flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
-    double precision pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
-    double precision ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
-    double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision, intent(inout) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
+    double precision, intent(inout) :: pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
+    double precision, intent(inout) :: ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision, intent(inout) ::gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
+
+    double precision, intent(in) :: gamc(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) ::    c(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) :: csml(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) ::  shk( s_l1: s_h1, s_l2: s_h2)
     
     ! Local variables
     integer i, j
@@ -51,7 +61,8 @@ contains
     double precision, allocatable :: gamcm(:,:), gamcp(:,:)
     
     integer :: imin, imax, jmin, jmax
-
+    integer :: is_shock
+    double precision :: cl, cr
     type (eos_t) :: eos_state
 
     allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
@@ -59,7 +70,7 @@ contains
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
 
-    if(idir.eq.1) then
+    if (idir == 1) then
        do j = jlo, jhi
           do i = ilo, ihi+1
              smallc(i,j) = max( csml(i,j), csml(i-1,j) )
@@ -68,6 +79,7 @@ contains
              gamcp(i,j) = gamc(i,j)
           enddo
        enddo
+
     else
        do j = jlo, jhi+1
           do i = ilo, ihi
@@ -113,7 +125,14 @@ contains
              eos_state % xn  = qm(i,j,QFS:QFS-1+nspec)
              eos_state % aux = qm(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_re, eos_state, .false.)
+             ! Protect against negative energies
+
+             if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+                eos_state % T = small_temp
+                call eos(eos_input_rt, eos_state, .false.)                
+             else
+                call eos(eos_input_re, eos_state, .false.)
+             endif
 
              qm(i,j,QREINT) = qm(i,j,QRHO)*eos_state%e
              qm(i,j,QPRES) = eos_state%p
@@ -127,7 +146,14 @@ contains
              eos_state % xn  = qp(i,j,QFS:QFS-1+nspec)
              eos_state % aux = qp(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_re, eos_state, .false.)
+             ! Protect against negative energies
+
+             if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+                eos_state % T = small_temp
+                call eos(eos_input_rt, eos_state, .false.)                
+             else
+                call eos(eos_input_re, eos_state, .false.)
+             endif
 
              qp(i,j,QREINT) = qp(i,j,QRHO)*eos_state%e
              qp(i,j,QPRES) = eos_state%p  
@@ -145,6 +171,7 @@ contains
                       flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                       pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                      gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
     else
        call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
@@ -152,12 +179,143 @@ contains
                       flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                       pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                      gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
     endif
+
+    if (hybrid_riemann == 1) then
+       ! correct the fluxes using an HLL scheme if we are in a shock
+       ! and doing the hybrid approach
+       if (idir == 1) then
+          imin = ilo
+          imax = ihi+1
+          jmin = jlo
+          jmax = jhi
+       else
+          imin = ilo
+          imax = ihi
+          jmin = jlo
+          jmax = jhi+1
+       endif
+       
+       do j = jmin, jmax
+          do i = imin, imax
+         
+             if (idir == 1) then
+                is_shock = shk(i-1,j) + shk(i,j)
+             else
+                is_shock = shk(i,j-1) + shk(i,j)
+             endif
+
+             if (is_shock >= 1) then
+
+                if (idir == 1) then
+                   cl = c(i-1,j)
+                   cr = c(i,j)
+                else
+                   cl = c(i,j-1)
+                   cr = c(i,j)
+                endif
+
+                call HLL(qm(i,j,:), qp(i,j,:), cl, cr, &
+                         idir, flx(i,j,:))
+                
+             endif
     
+          enddo
+       enddo
+    
+    endif
+
     deallocate(smallc,cavg,gamcm,gamcp)
     
   end subroutine cmpflx
+
+
+  subroutine shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   shk,s_l1,s_l2,s_h1,s_h2, &
+                   ilo1,ilo2,ihi1,ihi2,dx,dy)  
+
+    use prob_params_module, only : coord_type
+    use meth_params_module, only : QU, QV, QPRES, QVAR
+
+    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    double precision, intent(in) :: dx, dy
+    double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    double precision, intent(inout) :: shk(s_l1:s_h1,s_l2:s_h2)
+
+    integer :: i, j
+
+    double precision :: divU
+    double precision :: px_pre, px_post, py_pre, py_post
+    double precision :: e_x, e_y, d
+    double precision :: p_pre, p_post, pjump
+
+    double precision, parameter :: small = 1.d-10
+    double precision, parameter :: eps = 0.33d0
+
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+
+    if (coord_type /= 0) then
+       call bl_error("ERROR: invalid geometry in shock()")
+    endif
+
+    do j = ilo2-1, ihi2+1
+       do i = ilo1-1, ihi1+1
+
+          ! construct div{U}
+          divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
+                 HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          
+          ! find the pre- and post-shock pressures in each direction
+          if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
+             px_pre  = q(i+1,j,QPRES)
+             px_post = q(i-1,j,QPRES)
+          else
+             px_pre  = q(i-1,j,QPRES)
+             px_post = q(i+1,j,QPRES)
+          endif
+
+          if (q(i,j+1,QPRES) - q(i,j-1,QPRES) < ZERO) then
+             py_pre  = q(i,j+1,QPRES)
+             py_post = q(i,j-1,QPRES)
+          else
+             py_pre  = q(i,j-1,QPRES)
+             py_post = q(i,j+1,QPRES)
+          endif
+
+          ! use compression to create unit vectors for the shock direction
+          e_x = (q(i+1,j,QU) - q(i-1,j,QU))**2
+          e_y = (q(i,j+1,QV) - q(i,j-1,QV))**2
+          d = ONE/(e_x + e_y + small)
+
+          e_x = e_x*d
+          e_y = e_y*d 
+
+          ! project the pressures onto the shock direction 
+          p_pre  = e_x*px_pre + e_y*py_pre
+          p_post = e_x*px_post + e_y*py_post
+
+          ! test for compression + pressure jump to flag a shock
+          pjump = eps - (p_post - p_pre)/p_pre
+
+          if (pjump < ZERO .and. divU < ZERO) then
+             shk(i,j) = ONE
+          else
+             shk(i,j) = ZERO
+          endif
+
+       enddo
+    enddo
+
+  end subroutine shock
 
 
 ! ::: 
@@ -169,6 +327,7 @@ contains
                        uflx,uflx_l1,uflx_l2,uflx_h1,uflx_h2, &
                        pgdnv,pg_l1,pg_l2,pg_h1,pg_h2, &
                        ugdnv,ug_l1,ug_l2,ug_h1,ug_h2, &
+                       gegdnv,gg_l1,gg_l2,gg_h1,gg_h2, &
                        idir,ilo1,ihi1,ilo2,ihi2,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
@@ -179,12 +338,12 @@ contains
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
-                                   QPRES, QREINT, QFA, QFS, &
+                                   QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol
-    use bl_constants_module
+                                   small_dens, small_pres, small_temp, &
+                                   cg_maxiter, cg_tol, &
+                                   npassive, upass_map, qpass_map
+    
 
     double precision, parameter:: small = 1.d-8
 
@@ -193,6 +352,7 @@ contains
     integer :: uflx_l1,uflx_l2,uflx_h1,uflx_h2
     integer :: ug_l1,ug_l2,ug_h1,ug_h2
     integer :: pg_l1,pg_l2,pg_h1,pg_h2
+    integer :: gg_l1,gg_l2,gg_h1,gg_h2
     integer :: idir,ilo1,ihi1,ilo2,ihi2
     integer :: domlo(2),domhi(2)
 
@@ -205,10 +365,10 @@ contains
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
     double precision :: ugdnv(ug_l1:ug_h1,ug_l2:ug_h2)
     double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2)
+    double precision :: gegdnv(gg_l1:gg_h1,gg_l2:gg_h2)
 
-    integer :: i,j,ilo,jlo,ihi,jhi
+    integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nq
-    integer :: iadv, ispec, iaux
     
     double precision :: rgdnv,vgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, pl, rel
@@ -570,6 +730,8 @@ contains
              gamgdnv = gamstar
           endif
 
+          gegdnv(i,j) = gamgdnv
+
           pgdnv(i,j) = max(pgdnv(i,j),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
@@ -616,9 +778,10 @@ contains
           uflx(i,j,UEINT) = ugdnv(i,j)*pgdnv(i,j)/(gamgdnv - ONE)
 
           ! advected quantities -- only the contact matters
-          do iadv = 1, nadv
-             n  = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
              else if (ustar .lt. ZERO) then
@@ -628,43 +791,13 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-          
-          ! species -- only the contact matters
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          ! auxillary quantities -- only the contact matters
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
+                   
        enddo
     enddo
 
   end subroutine riemanncg
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
-
-    use bl_constants_module
 
     implicit none
 
@@ -722,14 +855,15 @@ contains
                        uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
                        pgdnv, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
                        ugdnv, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                       gegdnv, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QFA, QFS, QFX, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, UFA, UFS, UFX, nadv, &
-                                   small_dens, small_pres
-    use bl_constants_module
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, &
+                                   small_dens, small_pres, &
+                                   npassive, upass_map, qpass_map    
 
     implicit none
 
@@ -740,6 +874,7 @@ contains
     integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
     integer :: pgd_l1, pgd_l2, pgd_h1, pgd_h2
     integer :: ugd_l1, ugd_l2, ugd_h1, ugd_h2
+    integer :: ggd_l1, ggd_l2, ggd_h1, ggd_h2
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
@@ -752,10 +887,11 @@ contains
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
     double precision :: pgdnv(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
     double precision :: ugdnv(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision :: gegdnv(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
     
     integer :: ilo,ihi,jlo,jhi
-    integer :: iadv, ispec, iaux, n, nq
-    integer :: i, j
+    integer :: n, nq
+    integer :: i, j, ipassive
 
     double precision :: rgd, vgd, regd, ustar
     double precision :: rl, ul, vl, pl, rel
@@ -896,6 +1032,9 @@ contains
              regd = estar
           endif
 
+          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
+
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if (idir .eq. 1) then
              if (i.eq.domlo(1) .and. &
@@ -936,9 +1075,10 @@ contains
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*regd
           
-          do iadv = 1, nadv
-             n = UFA + iadv - 1
-             nq = QFA + iadv - 1
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
              if (ustar .gt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
              else if (ustar .lt. ZERO) then
@@ -948,35 +1088,137 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-          
-          do ispec = 1, nspec
-             n  = UFS + ispec - 1
-             nq = QFS + ispec - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
-          do iaux = 1, naux
-             n  = UFX + iaux - 1
-             nq = QFX + iaux - 1
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-          
+                    
        enddo
     enddo
   end subroutine riemannus
+
+  subroutine HLL(ql, qr, cl, cr, idir, f)
+ 
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, &
+                                   npassive, upass_map, qpass_map
+
+    use network, only : nspec, naux
+
+    double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
+    double precision, intent(inout) :: f(NVAR)
+    integer, intent(in) :: idir
+
+    integer :: ivel, ivelt, imom, imomt
+    double precision :: a1, a4, bd, bl, bm, bp, br
+    double precision :: cavg, uavg
+    double precision :: fl_tmp, fr_tmp
+    double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
+    integer :: n, nq
+
+    integer :: ipassive
+
+    double precision, parameter :: small = 1.d-10
+
+    if (idir == 1) then
+       ivel = QU
+       ivelt = QV
+
+       imom = UMX
+       imomt = UMY
+    else
+       ivel = QV
+       ivelt = QU
+
+       imom = UMY
+       imomt = UMX
+    endif
+
+    rhol_sqrt = sqrt(ql(QRHO))
+    rhor_sqrt = sqrt(qr(QRHO))
+
+    rhod = ONE/(rhol_sqrt + rhor_sqrt)
+
+    
+
+    ! compute the average sound speed. This uses an approximation from
+    ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
+    ! and 5/3
+    cavg = sqrt( (rhol_sqrt*cl**2 + rhor_sqrt*cr**2)*rhod + &
+         HALF*rhol_sqrt*rhor_sqrt*rhod**2*(qr(ivel) - ql(ivel))**2 )
+
+
+    ! Roe eigenvalues (E91, eq. 5.3b)
+    uavg = (rhol_sqrt*ql(ivel) + rhor_sqrt*qr(ivel))*rhod
+
+    a1 = uavg - cavg
+    a4 = uavg + cavg
+    
+
+    ! signal speeds (E91, eq. 4.5)
+    bl = min(a1, ql(ivel) - cl)
+    br = max(a4, qr(ivel) + cr)
+
+    bm = min(ZERO, bl)
+    bp = max(ZERO, br)
+
+    bd = bp - bm
+
+    if (abs(bd) < small*max(abs(bm),abs(bp))) return
+
+    bd = ONE/bd
+    
+
+    ! compute the fluxes according to E91, eq. 4.4b -- note that the
+    ! min/max above picks the correct flux if we are not in the star
+    ! region
+
+    ! density flux
+    fl_tmp = ql(QRHO)*ql(ivel)
+    fr_tmp = qr(QRHO)*qr(ivel)
+
+    f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
+
+
+    ! normal momentum flux -- leave out the pressure term -- we handle
+    ! that separately
+    fl_tmp = ql(QRHO)*ql(ivel)**2
+    fr_tmp = qr(QRHO)*qr(ivel)**2
+
+    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
+
+
+    ! transverse momentum flux
+    fl_tmp = ql(QRHO)*ql(ivel)*ql(ivelt)
+    fr_tmp = qr(QRHO)*qr(ivel)*qr(ivelt)
+
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivelt) - ql(QRHO)*ql(ivelt))
+
+
+    ! total energy flux
+    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2)
+    fl_tmp = ql(ivel)*(rhoEl + ql(QPRES))
+
+    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2)
+    fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
+
+    f(UEDEN) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
+
+
+    ! eint flux
+    fl_tmp = ql(QREINT)*ql(ivel)
+    fr_tmp = qr(QREINT)*qr(ivel)
+
+    f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
+
+
+    ! passively-advected scalar fluxes
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
+
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
+    enddo
+
+  end subroutine HLL
 
 end module riemann_module

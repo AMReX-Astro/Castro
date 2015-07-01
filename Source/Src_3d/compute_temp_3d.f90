@@ -20,7 +20,7 @@
       integer          :: pt_index(3)
 
       type (eos_t), allocatable :: eos_state(:)
-      integer :: eos_state_len(1), nx(3), n
+      integer :: eos_state_len(1), nx(3)
       
       nx = hi - lo + 1
       eos_state_len(1) = nx(1) * nx(2) * nx(3)
@@ -67,8 +67,6 @@
 
       call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
 
-      !$OMP PARALLEL WORKSHARE
-
       state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) = reshape(eos_state(:) % T, nx)
 
       ! Reset energy in case we floored
@@ -80,6 +78,4 @@
                                                           state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2) / &
                                                           state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
       
-      !$OMP END PARALLEL WORKSHARE
-
       end subroutine compute_temp

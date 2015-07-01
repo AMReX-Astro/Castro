@@ -11,8 +11,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ denerr,dengrad,max_denerr_lev,max_dengrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev,frac, &
+  namelist /fortin/ frac, &
        rho_1, rho_2, p0_base
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
@@ -41,9 +40,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
 
   ! set local variable defaults
-  center(1) = frac*(problo(1)+probhi(1))
-  center(2) = frac*(problo(2)+probhi(2))
-  center(3) = frac*(problo(3)+probhi(3))
+  split(1) = frac*(problo(1)+probhi(1))
+  split(2) = frac*(problo(2)+probhi(2))
+  split(3) = frac*(problo(3)+probhi(3))
   
   L_x = probhi(1) - problo(1)
 
@@ -92,7 +91,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer :: i,j,k
   double precision :: x,y,z,r2d,pres,presmid,pertheight
   
-  presmid  = p0_base - rho_1*center(3)
+  presmid  = p0_base - rho_1*split(3)
         
   state(:,:,:,UMX)   = ZERO
   state(:,:,:,UMY)   = ZERO
@@ -105,12 +104,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
            
-           if (z .lt. center(3)) then
+           if (z .lt. split(3)) then
               pres = p0_base - rho_1*z
               state(i,j,k,UEDEN) = pres / (gamma_const - 1.0d0)
               state(i,j,k,UEINT) = pres / (gamma_const - 1.0d0)
            else
-              pres = presmid - rho_2*(z-center(3))
+              pres = presmid - rho_2*(z-split(3))
               state(i,j,k,UEDEN) = pres / (gamma_const - 1.0d0)
               state(i,j,k,UEINT) = pres / (gamma_const - 1.0d0)
            end if
@@ -128,7 +127,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         do i = lo(1), hi(1)
            x = (i+HALF)*delta(1)
      
-           r2d = min(sqrt((x-center(1))**2+(y-center(2))**2), 0.5d0*L_x)
+           r2d = min(sqrt((x-split(1))**2+(y-split(2))**2), 0.5d0*L_x)
            pertheight = 0.5d0 - 0.01d0*cos(2.0d0*M_PI*r2d/L_x)
            state(i,j,k,URHO) = rho_1 + ((rho_2-rho_1)/2.0d0)* &
                 (1+tanh((z-pertheight)/0.005d0))

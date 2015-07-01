@@ -185,11 +185,9 @@
        product = ZERO
        vol = dx(1)
  
-       !$OMP PARALLEL DO PRIVATE(i) REDUCTION(+:product)
        do i = lo(1), hi(1)
           product = product + f1(i)*f2(i)
        enddo
-       !$OMP END PARALLEL DO
 
        product = product * vol
 

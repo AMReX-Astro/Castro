@@ -290,12 +290,24 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(Rhs); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel	  
+#endif
+    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box bx = mfi.validbox();
+        const Box& bx = mfi.tilebox();
+	D_TERM(const Box xbx = mfi.nodaltilebox(0);,
+	       const Box ybx = mfi.nodaltilebox(1);,
+	       const Box zbx = mfi.nodaltilebox(2);)
         // Modify Rhs and coeffs with the appropriate metric terms.
         BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
             (bx.loVect(), bx.hiVect(),
+	     D_DECL(xbx.loVect(),
+		    ybx.loVect(),
+		    zbx.loVect()),
+	     D_DECL(xbx.hiVect(),
+		    ybx.hiVect(),
+		    zbx.hiVect()),
              BL_TO_FORTRAN(Rhs[mfi]),
              D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
                     BL_TO_FORTRAN(coeffs[1][mfi]),
@@ -311,10 +323,12 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
-    for (MFIter mfi(cc); mfi.isValid(); ++mfi)
+#ifdef _OPENMP
+#pragma omp parallel	  
+#endif
+    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
-        int index = mfi.index();
-        const Box bx = grids[level][index];
+        const Box& bx = mfi.tilebox();
         BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
             (bx.loVect(), bx.hiVect(),
              BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);

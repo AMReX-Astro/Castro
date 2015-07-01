@@ -6,9 +6,12 @@
            gold,gold_l1,gold_h1, &
            gnew,gnew_l1,gnew_h1, &
            uold,uold_l1,uold_h1, &
-           unew,unew_l1,unew_h1,dt)
+           unew,unew_l1,unew_h1, &
+           dx,dt, &
+           vol,vol_l1,vol_h1, &
+           xmom_added,E_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UEDEN
+      use meth_params_module, only : NVAR, URHO, UMX, UEDEN, grav_source_type
       use bl_constants_module
 
       implicit none
@@ -18,42 +21,95 @@
       integer gnew_l1,gnew_h1
       integer uold_l1,uold_h1
       integer unew_l1,unew_h1
+      integer vol_l1,vol_h1
       double precision   gold(gold_l1:gold_h1)
       double precision   gnew(gnew_l1:gnew_h1)
+      double precision   grav(gnew_l1:gnew_h1)
       double precision  uold(uold_l1:uold_h1,NVAR)
       double precision  unew(unew_l1:unew_h1,NVAR)
-      double precision dt
+      double precision   vol(vol_l1:vol_h1)
+      double precision dx(1), dt
+      double precision E_added, xmom_added
 
       integer i
-      double precision :: rhon, Upn
+      double precision :: rhoo, rhooinv, Upo
+      double precision :: rhon, rhoninv, Upn
       double precision :: SrU_new, SrU_old
       double precision :: SrUcorr,SrEcorr
-      double precision :: Upo
+
+      double precision :: old_ke, old_rhoeint, old_re
+      double precision :: new_ke, new_rhoeint
+      double precision :: old_xmom
+
+      ! Gravitational source options for how to add the work to (rho E):
+      ! grav_source_type = 
+      ! 1: Original version ("does work")
+      ! 2: Modification of type 1 that updates the U before constructing SrEcorr
+      ! 3: Puts all gravitational work into KE, not (rho e)
+
+      if (grav_source_type .eq. 4) then
+         call bl_error("Error:: grav_source_type == 4 not enabled in one dimension.")
+      endif
 
       do i = lo(1),hi(1)
 
+         ! **** Start Diagnostics ****
+         old_re = unew(i,UEDEN)
+         old_ke = HALF * (unew(i,UMX)**2) / unew(i,URHO) 
+         old_rhoeint = unew(i,UEDEN) - old_ke
+         old_xmom = unew(i,UMX)
+         ! ****   End Diagnostics ****
+
          ! Define old source term
-         SrU_old = uold(i,URHO) * gold(i)
-            
+         rhoo = uold(i,URHO)
+         rhooinv = ONE / uold(i,URHO)
+         Upo = uold(i,UMX) * rhooinv
+
+         SrU_old = rhoo * gold(i)
+
+         ! Define new source term            
          rhon = unew(i,URHO)
-         Upn  = unew(i,UMX) / rhon
-         Upo  = uold(i,UMX) / uold(i,URHO)
+         rhoninv = ONE / unew(i,URHO)
+         Upn  = unew(i,UMX) * rhoninv
          
-         ! Define new source term
          SrU_new = rhon * gnew(i)
          
          ! Define corrections to source terms
          SrUcorr = HALF*(SrU_new - SrU_old)
 
-         unew(i,UMX) = unew(i,UMX) + dt*SrUcorr
+         if (grav_source_type .eq. 1) then
+             SrEcorr =  HALF * ( SrU_new * Upn - SrU_old * Upo )
+         end if
 
-         ! This doesn't work
-         ! SrEcorr = SrUcorr*(Upn + SrUcorr*dt/(2*rhon))
+         ! Correct state with correction terms
+         unew(i,UMX) = unew(i,UMX) + SrUcorr * dt
 
-         ! This works
-         SrEcorr = HALF*(SrU_new * Upn - SrU_old * Upo)
+         if (grav_source_type .eq. 1) then
 
-         unew(i,UEDEN) = unew(i,UEDEN) + SrEcorr*dt
+            ! Note SrEcorr was constructed before updating unew
+            unew(i,UEDEN) = unew(i,UEDEN) + SrEcorr*dt
+         else if (grav_source_type .eq. 2) then
+            ! Note SrEcorr  is constructed  after updating unew
+            Upn     = unew(i,UMX) * rhoninv
+
+            SrEcorr = HALF * ( SrU_new * Upn - SrU_old * Upo ) 
+
+            unew(i,UEDEN) = unew(i,UEDEN) + SrEcorr*dt
+         else if (grav_source_type .eq. 3) then
+             new_ke = HALF * (unew(i,UMX)**2) / unew(i,URHO) 
+             unew(i,UEDEN) = old_rhoeint + new_ke
+         else 
+            call bl_error("Error:: Castro_grav_sources_1d.f90 :: bogus grav_source_type")
+         end if
+
+         ! **** Start Diagnostics ****
+         ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
+         new_ke = HALF * (unew(i,UMX)**2) / unew(i,URHO) 
+         new_rhoeint = unew(i,UEDEN) - new_ke
+
+         E_added =  E_added + unew(i,UEDEN) - old_re
+         xmom_added = xmom_added + unew(i,UMX) - old_xmom
+         ! ****   End Diagnostics ****
 
       enddo
 

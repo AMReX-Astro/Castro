@@ -1,9 +1,10 @@
 !     This is an example of how to specify a radial profile
-!     Note that r_c and rho_c must be specified in probdata_module
+!     Note that in this example r_c and rho_c must be 
+!     specified in an external module that we'll call grav_module.
 
 !     function ca_prescribe_grav_gravityprofile(r) result(g)
 !     use fundamental_constants_module, only : Gconst
-!     use probdata_module
+!     use grav_module
 !     implicit none
 !     double precision, intent(in) :: r
 !     double precision             :: g
@@ -16,7 +17,6 @@
                                     problo)
 
       use fundamental_constants_module, only : Gconst
-      use probdata_module
       use bl_constants_module
 
       implicit none
@@ -54,7 +54,7 @@
 !        enddo
 !     enddo
 
-      grav = ZERO
+      grav(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
       end subroutine ca_prescribe_grav
 

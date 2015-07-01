@@ -2,14 +2,14 @@
 #ifndef _Castro_H_
 #define _Castro_H_
 
-//
-// $Id: Castro.H,v 1.86 2011-09-09 00:49:27 cmalone Exp $
-//
-
 #include <BC_TYPES.H>
 #include <AmrLevel.H>
 #include <ErrorList.H>
 #include <FluxRegister.H>
+
+#ifdef BL_LAZY
+#include <Lazy.H>
+#endif
 
 #ifdef PARTICLES
 #include "Particles.H"
@@ -29,7 +29,6 @@ typedef FabArray<IntFab> IntMultiFab;
 enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
-                 Test_Type,
 #endif
 #ifdef GRAVITY
                  Gravity_Type,
@@ -389,38 +388,38 @@ public:
     void getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau = 0);
 #ifdef TAU
     void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
-    void add_diffusion_to_old_source (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real prev_time, MultiFab& tau_diff);
+    void add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t, MultiFab& tau_diff);
     void time_center_diffusion       (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
     void full_diffusion_update       (MultiFab& S_new, Real prev_time, Real cur_time, Real dt, MultiFab& tau_diff);
 #else
-    void add_diffusion_to_old_source (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real prev_time);
+    void add_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t);
     void time_center_diffusion       (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt);
     void full_diffusion_update       (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
 #endif
 #endif
 
 #ifdef ROTATION
-  void add_rotation_to_old_source(MultiFab& old_ext_src, MultiFab& OldRotationTerm, Real old_time);
+  void add_rotation_to_source(MultiFab& ext_src, MultiFab& RotationTerm, Real old_time);
   void time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerm, Real cur_time, Real dt);
 #endif
 
-    Real volWgtSum (const std::string& name, Real time);
+    Real volWgtSum (const std::string& name, Real time, bool local=false, bool finemask=true);
 
-    Real volWgtSquaredSum (const std::string& name, Real time);
+    Real volWgtSquaredSum (const std::string& name, Real time, bool local=false);
 
-    Real locWgtSum (const std::string& name, Real time, int idir);
+    Real locWgtSum (const std::string& name, Real time, int idir, bool local=false);
 
-    Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2);
+    Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2, bool local=false);
 
-    Real volWgtSumMF (MultiFab* mf, int comp);
+    Real volWgtSumMF (MultiFab* mf, int comp, bool local=false);
 
-    Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir);
+    Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir, bool local=false);
 
-    Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir);
+    Real volWgtSumOneSide (const std::string& name, Real time, int side, int bdir, bool local=false);
 
-    Real volProductSum (const std::string& name1, const std::string& name2, Real time);
+    Real volProductSum (const std::string& name1, const std::string& name2, Real time, bool local=false);
 
-    Real locSquaredSum (const std::string& name, Real time, int idir);
+    Real locSquaredSum (const std::string& name, Real time, int idir, bool local=false);
 
     Real get_point_mass ();
 
@@ -455,6 +454,15 @@ public:
 
     FluxRegister& getFluxReg ();
     FluxRegister& getFluxReg (int lev);
+
+    //
+    // This MultiFab is on the coarser level.  This is useful for the coarser level
+    // to mask out the finer level.  We only build this when it is needed.
+    // This coarse MultiFab has to live on the fine level because it must be updated
+    // even when only the fine level changes.
+    //
+    MultiFab* fine_mask;
+    MultiFab* build_fine_mask();
 
 protected:
 
@@ -500,7 +508,7 @@ protected:
 
     // integrate derived quantities over domain
 
-    Real sumDerive (const std::string& name, Real time);
+    Real sumDerive (const std::string& name, Real time, bool local=false);
 
     void sum_integrated_quantities ();
 
@@ -567,7 +575,6 @@ protected:
     static int       grown_factor;
     static int       star_at_center;
     static int       moving_center;
-    static int       allow_untagging;
     static int       normalize_species;
     static int       fix_mass_flux;
     static int       allow_negative_energy;
@@ -576,27 +583,36 @@ protected:
     static int       ppm_type;
     static int       ppm_reference;
     static int       ppm_trace_grav;
+    static int       ppm_trace_rot;
     static int       ppm_temp_fix;
     static int       ppm_tau_in_tracing;
+    static int       ppm_predict_gammae;
     static int       ppm_reference_edge_limit;
     static int       ppm_flatten_before_integrals;
     static int       ppm_reference_eigenvectors;
+    static int       hybrid_riemann;
     static int       use_colglaz;
     static int       use_flattening;
     static int       transverse_use_eos;
     static int       transverse_reset_density;
     static int       transverse_reset_rhoe;
 
+    static int       dual_energy_update_E_from_e;
+    static Real      dual_energy_eta1;
+    static Real      dual_energy_eta2;
+
     static int       cg_maxiter;
     static Real      cg_tol;
     static int       use_pslope;
     static int       grav_source_type;
     static int       spherical_star;
+    static int       hard_cfl_limit;
 
     static Real      difmag;
     static Real      small_dens;
     static Real      small_temp;
     static Real      small_pres;
+    static Real      small_ener;
 
     static std::string      job_name;
 
@@ -650,8 +666,14 @@ protected:
     // determines whether we use accelerators for specific loops
     static int do_acc;
 
+    // permits rotation calculation to be turned on and off
+    static int do_rotation;
+
     // put phi in the plotfile
     static int plot_phiGrav;
+
+    // How often to compute integral sums
+    static int sum_interval;
 
     // Display center of mass diagnostics
     static int show_center_of_mass;
@@ -691,13 +713,25 @@ protected:
 #endif
 
 #ifdef ROTATION
-  static int do_rotation;
   static Real rotational_period;
+  static int rot_source_type;
+  static int rot_axis;
 #endif
+
+    // set it to true to make OMP deterministic
+    static int deterministic;  
+
+    // Is boundary function for inflow (i.e., ext_dir) thread safe?
+    // Note that other boundary functions must be thread safe too.
+    static int bndry_func_thread_safe;
+
+    // Name of the probin file and its length.
+    static std::string probin_file;
+
+    static IntVect hydro_tile_size;
 
 /* problem-specific includes */
 #include <Problem.H>
-
 
 };
 

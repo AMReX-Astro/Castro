@@ -11,6 +11,8 @@
 # include "RAD_F.H"
 #endif
 
+#include "buildInfo.H"
+
 using std::string;
 
 static Box the_same_box (const Box& b) { return b; }
@@ -114,18 +116,40 @@ Castro::variableSetUp ()
   startCPUTime = ParallelDescriptor::second();
 
 
+    // Output the git commit hashes used to build the executable.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+	const char* castro_hash  = buildInfoGetGitHash(1);
+	const char* boxlib_hash  = buildInfoGetGitHash(2);
+	const char* buildgithash = buildInfoGetBuildGitHash();
+	const char* buildgitname = buildInfoGetBuildGitName();
+
+	if (strlen(castro_hash) > 0) {
+	  std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+	}
+	if (strlen(boxlib_hash) > 0) {
+	  std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+	}
+	if (strlen(buildgithash) > 0){
+	  std::cout << buildgitname << " git hash: " << buildgithash << "\n";
+	}
+
+	std::cout << "\n";
+    }
+
     BL_ASSERT(desc_lst.size() == 0);
-
-    // Initialize the runtime parameters for any of the external
-    // microphysics
-    extern_init();
-
 
     // Initialize the network
     network_init();
 
     // Get options, set phys_bc
     read_params();
+
+    // Initialize the runtime parameters for any of the external
+    // microphysics
+    extern_init();
+
     //
     // Set number of state variables and pointers to components
     //
@@ -194,7 +218,9 @@ Castro::variableSetUp ()
     const Real run_strt = ParallelDescriptor::second() ; 
 
 #ifndef ROTATION
-    static Real rotational_period = 0;
+    static Real rotational_period = -1.e200;
+    static int  rot_axis = 3;
+    static int  rot_source_type = -1;
 #endif
 
     // we want const_grav in F90, get it here from parmparse, since it
@@ -203,21 +229,25 @@ Castro::variableSetUp ()
     Real const_grav = 0;
     pp.query("const_grav", const_grav);
 
-
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-         NumAdv, difmag, small_dens, small_temp, small_pres, 
+         NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
          allow_negative_energy,ppm_type,ppm_reference,
-	 ppm_trace_grav,ppm_temp_fix,ppm_tau_in_tracing,ppm_reference_edge_limit,
+	 ppm_trace_grav,ppm_trace_rot,ppm_temp_fix,
+	 ppm_tau_in_tracing,ppm_predict_gammae,
+	 ppm_reference_edge_limit,
 	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
-	 use_colglaz, use_flattening, 
+	 hybrid_riemann, use_colglaz, use_flattening, 
          transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
          cg_maxiter, cg_tol,
          use_pslope, 
-	 grav_source_type, do_sponge,
-         normalize_species,fix_mass_flux,use_sgs,rotational_period,
-	 const_grav, do_acc);
+	 do_grav, grav_source_type, 
+	 do_sponge,
+         normalize_species,fix_mass_flux,use_sgs,
+	 dual_energy_eta1, dual_energy_eta2, dual_energy_update_E_from_e,
+	 do_rotation, rot_source_type, rot_axis, rotational_period, 
+	 const_grav, deterministic, do_acc);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
@@ -227,8 +257,46 @@ Castro::variableSetUp ()
         std::cout << "\nTime in set_method_params: " << run_stop << '\n' ;
 
     int coord_type = Geometry::Coord();
+
+    Real xmin = Geometry::ProbLo(0);
+    Real xmax = Geometry::ProbHi(0);
+#if (BL_SPACEDIM >= 2)
+    Real ymin = Geometry::ProbLo(1);
+    Real ymax = Geometry::ProbHi(1);
+#else
+    Real ymin = 0.0;
+    Real ymax = 0.0;
+#endif
+#if (BL_SPACEDIM == 3)
+    Real zmin = Geometry::ProbLo(2);
+    Real zmax = Geometry::ProbHi(2);
+#else
+    Real zmin = 0.0;
+    Real zmax = 0.0;
+#endif
+
+    // Get the center variable from the inputs and pass it directly to Fortran.
+    Array<Real> center(BL_SPACEDIM, 0.0);
+    ParmParse ppc("castro");
+    ppc.queryarr("center",center,0,BL_SPACEDIM);
+        
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
-         (dm,phys_bc.lo(),phys_bc.hi(),Outflow,Symmetry,SlipWall,NoSlipWall,coord_type);
+         (dm,phys_bc.lo(),phys_bc.hi(),
+	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+	  xmin,xmax,ymin,ymax,zmin,zmax,center.dataPtr());
+
+    // Read in the parameters for the tagging criteria
+    // and store them in the Fortran module.
+
+    int probin_file_length = probin_file.length();
+    Array<int> probin_file_name(probin_file_length);
+
+    for (int i = 0; i < probin_file_length; i++)
+      probin_file_name[i] = probin_file[i];
+
+    BL_FORT_PROC_CALL(GET_TAGGING_PARAMS, get_tagging_params)
+      (probin_file_name.dataPtr(),
+       &probin_file_length);
 
     Interpolater* interp = &cell_cons_interp;
 
@@ -505,71 +573,6 @@ Castro::variableSetUp ()
 	}
       }
     }
-
-    // In the following ncomp == 0 would be fine, except that it
-    // violates an assertion in StateDescriptor.cpp.  I think we could
-    // run with ncomp == 0 just by taking out that assertion.
-    ncomp = 2;
-    ncomp = (Radiation::Test_Type_lambda) ? 1 : ncomp;
-    int nspec = (Radiation::nNeutrinoSpecies>0) ? Radiation::nNeutrinoSpecies : 1;
-    if (Radiation::Test_Type_Flux) {
-      ncomp = nspec * BL_SPACEDIM;
-      if (Radiation::Test_Type_lambda) {
-	ncomp++;  // SGFLD only
-      }
-    }
-
-    ngrow = 0;
-    desc_lst.addDescriptor(Test_Type, IndexType::TheCellType(),
-                           StateDescriptor::Point, ngrow, ncomp,
-                           &cell_cons_interp);
-    set_scalar_bc(bc,phys_bc);
-
-    if (Radiation::Test_Type_Flux) {
-      Array<std::string> radname(3);
-      if (Radiation::nNeutrinoSpecies>0) {
-	radname[0] = "nue";
-	radname[1] = "nuae";
-	radname[2] = "numu";
-      }
-      else {
-	radname[0] = "rad";
-      }
-
-      Array<std::string> dimname(BL_SPACEDIM);
-      dimname[0] = "x";
-#if (BL_SPACEDIM >= 2)
-      dimname[1] = "y";
-#endif      
-#if (BL_SPACEDIM >= 3)
-      dimname[2] = "z";
-#endif      
-      
-      int icomp = 0;
-      for (int idim=0; idim<BL_SPACEDIM; idim++) {
-	for (int ispec=0; ispec<nspec; ispec++) {
-	  desc_lst.setComponent(Test_Type, icomp, "F"+dimname[idim]+radname[ispec], bc,
-				BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-	  icomp++;
-	}
-      }
-      if (Radiation::Test_Type_lambda) {
-	desc_lst.setComponent(Test_Type, icomp, "lambda", bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-      }
-    }
-    else if (Radiation::Test_Type_lambda) {
-      desc_lst.setComponent(Test_Type, 0, "lambda", bc,
-			    BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));      
-    }
-    else {
-      char test_name[10];
-      for (int i = 0; i < ncomp; i++){
-	sprintf(test_name, "test%d", i);
-	desc_lst.setComponent(Test_Type, i, test_name, bc,
-			      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
-      }
-    }
 #endif
 
     //
@@ -808,7 +811,6 @@ Castro::variableSetUp ()
 
     if (Radiation::nNeutrinoSpecies > 0 &&
         Radiation::nNeutrinoGroups[0] > 0) {
-#if 1
       derive_lst.add("Enue", IndexType::TheCellType(),1,
 		     BL_FORT_PROC_CALL(CA_DERENUE,ca_derenue),the_same_box);
       derive_lst.addComponent("Enue",desc_lst,Rad_Type,0,Radiation::nGroups);
@@ -852,7 +854,6 @@ Castro::variableSetUp ()
       // FirstAux is (rho * Ye)
       derive_lst.addComponent("Ynuae",desc_lst,State_Type,FirstAux,1);
       derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-#endif
     }
 #endif
 

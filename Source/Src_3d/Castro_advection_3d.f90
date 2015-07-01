@@ -35,6 +35,7 @@ contains
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
                      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
                      grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                     rot,  rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                      ilo1, ilo2, ilo3, ihi1, ihi2, ihi3, dx, dy, dz, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
                      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
@@ -48,7 +49,8 @@ contains
                      pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
-                                   use_pslope, ppm_trace_grav, ppm_temp_fix
+                                   use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
+                                   do_grav, do_rotation, hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
@@ -57,7 +59,7 @@ contains
     use network
     use eos_module
     use eos_type_module
-    use riemann_module, only: cmpflx
+    use riemann_module, only: cmpflx, shock
     use bl_constants_module
 
     implicit none
@@ -65,6 +67,7 @@ contains
     integer qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
     integer src_l1, src_l2, src_l3, src_h1, src_h2, src_h3
     integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
     integer fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3
     integer fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3
@@ -83,6 +86,7 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision   rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
     double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
@@ -120,53 +124,68 @@ contains
     double precision, allocatable::fyx(:,:,:,:),fyz(:,:,:,:)
     double precision, allocatable::fzx(:,:,:,:),fzy(:,:,:,:)
     
-    double precision, allocatable:: pgdnvx(:,:,:), ugdnvx(:,:,:)
-    double precision, allocatable:: pgdnvxf(:,:,:), ugdnvxf(:,:,:)
-    double precision, allocatable:: pgdnvtmpx(:,:,:), ugdnvtmpx(:,:,:)
+    double precision, allocatable:: pgdnvx(:,:,:), ugdnvx(:,:,:), gegdnvx(:,:,:)
+    double precision, allocatable:: pgdnvxf(:,:,:), ugdnvxf(:,:,:), gegdnvxf(:,:,:)
+    double precision, allocatable:: pgdnvtmpx(:,:,:), ugdnvtmpx(:,:,:), gegdnvtmpx(:,:,:)
     
-    double precision, allocatable:: pgdnvy(:,:,:), ugdnvy(:,:,:)
-    double precision, allocatable:: pgdnvyf(:,:,:), ugdnvyf(:,:,:)
-    double precision, allocatable:: pgdnvtmpy(:,:,:), ugdnvtmpy(:,:,:)
+    double precision, allocatable:: pgdnvy(:,:,:), ugdnvy(:,:,:), gegdnvy(:,:,:)
+    double precision, allocatable:: pgdnvyf(:,:,:), ugdnvyf(:,:,:), gegdnvyf(:,:,:)
+    double precision, allocatable:: pgdnvtmpy(:,:,:), ugdnvtmpy(:,:,:), gegdnvtmpy(:,:,:)
     
-    double precision, allocatable:: pgdnvz(:,:,:), ugdnvz(:,:,:)
-    double precision, allocatable:: pgdnvtmpz1(:,:,:), ugdnvtmpz1(:,:,:)
-    double precision, allocatable:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:)
+    double precision, allocatable:: pgdnvz(:,:,:), ugdnvz(:,:,:), gegdnvz(:,:,:)
+    double precision, allocatable:: pgdnvzf(:,:,:), ugdnvzf(:,:,:), gegdnvzf(:,:,:)
+    double precision, allocatable:: pgdnvtmpz1(:,:,:), ugdnvtmpz1(:,:,:), gegdnvtmpz1(:,:,:)
+    double precision, allocatable:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), gegdnvtmpz2(:,:,:)
     
-    double precision, allocatable:: pgdnvzf(:,:,:), ugdnvzf(:,:,:)
-
     double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
+    double precision, allocatable:: Ip_r(:,:,:,:,:,:), Im_r(:,:,:,:,:,:)
     double precision, allocatable:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
+
+    double precision, allocatable :: shk(:,:,:)
     
     type (eos_t), allocatable :: eos_state(:)
     integer :: eos_state_len(1), nx(4)
 
     allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
     allocate ( pgdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
     allocate ( pgdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     
     allocate ( pgdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate ( gegdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
     allocate ( pgdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
     allocate ( pgdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
 
     allocate ( pgdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( pgdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( pgdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
     allocate ( pgdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    
-    allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    allocate (gegdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
+    allocate ( pgdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate ( ugdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+
+    allocate ( pgdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate ( ugdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    allocate (gegdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     
     allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
     allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
@@ -215,18 +234,31 @@ contains
     allocate ( fzx(ilo1:ihi1,ilo2-1:ihi2+1,2,NVAR))
     allocate ( fzy(ilo1-1:ihi1+1,ilo2:ihi2,2,NVAR))
 
-    ! x-index, y-index, z-index, dim, characteristics, variables
-    allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
-    allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+    if (ppm_type .gt. 0) then
+       ! x-index, y-index, z-index, dim, characteristics, variables
+       allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+       allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+       
+       ! for gravity (last index is x,y,z component)
+       allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       
+       ! for rotation (last index is x,y,z component)
+       allocate ( Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       allocate ( Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       
+       ! for gamc -- needed for the reference state in eigenvectors
+       allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+       allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+    else
+       allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+       allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+       allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    end if
+
+    ! for the hybrid Riemann solver
+    allocate(shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1,ilo3-1:ihi3+1))
     
-    ! for gravity (last index is x,y,z component)
-    allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-    allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-
-    ! for gamc -- needed for the reference state in eigenvectors
-    allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
-    allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
-
     ! Local constants
     dtdx = dt/dx
     dtdy = dt/dy
@@ -242,6 +274,32 @@ contains
     ! Initialize pdivu to zero
     pdivu(:,:,:) = ZERO
 
+
+    ! multidimensional shock detection -- this will be used to do the
+    ! hybrid Riemann solver
+    if (hybrid_riemann == 1) then
+       call shock(q,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+            shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+            ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz)
+    else
+       shk(:,:,:) = ZERO
+    endif
+    
+
+    ! We come into this routine with a 3-d box of data, but we operate
+    ! on it locally by considering 2 planes that encompass all of the
+    ! x, y indices of the original box, but each plane corresponds to
+    ! a single z index.
+    !
+    ! In the notation below, k3d will always been the index into the
+    ! original 3-d box.  kc will be the z-index in the local "planar"
+    ! data and km will be the previously used index in the local
+    ! planar data.
+    !
+    ! With each loop in the k direction, we will overwrite the old
+    ! data in the planar arrays.
+
+    
     ! Initialize kc (current k-level) and km (previous k-level)
     kc = 1
     km = 2
@@ -263,12 +321,22 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           end do
 
-          if (ppm_trace_grav .eq. 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
              do n=1,3
                 call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                          q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
+                         ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+             enddo
+          endif
+
+          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
+             do n=1,3
+                call ppm(rot(:,:,:,n),rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
+                         q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
              enddo
           endif
@@ -280,10 +348,8 @@ contains
                       flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-          endif
-          
-          ! temperature-based PPM
-          if (ppm_temp_fix == 1) then
+          else          
+
              nx = (/ ihi1 - ilo1 + 2, ihi2 - ilo2 + 2, 3, 3 /)
              eos_state_len = (/ nx(1) * nx(2) * nx(3) * nx(4) /)
              allocate(eos_state(eos_state_len(1)))
@@ -322,11 +388,10 @@ contains
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
+                           Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
                            qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                            gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+                           ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
        else
 
@@ -354,43 +419,47 @@ contains
        ! Compute \tilde{F}^x at kc (k3d)
        call cmpflx(qxm,qxp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                   ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                   shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
        ! Compute \tilde{F}^y at kc (k3d)
        call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                   ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                   shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
        
        ! Compute U'^y_x at kc (k3d)
        call transy1(qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                    ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,k3d)
 
        ! Compute U'^x_y at kc (k3d)
        call transx1(qym,qmyx,qyp,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                    ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fxy,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                   ugdnvtmpx,pgdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvtmpx,pgdnvtmpx,gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                   shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
 
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fyx,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                   ugdnvtmpy,pgdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvtmpy,pgdnvtmpy,gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                   shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
 
        if (k3d.ge.ilo3) then
@@ -398,11 +467,10 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
              call tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             Ip,Im,Ip_g,Im_g,Ip_gc,Im_gc, &
+                             Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                             grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                              gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+                             ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
           else
              call tracez(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          dqz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -413,54 +481,59 @@ contains
           ! Compute \tilde{F}^z at kc (k3d)
           call cmpflx(qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                      ugdnvz,pgdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      ugdnvz,pgdnvz,gegdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute U'^y_z at kc (k3d)
           call transy2(qzm,qmzy,qzp,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                       ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute U'^x_z at kc (k3d)
           call transx2(qzm,qmzx,qzp,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                       ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,km,k3d)
 
           ! Compute F^{z|x} at kc (k3d)
           call cmpflx(qmzx,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fzx,ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-                      ugdnvtmpz1,pgdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      ugdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute F^{z|y} at kc (k3d)
           call cmpflx(qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fzy,ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-                      ugdnvtmpz2,pgdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      ugdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &                       
                       3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
           
           ! Compute U''_z at kc (k3d)
           call transxy(qzm,qzl,qzp,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fxy,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                        fyx,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                       ugdnvtmpx,pgdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                       ugdnvtmpy,pgdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       ugdnvtmpx,pgdnvtmpx,gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       ugdnvtmpy,pgdnvtmpy,gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                        hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
           call cmpflx(qzl,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       flux3,fd3_l1,fd3_l2,fd3_l3,fd3_h1,fd3_h2,fd3_h3, &
-                      ugdnvzf,pgdnvzf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      ugdnvzf,pgdnvzf,gegdnvzf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                      shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
 
           do j=ilo2-1,ihi2+1
@@ -485,51 +558,56 @@ contains
              call transz(qxm,qmxz,qxp,qpxz, &
                          qym,qmyz,qyp,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                         ugdnvz,pgdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         ugdnvz,pgdnvz,gegdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          cdtdz,ilo1-1,ihi1+1,ilo2-1,ihi2+1,km,kc,k3d)
          
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz,qpxz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fxz,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                         ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fyz,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                         ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute U''_x at km (k3d-1)
              call transyz(qxm,qxl,qxp,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           fyz,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                           fzy,ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-                          ugdnvy,pgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                          ugdnvtmpz2,pgdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          ugdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                           hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
 
              ! Compute U''_y at km (k3d-1)
              call transxz(qym,qyl,qyp,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           fxz,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                           fzx,ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-                          ugdnvx,pgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                          ugdnvtmpz1,pgdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          ugdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
+                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
                           hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
              ! Compute F^x at km (k3d-1)
              call cmpflx(qxl,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          flux1,fd1_l1,fd1_l2,fd1_l3,fd1_h1,fd1_h2,fd1_h3, &
-                         ugdnvxf,pgdnvxf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         ugdnvxf,pgdnvxf,gegdnvxf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
              
              do j=ilo2-1,ihi2+1
@@ -541,8 +619,9 @@ contains
              ! Compute F^y at km (k3d-1)
              call cmpflx(qyl,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          flux2,fd2_l1,fd2_l2,fd2_l3,fd2_h1,fd2_h2,fd2_h3, &
-                         ugdnvyf,pgdnvyf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         ugdnvyf,pgdnvyf,gegdnvyf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                         shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
 
              do j=ilo2-1,ihi2+2
@@ -566,17 +645,16 @@ contains
     enddo
 
     ! Deallocate arrays
-    deallocate(pgdnvx,ugdnvx)
-    deallocate(pgdnvxf,ugdnvxf)
-    deallocate(pgdnvtmpx,ugdnvtmpx)
-    deallocate(pgdnvy,ugdnvy)
-    deallocate(pgdnvyf,ugdnvyf)
-    deallocate(pgdnvtmpy,ugdnvtmpy)
-    deallocate(pgdnvz,ugdnvz)
-    deallocate(pgdnvtmpz1,ugdnvtmpz1)
-    deallocate(pgdnvtmpz2,ugdnvtmpz2)
-    deallocate(pgdnvzf,ugdnvzf)
-    deallocate(dqx,dqy,dqz)
+    deallocate(pgdnvx,ugdnvx,gegdnvx)
+    deallocate(pgdnvxf,ugdnvxf,gegdnvxf)
+    deallocate(pgdnvtmpx,ugdnvtmpx,gegdnvtmpx)
+    deallocate(pgdnvy,ugdnvy,gegdnvy)
+    deallocate(pgdnvyf,ugdnvyf,gegdnvyf)
+    deallocate(pgdnvtmpy,ugdnvtmpy,gegdnvtmpy)
+    deallocate(pgdnvz,ugdnvz,gegdnvz)
+    deallocate(pgdnvtmpz1,ugdnvtmpz1,gegdnvtmpz1)
+    deallocate(pgdnvtmpz2,ugdnvtmpz2,gegdnvtmpz2)
+    deallocate(pgdnvzf,ugdnvzf,gegdnvzf)
     deallocate(qxm,qxp)
     deallocate(qmxy,qpxy)
     deallocate(qmxz,qpxz)
@@ -591,9 +669,14 @@ contains
     deallocate(fxy,fxz)
     deallocate(fyx,fyz)
     deallocate(fzx,fzy)
-    deallocate(Ip,Im)
-    deallocate(Ip_g,Im_g)
-    deallocate(Ip_gc,Im_gc)
+    if (ppm_type .gt. 0) then
+       deallocate(Ip,Im)
+       deallocate(Ip_g,Im_g)
+       deallocate(Ip_r,Im_r)
+       deallocate(Ip_gc,Im_gc)
+    else
+       deallocate(dqx,dqy,dqz)
+    end if
       
   end subroutine umeth3d
 
@@ -603,7 +686,8 @@ contains
 
   subroutine ctoprim(lo,hi,          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                      q,c,gamc,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
-                     src,srcQ,           src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                     src,                src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                     srcQ,               srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
                      courno,dx,dy,dz,dt,ngp,ngf)
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
@@ -619,7 +703,9 @@ contains
                                    UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening
+                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   npassive, upass_map, qpass_map, dual_energy_eta1
+    
     use flatten_module
     use bl_constants_module
 
@@ -631,6 +717,7 @@ contains
     integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
     integer q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+    integer srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
     
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
@@ -639,7 +726,7 @@ contains
     double precision :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
     double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
     double precision :: dx, dy, dz, dt, courno
 
     double precision, allocatable:: dpdrho(:,:,:)
@@ -652,6 +739,9 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
+    double precision :: kineng
+
+    integer :: ipassive
 
     type (eos_t), allocatable :: eos_state(:)
 
@@ -673,7 +763,6 @@ contains
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    !$OMP PARALLEL DO PRIVATE(i,j,k)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
@@ -689,9 +778,22 @@ contains
              q(i,j,k,QU) = uin(i,j,k,UMX)/uin(i,j,k,URHO)
              q(i,j,k,QV) = uin(i,j,k,UMY)/uin(i,j,k,URHO)
              q(i,j,k,QW) = uin(i,j,k,UMZ)/uin(i,j,k,URHO)
-             ! convert "rho e" to "e"
-             q(i,j,k,QREINT ) = uin(i,j,k,UEINT)/q(i,j,k,QRHO)
-             q(i,j,k,QTEMP  ) = uin(i,j,k,UTEMP)
+
+             ! Get the internal energy, which we'll use for determining the pressure.
+             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+             ! then we risk serious numerical truncation error in the internal energy.
+             ! Therefore we'll use the result of the separately updated internal energy equation.
+             ! Otherwise, we'll set e = E - K.
+
+             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
+
+             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .lt. dual_energy_eta1) then
+                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) / q(i,j,k,QRHO)
+             else
+                q(i,j,k,QREINT) = uin(i,j,k,UEINT) / q(i,j,k,QRHO)
+             endif
+
+             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
              
              ! convert "rho K" to "K"
              if (QESGS .gt. -1) &
@@ -700,10 +802,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(iadv,n,nq,i,j,k) IF(nadv.gt.1)
     do iadv = 1, nadv
        n = UFA + iadv - 1
        nq = QFA + iadv - 1
@@ -715,10 +815,8 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
       
     ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    !$OMP PARALLEL DO PRIVATE(ispec,n,nq,i,j,k) IF(nspec.gt.1)
     do ispec = 1, nspec
        n  = UFS + ispec - 1
        nq = QFS + ispec - 1
@@ -732,10 +830,8 @@ contains
 
        eos_state(:) % xn(ispec) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
-    !$OMP END PARALLEL DO
       
     ! Load auxiliary variables which are needed in the EOS
-    !$OMP PARALLEL DO PRIVATE(iaux,n,nq,i,j,k) IF(naux.gt.1)
     do iaux = 1, naux
        n  = UFX + iaux - 1
        nq = QFX + iaux - 1
@@ -749,9 +845,6 @@ contains
 
        eos_state(:) % aux(iaux) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
-    !$OMP END PARALLEL DO
-
-    ! Get gamc, p, T, c, csml using q state
 
     eos_state(:) % T   = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP ),eos_state_len)
     eos_state(:) % rho = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QRHO  ),eos_state_len)
@@ -778,7 +871,6 @@ contains
                                                           ONE
 
     ! compute srcQ terms
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ispec,iaux,iadv)
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -802,31 +894,29 @@ contains
              if (QESGS .gt. -1) &
                   srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)/q(i,j,k,QRHO) - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
 
-             do ispec = 1,nspec
-                srcQ(i,j,k,QFS+ispec-1) = ( src(i,j,k,UFS+ispec-1) - q(i,j,k,QFS+ispec-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-
-             do iaux = 1,naux
-                srcQ(i,j,k,QFX+iaux-1) = ( src(i,j,k,UFX+iaux-1) - q(i,j,k,QFX+iaux-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
-             do iadv = 1,nadv
-                srcQ(i,j,k,QFA+iadv-1) = ( src(i,j,k,UFA+iadv-1) - q(i,j,k,QFA+iadv-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-             
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
+
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+
+       do k = lo(3)-1, hi(3)+1
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
+                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
+                     q(i,j,k,QRHO)
+             enddo
+          enddo
+       enddo
+
+    enddo
 
     ! Compute running max of Courant number over grids
     courmx = courno
     courmy = courno
     courmz = courno
-    !$OMP PARALLEL DO PRIVATE(i,j,k,courx,coury,courz) REDUCTION(max:courmx,courmy,courmz)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -869,7 +959,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
 
     courno = max( courmx, courmy, courmz )
 
@@ -908,7 +997,8 @@ contains
                     area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                    div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux)
+                    div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux,&
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
     use network, only : nspec, naux
     use eos_module
@@ -942,7 +1032,8 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision dx, dy, dz, dt, E_added_flux
+    double precision dx, dy, dz, dt
+    double precision E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
     double precision :: div1
     integer          :: i, j, k, n
@@ -957,8 +1048,6 @@ contains
           
        else
 
-          !$OMP PARALLEL PRIVATE(i,j,k,div1)
-          !$OMP DO
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
@@ -969,8 +1058,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
@@ -981,8 +1069,7 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO NOWAIT
-          !$OMP DO
+
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -993,8 +1080,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END DO
-          !$OMP END PARALLEL
           
        endif
 
@@ -1020,7 +1105,6 @@ contains
           enddo
        else 
           ! update everything else with fluxes and source terms
-          !$OMP PARALLEL DO PRIVATE(i,j,k)
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1034,6 +1118,21 @@ contains
                    !
                    if (n .eq. UEINT) then
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                   else if (n .eq. UMX) then
+                      xmom_added_flux = xmom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                   else if (n .eq. UMY) then
+                      ymom_added_flux = ymom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                   else if (n .eq. UMZ) then
+                      zmom_added_flux = zmom_added_flux + &
+                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
                    else if (n .eq. UEDEN) then
                       E_added_flux = E_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
@@ -1043,7 +1142,6 @@ contains
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        endif
          
     enddo
@@ -1072,7 +1170,6 @@ contains
     integer          :: i, j, k
     double precision :: ux, vy, wz
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ux,vy,wz)
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
@@ -1100,7 +1197,6 @@ contains
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
     
   end subroutine divu
 
@@ -1134,9 +1230,6 @@ contains
     integer          :: i,j,k,n
     double precision :: sum,fac
     
-    !$OMP PARALLEL PRIVATE(i,j,k,sum,n,fac)
-
-    !$OMP DO
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -1155,9 +1248,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
@@ -1176,9 +1267,7 @@ contains
           end do
        end do
     end do
-    !$OMP END DO NOWAIT
-    
-    !$OMP DO
+
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1197,9 +1286,6 @@ contains
           end do
        end do
     end do
-    !$OMP END DO
-    
-    !$OMP END PARALLEL
 
   end subroutine normalize_species_fluxes
 
@@ -1213,9 +1299,12 @@ contains
                                      lo,hi,mass_added,eint_added,eden_added,verbose)
     
     use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-                                     UFA, small_dens, nadv
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, UFX, &
+                                     UFA, small_dens, small_temp, nadv
     use bl_constants_module
+    use eos_type_module, only : eos_t
+    use eos_module, only : eos
+    use eos_data_module, only : eos_input_rt
 
     implicit none
 
@@ -1228,14 +1317,14 @@ contains
     
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n
-    double precision :: min_dens
-    double precision, allocatable :: fac(:,:,:)
+    integer          :: i_set, j_set, k_set
+    double precision :: max_dens
     
     double precision :: initial_mass, final_mass
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
-    
-    allocate(fac(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
+
+    type (eos_t) :: eos_state(1)
     
     initial_mass = ZERO
       final_mass = ZERO
@@ -1246,14 +1335,13 @@ contains
     initial_eden = ZERO
       final_eden = ZERO
 
-    min_dens = ZERO
+    max_dens = ZERO
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,ii,jj,kk,min_dens) reduction(+:initial_mass,initial_eint,initial_eden)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
              
-             initial_mass = initial_mass + uout(i,j,k,URHO)
+             initial_mass = initial_mass + uout(i,j,k,URHO )
              initial_eint = initial_eint + uout(i,j,k,UEINT)
              initial_eden = initial_eden + uout(i,j,k,UEDEN)
              
@@ -1265,89 +1353,108 @@ contains
                 
              else if (uout(i,j,k,URHO) < small_dens) then
                 
-                min_dens = uin(i,j,k,URHO)
+                max_dens = uout(i,j,k,URHO)
+                i_set = i
+                j_set = j
+                k_set = k
                 do kk = -1,1
                    do jj = -1,1
                       do ii = -1,1
-                         min_dens = min(min_dens,uin(i+ii,j+jj,k+kk,URHO))
-                         if (i+ii.ge.uout_l1 .and. j+jj.ge.uout_l2 .and. k+kk.ge.uout_l3 .and. &
-                             i+ii.le.uout_h1 .and. j+jj.le.uout_h2 .and. k+kk.le.uout_h3) then
-                              if (uout(i+ii,j+jj,k+kk,URHO).gt.small_dens) &
-                                min_dens = min(min_dens,uout(i+ii,j+jj,k+kk,URHO))
+                         if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
+                             i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
+                              if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
+                                  i_set = i+ii
+                                  j_set = j+jj
+                                  k_set = k+kk
+                                  max_dens = uout(i_set,j_set,k_set,URHO)
+                              endif
                          endif
                       end do
                    end do
                 end do
+
+                ! If no neighboring zones are above small_dens, our only recourse 
+                ! is to set the density equal to small_dens, and the temperature 
+                ! equal to small_temp. We set the velocities to zero, 
+                ! though any choice here would be arbitrary.
+
+                if (max_dens < small_dens) then
+
+                   do n = UFS, UFS+nspec-1
+                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
+                   end do
+                   do n = UFX, UFX+naux-1
+                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
+                   end do
+                   do n = UFA, UFA+nadv-1
+                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
+                   end do
+
+                   eos_state(1) % rho = small_dens
+                   eos_state(1) % T   = small_temp
+                   eos_state(1) % xn  = uout(i,j,k,UFS:UFS+nspec-1) / uout(i,j,k,URHO)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   uout(i,j,k,URHO ) = eos_state(1) % rho
+                   uout(i,j,k,UTEMP) = eos_state(1) % T
+
+                   uout(i,j,k,UMX  ) = ZERO
+                   uout(i,j,k,UMY  ) = ZERO
+                   uout(i,j,k,UMZ  ) = ZERO
+
+                   uout(i,j,k,UEINT) = eos_state(1) % rho * eos_state(1) % e
+                   uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
+
+                endif
                 
                 if (verbose .gt. 0) then
                    if (uout(i,j,k,URHO) < ZERO) then
                       print *,'   '
                       print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
+                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
                       print *,'   '
                    else
                       print *,'   '
                       print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',min_dens
+                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
                       print *,'   '
                    end if
                 end if
                 
-                fac(i,j,k) = min_dens / uout(i,j,k,URHO)
-                
-             end if
-             
-          enddo
-       enddo
-    enddo
-    !$OMP END PARALLEL DO
-    
-    !$OMP PARALLEL DO PRIVATE(i,j,k,n) reduction(+:final_mass,final_eint,final_eden)
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             if (uout(i,j,k,URHO) < small_dens) then
-
-                uout(i,j,k,URHO ) = uout(i,j,k,URHO ) * fac(i,j,k)
-                uout(i,j,k,UEINT) = uout(i,j,k,UEINT) * fac(i,j,k)
-                uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) * fac(i,j,k)
-                uout(i,j,k,UMX  ) = uout(i,j,k,UMX  ) * fac(i,j,k)
-                uout(i,j,k,UMY  ) = uout(i,j,k,UMY  ) * fac(i,j,k)
-                uout(i,j,k,UMZ  ) = uout(i,j,k,UMZ  ) * fac(i,j,k)
+                uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
+                uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
+                uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
+                uout(i,j,k,UEDEN) = uout(i_set,j_set,k_set,UEDEN)
+                uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
+                uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
+                uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
    
                 do n = UFS, UFS+nspec-1
-                   uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
                 end do
                 do n = UFX, UFX+naux-1
-                   uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
                 end do
                 do n = UFA, UFA+nadv-1
-                   uout(i,j,k,n) = uout(i,j,k,n) * fac(i,j,k)
+                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
                 end do
                 
              end if
-             
-             final_mass = final_mass + uout(i,j,k,URHO)
+
+             final_mass = final_mass + uout(i,j,k,URHO )
              final_eint = final_eint + uout(i,j,k,UEINT)
-             final_eden = final_eden + uout(i,j,k,UEDEN)
+             final_eden = final_eden + uout(i,j,k,UEDEN)                
              
           enddo
        enddo
     enddo
-    !$OMP END PARALLEL DO
-    
-    ! When enabled with OpenMP sometimes there is a small numerical error
-    ! in (final_mass - initial_mass) even if no cells have been reset.
-    ! Guard against this by only taking the difference if any cell has been reset.
 
-    if ( min_dens /= ZERO ) then
+    if ( max_dens /= ZERO ) then
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
     endif
-    
-    deallocate(fac)
     
   end subroutine enforce_minimum_density
 
@@ -1371,7 +1478,6 @@ contains
     integer          :: i,j,k,n
     double precision :: fac,sum
     
-    !$OMP PARALLEL DO PRIVATE(i,j,k,sum,n,fac)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1390,7 +1496,6 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
     
   end subroutine normalize_new_species
 

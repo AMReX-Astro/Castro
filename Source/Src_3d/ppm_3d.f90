@@ -164,7 +164,6 @@ contains
        end do
     end do
 
-    !$OMP PARALLEL DO PRIVATE(i,j,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -265,7 +264,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(sedge,dsvl)
 
@@ -304,7 +302,6 @@ contains
        end do
     end do
 
-    !$OMP PARALLEL DO PRIVATE(i,j,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -398,7 +395,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(dsvl,sedge)
 
@@ -420,7 +416,6 @@ contains
     dsvlm = ZERO
     dsvlp = ZERO
 
-    !$OMP PARALLEL DO PRIVATE(i,j,k,dsc,dsl,dsr,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -550,7 +545,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(dsvl,dsvlm,dsvlp,sp,sm,sedgez)
 
@@ -663,9 +657,6 @@ contains
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    !$OMP PARALLEL DO PRIVATE(i,j,alphap,alpham,bigp,bigm,extremum,dafacem) &
-    !$OMP PRIVATE(dafacep,dabarm,dabarp,dafacemin,dabarmin,dachkm,dachkp,D2,D2L) &
-    !$OMP PRIVATE(D2R,D2C,sgn,D2LIM,amax,delam,delap,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -803,7 +794,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(sedge,dsvl)
 
@@ -842,8 +832,6 @@ contains
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    !$OMP PARALLEL DO PRIVATE(i,j,alphap,alpham,bigp,bigm,extremum,dafacem,dafacep,dabarm,dabarp,dafacemin) &
-    !$OMP PRIVATE(dabarmin,dachkm,dachkp,D2,D2L,D2R,D2C,sgn,D2LIM,amax,delam,delap,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -982,7 +970,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(dsvl,sedge)
 
@@ -1000,7 +987,6 @@ contains
     ! compute s at z-edges
 
     ! interpolate s to z-edges
-    !$OMP PARALLEL DO PRIVATE(i,j,k,D2,D2L,D2R,sgn,D2LIM)
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
@@ -1020,15 +1006,12 @@ contains
           end do
        end do
     end do
-    !$OMP END PARALLEL DO
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
     k = k3d
-    !$OMP PARALLEL DO PRIVATE(i,j,alphap,alpham,bigp,bigm,extremum,dafacem,dafacep,dabarm,dabarp,dafacemin) &
-    !$OMP PRIVATE(dabarmin,dachkm,dachkp,D2,D2L,D2R,D2C,sgn,D2LIM,amax,delam,delap,s6,sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -1167,7 +1150,6 @@ contains
 
        end do
     end do
-    !$OMP END PARALLEL DO
 
     deallocate(dsvl,dsvlm,dsvlp,sp,sm,sedgez)
 

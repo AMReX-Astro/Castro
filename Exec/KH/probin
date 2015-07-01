@@ -15,7 +15,12 @@
 
   idir = 1
 
+/
+
+&tagging
+
   dengrad = 0.1
   velgrad = 1.0
+
 /
 

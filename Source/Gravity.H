@@ -29,7 +29,7 @@ public:
   int NoComposite();
   int test_results_of_solves ();
   
-  void set_mass_offset(Real time);
+  void set_mass_offset(Real time, bool multi_level=true);
 
   MultiFab* get_phi_prev(int level);
   MultiFab* get_phi_curr(int level);
@@ -81,7 +81,7 @@ public:
                                      Array<PArray<MultiFab> >& grad_phi, int is_new,
                                      int use_previous_phi_as_guess = 0);
 
-  Real computeAvg    (int level, MultiFab* mf);
+  Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
   void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
                                         PArray<MultiFab>& cmlgp);
@@ -206,6 +206,12 @@ protected:
 #ifdef POINTMASS
     void add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_mass);
 #endif
+
+#ifdef PARTICLES
+    void AddParticlesToRhs(int level, MultiFab& Rhs, int ngrow);
+    void AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles);
+#endif
+
 
 };
 #endif

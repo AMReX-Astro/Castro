@@ -24,12 +24,11 @@ subroutine ca_ext_src(lo,hi, &
                       src,src_l1,src_h1,problo,dx,time,dt)
 
   use meth_params_module, only : NVAR, UMX
-  use probdata_module   , only : center
   use bl_constants_module
   
   implicit none
  
- integer         ,intent(in   ) :: lo(1),hi(1)
+  integer         ,intent(in   ) :: lo(1),hi(1)
   integer         ,intent(in   ) :: old_state_l1,old_state_h1
   integer         ,intent(in   ) :: new_state_l1,new_state_h1
   integer         ,intent(in   ) :: src_l1,src_h1
@@ -40,7 +39,8 @@ subroutine ca_ext_src(lo,hi, &
   
   integer          :: i
   
-  src = ZERO
+  ! lo and hi specify work region
+  src(lo(1):hi(1),:) = ZERO ! Fill work region only
  
 end subroutine ca_ext_src
 

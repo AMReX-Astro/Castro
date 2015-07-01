@@ -3,7 +3,7 @@
 #include <BLFort.H>
 
 BL_FORT_PROC_DECL(FILCC,filcc)
-                (const Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
+                (Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
                  const int * domlo, const int * domhi,
                  const Real * dx_crse, const Real * xlo,
                  const int * bc);
@@ -44,27 +44,42 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& NumAdv, 
      const Real& difmag,
      const Real& small_dens, const Real& small_temp,
-     const Real& small_pres, const int& allow_negative_energy,
+     const Real& small_pres, const Real& small_ener,
+     const int& allow_negative_energy,
      const int& ppm_type, const int& ppm_reference, 
-     const int& ppm_trace_grav, const int& ppm_temp_fix, 
-     const int& ppm_tau_in_tracing, const int& ppm_reference_edge_limit, 
+     const int& ppm_trace_grav, const int& ppm_trace_rot,
+     const int& ppm_temp_fix, 
+     const int& ppm_tau_in_tracing, const int& ppm_predict_gammae,
+     const int& ppm_reference_edge_limit, 
      const int& ppm_flatten_before_integrals,
      const int& ppm_reference_eigenvectors,
+     const int& hybrid_riemann, 
      const int& use_colglaz, const int& use_flattening,
      const int& transverse_use_eos, const int& transverse_reset_density, const int& transverse_reset_rhoe,
      const int& cg_maxiter, const Real& cg_tol,
-     const int& use_pslope, const int& grav_source_type,
+     const int& use_pslope, 
+     const int& do_grav, const int& grav_source_type,
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
-     const Real& rotational_period, const Real& const_grav,
-     const int& do_grav);
+     const Real& dual_energy_eta1,
+     const Real& dual_energy_eta2,
+     const int& dual_energy_update_E_from_e,
+     const int& do_rotation, const int& rot_source_type, const int& rot_axis, const Real& rotational_period, 
+     const Real& const_grav, const int& deterministic, const int& do_acc);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Outflow_value, const int& Symmetry_value, 
-     const int& SlipWall_value, const int& NoSlipWall_value, const int& coord_type);
+     const int& SlipWall_value, const int& NoSlipWall_value,
+     const int& coord_type,
+     const Real& xmin, const Real& xmax,
+     const Real& ymin, const Real& ymax,
+     const Real& zmin, const Real& zmax,
+     const Real* center);
+
+BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);;
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const Real& time, 
@@ -242,33 +257,67 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(ugdnvx),
+     BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
-     const BL_FORT_FAB_ARG(ugdnvy),
+     BL_FORT_FAB_ARG(ugdnvy),
 #endif
 #if (BL_SPACEDIM == 3)
-     const BL_FORT_FAB_ARG(ugdnvz),
+     BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,
-     D_DECL(const BL_FORT_FAB_ARG(xflux),
-            const BL_FORT_FAB_ARG(yflux),
-            const BL_FORT_FAB_ARG(zflux)),
-     D_DECL(const BL_FORT_FAB_ARG(xarea),
-            const BL_FORT_FAB_ARG(yarea),
-            const BL_FORT_FAB_ARG(zarea)),
+     D_DECL(BL_FORT_FAB_ARG(xflux),
+            BL_FORT_FAB_ARG(yflux),
+            BL_FORT_FAB_ARG(zflux)),
+     D_DECL(BL_FORT_FAB_ARG(xarea),
+            BL_FORT_FAB_ARG(yarea),
+            BL_FORT_FAB_ARG(zarea)),
 #if (BL_SPACEDIM < 3)
      const BL_FORT_FAB_ARG(dloga),
 #endif
      const BL_FORT_FAB_ARG(volume),
-     const Real* cflLoc,
+     Real* cflLoc,
      const int&  verbose,
-     const Real& mass_added,
-     const Real& eint_added,
-     const Real& eden,
-     const Real& E_added_flux,
-     const Real& E_added_grav);
+     Real& mass_added,
+     Real& eint_added,
+     Real& eden_added,
+     Real& xmom_added_flux,
+#if (BL_SPACEDIM >= 2)
+     Real& ymom_added_flux,
+#endif
+#if (BL_SPACEDIM == 3)
+     Real& zmom_added_flux,
+#endif
+     Real& xmom_added_grav,
+#if (BL_SPACEDIM >= 2)
+     Real& ymom_added_grav,
+#endif
+#if (BL_SPACEDIM == 3)
+     Real& zmom_added_grav,
+#endif
+#if (BL_SPACEDIM > 1)
+     Real& xmom_added_rot,
+#endif
+#if (BL_SPACEDIM >= 2)
+     Real& ymom_added_rot,
+#endif
+#if (BL_SPACEDIM == 3)
+     Real& zmom_added_rot,
+#endif
+     Real& xmom_added_sponge,
+#if (BL_SPACEDIM >= 2)
+     Real& ymom_added_sponge,
+#endif
+#if (BL_SPACEDIM == 3)
+     Real& zmom_added_sponge,
+#endif
+#if (BL_SPACEDIM > 1)
+     Real& E_added_rot,
+#endif
+     Real& E_added_flux,
+     Real& E_added_grav,
+     Real& E_added_sponge);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -281,22 +330,22 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const BL_FORT_FAB_ARG(Er),
      const BL_FORT_FAB_ARG(lam),
      BL_FORT_FAB_ARG(Erout),
-     const BL_FORT_FAB_ARG(ugdnvx),
+     BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
-     const BL_FORT_FAB_ARG(ugdnvy),
+     BL_FORT_FAB_ARG(ugdnvy),
 #endif
 #if (BL_SPACEDIM == 3)
-     const BL_FORT_FAB_ARG(ugdnvz),
+     BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,
-     D_DECL(const BL_FORT_FAB_ARG(xflux),
-            const BL_FORT_FAB_ARG(yflux),
-            const BL_FORT_FAB_ARG(zflux)),
-     D_DECL(const BL_FORT_FAB_ARG(xradflux),
-            const BL_FORT_FAB_ARG(yradflux),
-            const BL_FORT_FAB_ARG(zradflux)),
+     D_DECL(BL_FORT_FAB_ARG(xflux),
+            BL_FORT_FAB_ARG(yflux),
+            BL_FORT_FAB_ARG(zflux)),
+     D_DECL(BL_FORT_FAB_ARG(xradflux),
+            BL_FORT_FAB_ARG(yradflux),
+            BL_FORT_FAB_ARG(zradflux)),
      D_DECL(const BL_FORT_FAB_ARG(xarea),
             const BL_FORT_FAB_ARG(yarea),
             const BL_FORT_FAB_ARG(zarea)),
@@ -304,11 +353,16 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const BL_FORT_FAB_ARG(dloga),
 #endif
      const BL_FORT_FAB_ARG(volume),
-     const Real* cflLoc,
+     Real* cflLoc,
      const int& verbose, 
-     int* nstep_fsp, 
-     const int* fspace_advection_type,
-     const int* comoving);
+     int* nstep_fsp); 
+
+BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
+    (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+     BL_FORT_FAB_ARG_3D(stateout),
+     BL_FORT_FAB_ARG_3D(Erout),
+     const BL_FORT_FAB_ARG_3D(kappa_s),
+     const Real& dt);
 #endif
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
@@ -317,7 +371,49 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const BL_FORT_FAB_ARG(grad_phi_cc),
      const BL_FORT_FAB_ARG(S_old),
      BL_FORT_FAB_ARG(S_new),
-     const Real& dt, const Real& E_added);
+#if (BL_SPACEDIM == 3)
+     const BL_FORT_FAB_ARG(phi_old),
+     const BL_FORT_FAB_ARG(phi_new),
+     BL_FORT_FAB_ARG(xflux),
+     BL_FORT_FAB_ARG(yflux),
+     BL_FORT_FAB_ARG(zflux),
+#endif
+     const Real dx[], const Real& dt, 
+     const BL_FORT_FAB_ARG(volume), 
+     const Real& xmom_added, 
+#if (BL_SPACEDIM >= 2)
+     const Real& ymom_added, 
+#endif
+#if (BL_SPACEDIM == 3)
+     const Real& zmom_added,
+#endif
+     const Real& E_added);
+
+#ifdef ROTATION
+#if (BL_SPACEDIM > 1)
+BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(S_old),
+     BL_FORT_FAB_ARG(S_new),
+     BL_FORT_FAB_ARG(xflux),
+#if (BL_SPACEDIM >= 2)
+     BL_FORT_FAB_ARG(yflux),
+#endif
+#if (BL_SPACEDIM == 3)
+     BL_FORT_FAB_ARG(zflux),
+#endif
+     const Real dx[], const Real& dt, 
+     const BL_FORT_FAB_ARG(volume), 
+     const Real& xmom_added, 
+#if (BL_SPACEDIM >= 2)
+     const Real& ymom_added, 
+#endif
+#if (BL_SPACEDIM == 3)
+     const Real& zmom_added,
+#endif
+     const Real& E_added);
+#endif
+#endif
 
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
     (BL_FORT_FAB_ARG(S_new), 
@@ -409,8 +505,8 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
 #else
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(new_state),
+     const BL_FORT_FAB_ARG(old_state),
+     const BL_FORT_FAB_ARG(new_state),
      BL_FORT_FAB_ARG(ext_src),
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
@@ -425,6 +521,10 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
      const BL_FORT_FAB_ARG(Tau),
 #endif
      const Real& time, const Real& dt_react);
+
+BL_FORT_PROC_DECL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(TempDiffTerm));
 
 BL_FORT_PROC_DECL(COMPUTE_TEMP,compute_temp)
     (const int lo[], const int hi[],

@@ -6,10 +6,7 @@
 ! ::
 ! :: INPUTS / OUTPUTS:
 ! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
 ! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  rfine      => (ignore) used in 2-D RZ calc
 ! ::  lo,hi      => index limits of overlap (crse grid)
 ! ::  lrat       => refinement ratio
 ! ::
@@ -33,11 +30,8 @@
       double precision fine(f_l1:f_h1)
 
       integer i, ic, ioff
-      integer lratx
       double precision volfrac
 
-      lratx = lrat(1)
-      volfrac = ONE/float(lrat(1))
 !
 !     ::::: set coarse grid to zero on overlap
 !
@@ -47,13 +41,14 @@
 !
 !         ::::: sum fine data
 !
-      do ioff = 0, lratx-1
+      do ioff = 0, lrat(1)-1
          do ic = lo(1), hi(1)
-            i = ic*lratx + ioff
+            i = ic*lrat(1) + ioff
             crse(ic) = crse(ic) + fine(i)
          enddo
       enddo
 
+      volfrac = ONE/dble(lrat(1))
       do ic = lo(1), hi(1)
          crse(ic) = volfrac*crse(ic)
       enddo
@@ -176,13 +171,6 @@
 
       end if
 
-      ! Note this assumes the lo end of the domain is 0
-      if (ccl1 .lt. 0 .and. bc_lo(1) .eq. symmetry_type) then
-         do i=lo(1),-1
-            cc(i) = -cc(-i-1)
-         enddo
-      endif
-
       end subroutine ca_avg_ec_to_cc
 
 ! :::
@@ -254,7 +242,7 @@
       subroutine ca_average_ec ( &
            fx, fxl1, fxh1, &
            cx, cxl1, cxh1, &
-           lo, hi, rr)
+           lo, hi, rr, idir)
  
       implicit none
       integer lo(1),hi(1)
@@ -262,12 +250,13 @@
       integer cxl1, cxh1
       double precision fx(fxl1:fxh1)
       double precision cx(cxl1:cxh1)
-      integer rr(1)
+      integer rr(1), idir
  
       integer i,facx
       facx = rr(1)
 
-      do i = lo(1), hi(1)+1
+      ! lo(1)..hi(1) are edge base indice
+      do i = lo(1), hi(1)
          cx(i) = fx(facx*i)
       end do
  
@@ -279,7 +268,6 @@
 
       subroutine ca_compute_1d_grav(rho, r_l1, r_h1, grav, dx, problo)
 
-      use probdata_module
       use fundamental_constants_module, only : Gconst
       use bl_constants_module
 

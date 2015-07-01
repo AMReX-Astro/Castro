@@ -1,92 +1,5 @@
 !-----------------------------------------------------------------------
 
-      subroutine ca_derlapvar(var,var_l1,var_l2,var_h1,var_h2,nv, &
-                              dat,dat_l1,dat_l2,dat_h1,dat_h2,nc,lo,hi,domlo, &
-                              domhi,delta,xlo,time,dt,bc,level,grid_no)
-!
-!     This routine will derive the weighted-Laplacian of the variable for
-!       the purposes of error estimation
-!
-      implicit none
-
-      integer          lo(2), hi(2)
-      integer          var_l1,var_l2,var_h1,var_h2,nv
-      integer          dat_l1,dat_l2,dat_h1,dat_h2,nc
-      integer          domlo(2), domhi(2)
-      integer          bc(2,2,nc)
-      double precision delta(2), xlo(2), time, dt
-      double precision var(var_l1:var_h1,var_l2:var_h2,nv)
-      double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,nc)
-      integer    level, grid_no
-
-      double precision ::  delu(2,var_l1:var_h1,var_l2:var_h2)
-      double precision :: delua(2,var_l1:var_h1,var_l2:var_h2)
-      double precision :: delu2(4), delu3(4), delu4(4)
-      double precision :: num, denom
-      integer          :: i,j
-
-      ! This value is taken from FLASH
-      double precision, parameter:: epsil=0.02
-
-      ! adapted from ref_marking.f90 in FLASH2.5
-
-      ! d/dx
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(1,i,j) =     dat(i+1,j,1) -      dat(i-1,j,1)
-         delua(1,i,j) = abs(dat(i+1,j,1)) + abs(dat(i-1,j,1))
-      end do
-      end do
-
-      ! d/dy
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(2,i,j) =     dat(i,j+1,1) -      dat(i,j-1,1)
-         delua(2,i,j) = abs(dat(i,j+1,1)) + abs(dat(i,j-1,1))
-      end do
-      end do
-
-      do j = lo(2),hi(2)
-      do i = lo(1),hi(1)
-
-         ! d/dxdx
-         delu2(1) =     delu(1,i+1,j)  -     delu(1,i-1,j)
-         delu3(1) = abs(delu(1,i+1,j)) + abs(delu(1,i-1,j))
-         delu4(1) =    delua(1,i+1,j)  +    delua(1,i-1,j)
-
-         ! d/dydx
-         delu2(2) =     delu(1,i,j+1)  -     delu(1,i,j-1)
-         delu3(2) = abs(delu(1,i,j+1)) + abs(delu(1,i,j-1))
-         delu4(2) =    delua(1,i,j+1)  +    delua(1,i,j-1)
-
-         ! d/dxdy
-         delu2(3) =     delu(2,i+1,j)  -     delu(2,i-1,j)
-         delu3(3) = abs(delu(2,i+1,j)) + abs(delu(2,i-1,j))
-         delu4(3) =    delua(2,i+1,j)  +    delua(2,i-1,j)
-
-         ! d/dydy
-         delu2(4) =     delu(2,i,j+1)  -     delu(2,i,j-1)
-         delu3(4) = abs(delu(2,i,j+1)) + abs(delu(2,i,j-1))
-         delu4(4) =    delua(2,i,j+1)  +    delua(2,i,j-1)
-
-         ! compute the error
-         num   =  delu2(1)**2 + delu2(2)**2 + delu2(3)**2 + delu2(4)**2
-         denom = (delu3(1) + (epsil*delu4(1)+1.d-99))**2 + &
-                 (delu3(2) + (epsil*delu4(2)+1.d-99))**2 + &
-                 (delu3(3) + (epsil*delu4(3)+1.d-99))**2 + &
-                 (delu3(4) + (epsil*delu4(4)+1.d-99))**2
-
-         var(i,j,1) = sqrt(num/denom)
-
-      end do
-      end do
-
-
-      end subroutine ca_derlapvar
-
-
-!-----------------------------------------------------------------------
-
       subroutine ca_derstate(state,state_l1,state_l2,state_h1,state_h2,nv, &
                              dat,dat_l1,dat_l2,dat_h1,dat_h2,nc,lo,hi,domlo, &
                              domhi,delta,xlo,time,dt,bc,level,grid_no)
@@ -194,7 +107,7 @@
 !
 !     This routine will derive the radial velocity.
 !
-      use probdata_module, only : center
+      use prob_params_module, only : center
       use bl_constants_module
 
       implicit none 
@@ -394,8 +307,6 @@
 
       type (eos_t) :: eos_state
 
-      c = ZERO
-
 !     Compute soundspeed from the EOS
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -414,6 +325,10 @@
                call eos(eos_input_re, eos_state)
 
                c(i,j,1) = eos_state % cs
+
+            else
+               
+               c(i,j,1) = zero
 
             endif
          enddo
@@ -448,8 +363,6 @@
 
       type (eos_t) :: eos_state
 
-      mach = ZERO
-
 !     Compute Mach number of the flow
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -467,6 +380,8 @@
 
                call eos(eos_input_re, eos_state)
                mach(i,j,1) = sqrt(ux**2 + uy**2) / eos_state % cs
+            else
+               mach(i,j,1) = zero
             end if
 
          enddo
@@ -502,8 +417,6 @@
 
       type (eos_t) :: eos_state
 
-      s = ZERO
-
 !     Compute entropy from the EOS
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
@@ -519,6 +432,8 @@
 
                call eos(eos_input_re, eos_state)
                s(i,j,1) = eos_state % s
+            else
+               s(i,j,1) = zero
             endif
          enddo
       enddo
@@ -635,34 +550,27 @@
       integer          bc(2,2,nc)
       double precision delta(2), xlo(2), time, dt
       double precision vort(  v_l1:  v_h1,  v_l2:  v_h2,nv)
-      double precision  dat(dat_l1:dat_h1,dat_l2:dat_h2,nc)
+      double precision, intent(in) :: dat(dat_l1:dat_h1,dat_l2:dat_h2,nc)
       integer    level, grid_no
 
       integer          :: i,j
       double precision :: vx,uy
+      double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,2:3)
 
       ! Convert momentum to velocity
       do j = lo(2)-1, hi(2)+1
       do i = lo(1)-1, hi(1)+1
-        dat(i,j,2) = dat(i,j,2) / dat(i,j,1)
-        dat(i,j,3) = dat(i,j,3) / dat(i,j,1)
+        ldat(i,j,2) = dat(i,j,2) / dat(i,j,1)
+        ldat(i,j,3) = dat(i,j,3) / dat(i,j,1)
       end do
       end do
 
       ! Calculate vorticity
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
-         vx = HALF * (dat(i+1,j,3) - dat(i-1,j,3)) / delta(1) 
-         uy = HALF * (dat(i,j+1,2) - dat(i,j-1,2)) / delta(2) 
+         vx = HALF * (ldat(i+1,j,3) - ldat(i-1,j,3)) / delta(1) 
+         uy = HALF * (ldat(i,j+1,2) - ldat(i,j-1,2)) / delta(2) 
          vort(i,j,1) = abs(vx - uy)
-      end do
-      end do
-
-      ! Convert velocity back to momentum 
-      do j = lo(2)-1, hi(2)+1
-      do i = lo(1)-1, hi(1)+1
-        dat(i,j,2) = dat(i,j,2) * dat(i,j,1)
-        dat(i,j,3) = dat(i,j,3) * dat(i,j,1)
       end do
       end do
 

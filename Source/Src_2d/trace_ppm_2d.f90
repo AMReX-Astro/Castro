@@ -12,20 +12,21 @@ contains
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                        grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                       rot,rt_l1,rt_l2,rt_h1,rt_h2, &
                        gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
-    use network, only : nspec, naux
+    use network, only : nspec
     use eos_type_module
     use eos_module
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QV, &
-         QREINT, QPRES, QTEMP, QFS, &
+         QREINT, QPRES, QTEMP, QFS, QGAME, &
          small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_temp_fix, &
+         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals, &
-         npassive, qpass_map
+         ppm_flatten_before_integrals, ppm_predict_gammae, &
+         npassive, qpass_map, do_grav, do_rotation
     use ppm_module, only : ppm
 
     implicit none
@@ -35,6 +36,7 @@ contains
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer gv_l1,gv_l2,gv_h1,gv_h2
+    integer rt_l1,rt_l2,rt_h1,rt_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -48,6 +50,7 @@ contains
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
     double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
+    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
@@ -63,11 +66,11 @@ contains
     double precision dum, dvm, dpm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
-    double precision :: tau_s, e_s, de
+    double precision :: tau_s, e_s, de, dge
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
-    double precision :: gam
+    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
+    double precision :: gam, game
     
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision apright, amright, azrright, azeright
@@ -87,6 +90,9 @@ contains
 
     double precision, allocatable :: Ip_g(:,:,:,:,:)
     double precision, allocatable :: Im_g(:,:,:,:,:)
+
+    double precision, allocatable :: Ip_r(:,:,:,:,:)
+    double precision, allocatable :: Im_r(:,:,:,:,:)
 
     ! gamma_c/1 on the interfaces
     double precision, allocatable :: Ip_gc(:,:,:,:,:)
@@ -110,6 +116,11 @@ contains
        allocate(Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
        allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
     endif
+
+    if (ppm_trace_rot == 1) then
+       allocate(Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+       allocate(Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+    endif       
 
     allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
@@ -200,12 +211,24 @@ contains
 
     ! if desired, do parabolic reconstruction of the gravitational
     ! acceleration -- we'll use this for the force on the velocity
-    if (ppm_trace_grav == 1) then
+    if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
+                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       enddo
+    endif
+
+    ! if desired, do parabolic reconstruction of the rotational
+    ! source -- we'll use this for the force on the velocity
+    if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+       do n = 1,2
+          call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
+                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   flatn, &
+                   Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        enddo
     endif
@@ -232,6 +255,8 @@ contains
 
           Clag = rho*cc
 
+          game = q(i,j,QGAME)
+
           gam = gamc(i,j)
 
           !-------------------------------------------------------------------
@@ -253,6 +278,8 @@ contains
 
              gam_ref = gamc(i,j)
 
+             game_ref = game
+
           else
              ! this will be the fastest moving state to the left --
              ! this is the method that Miller & Colella and Colella &
@@ -266,6 +293,8 @@ contains
              tau_ref  = ONE/Im(i,j,1,1,QRHO)
 
              gam_ref  = Im_gc(i,j,1,1,1)
+
+             game_ref  = Im(i,j,1,1,QGAME)
           endif
 
           ! for tracing (optionally)
@@ -291,9 +320,17 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dum = dum - halfdt*Im_g(i,j,1,1,igx)
              dup = dup - halfdt*Im_g(i,j,1,3,igx)
+          endif
+
+          ! if we are doing rotation tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             dum = dum - halfdt*Im_r(i,j,1,1,igx)
+             dup = dup - halfdt*Im_r(i,j,1,3,igx)
           endif
 
 
@@ -306,6 +343,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
+             tau_ev  = 1.0d0/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -313,6 +351,7 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
+             tau_ev  = tau_ref
           endif
 
 
@@ -330,6 +369,8 @@ contains
           else
 
              ! (tau, u, p, e) eigensystem
+             ! or
+             ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
@@ -338,10 +379,18 @@ contains
              ! we are dealing with e
              de = (rhoe_ref/rho_ref - Im(i,j,1,2,QREINT)/Im(i,j,1,2,QRHO))
 
+             dge = game_ref - Im(i,j,1,2,QGAME)
+
              alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game - 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
 
           endif ! which tracing method
 
@@ -382,16 +431,20 @@ contains
                 qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
                 qxp(i,j,QPRES)  = p_ref + (apright + amright)*csq_ev
              else
-
                 tau_s = tau_ref + apright + amright + azrright
                 qxp(i,j,QRHO)   = ONE/tau_s
 
                 qxp(i,j,QU)     = u_ref + (amright - apright)*Clag_ev
-                
-                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
-                qxp(i,j,QREINT) = e_s/tau_s
 
                 qxp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
+                
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
+                   qxp(i,j,QREINT) = e_s/tau_s
+                else
+                   qxp(i,j,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright 
+                   qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - 1.0d0)
+                endif
              end if
 
 
@@ -405,8 +458,12 @@ contains
              ! the state traced under the middle wave
              dv    = Im(i,j,1,2,QV)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
              endif
 
              ! Recall that I already takes the limit of the parabola
@@ -450,7 +507,6 @@ contains
              ! original Castro way -- cc values
              rho_ref  = rho
              u_ref    = u
-             v_ref    = v
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -459,11 +515,12 @@ contains
 
              gam_ref = gamc(i,j)
 
+             game_ref = game
+
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,1,3,QRHO)
              u_ref    = Ip(i,j,1,3,QU)
-             v_ref    = Ip(i,j,1,3,QV)
 
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
@@ -471,6 +528,8 @@ contains
              tau_ref  = ONE/Ip(i,j,1,3,QRHO)
 
              gam_ref    = Ip_gc(i,j,1,3,1)
+
+             game_ref    = Ip(i,j,1,3,QGAME)
           endif
 
           ! for tracing (optionally)
@@ -496,9 +555,17 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dum = dum - halfdt*Ip_g(i,j,1,1,igx)
              dup = dup - halfdt*Ip_g(i,j,1,3,igx)
+          endif
+
+          ! if we are doing rotation tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             dum = dum - halfdt*Ip_r(i,j,1,1,igx)
+             dup = dup - halfdt*Ip_r(i,j,1,3,igx)
           endif
 
 
@@ -511,6 +578,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
+             tau_ev  = 1.0d0/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -518,6 +586,7 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
+             tau_ev  = tau_ref
           endif
 
           if (ppm_tau_in_tracing == 0) then
@@ -533,17 +602,26 @@ contains
           else
 
              ! (tau, u, p, e) eigensystem
+             ! or
+             ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
              de = (rhoe_ref/rho_ref - Ip(i,j,1,2,QREINT)/Ip(i,j,1,2,QRHO))
+             dge = game_ref - Ip(i,j,1,2,QGAME)
 
              alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game - 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
 
           endif
 
@@ -585,16 +663,21 @@ contains
                 qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
                 qxm(i+1,j,QPRES)  = p_ref + (apleft + amleft)*csq_ev
              else
-
                 tau_s = tau_ref + (apleft + amleft + azrleft)
                 qxm(i+1,j,QRHO)   = ONE/tau_s
 
                 qxm(i+1,j,QU)     = u_ref + (amleft - apleft)*Clag_ev
-                
-                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
-                qxm(i+1,j,QREINT) = e_s/tau_s
 
                 qxm(i+1,j,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
+                   qxm(i+1,j,QREINT) = e_s/tau_s
+                else
+                   qxm(i+1,j,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                   qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - 1.0d0)
+                endif
+
              end if
 
 
@@ -606,8 +689,12 @@ contains
              ! transverse velocity
              dv    = Ip(i,j,1,2,QV)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
              endif
 
              if (u < ZERO) then
@@ -764,6 +851,8 @@ contains
 
           gam = gamc(i,j)
 
+          game = q(i,j,QGAME)
+
           !------------------------------------------------------------------- 
           ! plus state on face j
           !-------------------------------------------------------------------
@@ -775,7 +864,6 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              v_ref    = v
-             u_ref    = u
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -783,18 +871,21 @@ contains
              tau_ref  = ONE/rho
 
              gam_ref = gamc(i,j)
+
+             gam_ref = game
           else
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
              v_ref    = Im(i,j,2,1,QV)
-             u_ref    = Im(i,j,2,1,QU)
 
              p_ref    = Im(i,j,2,1,QPRES)
              rhoe_ref = Im(i,j,2,1,QREINT)
 
              tau_ref  = ONE/Im(i,j,2,1,QRHO)
 
-             gam_ref    = Im_gc(i,j,2,1,1)
+             gam_ref  = Im_gc(i,j,2,1,1)
+
+             game_ref = Im(i,j,2,1,QGAME)
           endif
             
           ! for tracing (optionally)
@@ -820,9 +911,17 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Im_g(i,j,2,1,igy)
              dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
+          endif
+
+          ! if we are doing rotation tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             dvm = dvm - halfdt*Im_r(i,j,2,1,igy)
+             dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -857,17 +956,26 @@ contains
           else
 
              ! (tau, u, p, e) eigensystem
+             ! or
+             ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
              de = (rhoe_ref/rho_ref - Im(i,j,2,2,QREINT)/Im(i,j,2,2,QRHO))
+             dge = game_ref - Im(i,j,2,2,QGAME)
 
              alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game - 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
           
           endif
 
@@ -913,10 +1021,16 @@ contains
 
                 qyp(i,j,QV)     = v_ref + (amright - apright)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
-                qyp(i,j,QREINT) = e_s/tau_s
-
                 qyp(i,j,QPRES)  = p_ref + (-apright - amright)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright -p_ev*apright)
+                   qyp(i,j,QREINT) = e_s/tau_s
+                else
+                   qyp(i,j,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                   qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - 1.0d0)
+                endif
+
              end if
 
 
@@ -928,8 +1042,12 @@ contains
              ! transverse velocity
              du    = Im(i,j,2,2,QU)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 du  = du  + halfdt*Im_g(i,j,2,2,igx)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                du  = du  + halfdt*Im_r(i,j,2,2,igx)
              endif
 
              if (v > ZERO) then
@@ -968,7 +1086,6 @@ contains
              ! original Castro way -- cc value
              rho_ref  = rho
              v_ref    = v
-             u_ref    = u
 
              p_ref    = p
              rhoe_ref = rhoe
@@ -977,11 +1094,12 @@ contains
 
              gam_ref = gamc(i,j)
 
+             game_ref = game
+
           else
              ! this will be the fastest moving state to the right
              rho_ref  = Ip(i,j,2,3,QRHO)
              v_ref    = Ip(i,j,2,3,QV)
-             u_ref    = Ip(i,j,2,3,QU)
 
              p_ref    = Ip(i,j,2,3,QPRES)
              rhoe_ref = Ip(i,j,2,3,QREINT)
@@ -989,6 +1107,8 @@ contains
              tau_ref  = ONE/Ip(i,j,2,3,QRHO)
 
              gam_ref    = Ip_gc(i,j,2,3,1)
+
+             game_ref    = Ip(i,j,2,3,QGAME)
           endif
 
           ! for tracing (optionally)
@@ -1014,9 +1134,17 @@ contains
           ! if we are doing gravity tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_grav == 1) then
+          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
              dvm = dvm - halfdt*Ip_g(i,j,2,1,igy)
              dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
+          endif
+
+          ! if we are doing rotation tracing, then we add the force to
+          ! the velocity here, otherwise we will deal with this in the
+          ! trans_X routines
+          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+             dvm = dvm - halfdt*Ip_r(i,j,2,1,igy)
+             dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -1049,17 +1177,27 @@ contains
           else
 
              ! (tau, u, p, e) eigensystem
+             ! or
+             ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
              de = (rhoe_ref/rho_ref - Ip(i,j,2,2,QREINT)/Ip(i,j,2,2,QRHO))
+             dge = game_ref - Ip(i,j,2,2,QGAME)
 
              alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
              alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
              alpha0r = dtau + dp/Clag_ev**2
-             alpha0e = de - dp*p_ev/Clag_ev**2
+
+             if (ppm_predict_gammae == 0) then
+                alpha0e = de - dp*p_ev/Clag_ev**2
+             else
+                gfactor = (game - 1.0d0)*(game - gam)
+                alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
+             endif
+
           endif
 
           if (v-cc .gt. ZERO) then
@@ -1102,10 +1240,16 @@ contains
                 qym(i,j+1,QRHO)   = ONE/tau_s
                 qym(i,j+1,QV)     = v_ref + (amleft - apleft)*Clag_ev
 
-                e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
-                qym(i,j+1,QREINT) = e_s/tau_s
-
                 qym(i,j+1,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
+
+                if (ppm_predict_gammae == 0) then
+                   e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft -p_ev*apleft)
+                   qym(i,j+1,QREINT) = e_s/tau_s
+                else
+                   qym(i,j+1,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft 
+                   qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - 1.0d0)
+                endif
+
              end if
              
 
@@ -1117,8 +1261,12 @@ contains
              ! transverse velocity
              du    =  Ip(i,j,2,2,QU)
 
-             if (ppm_trace_grav == 1) then
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
                 du  = du  + halfdt*Ip_g(i,j,2,2,igx)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                du  = du  + halfdt*Ip_r(i,j,2,2,igx)
              endif
 
              if (v < ZERO) then
@@ -1204,6 +1352,10 @@ contains
     deallocate(Ip,Im)
     if (ppm_trace_grav == 1) then
        deallocate(Ip_g,Im_g)
+    endif
+
+    if (ppm_trace_rot == 1) then
+       deallocate(Ip_r,Im_r)
     endif
 
   end subroutine trace_ppm

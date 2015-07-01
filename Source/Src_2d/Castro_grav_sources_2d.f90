@@ -15,7 +15,8 @@ contains
     subroutine add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
                                uout,uout_l1,uout_l2,uout_h1,uout_h2,&
                                grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                               lo,hi,dt,E_added)
+                               lo,hi,dt,E_added, &
+                               xmom_added,ymom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, grav_source_type
       use bl_constants_module
@@ -31,11 +32,13 @@ contains
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
       double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,2)
       double precision dt,E_added
+      double precision xmom_added,ymom_added
 
       double precision :: rho
       double precision :: SrU, SrV, SrE
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
+      double precision :: old_xmom, old_ymom
       integer          :: i, j
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -46,8 +49,6 @@ contains
 
 
       ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,rho,SrU,SrV,SrE,rhoInv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added)
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
@@ -56,6 +57,8 @@ contains
                old_ke = HALF * (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / &
                                 uout(i,j,URHO) 
                old_rhoeint = uout(i,j,UEDEN) - old_ke
+               old_xmom = uout(i,j,UMX)
+               old_ymom = uout(i,j,UMY)
                ! ****   End Diagnostics ****
 
                rho    = uin(i,j,URHO)
@@ -92,11 +95,12 @@ contains
                new_rhoeint = uout(i,j,UEDEN) - new_ke
  
                E_added =  E_added + uout(i,j,UEDEN) - old_re
+               xmom_added = xmom_added + uout(i,j,UMX) - old_xmom
+               ymom_added = ymom_added + uout(i,j,UMY) - old_ymom
                ! ****   End Diagnostics ****
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine add_grav_source
 
@@ -111,8 +115,11 @@ end module grav_sources_module
                              gnew,gnew_l1,gnew_l2,gnew_h1,gnew_h2, &
                              uold,uold_l1,uold_l2,uold_h1,uold_h2, &
                              unew,unew_l1,unew_l2,unew_h1,unew_h2, &
-                             dt,E_added)
+                             dx,dt, &
+                             vol,vol_l1,vol_l2,vol_h1,vol_h2, &
+                             xmom_added,ymom_added,E_added)
 
+      use prob_params_module, only : coord_type
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, grav_source_type
       use bl_constants_module
 
@@ -123,11 +130,14 @@ end module grav_sources_module
       integer gnew_l1,gnew_l2,gnew_h1,gnew_h2
       integer uold_l1,uold_l2,uold_h1,uold_h2
       integer unew_l1,unew_l2,unew_h1,unew_h2
+      integer vol_l1,vol_l2,vol_h1,vol_h2
       double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,2)
       double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,2)
       double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,NVAR)
       double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,NVAR)
-      double precision  dt,E_added
+      double precision   vol(vol_l1:vol_h1,vol_l2:vol_h2)
+      double precision  dx(2),dt,E_added
+      double precision xmom_added,ymom_added
 
       integer i,j
 
@@ -140,6 +150,7 @@ end module grav_sources_module
       double precision rhooinv, rhoninv
       double precision old_ke, old_rhoeint, old_re
       double precision new_ke, new_rhoeint
+      double precision old_xmom, old_ymom
 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
@@ -147,10 +158,6 @@ end module grav_sources_module
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
 
-
-      !$OMP PARALLEL DO PRIVATE(i,j,rhoo,Upo,Vpo,SrU_old,SrV_old,rhon,Upn,Vpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrUcorr,SrVcorr,SrEcorr,rhooinv,rhoninv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added) 
       do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
@@ -159,6 +166,8 @@ end module grav_sources_module
                old_ke = HALF * (unew(i,j,UMX)**2 + unew(i,j,UMY)**2) / &
                                 unew(i,j,URHO) 
                old_rhoeint = unew(i,j,UEDEN) - old_ke
+               old_xmom = unew(i,j,UMX)
+               old_ymom = unew(i,j,UMY)
                ! ****   End Diagnostics ****
 
                rhoo    = uold(i,j,URHO)
@@ -183,7 +192,6 @@ end module grav_sources_module
                SrUcorr = HALF*(SrU_new - SrU_old)
                SrVcorr = HALF*(SrV_new - SrV_old)
 
-               ! This does work (in 1-d)
                if (grav_source_type .eq. 1) then
                    SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
                                        (SrV_new * Vpn - SrV_old * Vpo) )
@@ -210,7 +218,7 @@ end module grav_sources_module
                                      unew(i,j,URHO) 
                    unew(i,j,UEDEN) = old_rhoeint + new_ke
                else 
-                  call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
+                  call bl_error("Error:: Castro_grav_sources_2d.f90 :: bogus grav_source_type")
                end if
 
                ! **** Start Diagnostics ****
@@ -219,12 +227,13 @@ end module grav_sources_module
                                 unew(i,j,URHO) 
                new_rhoeint = unew(i,j,UEDEN) - new_ke
  
-                E_added =  E_added + unew(i,j,UEDEN) - old_re
+               E_added =  E_added + unew(i,j,UEDEN) - old_re
+               xmom_added = xmom_added + unew(i,j,UMX) - old_xmom
+               ymom_added = ymom_added + unew(i,j,UMY) - old_ymom
                ! ****   End Diagnostics ****
 
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine ca_corrgsrc
 

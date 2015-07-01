@@ -29,7 +29,6 @@
         vol  = dx(1)*dx(2)*dx(3)
         mass = ZERO
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k) reduction(+:mass)
         do k = lo(3), hi(3)
            do i = lo(1), hi(1)
               do j = lo(2), hi(2)
@@ -37,7 +36,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
         mass = mass * vol
 
@@ -73,7 +71,6 @@
         vol  = dx(1)*dx(2)*dx(3)
         mass = ZERO
 
-        !$OMP PARALLEL DO PRIVATE(i,j,k) reduction(+:mass)
         do k = lo(3), hi(3)
            do i = lo(1), hi(1)
               do j = lo(2), hi(2)
@@ -81,7 +78,6 @@
               enddo
            enddo
         enddo
-        !$OMP END PARALLEL DO
 
         mass = mass * vol
 
@@ -105,7 +101,7 @@
        subroutine ca_sumlocmass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
                                 problo,dx,mass,idir)
 
-       use probdata_module, only : center
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
@@ -122,7 +118,6 @@
        mass = ZERO
 
        if (idir .eq. 0) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,x) REDUCTION(+:mass)
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
@@ -131,9 +126,7 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        else if (idir .eq. 1) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,y) REDUCTION(+:mass)
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
@@ -142,9 +135,7 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        else
-          !$OMP PARALLEL DO PRIVATE(i,j,k,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
@@ -153,7 +144,6 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        end if
 
        mass = mass * vol
@@ -183,7 +173,7 @@
        subroutine ca_sumlocmass2d(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
                                   problo,dx,mass,idir1,idir2)
 
-       use probdata_module, only : center
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
@@ -200,7 +190,6 @@
        mass = ZERO
 
        if (idir1 .eq. 0) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              if (idir2 .eq. 0) then
@@ -225,9 +214,7 @@
                 enddo
              endif
           enddo
-          !$OMP END PARALLEL DO
        else if (idir1 .eq. 1) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              if (idir2 .eq. 0) then
@@ -252,9 +239,7 @@
                 enddo
              endif
           enddo
-          !$OMP END PARALLEL DO
        else
-          !$OMP PARALLEL DO PRIVATE(i,j,k,x,y,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              if (idir2 .eq. 0) then
@@ -279,7 +264,6 @@
                 enddo
              endif
           enddo
-          !$OMP END PARALLEL DO
        end if
 
        mass = mass * vol
@@ -308,7 +292,7 @@
        subroutine ca_sumlocsquaredmass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
                                        problo,dx,mass,idir)
 
-       use probdata_module, only : center
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
@@ -325,7 +309,6 @@
        mass = ZERO
 
        if (idir .eq. 0) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,x) REDUCTION(+:mass)
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
@@ -334,9 +317,7 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        else if (idir .eq. 1) then
-          !$OMP PARALLEL DO PRIVATE(i,j,k,y) REDUCTION(+:mass)
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
@@ -345,9 +326,7 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        else
-          !$OMP PARALLEL DO PRIVATE(i,j,k,z) REDUCTION(+:mass)
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
@@ -356,7 +335,6 @@
                 enddo
              enddo
           enddo
-          !$OMP END PARALLEL DO
        end if
 
        mass = mass * vol
@@ -398,7 +376,6 @@
        product = ZERO
        vol = dx(1) * dx(2) * dx(3)
  
-       !$OMP PARALLEL DO PRIVATE(i,j,k) REDUCTION(+:product)
        do i = lo(1), hi(1)
          do k = lo(3), hi(3)
            do j = lo(2), hi(2)
@@ -406,7 +383,6 @@
            enddo
          enddo
        enddo
-       !$OMP END PARALLEL DO
 
        product = product * vol
 

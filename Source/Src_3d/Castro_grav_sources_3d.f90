@@ -15,7 +15,7 @@ contains
     subroutine add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                                uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                               lo,hi,dt,E_added)
+                               lo,hi,dt,E_added,xmom_added,ymom_added,zmom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
@@ -31,12 +31,13 @@ contains
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
       double precision grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,  gv_l3:  gv_h3,3)
       double precision dt
-      double precision E_added
+      double precision E_added, xmom_added, ymom_added, zmom_added
 
       double precision :: rho
       double precision :: SrU, SrV, SrW, SrE
       double precision :: rhoInv
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
+      double precision :: old_xmom, old_ymom, old_zmom
       integer          :: i, j, k
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -47,8 +48,6 @@ contains
 
 
       ! Add gravitational source terms
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rho,SrU,SrV,SrW,SrE,rhoInv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added)
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -58,6 +57,9 @@ contains
                old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                  uout(i,j,k,URHO) 
                old_rhoeint = uout(i,j,k,UEDEN) - old_ke
+               old_xmom = uout(i,j,k,UMX)
+               old_ymom = uout(i,j,k,UMY)
+               old_zmom = uout(i,j,k,UMZ)
                ! ****   End Diagnostics ****
 
                rho    = uin(i,j,k,URHO)
@@ -77,6 +79,7 @@ contains
                    SrE = uin(i,j,k,UMX) * grav(i,j,k,1) + &
                          uin(i,j,k,UMY) * grav(i,j,k,2) + &
                          uin(i,j,k,UMZ) * grav(i,j,k,3)
+
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + SrE * dt
 
                else if (grav_source_type .eq. 3) then
@@ -84,6 +87,10 @@ contains
                    new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
                                      uout(i,j,k,URHO) 
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
+
+               else if (grav_source_type .eq. 4) then
+
+                  ! Do nothing here, for the conservative gravity option.
 
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
@@ -97,12 +104,15 @@ contains
                new_rhoeint = uout(i,j,k,UEDEN) - new_ke
  
                E_added =  E_added + uout(i,j,k,UEDEN) - old_re
+
+               xmom_added = xmom_added + uout(i,j,k,UMX) - old_xmom
+               ymom_added = ymom_added + uout(i,j,k,UMY) - old_ymom
+               zmom_added = zmom_added + uout(i,j,k,UMZ) - old_zmom
                ! ****   End Diagnostics ****
 
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
 
       end subroutine add_grav_source
 
@@ -117,10 +127,19 @@ end module grav_sources_module
                              gnew,gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3, &
                              uold,uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3, &
                              unew,unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3, &
-                             dt,E_added)
+                             pold,pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3, &
+                             pnew,pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3, &
+                             flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
+                             flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
+                             flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+                             dx,dt, &
+                             vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
+                             xmom_added,ymom_added,zmom_added,E_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
+      use multifab_module
+      use fundamental_constants_module, only: Gconst
 
       implicit none
 
@@ -129,13 +148,25 @@ end module grav_sources_module
       integer gnew_l1,gnew_l2,gnew_l3,gnew_h1,gnew_h2,gnew_h3
       integer uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3
       integer unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
+      integer pold_l1,pold_l2,pold_l3,pold_h1,pold_h2,pold_h3
+      integer pnew_l1,pnew_l2,pnew_l3,pnew_h1,pnew_h2,pnew_h3
+      integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
+      integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
+      integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+      integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
       double precision   gold(gold_l1:gold_h1,gold_l2:gold_h2,gold_l3:gold_h3,3)
       double precision   gnew(gnew_l1:gnew_h1,gnew_l2:gnew_h2,gnew_l3:gnew_h3,3)
       double precision  uold(uold_l1:uold_h1,uold_l2:uold_h2,uold_l3:uold_h3,NVAR)
       double precision  unew(unew_l1:unew_h1,unew_l2:unew_h2,unew_l3:unew_h3,NVAR)
-      double precision  dt,E_added
+      double precision  pold(pold_l1:pold_h1,pold_l2:pold_h2,pold_l3:pold_h3)
+      double precision  pnew(pnew_l1:pnew_h1,pnew_l2:pnew_h2,pnew_l3:pnew_h3)
+      double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
+      double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
+      double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+      double precision   vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
+      double precision  dx(3),dt,E_added
 
-      integer i,j,k
+      integer i,j,k,n
 
       double precision SrU_old, SrV_old, SrW_old
       double precision SrU_new, SrV_new, SrW_new
@@ -146,17 +177,76 @@ end module grav_sources_module
       double precision rhooinv, rhoninv
       double precision old_ke, old_rhoeint, old_re
       double precision new_ke, new_rhoeint
+      double precision old_xmom, old_ymom, old_zmom, xmom_added, ymom_added, zmom_added
+      double precision rho_E_added, flux_added
 
+      double precision, allocatable :: phi(:,:,:)
+      double precision, allocatable :: drho1(:,:,:)
+      double precision, allocatable :: drho2(:,:,:)
+      double precision, allocatable :: drho3(:,:,:)
+ 
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
       ! 2: Modification of type 1 that updates the U before constructing SrEcorr
       ! 3: Puts all gravitational work into KE, not (rho e)
+      ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
+      if (grav_source_type .eq. 4) then
+         allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
+         allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)))
+         allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3)))
+         allocate(drho3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1))
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,rhoo,Upo,Vpo,Wpo,SrU_old,SrV_old,SrW_old,rhon,Upn,Vpn,Wpn,SrU_new) &
-      !$OMP PRIVATE(SrV_new,SrW_new,SrUcorr,SrVcorr,SrWcorr,SrEcorr,rhooinv,rhoninv) &
-      !$OMP PRIVATE(old_ke,new_ke,old_rhoeint,new_rhoeint) reduction(+:E_added) 
+         ! For our purposes, we want the time-level n+1/2 phi because we are 
+         ! using fluxes evaluated at that time. To second order we can 
+         ! average the new and old potentials.
+
+         ! We will also negate the answer so that phi is negative,
+         ! the usual physics convention, which will make the energy 
+         ! update more easy to understand.
+
+         do k = lo(3)-1, hi(3)+1
+            do j = lo(2)-1, hi(2)+1
+               do i = lo(1)-1, hi(1)+1
+                  phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))               
+               enddo
+            enddo
+         end do
+
+         ! Construct the mass changes using the density flux from the hydro step. 
+         ! Note that in the hydrodynamics step, these fluxes were already 
+         ! multiplied by dA and dt, so dividing by the cell volume is enough to 
+         ! get the density change (flux * dt / dx). This will be fine in the usual 
+         ! case where the volume is the same in every cell, but may need to be 
+         ! generalized when this assumption does not hold.
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)+1
+                  drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)+1
+               do i = lo(1), hi(1)
+                  drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
+         do k = lo(3), hi(3)+1
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
+               enddo
+            enddo
+         enddo
+
+      end if
+
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -166,6 +256,9 @@ end module grav_sources_module
                old_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                old_rhoeint = unew(i,j,k,UEDEN) - old_ke
+               old_xmom = unew(i,j,k,UMX)
+               old_ymom = unew(i,j,k,UMY)
+               old_zmom = unew(i,j,k,UMZ)
                ! ****   End Diagnostics ****
 
                rhoo    = uold(i,j,k,URHO)
@@ -197,8 +290,8 @@ end module grav_sources_module
 
                if (grav_source_type .eq. 1) then
                    SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
-                                        (SrV_new * Vpn - SrV_old * Vpo) + &
-                                        (SrW_new * Wpn - SrW_old * Wpo) )
+                                       (SrV_new * Vpn - SrV_old * Vpo) + &
+                                       (SrW_new * Wpn - SrW_old * Wpo) )
                end if
 
                ! Correct state with correction terms
@@ -210,6 +303,7 @@ end module grav_sources_module
 
                    ! Note SrEcorr was constructed before updating unew
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
+
                else if (grav_source_type .eq. 2) then
 
                    ! Note SrEcorr  is constructed  after updating unew
@@ -217,13 +311,41 @@ end module grav_sources_module
                    Vpn     = unew(i,j,k,UMY) * rhoninv
                    Wpn     = unew(i,j,k,UMZ) * rhoninv
                    SrEcorr =  HALF * ( (SrU_new * Upn - SrU_old * Upo) + &
-                                        (SrV_new * Vpn - SrV_old * Vpo) + &
-                                        (SrW_new * Wpn - SrW_old * Wpo) )
+                                       (SrV_new * Vpn - SrV_old * Vpo) + &
+                                       (SrW_new * Wpn - SrW_old * Wpo) )
+
                    unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr*dt
+
                else if (grav_source_type .eq. 3) then
+
                    new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
-                                     unew(i,j,k,URHO) 
+                                    unew(i,j,k,URHO) 
+
                    unew(i,j,k,UEDEN) = old_rhoeint + new_ke
+
+               else if (grav_source_type .eq. 4) then
+
+                  ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
+                  ! the change in the gravitational potential energy, (1/2) rho * phi.
+                  ! This must be true for the total energy, rho * E_g + (1/2) rho * phi, to be conserved.
+                  ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
+                  ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
+                  ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new gravitational
+                  ! energy is equal to the mass changed multiplied by the difference between these two
+                  ! potentials. This is a generalization of the cell-centered approach implemented in 
+                  ! the other source options, which effectively are equal to 
+                  ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
+                  ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
+
+                  SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                       drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                       drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                       drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                       drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                       drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+
+                  unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
+
                else 
                   call bl_error("Error:: Castro_grav_sources_3d.f90 :: bogus grav_source_type")
                end if
@@ -233,13 +355,20 @@ end module grav_sources_module
                new_ke = HALF * (unew(i,j,k,UMX)**2 + unew(i,j,k,UMY)**2 + unew(i,j,k,UMZ)**2) / &
                                  unew(i,j,k,URHO) 
                new_rhoeint = unew(i,j,k,UEDEN) - new_ke
- 
-                E_added =  E_added + unew(i,j,k,UEDEN) - old_re
+               E_added =  E_added + unew(i,j,k,UEDEN) - old_re
+               xmom_added = xmom_added + unew(i,j,k,UMX) - old_xmom
+               ymom_added = ymom_added + unew(i,j,k,UMY) - old_ymom
+               zmom_added = zmom_added + unew(i,j,k,UMZ) - old_zmom
                ! ****   End Diagnostics ****
+
             enddo
          enddo
       enddo
-      !$OMP END PARALLEL DO
+      
+      if (grav_source_type .eq. 4) then
+         deallocate(phi)
+         deallocate(drho1,drho2,drho3)
+      endif
 
       end subroutine ca_corrgsrc
 
@@ -280,7 +409,6 @@ end module grav_sources_module
      double precision :: rho_pre, rhoU_pre, rhoV_pre, rhoW_pre
      double precision :: gx, gy, gz, dgx, dgy, dgz, SrU, SrV, SrW, SrE
 
-     !$OMP PARALLEL DO PRIVATE(i,j,k,rho_pre,rhoU_pre,rhoV_pre,rhoW_pre,gx,gy,gz,dgx,dgy,dgz,SrU,SrV,SrW,SrE)
      do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -314,6 +442,5 @@ end module grav_sources_module
             enddo
          enddo
      enddo
-     !$OMP END PARALLEL DO
 
      end subroutine ca_syncgsrc
