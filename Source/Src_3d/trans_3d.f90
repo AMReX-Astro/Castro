@@ -105,6 +105,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       ! xxxxx need to split this loop
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -426,6 +427,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       ! xxxxx need to split this loop
        do i = ilo, ihi 
           
           !-------------------------------------------------------------------
