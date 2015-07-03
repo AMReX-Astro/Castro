@@ -31,10 +31,10 @@ module eos_data_module
   integer :: ierr_out_of_bounds   = 11
   integer :: ierr_not_implemented = 12
 
-  double precision, save :: smallt
-  double precision, save :: smalld
+  double precision :: smallt
+  double precision :: smalld
 
-  logical, save :: initialized = .false.
+  logical :: initialized = .false.
 
   public eos_get_small_temp, eos_get_small_dens
 
