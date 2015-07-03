@@ -1,7 +1,5 @@
 module eos_data_module
 
-  use bl_types
-
   implicit none
 
   integer :: eos_input_rt = 1  ! rho, T are inputs
@@ -33,8 +31,8 @@ module eos_data_module
   integer :: ierr_out_of_bounds   = 11
   integer :: ierr_not_implemented = 12
 
-  real(kind=dp_t), save :: smallt
-  real(kind=dp_t), save :: smalld
+  double precision, save :: smallt
+  double precision, save :: smalld
 
   logical, save :: initialized = .false.
 
@@ -44,7 +42,7 @@ contains
 
   subroutine eos_get_small_temp(small_temp_out)
  
-    real(kind=dp_t), intent(out) :: small_temp_out
+    double precision,  intent(out) :: small_temp_out
  
     small_temp_out = smallt
  
@@ -52,7 +50,7 @@ contains
  
   subroutine eos_get_small_dens(small_dens_out)
  
-    real(kind=dp_t), intent(out) :: small_dens_out
+    double precision, intent(out) :: small_dens_out
  
     small_dens_out = smalld
  
