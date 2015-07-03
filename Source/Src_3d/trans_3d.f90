@@ -49,8 +49,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdx
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
 
     double precision rrnew, rr
     double precision rrry, rrly
@@ -69,7 +68,7 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -82,6 +81,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
@@ -105,7 +105,7 @@ contains
     enddo
 
     do j = jlo, jhi 
-       ! xxxxx need to split this loop
+       !DIR$ vector always
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -174,51 +174,21 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe .eq. 1 .and. qypo(i,j,kc,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by
                 ! using the discretized expression for updating (rho e).
+                qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+             end if
 
-                if (qypo(i,j,kc,QREINT) .le. ZERO) then
-                   qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
-                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qypo(i,j,kc,QREINT) < ZERO) then
-                      eos_state % rho = qypo(i,j,kc,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
-                      qypo(i,j,kc,QPRES) = eos_state % p
-                   endif
-                endif
-             endif
-
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+             
              if (ppm_predict_gammae == 0) then
-                
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qypo(i,j,kc,QRHO)
-                   eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
-                
-                   call eos(eos_input_re, eos_state)
-                
-                   pnewry = eos_state % p
-                   qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
                 qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME) + &
                      cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
@@ -226,10 +196,9 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
                 qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
-             endif
-
-          endif
-
+             end if
+          end if
+             
           !-------------------------------------------------------------------   
           ! qymo state
           !-------------------------------------------------------------------
@@ -273,51 +242,21 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
              
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,kc,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-
-                if (qymo(i,j+1,kc,QREINT) .le. ZERO) then
-                   qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
-                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qymo(i,j+1,kc,QREINT) < ZERO) then
-                      eos_state % rho = qymo(i,j+1,kc,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
-                      qymo(i,j+1,kc,QPRES) = eos_state % p
-                   endif
-                endif
-             endif
-
+                qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+             end if
+                  
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qymo(i,j+1,kc,QRHO)
-                   eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-  
-                   pnewly = eos_state % p
-                   qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
-                else
-                   pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-                endif
-                
+                ! add the transverse term to the p evolution eq here
+                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
                 qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
-
              else
-                
                 ! Update gammae with its transverse terms
                 qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME) + &
                      cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
@@ -325,11 +264,109 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
                 qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
-
-             end if
-          
+             end if          
           endif
        enddo
+
+       !----------------------------------------------------------------
+       ! qypo state
+       !----------------------------------------------------------------
+
+       if (j.ge.jlo+1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qypo(i,j,kc,QREINT) < ZERO) then
+                   reset = .true.
+                   
+                   eos_state % rho = qypo(i,j,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
+                   qypo(i,j,kc,QPRES) = eos_state % p
+                endif
+             end do
+          end if
+
+          if (ppm_predict_gammae == 0 ) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
+                   eos_state % rho = qypo(i,j,kc,QRHO)
+                   eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                   
+                   qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                   qypo(i,j,kc,QPRES) = max(eos_state % p ,small_pres)
+                end do
+             end if
+          else 
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
+                   qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
+                end do
+             end if
+          end if
+       end if
+
+       !----------------------------------------------------------------
+       ! qmpo state
+       !----------------------------------------------------------------
+
+       if (j.le.jhi-1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qymo(i,j+1,kc,QREINT) < ZERO) then
+                   reset = .true.
+                   
+                   eos_state % rho = qymo(i,j+1,kc,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
+                   qymo(i,j+1,kc,QPRES) = eos_state % p
+                endif
+             end do
+          endif
+
+          if (ppm_predict_gammae == 0) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
+                   eos_state % rho = qymo(i,j+1,kc,QRHO)
+                   eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                   
+                   qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
+                   qymo(i,j+1,kc,QPRES) = max(eos_state % p, small_pres)
+                end do
+             end if
+          else
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
+                   qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
+                end do
+             end if
+          end if
+       end if
     enddo
     
   end subroutine transx1
@@ -373,8 +410,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdx
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
     
     double precision rrnew, rr
     double precision rrrz, rrlz
@@ -393,7 +429,7 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -406,6 +442,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
@@ -427,7 +464,7 @@ contains
     enddo
 
     do j = jlo, jhi 
-       ! xxxxx need to split this loop
+       !DIR$ vector always
        do i = ilo, ihi 
           
           !-------------------------------------------------------------------
@@ -491,59 +528,28 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
+             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                  cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+          end if
 
-             if (qzpo(i,j,kc,QREINT) .le. ZERO) then
-                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
                 
-                ! if we are still negative, then we need to reset
-                if (qzpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qzpo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
-                   
-                   call eos(eos_input_rt, eos_state)
-                
-                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
-                   qzpo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
-          endif
-
           if (ppm_predict_gammae == 0) then
-
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                pnewrz = eos_state % p
-                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                ! add the transverse term to the p evolution eq here
-                pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-             endif
-
+             ! add the transverse term to the p evolution eq here
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
              qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
-             
           else
-
              ! Update gammae with its transverse terms
              qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
                   cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
+             
              ! and compute the p edge state from this and (rho e)
              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
              qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
-             
           endif
 
 
@@ -603,33 +609,104 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
-
-             if (qzmo(i,j,kc,QREINT) .le. ZERO) then
-                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qzmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qzmo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
-                
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
-                   qzmo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
+             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                  cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
           endif
 
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
+
           if (ppm_predict_gammae == 0) then
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)          
+          else
+             ! Update gammae with its transverse terms
+             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
+                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+             
+             ! and compute the p edge state from this and (rho e)
+             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+          endif
 
-             ! Optionally, use the EOS to calculate the pressure.
+       enddo
 
-             if (transverse_use_eos .eq. 1) then
+       !-------------------------------------------------------------------
+       ! qzpo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qzpo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                qzpo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qzpo(i,j,kc,QPRES) = max(eos_state % p ,small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qzmo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qzmo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                qzmo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
                 eos_state % rho = qzmo(i,j,kc,QRHO)
                 eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
@@ -637,27 +714,20 @@ contains
                 
                 call eos(eos_input_re, eos_state)
 
-                pnewlz = eos_state % p
                 qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
-             endif
-             
-             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
-          
-          else
-
-             ! Update gammae with its transverse terms
-             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
-                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
-             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
-
-          endif
-
-       enddo
+                qzmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
     enddo
     
   end subroutine transx2
@@ -701,8 +771,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdy
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
     
     double precision rrnew, rr
     double precision compn, compu
@@ -721,7 +790,7 @@ contains
     double precision rhoekenrx, rhoekenlx
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -734,6 +803,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))             
 
@@ -756,6 +826,7 @@ contains
     enddo
 
     do j = jlo, jhi
+       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -823,59 +894,28 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
              qxpo(i,j,kc,QREINT) = renewrx - rhoekenrx
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qxpo(i,j,kc,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by
                 ! using the discretized expression for updating (rho e).
-             
-                if (qxpo(i,j,kc,QREINT) .le. ZERO) then
-                   qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
-                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qxpo(i,j,kc,QREINT) < ZERO) then
-                      eos_state % rho = qxpo(i,j,kc,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
-                      qxpo(i,j,kc,QPRES) = eos_state % p
-                   endif
-                endif
+                qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.             
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qxpo(i,j,kc,QRHO)
-                   eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   pnewrx = eos_state % p
-                   qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
                 qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME) + &
                      cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
-                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
-                
+                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)                
              endif
 
           end if
@@ -921,52 +961,21 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
              qxmo(i+1,j,kc,QREINT) = renewlx - rhoekenlx
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,kc,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qxmo(i+1,j,kc,QREINT) .le. ZERO) then
-                   qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
-                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qxmo(i+1,j,kc,QREINT) < ZERO) then
-                      eos_state % rho = qxmo(i+1,j,kc,QRHO) 
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
-                   
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
-                      qxmo(i+1,j,kc,QPRES) = eos_state % p
-                   endif
-                endif
+                qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.             
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qxmo(i+1,j,kc,QRHO)
-                   eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
-                   
-                   call eos(eos_input_re, eos_state)
-
-                   pnewlx = eos_state % p
-                   qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
                 qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME) + &
                      cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
@@ -974,12 +983,107 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
                 qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
-
              endif
 
           endif
           
        enddo
+
+       !-------------------------------------------------------------------
+       ! qxpo state
+       !-------------------------------------------------------------------    
+       
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo+1, ihi
+             ! if we are still negative, then we need to reset
+             if (qxpo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qxpo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
+                qxpo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo+1, ihi
+                eos_state % rho = qxpo(i,j,kc,QRHO)
+                eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qxpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+              end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo+1, ihi
+                ! and compute the p edge state from this and (rho e)
+                qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
+                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)                
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qxmo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi-1
+             ! if we are still negative, then we need to reset
+             if (qxmo(i+1,j,kc,QREINT) < ZERO) then
+                reset = .true.
+                eos_state % rho = qxmo(i+1,j,kc,QRHO) 
+                eos_state % T = small_temp
+                eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
+                qxmo(i+1,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi-1
+                eos_state % rho = qxmo(i+1,j,kc,QRHO)
+                eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qxmo(i+1,j,kc,QPRES) = max(eos_state % p ,small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi-1
+                ! and compute the p edge state from this and (rho e)
+                qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
+                qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
+
     enddo
 
   end subroutine transy1
@@ -1023,8 +1127,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdy
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
     
     double precision rrnew, rr
     double precision compn, compu
@@ -1043,7 +1146,7 @@ contains
     double precision rhoekenrz, rhoekenlz
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -1056,6 +1159,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
@@ -1077,6 +1181,7 @@ contains
     enddo
 
     do j = jlo, jhi
+       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -1141,51 +1246,21 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
-          
-             if (qzpo(i,j,kc,QREINT) .le. ZERO) then
-                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qzpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qzpo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
-                   
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
-                   qzpo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
+             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                  cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
           endif
+          
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
 
           if (ppm_predict_gammae == 0) then
-
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-                
-                pnewrz = eos_state % p
-                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                ! add the transverse term to the p evolution eq here
-                pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-             endif
-
-             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
-          
+             ! add the transverse term to the p evolution eq here
+             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)          
           else
-
              ! Update gammae with its transverse terms
              qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
                   cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
@@ -1193,7 +1268,6 @@ contains
              ! and compute the p edge state from this and (rho e)
              qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
              qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
-
           endif
 
 
@@ -1254,51 +1328,21 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
-             
-             if (qzmo(i,j,kc,QREINT) .le. ZERO) then
-                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-                     cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qzmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qzmo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
-                   qzmo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
+             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                  cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
           endif
 
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
+
           if (ppm_predict_gammae == 0) then
-
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
-                
-                call eos(eos_input_re, eos_state)
-                
-                pnewlz = eos_state % p
-                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                ! add the transverse term to the p evolution eq here
-                pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-             endif
-             
-             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
-          
+             ! add the transverse term to the p evolution eq here
+             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)          
           else
-
              ! Update gammae with its transverse terms
              qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
                   cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
@@ -1306,10 +1350,105 @@ contains
              ! and compute the p edge state from this and (rho e)
              qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
              qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
-
           endif
 
        enddo
+
+       !-------------------------------------------------------------------
+       ! qzpo states
+       !-------------------------------------------------------------------          
+       
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qzpo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
+                qzpo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
+                eos_state % rho = qzpo(i,j,kc,QRHO)
+                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+
+                call eos(eos_input_re, eos_state)
+                
+                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qzpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qzmo states
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qzmo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
+                qzmo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
+                eos_state % rho = qzmo(i,j,kc,QRHO)
+                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qzmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
+
     enddo
     
   end subroutine transy2
@@ -1358,8 +1497,7 @@ contains
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdz
     
-    integer n, nq
-    integer i, j
+    integer n, nq, i, j, ipassive
     
     double precision rrnew, rr
     double precision compn, compu
@@ -1378,7 +1516,7 @@ contains
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -1391,6 +1529,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              compn = cdtdz*(fz(i,j,kc,n) - fz(i,j,km,n))
@@ -1428,6 +1567,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       !DIR$ vector always
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -1491,52 +1631,21 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT) = renewrx - rhoekenrx
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qxpo(i,j,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qxpo(i,j,km,QREINT) .le. ZERO) then
-                   qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
-                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-
-                   ! if we are still negative, then we need to reset
-                   if (qxpo(i,j,km,QREINT) < ZERO) then
-                      eos_state % rho = qxpo(i,j,km,QRHO) 
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
-                      qxpo(i,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
+                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-             
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qxpo(i,j,km,QRHO)
-                   eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   pnewrx = eos_state % p
-                   qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
                 qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME) + &
                      cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
@@ -1544,7 +1653,6 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
                 qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
-
              endif
 
           end if
@@ -1590,51 +1698,21 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT) = renewry - rhoekenry
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qypo(i,j,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-
-                if (qypo(i,j,km,QREINT) .le. ZERO) then
-                   qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
-                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qypo(i,j,km,QREINT) < ZERO) then
-                      eos_state % rho = qypo(i,j,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
-                      qypo(i,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
+                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qypo(i,j,km,QRHO)
-                   eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-                   
-                   pnewry = eos_state % p
-                   qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
                 qypo(i,j,km,QPRES) = max(pnewry,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME) + &
                      cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
@@ -1642,7 +1720,6 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
                 qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
-
              endif
 
           end if
@@ -1689,59 +1766,28 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT) = renewlx - rhoekenlx
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qxmo(i+1,j,km,QREINT) .le. ZERO) then
-                   qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
-                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qxmo(i+1,j,km,QREINT) < ZERO) then
-                      eos_state % rho = qxmo(i+1,j,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e 
-                      qxmo(i+1,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
+                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-             
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qxmo(i+1,j,km,QRHO)
-                   eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
-                   
-                   call eos(eos_input_re, eos_state)
-
-                   pnewlx = eos_state % p
-                   qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                endif
-                
+                ! add the transverse term to the p evolution eq here
+                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
                 qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
-
              else
-                
                 ! Update gammae with its transverse terms             
                 qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
                      cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
                 
                 ! and compute the p edge state from this and (rho e)
                 qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
-                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
-                
+                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)                
              end if
 
           endif
@@ -1788,51 +1834,21 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT) = renewly - rhoekenly
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-
-                if (qymo(i,j+1,km,QREINT) .le. ZERO) then
-                   qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
-                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qymo(i,j+1,km,QREINT) < ZERO) then
-                      eos_state % rho = qymo(i,j+1,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
-                      qymo(i,j+1,km,QPRES) =  eos_state % p
-                   endif
-                endif
+                qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
+                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.             
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qymo(i,j+1,km,QRHO)
-                   eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
-                   
-                   call eos(eos_input_re, eos_state)
-                
-                   pnewly = eos_state % p
-                   qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
                 qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME) + &
                      cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
@@ -1840,12 +1856,208 @@ contains
                 ! and compute the p edge state from this and (rho e)
                 qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
                 qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
-                
              endif
 
           endif
 
        enddo
+
+       !-------------------------------------------------------------------
+       ! qxpo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo+1, ihi
+             ! if we are still negative, then we need to reset
+             if (qxpo(i,j,km,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qxpo(i,j,km,QRHO) 
+                eos_state % T = small_temp
+                eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
+                qxpo(i,j,km,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo+1, ihi
+                eos_state % rho = qxpo(i,j,km,QRHO)
+                eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                qxpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo+1, ihi
+                ! and compute the p edge state from this and (rho e)
+                qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
+                qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qypo state
+       !-------------------------------------------------------------------
+
+       if (j.ge.jlo+1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qypo(i,j,km,QREINT) < ZERO) then
+                   reset = .true.
+
+                   eos_state % rho = qypo(i,j,km,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
+                   qypo(i,j,km,QPRES) = eos_state % p
+                endif
+             end do
+          end if
+          
+          if (ppm_predict_gammae == 0) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
+                   eos_state % rho = qypo(i,j,km,QRHO)
+                   eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
+
+                   call eos(eos_input_re, eos_state)
+                   
+                   qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                   qypo(i,j,km,QPRES) = max(eos_state % p, small_pres)
+                end do
+             end if
+          else
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
+                   qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
+                end do
+             end if
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qxmo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi-1
+             ! if we are still negative, then we need to reset
+             if (qxmo(i+1,j,km,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qxmo(i+1,j,km,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e 
+                qxmo(i+1,j,km,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi-1
+                eos_state % rho = qxmo(i+1,j,km,QRHO)
+                eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                qxmo(i+1,j,km,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi-1
+                ! and compute the p edge state from this and (rho e)
+                qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
+                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)                
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qymo state
+       !-------------------------------------------------------------------
+
+       if (j.le.jhi-1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qymo(i,j+1,km,QREINT) < ZERO) then
+                   reset = .true.
+
+                   eos_state % rho = qymo(i,j+1,km,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
+                   qymo(i,j+1,km,QPRES) =  eos_state % p
+                endif
+             end do
+          end if
+          
+          if (ppm_predict_gammae == 0) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
+                   eos_state % rho = qymo(i,j+1,km,QRHO)
+                   eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                
+                   qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
+                   qymo(i,j+1,km,QPRES) = max(eos_state % p, small_pres)
+                end do
+             end if
+          else
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
+                   qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
+                end do
+             end if
+          end if
+       end if
+
     enddo
 
   end subroutine transz
@@ -1908,8 +2120,7 @@ contains
     double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdy
     
-    integer i, j
-    integer n , nq
+    integer i, j, n , nq, ipassive
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -1924,7 +2135,7 @@ contains
     double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -1937,6 +2148,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              rrr = qp(i,j,kc,QRHO)
@@ -1963,6 +2175,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       !DIR$ vector always
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -2109,61 +2322,30 @@ contains
           ! note: we run the risk of (rho e) being negative here
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qpo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
-             
-             if (qpo(i,j,kc,QREINT) .le. ZERO) then
-                qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
-                     - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
-                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-                
-                ! if we are still negative, then we need to reset
-                if (qpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qpo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
-                   
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
-                   qpo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
+             qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
+                  - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
+                  - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
+                  + hdt*srcQ(i,j,k3d,QREINT)
           endif
 
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
+
           if (ppm_predict_gammae == 0) then
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qpo(i,j,kc,QRHO)
-                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
-                
-                call eos(eos_input_re, eos_state)
-
-                pnewr = eos_state % p
-                qpo(i,j,kc,QPRES ) = pnewr
-                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
-             else
-                ! add the transverse term to the p evolution eq here
-                pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-                qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-             endif
-
+             ! add the transverse term to the p evolution eq here
+             pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
+             qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
              qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
-
           else
-             
              ! Update gammae with its transverse terms
              qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
 
              ! and compute the p edge state from this and (rho e)
              qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
              qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
-
           endif
 
 
@@ -2179,35 +2361,107 @@ contains
           ! note: we run the risk of (rho e) being negative here
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
 
-          if (transverse_reset_rhoe == 1) then
+          if (transverse_reset_rhoe == 1 .and. qmo(i,j,kc,QREINT) .le. ZERO) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
-             
-             if (qmo(i,j,kc,QREINT) .le. ZERO) then
-                qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
-                     - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
-                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
-                     + hdt*srcQ(i,j,k3d-1,QREINT)
-                
-                ! if we are still negative, then we need to reset
-                if (qmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qmo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
-                   
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
-                   qmo(i,j,kc,QPRES) = eos_state % p
-                endif
-             endif
+             qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
+                  - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
+                  - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
+                  + hdt*srcQ(i,j,k3d-1,QREINT)
           endif
+          
+          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+          ! If we are wrong, we will fix it later
 
           if (ppm_predict_gammae == 0) then
+             ! add the transverse term to the p evolution eq here
+             pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
+             qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)          
+          else
+             ! Update gammae with its transverse terms
+             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
+                 
+             ! and compute the p edge state from this and (rho e)
+             qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
+             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
+          endif
 
-             ! Optionally, use the EOS to calculate the pressure.
+       enddo
 
-             if (transverse_use_eos .eq. 1) then
+       !-------------------------------------------------------------------
+       ! qzpo state
+       !-------------------------------------------------------------------          
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qpo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+                
+                eos_state % rho = qpo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                   
+                qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
+                qpo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
+                eos_state % rho = qpo(i,j,kc,QRHO)
+                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+
+                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
+                qpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
+                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qzmo state
+       !-------------------------------------------------------------------          
+       
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi
+             ! if we are still negative, then we need to reset
+             if (qmo(i,j,kc,QREINT) < ZERO) then
+                reset = .true.
+                eos_state % rho = qmo(i,j,kc,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
+                qmo(i,j,kc,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi
                 eos_state % rho = qmo(i,j,kc,QRHO)
                 eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
@@ -2215,29 +2469,21 @@ contains
                 
                 call eos(eos_input_re, eos_state)
 
-                pnewl = eos_state % p
-                qmo(i,j,kc,QPRES ) = pnewl
                 qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             else
-                ! add the transverse term to the p evolution eq here
-                pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
-                qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
-             endif
+                qmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi
+                ! and compute the p edge state from this and (rho e)
+                qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
+                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
+             end do
+          end if
+       end if
 
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
-          
-          else
-
-             ! Update gammae with its transverse terms
-             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
-                 
-             ! and compute the p edge state from this and (rho e)
-             qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
-
-          endif
-
-       enddo
     enddo
 
 
@@ -2245,6 +2491,7 @@ contains
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
+          !DIR$ vector always
           do i = ilo, ihi          
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*grav(i,j,k3d,1)
              qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*grav(i,j,k3d,2)
@@ -2261,6 +2508,7 @@ contains
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
              qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*rot(i,j,k3d,2)
@@ -2333,8 +2581,7 @@ contains
     double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdz
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2346,7 +2593,7 @@ contains
     double precision uxav, gexav, dgex, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl, drr, dcompn
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -2359,6 +2606,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              drr    = - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
@@ -2391,6 +2639,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       !DIR$ vector always
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -2475,63 +2724,28 @@ contains
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-
-                if (qpo(i,j,km,QREINT) .le. ZERO) then
-                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qpo(i,j,km,QREINT) < ZERO) then
-                      eos_state % rho = qpo(i,j,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
-                      qpo(i,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+             if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) .le. ZERO) then
+                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                     - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-                
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   pnewr = eos_state % p
-                   qpo(i,j,km,QPRES ) = pnewr
-                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewr = qp(i,j,km,QPRES) - pxnew - pznew
-                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                endif
-                
+                ! add the transverse term to the p evolution eq here
+                pnewr = qp(i,j,km,QPRES) - pxnew - pznew
+                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
-
              else
-                
                 ! Update gammae with its transverse terms
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
-
              endif
 
           end if
@@ -2582,36 +2796,112 @@ contains
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qmo(i,j+1,km,QREINT) .le. ZERO) then
-                   qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
-                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qmo(i,j+1,km,QREINT) < ZERO) then
-                      eos_state % rho = qmo(i,j+1,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-
-                      qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
-                      qmo(i,j+1,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
+                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                     - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
              endif
              
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
              
              if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
+                qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)             
+             else
+                ! Update gammae with its transverse terms
+                qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
 
-                ! Optionally, use the EOS to calculate the pressure.
+                ! and compute the p edge state from this and (rho e)
+                qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
+                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
+             endif
 
-                if (transverse_use_eos .eq. 1) then
+          endif
+          
+       enddo
+
+       !-------------------------------------------------------------------
+       ! qypo state
+       !-------------------------------------------------------------------
+
+       if (j.ge.jlo+1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qpo(i,j,km,QREINT) < ZERO) then
+                   reset = .true.
+
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                   qpo(i,j,km,QPRES) = eos_state % p
+                endif
+             end do
+          end if
+          
+          if (ppm_predict_gammae == 0) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
+                   eos_state % rho = qpo(i,j,km,QRHO)
+                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+
+                   call eos(eos_input_re, eos_state)
+
+                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho                
+                   qpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
+                end do
+             end if
+          else
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
+                end do
+             end if
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qymo state
+       !-------------------------------------------------------------------          
+
+       if (j.le.jhi-1) then
+          reset = .false.
+          if (transverse_reset_rhoe == 1) then
+             do i = ilo, ihi
+                ! if we are still negative, then we need to reset
+                if (qmo(i,j+1,km,QREINT) < ZERO) then
+                   reset = .true.
+                   eos_state % rho = qmo(i,j+1,km,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
+                   
+                   call eos(eos_input_rt, eos_state)
+                   
+                   qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
+                   qmo(i,j+1,km,QPRES) = eos_state % p
+                endif
+             end do
+          end if
+          
+          if (ppm_predict_gammae == 0) then
+             if (transverse_use_eos .eq. 1) then
+                do i = ilo, ihi
                    eos_state % rho = qmo(i,j+1,km,QRHO)
                    eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
                    eos_state % T   = small_temp
@@ -2619,36 +2909,28 @@ contains
                    
                    call eos(eos_input_re, eos_state)
 
-                   pnewl = eos_state % p
-                   qmo(i,j+1,km,QPRES ) = pnewl
                    qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
-                   qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                endif
-
-                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
-             
-             else
-
-                ! Update gammae with its transverse terms
-                qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
-
-                ! and compute the p edge state from this and (rho e)
-                qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
-                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
-
-             endif
-
-          endif
-          
-       enddo
+                   qmo(i,j+1,km,QPRES) = max(eos_state % p, small_pres)
+                end do
+             end if
+          else
+             if (reset) then
+                !DIR$ vector always
+                do i = ilo, ihi
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
+                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
+                end do
+             end if
+          end if
+       end if
     enddo
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo+1, jhi 
+          !DIR$ vector always
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
@@ -2656,6 +2938,7 @@ contains
           end do
        end do
        do j = jlo, jhi-1 
+          !DIR$ vector always
           do i = ilo, ihi 
              qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*grav(i,j,k3d,1)
              qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*grav(i,j,k3d,2)
@@ -2668,6 +2951,7 @@ contains
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo+1, jhi 
+          !DIR$ vector always
           do i = ilo, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
@@ -2675,6 +2959,7 @@ contains
           end do
        end do
        do j = jlo, jhi-1 
+          !DIR$ vector always
           do i = ilo, ihi              
              qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*rot(i,j,k3d,1)
              qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*rot(i,j,k3d,2)
@@ -2743,8 +3028,7 @@ contains
     double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdy,cdtdz
     
-    integer i, j
-    integer n, nq
+    integer i, j, n, nq, ipassive
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2757,7 +3041,7 @@ contains
     double precision compr, compl, compnr, compnl
     double precision drr, dcompn
     
-    integer ipassive
+    logical :: reset
 
     type (eos_t) :: eos_state
 
@@ -2770,6 +3054,7 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
+          !DIR$ vector always
           do i = ilo, ihi
              
              drr    = - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
@@ -2801,6 +3086,7 @@ contains
     enddo
 
     do j = jlo, jhi 
+       !DIR$ vector always
        do i = ilo, ihi 
 
           !-------------------------------------------------------------------
@@ -2888,62 +3174,30 @@ contains
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qpo(i,j,km,QREINT) .le. ZERO) then
-                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
-                   
-                   ! if we are still negative, then we need to reset
-                   if (qpo(i,j,km,QREINT) .le. ZERO) then
-                      eos_state % rho = qpo(i,j,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-                      
-                      qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
-                      qpo(i,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS to calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   pnewr = eos_state % p
-                   qpo(i,j,km,QPRES ) = pnewr
-                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewr = qp(i,j,km,QPRES) - pynew - pznew
-                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewr = qp(i,j,km,QPRES) - pynew - pznew
+                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
-
              else
-
                 ! Update gammae with its transverse terms
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
-
              end if
 
           endif
@@ -2994,78 +3248,145 @@ contains
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1) then
+             if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,km,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-                
-                if (qmo(i+1,j,km,QREINT) .le. ZERO) then
-                   qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
-                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
-
-                   ! if we are still negative, then we need to reset
-                   if (qmo(i+1,j,km,QREINT) < ZERO) then
-                      eos_state % rho = qmo(i+1,j,km,QRHO)
-                      eos_state % T = small_temp
-                      eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
-                      
-                      call eos(eos_input_rt, eos_state)
-
-                      qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
-                      qmo(i+1,j,km,QPRES) = eos_state % p
-                   endif
-                endif
+                qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
+                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
              endif
 
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
              if (ppm_predict_gammae == 0) then
-
-                ! Optionally, use the EOS To calculate the pressure.
-
-                if (transverse_use_eos .eq. 1) then
-                   eos_state % rho = qmo(i+1,j,km,QRHO)
-                   eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
-                
-                   call eos(eos_input_re, eos_state)
-                   
-                   pnewl = eos_state % p
-                   qmo(i+1,j,km,QPRES ) = pnewl
-                   qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
-                else
-                   ! add the transverse term to the p evolution eq here
-                   pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
-                   qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                endif
-
+                ! add the transverse term to the p evolution eq here
+                pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
+                qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
                 qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
-
              else
-                
                 ! Update gammae with its transverse terms
                 qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
                 qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
-
              end if
 
           endif
 
        enddo
+
+       !-------------------------------------------------------------------
+       ! qxpo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo+1, ihi
+             ! if we are still negative, then we need to reset
+             if (qpo(i,j,km,QREINT) .le. ZERO) then
+                reset = .true.
+
+                eos_state % rho = qpo(i,j,km,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
+                qpo(i,j,km,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo+1, ihi
+                eos_state % rho = qpo(i,j,km,QRHO)
+                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
+                qpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo+1, ihi
+                ! and compute the p edge state from this and (rho e)
+                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
+             end do
+          end if
+       end if
+
+       !-------------------------------------------------------------------
+       ! qxmo state
+       !-------------------------------------------------------------------
+
+       reset = .false.
+       if (transverse_reset_rhoe == 1) then
+          do i = ilo, ihi-1
+             ! if we are still negative, then we need to reset
+             if (qmo(i+1,j,km,QREINT) < ZERO) then
+                reset = .true.
+
+                eos_state % rho = qmo(i+1,j,km,QRHO)
+                eos_state % T = small_temp
+                eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
+                qmo(i+1,j,km,QPRES) = eos_state % p
+             endif
+          end do
+       end if
+
+       if (ppm_predict_gammae == 0) then
+          if (transverse_use_eos .eq. 1) then
+             do i = ilo, ihi-1
+                eos_state % rho = qmo(i+1,j,km,QRHO)
+                eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+                
+                call eos(eos_input_re, eos_state)
+                
+                qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
+                qmo(i+1,j,km,QPRES  ) = max(eos_state % p, small_pres)
+             end do
+          end if
+       else
+          if (reset) then
+             !DIR$ vector always
+             do i = ilo, ihi-1
+                ! and compute the p edge state from this and (rho e)
+                qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
+                qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
+             end do
+          end if
+       end if
+
     enddo
     
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
+          !DIR$ vector always
           do i = ilo+1, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
           end do
+          !DIR$ vector always
           do i = ilo, ihi-1
              qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*grav(i,j,k3d,1)
              qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*grav(i,j,k3d,2)
@@ -3078,11 +3399,13 @@ contains
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
        do j = jlo, jhi 
+          !DIR$ vector always
           do i = ilo+1, ihi 
              qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
              qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
              qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
           end do
+          !DIR$ vector always
           do i = ilo, ihi-1             
              qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*rot(i,j,k3d,1)
              qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*rot(i,j,k3d,2)
@@ -3094,3 +3417,4 @@ contains
   end subroutine transyz
 
 end module transverse_module
+
