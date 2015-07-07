@@ -56,6 +56,9 @@ module fundamental_constants_module
   ! radiation constant
   real(kind=dp_t), parameter :: a_rad = 4.0_dp_t*sigma_SB/c_light
 
+  ! number of centimeters in a parsec
+  real(kind=dp_t), parameter :: parsec = 3.0857e18
+
   ! Hubble constant (in s^{-1}, converted from 100 (km/s)/Mpc by dividing by 3.08568025e19km/Mpc)
   real(kind=dp_t), parameter :: Hubble_const = 32.407764868e-19
 
