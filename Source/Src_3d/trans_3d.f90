@@ -186,7 +186,8 @@ contains
                       eos_state % rho = qypo(i,j,kc,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
-                      
+                      eos_state % loc = (/ i, j, k3d /)
+
                       call eos(eos_input_rt, eos_state)
                       
                       qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
@@ -204,6 +205,7 @@ contains
                    eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d /)
                 
                    call eos(eos_input_re, eos_state)
                 
@@ -285,6 +287,7 @@ contains
                       eos_state % rho = qymo(i,j+1,kc,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j+1, k3d /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -303,6 +306,7 @@ contains
                    eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j+1, k3d /)
 
                    call eos(eos_input_re, eos_state)
   
@@ -501,6 +505,7 @@ contains
                    eos_state % rho = qzpo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
                    
                    call eos(eos_input_rt, eos_state)
                 
@@ -519,6 +524,7 @@ contains
                 eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
 
                 call eos(eos_input_re, eos_state)
 
@@ -613,6 +619,7 @@ contains
                    eos_state % rho = qzmo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
                 
                    call eos(eos_input_rt, eos_state)
                    
@@ -631,6 +638,7 @@ contains
                 eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
                 
                 call eos(eos_input_re, eos_state)
 
@@ -833,6 +841,7 @@ contains
                       eos_state % rho = qxpo(i,j,kc,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j, k3d /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -851,6 +860,7 @@ contains
                    eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d /)
 
                    call eos(eos_input_re, eos_state)
 
@@ -931,6 +941,7 @@ contains
                       eos_state % rho = qxmo(i+1,j,kc,QRHO) 
                       eos_state % T = small_temp
                       eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec) 
+                      eos_state % loc = (/ i+1, j, k3d /)
                    
                       call eos(eos_input_rt, eos_state)
                       
@@ -949,6 +960,7 @@ contains
                    eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i+1, j, k3d /)
                    
                    call eos(eos_input_re, eos_state)
 
@@ -1150,6 +1162,7 @@ contains
                    eos_state % rho = qzpo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
                    
                    call eos(eos_input_rt, eos_state)
                    
@@ -1168,6 +1181,7 @@ contains
                 eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
 
                 call eos(eos_input_re, eos_state)
                 
@@ -1263,6 +1277,7 @@ contains
                    eos_state % rho = qzmo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
 
                    call eos(eos_input_rt, eos_state)
                    
@@ -1281,6 +1296,7 @@ contains
                 eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
                 
                 call eos(eos_input_re, eos_state)
                 
@@ -1500,6 +1516,7 @@ contains
                       eos_state % rho = qxpo(i,j,km,QRHO) 
                       eos_state % T = small_temp
                       eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec) 
+                      eos_state % loc = (/ i, j, k3d-1 /)
                      
                       call eos(eos_input_rt, eos_state)
                       
@@ -1518,6 +1535,7 @@ contains
                    eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d-1 /)
 
                    call eos(eos_input_re, eos_state)
 
@@ -1598,6 +1616,7 @@ contains
                       eos_state % rho = qypo(i,j,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -1616,6 +1635,7 @@ contains
                    eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d-1 /)
 
                    call eos(eos_input_re, eos_state)
                    
@@ -1697,6 +1717,7 @@ contains
                       eos_state % rho = qxmo(i+1,j,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i+1, j, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -1715,6 +1736,7 @@ contains
                    eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i+1, j, k3d-1 /)
                    
                    call eos(eos_input_re, eos_state)
 
@@ -1796,6 +1818,7 @@ contains
                       eos_state % rho = qymo(i,j+1,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j+1, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -1814,6 +1837,7 @@ contains
                    eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j+1, k3d-1 /)
                    
                    call eos(eos_input_re, eos_state)
                 
@@ -2119,6 +2143,7 @@ contains
                    eos_state % rho = qpo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
                    
                    call eos(eos_input_rt, eos_state)
                    
@@ -2137,6 +2162,7 @@ contains
                 eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
                 
                 call eos(eos_input_re, eos_state)
 
@@ -2190,6 +2216,7 @@ contains
                    eos_state % rho = qmo(i,j,kc,QRHO)
                    eos_state % T = small_temp
                    eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % loc = (/ i, j, k3d /)
                    
                    call eos(eos_input_rt, eos_state)
                    
@@ -2208,6 +2235,7 @@ contains
                 eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
                 eos_state % T   = small_temp
                 eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % loc = (/ i, j, k3d /)
                 
                 call eos(eos_input_re, eos_state)
 
@@ -2486,6 +2514,7 @@ contains
                       eos_state % rho = qpo(i,j,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -2505,6 +2534,7 @@ contains
                    eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d-1 /)
 
                    call eos(eos_input_re, eos_state)
 
@@ -2593,6 +2623,7 @@ contains
                       eos_state % rho = qmo(i,j+1,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j+1, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
 
@@ -2612,6 +2643,7 @@ contains
                    eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j+1, k3d-1 /)
                    
                    call eos(eos_input_re, eos_state)
 
@@ -2899,6 +2931,7 @@ contains
                       eos_state % rho = qpo(i,j,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i, j, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -2917,6 +2950,7 @@ contains
                    eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i, j, k3d-1 /)
 
                    call eos(eos_input_re, eos_state)
 
@@ -3005,6 +3039,7 @@ contains
                       eos_state % rho = qmo(i+1,j,km,QRHO)
                       eos_state % T = small_temp
                       eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
+                      eos_state % loc = (/ i+1, j, k3d-1 /)
                       
                       call eos(eos_input_rt, eos_state)
 
@@ -3023,6 +3058,7 @@ contains
                    eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
                    eos_state % T   = small_temp
                    eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
+                   eos_state % loc = (/ i+1, j, k3d-1 /)
                 
                    call eos(eos_input_re, eos_state)
                    

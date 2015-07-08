@@ -16,7 +16,6 @@
 
       ! Local variables
       integer          :: i,j,k
-      integer          :: pt_index(3)
       double precision :: Up, Vp, Wp, ke, rho_eint, eint_new
 
       type (eos_t) :: eos_state
@@ -53,8 +52,9 @@
                  eos_state % e   = ZERO
                  eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
                  eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
+                 eos_state % loc = (/ i, j, k /)
 
-                 call eos(eos_input_rt, eos_state, .false., pt_index = pt_index)
+                 call eos(eos_input_rt, eos_state)
 
                  eint_new = eos_state % e
 

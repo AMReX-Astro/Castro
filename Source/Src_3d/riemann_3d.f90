@@ -111,41 +111,67 @@ contains
        ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
 
-       ! this is an initial guess for iterations, since we
-       ! can't be certain that temp is on interfaces
-       eos_state(:,:) % T = 10000.0d0
+       do j = jlo, jhi
+          do i = ilo, ihi
 
-       ! minus state
-       eos_state(:,:) % rho = qm(ilo:ihi,jlo:jhi,kc,QRHO)
-       eos_state(:,:) % p   = qm(ilo:ihi,jlo:jhi,kc,QPRES)
-       do n = 1, nspec
-          eos_state(:,:) % xn(n)  = qm(ilo:ihi,jlo:jhi,kc,QFS+n-1)
-       enddo
-       do n = 1, naux
-          eos_state(:,:) % aux(n) = qm(ilo:ihi,jlo:jhi,kc,QFX+n-1)
+             ! this is an initial guess for iterations, since we
+             ! can't be certain that temp is on interfaces
+             eos_state(i,j) % T = 10000.0d0
+
+             ! minus state
+             eos_state(i,j) % rho = qm(i,j,kc,QRHO)
+             eos_state(i,j) % p   = qm(i,j,kc,QPRES)
+             do n = 1, nspec
+                eos_state(i,j) % xn(n)  = qm(i,j,kc,QFS+n-1)
+             enddo
+             do n = 1, naux
+                eos_state(i,j) % aux(n) = qm(i,j,kc,QFX+n-1)
+             enddo
+
+             eos_state(i,j) % loc = (/ i, j, k3d /)
+             
+          enddo
        enddo
 
        call eos(eos_input_rp, eos_state)
 
-       qm(ilo:ihi,jlo:jhi,kc,QREINT) = eos_state(:,:) % e * eos_state(:,:) % rho
-       qm(ilo:ihi,jlo:jhi,kc,QPRES)  = eos_state(:,:) % p
-       gamcm(ilo:ihi,jlo:jhi)        = eos_state(:,:) % gam1
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             qm(i,j,kc,QREINT) = eos_state(i,j) % e * eos_state(i,j) % rho
+             qm(i,j,kc,QPRES)  = eos_state(i,j) % p
+             gamcm(i,j)        = eos_state(i,j) % gam1
+
+          enddo
+       enddo
 
        ! plus state
-       eos_state(:,:) % rho = qp(ilo:ihi,jlo:jhi,kc,QRHO)
-       eos_state(:,:) % p   = qp(ilo:ihi,jlo:jhi,kc,QPRES)
-       do n = 1, nspec
-          eos_state(:,:) % xn(n)  = qp(ilo:ihi,jlo:jhi,kc,QFS+n-1)
-       enddo
-       do n = 1, naux
-          eos_state(:,:) % aux(n) = qp(ilo:ihi,jlo:jhi,kc,QFX+n-1)
+       do j = jlo, jhi
+          do i = ilo, ihi
+             eos_state(i,j) % rho = qp(i,j,kc,QRHO)
+             eos_state(i,j) % p   = qp(i,j,kc,QPRES)
+             do n = 1, nspec
+                eos_state(i,j) % xn(n)  = qp(i,j,kc,QFS+n-1)
+             enddo
+             do n = 1, naux
+                eos_state(i,j) % aux(n) = qp(i,j,kc,QFX+n-1)
+             enddo
+
+             eos_state(i,j) % loc = (/ i, j, k3d /)
+          enddo
        enddo
 
        call eos(eos_input_rp, eos_state)
 
-       qp(ilo:ihi,jlo:jhi,kc,QREINT) = eos_state(:,:) % e * eos_state(:,:) % rho
-       qp(ilo:ihi,jlo:jhi,kc,QPRES)  = eos_state(:,:) % p
-       gamcp(ilo:ihi,jlo:jhi)        = eos_state(:,:) % gam1
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             qp(i,j,kc,QREINT) = eos_state(i,j) % e * eos_state(i,j) % rho
+             qp(i,j,kc,QPRES)  = eos_state(i,j) % p
+             gamcp(i,j)        = eos_state(i,j) % gam1
+
+          enddo
+       enddo
 
     endif
 

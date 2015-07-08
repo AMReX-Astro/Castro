@@ -17,7 +17,6 @@
 
       integer          :: i,j,k,n
       double precision :: rhoInv
-      integer          :: pt_index(3)
 
       type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
@@ -50,27 +49,39 @@
          enddo
       end if
 
-      eos_state(:,:,:) % rho = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
-      eos_state(:,:,:) % T   = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) ! Initial guess for the EOS
-      eos_state(:,:,:) % e   = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
-      do n = 1, nspec
-         eos_state(:,:,:) % xn(n)  = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-      enddo
-      do n = 1, naux
-         eos_state(:,:,:) % aux(n) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               eos_state(i,j,k) % rho = state(i,j,k,URHO)
+               eos_state(i,j,k) % T   = state(i,j,k,UTEMP) ! Initial guess for the EOS
+               eos_state(i,j,k) % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
+
+               do n = 1, nspec
+                  eos_state(i,j,k) % xn(n)  = state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
+               enddo
+               do n = 1, naux
+                  eos_state(i,j,k) % aux(n) = state(i,j,k,UFX+n-1) / state(i,j,k,URHO)
+               enddo
+
+               eos_state(i,j,k) % loc = (/ i, j, k /)
+            enddo
+         enddo
       enddo
 
       call eos(eos_input_re, eos_state)
 
-      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) = eos_state(:,:,:) % T
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               state(i,j,k,UTEMP) = eos_state(i,j,k) % T
 
-      ! Reset energy in case we floored
-      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) * &
-                                                         eos_state(:,:,:) % e
-      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEDEN) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) + HALF * &
-                                                         (state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
-                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
-                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2) / &
-                                                          state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
+               ! Reset energy in case we floored
+               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state(i,j,k) % e
+               state(i,j,k,UEDEN) = state(i,j,k,UEINT) &
+                                  + HALF * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
+
+            enddo
+         enddo
+      enddo
       
       end subroutine compute_temp

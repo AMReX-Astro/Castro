@@ -19,27 +19,43 @@
      double precision :: rhoInv,ux,uy,uz,c,dt1,dt2,dt3
      double precision :: sqrtK,grid_scl,dt4
      integer          :: i,j,k,n
-     integer          :: pt_index(3)
 
      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
      ! Compute sound speed
 
-     eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
-     eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
-     eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              eos_state(i,j,k) % rho = u(i,j,k,URHO )
+              eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
+              eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
 
-     do n = 1, nspec
-        eos_state(:,:,:) % xn(n)  = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-     enddo
-     do n = 1, naux
-        eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
+              do n = 1, nspec
+                 eos_state(i,j,k) % xn(n)  = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
+              enddo
+              do n = 1, naux
+                 eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
+              enddo
+
+              eos_state(i,j,k) % loc = (/ i, j, k /)
+
+           enddo
+        enddo
      enddo
 
      call eos(eos_input_re, eos_state)
 
-     cs(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = eos_state(:,:,:) % cs
-     e(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))  = eos_state(:,:,:) % e
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+
+              cs(i,j,k) = eos_state(i,j,k) % cs
+              e(i,j,k)  = eos_state(i,j,k) % e
+
+           enddo
+        enddo
+     enddo
 
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 

@@ -24,13 +24,12 @@
       double precision time, dt_react
 
       integer          :: i,j,k,n
-      integer          :: pt_index(3)
       double precision :: rho, rhoInv, u, v, w, ke, e_in, e_out, T
       double precision :: x_in(nspec+naux), x_out(nspec+naux)
 
       type (eos_t) :: eos_state
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,n,eos_state,pt_index,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
+      !$OMP PARALLEL DO PRIVATE(i,j,k,n,eos_state,rho,rhoInv,u,v,w,ke,T,x_in,e_in,x_out,e_out)
       do k = lo(3), hi(3)
       do j = lo(2), hi(2)
       do i = lo(1), hi(1)
@@ -51,21 +50,18 @@
 
            e_in          = s_in(i,j,k,UEINT) * rhoInv
 
-           pt_index(1) = i
-           pt_index(2) = j
-           pt_index(3) = k
-
            eos_state % T   = T
            eos_state % rho = rho
            eos_state % e   = e_in
            eos_state % xn  = x_in(1:nspec)
            eos_state % aux = s_in(i,j,k,nspec+1:nspec+naux)
+           eos_state % loc = (/ i, j, k /)
 
            if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
               print *,'... e negative in react_state: ', i, j, k, e_in
               T = max(T, small_temp)
               eos_state % T = T
-              call eos(eos_input_rt, eos_state, pt_index = pt_index)
+              call eos(eos_input_rt, eos_state)
               e_in = eos_state % e
               if (e_in .lt. ZERO) then
                  print *,'... call to eos (input_rt) with small_temp still gives neg e ', e_in
@@ -77,7 +73,7 @@
 
            ! Use this call to define T
 
-           call eos(eos_input_re, eos_state, pt_index = pt_index)
+           call eos(eos_input_re, eos_state)
 
            T = eos_state % T
            e_in = eos_state % e
@@ -110,9 +106,9 @@
            eos_state % rho = rho
            eos_state % e   = e_out
            eos_state % xn  = x_out(1:nspec)
-           eos_state % aux = x_out(nspec+1:nspec+naux)
+           eos_state % aux = x_out(nspec+1:nspec+naux)           
 
-           call eos(eos_input_re, eos_state, pt_index = pt_index)
+           call eos(eos_input_re, eos_state)
 
            s_out(i,j,k,UTEMP)           = eos_state % T
 

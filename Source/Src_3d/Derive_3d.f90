@@ -249,20 +249,34 @@
 
       type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
-      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
-      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               eos_state(i,j,k) % rho = u(i,j,k,URHO)
+               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
+               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
 
-      do n = 1, nspec
-         eos_state(:,:,:) % xn(n)  = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-      enddo
-      do n = 1, naux
-         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
+               do n = 1, nspec
+                  eos_state(i,j,k) % xn(n)  = u(i,j,k,UFS+n-1) / u(i,j,k,URHO)
+               enddo
+               do n = 1, naux
+                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / u(i,j,k,URHO)
+               enddo
+
+               eos_state(i,j,k) % loc = (/ i, j, k /)
+            enddo
+         enddo
       enddo
 
       call eos(eos_input_re, eos_state)
 
-      p(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % p
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               p(i,j,k,1) = eos_state(i,j,k) % p
+            enddo
+         enddo
+      enddo
 
       end subroutine ca_derpres
 
@@ -364,20 +378,34 @@
 
       type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
-      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
-      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               eos_state(i,j,k) % rho = u(i,j,k,URHO)
+               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
+               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
 
-      do n = 1, nspec
-         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-      enddo
-      do n = 1, naux
-         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
+               do n = 1, nspec
+                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
+               enddo
+               do n = 1, naux
+                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
+               enddo
+
+               eos_state(i,j,k) % loc = (/ i, j, k /)
+            enddo
+         enddo
       enddo
 
       call eos(eos_input_re, eos_state)
 
-      c(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % cs
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               c(i,j,k,1) = eos_state(i,j,k) % cs
+            enddo
+         enddo
+      enddo
 
       end subroutine ca_dersoundspeed
 
@@ -409,24 +437,35 @@
 
       type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
-      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
-      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               eos_state(i,j,k) % rho = u(i,j,k,URHO)
+               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
+               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
 
-      do n = 1, nspec
-         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-      enddo
-      do n = 1, naux
-         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
+               do n = 1, nspec
+                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
+               enddo
+               do n = 1, naux
+                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
+               enddo
+
+               eos_state(i,j,k) % loc = (/ i, j, k /)
+            enddo
+         enddo
       enddo
 
       call eos(eos_input_re, eos_state)
 
-      mach(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = ( u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
-                                                      u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
-                                                      u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2 )**0.5 / &
-                                                    u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) / &
-                                                    eos_state(:,:,:) % cs
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               mach(i,j,k,1) = (u(i,j,k,UMX)**2 + u(i,j,k,UMY)**2 + u(i,j,k,UMZ)**2)**0.5 / u(i,j,k,URHO) &
+                             / eos_state(i,j,k) % cs
+            enddo
+         enddo
+      enddo
 
       end subroutine ca_dermachnumber
 
@@ -458,20 +497,34 @@
 
       type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
-      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
-      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               eos_state(i,j,k) % rho = u(i,j,k,URHO)
+               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
+               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
 
-      do n = 1, nspec
-         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
-      enddo
-      do n = 1, naux
-         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
-      enddo
+               do n = 1, nspec
+                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
+               enddo
+               do n = 1, naux
+                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
+               enddo
+
+               eos_state(i,j,k) % loc = (/ i, j, k /)
+            enddo
+         enddo
+      enddo               
 
       call eos(eos_input_re, eos_state)
 
-      s(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % s
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               s(i,j,k,1) = eos_state(i,j,k) % s
+            enddo
+         enddo
+      enddo
 
       end subroutine ca_derentropy
 
