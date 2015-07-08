@@ -19,12 +19,7 @@
       double precision :: rhoInv
       integer          :: pt_index(3)
 
-      type (eos_t), allocatable :: eos_state(:)
-      integer :: eos_state_len(1), nx(3)
-      
-      nx = hi - lo + 1
-      eos_state_len(1) = nx(1) * nx(2) * nx(3)
-      allocate(eos_state(eos_state_len(1)))
+      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
       do k = lo(3),hi(3)
       do j = lo(2),hi(2)
@@ -55,23 +50,23 @@
          enddo
       end if
 
-      eos_state(:) % rho = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
-      eos_state(:) % T   = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len) ! Initial guess for the EOS
-      eos_state(:) % e   = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+      eos_state(:,:,:) % rho = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
+      eos_state(:,:,:) % T   = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) ! Initial guess for the EOS
+      eos_state(:,:,:) % e   = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
       do n = 1, nspec
-         eos_state(:) % xn(n)  = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1), eos_state_len) / eos_state(:) % rho
+         eos_state(:,:,:) % xn(n)  = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
       enddo
       do n = 1, naux
-         eos_state(:) % aux(n) = reshape(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1), eos_state_len) / eos_state(:) % rho
+         eos_state(:,:,:) % aux(n) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
       enddo
 
-      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+      call eos(eos_input_re, eos_state)
 
-      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) = reshape(eos_state(:) % T, nx)
+      state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP) = eos_state(:,:,:) % T
 
       ! Reset energy in case we floored
       state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) * &
-                                                         reshape(eos_state(:) % e, nx)
+                                                         eos_state(:,:,:) % e
       state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEDEN) = state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) + HALF * &
                                                          (state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
                                                           state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &

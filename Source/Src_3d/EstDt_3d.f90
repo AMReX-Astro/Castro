@@ -18,33 +18,28 @@
 
      double precision :: rhoInv,ux,uy,uz,c,dt1,dt2,dt3
      double precision :: sqrtK,grid_scl,dt4
-     integer          :: i,j,k
+     integer          :: i,j,k,n
      integer          :: pt_index(3)
 
-     type (eos_t), allocatable :: eos_state(:)
-     integer :: nx(3), eos_state_len(1), n
+     type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
      ! Compute sound speed
 
-     nx = hi - lo + 1
-     eos_state_len(1) = nx(1) * nx(2) * nx(3)
-     allocate(eos_state(eos_state_len(1)))
-
-     eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
-     eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
-     eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+     eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
+     eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
+     eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
 
      do n = 1, nspec
-        eos_state(:) % xn(n)  = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1), eos_state_len) / eos_state(:) % rho
+        eos_state(:,:,:) % xn(n)  = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
      enddo
      do n = 1, naux
-        eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1), eos_state_len) / eos_state(:) % rho
+        eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
      enddo
 
-     call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+     call eos(eos_input_re, eos_state)
 
-     cs(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = reshape(eos_state(:) % cs, nx)
-     e(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))  = reshape(eos_state(:) % e , nx)
+     cs(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = eos_state(:,:,:) % cs
+     e(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))  = eos_state(:,:,:) % e
 
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
@@ -95,7 +90,5 @@
             enddo
          enddo
      enddo
-
-     deallocate(eos_state)
 
      end subroutine ca_estdt

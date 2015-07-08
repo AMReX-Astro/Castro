@@ -144,8 +144,7 @@ contains
 
     double precision, allocatable :: shk(:,:,:)
     
-    type (eos_t), allocatable :: eos_state(:)
-    integer :: eos_state_len(1), nx(4)
+    type (eos_t), allocatable :: eos_state(:,:,:,:)
 
     allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
@@ -250,6 +249,8 @@ contains
        ! for gamc -- needed for the reference state in eigenvectors
        allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
        allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+
+       allocate( eos_state(ilo1-1:ihi1+1,ilo2-1:ihi2+1,3,3) )
     else
        allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
        allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
@@ -350,39 +351,37 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           else          
 
-             nx = (/ ihi1 - ilo1 + 2, ihi2 - ilo2 + 2, 3, 3 /)
-             eos_state_len = (/ nx(1) * nx(2) * nx(3) * nx(4) /)
-             allocate(eos_state(eos_state_len(1)))
+             eos_state(:,:,:,:) % rho = Ip(:,:,kc,:,:,QRHO)
+             eos_state(:,:,:,:) % T   = Ip(:,:,kc,:,:,QTEMP)
 
-             eos_state(:) % rho = reshape(Ip(:,:,kc,:,:,QRHO), eos_state_len)
-             eos_state(:) % T   = reshape(Ip(:,:,kc,:,:,QTEMP), eos_state_len)
              do n = 1, nspec
-                eos_state(:) % xn(n)  = reshape(Ip(:,:,kc,:,:,QFS+n-1), eos_state_len) / eos_state(:) % rho
+                eos_state(:,:,:,:) % xn(n)  = Ip(:,:,kc,:,:,QFS+n-1) / eos_state(:,:,:,:) % rho
              enddo
              do n = 1, naux
-                eos_state(:) % aux(n) = reshape(Ip(:,:,kc,:,:,QFX+n-1), eos_state_len) / eos_state(:) % rho
+                eos_state(:,:,:,:) % aux(n) = Ip(:,:,kc,:,:,QFX+n-1) / eos_state(:,:,:,:) % rho
              enddo
 
-             call eos(eos_input_rt, eos_state, state_len = eos_state_len(1))
+             call eos(eos_input_rt, eos_state)
 
-             Ip(:,:,kc,:,:,QPRES)  = reshape(eos_state(:) % p, nx)
-             Ip(:,:,kc,:,:,QREINT) = reshape(eos_state(:) % e, nx) * Ip(:,:,kc,:,:,QRHO)
-             Ip_gc(:,:,kc,:,:,1)   = reshape(eos_state(:) % gam1, nx)
+             Ip(:,:,kc,:,:,QPRES)  = eos_state(:,:,:,:) % p
+             Ip(:,:,kc,:,:,QREINT) = eos_state(:,:,:,:) % e * Ip(:,:,kc,:,:,QRHO)
+             Ip_gc(:,:,kc,:,:,1)   = eos_state(:,:,:,:) % gam1
 
-             eos_state(:) % rho = reshape(Im(:,:,kc,:,:,QRHO), eos_state_len)
-             eos_state(:) % T   = reshape(Im(:,:,kc,:,:,QTEMP), eos_state_len)
+             eos_state(:,:,:,:) % rho = Im(:,:,kc,:,:,QRHO)
+             eos_state(:,:,:,:) % T   = Im(:,:,kc,:,:,QTEMP)
+
              do n = 1, nspec
-                eos_state(:) % xn(n)  = reshape(Im(:,:,kc,:,:,QFS+n-1), eos_state_len) / eos_state(:) % rho
+                eos_state(:,:,:,:) % xn(n)  = Im(:,:,kc,:,:,QFS+n-1) / eos_state(:,:,:,:) % rho
              enddo
              do n = 1, naux
-                eos_state(:) % aux(n) = reshape(Im(:,:,kc,:,:,QFX+n-1), eos_state_len) / eos_state(:) % rho
+                eos_state(:,:,:,:) % aux(n) = Im(:,:,kc,:,:,QFX+n-1) / eos_state(:,:,:,:) % rho
              enddo
 
-             call eos(eos_input_rt, eos_state, state_len = eos_state_len(1))
+             call eos(eos_input_rt, eos_state)
 
-             Im(:,:,kc,:,:,QPRES)  = reshape(eos_state(:) % p, nx)
-             Im(:,:,kc,:,:,QREINT) = reshape(eos_state(:) % e, nx) * Im(:,:,kc,:,:,QRHO)
-             Im_gc(:,:,kc,:,:,1)   = reshape(eos_state(:) % gam1, nx)
+             Im(:,:,kc,:,:,QPRES)  = eos_state(:,:,:,:) % p
+             Im(:,:,kc,:,:,QREINT) = eos_state(:,:,:,:) % e * Im(:,:,kc,:,:,QRHO)
+             Im_gc(:,:,kc,:,:,1)   = eos_state(:,:,:,:) % gam1
 
           endif
 
@@ -743,9 +742,7 @@ contains
 
     integer :: ipassive
 
-    type (eos_t), allocatable :: eos_state(:)
-
-    integer :: eos_state_len(1), nx(3)
+    type (eos_t) :: eos_state(lo(1)-ngp:hi(1)+ngp,lo(2)-ngp:hi(2)+ngp,lo(3)-ngp:hi(3)+ngp)
 
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
@@ -756,9 +753,6 @@ contains
        hiq(i) = hi(i)+ngp
     enddo
 
-    nx = hiq - loq + 1
-    eos_state_len(1) = nx(1) * nx(2) * nx(3)
-    allocate(eos_state(eos_state_len(1)))
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
@@ -824,11 +818,10 @@ contains
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+                eos_state(i,j,k) % xn(ispec) = q(i,j,k,nq)
              enddo
           enddo
        enddo
-
-       eos_state(:) % xn(ispec) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
       
     ! Load auxiliary variables which are needed in the EOS
@@ -839,27 +832,26 @@ contains
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+                eos_state(i,j,k) % aux(iaux) = q(i,j,k,nq)
              enddo
           enddo
        enddo
-
-       eos_state(:) % aux(iaux) = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),nq),eos_state_len)
     enddo
 
-    eos_state(:) % T   = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP ),eos_state_len)
-    eos_state(:) % rho = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QRHO  ),eos_state_len)
-    eos_state(:) % e   = reshape(q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT),eos_state_len)
+    eos_state(:,:,:) % T   = q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP )
+    eos_state(:,:,:) % rho = q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QRHO  )
+    eos_state(:,:,:) % e   = q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT)
 
-    call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+    call eos(eos_input_re, eos_state)
 
-    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP)  = reshape(eos_state(:) % T, nx)
-    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) = reshape(eos_state(:) % e, nx)
-    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QPRES)  = reshape(eos_state(:) % p, nx)
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QTEMP)  = eos_state(:,:,:) % T
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QREINT) = eos_state(:,:,:) % e
+    q(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3),QPRES)  = eos_state(:,:,:) % p
 
-    dpdrho(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))   = reshape(eos_state(:) % dpdr_e, nx)
-    dpde(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = reshape(eos_state(:) % dpde, nx)
-    c(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))        = reshape(eos_state(:) % cs, nx)
-    gamc(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = reshape(eos_state(:) % gam1, nx)
+    dpdrho(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))   = eos_state(:,:,:) % dpdr_e
+    dpde(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = eos_state(:,:,:) % dpde
+    c(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))        = eos_state(:,:,:) % cs
+    gamc(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = eos_state(:,:,:) % gam1
 
     csml(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3))     = max(small, small * c(loq(1):hiq(1),loq(2):hiq(2),loq(3):hiq(3)))
 
@@ -979,7 +971,6 @@ contains
     endif
 
     deallocate(dpdrho,dpde)
-    deallocate(eos_state)
     
   end subroutine ctoprim
 

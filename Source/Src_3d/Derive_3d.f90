@@ -245,33 +245,24 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k
+      integer          :: i,j,k,n
 
-      type (eos_t), allocatable :: eos_state(:)
-      integer :: nx(3), eos_state_len(1), n
+      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      nx = hi - lo + 1
-      eos_state_len(1) = nx(1) * nx(2) * nx(3)
-      allocate(eos_state(eos_state_len(1)))
+      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
+      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
+      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
 
       do n = 1, nspec
-         eos_state(:) % xn(n)  = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
-                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO   ), eos_state_len)
+         eos_state(:,:,:) % xn(n)  = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
       enddo
       do n = 1, naux
-         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
-                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO   ), eos_state_len)
+         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
       enddo
 
-      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
-      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
-      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+      call eos(eos_input_re, eos_state)
 
-      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
-
-      p(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % p, nx)
-
-      deallocate(eos_state)
+      p(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % p
 
       end subroutine ca_derpres
 
@@ -369,33 +360,24 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k
+      integer          :: i,j,k,n
 
-      type (eos_t), allocatable :: eos_state(:)
-      integer :: nx(3), eos_state_len(1), n
+      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      nx = hi - lo + 1
-      eos_state_len(1) = nx(1) * nx(2) * nx(3)
-      allocate(eos_state(eos_state_len(1)))
+      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
+      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
+      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
 
       do n = 1, nspec
-         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
-                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
       enddo
       do n = 1, naux
-         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
-                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
       enddo
 
-      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
-      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
-      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+      call eos(eos_input_re, eos_state)
 
-      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
-
-      c(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % cs, nx)
-
-      deallocate(eos_state)
+      c(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % cs
 
       end subroutine ca_dersoundspeed
 
@@ -423,37 +405,28 @@
       integer          :: bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv,ux,uy,uz
-      integer          :: i,j,k
+      integer          :: i,j,k,n
 
-      type (eos_t), allocatable :: eos_state(:)
-      integer :: nx(3), eos_state_len(1), n
+      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      nx = hi - lo + 1
-      eos_state_len(1) = nx(1) * nx(2) * nx(3)
-      allocate(eos_state(eos_state_len(1)))
+      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO )
+      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
+      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
 
       do n = 1, nspec
-         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
-                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
       enddo
       do n = 1, naux
-         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
-                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
       enddo
 
-      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO ), eos_state_len)
-      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
-      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
-
-      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+      call eos(eos_input_re, eos_state)
 
       mach(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = ( u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX)**2 + &
                                                       u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMY)**2 + &
                                                       u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMZ)**2 )**0.5 / &
                                                     u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO) / &
-                                                    reshape(eos_state(:) % cs, nx)
-
-      deallocate(eos_state)
+                                                    eos_state(:,:,:) % cs
 
       end subroutine ca_dermachnumber
 
@@ -481,33 +454,24 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer i,j,k
+      integer i,j,k,n
 
-      type (eos_t), allocatable :: eos_state(:)
-      integer :: nx(3), eos_state_len(1), n
+      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-      nx = hi - lo + 1
-      eos_state_len(1) = nx(1) * nx(2) * nx(3)
-      allocate(eos_state(eos_state_len(1)))
+      eos_state(:,:,:) % rho = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO)
+      eos_state(:,:,:) % T   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP)
+      eos_state(:,:,:) % e   = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT) / eos_state(:,:,:) % rho
 
       do n = 1, nspec
-         eos_state(:) % xn(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / &
-                                        u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % xn(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFS+n-1) / eos_state(:,:,:) % rho
       enddo
       do n = 1, naux
-         eos_state(:) % aux(n) = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / &
-                                         u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
+         eos_state(:,:,:) % aux(n) = u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UFX+n-1) / eos_state(:,:,:) % rho
       enddo
 
-      eos_state(:) % rho = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),URHO), eos_state_len)
-      eos_state(:) % T   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UTEMP), eos_state_len)
-      eos_state(:) % e   = reshape(u(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UEINT), eos_state_len) / eos_state(:) % rho
+      call eos(eos_input_re, eos_state)
 
-      call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
-
-      s(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = reshape(eos_state(:) % s, nx)
-
-      deallocate(eos_state)
+      s(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1) = eos_state(:,:,:) % s
 
       end subroutine ca_derentropy
 

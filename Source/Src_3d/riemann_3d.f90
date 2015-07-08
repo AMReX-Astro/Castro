@@ -64,8 +64,8 @@ contains
     double precision, allocatable :: smallc(:,:),cavg(:,:)
     double precision, allocatable :: gamcm(:,:),gamcp(:,:)
 
-    type (eos_t), allocatable :: eos_state(:)
-    integer :: eos_state_len(1), nx(2), n
+    type (eos_t) :: eos_state(ilo:ihi,jlo:jhi)
+    integer :: n
     integer :: is_shock
     double precision :: cl, cr
 
@@ -111,47 +111,41 @@ contains
        ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
 
-       nx(1) = ihi - ilo + 1
-       nx(2) = jhi - jlo + 1
-
-       eos_state_len(1) = nx(1) * nx(2)
-       allocate(eos_state(eos_state_len(1)))
-
        ! this is an initial guess for iterations, since we
        ! can't be certain that temp is on interfaces
-       eos_state(:) % T = 10000.0d0
+       eos_state(:,:) % T = 10000.0d0
 
        ! minus state
-       eos_state(:) % rho = reshape(qm(ilo:ihi,jlo:jhi,kc,QRHO),eos_state_len)
-       eos_state(:) % p = reshape(qm(ilo:ihi,jlo:jhi,kc,QPRES),eos_state_len)
+       eos_state(:,:) % rho = qm(ilo:ihi,jlo:jhi,kc,QRHO)
+       eos_state(:,:) % p   = qm(ilo:ihi,jlo:jhi,kc,QPRES)
        do n = 1, nspec
-          eos_state(:) % xn(n)  = reshape(qm(ilo:ihi,jlo:jhi,kc,QFS+n-1),eos_state_len)
+          eos_state(:,:) % xn(n)  = qm(ilo:ihi,jlo:jhi,kc,QFS+n-1)
        enddo
        do n = 1, naux
-          eos_state(:) % aux(n) = reshape(qm(ilo:ihi,jlo:jhi,kc,QFX+n-1),eos_state_len)
+          eos_state(:,:) % aux(n) = qm(ilo:ihi,jlo:jhi,kc,QFX+n-1)
        enddo
 
-       call eos(eos_input_re, eos_state, state_len = eos_state_len(1))
+       call eos(eos_input_rp, eos_state)
 
-       qm(ilo:ihi,jlo:jhi,kc,QREINT) = reshape(eos_state(:) % e, nx) * qm(ilo:ihi,jlo:jhi,kc,QRHO)
-       qm(ilo:ihi,jlo:jhi,kc,QPRES)  = reshape(eos_state(:) % p, nx)
-       gamcm(ilo:ihi,jlo:jhi)        = reshape(eos_state(:) % gam1, nx)
+       qm(ilo:ihi,jlo:jhi,kc,QREINT) = eos_state(:,:) % e * eos_state(:,:) % rho
+       qm(ilo:ihi,jlo:jhi,kc,QPRES)  = eos_state(:,:) % p
+       gamcm(ilo:ihi,jlo:jhi)        = eos_state(:,:) % gam1
 
        ! plus state
-       eos_state(:) % rho = reshape(qp(ilo:ihi,jlo:jhi,kc,QRHO),eos_state_len)
-       eos_state(:) % p = reshape(qp(ilo:ihi,jlo:jhi,kc,QPRES),eos_state_len)
+       eos_state(:,:) % rho = qp(ilo:ihi,jlo:jhi,kc,QRHO)
+       eos_state(:,:) % p   = qp(ilo:ihi,jlo:jhi,kc,QPRES)
        do n = 1, nspec
-          eos_state(:) % xn(n)  = reshape(qp(ilo:ihi,jlo:jhi,kc,QFS+n-1),eos_state_len)
+          eos_state(:,:) % xn(n)  = qp(ilo:ihi,jlo:jhi,kc,QFS+n-1)
        enddo
        do n = 1, naux
-          eos_state(:) % aux(n) = reshape(qp(ilo:ihi,jlo:jhi,kc,QFX+n-1),eos_state_len)
+          eos_state(:,:) % aux(n) = qp(ilo:ihi,jlo:jhi,kc,QFX+n-1)
        enddo
 
-       call eos(eos_input_re, eos_state)
+       call eos(eos_input_rp, eos_state)
 
-       qp(ilo:ihi,jlo:jhi,kc,QREINT) = reshape(eos_state(:) % e, nx) * qp(ilo:ihi,jlo:jhi,kc,QRHO)
-       qp(ilo:ihi,jlo:jhi,kc,QPRES)  = reshape(eos_state(:) % p, nx)
-       gamcp(ilo:ihi,jlo:jhi)        = reshape(eos_state(:) % gam1, nx)
+       qp(ilo:ihi,jlo:jhi,kc,QREINT) = eos_state(:,:) % e * eos_state(:,:) % rho
+       qp(ilo:ihi,jlo:jhi,kc,QPRES)  = eos_state(:,:) % p
+       gamcp(ilo:ihi,jlo:jhi)        = eos_state(:,:) % gam1
 
     endif
 
