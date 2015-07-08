@@ -41,6 +41,7 @@ module eos_type_module
   ! dpdZ     -- d pressure/ d zbar
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
+  ! loc      -- grid index
 
   ! Initialize the main quantities to an unphysical number
   ! so that we know if the user forgot to initialize them
@@ -91,6 +92,8 @@ module eos_type_module
      double precision :: dpdZ        
      double precision :: dedA         
      double precision :: dedZ         
+
+     integer :: loc(3) = 0
 
   end type eos_t
 
