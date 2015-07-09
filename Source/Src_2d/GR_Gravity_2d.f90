@@ -68,7 +68,7 @@
                ! Compute pressure from the EOS
                pt_index(1) = i
                pt_index(2) = j
-               call eos(eos_input_re, eos_state, pt_index = pt_index)
+               call eos(eos_input_re, eos_state)
 
                ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be 
                !      doing monopole gravity

@@ -56,7 +56,7 @@
             pt_index(1) = i
             pt_index(2) = j
 
-            call eos(eos_input_re, eos_state, pt_index = pt_index)
+            call eos(eos_input_re, eos_state)
 
             state(i,j,UTEMP) = eos_state % T
 

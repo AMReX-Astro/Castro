@@ -61,7 +61,7 @@ subroutine reset_internal_e(u,u_l1,u_l2,u_h1,u_h2,lo,hi,verbose)
               pt_index(1) = i
               pt_index(2) = j
 
-              call eos(eos_input_rt, eos_state, pt_index = pt_index)
+              call eos(eos_input_rt, eos_state)
 
               eint_new = eos_state % e
 

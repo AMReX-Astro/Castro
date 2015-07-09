@@ -238,7 +238,7 @@ contains
           q(i,QTEMP) = small_temp
           eos_state % T = q(i,QTEMP)
           
-          call eos(eos_input_rt, eos_state, pt_index = pt_index)
+          call eos(eos_input_rt, eos_state)
           q(i,QREINT) = eos_state % e
           
           if (q(i,QREINT) .lt. ZERO) then
@@ -252,7 +252,7 @@ contains
        
        eos_state % e = q(i,QREINT)
        
-       call eos(eos_input_re, eos_state, pt_index = pt_index)
+       call eos(eos_input_re, eos_state)
        
        q(i,QTEMP)  = eos_state % T
        q(i,QREINT) = eos_state % e

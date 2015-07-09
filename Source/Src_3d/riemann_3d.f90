@@ -492,7 +492,7 @@ contains
              eos_state % xn  = ql(i,j,kc,QFS:QFS-1+nspec)
              eos_state % aux = ql(i,j,kc,QFX:QFX-1+naux)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              rel = rl*eos_state % e
              pl  = eos_state % p
@@ -519,7 +519,7 @@ contains
              eos_state % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
              eos_state % aux = qr(i,j,kc,QFX:QFX-1+naux)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              rer = rr*eos_state % e
              pr  = eos_state % p

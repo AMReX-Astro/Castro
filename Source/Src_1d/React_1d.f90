@@ -55,7 +55,7 @@
               print *, '... e negative in react_state: ', i, e_in
               T = max(T, small_temp)
               eos_state % T = T
-              call eos(eos_input_rt, eos_state, pt_index = pt_index)
+              call eos(eos_input_rt, eos_state)
               e_in = eos_state % e
               if (e_in .lt. ZERO) then
                  print *, '... call to eos (input_rt) with small_temp still gives negative e ', e_in
@@ -67,7 +67,7 @@
 
            ! Use this call to define T
 
-           call eos(eos_input_re, eos_state, pt_index = pt_index)
+           call eos(eos_input_re, eos_state)
 
            T = eos_state % T
            e_in = eos_state % e
@@ -101,7 +101,7 @@
            eos_state % xn  = x_out(1:nspec)
            eos_state % aux = x_out(nspec+1:nspec+naux)
 
-           call eos(eos_input_re, eos_state, pt_index = pt_index)
+           call eos(eos_input_re, eos_state)
    
            s_out(i,UTEMP)           = eos_state % T
 

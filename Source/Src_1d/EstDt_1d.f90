@@ -40,7 +40,7 @@
 
             pt_index(1) = i
 
-            call eos(eos_input_re, eos_state, pt_index = pt_index)
+            call eos(eos_input_re, eos_state)
 
             c = eos_state % cs
          else

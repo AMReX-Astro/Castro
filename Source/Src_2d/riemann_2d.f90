@@ -129,9 +129,9 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
                 eos_state % T = small_temp
-                call eos(eos_input_rt, eos_state, .false.)                
+                call eos(eos_input_rt, eos_state)                
              else
-                call eos(eos_input_re, eos_state, .false.)
+                call eos(eos_input_re, eos_state)
              endif
 
              qm(i,j,QREINT) = qm(i,j,QRHO)*eos_state%e
@@ -150,9 +150,9 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
                 eos_state % T = small_temp
-                call eos(eos_input_rt, eos_state, .false.)                
+                call eos(eos_input_rt, eos_state)                
              else
-                call eos(eos_input_re, eos_state, .false.)
+                call eos(eos_input_re, eos_state)
              endif
 
              qp(i,j,QREINT) = qp(i,j,QRHO)*eos_state%e
@@ -451,7 +451,7 @@ contains
              eos_state % xn  = ql(i,j,QFS:QFS-1+nspec)
              eos_state % aux = ql(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              rel = rl*eos_state%e
              pl  = eos_state%p
@@ -481,7 +481,7 @@ contains
              eos_state % xn  = qr(i,j,QFS:QFS-1+nspec)
              eos_state % aux = qr(i,j,QFX:QFX-1+naux)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              rer = rr*eos_state%e
              pr  = eos_state%p

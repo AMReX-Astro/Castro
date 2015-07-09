@@ -52,7 +52,7 @@
    
                pt_index(1) = i
 
-               call eos(eos_input_rt, eos_state, pt_index = pt_index)
+               call eos(eos_input_rt, eos_state)
 
                eint_new = eos_state % e
 
