@@ -2,10 +2,10 @@ BOXLIB_HOME ?= /path/to/BoxLib
 
 TOP := $(CASTRO_DIR)
 
-EOS_HOME ?= $(TOP)/EOS
-
 ifdef MICROPHYSICS_DIR
-	EOS_HOME_EXT ?= $(MICROPHYSICS_DIR)/eos
+	EOS_HOME ?= $(MICROPHYSICS_DIR)/eos
+else
+	EOS_HOME ?= $(TOP)/EOS
 endif
 
 NETWORK_HOME ?= $(TOP)/Networks
@@ -111,10 +111,6 @@ all: $(executable)
 
 EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
 
-ifdef MICROPHYSICS_DIR
-	EOS_PATH := $(EOS_HOME_EXT)/$(strip $(EOS_dir))
-endif
-
 NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
 
 ifeq ($(USE_RAD), TRUE)
@@ -136,7 +132,7 @@ include $(EOS_HOME)/Make.package
 include $(EOS_PATH)/Make.package
 EXTERN_CORE += $(EOS_PATH)
 
-# the helmeos has an include file -- also add a target to link the table
+# the helmholtz EOS has an include file -- also add a target to link the table
 # into the problem directory.
 ifeq ($(findstring helmholtz, $(EOS_dir)), helmholtz)
   all: table
