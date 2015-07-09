@@ -23,7 +23,6 @@ subroutine ca_react_state(lo,hi, &
   double precision time,dt_react
   
   integer          :: i,j,n
-  integer          :: pt_index(2)
   double precision :: rho, rhoInv, u, v, ke, e_in, e_out, T
   double precision :: x_in(nspec+naux), x_out(nspec+naux)
 
@@ -47,14 +46,12 @@ subroutine ca_react_state(lo,hi, &
 
            e_in          = s_in(i,j,UEINT) * rhoInv
 
-           pt_index(1) = i
-           pt_index(2) = j
-           
            eos_state % T   = T
            eos_state % rho = rho
            eos_state % e   = e_in
            eos_state % xn  = x_in(1:nspec)
            eos_state % aux = x_in(nspec+1:nspec+naux)
+           eos_state % loc = (/ i, j, -99 /)
 
            if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
               print *, '... e negative in react_state: ', i, j, e_in

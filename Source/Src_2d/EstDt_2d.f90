@@ -15,7 +15,6 @@
 
      double precision :: rhoInv,c,ux,uy,dt1,dt2
      integer          :: i,j
-     integer          :: pt_index(2)
 
      type (eos_t) :: eos_state
 
@@ -38,10 +37,8 @@
                eos_state % T   = u(i,j,UTEMP)
                eos_state % xn  = u(i,j,UFS:UFS+nspec-1) * rhoInv
                eos_state % aux = u(i,j,UFX:UFX+naux-1) * rhoInv
+               eos_state % loc = (/ i, j, -99 /)
 
-               pt_index(1) = i
-               pt_index(2) = j
-               
                call eos(eos_input_re, eos_state)
               
                c = eos_state % cs

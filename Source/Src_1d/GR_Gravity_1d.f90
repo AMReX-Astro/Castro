@@ -18,7 +18,6 @@
       double precision, intent(in   ) :: dx, problo(1)
 
       integer          :: i
-      integer          :: pt_index(1)
       double precision :: rc,rlo,mass_encl,halfdx
       double precision :: ga, gb, gc
 
@@ -56,8 +55,7 @@
             eos_state % T   = var(i,UTEMP)
             eos_state % xn  = var(i,UFS:UFS+nspec-1) / var(i,URHO)
             eos_state % aux = var(i,UFX:UFX+naux-1) / var(i,URHO)
-
-            pt_index(1) = i
+            eos_state % loc = (/ i, -99, -99 /)
 
             call eos(eos_input_re, eos_state)
 

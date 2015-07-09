@@ -21,7 +21,6 @@
       double precision time,dt_react
 
       integer :: i, n
-      integer :: pt_index(1)
       double precision rho, rhoInv, u, ke, e_in, e_out, T
       double precision x_in(nspec+naux), x_out(nspec+naux)
 
@@ -43,13 +42,12 @@
    
            e_in            = s_in(i,UEINT) * rhoInv
 
-           pt_index(1) = i
-
            eos_state % T   = T
            eos_state % rho = rho
            eos_state % e   = e_in
            eos_state % xn  = x_in(1:nspec)
            eos_state % aux = x_in(nspec+1:nspec+naux)
+           eos_state % loc = (/ i, -99, -99 /)
 
            if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
               print *, '... e negative in react_state: ', i, e_in

@@ -18,7 +18,6 @@
 
       ! Local variables
       integer          :: i
-      integer          :: pt_index(1)
       double precision :: Up, ke, rho_eint, eint_new
 
       type (eos_t) :: eos_state
@@ -49,9 +48,8 @@
                eos_state % T   = small_temp
                eos_state % xn  = u(i,UFS:UFS+nspec-1) / u(i,URHO)   
                eos_state % aux = u(i,UFX:UFX+naux-1) / u(i,URHO)
+               eos_state % loc = (/ i, -99, -99 /)
    
-               pt_index(1) = i
-
                call eos(eos_input_rt, eos_state)
 
                eint_new = eos_state % e

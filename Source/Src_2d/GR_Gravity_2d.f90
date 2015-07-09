@@ -26,7 +26,6 @@
 
       integer          :: i,j,n,index
       integer          :: ii,jj
-      integer          :: pt_index(2)
       double precision :: xc,yc,r
       double precision :: fac,xx,yy,dx_frac,dy_frac,vol_frac
       double precision :: lo_i,lo_j,rlo,rhi
@@ -64,10 +63,9 @@
                eos_state % T   = var(i,j,UTEMP)
                eos_state % xn  = var(i,j,UFS:UFS+nspec-1) / rho 
                eos_state % aux = var(i,j,UFX:UFX+naux-1) / rho
+               eos_state % loc = (/ i, j, -99 /)
 
                ! Compute pressure from the EOS
-               pt_index(1) = i
-               pt_index(2) = j
                call eos(eos_input_re, eos_state)
 
                ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be 

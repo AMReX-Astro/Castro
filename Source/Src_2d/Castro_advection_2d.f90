@@ -318,7 +318,6 @@ contains
     double precision, allocatable :: dpdX_er(:,:,:)
 
     integer          :: i, j
-    integer          :: pt_index(2)
     integer          :: ngp, ngf, loq(2), hiq(2)
     integer          :: n, nq
     double precision :: courx, coury, courmx, courmy
@@ -381,12 +380,11 @@ contains
           enddo
 
           ! Get gamc, p, T, c, csml using q state 
-          pt_index(:) = (/i, j/)
-
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
+          eos_state % loc = (/ i, j, -99 /)
 
           ! if necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then

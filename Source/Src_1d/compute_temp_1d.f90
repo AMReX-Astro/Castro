@@ -12,7 +12,6 @@
       double precision, intent(inout) :: state(state_l1:state_h1,NVAR)
 
       integer          :: i
-      integer          :: pt_index(1)
       double precision :: eint,xn(nspec+naux)
 
       type (eos_t) :: eos_state
@@ -46,8 +45,7 @@
 
          ! initial guess for iterations
          eos_state % T = state(i,UTEMP) 
-
-         pt_index(1) = i
+         eos_state % loc = (/ i, -99, -99 /)
 
          call eos(eos_input_re, eos_state)
 

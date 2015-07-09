@@ -13,7 +13,6 @@
 
       integer          :: i,j
       double precision :: rhoInv
-      integer          :: pt_index(2)
 
       type (eos_t) :: eos_state
 
@@ -52,9 +51,7 @@
             eos_state % aux = state(i,j,UFX:UFX+naux-1) * rhoInv
 
             eos_state % T   = state(i,j,UTEMP) ! Initial guess for EOS
-   
-            pt_index(1) = i
-            pt_index(2) = j
+            eos_state % loc = (/ i, j, -99 /)
 
             call eos(eos_input_re, eos_state)
 
