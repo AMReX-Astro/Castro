@@ -23,6 +23,8 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
   
   integer i,j,n
 
+  type (eos_t) eos_state
+
   minpres = p0(MAESTRO_npts_model-1)
            
   ! compute p0 and add pi if necessary
@@ -48,9 +50,16 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            pressure = max(state(i,j,UEDEN),minpres)
 
            ! compute e and T
-           call eos_e_given_RPX(state(i,j,UEINT),state(i,j,UTEMP), &
-                                state(i,j,URHO),pressure,state(i,j,UFS:))
-           
+           eos_state % p   = pressure
+           eos_state % rho = state(i,j,URHO)
+           eos_state % T   = state(i,j,UTEMP)
+           eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
+
+           call eos(eos_input_rp, eos_state)
+
+           state(i,j,UTEMP) = state(i,j,UTEMP)
+           state(i,j,UEINT) = eos_state % e
+
            ! compute kinetic energy
            ekin = 0.5*state(i,j,URHO)*(state(i,j,UMX)**2+state(i,j,UMY)**2)
            
@@ -80,8 +89,14 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            pressure = max(state(i,j,UEDEN),minpres)
 
            ! compute rho and e
-           call eos_given_TPX(state(i,j,UEINT),pressure,state(i,j,URHO), &
-                              state(i,j,UTEMP),state(i,j,UFS:))
+           eos_state % T  = state(i,j,UTEMP)
+           eos_state % p  = pressure
+           eos_state % xn = state(i,j,UFS:UFS+nspec-1)
+
+           call eos(eos_input_pt, eos_state)
+
+           state(i,j,URHO)  = eos_state % rho
+           state(i,j,UEINT) = eos_state % e
 
            ! compute kinetic energy
            ekin = 0.5*state(i,j,URHO)*(state(i,j,UMX)**2+state(i,j,UMY)**2)
@@ -118,8 +133,15 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            ekin = 0.5*state(i,j,URHO)*(state(i,j,UMX)**2+state(i,j,UMY)**2)
            
            ! compute rho, T, and e
-           call eos_given_PSX(pressure,entropy,state(i,j,UFS:),state(i,j,URHO), &
-                              state(i,j,UTEMP),state(i,j,UEINT))
+           eos_state % p  = pressure
+           eos_state % s  = entropy
+           eos_state % xn = state(i,j,UFS:UFS+nspec-1)
+
+           call eos(eos_input_ps, eos_state)
+
+           state(i,j,URHO)  = eos_state % rho
+           state(i,j,UEINT) = eos_state % e
+           state(i,j,UTEMP) = eos_state % T
            
            ! convert velocity to momentum
            state(i,j,UMX:UMY) = state(i,j,UMX:UMY)*state(i,j,URHO)
@@ -172,6 +194,8 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   
   double precision p_want,pres_zone,dpt,dpd,dst,dsd,A,B,drho,dtemp
 
+  type (eos_t) eos_state
+
   MAX_ITER = 250
   TOL = 1.e-10
 
@@ -191,25 +215,17 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   xn(2) = 0.7d0
   xn(3) = 0.d0
   
-  den_eos  = rho0(r_model_start)
-  temp_eos = tempbar(r_model_start)
-  xn_eos(:) = xn(:)
+  eos_state % rho  = rho0(r_model_start)
+  eos_state % T    = tempbar(r_model_start)
+  eos_state % xn   = xn(:)
   
-  call eos(eos_input_rt, den_eos, temp_eos, &
-            xn_eos, &
-            p_eos, h_eos, e_eos, &
-            cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-            dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-            dpdX_eos, dhdX_eos, &
-            gam1_eos, cs_eos, s_eos, &
-            dsdt_eos, dsdr_eos, &
-            .false.)
+  call eos(eos_input_rt, eos_state)
   
   model(1,r_model_start) = rho0(r_model_start)
   model(2,r_model_start) = tempbar(r_model_start)
   
-  pres(r_model_start) = p_eos
-  entropy_want = s_eos
+  pres(r_model_start) = eos_state % p
+  entropy_want = eos_state % s
 
   !-----------------------------------------------------------------------------
   ! HSE + entropy solve
@@ -270,27 +286,19 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
               ! dimensional root find
 
               ! (t, rho) -> (p, s)
-              temp_eos = temp_zone
-              den_eos = dens_zone
-              xn_eos(:) = xn(:)
+              eos_state % T   = temp_zone
+              eos_state % rho = dens_zone
+              eos_state % xn  = xn(:)
 
-              call eos(eos_input_rt, den_eos, temp_eos, &
-                       xn_eos, &
-                       p_eos, h_eos, e_eos, &
-                       cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-                       dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-                       dpdX_eos, dhdX_eos, &
-                       gam1_eos, cs_eos, s_eos, &
-                       dsdt_eos, dsdr_eos, &
-                       .false.)
+              call eos(eos_input_rt, eos_state)
 
-              entropy = s_eos
-              pres_zone = p_eos
+              entropy = eos_state % s
+              pres_zone = eos_state % p
 
-              dpt = dpdt_eos
-              dpd = dpdr_eos
-              dst = dsdt_eos
-              dsd = dsdr_eos
+              dpt = eos_state % dpdt
+              dpd = eos_state % dpdr
+              dst = eos_state % dsdt
+              dsd = eos_state % dsdt
               
               A = p_want - pres_zone
               B = entropy_want - entropy
@@ -334,24 +342,16 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
               temp_zone = temp_fluff
 
               ! (t, rho) -> (p)
-              temp_eos = temp_zone
-              den_eos = dens_zone
-              xn_eos(:) = xn(:)
+              eos_state % T   = temp_zone
+              eos_state % rho = dens_zone
+              eos_state % xn  = xn(:)
               
-              call eos(eos_input_rt, den_eos, temp_eos, &
-                       xn_eos, &
-                       p_eos, h_eos, e_eos, &
-                       cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-                       dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-                       dpdX_eos, dhdX_eos, &
-                       gam1_eos, cs_eos, s_eos, &
-                       dsdt_eos, dsdr_eos, &
-                       .false.)
+              call eos(eos_input_rt, eos_state)
 
-              entropy = s_eos
-              pres_zone = p_eos
+              entropy = eos_state % s
+              pres_zone = eos_state % p
 
-              dpd = dpdr_eos
+              dpd = eos_state % dpdr
 
               drho = (p_want - pres_zone)/(dpd - 0.5*dr*g_zone)
 
@@ -400,21 +400,13 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
      
      ! call the EOS one more time for this zone and then go on to the next
      ! (t, rho) -> (p)
-     temp_eos = temp_zone
-     den_eos = dens_zone
-     xn_eos(:) = xn(:)
+     eos_state % T   = temp_zone
+     eos_state % rho = dens_zone
+     eos_state % xn  = xn(:)
            
-     call eos(eos_input_rt, den_eos, temp_eos, &
-              xn_eos, &
-              p_eos, h_eos, e_eos, &
-              cv_eos, cp_eos, xne_eos, eta_eos, pele_eos, &
-              dpdt_eos, dpdr_eos, dedt_eos, dedr_eos, &
-              dpdX_eos, dhdX_eos, &
-              gam1_eos, cs_eos, s_eos, &
-              dsdt_eos, dsdr_eos, &
-              .false.)
+     call eos(eos_input_rt, eos_state)
      
-     pres_zone = p_eos
+     pres_zone = eos_state % p
      
      ! update the thermodynamics in this zone
      model(1,i) = dens_zone
@@ -451,6 +443,8 @@ subroutine ca_initdata_overwrite(lo,hi, &
   ! local
   integer i,j,n
   double precision ekin,radius,temppres
+
+  type (eos_t) eos_state
   
   do j=lo(2),hi(2)
      
@@ -469,8 +463,13 @@ subroutine ca_initdata_overwrite(lo,hi, &
            state(i,j,UFS+2) = 0.0d0
            
            ! compute e
-           call eos_given_RTX(state(i,j,UEINT),temppres,state(i,j,URHO), &
-                              state(i,j,UTEMP),state(i,j,UFS:))
+           eos_state % rho = state(i,j,URHO)
+           eos_state % T   = state(i,j,UTEMP)
+           eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
+
+           call eos(eos_input_rt, eos_state)
+
+           state(i,j,UEINT) = eos_state % e
                  
            ! compute rho*e
            state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)

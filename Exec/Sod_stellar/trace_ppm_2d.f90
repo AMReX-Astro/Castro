@@ -516,7 +516,7 @@ contains
              eos_state%rho = rho_ev
              eos_state%xn(:) = q(i,j,QFS:QFS-1+nspec)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              p_r = eos_state%dpdr
              p_T = eos_state%dpdT
@@ -855,7 +855,7 @@ contains
              eos_state%rho = rho_ev
              eos_state%xn(:) = q(i,j,QFS:QFS-1+nspec)
 
-             call eos(eos_input_rt, eos_state, .false.)
+             call eos(eos_input_rt, eos_state)
 
              p_r = eos_state%dpdr
              p_T = eos_state%dpdT
@@ -983,7 +983,7 @@ contains
                 eos_state%rho   = qxp(i,j,QRHO)
                 eos_state%xn(:) = qxp(i,j,QFS:QFS-1+nspec)
 
-                call eos(eos_input_rt, eos_state, .false.)
+                call eos(eos_input_rt, eos_state)
 
                 qxp(i,j,QPRES) = eos_state%p
                 qxp(i,j,QREINT) = qxp(i,j,QRHO)*eos_state%e
@@ -999,7 +999,7 @@ contains
                 eos_state%rho   = qxm(i+1,j,QRHO)
                 eos_state%xn(:) = qxm(i+1,j,QFS:QFS-1+nspec)
 
-                call eos(eos_input_rt, eos_state, .false.)
+                call eos(eos_input_rt, eos_state)
 
                 qxm(i+1,j,QPRES) = eos_state%p
                 qxm(i+1,j,QREINT) = qxm(i+1,j,QRHO)*eos_state%e

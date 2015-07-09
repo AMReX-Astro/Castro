@@ -72,7 +72,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      eos_state%T = T_l
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
  
      rhoe_l = rho_l*eos_state%e
      p_l = eos_state%p
@@ -81,7 +81,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      eos_state%T = T_r
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
  
      rhoe_r = rho_r*eos_state%e
      p_r = eos_state%p
@@ -93,7 +93,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      eos_state%T = 100000.d0  ! initial guess
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
  
      rhoe_l = rho_l*eos_state%e
      T_l = eos_state%T
@@ -103,7 +103,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      eos_state%T = 100000.d0  ! initial guess
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
  
      rhoe_r = rho_r*eos_state%e
      T_r = eos_state%T

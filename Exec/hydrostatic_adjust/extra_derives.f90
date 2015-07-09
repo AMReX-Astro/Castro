@@ -45,7 +45,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
         eos_state%T = T
         eos_state%xn(:) = X
 
-        call eos(eos_input_rt, eos_state, .false.)
+        call eos(eos_input_rt, eos_state)
 
         p(i,1) = eos_state%p
      else
@@ -54,7 +54,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
         eos_state%xn(:) = X
         eos_state%e = e
 
-        call eos(eos_input_re, eos_state, .false.)
+        call eos(eos_input_re, eos_state)
 
         p(i,1) = eos_state%p
 
@@ -113,7 +113,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
         eos_state%T = T
         eos_state%xn(:) = X
 
-        call eos(eos_input_rt, eos_state, .false.)
+        call eos(eos_input_rt, eos_state)
 
         p(i,1) = eos_state%p
      else
@@ -122,7 +122,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
         eos_state%xn(:) = X
         eos_state%e = e
 
-        call eos(eos_input_re, eos_state, .false.)
+        call eos(eos_input_re, eos_state)
 
         p(i,1) = eos_state%p
 
