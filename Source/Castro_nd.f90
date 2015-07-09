@@ -451,11 +451,23 @@
         ! other initializations
         !---------------------------------------------------------------------
 
-        if (small_pres_in > 0.d0) then
-          small_pres = small_pres_in
+        if (small_dens_in > 0.d0) then
+           small_dens = small_dens_in
         else
-          small_pres = 1.d-8
-        end if
+           small_dens = 1.d-8
+        endif
+
+        if (small_temp_in > 0.d0) then
+           small_temp = small_temp_in
+        else
+           small_temp = 1.d-8
+        endif
+
+        if (small_pres_in > 0.d0) then
+           small_pres = small_pres_in
+        else
+           small_pres = 1.d-8
+        endif
 
         if (small_ener_in > 0.d0) then
            small_ener = small_ener_in
@@ -463,10 +475,7 @@
            small_ener = 1.d-8
         endif
 
-        call eos_init(small_dens=small_dens_in, small_temp=small_temp_in)
-
-        call eos_get_small_dens(small_dens)
-        call eos_get_small_temp(small_temp)
+        call eos_init(small_dens=small_dens, small_temp=small_temp)
 
         allow_negative_energy        = allow_negative_energy_in
         ppm_type                     = ppm_type_in
