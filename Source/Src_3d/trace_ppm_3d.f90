@@ -130,7 +130,10 @@ contains
     ! Trace to left and right edges using upwind PPM
 
     do j = ilo2-1, ihi2+1
+       !DIR$ vector always
        do i = ilo1-1, ihi1+1
+
+          gfactor = ONE ! to help compiler resolve ANTI dependence
 
           rho = q(i,j,k3d,QRHO)
 
@@ -630,6 +633,7 @@ contains
        do j = ilo2-1, ihi2+1
 
           ! Plus state on face i
+          !DIR$ vector always
           do i = ilo1, ihi1+1
              u = q(i,j,k3d,QU)
 
@@ -670,6 +674,7 @@ contains
           enddo
 
           ! Minus state on face i+1
+          !DIR$ vector always
           do i = ilo1-1, ihi1
              u = q(i,j,k3d,QU)
 
@@ -698,7 +703,10 @@ contains
     ! Trace to bottom and top edges using upwind PPM
 
     do j = ilo2-1, ihi2+1
+       !DIR$ vector always
        do i = ilo1-1, ihi1+1
+
+          gfactor = ONE ! to help compiler resolve ANTI dependence
 
           rho = q(i,j,k3d,QRHO)
 
@@ -1180,10 +1188,11 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
-       do i = ilo1-1, ihi1+1
 
-          ! Plus state on face j
-          do j = ilo2, ihi2+1
+       ! Plus state on face j
+       do j = ilo2, ihi2+1
+          !DIR$ vector always
+          do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
              if (ppm_flatten_before_integrals == 0) then
@@ -1200,9 +1209,12 @@ contains
                 qyp(i,j,kc,n) = q(i,j,k3d,n) + HALF*xi*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
              endif
           enddo
+       end do
           
-          ! Minus state on face j+1
-          do j = ilo2-1, ihi2
+       ! Minus state on face j+1
+       do j = ilo2-1, ihi2
+          !DIR$ vector always
+          do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
              if (ppm_flatten_before_integrals == 0) then
@@ -1324,7 +1336,10 @@ contains
     ! construct qzp  -- plus state on face kc
     !--------------------------------------------------------------------------
     do j = ilo2-1, ihi2+1
+       !DIR$ vector always
        do i = ilo1-1, ihi1+1
+
+          gfactor = ONE ! to help compiler resolve ANTI dependence
 
           rho  = q(i,j,k3d,QRHO)
 
@@ -1815,48 +1830,49 @@ contains
 
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
-         n = qpass_map(ipassive)
-         do j = ilo2-1, ihi2+1
-               do i = ilo1-1, ihi1+1
-
-                  ! Plus state on face kc
-                  w = q(i,j,k3d,QW)
-
-                  if (ppm_flatten_before_integrals == 0) then
-                     xi = flatn(i,j,k3d)
-                  else
-                     xi = ONE
-                  endif
-
-                  if (w .gt. ZERO) then
-                     qzp(i,j,kc,n) = q(i,j,k3d,n)
-                  else if (w .lt. ZERO) then
-                     qzp(i,j,kc,n) = q(i,j,k3d,n) + xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
-                  else
-                     qzp(i,j,kc,n) = q(i,j,k3d,n) + HALF*xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
-                  endif
-
-                  ! Minus state on face k
-                  w = q(i,j,k3d-1,QW)
-                  
-                  if (ppm_flatten_before_integrals == 0) then
-                     xi = flatn(i,j,k3d-1)
-                  else
-                     xi = ONE
-                  endif
-
-                  if (w .gt. ZERO) then
-                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) + xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
-                  else if (w .lt. ZERO) then
-                     qzm(i,j,kc,n) = q(i,j,k3d-1,n)
-                  else
-                     qzm(i,j,kc,n) = q(i,j,k3d-1,n) + HALF*xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
-                  endif
-
-               enddo
-         enddo
+       n = qpass_map(ipassive)
+       do j = ilo2-1, ihi2+1
+          !DIR$ vector always
+          do i = ilo1-1, ihi1+1
+             
+             ! Plus state on face kc
+             w = q(i,j,k3d,QW)
+             
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d)
+             else
+                xi = ONE
+             endif
+             
+             if (w .gt. ZERO) then
+                qzp(i,j,kc,n) = q(i,j,k3d,n)
+             else if (w .lt. ZERO) then
+                qzp(i,j,kc,n) = q(i,j,k3d,n) + xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
+             else
+                qzp(i,j,kc,n) = q(i,j,k3d,n) + HALF*xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
+             endif
+             
+             ! Minus state on face k
+             w = q(i,j,k3d-1,QW)
+             
+             if (ppm_flatten_before_integrals == 0) then
+                xi = flatn(i,j,k3d-1)
+             else
+                xi = ONE
+             endif
+             
+             if (w .gt. ZERO) then
+                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
+             else if (w .lt. ZERO) then
+                qzm(i,j,kc,n) = q(i,j,k3d-1,n)
+             else
+                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + HALF*xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
+             endif
+             
+          enddo
+       enddo
     enddo
-
+      
   end subroutine tracez_ppm
 
 end module trace_ppm_module

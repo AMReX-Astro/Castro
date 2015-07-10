@@ -86,9 +86,9 @@ contains
     allocate(z  (lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
     allocate(chi(lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
     do k = lo(3),hi(3)
-       do i = lo(1),hi(1)
-          do j = lo(2)-1,hi(2)+1
-             idx = j-lo(2)+1
+       do j = lo(2)-1,hi(2)+1
+          idx = j-lo(2)+1
+          do i = lo(1),hi(1)
              dp(i,idx,k) = p(i,j+1,k) - p(i,j-1,k)
              denom = max(small_pres,abs(p(i,j+2,k)-p(i,j-2,k)))
              zeta = abs(dp(i,idx,k))/denom
@@ -105,8 +105,10 @@ contains
                 chi(i,idx,k) = ZERO
              endif
           enddo
-          do j = lo(2),hi(2)
-             idx = j-lo(2)+1
+       end do
+       do j = lo(2),hi(2)
+          idx = j-lo(2)+1
+          do i = lo(1),hi(1)
              if(dp(i,idx,k).gt.ZERO)then
                 ishft = 1
              else
@@ -125,10 +127,10 @@ contains
     allocate(dp (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
     allocate(z  (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
     allocate(chi(lo(1):hi(1),lo(2):hi(2),0:nmax-1))
-    do j = lo(2),hi(2) 
-       do i = lo(1),hi(1)
-          do k = lo(3)-1,hi(3)+1
-             idx = k-lo(3)+1
+    do k = lo(3)-1,hi(3)+1
+       idx = k-lo(3)+1
+       do j = lo(2),hi(2) 
+          do i = lo(1),hi(1)
              dp(i,j,idx) = p(i,j,k+1) - p(i,j,k-1)
              denom = max(small_pres,abs(p(i,j,k+2)-p(i,j,k-2)))
              zeta = abs(dp(i,j,idx))/denom
@@ -145,8 +147,12 @@ contains
                 chi(i,j,idx) = ZERO
              endif
           enddo
-          do k = lo(3),hi(3)
-             idx = k-lo(3)+1
+       enddo
+    enddo
+    do k = lo(3),hi(3)
+       idx = k-lo(3)+1
+       do j = lo(2),hi(2) 
+          do i = lo(1),hi(1)
              if(dp(i,j,idx).gt.ZERO)then
                 ishft = 1
              else

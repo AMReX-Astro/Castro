@@ -794,14 +794,16 @@ contains
     !
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             
+          do i = loq(1),hiq(1)             
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
                 print *,'>>> ... negative density ',uin(i,j,k,URHO)
                 call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
              end if
+          end do
+
+          do i = loq(1),hiq(1)             
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              q(i,j,k,QU) = uin(i,j,k,UMX)/uin(i,j,k,URHO)
