@@ -101,6 +101,7 @@ endif
 
 ifeq ($(USE_HDF5), TRUE)
    INCLUDE_LOCATIONS += $(HDF5_DIR)/include
+   INCLUDE_LOCATIONS += $(HDF5_INCL)
    LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
    LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
 endif
