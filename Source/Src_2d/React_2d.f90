@@ -1,125 +1,92 @@
-subroutine ca_react_state(lo,hi, &
-                          s_in ,so_l1,so_l2,so_h1,so_h2,&
-                          s_out,sn_l1,sn_l2,sn_h1,sn_h2,&
-                          reaction_terms,r_l1,r_l2,r_h1,r_h2, &
-                          time,dt_react)
+  subroutine ca_react_state(lo,hi, &
+                            s_in ,so_l1,so_l2,so_h1,so_h2,&
+                            s_out,sn_l1,sn_l2,sn_h1,sn_h2,&
+                            reaction_terms,r_l1,r_l2,r_h1,r_h2, &
+                            time,dt_react)
 
-  use eos_module
-  use network           , only : nspec, naux
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX, &
-                                 small_dens, small_temp, allow_negative_energy
-  use castro_burner_module
-  use bl_constants_module
+      use eos_module
+      use network           , only : nspec, naux
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX, &
+                                     small_dens, small_temp, allow_negative_energy
+      use burner_module
+      use bl_constants_module
 
-  implicit none
+      implicit none
 
-  integer lo(2),hi(2)
-  integer so_l1,so_h1,so_l2,so_h2
-  integer sn_l1,sn_h1,sn_l2,sn_h2
-  integer  r_l1, r_h1, r_l2, r_h2
-  double precision s_in (so_l1:so_h1,so_l2:so_h2,NVAR)
-  double precision s_out(sn_l1:sn_h1,sn_l2:sn_h2,NVAR)
-  double precision reaction_terms(r_l1:r_h1,r_l2:r_h2,nspec+2)
-  double precision time,dt_react
-  
-  integer          :: i,j,n
-  double precision :: rho, rhoInv, u, v, ke, e_in, e_out, T
-  double precision :: x_in(nspec+naux), x_out(nspec+naux)
+      integer lo(2),hi(2)
+      integer so_l1,so_h1,so_l2,so_h2
+      integer sn_l1,sn_h1,sn_l2,sn_h2
+      integer  r_l1, r_h1, r_l2, r_h2
+      double precision s_in (so_l1:so_h1,so_l2:so_h2,NVAR)
+      double precision s_out(sn_l1:sn_h1,sn_l2:sn_h2,NVAR)
+      double precision reaction_terms(r_l1:r_h1,r_l2:r_h2,nspec+2)
+      double precision time,dt_react
 
-  type (eos_t) :: eos_state
+      integer          :: i,j
+      double precision :: rhoInv
 
-  do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
+      type (eos_t) :: state_in(lo(1):hi(1),lo(2):hi(2))
+      type (eos_t) :: state_out(lo(1):hi(1),lo(2):hi(2))
 
-        if (s_in(i,j,URHO) .gt. small_dens) then
+      do j = lo(2), hi(2)
+         do i = lo(1), hi(1)
 
-           ! Define T from e
-           rho           = s_in(i,j,URHO)
-           rhoInv        = ONE / rho
-           u             = s_in(i,j,UMX) * rhoInv
-           v             = s_in(i,j,UMY) * rhoInv
-           ke            = HALF * (u**2 + v**2)
-           T             = s_in(i,j,UTEMP)
-           x_in(1:nspec) = s_in(i,j,UFS:UFS+nspec-1) * rhoInv
-           if (naux > 0) &
-                x_in(nspec+1:nspec+naux)  = s_in(i,j,UFX:UFX+naux-1) * rhoInv
+            ! We do not want to integrate zones with rho < small_dens,
+            ! but the hydro calls enforce_minimum_density, so we shouldn't
+            ! be getting any zones like that. If so, throw an error.
 
-           e_in          = s_in(i,j,UEINT) * rhoInv
+            if (s_in(i,j,URHO) .lt. small_dens) then
+               print *,'... rho < small_dens in react_state: ', i, j, s_in(i,j,URHO)
+               call bl_error("Error:: React_2d.f90 :: ca_react_state")
+            endif
 
-           eos_state % T   = T
-           eos_state % rho = rho
-           eos_state % e   = e_in
-           eos_state % xn  = x_in(1:nspec)
-           eos_state % aux = x_in(nspec+1:nspec+naux)
-           eos_state % loc = (/ i, j, -99 /)
+            rhoInv              = ONE / s_in(i,j,URHO)
 
-           if (allow_negative_energy .eq. 0 .and. e_in .le. ZERO) then
-              print *, '... e negative in react_state: ', i, j, e_in
-              T = max(T, small_temp)
-              eos_state % T = T
-              call eos(eos_input_rt, eos_state)
-              e_in = eos_state % e
-              if (e_in .lt. ZERO) then
-                 print *,'... call to eos (input_rt) with small_temp still gives negative e ', e_in
-                 call bl_error("Error:: React_2d.f90 :: ca_react_state")
-              else
-                 print *,'... able to re-set using eos (input_rt) with small_temp ', e_in
-              end if
-           end if
+            state_in(i,j) % rho = s_in(i,j,URHO)
+            state_in(i,j) % T   = s_in(i,j,UTEMP)
+            state_in(i,j) % e   = s_in(i,j,UEINT) * rhoInv
+            state_in(i,j) % xn  = s_in(i,j,UFS:UFS+nspec-1) * rhoInv
+            state_in(i,j) % aux = s_in(i,j,UFX:UFX+naux-1) * rhoInv
+            state_in(i,j) % loc = (/ i, j, -99 /)
 
-           ! Use this call to define T
+            ! The energy should never be negative coming into this call
+            ! because of reset_internal_energy, so throw an error if it happens.
 
-           call eos(eos_input_re, eos_state)
+            if (allow_negative_energy .eq. 0 .and. state_in(i,j) % e .le. ZERO) then
+               print *,'... e negative in react_state: ', i, j, state_in(i,j) % e
+               call bl_error("Error:: React_2d.f90 :: ca_react_state")
+            endif
+         enddo
+      enddo
 
-           T = eos_state % T
-           e_in = eos_state % e
+      call burner(state_in, state_out, dt_react, time)
 
-           call burner(rho, T, x_in, e_in, dt_react, time, x_out, e_out)
+      do j = lo(2), hi(2)
+         do i = lo(1), hi(1)
 
-           ! Make sure that species emerge in the proper range: [0,1]
-           do n = 1, nspec
-              x_out(n) = max(min(x_out(n),ONE),ZERO)
-           end do
+            ! Note that we want to update the total energy by taking the difference of the old
+            ! rho*e and the new rho*e rather than adding rho*e to KE because we don't necessarily
+            ! want to force here that rho * E = rho * e + rho * K where K is defined in terms of
+            ! the momenta. If this is desired that can always be forced through reset_internal_energy.
 
-           if (i.ge.r_l1 .and. i.le.r_h1 .and. j.ge.r_l2 .and. j.le.r_h2) then
-              reaction_terms(i,j,1:nspec) = reaction_terms(i,j,1:nspec) + &
-                                             (x_out(1:nspec) - x_in(1:nspec))
-              reaction_terms(i,j,nspec+1) = reaction_terms(i,j,nspec+1) + &
-                                                 (e_out - e_in)
-              reaction_terms(i,j,nspec+2) = reaction_terms(i,j,nspec+2) + &
-                                             rho*(e_out - e_in)
-           end if
+            s_out(i,j,URHO)            = s_in(i,j,URHO)
+            s_out(i,j,UEINT)           = s_out(i,j,URHO) * state_out(i,j) % e
+            s_out(i,j,UEDEN)           = s_out(i,j,UEDEN) + s_out(i,j,URHO) * (state_out(i,j) % e - state_out(i,j) % e)
+            s_out(i,j,UFS:UFS+nspec-1) = s_out(i,j,URHO) * state_out(i,j) % xn(:)
+            s_out(i,j,UFX:UFX+naux -1) = state_in(i,j) % aux(:)
+            s_out(i,j,UTEMP)           = state_out(i,j) % T
 
-           s_out(i,j,URHO)            = rho
-           s_out(i,j,UEINT)           = rho * e_out
-           s_out(i,j,UEDEN)           = rho * (e_out + ke)
-           s_out(i,j,UFS:UFS+nspec-1) = rho * x_out(1:nspec)
-           s_out(i,j,UFX:UFX+naux -1) = s_in(i,j,UFX:UFX+naux-1)
+            if (i.ge.r_l1 .and. i.le.r_h1 .and. j.ge.r_l2 .and. j.le.r_h2) then
+               reaction_terms(i,j,1:nspec) = reaction_terms(i,j,1:nspec) &
+                    + (state_out(i,j) % xn(:) - state_in(i,j) % xn(:))
+               reaction_terms(i,j,nspec+1) = reaction_terms(i,j,nspec+1) &
+                    + (state_out(i,j) % e - state_in(i,j) % e)
+               reaction_terms(i,j,nspec+2) = reaction_terms(i,j,nspec+2) &
+                    + s_out(i,j,URHO) * (state_out(i,j) % e - state_in(i,j) % e)
+            endif
 
-           if (e_out .lt. ZERO) then
-              print *,'REACT:NEGATIVE e_out from burner ', i, j, e_out
-              call bl_error("Error:: React_2d.f90 :: ca_react_state")
-           end if
+         enddo
+      enddo
 
-           ! Now update the temperature to match the new internal energy
-
-           eos_state % rho = rho 
-           eos_state % e   = e_out
-           eos_state % xn  = x_out(1:nspec)
-           eos_state % aux = x_out(nspec+1:nspec+naux)
-           
-           call eos(eos_input_re, eos_state)
-
-           s_out(i,j,UTEMP)           = eos_state % T
-
-        else
-
-           s_out(i,j,1:NVAR)          = s_in(i,j,1:NVAR)
-
-        end if
-
-     end do
-  end do
-  
-end subroutine ca_react_state
+  end subroutine ca_react_state
 
