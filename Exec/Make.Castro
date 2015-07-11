@@ -1,14 +1,15 @@
 BOXLIB_HOME ?= /path/to/BoxLib
+CASTRO_DIR ?= /path/to/Castro
 
 TOP := $(CASTRO_DIR)
 
 ifdef MICROPHYSICS_DIR
 	EOS_HOME ?= $(MICROPHYSICS_DIR)/eos
+	NETWORK_HOME ?= $(MICROPHYSICS_DIR)/networks
 else
 	EOS_HOME ?= $(TOP)/EOS
+	NETWORK_HOME ?= $(TOP)/Networks
 endif
-
-NETWORK_HOME ?= $(TOP)/Networks
 
 EBASE = Castro
 
@@ -143,7 +144,9 @@ endif
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
+include $(NETWORK_HOME)/Make.package
 include $(NETWORK_PATH)/Make.package
+EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
 ifeq ($(USE_RAD), TRUE)
@@ -152,14 +155,14 @@ ifeq ($(USE_RAD), TRUE)
 endif
 
 INCLUDE_LOCATIONS += $(EOS_PATH)
+INCLUDE_LOCATIONS += $(EOS_HOME)
 VPATH_LOCATIONS   += $(EOS_PATH)
-VPATH_LOCATIONS   += $(EOS_HOME)/
-ifneq ($(MICROPHYSICS_DIR),)
-      VPATH_LOCATIONS   += $(EOS_HOME_EXT)/
-endif
+VPATH_LOCATIONS   += $(EOS_HOME)
 
 INCLUDE_LOCATIONS += $(NETWORK_PATH)
+INCLUDE_LOCATIONS += $(NETWORK_HOME)
 VPATH_LOCATIONS   += $(NETWORK_PATH)
+VPATH_LOCATIONS   += $(NETWORK_HOME)
 
 ifeq ($(USE_RAD), TRUE)
   INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
