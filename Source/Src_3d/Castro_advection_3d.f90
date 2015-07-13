@@ -778,7 +778,7 @@ contains
           do i = loq(1),hiq(1)             
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
-             rhoinv = ONE/q(i,i,k,QRHO)
+             rhoinv = ONE/q(i,j,k,QRHO)
              q(i,j,k,QU) = uin(i,j,k,UMX)*rhoinv
              q(i,j,k,QV) = uin(i,j,k,UMY)*rhoinv
              q(i,j,k,QW) = uin(i,j,k,UMZ)*rhoinv
