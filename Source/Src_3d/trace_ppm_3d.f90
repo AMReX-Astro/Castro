@@ -147,7 +147,7 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe = q(i,j,k3d,QREINT)
-          enth = ( (rhoe+p)/rho )/csq          
+          enth = (rhoe+p)/(rho*csq)
 
           game = q(i,j,k3d,QGAME)
 
@@ -198,7 +198,7 @@ contains
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
              Clag_ref = rho_ref*cc_ref
-             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+             enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
@@ -260,8 +260,8 @@ contains
                 ! paper (except we work with rho instead of tau).  This is 
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-                alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+                alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
+                alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
                 alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
 
@@ -277,12 +277,12 @@ contains
                 de = (rhoe_ref/rho_ref - Im(i,j,kc,1,2,QREINT)/Im(i,j,kc,1,2,QRHO))
                 dge   = game_ref - Im(i,j,kc,1,2,QGAME)
 
-                alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
-                alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
-                alpha0r = dtau + dp/Clag_ev**2
+                alpham = HALF*( dum - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alphap = HALF*(-dup - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alpha0r = dtau + dp*(ONE/Clag_ev)**2
 
                 if (ppm_predict_gammae == 0) then
-                   alpha0e = de - dp*p_ev/Clag_ev**2
+                   alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
                 else
                    gfactor = (game - 1.0d0)*(game - gam)
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -334,7 +334,7 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                   qxp(i,j,kc,QREINT) = e_s/tau_s
+                   qxp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
                    qxp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright 
                    qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES )/(qxp(i,j,kc,QGAME) - 1.0d0)
@@ -434,7 +434,7 @@ contains
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
              Clag_ref = rho_ref*cc_ref
-             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+             enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
@@ -492,8 +492,8 @@ contains
                 ! paper (except we work with rho instead of tau).  This is 
                 ! simply (l . dq), where dq = qref - I(q)
                 
-                alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-                alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+                alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
+                alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
                 alpha0e = drhoe - dp*enth_ev  ! enth has a 1/c**2 in it
 
@@ -508,12 +508,12 @@ contains
                 de = (rhoe_ref/rho_ref - Ip(i,j,kc,1,2,QREINT)/Ip(i,j,kc,1,2,QRHO))
                 dge = game_ref - Ip(i,j,kc,1,2,QGAME)
 
-                alpham = HALF*( dum - dpm/Clag_ev)/Clag_ev
-                alphap = HALF*(-dup - dpp/Clag_ev)/Clag_ev
-                alpha0r = dtau + dp/Clag_ev**2
+                alpham = HALF*( dum - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alphap = HALF*(-dup - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alpha0r = dtau + dp*(ONE/Clag_ev)**2
 
                 if (ppm_predict_gammae == 0) then
-                   alpha0e = de - dp*p_ev/Clag_ev**2
+                   alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
                 else
                    gfactor = (game - 1.0d0)*(game - gam)
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -566,7 +566,7 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                   qxm(i+1,j,kc,QREINT) = e_s/tau_s
+                   qxm(i+1,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
                    qxm(i+1,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
                    qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QPRES )/(qxm(i+1,j,kc,QGAME) - 1.0d0)
@@ -767,7 +767,7 @@ contains
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
              Clag_ref = rho_ref*cc_ref
-             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+             enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
@@ -825,8 +825,8 @@ contains
                 ! paper (except we work with rho instead of tau).  This
                 ! is simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
-                alphap = HALF*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+                alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dvm)*(rho_ev/cc_ev)
+                alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dvp)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
                 alpha0e = drhoe - dp*enth_ev
 
@@ -842,12 +842,12 @@ contains
                 de = (rhoe_ref/rho_ref - Im(i,j,kc,2,2,QREINT)/Im(i,j,kc,2,2,QRHO))
                 dge = game_ref - Im(i,j,kc,2,2,QGAME)
 
-                alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
-                alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
-                alpha0r = dtau + dp/Clag_ev**2
+                alpham = HALF*( dvm - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alphap = HALF*(-dvp - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alpha0r = dtau + dp*(ONE/Clag_ev)**2
                 
                 if (ppm_predict_gammae == 0) then
-                   alpha0e = de - dp*p_ev/Clag_ev**2
+                   alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
                 else
                    gfactor = (game - 1.0d0)*(game - gam)
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -899,7 +899,7 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
-                   qyp(i,j,kc,QREINT) = e_s/tau_s
+                   qyp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
                    qyp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
                    qyp(i,j,kc,QREINT) = qyp(i,j,kc,QPRES )/(qyp(i,j,kc,QGAME) - 1.0d0)
@@ -994,7 +994,7 @@ contains
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
              Clag_ref = rho_ref*cc_ref
-             enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+             enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
@@ -1051,8 +1051,8 @@ contains
                 ! These are analogous to the beta's from the original PPM
                 ! paper.  This is simply (l . dq), where dq = qref - I(q)
  
-                alpham = HALF*(dpm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
-                alphap = HALF*(dpp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
+                alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dvm)*(rho_ev/cc_ev)
+                alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dvp)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
                 alpha0e = drhoe - dp*enth_ev
                 
@@ -1067,12 +1067,12 @@ contains
                 de = (rhoe_ref/rho_ref - Ip(i,j,kc,2,2,QREINT)/Ip(i,j,kc,2,2,QRHO))
                 dge = game_ref - Ip(i,j,kc,2,2,QGAME)
 
-                alpham = HALF*( dvm - dpm/Clag_ev)/Clag_ev
-                alphap = HALF*(-dvp - dpp/Clag_ev)/Clag_ev
-                alpha0r = dtau + dp/Clag_ev**2
+                alpham = HALF*( dvm - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alphap = HALF*(-dvp - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+                alpha0r = dtau + dp*(ONE/Clag_ev)**2
 
                 if (ppm_predict_gammae == 0) then
-                   alpha0e = de - dp*p_ev/Clag_ev**2
+                   alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
                 else
                    gfactor = (game - 1.0d0)*(game - gam)
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -1124,7 +1124,7 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                   qym(i,j+1,kc,QREINT) = e_s/tau_s
+                   qym(i,j+1,kc,QREINT) = e_s*(ONE/tau_s)
                 else
                    qym(i,j+1,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft 
                    qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES )/(qym(i,j+1,kc,QGAME) - 1.0d0)
@@ -1394,7 +1394,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+          enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
           ! *m are the jumps carried by w-c
           ! *p are the jumps carried by w+c
@@ -1453,8 +1453,8 @@ contains
 
              ! These are analogous to the beta's from the original PPM
              ! paper.  This is simply (l . dq), where dq = qref - I(q)
-             alpham = HALF*(dpm/(rho_ev*cc_ev) - dwm)*rho_ev/cc_ev
-             alphap = HALF*(dpp/(rho_ev*cc_ev) + dwp)*rho_ev/cc_ev
+             alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dwm)*(rho_ev/cc_ev)
+             alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dwp)*(rho_ev/cc_ev)
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev
 
@@ -1469,12 +1469,12 @@ contains
              de = (rhoe_ref/rho_ref - Im(i,j,kc,3,2,QREINT)/Im(i,j,kc,3,2,QRHO))
              dge = game_ref - Im(i,j,kc,3,2,QGAME)
 
-             alpham = HALF*( dwm - dpm/Clag_ev)/Clag_ev
-             alphap = HALF*(-dwp - dpp/Clag_ev)/Clag_ev
-             alpha0r = dtau + dp/Clag_ev**2
+             alpham = HALF*( dwm - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+             alphap = HALF*(-dwp - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+             alpha0r = dtau + dp*(ONE/Clag_ev)**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dp*p_ev/Clag_ev**2
+                alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -1524,7 +1524,7 @@ contains
 
              if (ppm_predict_gammae == 0) then
                 e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)           
-                qzp(i,j,kc,QREINT) = e_s/tau_s
+                qzp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
              else
                 qzp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
                 qzp(i,j,kc,QREINT) = qzp(i,j,kc,QPRES )/(qzp(i,j,kc,QGAME) - 1.0d0)
@@ -1596,7 +1596,7 @@ contains
 
           p    = q(i,j,k3d-1,QPRES)
           rhoe = q(i,j,k3d-1,QREINT)
-          enth = ( (rhoe+p)/rho )/csq
+          enth = (rhoe+p)/(rho*csq)
 
           gam = gamc(i,j,k3d-1)
 
@@ -1637,7 +1637,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+          enth_ref = (rhoe_ref+p_ref)/(rho_ref*csq_ref)
 
           ! *m are the jumps carried by w-c
           ! *p are the jumps carried by w+c
@@ -1696,8 +1696,8 @@ contains
 
              ! These are analogous to the beta's from the original PPM
              ! paper.  This is simply (l . dq), where dq = qref - I(q)             
-             alpham = HALF*(dpm/(rho_ev*cc_ev) - dwm)*rho_ev/cc_ev
-             alphap = HALF*(dpp/(rho_ev*cc_ev) + dwp)*rho_ev/cc_ev
+             alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dwm)*(rho_ev/cc_ev)
+             alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dwp)*(rho_ev/cc_ev)
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev
 
@@ -1713,12 +1713,12 @@ contains
              de = (rhoe_ref/rho_ref - Ip(i,j,km,3,2,QREINT)/Ip(i,j,km,3,2,QRHO))
              dge = game_ref - Ip(i,j,km,3,2,QGAME)
 
-             alpham = HALF*( dwm - dpm/Clag_ev)/Clag_ev
-             alphap = HALF*(-dwp - dpp/Clag_ev)/Clag_ev
-             alpha0r = dtau + dp/Clag_ev**2
+             alpham = HALF*( dwm - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
+             alphap = HALF*(-dwp - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
+             alpha0r = dtau + dp*(ONE/Clag_ev)**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dp*p_ev/Clag_ev**2
+                alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
@@ -1768,7 +1768,7 @@ contains
 
              if (ppm_predict_gammae == 0) then
                 e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
-                qzm(i,j,kc,QREINT) = e_s/tau_s
+                qzm(i,j,kc,QREINT) = e_s*(ONE/tau_s)
              else
                 qzm(i,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
                 qzm(i,j,kc,QREINT) = qzm(i,j,kc,QPRES )/(qzm(i,j,kc,QGAME) - 1.0d0)
