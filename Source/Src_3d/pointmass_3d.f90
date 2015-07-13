@@ -17,7 +17,7 @@
        double precision, intent(in   ) :: problo(3),dx(3)
 
        integer          :: i,j,k
-       double precision :: x,y,z,r,rsq,radial_force
+       double precision :: x,y,z,rsq,radial_force,rinv
 
 !      This computes radial gravity due to a point mass at center().
        do k = lo(3), hi(3)
@@ -30,10 +30,10 @@
                 rsq = x*x + y*y + z*z
                 radial_force = -Gconst * point_mass / rsq
 
-                r = sqrt(rsq)
-                grav(i,j,k,1) = grav(i,j,k,1) + radial_force * (x/r)
-                grav(i,j,k,2) = grav(i,j,k,2) + radial_force * (y/r)
-                grav(i,j,k,3) = grav(i,j,k,3) + radial_force * (y/r)
+                rinv = 1.d0/sqrt(rsq)
+                grav(i,j,k,1) = grav(i,j,k,1) + radial_force * (x*rinv)
+                grav(i,j,k,2) = grav(i,j,k,2) + radial_force * (y*rinv)
+                grav(i,j,k,3) = grav(i,j,k,3) + radial_force * (z*rinv)
 
              end do
           end do
