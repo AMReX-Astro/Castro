@@ -1,20 +1,25 @@
+# Define the location of the CASTRO top directory,
+# if not already defined by an environment variable.
+
+CASTRO_DIR ?= ../../
+
+# Location of this directory. Useful if
+# you're trying to compile this from another location.
+
+TEST_DIR = $(CASTRO_DIR)/Exec/evrard_collapse
 
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
 DEBUG      = FALSE
 
-DIM        = 2
+DIM        = 3
 
 COMP	   = gcc
 FCOMP	   = gfortran
 
-USE_MPI    = TRUE
+USE_MPI    = FALSE
 USE_OMP    = FALSE
-
-# define the location of the CASTRO top directory
-CASTRO_DIR  := ../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_dir     := gamma_law_general
@@ -23,7 +28,7 @@ EOS_dir     := gamma_law_general
 Network_dir := general_null
 GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
 
-Bpack   := ./Make.package
-Blocs   := .
+Bpack   += ./Make.package
+Blocs   += .
 
 include ../Make.Castro
