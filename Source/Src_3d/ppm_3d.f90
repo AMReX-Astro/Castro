@@ -94,6 +94,8 @@ contains
     ! local
     integer i,j,k
 
+    double precision dtdx, dtdy, dtdz
+
     double precision dsl, dsr, dsc
     double precision sigma, s6
 
@@ -109,6 +111,10 @@ contains
     ! s_{i+\half}^{H.O.}
     double precision, allocatable :: sedge(:,:)
     double precision, allocatable :: sedgez(:,:,:)
+
+    dtdx = dt/dx
+    dtdy = dt/dy
+    dtdz = dt/dz
 
     ! cell-centered indexing
     allocate(sp(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
@@ -212,7 +218,7 @@ contains
           ! Im integrates to the left edge of a cell
 
           ! u-c wave
-          sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dt/dx
+          sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,1) = sp(i,j)
@@ -229,7 +235,7 @@ contains
           endif
 
           ! u wave
-          sigma = abs(u(i,j,k3d,1))*dt/dx
+          sigma = abs(u(i,j,k3d,1))*dtdx
 
           if (u(i,j,k3d,1) <= ZERO) then
              Ip(i,j,kc,1,2) = sp(i,j) 
@@ -246,7 +252,7 @@ contains
           endif
 
           ! u+c wave
-          sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dt/dx
+          sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,3) = sp(i,j) 
@@ -343,7 +349,7 @@ contains
           s6 = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! v-c wave
-          sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dt/dy
+          sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,1) = sp(i,j)
@@ -360,7 +366,7 @@ contains
           endif
 
           ! v wave
-          sigma = abs(u(i,j,k3d,2))*dt/dy
+          sigma = abs(u(i,j,k3d,2))*dtdy
 
           if (u(i,j,k3d,2) <= ZERO) then
              Ip(i,j,kc,2,2) = sp(i,j) 
@@ -377,7 +383,7 @@ contains
           endif
 
           ! v+c wave
-          sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dt/dy
+          sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,3) = sp(i,j) 
@@ -493,7 +499,7 @@ contains
           s6 = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! w-c wave
-          sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dt/dz
+          sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,1) = sp(i,j) 
@@ -510,7 +516,7 @@ contains
           endif
 
           ! w wave
-          sigma = abs(u(i,j,k3d,3))*dt/dz
+          sigma = abs(u(i,j,k3d,3))*dtdz
 
           if (u(i,j,k3d,3) <= ZERO) then
              Ip(i,j,kc,3,2) = sp(i,j) 
@@ -527,7 +533,7 @@ contains
           endif
 
           ! w+c wave
-          sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dt/dz
+          sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,3) = sp(i,j) 
@@ -581,6 +587,8 @@ contains
     integer i,j,k
     logical extremum, bigp, bigm
 
+    double precision dtdx, dtdy, dtdz
+
     double precision D2, D2C, D2L, D2R, D2LIM, alphap, alpham
     double precision sgn, sigma, s6
     double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
@@ -602,6 +610,10 @@ contains
 
     ! constant used in Colella 2008
     double precision, parameter :: C = 1.25d0
+
+    dtdx = dt/dx
+    dtdy = dt/dy
+    dtdz = dt/dz
 
     ! cell-centered indexing
     allocate(sp(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
@@ -742,7 +754,7 @@ contains
           s6    = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! u-c wave
-          sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dt/dx
+          sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,1) = sp(i,j)
@@ -759,7 +771,7 @@ contains
           endif
 
           ! u wave
-          sigma = abs(u(i,j,k3d,1))*dt/dx
+          sigma = abs(u(i,j,k3d,1))*dtdx
 
           if (u(i,j,k3d,1) <= ZERO) then
              Ip(i,j,kc,1,2) = sp(i,j)
@@ -776,7 +788,7 @@ contains
           endif
 
           ! u+c wave
-          sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dt/dx
+          sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,1,3) = sp(i,j) 
@@ -918,7 +930,7 @@ contains
           s6    = SIX*s(i,j,k3d) - THREE*(sm(i,j)+sp(i,j))
 
           ! v-c wave
-          sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dt/dy
+          sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,1) = sp(i,j) 
@@ -935,7 +947,7 @@ contains
           endif
 
           ! v wave
-          sigma = abs(u(i,j,k3d,2))*dt/dy
+          sigma = abs(u(i,j,k3d,2))*dtdy
 
           if (u(i,j,k3d,2) <= ZERO) then
              Ip(i,j,kc,2,2) = sp(i,j) 
@@ -952,7 +964,7 @@ contains
           endif
 
           ! v+c wave
-          sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dt/dy
+          sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,2,3) = sp(i,j) 
@@ -1098,7 +1110,7 @@ contains
 
           
           ! w-c wave
-          sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dt/dz
+          sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
           
           if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,1) = sp(i,j) 
@@ -1115,7 +1127,7 @@ contains
           endif
 
           ! w wave
-          sigma = abs(u(i,j,k3d,3))*dt/dz
+          sigma = abs(u(i,j,k3d,3))*dtdz
 
           if (u(i,j,k3d,3) <= ZERO) then
              Ip(i,j,kc,3,2) = sp(i,j)
@@ -1132,7 +1144,7 @@ contains
           endif
 
           ! w+c wave
-          sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dt/dz
+          sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
              Ip(i,j,kc,3,3) = sp(i,j) 

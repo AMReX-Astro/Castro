@@ -100,13 +100,15 @@
       integer    level, grid_no
 
       integer i,j,k
+      double precision :: dat1inv
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               magvel(i,j,k,1) = sqrt( (dat(i,j,k,2) / dat(i,j,k,1))**2 + &
-                                       (dat(i,j,k,3) / dat(i,j,k,1))**2 + &
-                                       (dat(i,j,k,4) / dat(i,j,k,1))**2 )
+               dat1inv = 1.d0/dat(i,j,k,1)
+               magvel(i,j,k,1) = sqrt( (dat(i,j,k,2) * dat1inv)**2 + &
+                                       (dat(i,j,k,3) * dat1inv)**2 + &
+                                       (dat(i,j,k,4) * dat1inv)**2 )
             end do
          end do
       end do

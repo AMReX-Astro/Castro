@@ -95,6 +95,7 @@ contains
     double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
     double precision pdivu(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3)
     double precision dx, dy, dz, dt
+    double precision dxinv, dyinv, dzinv
     double precision dtdx, dtdy, dtdz, hdt
     double precision cdtdx, cdtdy, cdtdz
     double precision hdtdx, hdtdy, hdtdz
@@ -259,9 +260,12 @@ contains
     allocate(shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1,ilo3-1:ihi3+1))
     
     ! Local constants
-    dtdx = dt/dx
-    dtdy = dt/dy
-    dtdz = dt/dz
+    dxinv = ONE/dx
+    dyinv = ONE/dy
+    dzinv = ONE/dz
+    dtdx = dt*dxinv
+    dtdy = dt*dyinv
+    dtdz = dt*dzinv
     hdt = HALF*dt
     hdtdx = HALF*dtdx
     hdtdy = HALF*dtdy
@@ -544,7 +548,7 @@ contains
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
                         HALF*(pgdnvzf(i,j,kc)+pgdnvzf(i,j,km)) * &
-                              (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))/dz
+                              (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))*dzinv
                 end do
              end do
           end if
@@ -631,9 +635,9 @@ contains
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
                         HALF*(pgdnvxf(i+1,j,km) + pgdnvxf(i,j,km)) *  &
-                              (ugdnvxf(i+1,j,km)-ugdnvxf(i,j,km))/dx + &
+                              (ugdnvxf(i+1,j,km)-ugdnvxf(i,j,km))*dxinv + &
                         HALF*(pgdnvyf(i,j+1,km) + pgdnvyf(i,j,km)) *  &
-                              (ugdnvyf(i,j+1,km)-ugdnvyf(i,j,km))/dy
+                              (ugdnvyf(i,j+1,km)-ugdnvyf(i,j,km))*dyinv
                 end do
              end do
                
@@ -674,6 +678,7 @@ contains
     else
        deallocate(dqx,dqy,dqz)
     end if
+    deallocate(shk)
       
   end subroutine umeth3d
 
@@ -736,11 +741,16 @@ contains
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
-    double precision :: kineng
+    double precision :: kineng, rhoinv
+    double precision :: dtdx, dtdy, dtdz
 
     integer :: ipassive
 
     type (eos_t) :: eos_state
+
+    dtdx = dt/dx
+    dtdy = dt/dy
+    dtdz = dt/dz
 
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
@@ -768,9 +778,10 @@ contains
           do i = loq(1),hiq(1)             
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
-             q(i,j,k,QU) = uin(i,j,k,UMX)/uin(i,j,k,URHO)
-             q(i,j,k,QV) = uin(i,j,k,UMY)/uin(i,j,k,URHO)
-             q(i,j,k,QW) = uin(i,j,k,UMZ)/uin(i,j,k,URHO)
+             rhoinv = ONE/q(i,i,k,QRHO)
+             q(i,j,k,QU) = uin(i,j,k,UMX)*rhoinv
+             q(i,j,k,QV) = uin(i,j,k,UMY)*rhoinv
+             q(i,j,k,QW) = uin(i,j,k,UMZ)*rhoinv
 
              ! Get the internal energy, which we'll use for determining the pressure.
              ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
@@ -781,16 +792,16 @@ contains
              kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
 
              if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .lt. dual_energy_eta1) then
-                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) / q(i,j,k,QRHO)
+                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
              else
-                q(i,j,k,QREINT) = uin(i,j,k,UEINT) / q(i,j,k,QRHO)
+                q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
              endif
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
              
              ! convert "rho K" to "K"
              if (QESGS .gt. -1) &
-                  q(i,j,k,QESGS) = uin(i,j,k,UESGS)/q(i,j,k,QRHO)
+                  q(i,j,k,QESGS) = uin(i,j,k,UESGS)*rhoinv
 
           enddo
        enddo
@@ -868,25 +879,25 @@ contains
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
-             
+             rhoinv = ONE/q(i,j,k,QRHO)
              srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
-             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) / q(i,j,k,QRHO)
-             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) / q(i,j,k,QRHO)
-             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) / q(i,j,k,QRHO)
+             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
+             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
+             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) &
                                                    - q(i,j,k,QV)*src(i,j,k,UMY) &
                                                    - q(i,j,k,QW)*src(i,j,k,UMZ) &
                                     + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
 
              srcQ(i,j,k,QPRES ) = dpde(i,j,k)*(srcQ(i,j,k,QREINT) - &
-                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)/q(i,j,k,QRHO)) /q(i,j,k,QRHO) + &
+                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
                   dpdrho(i,j,k)*srcQ(i,j,k,QRHO)! + &
 !                                    sum(dpdX_er(i,j,k,:)*(src(i,j,k,UFS:UFS+nspec-1) - &
 !                                                          q(i,j,k,QFS:QFS+nspec-1)*srcQ(i,j,k,QRHO))) &
 !                                    /q(i,j,k,QRHO)
 
              if (QESGS .gt. -1) &
-                  srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)/q(i,j,k,QRHO) - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
+                  srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)*rhoinv - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
 
           enddo
        enddo
@@ -915,9 +926,9 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
              
-             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dt/dx
-             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dt/dy
-             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dt/dz
+             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dtdx
+             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dtdy
+             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dtdz
              
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
@@ -1028,7 +1039,7 @@ contains
     double precision dx, dy, dz, dt
     double precision E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
-    double precision :: div1
+    double precision :: div1, volinv
     integer          :: i, j, k, n
 
     do n = 1, NVAR
@@ -1101,10 +1112,12 @@ contains
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
+                   volinv = ONE/vol(i,j,k)
+
                    uout(i,j,k,n) = uin(i,j,k,n) &
                           + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                           +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k) &
+                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv &
                           +   dt * src(i,j,k,n)
                    !
                    ! Add the source term to (rho e)
@@ -1115,22 +1128,22 @@ contains
                       xmom_added_flux = xmom_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
                    else if (n .eq. UMY) then
                       ymom_added_flux = ymom_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
                    else if (n .eq. UMZ) then
                       zmom_added_flux = zmom_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
                    else if (n .eq. UEDEN) then
                       E_added_flux = E_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k) 
+                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
                    endif
                 enddo
              enddo
@@ -1161,7 +1174,11 @@ contains
     double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,*)
 
     integer          :: i, j, k
-    double precision :: ux, vy, wz
+    double precision :: ux, vy, wz, dxinv, dyinv, dzinv
+
+    dxinv = ONE/dx
+    dyinv = ONE/dy
+    dzinv = ONE/dz
 
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
@@ -1171,19 +1188,19 @@ contains
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
                     + q(i  ,j-1,k  ,QU) - q(i-1,j-1,k  ,QU) &
-                    + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) )/ dx
+                    + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) ) * dxinv
 
              vy = FOURTH*( &
                     + q(i  ,j  ,k  ,QV) - q(i  ,j-1,k  ,QV) &
                     + q(i  ,j  ,k-1,QV) - q(i  ,j-1,k-1,QV) &
                     + q(i-1,j  ,k  ,QV) - q(i-1,j-1,k  ,QV) &
-                    + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) )/ dy
+                    + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) ) * dyinv
 
              wz = FOURTH*( &
                     + q(i  ,j  ,k  ,QW) - q(i  ,j  ,k-1,QW) &
                     + q(i  ,j-1,k  ,QW) - q(i  ,j-1,k-1,QW) &
                     + q(i-1,j  ,k  ,QW) - q(i-1,j  ,k-1,QW) &
-                    + q(i-1,j-1,k  ,QW) - q(i-1,j-1,k-1,QW) )/ dz
+                    + q(i-1,j-1,k  ,QW) - q(i-1,j-1,k-1,QW) ) * dzinv
 
              div(i,j,k) = ux + vy + wz
 

@@ -229,6 +229,7 @@ contains
 
     use prob_params_module, only : coord_type
     use meth_params_module, only : QU, QV, QW, QPRES, QVAR
+    use bl_constants_module
 
     integer, intent(in) :: qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
     integer, intent(in) :: s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
@@ -239,6 +240,7 @@ contains
 
     integer :: i, j, k
 
+    double precision :: dxinv, dyinv, dzinv
     double precision :: divU
     double precision :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
     double precision :: e_x, e_y, e_z, d
@@ -254,6 +256,10 @@ contains
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
 
+    dxinv = ONE/dx
+    dyinv = ONE/dy
+    dzinv = ONE/dz
+
     if (coord_type /= 0) then
        call bl_error("ERROR: invalid geometry in shock()")
     endif
@@ -263,9 +269,9 @@ contains
           do i = ilo1-1, ihi1+1
 
              ! construct div{U}
-             divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))/dx + &
-                    HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dy + &
-                    HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))/dz
+             divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv + &
+                    HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv + &
+                    HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 
              ! find the pre- and post-shock pressures in each direction
              if (q(i+1,j,k,QPRES) - q(i-1,j,k,QPRES) < ZERO) then
@@ -974,6 +980,7 @@ contains
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+    double precision :: wwinv, roinv, co2inv
 
     if (idir .eq. 1) then
        iu = QU
@@ -1058,8 +1065,9 @@ contains
           wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
           wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
 
-          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-          ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
+          wwinv = ONE/(wl + wr)
+          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
+          ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
           pstar = max(pstar,small_pres)
 
           if (ustar .gt. ZERO) then
@@ -1083,10 +1091,12 @@ contains
           endif
           ro = max(small_dens,ro)
 
-          co = sqrt(abs(gamco*po/ro))
+          roinv = ONE/ro
+          co = sqrt(abs(gamco*po*roinv))
           co = max(csmall,co)
-          entho = (reo/ro + po/ro)/co**2
-          rstar = ro + (pstar - po)/co**2
+          co2inv = ONE/(co*co)
+          entho = (reo + po)*roinv*co2inv
+          rstar = ro + (pstar - po)*co2inv
           rstar = max(small_dens,rstar)
           estar = reo + (pstar - po)*entho
           cstar = sqrt(abs(gamco*pstar/rstar))
