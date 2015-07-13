@@ -68,10 +68,10 @@ contains
     double precision :: cl, cr
     type (eos_t) :: eos_state
 
-    allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
+    allocate ( smallc(ilo:ihi,jlo:jhi) )
+    allocate (   cavg(ilo:ihi,jlo:jhi) )
+    allocate (  gamcm(ilo:ihi,jlo:jhi) )
+    allocate (  gamcp(ilo:ihi,jlo:jhi) )
 
     if(idir.eq.1) then
        do j = jlo, jhi
@@ -165,14 +165,14 @@ contains
     ! Solve Riemann problem
     if (use_colglaz == 1) then
        call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                      gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
+                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     else
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                      gamcm,gamcp,cavg,smallc,ilo-1,jlo-1,ihi+1,jhi+1, &
+                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
