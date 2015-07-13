@@ -21,6 +21,8 @@ FCOMP	   = gfortran
 USE_MPI    = FALSE
 USE_OMP    = FALSE
 
+USE_GRAV   = TRUE
+
 # This sets the EOS directory in Castro/EOS
 EOS_dir     := gamma_law_general
 
@@ -28,7 +30,7 @@ EOS_dir     := gamma_law_general
 Network_dir := general_null
 GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
 
-Bpack   += ./Make.package
-Blocs   += .
+Bpack   += $(TEST_DIR)/Make.package
+Blocs   += $(TEST_DIR)
 
-include ../Make.Castro
+include $(CASTRO_DIR)/Exec/Make.Castro

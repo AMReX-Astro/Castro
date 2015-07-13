@@ -379,7 +379,6 @@ Castro::read_params ()
 
 
     pp.get("do_hydro",do_hydro);
-    pp.get("do_react",do_react);
     pp.query("add_ext_src",add_ext_src);
 
     pp.query("do_acc",do_acc);
@@ -497,6 +496,12 @@ Castro::read_params ()
         BoxLib::Error();
     }
 #endif
+#endif
+
+#ifdef REACTIONS
+    pp.get("do_react",do_react);
+#else
+    pp.query("do_react",do_react);
 #endif
 
 #ifdef PARTICLES

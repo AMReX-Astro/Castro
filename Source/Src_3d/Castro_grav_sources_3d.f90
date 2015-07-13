@@ -52,18 +52,19 @@ contains
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
 
+               rho    = uin(i,j,k,URHO)
+               rhoInv = ONE / rho
+
                ! **** Start Diagnostics ****
                old_re = uout(i,j,k,UEDEN)
-               old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
-                                 uout(i,j,k,URHO) 
+               old_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
+                             * rhoInv
                old_rhoeint = uout(i,j,k,UEDEN) - old_ke
                old_xmom = uout(i,j,k,UMX)
                old_ymom = uout(i,j,k,UMY)
                old_zmom = uout(i,j,k,UMZ)
                ! ****   End Diagnostics ****
 
-               rho    = uin(i,j,k,URHO)
-               rhoInv = ONE / rho
 
                SrU = rho * grav(i,j,k,1)
                SrV = rho * grav(i,j,k,2)
@@ -84,8 +85,8 @@ contains
 
                else if (grav_source_type .eq. 3) then
 
-                   new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
-                                     uout(i,j,k,URHO) 
+                   new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
+                                 * rhoInv
                    uout(i,j,k,UEDEN) = old_rhoeint + new_ke
 
                else if (grav_source_type .eq. 4) then
@@ -97,8 +98,8 @@ contains
                end if
 
                ! **** Start Diagnostics ****
-               new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) / &
-                                 uout(i,j,k,URHO) 
+               new_ke = HALF * (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
+                             * rhoInv
 
                ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
                new_rhoeint = uout(i,j,k,UEDEN) - new_ke

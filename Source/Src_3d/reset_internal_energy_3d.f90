@@ -16,7 +16,7 @@
 
       ! Local variables
       integer          :: i,j,k
-      double precision :: Up, Vp, Wp, ke, rho_eint, eint_new
+      double precision :: Up, Vp, Wp, ke, rho_eint, eint_new, rhoInv
 
       type (eos_t) :: eos_state
 
@@ -27,9 +27,10 @@
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
-              Up = u(i,j,k,UMX) / u(i,j,k,URHO)
-              Vp = u(i,j,k,UMY) / u(i,j,k,URHO)
-              Wp = u(i,j,k,UMZ) / u(i,j,k,URHO)
+              rhoInv = ONE/u(i,j,k,URHO)
+              Up = u(i,j,k,UMX) * rhoInv
+              Vp = u(i,j,k,UMY) * rhoInv
+              Wp = u(i,j,k,UMZ) * rhoInv
               ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
               rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
@@ -49,9 +50,8 @@
 
                  eos_state % rho = u(i,j,k,URHO)
                  eos_state % T   = small_temp 
-                 eos_state % e   = ZERO
-                 eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
-                 eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
+                 eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                 eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
                  eos_state % loc = (/ i, j, k /)
 
                  call eos(eos_input_rt, eos_state)
@@ -81,9 +81,10 @@
          do j = lo(2),hi(2)
          do i = lo(1),hi(1)
 
-              Up = u(i,j,k,UMX) / u(i,j,k,URHO)
-              Vp = u(i,j,k,UMY) / u(i,j,k,URHO)
-              Wp = u(i,j,k,UMZ) / u(i,j,k,URHO)
+              rhoInv = ONE/u(i,j,k,URHO)
+              Up = u(i,j,k,UMX) * rhoInv
+              Vp = u(i,j,k,UMY) * rhoInv
+              Wp = u(i,j,k,UMZ) * rhoInv
               ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
               u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke

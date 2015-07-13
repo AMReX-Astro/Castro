@@ -80,7 +80,7 @@ contains
             w = q(i,j,k3d,QW)
             p = q(i,j,k3d,QPRES)
             rhoe = q(i,j,k3d,QREINT)
-            enth = ( (rhoe+p)/rho )/csq
+            enth = (rhoe+p)/(rho*csq)
 
             drho = dqx(i,j,kc,QRHO)
             du = dqx(i,j,kc,QU)
@@ -89,8 +89,8 @@ contains
             dp = dqx(i,j,kc,QPRES)
             drhoe = dqx(i,j,kc,QREINT)
 
-            alpham = HALF*(dp/(rho*cc) - du)*rho/cc
-            alphap = HALF*(dp/(rho*cc) + du)*rho/cc
+            alpham = HALF*((dp/(rho*cc)) - du)*(rho/cc)
+            alphap = HALF*((dp/(rho*cc)) + du)*(rho/cc)
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0v = dv
@@ -122,7 +122,7 @@ contains
             if (i .ge. ilo1) then
                qxp(i,j,kc,QRHO) = rho + apright + amright + azrright
                qxp(i,j,kc,QRHO) = max(small_dens,qxp(i,j,kc,QRHO))
-               qxp(i,j,kc,QU) = u + (apright - amright)*cc/rho
+               qxp(i,j,kc,QU) = u + (apright - amright)*(cc/rho)
                qxp(i,j,kc,QV) = v + azv1rght
                qxp(i,j,kc,QW) = w + azw1rght
                qxp(i,j,kc,QPRES) = p + (apright + amright)*csq
@@ -155,7 +155,7 @@ contains
             if (i .le. ihi1) then
                qxm(i+1,j,kc,QRHO) = rho + apleft + amleft + azrleft
                qxm(i+1,j,kc,QRHO) = max(small_dens, qxm(i+1,j,kc,QRHO))
-               qxm(i+1,j,kc,QU) = u + (apleft - amleft)*cc/rho
+               qxm(i+1,j,kc,QU) = u + (apleft - amleft)*(cc/rho)
                qxm(i+1,j,kc,QV) = v + azv1left
                qxm(i+1,j,kc,QW) = w + azw1left
                qxm(i+1,j,kc,QPRES) = p + (apleft + amleft)*csq
@@ -302,7 +302,7 @@ contains
             w = q(i,j,k3d,QW)
             p = q(i,j,k3d,QPRES)
             rhoe = q(i,j,k3d,QREINT)
-            enth = ( (rhoe+p)/rho )/csq
+            enth = (rhoe+p)/(rho*csq)
 
             drho = dqy(i,j,kc,QRHO)
             du = dqy(i,j,kc,QU)
@@ -311,8 +311,8 @@ contains
             dp = dqy(i,j,kc,QPRES)
             drhoe = dqy(i,j,kc,QREINT)
 
-            alpham = HALF*(dp/(rho*cc) - dv)*rho/cc
-            alphap = HALF*(dp/(rho*cc) + dv)*rho/cc
+            alpham = HALF*((dp/(rho*cc)) - dv)*(rho/cc)
+            alphap = HALF*((dp/(rho*cc)) + dv)*(rho/cc)
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
@@ -344,7 +344,7 @@ contains
             if (j .ge. ilo2) then
                qyp(i,j,kc,QRHO) = rho + apright + amright + azrright
                qyp(i,j,kc,QRHO) = max(small_dens, qyp(i,j,kc,QRHO))
-               qyp(i,j,kc,QV) = v + (apright - amright)*cc/rho
+               qyp(i,j,kc,QV) = v + (apright - amright)*(cc/rho)
                qyp(i,j,kc,QU) = u + azu1rght
                qyp(i,j,kc,QW) = w + azw1rght
                qyp(i,j,kc,QPRES) = p + (apright + amright)*csq
@@ -377,7 +377,7 @@ contains
             if (j .le. ihi2) then
                qym(i,j+1,kc,QRHO) = rho + apleft + amleft + azrleft
                qym(i,j+1,kc,QRHO) = max(small_dens, qym(i,j+1,kc,QRHO))
-               qym(i,j+1,kc,QV) = v + (apleft - amleft)*cc/rho
+               qym(i,j+1,kc,QV) = v + (apleft - amleft)*(cc/rho)
                qym(i,j+1,kc,QU) = u + azu1left
                qym(i,j+1,kc,QW) = w + azw1left
                qym(i,j+1,kc,QPRES) = p + (apleft + amleft)*csq
@@ -587,7 +587,7 @@ contains
             w = q(i,j,k3d,QW)
             p = q(i,j,k3d,QPRES)
             rhoe = q(i,j,k3d,QREINT)
-            enth = ( (rhoe+p)/rho )/csq
+            enth = (rhoe+p)/(rho*csq)
 
             drho = dqz(i,j,kc,QRHO)
             du = dqz(i,j,kc,QU)
@@ -596,8 +596,8 @@ contains
             dp = dqz(i,j,kc,QPRES)
             drhoe = dqz(i,j,kc,QREINT)
 
-            alpham = HALF*(dp/(rho*cc) - dw)*rho/cc
-            alphap = HALF*(dp/(rho*cc) + dw)*rho/cc
+            alpham = HALF*((dp/(rho*cc)) - dw)*(rho/cc)
+            alphap = HALF*((dp/(rho*cc)) + dw)*(rho/cc)
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
@@ -628,7 +628,7 @@ contains
 
             qzp(i,j,kc,QRHO) = rho + apright + amright + azrright
             qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
-            qzp(i,j,kc,QW) = w + (apright - amright)*cc/rho
+            qzp(i,j,kc,QW) = w + (apright - amright)*(cc/rho)
             qzp(i,j,kc,QU) = u + azu1rght
             qzp(i,j,kc,QV) = v + azv1rght
             qzp(i,j,kc,QPRES) = p + (apright + amright)*csq
@@ -643,7 +643,7 @@ contains
             w = q(i,j,k3d-1,QW)
             p = q(i,j,k3d-1,QPRES)
             rhoe = q(i,j,k3d-1,QREINT)
-            enth = ( (rhoe+p)/rho )/csq
+            enth = (rhoe+p)/(rho*csq)
 
             drho = dqz(i,j,km,QRHO)
             du = dqz(i,j,km,QU)
@@ -652,8 +652,8 @@ contains
             dp = dqz(i,j,km,QPRES)
             drhoe = dqz(i,j,km,QREINT)
 
-            alpham = HALF*(dp/(rho*cc) - dw)*rho/cc
-            alphap = HALF*(dp/(rho*cc) + dw)*rho/cc
+            alpham = HALF*((dp/(rho*cc)) - dw)*(rho/cc)
+            alphap = HALF*((dp/(rho*cc)) + dw)*(rho/cc)
             alpha0r = drho - dp/csq
             alpha0e = drhoe - dp*enth
             alpha0u = du
@@ -684,7 +684,7 @@ contains
 
             qzm(i,j,kc,QRHO) = rho + apleft + amleft + azrleft
             qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))
-            qzm(i,j,kc,QW) = w + (apleft - amleft)*cc/rho
+            qzm(i,j,kc,QW) = w + (apleft - amleft)*(cc/rho)
             qzm(i,j,kc,QU) = u + azu1left
             qzm(i,j,kc,QV) = v + azv1left
             qzm(i,j,kc,QPRES) = p + (apleft + amleft)*csq

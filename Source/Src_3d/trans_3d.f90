@@ -51,6 +51,7 @@ contains
     
     integer i, j, n, nq, ipassive
 
+    double precision rhoinv
     double precision rrnew, rr
     double precision rrry, rrly
     double precision rury, ruly
@@ -166,12 +167,13 @@ contains
              endif
 
              qypo(i,j,kc,QRHO) = rrnewry
-             qypo(i,j,kc,QU) = runewry/qypo(i,j,kc,QRHO)
-             qypo(i,j,kc,QV) = rvnewry/qypo(i,j,kc,QRHO)
-             qypo(i,j,kc,QW) = rwnewry/qypo(i,j,kc,QRHO)
+             rhoinv = ONE/rrnewry
+             qypo(i,j,kc,QU) = runewry*rhoinv
+             qypo(i,j,kc,QV) = rvnewry*rhoinv
+             qypo(i,j,kc,QW) = rwnewry*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)*rhoinv
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
              if (transverse_reset_rhoe .eq. 1 .and. qypo(i,j,kc,QREINT) .le. ZERO) then
@@ -234,12 +236,13 @@ contains
              endif
 
              qymo(i,j+1,kc,QRHO) = rrnewly
-             qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
-             qymo(i,j+1,kc,QV) = rvnewly/qymo(i,j+1,kc,QRHO)
-             qymo(i,j+1,kc,QW) = rwnewly/qymo(i,j+1,kc,QRHO)
+             rhoinv = ONE/rrnewly
+             qymo(i,j+1,kc,QU) = runewly*rhoinv
+             qymo(i,j+1,kc,QV) = rvnewly*rhoinv
+             qymo(i,j+1,kc,QW) = rwnewly*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)*rhoinv
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
              
              if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,kc,QREINT) .le. ZERO) then
@@ -411,7 +414,8 @@ contains
     double precision cdtdx
     
     integer i, j, n, nq, ipassive
-    
+
+    double precision rhoinv
     double precision rrnew, rr
     double precision rrrz, rrlz
     double precision rurz, rulz
@@ -520,12 +524,13 @@ contains
                  
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
-          qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
-          qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
-          qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
+          rhoinv = ONE/rrnewrz
+          qzpo(i,j,kc,QU) = runewrz*rhoinv
+          qzpo(i,j,kc,QV) = rvnewrz*rhoinv
+          qzpo(i,j,kc,QW) = rwnewrz*rhoinv
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)*rhoinv
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
           if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
@@ -601,12 +606,13 @@ contains
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
-          qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
-          qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
-          qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
+          rhoinv = ONE/rrnewlz
+          qzmo(i,j,kc,QU) = runewlz*rhoinv
+          qzmo(i,j,kc,QV) = rvnewlz*rhoinv
+          qzmo(i,j,kc,QW) = rwnewlz*rhoinv
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)*rhoinv
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
           if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then
@@ -773,7 +779,8 @@ contains
     double precision cdtdy
     
     integer i, j, n, nq, ipassive
-    
+
+    double precision rhoinv
     double precision rrnew, rr
     double precision compn, compu
     double precision rrrx, rrlx
@@ -887,12 +894,13 @@ contains
              endif
              
              qxpo(i,j,kc,QRHO) = rrnewrx
-             qxpo(i,j,kc,QU) = runewrx/qxpo(i,j,kc,QRHO)
-             qxpo(i,j,kc,QV) = rvnewrx/qxpo(i,j,kc,QRHO)
-             qxpo(i,j,kc,QW) = rwnewrx/qxpo(i,j,kc,QRHO)
+             rhoinv = ONE/rrnewrx
+             qxpo(i,j,kc,QU) = runewrx*rhoinv
+             qxpo(i,j,kc,QV) = rvnewrx*rhoinv
+             qxpo(i,j,kc,QW) = rwnewrx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)*rhoinv
              qxpo(i,j,kc,QREINT) = renewrx - rhoekenrx
 
              if (transverse_reset_rhoe == 1 .and. qxpo(i,j,kc,QREINT) .le. ZERO) then
@@ -954,12 +962,13 @@ contains
              endif
 
              qxmo(i+1,j,kc,QRHO) = rrnewlx
-             qxmo(i+1,j,kc,QU) = runewlx/qxmo(i+1,j,kc,QRHO)
-             qxmo(i+1,j,kc,QV) = rvnewlx/qxmo(i+1,j,kc,QRHO)
-             qxmo(i+1,j,kc,QW) = rwnewlx/qxmo(i+1,j,kc,QRHO)
+             rhoinv = ONE/rrnewlx
+             qxmo(i+1,j,kc,QU) = runewlx*rhoinv
+             qxmo(i+1,j,kc,QV) = rvnewlx*rhoinv
+             qxmo(i+1,j,kc,QW) = rwnewlx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)*rhoinv
              qxmo(i+1,j,kc,QREINT) = renewlx - rhoekenlx
 
              if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,kc,QREINT) .le. ZERO) then
@@ -1129,7 +1138,8 @@ contains
     double precision cdtdy
     
     integer i, j, n, nq, ipassive
-    
+
+    double precision rhoinv
     double precision rrnew, rr
     double precision compn, compu
     double precision rrrz, rrlz
@@ -1239,12 +1249,13 @@ contains
 
           ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
-          qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
-          qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
-          qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
+          rhoinv = ONE/rrnewrz
+          qzpo(i,j,kc,QU) = runewrz*rhoinv
+          qzpo(i,j,kc,QV) = rvnewrz*rhoinv
+          qzpo(i,j,kc,QW) = rwnewrz*rhoinv
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)*rhoinv
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
           if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
@@ -1321,12 +1332,13 @@ contains
 
           ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
-          qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
-          qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
-          qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
+          rhoinv = ONE/rrnewlz
+          qzmo(i,j,kc,QU) = runewlz*rhoinv
+          qzmo(i,j,kc,QV) = rvnewlz*rhoinv
+          qzmo(i,j,kc,QW) = rwnewlz*rhoinv
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)*rhoinv
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
           if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then

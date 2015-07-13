@@ -12,7 +12,7 @@
 
      ! Local variables
      integer          :: i,j,k
-     double precision :: u, v, w
+     double precision :: u, v, w, rhoInv
 
      ! 
      ! Make sure to enforce (rho E) = (rho e) + 1/2 rho (u^2 +_ v^2 + w^2)
@@ -21,9 +21,10 @@
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-              u = state(i,j,k,UMX) / state(i,j,k,URHO)
-              v = state(i,j,k,UMY) / state(i,j,k,URHO)
-              w = state(i,j,k,UMZ) / state(i,j,k,URHO)
+              rhoInv = ONE/state(i,j,k,URHO)
+              u = state(i,j,k,UMX) * rhoInv
+              v = state(i,j,k,UMY) * rhoInv
+              w = state(i,j,k,UMZ) * rhoInv
 
               state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
                      HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
