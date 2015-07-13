@@ -1,47 +1,60 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
-  use bl_error_module
-  use probdata_module
-  implicit none
-  
-  integer init, namlen
-  integer name(namlen)
-  double precision problo(2), probhi(2)
-  
-  integer untin,i
+   use probdata_module
+   use bl_constants_module
+   use fundamental_constants_module
+   use meth_params_module, only: small_temp, small_pres, small_dens
+   use eos_module
 
-  namelist /fortin/ rho1, rho2, u1, u2, L, pres, vfac, vmode, idir
+   implicit none
 
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
+   integer :: init, namlen
+   integer :: name(namlen)
+   double precision :: problo(3), probhi(3)
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+   integer :: untin
+   integer :: i
 
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-         
-  ! set namelist defaults
+   namelist /fortin/ &
+        rho1, rho2, pressure, problem, bulk_velocity
 
-  rho1 = 1.0d0
-  rho2 = 2.0d0
-  u1 = 0.5d0
-  u2 = -0.5d0
-  pres = 2.5d0
-  
-  L = 0.025
-  
-  vfac = 0.01
-  vmode = 4.0d0
-  
-  idir     = 1
-  
-  ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+   integer, parameter :: maxlen=127
+   character :: probin*(maxlen)
+   character :: model*(maxlen)
+   integer :: ipp, ierr, ipp1
+
+   ! Temporary storage variables in case we need to switch the primary and secondary.
+
+   integer :: ioproc
+
+   ! For outputting -- determine if we are the IO processor
+   call bl_pd_is_ioproc(ioproc)
+
+   ! Build "probin" filename -- the name of file containing fortin namelist.
+   if (namlen .gt. maxlen) then
+      call bl_error("ERROR: probin file name too long")
+   end if
+
+   do i = 1, namlen
+      probin(i:i) = char(name(i))
+   end do
+
+   ! Set namelist defaults
+
+   problem = 3
+
+   rho1 = 1.0
+   rho2 = 2.0
+   pressure = 2.5
+
+   bulk_velocity = 0.0
+
+   ! Read namelists -- override the defaults
+   
+   untin = 9 
+   open(untin,file=probin(1:namlen),form='formatted',status='old')
+   read(untin,fortin)
+   close(unit=untin)
   
 end subroutine PROBINIT
 
@@ -72,119 +85,134 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
   use probdata_module
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, small_temp
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UTEMP, &
+       UEDEN, UEINT, UFS, UFA
+  use network, only : nspec
+  use bl_constants_module
   
   implicit none
-  
-  integer level, nscal
-  integer lo(2), hi(2)
-  integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  
-  double precision xcen,ycen
-  double precision rhom, um
-  double precision e,rho,u
-  double precision pi
-  integer i,j
-  
+
+  integer :: level, nscal
+  integer :: lo(2), hi(2)
+  integer :: state_l1,state_l2,state_h1,state_h2
+  double precision :: xlo(2), xhi(2), time, delta(2)
+  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+
+  double precision :: xx,yy
+
   type (eos_t) :: eos_state
-  
-  rhom = 0.5d0 * (rho1 - rho2)   ! McNally+ Eq. 2
-  um = 0.5d0 * (u1 - u2)         ! McNally+ Eq. 4
-  
-  pi = 2.0d0 * asin(1.0d0)
-  
-  do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
-     
-     do i = lo(1), hi(1)
-        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
-        
-        ! single species for all zones
-        state(i,j,UFS) = 1.0d0
-        
-        if (idir == 1) then
-           
-           ! this assumes 0 <= y <= 1
-           ! McNally Eqns. 1 and 3
-           if (ycen < 0.25d0) then
-              rho = smooth(rho1,-rhom,-0.25d0,L,ycen)
-              u   = smooth(u1  ,-um  ,-0.25d0,L,ycen)
-           else if (ycen < 0.5d0) then
-              rho = smooth(rho2,rhom,0.25d0,L,-ycen)
-              u   = smooth(u2  ,um  ,0.25d0,L,-ycen)
-           else if (ycen < 0.75d0) then
-              rho = smooth(rho2,rhom,-0.75d0,L,ycen)
-              u   = smooth(u2  ,um  ,-0.75d0,L,ycen)
+
+  integer :: i,j,k,n
+
+  double precision :: dens, velx, vely
+  double precision :: w0, sigma, ramp, delta_y
+  double precision :: vel1, vel2
+
+  integer :: sine_n
+
+  vel1 = -0.5
+  vel2 =  0.5
+
+  if (problem .eq. 1) then
+     sine_n = 4
+     w0 = 0.1
+     sigma = 0.05 / 2**0.5
+  else if (problem .eq. 2) then
+     sine_n = 2
+     w0 = 0.1
+     delta_y = 0.05
+  else if (problem .eq. 3) then
+     sine_n = 4
+     w0 = 0.01
+     delta_y = 0.025
+  endif
+
+  !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, dens, velx, vely, ramp, eos_state)
+  do j = lo(2), hi(2)     
+     yy = xlo(2) + delta(2)*dble(j-lo(2)+HALF)
+
+     do i = lo(1), hi(1)   
+        xx = xlo(1) + delta(1)*dble(i-lo(1)+HALF)
+
+        ! Assume the initial y-velocity represents the bulk flow
+        ! which will be perturbed in the following step
+
+        vely = bulk_velocity
+
+        if (problem .eq. 1) then
+
+           if (abs(yy - 0.5) < 0.25) then
+              dens = rho2
+              velx = 0.5
            else
-              rho = smooth(rho1,-rhom,0.75d0,L,-ycen)
-              u   = smooth(u1  ,-um  ,0.75d0,L,-ycen)
-           end if
-           
-           ! momentum field
-           state(i,j,UMX) = u * rho
-           state(i,j,UMY) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq. 5
-           
-        else if (idir == 2) then
-           
-           ! this assumes 0 <= x <= 1
-           ! McNally Eqns. 1 and 3
-           if (xcen < 0.25d0) then
-              rho = smooth(rho1,-rhom,-0.25d0,L,xcen)
-              u   = smooth(u1  ,-um  ,-0.25d0,L,xcen)
-           else if (xcen < 0.5d0) then
-              rho = smooth(rho2,rhom,0.25d0,L,-xcen)
-              u   = smooth(u2  ,um  ,0.25d0,L,-xcen)
-           else if (xcen < 0.75d0) then
-              rho = smooth(rho2,rhom,-0.75d0,L,xcen)
-              u   = smooth(u2  ,um  ,-0.75d0,L,xcen)
+              dens = rho1
+              velx = -0.5
+           endif
+
+           vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy-0.25)**2/(2*sigma**2)) + exp(-(yy-0.75)**2/(2*sigma**2)))
+
+        else if (problem .eq. 2) then
+
+          ramp = ((ONE + exp(-TWO*(yy-0.25)/delta_y))*(ONE + exp(TWO*(yy-0.75)/delta_y)))**(-1)
+
+          dens = rho1 + ramp * (rho2 - rho1)
+          velx = vel1 + ramp * (vel2 - vel1)
+
+          vely = vely + w0 * sin(sine_n*M_PI*xx)
+
+        else if (problem .eq. 3) then
+
+           if ( yy .lt. 0.25 ) then
+              dens = rho1 - (rho1 - rho2) / 2 * exp( (yy-0.25) / delta_y )
+              velx = vel1 - (vel1 - vel2) / 2 * exp( (yy-0.25) / delta_y )
+           else if ( yy .le. 0.50 ) then
+              dens = rho2 + (rho1 - rho2) / 2 * exp( (0.25-yy) / delta_y )
+              velx = vel2 + (vel1 - vel2) / 2 * exp( (0.25-yy) / delta_y )
+           else if ( yy .lt. 0.75 ) then
+              dens = rho2 + (rho1 - rho2) / 2 * exp( (yy-0.75) / delta_y )
+              velx = vel2 + (vel1 - vel2) / 2 * exp( (yy-0.75) / delta_y )
            else
-              rho = smooth(rho1,-rhom,0.75d0,L,-xcen)
-              u   = smooth(u1  ,-um  ,0.75d0,L,-xcen)
-           end if
-           
-           ! momentum field
-           state(i,j,UMX) = rho * vfac*sin(vmode*pi*xcen) ! McNally+ Eq. 5
-           state(i,j,UMY) = u * rho
-           
+              dens = rho1 - (rho1 - rho2) / 2 * exp( (0.75-yy) / delta_y )
+              velx = vel1 - (vel1 - vel2) / 2 * exp( (0.75-yy) / delta_y )
+           endif
+
+           vely = vely + w0 * sin(sine_n*M_PI*xx)
+
         else
-           call bl_abort('invalid idir')
+
+           call bl_error("Error: This problem choice is undefined.")
+
         endif
-        
-        ! The rest of the variables that don't depend on direction
-        
-        state(i,j,URHO) = rho
-        
-        eos_state % rho = rho
-        eos_state % p   = pres
-        eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
-        eos_state % T   = small_temp ! Initial guess for EOS
-        
-        ! Get the temperature and internal energy assuming fixed pressure
+
+        state(i,j,URHO) = dens
+        state(i,j,UMX)  = dens * velx
+        state(i,j,UMY)  = dens * vely
+
+        ! Establish the thermodynamic quantities
+
+        state(i,j,UFS:UFS-1+nspec) = 1.0d0 / nspec
+
+        eos_state % xn  = state(i,j,UFS:UFS-1+nspec)
+        eos_state % rho = state(i,j,URHO)
+        eos_state % p   = pressure
+
         call eos(eos_input_rp, eos_state)
-        state(i,j,UEINT) = eos_state % e * rho
+
         state(i,j,UTEMP) = eos_state % T
-        
-        ! Total energy
-        state(i,j,UEDEN) = state(i,j,UEINT) + 0.5d0 * &
-             (state(i,j,UMX)**2 + state(i,j,UMY)**2) / state(i,j,URHO)
-        
-        ! Convert mass fractions to conserved quantity
-        state(i,j,UFS) = state(i,j,UFS) * rho
-        
-        
+
+        state(i,j,UEDEN) = state(i,j,URHO) * eos_state % e
+        state(i,j,UEINT) = state(i,j,URHO) * eos_state % e
+
+        state(i,j,UEDEN) = state(i,j,UEDEN) + &
+             HALF * dens * (velx**2 + vely**2)
+
+        do n = 1,nspec
+           state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
+        end do
+
      enddo
   enddo
-  
-contains
-  function smooth(a,b,offset,L,pos) result(r)
-    ! this is the general form of the smooth function in McNally+ Eq 1 or 3
-    double precision :: a, b, offset, L, pos
-    double precision :: r
-    
-    r = a + b*exp((pos+offset)/L)
-  end function smooth
+  !$OMP END PARALLEL DO
   
 end subroutine ca_initdata
 
