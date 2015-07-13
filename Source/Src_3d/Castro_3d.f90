@@ -109,7 +109,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
 
   call bl_allocate(  srcQ, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,QVAR)
-  call bl_allocate(   rot, lo(1)-ngq,hi(1)+ngq,lo(2)-ngq,hi(2)+ngq,lo(3)-ngq,hi(3)+ngq,1,QVAR)
+  call bl_allocate(   rot, lo(1)-ngq,hi(1)+ngq,lo(2)-ngq,hi(2)+ngq,lo(3)-ngq,hi(3)+ngq,1,3)
   
   dx = delta(1)
   dy = delta(2)
