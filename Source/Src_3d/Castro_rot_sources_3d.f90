@@ -251,6 +251,7 @@ end module rot_sources_module
     ! This subroutine exists outside of the Fortran module above because it needs to be called 
     ! directly from C++.
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
@@ -292,8 +293,8 @@ end module rot_sources_module
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
-    double precision, allocatable :: phi(:,:,:)
-    double precision, allocatable :: drho1(:,:,:), drho2(:,:,:), drho3(:,:,:)
+    double precision, pointer :: phi(:,:,:)
+    double precision, pointer :: drho1(:,:,:), drho2(:,:,:), drho3(:,:,:)
 
     double precision :: mom1, mom2
 
@@ -307,7 +308,10 @@ end module rot_sources_module
 
        ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
 
-       allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
+       call bl_allocate(phi, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+       call bl_allocate(drho1, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
+       call bl_allocate(drho2, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
+       call bl_allocate(drho3, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
        do k = lo(3)-1, hi(3)+1
           z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
@@ -324,10 +328,6 @@ end module rot_sources_module
              enddo
           enddo
        enddo
-
-       allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)))
-       allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3)))
-       allocate(drho3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1))
 
        ! Construct the mass changes using the density flux from the hydro step. 
        ! Note that in the hydrodynamics step, these fluxes were already 
@@ -540,8 +540,10 @@ end module rot_sources_module
     enddo
 
     if (rot_source_type .eq. 4) then
-       deallocate(phi)
-       deallocate(drho1,drho2,drho3)
+       call bl_deallocate(phi)
+       call bl_deallocate(drho1)
+       call bl_deallocate(drho2)
+       call bl_deallocate(drho3)
     endif
 
     end subroutine ca_corrrsrc

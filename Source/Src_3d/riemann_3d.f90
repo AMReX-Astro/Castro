@@ -21,6 +21,7 @@ contains
                     shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
@@ -61,17 +62,17 @@ contains
     double precision    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
     
-    double precision, allocatable :: smallc(:,:),cavg(:,:)
-    double precision, allocatable :: gamcm(:,:),gamcp(:,:)
+    double precision, pointer :: smallc(:,:),cavg(:,:)
+    double precision, pointer :: gamcm(:,:),gamcp(:,:)
 
     integer :: is_shock
     double precision :: cl, cr
     type (eos_t) :: eos_state
 
-    allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
-    allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
+    call bl_allocate ( smallc, ilo-1,ihi+1,jlo-1,jhi+1)
+    call bl_allocate (   cavg, ilo-1,ihi+1,jlo-1,jhi+1)
+    call bl_allocate (  gamcm, ilo-1,ihi+1,jlo-1,jhi+1)
+    call bl_allocate (  gamcp, ilo-1,ihi+1,jlo-1,jhi+1)
 
     if(idir.eq.1) then
        do j = jlo, jhi
@@ -218,7 +219,10 @@ contains
 
     endif
 
-    deallocate(smallc,cavg,gamcm,gamcp)
+    call bl_deallocate(smallc)
+    call bl_deallocate(  cavg)
+    call bl_deallocate( gamcm)
+    call bl_deallocate( gamcp)
 
   end subroutine cmpflx
 
@@ -341,6 +345,7 @@ contains
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use bl_error_module
     use network, only : nspec, naux
     use eos_type_module
@@ -415,11 +420,11 @@ contains
 
     double precision, parameter :: weakwv = 1.d-3
 
-    double precision, allocatable :: pstar_hist(:)
+    double precision, pointer :: pstar_hist(:)
 
     type (eos_t) :: eos_state
 
-    double precision :: us1d(ilo:ihi)
+    double precision, pointer :: us1d(:)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -474,7 +479,8 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
-    allocate (pstar_hist(iter_max))
+    call bl_allocate(pstar_hist, 1,iter_max)
+    call bl_allocate(us1d, ilo,ihi)
 
     do j = jlo, jhi
 
@@ -864,6 +870,9 @@ contains
        enddo
     enddo
 
+    call bl_deallocate(pstar_hist)
+    call bl_deallocate(us1d)
+
   end subroutine riemanncg
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
@@ -926,6 +935,7 @@ contains
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
@@ -975,12 +985,14 @@ contains
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
 
-    double precision :: us1d(ilo:ihi)
+    double precision, pointer :: us1d(:)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     double precision :: wwinv, roinv, co2inv
+
+    call bl_allocate(us1d,ilo,ihi)
 
     if (idir .eq. 1) then
        iu = QU
@@ -1213,6 +1225,8 @@ contains
 
        enddo
     enddo
+
+    call bl_deallocate(us1d)
 
   end subroutine riemannus
 

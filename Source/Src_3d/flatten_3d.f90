@@ -10,6 +10,7 @@ contains
 
   subroutine uflaten(lo,hi,p,u,v,w,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : iorder, small_pres
     use bl_constants_module
 
@@ -30,7 +31,7 @@ contains
     double precision denom, zeta, tst, tmp, ftmp
 
     ! Local arrays
-    double precision, allocatable :: dp(:,:,:), z(:,:,:), chi(:,:,:)
+    double precision, pointer :: dp(:,:,:), z(:,:,:), chi(:,:,:)
     
     ! Knobs for detection of strong shock
     double precision, parameter :: shktst = 0.33d0, zcut1 = 0.75d0, zcut2 = 0.85d0, dzcut = ONE/(zcut2-zcut1)
@@ -43,9 +44,9 @@ contains
 
 
     ! x-direction flattening coef
-    allocate(dp (0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
-    allocate(z  (0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
-    allocate(chi(0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
+    call bl_allocate(dp ,0,nmax-1,lo(2),hi(2),lo(3),hi(3))
+    call bl_allocate(z  ,0,nmax-1,lo(2),hi(2),lo(3),hi(3))
+    call bl_allocate(chi,0,nmax-1,lo(2),hi(2),lo(3),hi(3))
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           do i = lo(1)-1,hi(1)+1
@@ -79,12 +80,14 @@ contains
        enddo
     enddo
 
-    deallocate(dp,z,chi)
+    call bl_deallocate(dp )
+    call bl_deallocate(z  )
+    call bl_deallocate(chi)
 
     ! y-direction flattening coef
-    allocate(dp (lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
-    allocate(z  (lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
-    allocate(chi(lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
+    call bl_allocate(dp ,lo(1),hi(1),0,nmax-1,lo(3),hi(3))
+    call bl_allocate(z  ,lo(1),hi(1),0,nmax-1,lo(3),hi(3))
+    call bl_allocate(chi,lo(1),hi(1),0,nmax-1,lo(3),hi(3))
     do k = lo(3),hi(3)
        do j = lo(2)-1,hi(2)+1
           idx = j-lo(2)+1
@@ -121,12 +124,14 @@ contains
        enddo
     enddo
 
-    deallocate(dp,z,chi)
+    call bl_deallocate(dp )
+    call bl_deallocate(z  )
+    call bl_deallocate(chi)
 
     ! z-direction flattening coef
-    allocate(dp (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
-    allocate(z  (lo(1):hi(1),lo(2):hi(2),0:nmax-1))
-    allocate(chi(lo(1):hi(1),lo(2):hi(2),0:nmax-1))
+    call bl_allocate(dp ,lo(1),hi(1),lo(2),hi(2),0,nmax-1)
+    call bl_allocate(z  ,lo(1),hi(1),lo(2),hi(2),0,nmax-1)
+    call bl_allocate(chi,lo(1),hi(1),lo(2),hi(2),0,nmax-1)
     do k = lo(3)-1,hi(3)+1
        idx = k-lo(3)+1
        do j = lo(2),hi(2) 
@@ -165,7 +170,9 @@ contains
        enddo
     enddo
     
-    deallocate(dp,z,chi)
+    call bl_deallocate(dp )
+    call bl_deallocate(z  )
+    call bl_deallocate(chi)
 
   end subroutine uflaten
 
