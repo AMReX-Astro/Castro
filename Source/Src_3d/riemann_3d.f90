@@ -76,6 +76,7 @@ contains
 
     if(idir.eq.1) then
        do j = jlo, jhi
+          !dir$ ivdep
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i-1,j,k3d) )
              cavg(i,j) = HALF*( c(i,j,k3d) + c(i-1,j,k3d) )
@@ -85,6 +86,7 @@ contains
        enddo
     elseif(idir.eq.2) then
        do j = jlo, jhi
+          !dir$ ivdep
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i,j-1,k3d) )
              cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j-1,k3d) )
@@ -94,6 +96,7 @@ contains
        enddo
     else
        do j = jlo, jhi
+          !dir$ ivdep
           do i = ilo, ihi
              smallc(i,j) = max( csml(i,j,k3d), csml(i,j,k3d-1) )
              cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j,k3d-1) )

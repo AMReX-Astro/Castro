@@ -157,6 +157,7 @@ contains
 
     ! interpolate s to x-edges
     do j=ilo2-1,ihi2+1
+       !dir$ ivdep
        do i=ilo1-1,ihi1+2
           sedge(i,j) = HALF*(s(i,j,k3d)+s(i-1,j,k3d)) &
                - SIXTH*(dsvl(i,j)-dsvl(i-1,j))
@@ -289,6 +290,7 @@ contains
 
     ! interpolate s to y-edges
     do j=ilo2-1,ihi2+2
+       !dir$ ivdep
        do i=ilo1-1,ihi1+1
           sedge(i,j) = HALF*(s(i,j,k3d)+s(i,j-1,k3d)) &
                - SIXTH*(dsvl(i,j)-dsvl(i,j-1))
@@ -961,6 +963,7 @@ contains
     ! interpolate s to z-edges
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
+          !dir$ ivdep
           do i=ilo1-1,ihi1+1
              sedgez(i,j,k) = SEVEN12TH*(s(i,j,k-1)+s(i,j,k)) &
                   - TWELFTH*(s(i,j,k-2)+s(i,j,k+1))
