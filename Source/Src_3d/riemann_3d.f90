@@ -1053,6 +1053,7 @@ contains
           end if
        end if
 
+       !dir$ ivdep
        do i = ilo, ihi
 
           rl = max(ql(i,j,kc,QRHO),small_dens)
@@ -1215,6 +1216,7 @@ contains
           n  = upass_map(ipassive)
           nq = qpass_map(ipassive)
 
+          !dir$ ivdep
           do i = ilo, ihi
              if (us1d(i) .gt. ZERO) then
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
