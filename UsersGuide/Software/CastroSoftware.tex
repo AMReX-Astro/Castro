@@ -118,10 +118,12 @@ for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
      }
   }
 \end{lstlisting}
-here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
+Here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
 C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
-is a BoxLib macro that is used to interface with Fortran routines.
-\MarginPar{what is the purpose of mfi.isValid()?}
+is a BoxLib macro that is used to interface with Fortran routines. 
+{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab, 
+and {\tt mfi.isValid()} returns {\tt false} after we've reached 
+the last box contained in the MultiFab, terminating the loop.
 
 The corresponding Fortran function will look like:
 {\color{red} Need to write the Fortran version here}
