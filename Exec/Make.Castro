@@ -199,7 +199,7 @@ VPATH_LOCATIONS   += $(TOP)/Util/plot1d
 endif
 
 
-Bdirs 	:= Source Source/Src_$(DIM)d
+Bdirs 	:= Source Source/Src_$(DIM)d Source/Src_nd
 
 
 Pdirs 	:= C_BaseLib C_AMRLib C_BoundaryLib 

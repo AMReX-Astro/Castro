@@ -31,10 +31,6 @@ f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif
 endif
 
-ifeq ($(USE_REACT), TRUE)
-f90EXE_sources += React_$(DIM)d.f90
-endif
-
 ifeq ($(USE_DIFFUSION), TRUE)
 f90EXE_sources += MGutils_1d.f90
 endif

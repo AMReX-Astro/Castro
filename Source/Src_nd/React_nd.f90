@@ -1,8 +1,8 @@
 
   subroutine ca_react_state(lo,hi, &
-                            s_in ,so_l1,so_l2,so_l3,so_h1,so_h2,so_h3, &
-                            s_out,sn_l1,sn_l2,sn_l3,sn_h1,sn_h2,sn_h3, &
-                            reaction_terms,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3, &
+                            s_in ,si_lo,si_hi,   &
+                            s_out,so_lo,so_hi,  &
+                            reaction_terms,r_lo,r_hi, &
                             time,dt_react)
 
       use eos_module
@@ -14,14 +14,14 @@
 
       implicit none
 
-      integer lo(3),hi(3)
-      integer so_l1,so_h1,so_l2,so_h2,so_l3,so_h3
-      integer sn_l1,sn_h1,sn_l2,sn_h2,sn_l3,sn_h3
-      integer  r_l1, r_h1, r_l2, r_h2, r_l3, r_h3
-      double precision s_in (so_l1:so_h1,so_l2:so_h2,so_l3:so_h3,NVAR)
-      double precision s_out(sn_l1:sn_h1,sn_l2:sn_h2,sn_l3:sn_h3,NVAR)
-      double precision reaction_terms(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,nspec+2)
-      double precision time, dt_react
+      integer          :: lo(3), hi(3)
+      integer          :: si_lo(3), si_hi(3)
+      integer          :: so_lo(3), so_hi(3)
+      integer          :: r_lo(3), r_hi(3)
+      double precision :: s_in (si_lo(1):si_hi(1),si_lo(2):si_hi(2),si_lo(3):si_hi(3),NVAR)
+      double precision :: s_out(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+      double precision :: reaction_terms(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,nspec+2)
+      double precision :: time, dt_react
 
       integer          :: i,j,k
       double precision :: rhoInv

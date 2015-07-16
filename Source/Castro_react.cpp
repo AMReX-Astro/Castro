@@ -126,12 +126,12 @@ Castro::reactState(FArrayBox&        Snew,
 
     // Note that box is *not* necessarily just the valid region!
     BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
-                     (box.loVect(), box.hiVect(), 
-                     BL_TO_FORTRAN(Sold),
-                     BL_TO_FORTRAN(Snew),
-                     BL_TO_FORTRAN(ReactionTerms),
+                    (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
+ 	             BL_TO_FORTRAN_3D(Sold),
+                     BL_TO_FORTRAN_3D(Snew),
+                     BL_TO_FORTRAN_3D(ReactionTerms),
 #ifdef TAU
-                     BL_TO_FORTRAN(tau),
+                     BL_TO_FORTRAN_3d(tau),
 #endif
                      time,dt_react);
 }
