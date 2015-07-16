@@ -1,0 +1,18 @@
+&fortin
+
+ model_name =  "toy_xrb.hi_dens.hse.tanh.delta_12.000cm.dx_6.000cm.CNO"
+
+ apply_vel_field = T
+ velpert_height_loc = 1475.0
+ velpert_scale = 1.d2
+ velpert_amplitude = 1.d5
+ num_vortices = 16
+
+ zero_vels = F
+ interp_BC = F
+
+ sponge_center_density = 2.e3
+ sponge_start_factor = 25.0
+ sponge_kappa = 10.0
+ 
+/
