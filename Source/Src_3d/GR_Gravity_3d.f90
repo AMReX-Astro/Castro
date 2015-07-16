@@ -10,6 +10,7 @@
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
       use network, only : nspec, naux
+      use bl_constants_module
 
       implicit none
 
@@ -30,6 +31,7 @@
       double precision :: lo_i,lo_j,lo_k
 
       type (eos_t) :: eos_state
+      double precision :: rhoInv
 
       fac     = dble(drdxfac)
       dx_frac = dx(1) / fac
@@ -61,12 +63,13 @@
 
                else
 
+                  rhoInv = ONE / var(i,j,k,URHO)
+
                   eos_state % rho = var(i,j,k,URHO)
-                  eos_state % e   = var(i,j,k,UEINT) / rho
+                  eos_state % e   = var(i,j,k,UEINT) * rhoInv
                   eos_state % T   = var(i,j,k,UTEMP)
-                  eos_state % xn  = var(i,j,k,UFS:UFS+nspec-1) / rho
-                  eos_state % aux = var(i,j,k,UFX:UFX+naux-1) / rho
-                  eos_state % loc = (/ i, j, k /)
+                  eos_state % xn  = var(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = var(i,j,k,UFX:UFX+naux-1) * rhoInv
 
                   ! Compute pressure from the EOS
                   call eos(eos_input_re, eos_state)

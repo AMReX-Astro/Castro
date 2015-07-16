@@ -55,7 +55,6 @@
             eos_state % T   = var(i,UTEMP)
             eos_state % xn  = var(i,UFS:UFS+nspec-1) / var(i,URHO)
             eos_state % aux = var(i,UFX:UFX+naux-1) / var(i,URHO)
-            eos_state % loc = (/ i, -99, -99 /)
 
             call eos(eos_input_re, eos_state)
 

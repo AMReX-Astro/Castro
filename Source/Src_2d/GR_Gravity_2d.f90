@@ -63,7 +63,6 @@
                eos_state % T   = var(i,j,UTEMP)
                eos_state % xn  = var(i,j,UFS:UFS+nspec-1) / rho 
                eos_state % aux = var(i,j,UFX:UFX+naux-1) / rho
-               eos_state % loc = (/ i, j, -99 /)
 
                ! Compute pressure from the EOS
                call eos(eos_input_re, eos_state)

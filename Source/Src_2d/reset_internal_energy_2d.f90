@@ -56,7 +56,6 @@ subroutine reset_internal_e(u,u_l1,u_l2,u_h1,u_h2,lo,hi,verbose)
               eos_state % T   = small_temp
               eos_state % xn  = u(i,j,UFS:UFS+nspec-1) / u(i,j,URHO)
               eos_state % aux = u(i,j,UFX:UFX+naux-1) / u(i,j,URHO)
-              eos_state % loc = (/ i, j, -99 /)
 
               call eos(eos_input_rt, eos_state)
 

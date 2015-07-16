@@ -247,25 +247,23 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k,n
+      integer          :: i,j,k
 
-      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+      type (eos_t_3D) :: eos_state
+
+      eos_state = eos_t_3D(lo,hi)
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               eos_state(i,j,k) % rho = u(i,j,k,URHO)
-               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
-               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
+               rhoInv = ONE / u(i,j,k,URHO)
+               
+               eos_state % rho(i,j,k) = u(i,j,k,URHO)
+               eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
 
-               do n = 1, nspec
-                  eos_state(i,j,k) % xn(n)  = u(i,j,k,UFS+n-1) / u(i,j,k,URHO)
-               enddo
-               do n = 1, naux
-                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / u(i,j,k,URHO)
-               enddo
-
-               eos_state(i,j,k) % loc = (/ i, j, k /)
+               eos_state % xn(i,j,k,:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
@@ -275,7 +273,7 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               p(i,j,k,1) = eos_state(i,j,k) % p
+               p(i,j,k,1) = eos_state % p(i,j,k)
             enddo
          enddo
       enddo
@@ -376,25 +374,23 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k,n
+      integer          :: i,j,k
 
-      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+      type (eos_t_3D) :: eos_state
 
+      eos_state = eos_t_3D(lo,hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               eos_state(i,j,k) % rho = u(i,j,k,URHO)
-               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
-               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
+               rhoInv = ONE / u(i,j,k,URHO)
+               
+               eos_state % rho(i,j,k) = u(i,j,k,URHO)
+               eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
 
-               do n = 1, nspec
-                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
-               enddo
-               do n = 1, naux
-                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
-               enddo
-
-               eos_state(i,j,k) % loc = (/ i, j, k /)
+               eos_state % xn(i,j,k,:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
@@ -404,7 +400,7 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               c(i,j,k,1) = eos_state(i,j,k) % cs
+               c(i,j,k,1) = eos_state % cs(i,j,k)
             enddo
          enddo
       enddo
@@ -435,25 +431,23 @@
       integer          :: bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv,ux,uy,uz
-      integer          :: i,j,k,n
+      integer          :: i,j,k
 
-      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+      type (eos_t_3D) :: eos_state
 
+      eos_state = eos_t_3D(lo,hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               eos_state(i,j,k) % rho = u(i,j,k,URHO)
-               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
-               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
+               rhoInv = ONE / u(i,j,k,URHO)
+               
+               eos_state % rho(i,j,k) = u(i,j,k,URHO)
+               eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
 
-               do n = 1, nspec
-                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
-               enddo
-               do n = 1, naux
-                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
-               enddo
-
-               eos_state(i,j,k) % loc = (/ i, j, k /)
+               eos_state % xn(i,j,k,:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
@@ -464,7 +458,7 @@
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
                mach(i,j,k,1) = (u(i,j,k,UMX)**2 + u(i,j,k,UMY)**2 + u(i,j,k,UMZ)**2)**0.5 / u(i,j,k,URHO) &
-                             / eos_state(i,j,k) % cs
+                             / eos_state % cs(i,j,k)
             enddo
          enddo
       enddo
@@ -495,25 +489,23 @@
       integer bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer i,j,k,n
+      integer i,j,k
 
-      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+      type (eos_t_3D) :: eos_state
+
+      eos_state = eos_t_3D(lo,hi)
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               eos_state(i,j,k) % rho = u(i,j,k,URHO)
-               eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
-               eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
+               rhoInv = ONE / u(i,j,k,URHO)
+               
+               eos_state % rho(i,j,k) = u(i,j,k,URHO)
+               eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
 
-               do n = 1, nspec
-                  eos_state(i,j,k) % xn(n) = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
-               enddo
-               do n = 1, naux
-                  eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
-               enddo
-
-               eos_state(i,j,k) % loc = (/ i, j, k /)
+               eos_state % xn(i,j,k,:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo               
@@ -523,7 +515,7 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               s(i,j,k,1) = eos_state(i,j,k) % s
+               s(i,j,k,1) = eos_state % s(i,j,k)
             enddo
          enddo
       enddo

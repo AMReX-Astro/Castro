@@ -45,7 +45,6 @@
 
          ! initial guess for iterations
          eos_state % T = state(i,UTEMP) 
-         eos_state % loc = (/ i, -99, -99 /)
 
          call eos(eos_input_re, eos_state)
 

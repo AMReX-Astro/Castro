@@ -64,11 +64,15 @@ contains
     double precision, allocatable :: smallc(:,:),cavg(:,:)
     double precision, allocatable :: gamcm(:,:),gamcp(:,:)
 
-    type (eos_t) :: eos_state(ilo:ihi,jlo:jhi)
+    type (eos_t_3D) :: eos_state
     integer :: n
     integer :: is_shock
     double precision :: cl, cr
 
+    double precision :: rhoInv
+    
+    eos_state = eos_t_3D( (/ ilo, jlo, 1 /), (/ ihi, jhi, 1 /) )
+    
     allocate ( smallc(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
@@ -116,19 +120,13 @@ contains
 
              ! this is an initial guess for iterations, since we
              ! can't be certain that temp is on interfaces
-             eos_state(i,j) % T = 10000.0d0
+             eos_state % T(i,j,1) = 10000.0d0
 
              ! minus state
-             eos_state(i,j) % rho = qm(i,j,kc,QRHO)
-             eos_state(i,j) % p   = qm(i,j,kc,QPRES)
-             do n = 1, nspec
-                eos_state(i,j) % xn(n)  = qm(i,j,kc,QFS+n-1)
-             enddo
-             do n = 1, naux
-                eos_state(i,j) % aux(n) = qm(i,j,kc,QFX+n-1)
-             enddo
-
-             eos_state(i,j) % loc = (/ i, j, k3d /)
+             eos_state % rho(i,j,1)   = qm(i,j,kc,QRHO)
+             eos_state % p(i,j,1)     = qm(i,j,kc,QPRES)
+             eos_state % xn(i,j,1,:)  = qm(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux(i,j,1,:) = qm(i,j,kc,QFX:QFX+naux-1)
              
           enddo
        enddo
@@ -138,9 +136,9 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
 
-             qm(i,j,kc,QREINT) = eos_state(i,j) % e * eos_state(i,j) % rho
-             qm(i,j,kc,QPRES)  = eos_state(i,j) % p
-             gamcm(i,j)        = eos_state(i,j) % gam1
+             qm(i,j,kc,QREINT) = eos_state % e(i,j,1) * eos_state % rho(i,j,1)
+             qm(i,j,kc,QPRES)  = eos_state % p(i,j,1)
+             gamcm(i,j)        = eos_state % gam1(i,j,1)
 
           enddo
        enddo
@@ -148,16 +146,13 @@ contains
        ! plus state
        do j = jlo, jhi
           do i = ilo, ihi
-             eos_state(i,j) % rho = qp(i,j,kc,QRHO)
-             eos_state(i,j) % p   = qp(i,j,kc,QPRES)
-             do n = 1, nspec
-                eos_state(i,j) % xn(n)  = qp(i,j,kc,QFS+n-1)
-             enddo
-             do n = 1, naux
-                eos_state(i,j) % aux(n) = qp(i,j,kc,QFX+n-1)
-             enddo
+             rhoInv = ONE / qp(i,j,kc,QRHO)
+             
+             eos_state % rho(i,j,1)   = qp(i,j,kc,QRHO)
+             eos_state % p(i,j,1)     = qp(i,j,kc,QPRES)
+             eos_state % xn(i,j,1,:)  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
+             eos_state % aux(i,j,1,:) = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
 
-             eos_state(i,j) % loc = (/ i, j, k3d /)
           enddo
        enddo
 
@@ -166,9 +161,9 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
 
-             qp(i,j,kc,QREINT) = eos_state(i,j) % e * eos_state(i,j) % rho
-             qp(i,j,kc,QPRES)  = eos_state(i,j) % p
-             gamcp(i,j)        = eos_state(i,j) % gam1
+             qp(i,j,kc,QREINT) = eos_state % e(i,j,1) * eos_state % rho(i,j,1)
+             qp(i,j,kc,QPRES)  = eos_state % p(i,j,1)
+             gamcp(i,j)        = eos_state % gam1(i,j,1)
 
           enddo
        enddo

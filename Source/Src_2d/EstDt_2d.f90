@@ -37,7 +37,6 @@
                eos_state % T   = u(i,j,UTEMP)
                eos_state % xn  = u(i,j,UFS:UFS+nspec-1) * rhoInv
                eos_state % aux = u(i,j,UFX:UFX+naux-1) * rhoInv
-               eos_state % loc = (/ i, j, -99 /)
 
                call eos(eos_input_re, eos_state)
               

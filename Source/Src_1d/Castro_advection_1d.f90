@@ -228,7 +228,6 @@ contains
        eos_state % rho = q(i,QRHO)
        eos_state % xn  = q(i,QFS:QFS+nspec-1)
        eos_state % aux = q(i,QFX:QFX+naux-1)
-       eos_state % loc = (/ i, -99, -99 /)
        
        ! If necessary, reset the energy using small_temp
        if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. ZERO) then

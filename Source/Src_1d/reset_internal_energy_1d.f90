@@ -48,7 +48,6 @@
                eos_state % T   = small_temp
                eos_state % xn  = u(i,UFS:UFS+nspec-1) / u(i,URHO)   
                eos_state % aux = u(i,UFX:UFX+naux-1) / u(i,URHO)
-               eos_state % loc = (/ i, -99, -99 /)
    
                call eos(eos_input_rt, eos_state)
 

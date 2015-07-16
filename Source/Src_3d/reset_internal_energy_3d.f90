@@ -48,11 +48,10 @@
               ! If not resetting and little e is negative ...
               else if (u(i,j,k,UEINT) .le. ZERO) then
 
-                 eos_state % rho = u(i,j,k,URHO)
-                 eos_state % T   = small_temp 
-                 eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                 eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-                 eos_state % loc = (/ i, j, k /)
+                 eos_state % rho    = u(i,j,k,URHO)
+                 eos_state % T      = small_temp 
+                 eos_state % xn(:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                 eos_state % aux(:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
                  call eos(eos_input_rt, eos_state)
 

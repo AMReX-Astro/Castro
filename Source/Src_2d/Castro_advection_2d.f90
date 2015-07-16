@@ -326,7 +326,7 @@ contains
     integer :: ipassive
 
     type (eos_t) :: eos_state
-    
+
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2))
     allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
@@ -384,7 +384,6 @@ contains
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
-          eos_state % loc = (/ i, j, -99 /)
 
           ! if necessary, reset the energy using small_temp
           if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then

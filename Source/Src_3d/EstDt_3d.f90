@@ -20,26 +20,23 @@
      double precision :: sqrtK,grid_scl,dt4
      integer          :: i,j,k,n
 
-     type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+     type (eos_t_3D) :: eos_state
+
+     eos_state = eos_t_3D(lo,hi)
 
      ! Compute sound speed
 
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
-              eos_state(i,j,k) % rho = u(i,j,k,URHO )
-              eos_state(i,j,k) % T   = u(i,j,k,UTEMP)
-              eos_state(i,j,k) % e   = u(i,j,k,UEINT) / u(i,j,k,URHO)
+              rhoInv = ONE / u(i,j,k,URHO)
+              
+              eos_state % rho(i,j,k) = u(i,j,k,URHO )
+              eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
+              eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
 
-              do n = 1, nspec
-                 eos_state(i,j,k) % xn(n)  = u(i,j,k,UFS+n-1) / eos_state(i,j,k) % rho
-              enddo
-              do n = 1, naux
-                 eos_state(i,j,k) % aux(n) = u(i,j,k,UFX+n-1) / eos_state(i,j,k) % rho
-              enddo
-
-              eos_state(i,j,k) % loc = (/ i, j, k /)
-
+              eos_state % xn(i,j,k,:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+              eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
            enddo
         enddo
      enddo
@@ -50,8 +47,8 @@
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-              cs(i,j,k) = eos_state(i,j,k) % cs
-              e(i,j,k)  = eos_state(i,j,k) % e
+              cs(i,j,k) = eos_state % cs(i,j,k)
+              e(i,j,k)  = eos_state % e(i,j,k)
 
            enddo
         enddo

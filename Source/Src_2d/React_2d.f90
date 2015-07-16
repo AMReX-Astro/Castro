@@ -25,8 +25,11 @@
       integer          :: i,j
       double precision :: rhoInv
 
-      type (eos_t) :: state_in(lo(1):hi(1),lo(2):hi(2))
-      type (eos_t) :: state_out(lo(1):hi(1),lo(2):hi(2))
+      type (eos_t_2D) :: state_in
+      type (eos_t_2D) :: state_out
+
+      state_in = eos_t_2D(lo, hi)
+      state_out = eos_t_2D(lo, hi)
 
       do j = lo(2), hi(2)
          do i = lo(1), hi(1)
@@ -42,18 +45,17 @@
 
             rhoInv              = ONE / s_in(i,j,URHO)
 
-            state_in(i,j) % rho = s_in(i,j,URHO)
-            state_in(i,j) % T   = s_in(i,j,UTEMP)
-            state_in(i,j) % e   = s_in(i,j,UEINT) * rhoInv
-            state_in(i,j) % xn  = s_in(i,j,UFS:UFS+nspec-1) * rhoInv
-            state_in(i,j) % aux = s_in(i,j,UFX:UFX+naux-1) * rhoInv
-            state_in(i,j) % loc = (/ i, j, -99 /)
+            state_in % rho(i,j)   = s_in(i,j,URHO)
+            state_in % T(i,j)     = s_in(i,j,UTEMP)
+            state_in % e(i,j)     = s_in(i,j,UEINT) * rhoInv
+            state_in % xn(i,j,:)  = s_in(i,j,UFS:UFS+nspec-1) * rhoInv
+            state_in % aux(i,j,:) = s_in(i,j,UFX:UFX+naux-1) * rhoInv
 
             ! The energy should never be negative coming into this call
             ! because of reset_internal_energy, so throw an error if it happens.
 
-            if (allow_negative_energy .eq. 0 .and. state_in(i,j) % e .le. ZERO) then
-               print *,'... e negative in react_state: ', i, j, state_in(i,j) % e
+            if (allow_negative_energy .eq. 0 .and. state_in % e(i,j) .le. ZERO) then
+               print *,'... e negative in react_state: ', i, j, state_in % e(i,j)
                call bl_error("Error:: React_2d.f90 :: ca_react_state")
             endif
          enddo
@@ -70,19 +72,19 @@
             ! the momenta. If this is desired that can always be forced through reset_internal_energy.
 
             s_out(i,j,URHO)            = s_in(i,j,URHO)
-            s_out(i,j,UEINT)           = s_out(i,j,URHO) * state_out(i,j) % e
-            s_out(i,j,UEDEN)           = s_out(i,j,UEDEN) + s_out(i,j,URHO) * (state_out(i,j) % e - state_out(i,j) % e)
-            s_out(i,j,UFS:UFS+nspec-1) = s_out(i,j,URHO) * state_out(i,j) % xn(:)
-            s_out(i,j,UFX:UFX+naux -1) = state_in(i,j) % aux(:)
-            s_out(i,j,UTEMP)           = state_out(i,j) % T
+            s_out(i,j,UEINT)           = s_out(i,j,URHO) * state_out % e(i,j)
+            s_out(i,j,UEDEN)           = s_out(i,j,UEDEN) + s_out(i,j,URHO) * (state_out % e(i,j) - state_in % e(i,j))
+            s_out(i,j,UFS:UFS+nspec-1) = s_out(i,j,URHO) * state_out) % xn(i,j,:)
+            s_out(i,j,UFX:UFX+naux -1) = state_in % aux(i,j,:)
+            s_out(i,j,UTEMP)           = state_out % T(i,j)
 
             if (i.ge.r_l1 .and. i.le.r_h1 .and. j.ge.r_l2 .and. j.le.r_h2) then
                reaction_terms(i,j,1:nspec) = reaction_terms(i,j,1:nspec) &
-                    + (state_out(i,j) % xn(:) - state_in(i,j) % xn(:))
+                    + (state_out % xn(i,j,:) - state_in % xn(i,j,:))
                reaction_terms(i,j,nspec+1) = reaction_terms(i,j,nspec+1) &
-                    + (state_out(i,j) % e - state_in(i,j) % e)
+                    + (state_out % e(i,j) - state_in % e(i,j))
                reaction_terms(i,j,nspec+2) = reaction_terms(i,j,nspec+2) &
-                    + s_out(i,j,URHO) * (state_out(i,j) % e - state_in(i,j) % e)
+                    + s_out(i,j,URHO) * (state_out % e(i,j) - state_in % e(i,j))
             endif
 
          enddo

@@ -15,10 +15,12 @@
       double precision, intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,&
                                                state_l3:state_h3,NVAR)
 
-      integer          :: i,j,k,n
+      integer          :: i,j,k
       double precision :: rhoInv
 
-      type (eos_t) :: eos_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+      type (eos_t_3D) :: eos_state
+
+      eos_state = eos_t_3D(lo,hi)
 
       do k = lo(3),hi(3)
       do j = lo(2),hi(2)
@@ -52,18 +54,14 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               eos_state(i,j,k) % rho = state(i,j,k,URHO)
-               eos_state(i,j,k) % T   = state(i,j,k,UTEMP) ! Initial guess for the EOS
-               eos_state(i,j,k) % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
+               rhoInv = ONE / state(i,j,k,URHO)
+               
+               eos_state % rho(i,j,k) = state(i,j,k,URHO)
+               eos_state % T(i,j,k)   = state(i,j,k,UTEMP) ! Initial guess for the EOS
+               eos_state % e(i,j,k)   = state(i,j,k,UEINT) * rhoInv
 
-               do n = 1, nspec
-                  eos_state(i,j,k) % xn(n)  = state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
-               enddo
-               do n = 1, naux
-                  eos_state(i,j,k) % aux(n) = state(i,j,k,UFX+n-1) / state(i,j,k,URHO)
-               enddo
-
-               eos_state(i,j,k) % loc = (/ i, j, k /)
+               eos_state % xn(i,j,k,:)  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
@@ -73,10 +71,10 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               state(i,j,k,UTEMP) = eos_state(i,j,k) % T
+               state(i,j,k,UTEMP) = eos_state % T(i,j,k)
 
                ! Reset energy in case we floored
-               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state(i,j,k) % e
+               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e(i,j,k)
                state(i,j,k,UEDEN) = state(i,j,k,UEINT) &
                                   + HALF * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
 

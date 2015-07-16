@@ -145,7 +145,8 @@ contains
 
     double precision, allocatable :: shk(:,:,:)
     
-    type (eos_t), allocatable :: eos_state(:,:,:,:)
+    type (eos_t_3D) :: eos_state
+    double precision :: rhoInv
 
     allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
     allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
@@ -251,7 +252,7 @@ contains
        allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
        allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
 
-       allocate( eos_state(ilo1-1:ihi1+1,ilo2-1:ihi2+1,3,3) )
+       eos_state = eos_t_3D( (/ ilo1-1, ilo2-1, 1 /), (/ ihi1+1, ihi2+1, 1 /) )
     else
        allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
        allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
@@ -355,71 +356,53 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           else          
 
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
-                         eos_state(i,j,idim,iwave) % rho = Ip(i,j,kc,idim,iwave,QRHO)
-                         eos_state(i,j,idim,iwave) % T   = Ip(i,j,kc,idim,iwave,QTEMP)
+             do iwave = 1, 3
+                do idim = 1, 3
 
-                         do n = 1, nspec
-                            eos_state(i,j,idim,iwave) % xn(n)  = Ip(i,j,kc,idim,iwave,QFS+n-1) / eos_state(i,j,idim,iwave) % rho
-                         enddo
-                         do n = 1, naux
-                            eos_state(i,j,idim,iwave) % aux(n) = Ip(i,j,kc,idim,iwave,QFX+n-1) / eos_state(i,j,idim,iwave) % rho
-                         enddo
-
-                         eos_state(i,j,idim,iwave) % loc = (/ i, j, k3d /)
+                   do j = ilo2-1, ihi2+1
+                      do i = ilo1-1, ihi1+1
+                         rhoInv = ONE / Ip(i,j,kc,idim,iwave,QRHO)
+                      
+                         eos_state % rho(i,j,1)   = Ip(i,j,kc,idim,iwave,QRHO)
+                         eos_state % T(i,j,1)     = Ip(i,j,kc,idim,iwave,QTEMP)
+                         
+                         eos_state % xn(i,j,1,:)  = Ip(i,j,kc,idim,iwave,QFS:QFS+nspec-1) * rhoInv
+                         eos_state % aux(i,j,1,:) = Ip(i,j,kc,idim,iwave,QFX:QFX+naux-1) * rhoInv
                       enddo
                    enddo
-                enddo
-             enddo
 
-             call eos(eos_input_rt, eos_state)
+                   call eos(eos_input_rt, eos_state)
 
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
-                         Ip(i,j,kc,idim,iwave,QPRES)  = eos_state(i,j,idim,iwave) % p
-                         Ip(i,j,kc,idim,iwave,QREINT) = eos_state(i,j,idim,iwave) % e * Ip(i,j,kc,idim,iwave,QRHO)
-                         Ip_gc(i,j,kc,idim,iwave,1)   = eos_state(i,j,idim,iwave) % gam1
+                   do j = ilo2-1, ihi2+1
+                      do i = ilo1-1, ihi1+1
+                         Ip(i,j,kc,idim,iwave,QPRES)  = eos_state % p(i,j,1)
+                         Ip(i,j,kc,idim,iwave,QREINT) = eos_state % e(i,j,1) * Ip(i,j,kc,idim,iwave,QRHO)
+                         Ip_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1(i,j,1)
                       enddo
                    enddo
-                enddo
-             enddo
 
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
-                         eos_state(i,j,idim,iwave) % rho = Im(i,j,kc,idim,iwave,QRHO)
-                         eos_state(i,j,idim,iwave) % T   = Im(i,j,kc,idim,iwave,QTEMP)
+                   do j = ilo2-1, ihi2+1
+                      do i = ilo1-1, ihi1+1
+                         rhoInv = ONE / Im(i,j,kc,idim,iwave,QRHO)
+                         
+                         eos_state % rho(i,j,1)   = Im(i,j,kc,idim,iwave,QRHO)
+                         eos_state % T(i,j,1)     = Im(i,j,kc,idim,iwave,QTEMP)
 
-                         do n = 1, nspec
-                            eos_state(i,j,idim,iwave) % xn(n)  = Im(i,j,kc,idim,iwave,QFS+n-1) / eos_state(i,j,idim,iwave) % rho
-                         enddo
-                         do n = 1, naux
-                            eos_state(i,j,idim,iwave) % aux(n) = Im(i,j,kc,idim,iwave,QFX+n-1) / eos_state(i,j,idim,iwave) % rho
-                         enddo
-
-                         eos_state(i,j,idim,iwave) % loc = (/ i, j, k3d /)
+                         eos_state % xn(i,j,1,:)  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1) * rhoInv
+                         eos_state % aux(i,j,1,:) = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1) * rhoInv
                       enddo
                    enddo
-                enddo
-             enddo
 
-             call eos(eos_input_rt, eos_state)
+                   call eos(eos_input_rt, eos_state)
 
-             do j = ilo2-1, ihi2+1
-                do i = ilo1-1, ihi1+1
-                   do idim = 1, 3
-                      do iwave = 1, 3
-                         Im(i,j,kc,idim,iwave,QPRES)  = eos_state(i,j,idim,iwave) % p
-                         Im(i,j,kc,idim,iwave,QREINT) = eos_state(i,j,idim,iwave) % e * Im(i,j,kc,idim,iwave,QRHO)
-                         Im_gc(i,j,kc,idim,iwave,1)   = eos_state(i,j,idim,iwave) % gam1
+                   do j = ilo2-1, ihi2+1
+                      do i = ilo1-1, ihi1+1
+                         Im(i,j,kc,idim,iwave,QPRES)  = eos_state % p(i,j,1)
+                         Im(i,j,kc,idim,iwave,QREINT) = eos_state % e(i,j,1) * Im(i,j,kc,idim,iwave,QRHO)
+                         Im_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1(i,j,1)
                       enddo
                    enddo
+
                 enddo
              enddo
 
@@ -783,7 +766,9 @@ contains
 
     integer :: ipassive
 
-    type (eos_t) :: eos_state(lo(1)-ngp:hi(1)+ngp,lo(2)-ngp:hi(2)+ngp,lo(3)-ngp:hi(3)+ngp)
+    type (eos_t_3D) :: eos_state
+
+    eos_state = eos_t_3D(lo-ngp, hi+ngp)
 
     dtdx = dt/dx
     dtdy = dt/dy
@@ -866,7 +851,7 @@ contains
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-                eos_state(i,j,k) % xn(ispec) = q(i,j,k,nq)
+                eos_state % xn(i,j,k,ispec) = q(i,j,k,nq)
              enddo
           enddo
        enddo
@@ -880,7 +865,7 @@ contains
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-                eos_state(i,j,k) % aux(iaux) = q(i,j,k,nq)
+                eos_state % aux(i,j,k,iaux) = q(i,j,k,nq)
              enddo
           enddo
        enddo
@@ -889,10 +874,9 @@ contains
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
-             eos_state(i,j,k) % T   = q(i,j,k,QTEMP )
-             eos_state(i,j,k) % rho = q(i,j,k,QRHO  )
-             eos_state(i,j,k) % e   = q(i,j,k,QREINT)
-             eos_State(i,j,k) % loc = (/ i, j, k /)
+             eos_state % T(i,j,k)   = q(i,j,k,QTEMP )
+             eos_state % rho(i,j,k) = q(i,j,k,QRHO  )
+             eos_state % e(i,j,k)   = q(i,j,k,QREINT)
           enddo
        enddo
     enddo
@@ -902,14 +886,14 @@ contains
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
-             q(i,j,k,QTEMP)  = eos_state(i,j,k) % T
-             q(i,j,k,QREINT) = eos_state(i,j,k) % e
-             q(i,j,k,QPRES)  = eos_state(i,j,k) % p
+             q(i,j,k,QTEMP)  = eos_state % T(i,j,k)
+             q(i,j,k,QREINT) = eos_state % e(i,j,k)
+             q(i,j,k,QPRES)  = eos_state % p(i,j,k)
 
-             dpdrho(i,j,k)   = eos_state(i,j,k) % dpdr_e
-             dpde(i,j,k)     = eos_state(i,j,k) % dpde
-             c(i,j,k)        = eos_state(i,j,k) % cs
-             gamc(i,j,k)     = eos_state(i,j,k) % gam1
+             dpdrho(i,j,k)   = eos_state % dpdr_e(i,j,k)
+             dpde(i,j,k)     = eos_state % dpde(i,j,k)
+             c(i,j,k)        = eos_state % cs(i,j,k)
+             gamc(i,j,k)     = eos_state % gam1(i,j,k)
 
              csml(i,j,k)     = max(small, small * c(i,j,k))
 
