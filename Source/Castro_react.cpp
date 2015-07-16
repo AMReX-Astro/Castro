@@ -8,26 +8,38 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, FArrayBox& tau_diff, Real time, Real dt) 
+Castro::react_first_half_dt(MultiFab& S_old, MultiFab& tau_diff, Real time, Real dt) 
 #else
-Castro::react_first_half_dt(FArrayBox& S_old, FArrayBox& React_Fab, Real time, Real dt) 
+Castro::react_first_half_dt(MultiFab& S_old, Real time, Real dt) 
 #endif
 {
     BL_PROFILE("Castro::react_first_half_dt()");
 
+    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
+    MultiFab& ReactMF     = get_new_data(Reactions_Type);
+    ReactMF_old.setVal(0.);
+    ReactMF.setVal(0.);
+
     if (do_react == 1)
     {
-       // Note that here we react on the valid region *and* the ghost cells (i.e. the whole FAB)
-       const Box& bx   = S_old.box();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi) 
+      {
+	 // Note that here we react on the valid region *and* the ghost cells (i.e. the whole FAB)
+	 const Box& bx   = mfi.tilebox();
+
 #ifdef TAU
-       reactState(S_old, S_old, React_Fab, tau_diff, bx, time, 0.5*dt);
+	 reactState(S_old[mfi], S_old[mfi], ReactMF[mfi], tau_diff[mfi], bx, time, 0.5*dt);
 #else
-       reactState(S_old, S_old, React_Fab, bx, time, 0.5*dt);
+	 reactState(S_old[mfi], S_old[mfi], ReactMF[mfi], bx, time, 0.5*dt);
 #endif
 
-       // Synchronize (rho e) and (rho E)
-       BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-           (BL_TO_FORTRAN(S_old), bx.loVect(), bx.hiVect(),verbose);
+	 // Synchronize (rho e) and (rho E)
+	 BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
+           (BL_TO_FORTRAN(S_old[mfi]), bx.loVect(), bx.hiVect(), verbose);
+      }
     }
 }
 
@@ -54,7 +66,7 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
             for (FillPatchIterator Sfpi(*this, S_new, 1, cur_time, State_Type, 0, NUM_STATE);
                  Sfpi.isValid(); ++Sfpi)
             {
-                const Box& bx(Sfpi.validbox());
+	        const Box& bx = Sfpi.tilebox();
 #ifdef TAU
                 reactState(Sfpi(), Sfpi(), ReactMF[Sfpi], tau_diff[Sfpi], bx, time, 0.5*dt);
 #else
@@ -65,14 +77,16 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
         }
         else
         {
-            for (MFIter Smfi(S_new); Smfi.isValid(); ++Smfi)
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  	    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
             {
-                const Box& bx = Smfi.validbox();
-                FArrayBox& fb = S_new[Smfi];
+                const Box& bx = mfi.tilebox();
 #ifdef TAU
-                reactState(fb, fb, ReactMF[Smfi], tau_diff[Smfi], bx, time, 0.5*dt);
+                reactState(S_new[mfi], S_new[mfi], ReactMF[mfi], tau_diff[mfi], bx, time, 0.5*dt);
 #else
-                reactState(fb, fb, ReactMF[Smfi], bx, time, 0.5*dt);
+                reactState(S_new[mfi], S_new[mfi], ReactMF[mfi], bx, time, 0.5*dt);
 #endif
             }
         }

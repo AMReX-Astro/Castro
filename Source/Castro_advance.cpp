@@ -394,25 +394,17 @@ Castro::advance_hydro (Real time,
     geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
 
     { // limit the scope of fpi
-	FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
-	MultiFab& Sborder = fpi.get_mf();
-    
+        FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
+        MultiFab& Sborder = fpi.get_mf();
+
 #ifdef REACTIONS
-	// Make sure to zero these even if do_react == 0.
-	MultiFab& ReactMF_old = get_old_data(Reactions_Type);
-	MultiFab& ReactMF     = get_new_data(Reactions_Type);
-	ReactMF_old.setVal(0.);
-	ReactMF.setVal(0.);
-	
-	for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
 #ifdef TAU
-	    react_first_half_dt(Sborder[mfi],ReactMF[mfi],tau_diff[mfi],time,dt);
+	react_first_half_dt(Sborder,tau_diff,time,dt);
 #else
-	    react_first_half_dt(Sborder[mfi],ReactMF[mfi],time,dt);
+	react_first_half_dt(Sborder,time,dt);
 #endif
-	}
 #endif
-      
+
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
 
@@ -1223,9 +1215,9 @@ Castro::advance_hydro (Real time,
     
 #ifdef REACTIONS
 #ifdef TAU
-    react_second_half_dt(S_new,tau_diff,cur_time,dt,1);
+    react_second_half_dt(S_new,tau_diff,cur_time,dt,0);
 #else
-    react_second_half_dt(S_new,cur_time,dt,1);
+    react_second_half_dt(S_new,cur_time,dt,0);
 #endif
 #endif
 
@@ -1342,22 +1334,11 @@ Castro::advance_no_hydro (Real time,
     enforce_nonnegative_species(S_old);
 
 #ifdef REACTIONS
-    // Make sure to zero these even if do_react == 0.
-    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
-    MultiFab& ReactMF     = get_new_data(Reactions_Type);
-    ReactMF_old.setVal(0.);
-    ReactMF.setVal(0.);
-
-    for (FillPatchIterator fpi(*this, S_old, 1, time, State_Type, 0, NUM_STATE);
-	   fpi.isValid(); ++fpi)
-    {
-	  FArrayBox &state = fpi();
 #ifdef TAU
-          react_first_half_dt(state,ReactMF[fpi],tau_diff[fpi],time,dt);
+    react_first_half_dt(S_old,tau_diff,time,dt);
 #else
-          react_first_half_dt(state,ReactMF[fpi],time,dt);
+    react_first_half_dt(S_old,time,dt);
 #endif
-    }
 #endif
  
 #ifdef GRAVITY
