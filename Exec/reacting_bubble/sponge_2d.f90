@@ -50,7 +50,7 @@ contains
              
              uout(i,j,UEDEN) = uout(i,j,UEDEN) + (ke_new-ke_old)
 
-             E_added = ke_new-ke_old
+             E_added = E_added + ke_new-ke_old
           end if
           
        enddo
