@@ -25,6 +25,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_sponge,ymom_added_sponge,zmom_added_sponge,&
                     E_added_rot,E_added_flux,E_added_grav,E_added_sponge)
 
+  use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
                                  normalize_species, do_grav, do_rotation
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
@@ -74,15 +75,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
-  double precision, allocatable:: q(:,:,:,:)
-  double precision, allocatable:: gamc(:,:,:)
-  double precision, allocatable:: flatn(:,:,:)
-  double precision, allocatable:: c(:,:,:)
-  double precision, allocatable:: csml(:,:,:)
-  double precision, allocatable:: div(:,:,:)
-  double precision, allocatable:: pdivu(:,:,:)
-  double precision, allocatable:: srcQ(:,:,:,:)
-  double precision, allocatable:: rot(:,:,:,:)
+  double precision, pointer:: q(:,:,:,:)
+  double precision, pointer:: gamc(:,:,:)
+  double precision, pointer:: flatn(:,:,:)
+  double precision, pointer:: c(:,:,:)
+  double precision, pointer:: csml(:,:,:)
+  double precision, pointer:: div(:,:,:)
+  double precision, pointer:: pdivu(:,:,:)
+  double precision, pointer:: srcQ(:,:,:,:)
+  double precision, pointer:: rot(:,:,:,:)
   
   double precision dx,dy,dz
   integer ngq,ngf
@@ -98,17 +99,17 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   q_h2 = hi(2)+NHYP
   q_h3 = hi(3)+NHYP
 
-  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR))
-  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
-  
-  allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
-  
-  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
-  allocate(   rot(lo(1)-ngq:hi(1)+ngq,lo(2)-ngq:hi(2)+ngq,lo(3)-ngq:hi(3)+ngq,3))
+  call bl_allocate(     q, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,QVAR)
+  call bl_allocate(  gamc, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+  call bl_allocate( flatn, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+  call bl_allocate(     c, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+  call bl_allocate(  csml, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+
+  call bl_allocate(   div, lo(1),hi(1)+1,lo(2),hi(2)+1,lo(3),hi(3)+1)  
+  call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
+
+  call bl_allocate(  srcQ, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,QVAR)
+  call bl_allocate(   rot, lo(1)-ngq,hi(1)+ngq,lo(2)-ngq,hi(2)+ngq,lo(3)-ngq,hi(3)+ngq,1,3)
   
   dx = delta(1)
   dy = delta(2)
@@ -214,7 +215,17 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                  E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
 
-  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu,rot)
+  call bl_deallocate(     q)
+  call bl_deallocate(  gamc)
+  call bl_deallocate( flatn)
+  call bl_deallocate(     c)
+  call bl_deallocate(  csml)
+
+  call bl_deallocate(   div)
+  call bl_deallocate( pdivu)
+
+  call bl_deallocate(  srcQ)
+  call bl_deallocate(   rot)
 
 end subroutine ca_umdrv
 

@@ -70,6 +70,7 @@ contains
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
     use bl_constants_module
   
@@ -103,11 +104,11 @@ contains
     double precision :: sm, sp
 
     ! \delta s_{\ib}^{vL}
-    double precision, allocatable :: dsvl(:,:)
+    double precision, pointer :: dsvl(:,:)
     double precision :: dsvlm, dsvl0, dsvlp
 
     ! s_{i+\half}^{H.O.}
-    double precision, allocatable :: sedge(:,:)
+    double precision, pointer :: sedge(:,:)
 
     dtdx = dt/dx
     dtdy = dt/dy
@@ -129,10 +130,10 @@ contains
     end if
 
     ! cell-centered indexing w/extra ghost cell
-    allocate(dsvl(ilo1-2:ihi1+2,ilo2-2:ihi2+2))
+    call bl_allocate(dsvl,ilo1-2,ihi1+2,ilo2-2,ihi2+2)
 
     ! edge-centered indexing
-    allocate(sedge(ilo1-1:ihi1+2,ilo2-1:ihi2+2))
+    call bl_allocate(sedge,ilo1-1,ihi1+2,ilo2-1,ihi2+2)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -156,6 +157,7 @@ contains
 
     ! interpolate s to x-edges
     do j=ilo2-1,ihi2+1
+       !dir$ ivdep
        do i=ilo1-1,ihi1+2
           sedge(i,j) = HALF*(s(i,j,k3d)+s(i-1,j,k3d)) &
                - SIXTH*(dsvl(i,j)-dsvl(i-1,j))
@@ -288,6 +290,7 @@ contains
 
     ! interpolate s to y-edges
     do j=ilo2-1,ihi2+2
+       !dir$ ivdep
        do i=ilo1-1,ihi1+1
           sedge(i,j) = HALF*(s(i,j,k3d)+s(i,j-1,k3d)) &
                - SIXTH*(dsvl(i,j)-dsvl(i,j-1))
@@ -538,8 +541,8 @@ contains
        end do
     end do
 
-    deallocate(dsvl)
-    deallocate(sedge)
+    call bl_deallocate(dsvl)
+    call bl_deallocate(sedge)
 
   end subroutine ppm_type1
 
@@ -552,6 +555,7 @@ contains
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
     use bl_constants_module
 
@@ -586,8 +590,8 @@ contains
     double precision :: sm, sp
 
     ! s_{i+\half}^{H.O.}
-    double precision, allocatable :: sedge(:,:)
-    double precision, allocatable :: sedgez(:,:,:)
+    double precision, pointer :: sedge(:,:)
+    double precision, pointer :: sedgez(:,:,:)
 
     ! constant used in Colella 2008
     double precision, parameter :: C = 1.25d0
@@ -612,8 +616,8 @@ contains
     end if
 
     ! edge-centered indexing
-    allocate(sedge(ilo1-2:ihi1+3,ilo2-2:ihi2+3))
-    allocate(sedgez(ilo1-1:ihi1+1,ilo2-1:ihi2+1,k3d-1:k3d+2))
+    call bl_allocate(sedge,ilo1-2,ihi1+3,ilo2-2,ihi2+3)
+    call bl_allocate(sedgez,ilo1-1,ihi1+1,ilo2-1,ihi2+1,k3d-1,k3d+2)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -959,6 +963,7 @@ contains
     ! interpolate s to z-edges
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
+          !dir$ ivdep
           do i=ilo1-1,ihi1+1
              sedgez(i,j,k) = SEVEN12TH*(s(i,j,k-1)+s(i,j,k)) &
                   - TWELFTH*(s(i,j,k-2)+s(i,j,k+1))
@@ -1121,8 +1126,8 @@ contains
        end do
     end do
 
-    deallocate(sedge)
-    deallocate(sedgez)
+    call bl_deallocate(sedge)
+    call bl_deallocate(sedgez)
 
   end subroutine ppm_type2
 

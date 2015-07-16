@@ -137,6 +137,7 @@ end module grav_sources_module
                              vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                              xmom_added,ymom_added,zmom_added,E_added)
 
+      use mempool_module, only : bl_allocate, bl_deallocate
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
       use multifab_module
@@ -181,10 +182,10 @@ end module grav_sources_module
       double precision old_xmom, old_ymom, old_zmom, xmom_added, ymom_added, zmom_added
       double precision rho_E_added, flux_added
 
-      double precision, allocatable :: phi(:,:,:)
-      double precision, allocatable :: drho1(:,:,:)
-      double precision, allocatable :: drho2(:,:,:)
-      double precision, allocatable :: drho3(:,:,:)
+      double precision, pointer :: phi(:,:,:)
+      double precision, pointer :: drho1(:,:,:)
+      double precision, pointer :: drho2(:,:,:)
+      double precision, pointer :: drho3(:,:,:)
  
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
@@ -194,10 +195,10 @@ end module grav_sources_module
       ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
       if (grav_source_type .eq. 4) then
-         allocate(phi(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1))
-         allocate(drho1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)))
-         allocate(drho2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3)))
-         allocate(drho3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1))
+         call bl_allocate(phi, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+         call bl_allocate(drho1, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
+         call bl_allocate(drho2, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
+         call bl_allocate(drho3, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
          ! For our purposes, we want the time-level n+1/2 phi because we are 
          ! using fluxes evaluated at that time. To second order we can 
@@ -367,8 +368,10 @@ end module grav_sources_module
       enddo
       
       if (grav_source_type .eq. 4) then
-         deallocate(phi)
-         deallocate(drho1,drho2,drho3)
+         call bl_deallocate(phi)
+         call bl_deallocate(drho1)
+         call bl_deallocate(drho2)
+         call bl_deallocate(drho3)
       endif
 
       end subroutine ca_corrgsrc
