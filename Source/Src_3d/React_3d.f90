@@ -36,16 +36,7 @@
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
 
-               ! We do not want to integrate zones with rho < small_dens,
-               ! but the hydro calls enforce_minimum_density, so we shouldn't
-               ! be getting any zones like that. If so, throw an error.
-
-               if (s_in(i,j,k,URHO) .lt. small_dens) then
-                  print *,'... rho < small_dens in react_state: ', i, j, k, s_in(i,j,k,URHO)
-                  call bl_error("Error:: React_3d.f90 :: ca_react_state")
-               endif
-
-               rhoInv                = ONE / s_in(i,j,k,URHO)
+               rhoInv = ONE / s_in(i,j,k,URHO)
 
                state_in % rho(i,j,k)   = s_in(i,j,k,URHO)
                state_in % T(i,j,k)     = s_in(i,j,k,UTEMP)
@@ -53,13 +44,6 @@
                state_in % xn(i,j,k,:)  = s_in(i,j,k,UFS:UFS+nspec-1) * rhoInv
                state_in % aux(i,j,k,:) = s_in(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-               ! The energy should never be negative coming into this call
-               ! because of reset_internal_energy, so throw an error if it happens.
-               
-               if (allow_negative_energy .eq. 0 .and. state_in % e(i,j,k) .le. ZERO) then
-                  print *,'... e negative in react_state: ', i, j, k, state_in % e(i,j,k)
-                  call bl_error("Error:: React_3d.f90 :: ca_react_state")
-               endif
             enddo
          enddo
       enddo
