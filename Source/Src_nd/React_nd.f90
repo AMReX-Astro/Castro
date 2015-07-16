@@ -20,7 +20,7 @@
       integer          :: r_lo(3), r_hi(3)
       double precision :: s_in (si_lo(1):si_hi(1),si_lo(2):si_hi(2),si_lo(3):si_hi(3),NVAR)
       double precision :: s_out(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-      double precision :: reaction_terms(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,nspec+2)
+      double precision :: reaction_terms(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
       double precision :: time, dt_react
 
       integer          :: i,j,k
@@ -66,8 +66,8 @@
                s_out(i,j,k,UFX:UFX+naux -1) = state_in % aux(i,j,k,:)
                s_out(i,j,k,UTEMP)           = state_out % T(i,j,k)
 
-               if (i.ge.r_l1 .and. i.le.r_h1 .and. j.ge.r_l2 .and. j.le.r_h2 .and. &
-                   k.ge.r_l3 .and. k.le.r_h3) then
+               if (i.ge.r_lo(1) .and. i.le.r_hi(1) .and. j.ge.r_lo(2) .and. j.le.r_hi(2) .and. &
+                   k.ge.r_lo(3) .and. k.le.r_hi(3)) then
                   reaction_terms(i,j,k,1:nspec) = reaction_terms(i,j,k,1:nspec) &
                        + (state_out % xn(i,j,k,:) - state_in % xn(i,j,k,:))
                   reaction_terms(i,j,k,nspec+1) = reaction_terms(i,j,k,nspec+1) &

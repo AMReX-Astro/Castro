@@ -20,7 +20,6 @@ f90EXE_sources += flatten_$(DIM)d.f90
 
 f90EXE_sources += Castro_advection_$(DIM)d.f90 
 f90EXE_sources += riemann_$(DIM)d.f90 
-f90EXE_sources += compute_temp_$(DIM)d.f90
 f90EXE_sources += Derive_$(DIM)d.f90
 f90EXE_sources += EstDt_$(DIM)d.f90
 f90EXE_sources += reset_internal_energy_$(DIM)d.f90

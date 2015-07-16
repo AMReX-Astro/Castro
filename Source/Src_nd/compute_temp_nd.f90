@@ -1,5 +1,4 @@
-      subroutine compute_temp(lo,hi,state,state_l1,state_l2,state_l3, &
-                              state_h1,state_h2,state_h3)
+      subroutine compute_temp(lo,hi,state,s_lo,s_hi)
 
       use network, only : nspec, naux
       use eos_module
@@ -10,10 +9,8 @@
 
       implicit none
       integer         , intent(in   ) :: lo(3),hi(3)
-      integer         , intent(in   ) :: state_l1,state_l2,state_l3
-      integer         , intent(in   ) :: state_h1,state_h2,state_h3
-      double precision, intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,&
-                                               state_l3:state_h3,NVAR)
+      integer         , intent(in   ) :: s_lo(3),s_hi(3)
+      double precision, intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
       integer          :: i,j,k
       double precision :: rhoInv
