@@ -14,5 +14,8 @@ module prob_params_module
   ! geometry information
   integer         , save :: coord_type
   double precision, save :: center(3), problo(3), probhi(3)
+
+  ! dimension information
+  integer         , save :: dim
   
 end module prob_params_module

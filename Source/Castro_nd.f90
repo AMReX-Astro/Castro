@@ -318,6 +318,8 @@
 
         call parallel_initialize()
 
+        dim = dm
+
         iorder = 2 
 
         difmag = difmag_in
