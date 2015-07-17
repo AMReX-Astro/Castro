@@ -15,16 +15,17 @@ Castro::react_first_half_dt(MultiFab& S_old, Real time, Real dt)
 {
     BL_PROFILE("Castro::react_first_half_dt()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "\n" << "... Entering burner and doing first half-timestep of burning." << "\n";
-
-    MultiFab& ReactMF_old = get_old_data(Reactions_Type);
-    MultiFab& ReactMF     = get_new_data(Reactions_Type);
-    ReactMF_old.setVal(0.);
-    ReactMF.setVal(0.);
-
     if (do_react == 1)
     {
+
+      if (verbose && ParallelDescriptor::IOProcessor())
+	std::cout << "\n" << "... Entering burner and doing first half-timestep of burning." << "\n";
+
+      MultiFab& ReactMF_old = get_old_data(Reactions_Type);
+      MultiFab& ReactMF     = get_new_data(Reactions_Type);
+      ReactMF_old.setVal(0.);
+      ReactMF.setVal(0.);
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -43,10 +44,11 @@ Castro::react_first_half_dt(MultiFab& S_old, Real time, Real dt)
 	 BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
              (ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(S_old[mfi]), verbose);
       }
+      if (verbose && ParallelDescriptor::IOProcessor())
+	std::cout << "... Leaving burner after completing first half-timestep of burning." << "\n\n";
+
     }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "... Leaving burner after completing first half-timestep of burning." << "\n\n";
 }
 
 void
@@ -58,9 +60,6 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
 {
     BL_PROFILE("Castro::react_second_half_dt()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "\n" << "... Entering burner and doing second half-timestep of burning." << "\n";
-
     const Real strt_time = ParallelDescriptor::second();
 
     const Real cur_time = state[State_Type].curTime();
@@ -69,6 +68,10 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
     // cells in order to compute things.
     if (do_react == 1) 
     {
+
+      if (verbose && ParallelDescriptor::IOProcessor())
+	std::cout << "\n" << "... Entering burner and doing second half-timestep of burning." << "\n";
+
         MultiFab& ReactMF = get_new_data(Reactions_Type);
         if (ngrow > 0) 
         {
@@ -101,10 +104,10 @@ Castro::react_second_half_dt(MultiFab& S_new, Real time, Real dt, int ngrow)
         }
         ReactMF.mult(1.0/dt);
         reset_internal_energy(S_new);
-    }
+	if (verbose && ParallelDescriptor::IOProcessor())
+	  std::cout << "... Leaving burner after completing second half-timestep of burning." << "\n\n";
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "... Leaving burner after completing second half-timestep of burning." << "\n\n";
+    }
 
     if (verbose > 1)
     {
