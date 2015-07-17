@@ -326,10 +326,9 @@
         ! conserved state components
         !---------------------------------------------------------------------
 
-        ! NTHERM: number of thermodynamic variables
+        ! NTHERM: number of thermodynamic variables (rho, 3 momenta, rho*e, rho*E, T)
         ! NVAR  : number of total variables in initial system
-        ! dm refers to mometum components, '4' refers to rho, rhoE, rhoe and T
-        NTHERM = dm + 4
+        NTHERM = 7
         if (use_sgs .eq. 1) NTHERM = NTHERM + 1
         NVAR = NTHERM + nspec + naux + numadv
 
@@ -338,8 +337,8 @@
         ! We use these to index into the state "U"
         URHO  = Density   + 1
         UMX   = Xmom      + 1
-        if (dm .ge. 2) UMY = UMX + 1
-        if (dm .eq. 3) UMZ = UMY + 1
+        UMY = UMX + 1
+        UMZ = UMY + 1
         UEDEN = Eden      + 1
         UEINT = Eint      + 1
         if (use_sgs .eq. 1) then
@@ -381,17 +380,8 @@
         QRHO  = 1
 
         QU    = 2
-        QLAST = 2
-
-        if (dm .ge. 2) then
-           QV    = 3
-           QLAST = 3
-        end if
-
-        if (dm .eq. 3) then
-           QW    = 4
-           QLAST = 4
-        end if
+        QV    = 3
+        QW    = 4
 
         ! we'll carry this around as an potential alternate to (rho e)
         QGAME   = QLAST + 1

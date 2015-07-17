@@ -343,8 +343,8 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, &
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, UFS, UFX, &
                                    normalize_species
     use bl_constants_module
 
@@ -379,7 +379,7 @@ contains
          call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
     
     do n = 1, NVAR
-       if ( n.eq.UTEMP ) then
+       if ( n.eq.UTEMP .or. n.eq.UMY .or. n.eq.UMZ ) then
           flux(:,n) = ZERO
        else
           do i = lo(1),hi(1)+1
@@ -392,7 +392,7 @@ contains
     enddo
     
     do n = 1, NVAR
-       if ( n.eq.UTEMP) then
+       if ( n.eq.UTEMP ) then
           do i = lo(1),hi(1)
              uout(i,n) = uin(i,n)
           enddo
