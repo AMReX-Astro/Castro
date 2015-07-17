@@ -206,13 +206,9 @@ contributed by Jan Frederik Engels of University of Gottingen.}
 
 With this option, gravity can be defined as a function that
 is specified by the user.  The option is allowed in 2D and 3D.  To define the gravity
-vector, copy {\bf prescribe\_grav\_2d.f90} from {\bf Src\_2d} to your run directory
-(analogously copy {\bf prescribe\_grav\_3d.f90} from {\bf Src\_3d} if you're working in 3D).
+vector, copy {\bf prescribe\_grav\_nd.f90} from {\bf Src\_nd} to your run directory.
 The makefile system will always choose this local copy of the file over the one in another directory.
 Then define the components of gravity inside a loop over the grid inside the file.
-If your problem uses a radial gravity in the form $g(r)$, you can simply adapt 
-{\bf ca\_prescribe\_grav\_gravityprofile}, otherwise you will have to adapt 
-{\bf ca\_prescribe\_grav}, both are located in {\bf prescribed\_grav\_2d.90}.
 \end{itemize}
 
 \section{GR correction}

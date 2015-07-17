@@ -4,6 +4,10 @@ f90EXE_sources += enforce_consistent_e_nd.f90
 f90EXE_sources += Castro_sums_nd.f90
 f90EXE_sources += EstDt_nd.f90
 
+ifeq ($(USE_GRAV), TRUE)
+f90EXE_sources += prescribe_grav_nd.f90
+endif
+
 ifeq ($(USE_REACT), TRUE)
 f90EXE_sources += React_nd.f90
 endif
