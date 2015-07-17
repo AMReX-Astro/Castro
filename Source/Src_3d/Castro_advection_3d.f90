@@ -48,6 +48,7 @@ contains
                      ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                      pdivu, domlo, domhi)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
                                    do_grav, do_rotation, hybrid_riemann
@@ -101,166 +102,167 @@ contains
     double precision hdtdx, hdtdy, hdtdz
     
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable:: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
-    double precision, allocatable::qxm(:,:,:,:),qym(:,:,:,:), qzm(:,:,:,:)
-    double precision, allocatable::qxp(:,:,:,:),qyp(:,:,:,:), qzp(:,:,:,:)
+    double precision, pointer:: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
+    double precision, pointer::qxm(:,:,:,:),qym(:,:,:,:), qzm(:,:,:,:)
+    double precision, pointer::qxp(:,:,:,:),qyp(:,:,:,:), qzp(:,:,:,:)
     
-    double precision, allocatable::qmxy(:,:,:,:),qpxy(:,:,:,:)
-    double precision, allocatable::qmxz(:,:,:,:),qpxz(:,:,:,:)
+    double precision, pointer::qmxy(:,:,:,:),qpxy(:,:,:,:)
+    double precision, pointer::qmxz(:,:,:,:),qpxz(:,:,:,:)
     
-    double precision, allocatable::qmyx(:,:,:,:),qpyx(:,:,:,:)
-    double precision, allocatable::qmyz(:,:,:,:),qpyz(:,:,:,:)
+    double precision, pointer::qmyx(:,:,:,:),qpyx(:,:,:,:)
+    double precision, pointer::qmyz(:,:,:,:),qpyz(:,:,:,:)
     
-    double precision, allocatable::qmzx(:,:,:,:),qpzx(:,:,:,:)
-    double precision, allocatable::qmzy(:,:,:,:),qpzy(:,:,:,:)
+    double precision, pointer::qmzx(:,:,:,:),qpzx(:,:,:,:)
+    double precision, pointer::qmzy(:,:,:,:),qpzy(:,:,:,:)
     
-    double precision, allocatable::qxl(:,:,:,:),qxr(:,:,:,:)
-    double precision, allocatable::qyl(:,:,:,:),qyr(:,:,:,:)
-    double precision, allocatable::qzl(:,:,:,:),qzr(:,:,:,:)
+    double precision, pointer::qxl(:,:,:,:),qxr(:,:,:,:)
+    double precision, pointer::qyl(:,:,:,:),qyr(:,:,:,:)
+    double precision, pointer::qzl(:,:,:,:),qzr(:,:,:,:)
     
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
-    double precision, allocatable::   fx(:,:,:,:),  fy(:,:,:,:), fz(:,:,:,:)
+    double precision, pointer::   fx(:,:,:,:),  fy(:,:,:,:), fz(:,:,:,:)
     
-    double precision, allocatable::fxy(:,:,:,:),fxz(:,:,:,:)
-    double precision, allocatable::fyx(:,:,:,:),fyz(:,:,:,:)
-    double precision, allocatable::fzx(:,:,:,:),fzy(:,:,:,:)
+    double precision, pointer::fxy(:,:,:,:),fxz(:,:,:,:)
+    double precision, pointer::fyx(:,:,:,:),fyz(:,:,:,:)
+    double precision, pointer::fzx(:,:,:,:),fzy(:,:,:,:)
     
-    double precision, allocatable:: pgdnvx(:,:,:), ugdnvx(:,:,:), gegdnvx(:,:,:)
-    double precision, allocatable:: pgdnvxf(:,:,:), ugdnvxf(:,:,:), gegdnvxf(:,:,:)
-    double precision, allocatable:: pgdnvtmpx(:,:,:), ugdnvtmpx(:,:,:), gegdnvtmpx(:,:,:)
+    double precision, pointer:: pgdnvx(:,:,:), ugdnvx(:,:,:), gegdnvx(:,:,:)
+    double precision, pointer:: pgdnvxf(:,:,:), ugdnvxf(:,:,:), gegdnvxf(:,:,:)
+    double precision, pointer:: pgdnvtmpx(:,:,:), ugdnvtmpx(:,:,:), gegdnvtmpx(:,:,:)
     
-    double precision, allocatable:: pgdnvy(:,:,:), ugdnvy(:,:,:), gegdnvy(:,:,:)
-    double precision, allocatable:: pgdnvyf(:,:,:), ugdnvyf(:,:,:), gegdnvyf(:,:,:)
-    double precision, allocatable:: pgdnvtmpy(:,:,:), ugdnvtmpy(:,:,:), gegdnvtmpy(:,:,:)
+    double precision, pointer:: pgdnvy(:,:,:), ugdnvy(:,:,:), gegdnvy(:,:,:)
+    double precision, pointer:: pgdnvyf(:,:,:), ugdnvyf(:,:,:), gegdnvyf(:,:,:)
+    double precision, pointer:: pgdnvtmpy(:,:,:), ugdnvtmpy(:,:,:), gegdnvtmpy(:,:,:)
     
-    double precision, allocatable:: pgdnvz(:,:,:), ugdnvz(:,:,:), gegdnvz(:,:,:)
-    double precision, allocatable:: pgdnvzf(:,:,:), ugdnvzf(:,:,:), gegdnvzf(:,:,:)
-    double precision, allocatable:: pgdnvtmpz1(:,:,:), ugdnvtmpz1(:,:,:), gegdnvtmpz1(:,:,:)
-    double precision, allocatable:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), gegdnvtmpz2(:,:,:)
+    double precision, pointer:: pgdnvz(:,:,:), ugdnvz(:,:,:), gegdnvz(:,:,:)
+    double precision, pointer:: pgdnvzf(:,:,:), ugdnvzf(:,:,:), gegdnvzf(:,:,:)
+    double precision, pointer:: pgdnvtmpz1(:,:,:), ugdnvtmpz1(:,:,:), gegdnvtmpz1(:,:,:)
+    double precision, pointer:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), gegdnvtmpz2(:,:,:)
     
-    double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
-    double precision, allocatable:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
-    double precision, allocatable:: Ip_r(:,:,:,:,:,:), Im_r(:,:,:,:,:,:)
-    double precision, allocatable:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
+    double precision, pointer:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
+    double precision, pointer:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
+    double precision, pointer:: Ip_r(:,:,:,:,:,:), Im_r(:,:,:,:,:,:)
+    double precision, pointer:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
-    double precision, allocatable :: shk(:,:,:)
+    double precision, pointer :: shk(:,:,:)
     
     type (eos_t_3D) :: eos_state
     double precision :: rhoInv
 
-    allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
     
-    allocate ( pgdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( gegdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( gegdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
 
-    allocate ( pgdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate ( ugdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-    allocate (gegdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+    call bl_allocate ( pgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate ( ugdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (gegdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
     
-    allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qxm, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qxp, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmxy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpxy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmxy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpxy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmxz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpxz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmxz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpxz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qym, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qyp, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmyx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpyx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmyx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpyx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmyz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpyz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmyz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpyz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qzm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qzp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qzm, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qzp, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qxl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qxr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qyl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qyr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qzl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qzr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qxl, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qxr, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qyl, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qyr, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qzl, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qzr, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmzx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpzx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmzx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpzx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( qmzy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-    allocate ( qpzy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+    call bl_allocate ( qmzy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qpzy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    allocate ( fx(ilo1:ihi1+1,ilo2-1:ihi2+1,2,NVAR))
-    allocate ( fy(ilo1-1:ihi1+1,ilo2:ihi2+1,2,NVAR))
-    allocate ( fz(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,NVAR))
+    call bl_allocate ( fx, ilo1,ihi1+1,ilo2-1,ihi2+1,1,2,1,NVAR)
+    call bl_allocate ( fy, ilo1-1,ihi1+1,ilo2,ihi2+1,1,2,1,NVAR)
+    call bl_allocate ( fz, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,NVAR)
 
-    allocate ( fxy(ilo1:ihi1+1,ilo2-1:ihi2+1,2,NVAR))
-    allocate ( fxz(ilo1:ihi1+1,ilo2-1:ihi2+1,2,NVAR))
+    call bl_allocate ( fxy, ilo1,ihi1+1,ilo2-1,ihi2+1,1,2,1,NVAR)
+    call bl_allocate ( fxz, ilo1,ihi1+1,ilo2-1,ihi2+1,1,2,1,NVAR)
 
-    allocate ( fyx(ilo1-1:ihi1+1,ilo2:ihi2+1,2,NVAR))
-    allocate ( fyz(ilo1-1:ihi1+1,ilo2:ihi2+1,2,NVAR))
+    call bl_allocate ( fyx, ilo1-1,ihi1+1,ilo2,ihi2+1,1,2,1,NVAR)
+    call bl_allocate ( fyz, ilo1-1,ihi1+1,ilo2,ihi2+1,1,2,1,NVAR)
 
-    allocate ( fzx(ilo1:ihi1,ilo2-1:ihi2+1,2,NVAR))
-    allocate ( fzy(ilo1-1:ihi1+1,ilo2:ihi2,2,NVAR))
+    call bl_allocate ( fzx, ilo1,ihi1,ilo2-1,ihi2+1,1,2,1,NVAR)
+    call bl_allocate ( fzy, ilo1-1,ihi1+1,ilo2,ihi2,1,2,1,NVAR)
 
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
-       allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
-       allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QVAR))
+       call bl_allocate ( Ip, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
+       call bl_allocate ( Im, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
        
        ! for gravity (last index is x,y,z component)
-       allocate ( Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-       allocate ( Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       call bl_allocate ( Ip_g, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
+       call bl_allocate ( Im_g, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
        
        ! for rotation (last index is x,y,z component)
-       allocate ( Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
-       allocate ( Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,3))
+       call bl_allocate ( Ip_r, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
+       call bl_allocate ( Im_r, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
        
        ! for gamc -- needed for the reference state in eigenvectors
-       allocate ( Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
-       allocate ( Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,1))
+       call bl_allocate ( Ip_gc, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,1)
+       call bl_allocate ( Im_gc, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,1)
 
        eos_state = eos_t_3D( (/ ilo1-1, ilo2-1, 1 /), (/ ihi1+1, ihi2+1, 1 /) )
+
     else
-       allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-       allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
-       allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QVAR))
+       call bl_allocate ( dqx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+       call bl_allocate ( dqy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+       call bl_allocate ( dqz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
     end if
 
     ! for the hybrid Riemann solver
-    allocate(shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1,ilo3-1:ihi3+1))
+    call bl_allocate(shk, ilo1-1,ihi1+1,ilo2-1,ihi2+1,ilo3-1,ihi3+1)
     
     ! Local constants
     dxinv = ONE/dx
@@ -667,39 +669,112 @@ contains
     enddo
 
     ! Deallocate arrays
-    deallocate(pgdnvx,ugdnvx,gegdnvx)
-    deallocate(pgdnvxf,ugdnvxf,gegdnvxf)
-    deallocate(pgdnvtmpx,ugdnvtmpx,gegdnvtmpx)
-    deallocate(pgdnvy,ugdnvy,gegdnvy)
-    deallocate(pgdnvyf,ugdnvyf,gegdnvyf)
-    deallocate(pgdnvtmpy,ugdnvtmpy,gegdnvtmpy)
-    deallocate(pgdnvz,ugdnvz,gegdnvz)
-    deallocate(pgdnvtmpz1,ugdnvtmpz1,gegdnvtmpz1)
-    deallocate(pgdnvtmpz2,ugdnvtmpz2,gegdnvtmpz2)
-    deallocate(pgdnvzf,ugdnvzf,gegdnvzf)
-    deallocate(qxm,qxp)
-    deallocate(qmxy,qpxy)
-    deallocate(qmxz,qpxz)
-    deallocate(qym,qyp)
-    deallocate(qmyx,qpyx)
-    deallocate(qmyz,qpyz)
-    deallocate(qzm,qzp)
-    deallocate(qxl,qxr,qyl,qyr,qzl,qzr)
-    deallocate(qmzx,qpzx)
-    deallocate(qmzy,qpzy)
-    deallocate(fx,fy,fz)
-    deallocate(fxy,fxz)
-    deallocate(fyx,fyz)
-    deallocate(fzx,fzy)
+    call bl_deallocate ( pgdnvx)
+    call bl_deallocate ( ugdnvx)
+    call bl_deallocate (gegdnvx)
+
+    call bl_deallocate ( pgdnvxf)
+    call bl_deallocate ( ugdnvxf)
+    call bl_deallocate (gegdnvxf)
+
+    call bl_deallocate ( pgdnvtmpx)
+    call bl_deallocate ( ugdnvtmpx)
+    call bl_deallocate (gegdnvtmpx)
+    
+    call bl_deallocate ( pgdnvy)
+    call bl_deallocate ( ugdnvy)
+    call bl_deallocate ( gegdnvy)
+
+    call bl_deallocate ( pgdnvyf)
+    call bl_deallocate ( ugdnvyf)
+    call bl_deallocate (gegdnvyf)
+
+    call bl_deallocate ( pgdnvtmpy)
+    call bl_deallocate ( ugdnvtmpy)
+    call bl_deallocate (gegdnvtmpy)
+
+    call bl_deallocate ( pgdnvz)
+    call bl_deallocate ( ugdnvz)
+    call bl_deallocate (gegdnvz)
+
+    call bl_deallocate ( pgdnvzf)
+    call bl_deallocate ( ugdnvzf)
+    call bl_deallocate (gegdnvzf)
+
+    call bl_deallocate ( pgdnvtmpz1)
+    call bl_deallocate ( ugdnvtmpz1)
+    call bl_deallocate (gegdnvtmpz1)
+
+    call bl_deallocate ( pgdnvtmpz2)
+    call bl_deallocate ( ugdnvtmpz2)
+    call bl_deallocate (gegdnvtmpz2)
+    
+    call bl_deallocate ( qxm)
+    call bl_deallocate ( qxp)
+
+    call bl_deallocate ( qmxy)
+    call bl_deallocate ( qpxy)
+
+    call bl_deallocate ( qmxz)
+    call bl_deallocate ( qpxz)
+
+    call bl_deallocate ( qym)
+    call bl_deallocate ( qyp)
+
+    call bl_deallocate ( qmyx)
+    call bl_deallocate ( qpyx)
+
+    call bl_deallocate ( qmyz)
+    call bl_deallocate ( qpyz)
+
+    call bl_deallocate ( qzm)
+    call bl_deallocate ( qzp)
+
+    call bl_deallocate ( qxl)
+    call bl_deallocate ( qxr)
+    call bl_deallocate ( qyl)
+    call bl_deallocate ( qyr)
+    call bl_deallocate ( qzl)
+    call bl_deallocate ( qzr)
+
+    call bl_deallocate ( qmzx)
+    call bl_deallocate ( qpzx)
+
+    call bl_deallocate ( qmzy)
+    call bl_deallocate ( qpzy)
+
+    call bl_deallocate ( fx)
+    call bl_deallocate ( fy)
+    call bl_deallocate ( fz)
+
+    call bl_deallocate ( fxy)
+    call bl_deallocate ( fxz)
+
+    call bl_deallocate ( fyx)
+    call bl_deallocate ( fyz)
+
+    call bl_deallocate ( fzx)
+    call bl_deallocate ( fzy)
+
     if (ppm_type .gt. 0) then
-       deallocate(Ip,Im)
-       deallocate(Ip_g,Im_g)
-       deallocate(Ip_r,Im_r)
-       deallocate(Ip_gc,Im_gc)
+       call bl_deallocate ( Ip)
+       call bl_deallocate ( Im)
+       
+       call bl_deallocate ( Ip_g)
+       call bl_deallocate ( Im_g)
+       
+       call bl_deallocate ( Ip_r)
+       call bl_deallocate ( Im_r)
+       
+       call bl_deallocate ( Ip_gc)
+       call bl_deallocate ( Im_gc)
     else
-       deallocate(dqx,dqy,dqz)
+       call bl_deallocate ( dqx)
+       call bl_deallocate ( dqy)
+       call bl_deallocate ( dqz)
     end if
-    deallocate(shk)
+
+    call bl_deallocate(shk)
       
   end subroutine umeth3d
 
@@ -719,6 +794,7 @@ contains
     !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
     !     routine that computes flatn).  
     !
+    use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use eos_module
     use eos_type_module
@@ -752,9 +828,9 @@ contains
     double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
     double precision :: dx, dy, dz, dt, courno
 
-    double precision, allocatable:: dpdrho(:,:,:)
-    double precision, allocatable:: dpde(:,:,:)
-    double precision, allocatable:: dpdX_er(:,:,:,:)
+    double precision, pointer:: dpdrho(:,:,:)
+    double precision, pointer:: dpde(:,:,:)
+    double precision, pointer:: dpdX_er(:,:,:,:)
 
     integer          :: i, j, k
     integer          :: ngp, ngf, loq(3), hiq(3)
@@ -768,20 +844,20 @@ contains
 
     type (eos_t_3D) :: eos_state
 
-    eos_state = eos_t_3D(lo-ngp, hi+ngp)
-
     dtdx = dt/dx
     dtdy = dt/dy
     dtdz = dt/dz
 
-    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-!    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
+    call bl_allocate( dpdrho, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+    call bl_allocate(   dpde, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+!    call bl_allocate(dpdX_er, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,nspec)
 
     do i=1,3
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
+
+    eos_state = eos_t_3D(loq, hiq)
 
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
@@ -1013,7 +1089,9 @@ contains
        flatn = ONE
     endif
 
-    deallocate(dpdrho,dpde)
+    call bl_deallocate( dpdrho)
+    call bl_deallocate(   dpde)
+!    call bl_deallocate(dpdX_er)
     
   end subroutine ctoprim
 

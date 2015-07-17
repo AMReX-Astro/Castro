@@ -16,6 +16,7 @@ contains
                         dqx,dqy,dqz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,nv)
 
+      use mempool_module, only : bl_allocate, bl_deallocate
       use meth_params_module
       use bl_constants_module
 
@@ -37,15 +38,15 @@ contains
       double precision dlft, drgt, slop, dq1
       double precision dm, dp, dc, ds, sl, dl, dfm, dfp
 
-      double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+      double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
       ilo = MIN(ilo1,ilo2)
       ihi = MAX(ihi1,ihi2)
 
-      allocate (dsgn(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (dlim(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (  df(ilo-2:ihi+2,ilo-2:ihi+2))
-      allocate (dcen(ilo-2:ihi+2,ilo-2:ihi+2))
+      call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+      call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+      call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
+      call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
       if(iorder.eq.1) then
 
@@ -167,7 +168,10 @@ contains
 
       endif
 
-      deallocate(dsgn,dlim,df,dcen)
+      call bl_deallocate (dsgn)
+      call bl_deallocate (dlim)
+      call bl_deallocate (  df)
+      call bl_deallocate (dcen)
 
       end subroutine uslope
 
@@ -180,6 +184,7 @@ contains
                         grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
         
+        use mempool_module, only : bl_allocate, bl_deallocate
         use meth_params_module
         use bl_constants_module
 
@@ -206,15 +211,15 @@ contains
         double precision dm, dp, dc, dl, dfm, dfp, ds
 
         !     Local arrays
-        double precision, allocatable::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+        double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
         ilo = MIN(ilo1,ilo2)
         ihi = MAX(ihi1,ihi2)
 
-        allocate (dsgn(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (dlim(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (  df(ilo-2:ihi+2,ilo-2:ihi+2))
-        allocate (dcen(ilo-2:ihi+2,ilo-2:ihi+2))
+        call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+        call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+        call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
+        call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
         if(iorder.eq.1) then
 
@@ -355,7 +360,10 @@ contains
 
         endif
 
-        deallocate(dsgn,dlim,df,dcen)
+        call bl_deallocate (dsgn)
+        call bl_deallocate (dlim)
+        call bl_deallocate (  df)
+        call bl_deallocate (dcen)
 
       end subroutine pslope
 
