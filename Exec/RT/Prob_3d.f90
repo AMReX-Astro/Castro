@@ -76,7 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-       UEDEN, UEINT, UFS, UTEMP
+       UEDEN, UEINT, UFS, UTEMP, small_temp
   use bl_constants_module, only: ZERO, HALF, M_PI
   use eos_module, only : gamma_const
   
@@ -96,7 +96,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   state(:,:,:,UMX)   = ZERO
   state(:,:,:,UMY)   = ZERO
   state(:,:,:,UMZ)   = ZERO
-  state(:,:,:,UTEMP) = ZERO
+  state(:,:,:,UTEMP) = small_temp
 
   do k = lo(3), hi(3)
      z = (k+HALF)*delta(3)
