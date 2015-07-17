@@ -1,5 +1,4 @@
-   subroutine ca_enforce_consistent_e(lo,hi,state, &
-                                      state_l1,state_l2,state_l3,state_h1,state_h2,state_h3)
+   subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
      use bl_constants_module
@@ -7,15 +6,15 @@
      implicit none
 
      integer          :: lo(3), hi(3)
-     integer          :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+     integer          :: s_lo(3), s_hi(3)
+     double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
      ! Local variables
      integer          :: i,j,k
      double precision :: u, v, w, rhoInv
 
      ! 
-     ! Make sure to enforce (rho E) = (rho e) + 1/2 rho (u^2 +_ v^2 + w^2)
+     ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 +_ v^2 + w^2)
      !
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)

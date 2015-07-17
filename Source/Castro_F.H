@@ -94,7 +94,7 @@ BL_FORT_PROC_DECL(CA_CHECK_INITIAL_SPECIES, ca_check_initial_species)
 BL_FORT_PROC_DECL(CA_GET_OMB,ca_get_omb)(Real* frac);
 
 BL_FORT_PROC_DECL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
 #ifdef MAESTRO_INIT
 BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
