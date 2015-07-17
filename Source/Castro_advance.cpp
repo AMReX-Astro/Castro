@@ -399,9 +399,9 @@ Castro::advance_hydro (Real time,
 
 #ifdef REACTIONS
 #ifdef TAU
-	react_first_half_dt(Sborder,tau_diff,time,dt);
+	react_half_dt(Sborder,tau_diff,time,dt);
 #else
-	react_first_half_dt(Sborder,time,dt);
+	react_half_dt(Sborder,time,dt);
 #endif
 #endif
 
@@ -1215,9 +1215,9 @@ Castro::advance_hydro (Real time,
     
 #ifdef REACTIONS
 #ifdef TAU
-    react_second_half_dt(S_new,tau_diff,cur_time,dt,0);
+    react_half_dt(S_new,tau_diff,cur_time,dt);
 #else
-    react_second_half_dt(S_new,cur_time,dt,0);
+    react_half_dt(S_new,cur_time,dt);
 #endif
 #endif
 
@@ -1335,9 +1335,9 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef REACTIONS
 #ifdef TAU
-    react_first_half_dt(S_old,tau_diff,time,dt);
+    react_half_dt(S_old,tau_diff,time,dt);
 #else
-    react_first_half_dt(S_old,time,dt);
+    react_half_dt(S_old,time,dt);
 #endif
 #endif
  
@@ -1419,9 +1419,9 @@ Castro::advance_no_hydro (Real time,
         
 #ifdef REACTIONS
 #ifdef TAU
-       react_second_half_dt(S_new,tau_diff,cur_time,dt,1);
+       react_half_dt(S_new,tau_diff,cur_time,dt);
 #else
-       react_second_half_dt(S_new,cur_time,dt,1);
+       react_half_dt(S_new,cur_time,dt);
 #endif
 #endif
 
