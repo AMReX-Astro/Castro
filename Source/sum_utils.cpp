@@ -73,29 +73,16 @@ Castro::volWgtSum (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if(BL_SPACEDIM < 3) 
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-#if(BL_SPACEDIM == 1) 
+
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 2)
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
-#endif
+	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+	   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+
         sum += s;
     }
 
@@ -137,29 +124,16 @@ Castro::volWgtSquaredSum (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if(BL_SPACEDIM < 3) 
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-#if(BL_SPACEDIM == 1) 
+
 	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 2)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
-#endif
+	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+
         sum += s;
     }
 
@@ -202,34 +176,16 @@ Castro::locWgtSum (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if (BL_SPACEDIM < 3)
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-#if (BL_SPACEDIM == 1) 
+
 	BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-            (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,rad,irlo,irhi,idir);
-#elif (BL_SPACEDIM == 2)
-        int geom_flag = Geometry::IsRZ() ? 1 : 0;
-        if (idir == 0 && geom_flag == 1) {
-            s = 0.0;
-        } else {
-	   BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-               (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,rad,irlo,irhi,idir);
-        }
-#else
-	BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-            (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,idir);
-#endif
+	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
+
         sum += s;
     }
 
@@ -241,7 +197,6 @@ Castro::locWgtSum (const std::string& name,
     return sum;
 }
 
-#if (BL_SPACEDIM > 1)
 Real
 Castro::locWgtSum2D (const std::string& name,
                      Real               time,
@@ -274,26 +229,16 @@ Castro::locWgtSum2D (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if (BL_SPACEDIM < 3)
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-#if (BL_SPACEDIM == 2)
+
 	BL_FORT_PROC_CALL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
-	  (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,rad,irlo,irhi,idir1,idir2);
-#elif (BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
-	  (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,idir1,idir2);
-#endif
+	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir1,idir2);
+
         sum += s;
     }
 
@@ -304,7 +249,6 @@ Castro::locWgtSum2D (const std::string& name,
 
     return sum;
 }
-#endif
 
 Real
 Castro::volWgtSumMF (MultiFab* mf, int comp, bool local) 
@@ -327,29 +271,16 @@ Castro::volWgtSumMF (MultiFab* mf, int comp, bool local)
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if (BL_SPACEDIM < 3) 
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-#if(BL_SPACEDIM == 1) 
+
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 2)
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s,rad,irlo,irhi);
-#elif(BL_SPACEDIM == 3)
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN_N(fab,comp),lo,hi,dx,&s);
-#endif
+	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_N_3D(fab,comp),
+	   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+
         sum += s;
     }
 
@@ -359,7 +290,6 @@ Castro::volWgtSumMF (MultiFab* mf, int comp, bool local)
     return sum;
 }
 
-#if (BL_SPACEDIM > 1)
 Real
 Castro::volWgtSumOneSide (const std::string& name,
                           Real               time, 
@@ -398,22 +328,9 @@ Castro::volWgtSumOneSide (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if(BL_SPACEDIM < 3) 
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
-#if (BL_SPACEDIM == 2)
-        int hiLeft[2]       = { *hi, *(hi+1) };
-        int loRight[2]      = { *lo, *(lo+1) };
-#elif (BL_SPACEDIM == 3)
         int hiLeft[3]       = { *hi, *(hi+1), *(hi+2) };
         int loRight[3]      = { *lo, *(lo+1), *(lo+2) };
-#endif
 
         hiLeft[bdir]        = *(domhi+bdir) / 2;
         loRight[bdir]       = *(domhi+bdir) / 2 + 1;
@@ -453,13 +370,11 @@ Castro::volWgtSumOneSide (const std::string& name,
 	}
 
         if ( doSum ) {
-#if (BL_SPACEDIM == 2)
+
           BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),loFinal,hiFinal,dx,&s,rad,irlo,irhi);
-#elif (BL_SPACEDIM == 3)
-          BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),loFinal,hiFinal,dx,&s);
-#endif
+   	      (ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
+               ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+
         }
         
         sum += s;
@@ -513,22 +428,10 @@ Castro::locWgtSumOneSide (const std::string& name,
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
-#if(BL_SPACEDIM < 3) 
-	const int i     = mfi.index();
-        const Real* rad = radius[i].dataPtr();
-	const int* vlo  =  grids[i].loVect();
-	const int* vhi  =  grids[i].hiVect();
-        int irlo        = vlo[0]-radius_grow;
-        int irhi        = vhi[0]+radius_grow;
-#endif
 
-#if (BL_SPACEDIM == 2)
-        int hiLeft[2]       = { *hi, *(hi+1) };
-        int loRight[2]      = { *lo, *(lo+1) };
-#elif (BL_SPACEDIM == 3)
         int hiLeft[3]       = { *hi, *(hi+1), *(hi+2) };
         int loRight[3]      = { *lo, *(lo+1), *(lo+2) };
-#endif
+
         hiLeft[bdir]        = *(domhi+bdir) / 2;
         loRight[bdir]       = (*(domhi+bdir) / 2) + 1;
 
@@ -566,13 +469,11 @@ Castro::locWgtSumOneSide (const std::string& name,
 	}
 
         if ( doSum ) {
-#if (BL_SPACEDIM == 2)
+
           BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-             (BL_TO_FORTRAN(fab),loFinal,hiFinal,geom.ProbLo(),dx,&s,rad,irlo,irhi,idir);
-#elif (BL_SPACEDIM == 3)
-          BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-             (BL_TO_FORTRAN(fab),loFinal,hiFinal,geom.ProbLo(),dx,&s,idir);
-#endif
+	      (ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
+	       ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
+
         }
      
         sum += s;
@@ -587,7 +488,6 @@ Castro::locWgtSumOneSide (const std::string& name,
     return sum;
 
 }
-#endif
 
 Real
 Castro::volProductSum (const std::string& name1, 
@@ -643,7 +543,8 @@ Castro::volProductSum (const std::string& name1,
         const int* hi   = box.hiVect();
 
 	BL_FORT_PROC_CALL(CA_SUMPRODUCT,ca_sumproduct)
-	  (BL_TO_FORTRAN(fab1),BL_TO_FORTRAN(fab2),lo,hi,dx,&s);
+	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab1),
+	   BL_TO_FORTRAN_3D(fab2),ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
         
         sum += s;
     }
@@ -659,7 +560,6 @@ Castro::volProductSum (const std::string& name1,
     return sum;
 }
 
-#if (BL_SPACEDIM == 3)
 Real
 Castro::locSquaredSum (const std::string& name,
                        Real               time,
@@ -693,7 +593,8 @@ Castro::locSquaredSum (const std::string& name,
         const int* hi   = box.hiVect();
 
 	BL_FORT_PROC_CALL(CA_SUMLOCSQUAREDMASS,ca_sumlocsquaredmass)
-            (BL_TO_FORTRAN(fab),lo,hi,geom.ProbLo(),dx,&s,idir);
+	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
 
         sum += s;
     }
@@ -705,4 +606,4 @@ Castro::locSquaredSum (const std::string& name,
 
     return sum;
 }
-#endif
+

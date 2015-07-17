@@ -318,8 +318,6 @@
 
         call parallel_initialize()
 
-        dim = dm
-
         iorder = 2 
 
         difmag = difmag_in
@@ -544,6 +542,8 @@
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))
+
+        dim = dm
 
         physbc_lo(:) = physbc_lo_in(:)
         physbc_hi(:) = physbc_hi_in(:)

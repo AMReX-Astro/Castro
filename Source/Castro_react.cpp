@@ -41,7 +41,7 @@ Castro::react_first_half_dt(MultiFab& S_old, Real time, Real dt)
 
 	 // Synchronize (rho e) and (rho E)
 	 BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-           (BL_TO_FORTRAN(S_old[mfi]), bx.loVect(), bx.hiVect(), verbose);
+             (ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(S_old[mfi]), verbose);
       }
     }
 
