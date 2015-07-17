@@ -2977,8 +2977,9 @@ Castro::reset_internal_energy(MultiFab& S_new)
         const Box& bx = mfi.tilebox();
 
         BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-	    (BL_TO_FORTRAN(S_new[mfi]),
-	     bx.loVect(), bx.hiVect(), print_fortran_warnings);
+	    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+	     BL_TO_FORTRAN_3D(S_new[mfi]),
+	     print_fortran_warnings);
     }
 
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
