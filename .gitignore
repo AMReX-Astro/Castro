@@ -31,7 +31,7 @@ chk*
 
 # These files are created at build time
 extern.f90
-network.f90
+general_null_network.f90
 
 # build directories
 o/
