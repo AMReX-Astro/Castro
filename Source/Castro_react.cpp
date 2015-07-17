@@ -8,14 +8,17 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_half_dt(MultiFab& state, MultiFab& tau_diff, Real time, Real dt) 
+Castro::react_half_dt(MultiFab& s, MultiFab& tau_diff, Real time, Real dt) 
 #else
-Castro::react_half_dt(MultiFab& state, Real time, Real dt) 
+Castro::react_half_dt(MultiFab& s, Real time, Real dt) 
 #endif
 {
-    BL_PROFILE("Castro::react_second_half_dt()");
+    BL_PROFILE("Castro::react_half_dt()");
 
-    // Note that here we only react on the valid region of the MultiFab (S_new has no ghost cells).
+    const Real strt_time = ParallelDescriptor::second();
+
+    const Real cur_time = state[State_Type].curTime();
+
     if (do_react == 1) 
     {
 
@@ -28,52 +31,30 @@ Castro::react_half_dt(MultiFab& state, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
 	{
+
 	  const Box& bx = mfi.tilebox();
+
+	  // Note that box is *not* necessarily just the valid region!
+	  BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
+                    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+ 	             BL_TO_FORTRAN_3D(s[mfi]),
+                     BL_TO_FORTRAN_3D(s[mfi]),
+                     BL_TO_FORTRAN_3D(ReactMF[mfi]),
 #ifdef TAU
-	  reactState(state[mfi], state[mfi], ReactMF[mfi], tau_diff[mfi], bx, time, 0.5*dt);
-#else
-	  reactState(state[mfi], state[mfi], ReactMF[mfi], bx, time, 0.5*dt);
+                     BL_TO_FORTRAN_3d(tau_diff[mfi]),
 #endif
+                     time, 0.5 * dt);
+
 	}
 
-        reset_internal_energy(state);
+        reset_internal_energy(s);
 
 	if (verbose && ParallelDescriptor::IOProcessor())
 	  std::cout << "... Leaving burner after completing half-timestep of burning." << "\n\n";
 
     }
-
-}
-
-void
-Castro::reactState(FArrayBox&        Snew,
-                   FArrayBox&        Sold,
-                   FArrayBox&        ReactionTerms,
-#ifdef TAU
-                   FArrayBox&        tau,
-#endif
-                   const Box&        box,
-                   Real              time,
-                   Real              dt_react)
-{
-    BL_PROFILE("Castro::reactState()");
-
-    const Real strt_time = ParallelDescriptor::second();
-
-    const Real cur_time = state[State_Type].curTime();
-
-    // Note that box is *not* necessarily just the valid region!
-    BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
-                    (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
- 	             BL_TO_FORTRAN_3D(Sold),
-                     BL_TO_FORTRAN_3D(Snew),
-                     BL_TO_FORTRAN_3D(ReactionTerms),
-#ifdef TAU
-                     BL_TO_FORTRAN_3d(tau),
-#endif
-                     time,dt_react);
 
     if (verbose > 1)
     {
@@ -85,7 +66,7 @@ Castro::reactState(FArrayBox&        Snew,
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 	if (ParallelDescriptor::IOProcessor()) 
-	    std::cout << "reactState time = " << run_time << '\n';
+	    std::cout << "react_half_dt time = " << run_time << '\n';
 #ifdef BL_LAZY
 	});
 #endif

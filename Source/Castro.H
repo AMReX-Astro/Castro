@@ -336,16 +336,6 @@ public:
 #endif
                       Real       time,
                       Real       dt);
-
-    void reactState (FArrayBox&  Snew,
-                     FArrayBox&  Sold,
-                     FArrayBox&  ReactionTerms,
-#ifdef TAU
-                     FArrayBox&  tau,
-#endif
-                     const Box&  bx,
-                     Real        time,
-                     Real        dt_react);
 #endif
 
 #ifdef RADIATION
