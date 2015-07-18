@@ -34,13 +34,12 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt)
 	for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
 	{
 
-	  const Box& bx = mfi.tilebox();
+	  const Box& bx = mfi.growntilebox();
 
 	  // Note that box is *not* necessarily just the valid region!
 	  BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
                     (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
  	             BL_TO_FORTRAN_3D(s[mfi]),
-                     BL_TO_FORTRAN_3D(s[mfi]),
                      BL_TO_FORTRAN_3D(ReactMF[mfi]),
 #ifdef TAU
                      BL_TO_FORTRAN_3d(tau_diff[mfi]),
