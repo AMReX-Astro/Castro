@@ -25,9 +25,6 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt)
       if (verbose && ParallelDescriptor::IOProcessor())
 	std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
-        MultiFab& ReactMF = get_new_data(Reactions_Type);
-	ReactMF.setVal(0.);
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -40,7 +37,6 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt)
 	  BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)
                     (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
  	             BL_TO_FORTRAN_3D(s[mfi]),
-                     BL_TO_FORTRAN_3D(ReactMF[mfi]),
 #ifdef TAU
                      BL_TO_FORTRAN_3d(tau_diff[mfi]),
 #endif
