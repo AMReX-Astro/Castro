@@ -2113,22 +2113,8 @@ Gravity::fill_ec_grow (int level,
                 (fbox.loVect(), fbox.hiVect(), &nComp, rat, &n,
                  BL_TO_FORTRAN(fine_src[mfi]));
         }
-        //
-        // Build a mf with no grow cells on ecF grown boxes, do parallel copy into.
-        //
-        BoxArray fgridsG = ecF[n].boxArray();
-        fgridsG.grow(ecF[n].nGrow());
 
-        MultiFab ecFG(fgridsG, 1, 0);
-
-        ecFG.copy(fine_src); // Parallel copy
-        ecFG.copy(ecF[n]);   // Parallel copy
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(ecF[n]); mfi.isValid(); ++mfi)
-            ecF[n][mfi].copy(ecFG[mfi]);
+	ecF[n].copy(fine_src, 0, 0, 1, 0, ecF[n].nGrow()); // parallel copy
     }
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
