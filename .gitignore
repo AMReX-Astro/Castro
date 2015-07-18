@@ -9,6 +9,8 @@
 *.lot
 UsersGuide/*.out
 UsersGuide/*.ps
+UsersGuide/*.pdf
+UsersGuide/*/*.pdf
 
 # emacs temporaries
 *~
