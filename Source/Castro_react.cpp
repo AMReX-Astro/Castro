@@ -8,9 +8,9 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_half_dt(MultiFab& s, MultiFab& tau_diff, Real time, Real dt) 
+Castro::react_half_dt(MultiFab& s, MultiFab& tau_diff, Real time, Real dt, int ngrow) 
 #else
-Castro::react_half_dt(MultiFab& s, Real time, Real dt) 
+Castro::react_half_dt(MultiFab& s, Real time, Real dt, int ngrow) 
 #endif
 {
     BL_PROFILE("Castro::react_half_dt()");
@@ -31,7 +31,7 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt)
 	for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
 	{
 
-	  const Box& bx = mfi.growntilebox();
+	  const Box& bx = mfi.growntilebox(ngrow);
 
 	  // Note that box is *not* necessarily just the valid region!
 	  BL_FORT_PROC_CALL(CA_REACT_STATE,ca_react_state)

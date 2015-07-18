@@ -399,9 +399,9 @@ Castro::advance_hydro (Real time,
 
 #ifdef REACTIONS
 #ifdef TAU
-	react_half_dt(Sborder,tau_diff,time,dt);
+	react_half_dt(Sborder,tau_diff,time,dt,NUM_GROW);
 #else
-	react_half_dt(Sborder,time,dt);
+	react_half_dt(Sborder,time,dt,NUM_GROW);
 #endif
 #endif
 
