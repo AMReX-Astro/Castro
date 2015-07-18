@@ -957,12 +957,7 @@ Gravity::GetCrseGradPhi(int level,
 		grad_phi_crse[i][mfi].mult(alpha, tbx);
 		grad_phi_crse[i][mfi].plus(GradPhiCrseTemp);
 	    }
-        }
-	
-        grad_phi_crse[i].FillBoundary();
-
-        const Geometry& geom = parent->Geom(level-1);
-        geom.FillPeriodicBoundary(grad_phi_crse[i],false);
+        }	
     }
 }
 
@@ -2076,22 +2071,8 @@ Gravity::fill_ec_grow (int level,
         fine_src.setVal(1.e200);
         //
         // We want to fill crse_src from ecC[n].
-        // Gotta do it in steps since parallel copy only does valid region.
         //
-        {
-            BoxArray edge_grids = ecC[n].boxArray();
-            edge_grids.grow(ecC[n].nGrow());
-
-            MultiFab ecCG(edge_grids,1,0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-            for (MFIter mfi(ecC[n]); mfi.isValid(); ++mfi)
-                ecCG[mfi].copy(ecC[n][mfi]);
-
-            crse_src.copy(ecCG);
-        }
+	crse_src.copy(ecC[n]);  // parallel copy
 
 #ifdef _OPENMP
 #pragma omp parallel
