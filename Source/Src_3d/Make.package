@@ -32,6 +32,10 @@ f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif
 endif
 
+ifeq ($(USE_REACT), TRUE)
+f90EXE_sources += React_$(DIM)d.f90
+endif
+
 ifeq ($(USE_POINTMASS), TRUE)
 f90EXE_sources += pointmass_$(DIM)d.f90
 endif

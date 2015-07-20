@@ -1,3 +1,1 @@
-ifeq ($(USE_REACT), TRUE)
-f90EXE_sources += React_nd.f90
-endif
+f90EXE_sources += 

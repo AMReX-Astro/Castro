@@ -514,9 +514,10 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
 
 BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG(state),
+     const BL_FORT_FAB_ARG(Snew),
 #ifdef TAU
-     const BL_FORT_FAB_ARG_3D(Tau),
+     const BL_FORT_FAB_ARG(Tau),
 #endif
      const Real& time, const Real& dt_react);
 

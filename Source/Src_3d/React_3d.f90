@@ -1,27 +1,27 @@
 
   subroutine ca_react_state(lo,hi, &
-                            state,s_lo,s_hi, &
+                            state,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                             time,dt_react)
 
       use eos_module
-      use network           , only : nspec, naux
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-                                     UFS, UFX
+      use network           , only: nspec, naux
+      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+                                    UFS, UFX
       use burner_module
       use bl_constants_module
 
       implicit none
 
-      integer          :: lo(3), hi(3)
-      integer          :: s_lo(3), s_hi(3)
-      double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+      integer          :: lo(3),hi(3)
+      integer          :: s_l1,s_h1,s_l2,s_h2,s_l3,s_h3
+      double precision :: state(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,NVAR)
       double precision :: time, dt_react
 
       integer          :: i, j, k
       double precision :: rhoInv
 
-      type (eos_t_3D) :: state_in
-      type (eos_t_3D) :: state_out
+      type (eos_t_3D)  :: state_in
+      type (eos_t_3D)  :: state_out
 
       state_in  = eos_t_3D(lo,hi)
       state_out = eos_t_3D(lo,hi)
