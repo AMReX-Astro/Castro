@@ -1,5 +1,4 @@
 f90EXE_sources += compute_temp_nd.f90
-f90EXE_sources += reset_internal_energy_nd.f90
 
 ifeq ($(USE_REACT), TRUE)
 f90EXE_sources += React_nd.f90

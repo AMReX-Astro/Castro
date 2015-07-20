@@ -1,4 +1,4 @@
-      subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
+      subroutine reset_internal_e(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi,verbose)
 
       use eos_module 
       use eos_type_module
@@ -11,8 +11,8 @@
       implicit none
 
       integer          :: lo(3), hi(3), verbose
-      integer          :: u_lo(3), u_hi(3)
-      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+      integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
+      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
 
       ! Local variables
       integer          :: i,j,k

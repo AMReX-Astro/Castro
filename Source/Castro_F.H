@@ -416,8 +416,8 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
 #endif
 
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(S_new), 
+    (BL_FORT_FAB_ARG(S_new), 
+     const int lo[], const int hi[], 
      const int& verbose);
 
 #ifdef SGS
