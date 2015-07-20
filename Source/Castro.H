@@ -582,6 +582,7 @@ protected:
     static int       dual_energy_update_E_from_e;
     static Real      dual_energy_eta1;
     static Real      dual_energy_eta2;
+    static Real      dual_energy_eta3;
 
     static int       cg_maxiter;
     static Real      cg_tol;

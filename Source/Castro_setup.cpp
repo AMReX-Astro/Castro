@@ -245,7 +245,7 @@ Castro::variableSetUp ()
 	 do_grav, grav_source_type, 
 	 do_sponge,
          normalize_species,fix_mass_flux,use_sgs,
-	 dual_energy_eta1, dual_energy_eta2, dual_energy_update_E_from_e,
+	 dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e,
 	 do_rotation, rot_source_type, rot_axis, rotational_period, 
 	 const_grav, deterministic, do_acc);
 
