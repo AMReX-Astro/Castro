@@ -60,12 +60,17 @@ set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,norm_vel_bc[lo_bc[0]]);
     bc.setHi(0,norm_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)
     bc.setLo(1,tang_vel_bc[lo_bc[1]]);
     bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,tang_vel_bc[lo_bc[2]]);
     bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
 }
 
+#if (BL_SPACEDIM >= 2)
 static
 void
 set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
@@ -76,10 +81,14 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
     bc.setHi(0,tang_vel_bc[hi_bc[0]]);
     bc.setLo(1,norm_vel_bc[lo_bc[1]]);
     bc.setHi(1,norm_vel_bc[hi_bc[1]]);
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,tang_vel_bc[lo_bc[2]]);
     bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
 }
+#endif
 
+#if (BL_SPACEDIM == 3)
 static
 void
 set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
@@ -93,6 +102,7 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
     bc.setLo(2,norm_vel_bc[lo_bc[2]]);
     bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 }
+#endif
 
 void
 Castro::variableSetUp ()
@@ -148,8 +158,12 @@ Castro::variableSetUp ()
     int cnt = 0;
     Density = cnt++;
     Xmom = cnt++;
+#if (BL_SPACEDIM >= 2)
     Ymom = cnt++;
+#endif
+#if (BL_SPACEDIM == 3)
     Zmom = cnt++;
+#endif
     Eden = cnt++;
     Eint = cnt++;
 #ifdef SGS
@@ -358,8 +372,12 @@ Castro::variableSetUp ()
     cnt = 0;
     set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "density";
     cnt++; set_x_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "xmom";
+#if (BL_SPACEDIM >= 2)
     cnt++; set_y_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "ymom";
+#endif
+#if (BL_SPACEDIM == 3)
     cnt++; set_z_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "zmom";
+#endif
     cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
     cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
 #ifdef SGS
@@ -689,15 +707,19 @@ Castro::variableSetUp ()
     derive_lst.addComponent("x_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("x_velocity",desc_lst,State_Type,Xmom,1);
 
+#if (BL_SPACEDIM >= 2)
     derive_lst.add("y_velocity",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERVEL,ca_dervel),the_same_box);
     derive_lst.addComponent("y_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("y_velocity",desc_lst,State_Type,Ymom,1);
+#endif
 
+#if (BL_SPACEDIM == 3)
     derive_lst.add("z_velocity",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERVEL,ca_dervel),the_same_box);
     derive_lst.addComponent("z_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("z_velocity",desc_lst,State_Type,Zmom,1);
+#endif
 
 #ifdef SGS
     derive_lst.add("K",IndexType::TheCellType(),1,

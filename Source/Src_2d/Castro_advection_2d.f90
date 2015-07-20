@@ -526,7 +526,7 @@ contains
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
     use bl_constants_module
@@ -575,7 +575,7 @@ contains
 
     ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
-       if ( n.eq.UTEMP .or. n.eq.UMZ ) then
+       if ( n.eq.UTEMP) then
           flux1(:,:,n) = ZERO
           flux2(:,:,n) = ZERO
        else 
