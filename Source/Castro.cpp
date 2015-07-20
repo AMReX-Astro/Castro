@@ -1108,9 +1108,9 @@ Castro::estTimeStep (Real dt_old)
 		  const Box& box = mfi.tilebox();
 
 		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
-		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-		       BL_TO_FORTRAN_3D(stateMF[mfi]),
-		       ZFILL(dx),&dt);
+		      (BL_TO_FORTRAN(stateMF[mfi]),
+		       box.loVect(),box.hiVect(),
+		       dx,&dt);
 	      }
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      

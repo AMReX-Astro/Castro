@@ -1,31 +1,30 @@
-     subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt)
+     subroutine ca_estdt(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi,dx,dt)
 
-     use network, only: nspec, naux
+     use network, only : nspec, naux
      use eos_module
      use eos_type_module
-     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
-                                   allow_negative_energy
-     use prob_params_module, only: dim
+     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
+                                    allow_negative_energy
      use bl_constants_module
 
      implicit none
 
+     integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
      integer          :: lo(3), hi(3)
-     integer          :: u_lo(3), u_hi(3)
-     double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+     double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
+     double precision :: cs(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3)
+     double precision :: e(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3)
      double precision :: dx(3), dt
 
-     double precision :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
-     double precision :: sqrtK, grid_scl, dt4
-     integer          :: i, j, k, n
+     double precision :: rhoInv,ux,uy,uz,c,dt1,dt2,dt3
+     double precision :: sqrtK,grid_scl,dt4
+     integer          :: i,j,k,n
 
      type (eos_t_3D) :: eos_state
 
      eos_state = eos_t_3D(lo,hi)
-     
-     grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
-     ! Call EOS for the purpose of computing sound speed
+     ! Compute sound speed
 
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
@@ -44,8 +43,20 @@
 
      call eos(eos_input_re, eos_state)
 
-     ! Compute velocity and then calculate CFL timestep.
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
 
+              cs(i,j,k) = eos_state % cs(i,j,k)
+              e(i,j,k)  = eos_state % e(i,j,k)
+
+           enddo
+        enddo
+     enddo
+
+     grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
+
+     ! Translate to primitive variables, compute sound speed (call eos)
      do k = lo(3),hi(3)
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
@@ -60,28 +71,19 @@
                   sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 
                ! Protect against negative e
-               if (eos_state % e(i,j,k) .gt. ZERO .or. allow_negative_energy .eq. 1) then
-                  c = eos_state % cs(i,j,k)
+               if (e(i,j,k) .gt. ZERO .or. allow_negative_energy .eq. 1) then
+                  c = cs(i,j,k)
                else
                   c = ZERO
                end if
 
                dt1 = dx(1)/(c + abs(ux))
-               if (dim .ge. 2) then
-                  dt2 = dx(2)/(c + abs(uy))
-               else
-                  dt2 = dt1
-               endif
-               if (dim .eq. 3) then
-                  dt3 = dx(3)/(c + abs(uz))
-               else
-                  dt3 = dt1
-               endif
-
-               dt  = min(dt,dt1,dt2,dt3)
+               dt2 = dx(2)/(c + abs(uy))
+               dt3 = dx(3)/(c + abs(uz))
+               dt = min(dt,dt1,dt2,dt3)
 
                ! Now let's check the diffusion terms for the SGS equations
-               if (UESGS .gt. -1 .and. dim .eq. 3) then
+               if (UESGS .gt. -1) then
 
                   ! First for the term in the momentum equation
                   ! This is actually dx^2 / ( 6 nu_sgs )
