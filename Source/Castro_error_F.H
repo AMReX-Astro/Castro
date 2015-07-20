@@ -151,10 +151,10 @@ BL_FORT_PROC_DECL(CA_STATE_ERROR,ca_state_error)
      const Real* time, const int* level);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_TAGS,set_problem_tags)
-    (int* tag, const int* tag_lo, const int* tag_hi,
-     BL_FORT_FAB_ARG_3D(state),
+    (int* tag, ARLIM_P(tag_lo), ARLIM_P(tag_hi),
+     BL_FORT_FAB_ARG(state),
      const int* tagval, const int* clearval,
      const int lo[], const int hi[],
-     const Real dx[], 
+     const Real dx[], const Real problo[],
      const Real* time, const int* level);
 #endif

@@ -2618,11 +2618,11 @@ Castro::errorEst (TagBoxArray& tags,
 	    const int*  thi     = tilebx.hiVect();
 	    
 	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
-	                     (tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
-			      BL_TO_FORTRAN_3D(S_new[mfi]),
+	                     (tptr,  ARLIM(tlo), ARLIM(thi),
+			      BL_TO_FORTRAN(S_new[mfi]),
 			      &tagval, &clearval, 
-			      ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()), 
-			      dx, &time, &level);
+			      tilebx.loVect(), tilebx.hiVect(), 
+			      dx, prob_lo, &time, &level);
 
 	    //
 	    // Now update the tags in the TagBox.
