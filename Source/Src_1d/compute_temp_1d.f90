@@ -36,7 +36,7 @@
          end do
       end if
 
-      do i = lo(1),hi(1)
+      do i = lo(1), hi(1)
 
          eos_state % rho = state(i,URHO)
          eos_state % e   = state(i,UEINT) / state(i,URHO)
@@ -46,14 +46,18 @@
          ! initial guess for iterations
          eos_state % T = state(i,UTEMP) 
 
-         call eos(eos_input_re, eos_state)
+      enddo
+
+      call eos(eos_input_re, eos_state)
+
+      do i = lo(1), hi(1)
 
          state(i,UTEMP) = eos_state % T
 
-         ! Reset energy in case we floored
+         ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.                                         
 
-         state(i,UEDEN) = state(i,UEDEN) + state(i,URHO) * eos_state % e - state(i,UEINT)
-         state(i,UEINT) = state(i,URHO) * eos_state % e
+         state(i,UEDEN) = state(i,UEDEN) + (state(i,URHO) * eos_state % e(i) - state(i,UEINT))
+         state(i,UEINT) = state(i,URHO) * eos_state % e(i)
 
       enddo
 

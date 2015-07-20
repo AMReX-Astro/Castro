@@ -52,14 +52,20 @@
 
             eos_state % T   = state(i,j,UTEMP) ! Initial guess for EOS
 
-            call eos(eos_input_re, eos_state)
+         enddo
+      enddo
+
+      call eos(eos_input_re, eos_state)
+
+      do j = lo(2), hi(2)
+         do i = lo(1), hi(1)
 
             state(i,j,UTEMP) = eos_state % T
 
-            ! Reset energy in case we floored
+            ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.                                         
 
-            state(i,j,UEDEN) = state(i,j,UEDEN) + state(i,j,URHO) * eos_state % e - state(i,j,UEINT)
-            state(i,j,UEINT) = state(i,j,URHO) * eos_state % e
+            state(i,j,UEDEN) = state(i,j,UEDEN) + (state(i,j,URHO) * eos_state % e(i,j) - state(i,j,UEINT))
+            state(i,j,UEINT) = state(i,j,URHO) * eos_state % e(i,j)
 
          enddo
       enddo
