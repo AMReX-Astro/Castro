@@ -2446,7 +2446,7 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
         BL_FORT_PROC_CALL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
-          (ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+          (lo, hi, BL_TO_FORTRAN(S[mfi]));
     }
 }
 
