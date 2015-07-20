@@ -3013,10 +3013,9 @@ Castro::computeTemp(MultiFab& State)
 #pragma omp parallel
 #endif
     for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
-    { 
-      const Box& bx = mfi.tilebox();
-      BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
-	(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
+    { const Box& bx = mfi.tilebox();
+	BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
+	  (bx.loVect(),bx.hiVect(),BL_TO_FORTRAN(State[mfi]));
     }
 
 #endif
