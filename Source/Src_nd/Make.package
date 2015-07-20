@@ -4,16 +4,9 @@ f90EXE_sources += enforce_consistent_e.f90
 f90EXE_sources += Castro_sums.f90
 f90EXE_sources += EstDt.f90
 f90EXE_sources += Derive.f90
-f90EXE_sources += Castro.f90
-f90EXE_sources += Problem.f90
-f90EXE_sources += meth_params.f90
-f90EXE_sources += prob_params.f90
-f90EXE_sources += tagging_params.f90
-f90EXE_sources += interpolate.f90
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav.f90
-f90EXE_sources += Gravity.f90
 endif
 
 ifeq ($(USE_REACT), TRUE)
