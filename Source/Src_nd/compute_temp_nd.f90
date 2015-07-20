@@ -70,10 +70,10 @@
             do i = lo(1), hi(1)
                state(i,j,k,UTEMP) = eos_state % T(i,j,k)
 
-               ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
-
-               state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e(i,j,k) - state(i,j,k,UEINT))
+               ! Reset energy in case we floored
                state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e(i,j,k)
+               state(i,j,k,UEDEN) = state(i,j,k,UEINT) &
+                                  + HALF * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
 
             enddo
          enddo
