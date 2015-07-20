@@ -384,7 +384,6 @@
         QU    = 2
         QV    = 3
         QW    = 4
-        QLAST = 4
 
         ! we'll carry this around as an potential alternate to (rho e)
         QGAME   = QLAST + 1
