@@ -12,31 +12,32 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_summass(lo,hi,rho,r_lo,r_hi,dx,&
-                            vol,v_lo,v_hi,mass)
+      subroutine ca_summass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi,dx,mass)
 
         use bl_constants_module
 
         implicit none
 
+        integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
         integer          :: lo(3), hi(3)
-        integer          :: r_lo(3), r_hi(3)
-        integer          :: v_lo(3), v_hi(3)
         double precision :: mass, dx(3)
-        double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-        double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+        double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
         
         integer          :: i, j, k
+        double precision :: vol
 
+        vol  = dx(1)*dx(2)*dx(3)
         mass = ZERO
 
         do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
-                 mass = mass + rho(i,j,k) * vol(i,j,k)
+           do i = lo(1), hi(1)
+              do j = lo(2), hi(2)
+                 mass = mass + rho(i,j,k)
               enddo
            enddo
         enddo
+
+        mass = mass * vol
 
       end subroutine ca_summass
 
@@ -53,31 +54,32 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_sumsquared(lo,hi,rho,r_lo,r_hi,dx,&
-                               vol,v_lo,v_hi,mass)
+      subroutine ca_sumsquared(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi,dx,mass)
 
         use bl_constants_module
 
         implicit none
 
+        integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
         integer          :: lo(3), hi(3)
-        integer          :: r_lo(3), r_hi(3)
-        integer          :: v_lo(3), v_hi(3)
         double precision :: mass, dx(3)
-        double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-        double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+        double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
         
         integer          :: i, j, k
+        double precision :: vol
 
+        vol  = dx(1)*dx(2)*dx(3)
         mass = ZERO
 
         do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
-                 mass = mass + rho(i,j,k)*rho(i,j,k)*vol(i,j,k)
+           do i = lo(1), hi(1)
+              do j = lo(2), hi(2)
+                 mass = mass + rho(i,j,k)*rho(i,j,k)
               enddo
            enddo
         enddo
+
+        mass = mass * vol
 
       end subroutine ca_sumsquared
 
@@ -96,25 +98,23 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-       subroutine ca_sumlocmass(lo,hi,rho,r_lo,r_hi,dx,&
-                                vol,v_lo,v_hi,mass,idir)
+       subroutine ca_sumlocmass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
+                                problo,dx,mass,idir)
 
-       use prob_params_module, only: problo, center, dim
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
-
        integer          :: idir
+       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
        integer          :: lo(3), hi(3)
-       integer          :: r_lo(3), r_hi(3)
-       integer          :: v_lo(3), v_hi(3)
-       double precision :: mass, dx(3)
-       double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-       double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+       double precision :: mass, problo(3), dx(3)
+       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
        integer          :: i, j, k
-       double precision :: x, y, z
+       double precision :: x,y,z,vol
 
+       vol  = dx(1)*dx(2)*dx(3)
        mass = ZERO
 
        if (idir .eq. 0) then
@@ -122,29 +122,31 @@
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * x
+                   mass = mass + rho(i,j,k) * x
                 enddo
              enddo
           enddo
-       else if (idir .eq. 1 .and. dim .ge. 2) then
+       else if (idir .eq. 1) then
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * y
+                   mass = mass + rho(i,j,k) * y
                 enddo
              enddo
           enddo
-       else if (dim .eq. 3) then
+       else
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * z
+                   mass = mass + rho(i,j,k) * z
                 enddo
              enddo
           enddo
        end if
+
+       mass = mass * vol
 
        end subroutine ca_sumlocmass
 
@@ -168,25 +170,23 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-       subroutine ca_sumlocmass2d(lo,hi,rho,r_lo,r_hi,dx,&
-                                  vol,v_lo,v_hi,mass,idir1,idir2)
+       subroutine ca_sumlocmass2d(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
+                                  problo,dx,mass,idir1,idir2)
 
-       use prob_params_module, only: problo, center, dim
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
-
        integer          :: idir1, idir2
+       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
        integer          :: lo(3), hi(3)
-       integer          :: r_lo(3), r_hi(3)
-       integer          :: v_lo(3), v_hi(3)
-       double precision :: mass, dx(3)
-       double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-       double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+       double precision :: mass, problo(3), dx(3)
+       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
        integer          :: i, j, k
-       double precision :: x, y, z
+       double precision :: x,y,z,vol
 
+       vol  = dx(1)*dx(2)*dx(3)
        mass = ZERO
 
        if (idir1 .eq. 0) then
@@ -195,76 +195,78 @@
              if (idir2 .eq. 0) then
                 do k = lo(3), hi(3)
                    do j = lo(2), hi(2)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * x * x
+                      mass = mass + rho(i,j,k) * x * x
                    enddo
                 enddo
-             elseif (idir2 .eq. 1 .and. dim .ge. 2) then
+             elseif (idir2 .eq. 1) then
                 do j = lo(2), hi(2)
                    y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
                    do k = lo(3), hi(3)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * x * y
+                      mass = mass + rho(i,j,k) * x * y
                    enddo
                 enddo
-             elseif (dim .eq. 3) then
+             else
                 do k = lo(3), hi(3)
                    z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
                    do j = lo(2), hi(2)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * x * z
+                      mass = mass + rho(i,j,k) * x * z
                    enddo
                 enddo
              endif
           enddo
-       else if (idir1 .eq. 1 .and. dim .ge. 2) then
+       else if (idir1 .eq. 1) then
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
                    x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                    do k = lo(3), hi(3)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * y * x
+                      mass = mass + rho(i,j,k) * y * x
                    enddo
                 enddo
              elseif (idir2 .eq. 1) then
                 do i = lo(1), hi(1)
                    do k = lo(3), hi(3)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * y * y
+                      mass = mass + rho(i,j,k) * y * y
                    enddo
                 enddo
-             elseif (dim .eq. 3) then
+             else
                 do k = lo(3), hi(3)
                    z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
                    do i = lo(1), hi(1)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * y * z
+                      mass = mass + rho(i,j,k) * y * z
                    enddo
                 enddo
              endif
           enddo
-       elseif (dim .eq. 3) then
+       else
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
                    x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
                    do j = lo(2), hi(2)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * z * x
+                      mass = mass + rho(i,j,k) * z * x
                    enddo
                 enddo
              elseif (idir2 .eq. 1) then
                 do j = lo(2), hi(2)
                    y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
                    do i = lo(1), hi(1)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * z * y
+                      mass = mass + rho(i,j,k) * z * y
                    enddo
                 enddo
              else
                 do j = lo(2), hi(2)
                    do i = lo(1), hi(1)
-                      mass = mass + rho(i,j,k) * vol(i,j,k) * z * z
+                      mass = mass + rho(i,j,k) * z * z
                    enddo
                 enddo
              endif
           enddo
        end if
+
+       mass = mass * vol
 
        end subroutine ca_sumlocmass2d
 
@@ -287,25 +289,23 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-       subroutine ca_sumlocsquaredmass(lo,hi,rho,r_lo,r_hi,dx,&
-                                       vol,v_lo,v_hi,mass,idir)
+       subroutine ca_sumlocsquaredmass(rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,lo,hi, &
+                                       problo,dx,mass,idir)
 
-       use prob_params_module, only: problo, center, dim
+       use prob_params_module, only : center
        use bl_constants_module
 
        implicit none
-
        integer          :: idir
+       integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
        integer          :: lo(3), hi(3)
-       integer          :: r_lo(3), r_hi(3)
-       integer          :: v_lo(3), v_hi(3)
-       double precision :: mass, dx(3)
-       double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-       double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+       double precision :: mass, problo(3), dx(3)
+       double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
        integer          :: i, j, k
-       double precision :: x, y, z
+       double precision :: x,y,z,vol
 
+       vol  = dx(1)*dx(2)*dx(3)
        mass = ZERO
 
        if (idir .eq. 0) then
@@ -313,29 +313,31 @@
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * (x**2)
+                   mass = mass + rho(i,j,k) * (x**2)
                 enddo
              enddo
           enddo
-       else if (idir .eq. 1 .and. dim .ge. 2) then
+       else if (idir .eq. 1) then
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * (y**2)
+                   mass = mass + rho(i,j,k) * (y**2)
                 enddo
              enddo
           enddo
-       else if (dim .eq. 3) then
+       else
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * (z**2)
+                   mass = mass + rho(i,j,k) * (z**2)
                 enddo
              enddo
           enddo
        end if
+
+       mass = mass * vol
 
        end subroutine ca_sumlocsquaredmass
 
@@ -353,33 +355,35 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-       subroutine ca_sumproduct(lo,hi,f1,f1_lo,f1_hi,f2,f2_lo,f2_hi,dx,&
-                                vol,v_lo,v_hi,product)
+       subroutine ca_sumproduct(f1, f1_l1,f1_l2,f1_l3,f1_h1,f1_h2,f1_h3, &
+                                f2, f2_l1,f2_l2,f2_l3,f2_h1,f2_h2,f2_h3, &
+                                lo,hi,dx,product)
 
        use bl_constants_module
 
        implicit none
 
+       integer          :: f1_l1,f1_l2,f1_l3,f1_h1,f1_h2,f1_h3
+       integer          :: f2_l1,f2_l2,f2_l3,f2_h1,f2_h2,f2_h3
        integer          :: lo(3), hi(3)
-       integer          :: f1_lo(3), f1_hi(3)
-       integer          :: f2_lo(3), f2_hi(3)
-       integer          :: v_lo(3), v_hi(3)
        double precision :: product
-       double precision :: dx(3)
-       double precision :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
-       double precision :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
-       double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+       double precision :: dx(3), vol
+       double precision :: f1(f1_l1:f1_h1,f1_l2:f1_h2,f1_l3:f1_h3)
+       double precision :: f2(f2_l1:f2_h1,f2_l2:f2_h2,f2_l3:f2_h3)
 
-       integer          :: i, j, k
+       integer          :: i,j,k
 
        product = ZERO
+       vol = dx(1) * dx(2) * dx(3)
  
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                product = product + f1(i,j,k) * f2(i,j,k) * vol(i,j,k)
-             enddo
-          enddo
+       do i = lo(1), hi(1)
+         do k = lo(3), hi(3)
+           do j = lo(2), hi(2)
+             product = product + f1(i,j,k)*f2(i,j,k)
+           enddo
+         enddo
        enddo
+
+       product = product * vol
 
        end subroutine ca_sumproduct

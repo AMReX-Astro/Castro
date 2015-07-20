@@ -2949,7 +2949,6 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
     for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
-
         Real s;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
@@ -2960,7 +2959,7 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // whatever quantity is passed in, not strictly the "mass".
         //
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),dx,BL_TO_FORTRAN_3D(volume[level][mfi]),&s);
+            (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
         sum += s;
     }
 

@@ -438,24 +438,47 @@ BL_FORT_PROC_DECL(CA_SYNCGSRC,ca_syncgsrc)
      BL_FORT_FAB_ARG(src),
      const Real& dt);
 
+#if (BL_SPACEDIM == 3)
 BL_FORT_PROC_DECL(CA_SUMMASS,ca_summass)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real dx[], Real* mass);
 BL_FORT_PROC_DECL(CA_SUMSQUARED,ca_sumsquared)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real dx[], Real* mass);
 BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, const int& idir);
 BL_FORT_PROC_DECL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir1, const int& idir2);
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, const int& idir1, const int& idir2);
 BL_FORT_PROC_DECL(CA_SUMLOCSQUAREDMASS,ca_sumlocsquaredmass)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir); 
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, const int& idir); 
+#else
+BL_FORT_PROC_DECL(CA_SUMMASS,ca_summass)
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real dx[], Real* mass,
+     const Real* r, const int& rlo, const int& rhi);
+BL_FORT_PROC_DECL(CA_SUMSQUARED,ca_sumsquared)
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real dx[], Real* mass,
+     const Real* r, const int& rlo, const int& rhi);
+BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, 
+     const Real* r, const int& rlo, const int& rhi,
+     const int& idir);
+BL_FORT_PROC_DECL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
+    (BL_FORT_FAB_ARG(rho), const int lo[], const int hi[],
+     const Real* problo, const Real dx[], Real* mass, 
+     const Real* r, const int& rlo, const int& rhi,
+     const int& idir1, const int& idir2);
+#endif
+
 BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
+    (BL_FORT_FAB_ARG(f1), BL_FORT_FAB_ARG(f2),
+     const int lo[], const int hi[], const Real dx[],
+     Real* s);
 
 BL_FORT_PROC_DECL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
     (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);
