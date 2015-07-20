@@ -318,8 +318,6 @@
 
         call parallel_initialize()
 
-        dim = dm
-
         iorder = 2 
 
         difmag = difmag_in
@@ -550,6 +548,8 @@
         integer, intent(in) :: coord_type_in
         double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
         double precision, intent(in) :: center_in(dm)
+
+        dim = dm
 
         allocate(physbc_lo(dm))
         allocate(physbc_hi(dm))

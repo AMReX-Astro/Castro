@@ -66,4 +66,5 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt, int ngrow)
 	});
 #endif
     }
+}
 #endif
