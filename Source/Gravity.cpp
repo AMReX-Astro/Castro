@@ -2240,9 +2240,9 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
-	   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-            BL_TO_FORTRAN_3D(grav_vector[mfi]),
-	    dx);
+           (bx.loVect(), bx.hiVect(), dx,
+            BL_TO_FORTRAN(grav_vector[mfi]),
+            geom.ProbLo());
     }
 
     if (verbose)

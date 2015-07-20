@@ -98,9 +98,10 @@ BL_FORT_PROC_DECL(CA_INTEGRATE_GRAV,ca_integrate_grav)
      const Real* dr, const int* numpts_1d);
 
 BL_FORT_PROC_DECL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(S),
-     const Real* dx);
+    (const int lo[], const int hi[],
+     const Real* dx,
+     const BL_FORT_FAB_ARG(S),
+     const Real* problo);
 
 #ifdef GR_GRAV
 BL_FORT_PROC_DECL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
