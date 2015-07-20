@@ -1,7 +1,7 @@
 !-----------------------------------------------------------------------
 
-      subroutine ca_derstate(state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3,nv, &
-                             dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_derstate(state,s_lo,s_hi,nv, &
+                             dat,d_lo,d_hi,nc,lo,hi,domlo, &
                              domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! The incoming   "dat" vector contains (rho,T,(rho X)_1)
@@ -9,17 +9,17 @@
       !
       implicit none 
 
-      integer          lo(3), hi(3)
-      integer          state_l1,state_l2,state_l3,state_h1,state_h2,state_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,nv)
-      double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: s_lo(3), s_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+      double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
  
-      integer i,j,k
+      integer          :: i, j, k
 
       if (nv .ne. 3) then
           print *,'... confusion in derstate ... nv should be 3 but is ',nv
@@ -49,25 +49,25 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dervel(vel,vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv, &
-                           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_dervel(vel,v_lo,v_hi,nv, &
+                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
                            domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive the velocity from the momentum.
       !
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision vel(vel_l1:vel_h1,vel_l2:vel_h2,vel_l3:vel_h3,nv)
-      double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
  
-      integer i,j,k
+      integer          :: i, j, k
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -81,25 +81,25 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dermagvel(magvel,vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv, &
-                              dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_dermagvel(magvel,v_lo,v_hi,nv, &
+                              dat,d_lo,d_hi,nc,lo,hi,domlo, &
                               domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive magnitude of velocity.
       !
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision magvel(vel_l1:vel_h1,vel_l2:vel_h2,vel_l3:vel_h3,nv)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer i,j,k
+      integer          :: i, j, k
       double precision :: dat1inv
 
       do k = lo(3), hi(3)
@@ -117,25 +117,25 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dermaggrav(maggrav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,ng, &
-                               dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_dermaggrav(maggrav,g_lo,g_hi,ng, &
+                               dat,d_lo,d_hi,nc,lo,hi,domlo, &
                                domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive magnitude of the gravity vector.
       !
       implicit none 
 
-      integer          lo(3), hi(3)
-      integer          grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,ng
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision maggrav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3,ng)
-      double precision     dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: g_lo(3), g_hi(3), ng
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
+      double precision ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer i,j,k
+      integer          :: i, j, k
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -151,29 +151,29 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derradialvel(radvel,vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv, &
-                                 dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_derradialvel(radvel,v_lo,v_hi,nv, &
+                                 dat,d_lo,d_hi,nc,lo,hi,domlo, &
                                  domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive the radial velocity.
       !
       use bl_constants_module
-      use prob_params_module, only : center
+      use prob_params_module, only: center
 
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          vel_l1,vel_l2,vel_l3,vel_h1,vel_h2,vel_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision radvel(vel_l1:vel_h1,vel_l2:vel_h2,vel_l3:vel_h3,nv)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer          :: i,j,k
-      double precision :: x,y,z,r
+      integer          :: i, j, k
+      double precision :: x, y, z, r
 
       do k = lo(3), hi(3)
          z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
@@ -193,25 +193,25 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dermagmom(magmom,mom_l1,mom_l2,mom_l3,mom_h1,mom_h2,mom_h3,nv, &
-                              dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_dermagmom(magmom,m_lo,m_hi,nv, &
+                              dat,d_lo,d_hi,nc,lo,hi,domlo, &
                               domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive magnitude of momentum.
       !
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          mom_l1,mom_l2,mom_l3,mom_h1,mom_h2,mom_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision magmom(mom_l1:mom_h1,mom_l2:mom_h2,mom_l3:mom_h3,nv)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: m_lo(3), m_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer i,j,k
+      integer          :: i, j, k
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -225,29 +225,30 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derpres(p,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,ncomp_p, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_derpres(p,p_lo,p_hi,ncomp_p, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
-      use network, only : nspec, naux
+      use network, only: nspec, naux
       use eos_module
       use eos_type_module
-      use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-                                     allow_negative_energy
+      use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
+                                    allow_negative_energy
       use bl_constants_module
 
       implicit none
 
-      integer p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,ncomp_p
-      integer u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      double precision p(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3,ncomp_p)
-      double precision u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
-      double precision dx(3), xlo(3), time, dt
-      integer bc(3,2,ncomp_u), level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: p_lo(3), p_hi(3), ncomp_p
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+      double precision :: dx(3), xlo(3), time, dt
+      integer          :: bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k
+      integer          :: i, j, k
 
       type (eos_t_3D) :: eos_state
 
@@ -282,25 +283,26 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dereint1(e,e_l1,e_l2,e_l3,e_h1,e_h2,e_h3,ncomp_e, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_dereint1(e,e_lo,e_hi,ncomp_e, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
       use bl_constants_module
-      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN 
+      use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
 
       implicit none
 
-      integer e_l1,e_l2,e_l3,e_h1,e_h2,e_h3,ncomp_e
-      integer u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      double precision e(e_l1:e_h1,e_l2:e_h2,e_l3:e_h3,ncomp_e)
-      double precision u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
-      double precision dx(3), xlo(3), time, dt
-      integer bc(3,2,ncomp_u), level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: e_lo(3), e_hi(3), ncomp_e
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+      double precision :: dx(3), xlo(3), time, dt
+      integer          :: bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: rhoInv,ux,uy,uz
-      integer          :: i,j,k
+      double precision :: rhoInv, ux, uy, uz
+      integer          :: i, j, k
       !
       ! Compute internal energy from (rho E).
       !
@@ -320,23 +322,24 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dereint2(e,e_l1,e_l2,e_l3,e_h1,e_h2,e_h3,ncomp_e, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_dereint2(e,e_lo,e_hi,ncomp_e, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
-      use meth_params_module, only : URHO, UEINT
+      use meth_params_module, only: URHO, UEINT
 
       implicit none
 
-      integer e_l1,e_l2,e_l3,e_h1,e_h2,e_h3,ncomp_e
-      integer u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      double precision e(e_l1:e_h1,e_l2:e_h2,e_l3:e_h3,ncomp_e)
-      double precision u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
-      double precision dx(3), xlo(3), time, dt
-      integer bc(3,2,ncomp_u), level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: e_lo(3), e_hi(3), ncomp_e
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+      double precision :: dx(3), xlo(3), time, dt
+      integer          :: bc(3,2,ncomp_u), level, grid_no
 
-      integer :: i,j,k
+      integer          :: i, j, k
       !
       ! Compute internal energy from (rho e).
       !
@@ -352,29 +355,30 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dersoundspeed(c,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,ncomp_c, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_dersoundspeed(c,c_lo,c_hi,ncomp_c, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
-      use network, only : nspec, naux
+      use network, only: nspec, naux
       use eos_module
       use eos_type_module
-      use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-                                     allow_negative_energy
+      use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
+                                    allow_negative_energy
       use bl_constants_module
 
       implicit none
 
-      integer c_l1,c_l2,c_l3,c_h1,c_h2,c_h3,ncomp_c
-      integer u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      double precision c(c_l1:c_h1,c_l2:c_h2,c_l3:c_h3,ncomp_c)
-      double precision u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
-      double precision dx(3), xlo(3), time, dt
-      integer bc(3,2,ncomp_u), level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: c_lo(3), c_hi(3), ncomp_c
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
+      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+      double precision :: dx(3), xlo(3), time, dt
+      integer          :: bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer          :: i,j,k
+      integer          :: i, j, k
 
       type (eos_t_3D) :: eos_state
 
@@ -409,29 +413,30 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dermachnumber(mach,mach_l1,mach_l2,mach_l3,mach_h1,mach_h2,mach_h3,ncomp_mach, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_dermachnumber(mach,m_lo,m_hi,ncomp_mach, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
-      use network, only : nspec, naux
+      use network, only: nspec, naux
       use eos_module
       use eos_type_module
-      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
-                                     allow_negative_energy
+      use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+                                    allow_negative_energy
       use bl_constants_module
 
       implicit none
 
-      integer          :: mach_l1,mach_l2,mach_l3,mach_h1,mach_h2,mach_h3,ncomp_mach
-      integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer          :: lo(3), hi(3), domlo(3), domhi(3)
-      double precision :: mach(mach_l1:mach_h1,mach_l2:mach_h2,mach_l3:mach_h3,ncomp_mach)
-      double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
+      integer          :: lo(3), hi(3)
+      integer          :: m_lo(3), m_hi(3), ncomp_mach
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
+      double precision ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
       double precision :: dx(3), xlo(3), time, dt
       integer          :: bc(3,2,ncomp_u), level, grid_no
 
-      double precision :: rhoInv,ux,uy,uz
-      integer          :: i,j,k
+      double precision :: rhoInv, ux, uy, uz
+      integer          :: i, j, k
 
       type (eos_t_3D) :: eos_state
 
@@ -467,29 +472,30 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derentropy(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,ncomp_s, &
-           u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u,lo,hi,domlo, &
+      subroutine ca_derentropy(s,s_lo,s_hi,ncomp_s, &
+           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
            domhi,dx,xlo,time,dt,bc,level,grid_no)
 
-      use network, only : nspec, naux
+      use network, only: nspec, naux
       use eos_module
       use eos_type_module
-      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
-                                     allow_negative_energy
+      use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+                                    allow_negative_energy
       use bl_constants_module
 
       implicit none
 
-      integer s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,ncomp_s
-      integer u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,ncomp_u
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      double precision s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,ncomp_s)
-      double precision u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,ncomp_u)
-      double precision dx(3), xlo(3), time, dt
-      integer bc(3,2,ncomp_u), level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: s_lo(3), s_hi(3), ncomp_s
+      integer          :: u_lo(3), u_hi(3), ncomp_u
+      integer          :: domlo(3), domhi(3)
+      double precision :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
+      double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+      double precision :: dx(3), xlo(3), time, dt
+      integer          :: bc(3,2,ncomp_u), level, grid_no
 
       double precision :: rhoInv
-      integer i,j,k
+      integer          :: i, j, k
 
       type (eos_t_3D) :: eos_state
 
@@ -524,25 +530,25 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derspec(spec,spec_l1,spec_l2,spec_l3,spec_h1,spec_h2,spec_h3,nv, &
-                            dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_derspec(spec,s_lo,s_hi,nv, &
+                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
                             domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
-      ! This routine will derive the velocity from the momentum.
+      ! This routine derives the mass fractions of the species.
       !
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          spec_l1,spec_l2,spec_l3,spec_h1,spec_h2,spec_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision spec(spec_l1:spec_h1,spec_l2:spec_h2,spec_l3:spec_h3,nv)
-      double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: s_lo(3), s_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+      double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
  
-      integer i,j,k
+      integer          :: i, j, k
  
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -556,21 +562,21 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derlogden(logden,ld_l1,ld_l2,ld_l3,ld_h1,ld_h2,ld_h3,nd, &
-                              dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
+      subroutine ca_derlogden(logden,l_lo,l_hi,nd, &
+                              dat,d_lo,d_hi,nc, &
                               lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
       implicit none
 
-      integer          lo(3), hi(3)
-      integer           ld_l1, ld_l2, ld_l3, ld_h1, ld_h2, ld_h3,nd
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3), level, grid_no
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision logden( ld_l1: ld_h1, ld_l2: ld_h2, ld_l3: ld_h3,nd)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
+      integer          :: lo(3), hi(3)
+      integer          :: l_lo(3), l_hi(3), nd
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3), level, grid_no
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
  
-      integer    i,j,k
+      integer          :: i, j, k
  
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -584,8 +590,8 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_dermagvort(vort,v_l1,v_l2,v_l3,v_h1,v_h2,v_h3,nv, & 
-                               dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc,lo,hi,domlo, &
+      subroutine ca_dermagvort(vort,v_lo,v_hi,nv, & 
+                               dat,d_lo,d_hi,nc,lo,hi,domlo, &
                                domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will calculate vorticity
@@ -595,17 +601,17 @@
 
       implicit none
 
-      integer          lo(3), hi(3)
-      integer            v_l1,  v_l2,  v_l3,  v_h1,  v_h2,  v_h3,nv
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3), level, grid_no
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision vort(  v_l1:  v_h1,  v_l2:  v_h2,  v_l3:  v_h3,nv)
-      double precision, intent(in) :: dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3), level, grid_no
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-      integer          :: i,j,k
-      double precision :: uy,uz,vx,vz,wx,wy,v1,v2,v3
+      integer          :: i, j, k
+      double precision :: uy, uz, vx, vz, wx, wy, v1, v2, v3
       double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
       !
       ! Convert momentum to velocity.
@@ -643,29 +649,29 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derdivu(divu,div_l1,div_l2,div_l3,div_h1,div_h2,div_h3,nd, &
-                            dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
+      subroutine ca_derdivu(divu,u_lo,u_hi,nd, &
+                            dat,d_lo,d_hi,nc, &
                             lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
-      ! This routine will divergence of velocity.
+      ! This routine will calculate the divergence of velocity.
       !
 
       use bl_constants_module
 
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          div_l1,div_l2,div_l3,div_h1,div_h2,div_h3,nd
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision divu(div_l1:div_h1,div_l2:div_h2,div_l3:div_h3,nd)
-      double precision  dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: u_lo(3), u_hi(3), nd
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+      double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer          :: i,j,k
-      double precision :: ulo,uhi,vlo,vhi,wlo,whi
+      integer          :: i, j, k
+      double precision :: ulo, uhi, vlo, vhi, wlo, whi
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -687,8 +693,8 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derkineng(kineng,ken_l1,ken_l2,ken_l3,ken_h1,ken_h2,ken_h3,nk, &
-                              dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
+      subroutine ca_derkineng(kineng,k_lo,k_hi,nk, &
+                              dat,d_lo,d_hi,nc, &
                               lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
@@ -698,17 +704,17 @@
 
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          ken_l1,ken_l2,ken_l3,ken_h1,ken_h2,ken_h3,nk
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision kineng(ken_l1:ken_h1,ken_l2:ken_h2,ken_l3:ken_h3,nk)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: k_lo(3), k_hi(3), nk
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
-      integer i,j,k
+      integer          :: i, j, k
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -722,23 +728,25 @@
 
       end subroutine ca_derkineng
 
-      subroutine ca_dernull(kineng,ken_l1,ken_l2,ken_l3,ken_h1,ken_h2,ken_h3,nk, &
-                            dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
-                             lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
+!-----------------------------------------------------------------------
+
+      subroutine ca_dernull(kineng,k_lo,k_hi,nk, &
+                            dat,d_lo,d_hi,nc, &
+                            lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)
       !
       ! This routine is used by particle_count.  Yes it does nothing.
       !
       implicit none
 
-      integer          lo(3), hi(3)
-      integer          ken_l1,ken_l2,ken_l3,ken_h1,ken_h2,ken_h3,nk
-      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
-      integer          domlo(3), domhi(3)
-      integer          bc(3,2,nc)
-      double precision delta(3), xlo(3), time, dt
-      double precision kineng(ken_l1:ken_h1,ken_l2:ken_h2,ken_l3:ken_h3,nk)
-      double precision    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
-      integer    level, grid_no
+      integer          :: lo(3), hi(3)
+      integer          :: k_lo(3), k_hi(3), nk
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+      double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
 
       end subroutine ca_dernull
 

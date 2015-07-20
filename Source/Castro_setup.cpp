@@ -737,7 +737,7 @@ Castro::variableSetUp ()
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     derive_lst.add("maggrav",IndexType::TheCellType(),1,
-          BL_FORT_PROC_CALL(CA_DERMAGGRAV,ca_dermaggrav),the_same_box);
+		   BL_FORT_PROC_CALL(CA_DERMAGGRAV,ca_dermaggrav),the_same_box);
     derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,BL_SPACEDIM);
 #endif
 #endif
