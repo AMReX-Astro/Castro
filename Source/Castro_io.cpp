@@ -399,7 +399,7 @@ Castro::writePlotFile (const std::string& dir,
     int n_data_items = plot_var_map.size() + num_derive;
 #ifdef GRAVITY
     if (do_grav) 
-      if (gravity->get_gravity_type() == "PoissonGrav" && plot_phiGrav) n_data_items++;
+      n_data_items++;
 #endif
 
 #ifdef RADIATION
@@ -437,8 +437,8 @@ Castro::writePlotFile (const std::string& dir,
             os << rec->variableName(0) << '\n';
         }
 #ifdef GRAVITY
-        if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
-            os << "phiGrav" << '\n';
+        if (do_grav)
+            os << "phi_grav" << '\n';
 #endif
 
 #ifdef RADIATION
@@ -770,8 +770,8 @@ Castro::writePlotFile (const std::string& dir,
     //
     // Copy phi into plotMF.
     //
-    if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
-        MultiFab::Copy(plotMF,*gravity->get_phi_curr(level),0,cnt++,1,nGrow);
+    if (do_grav)
+        MultiFab::Copy(plotMF,get_new_data(PhiGrav_Type),0,cnt++,1,nGrow);
 #endif
 
 #ifdef RADIATION

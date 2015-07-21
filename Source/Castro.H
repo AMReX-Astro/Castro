@@ -667,9 +667,6 @@ protected:
     // permits rotation calculation to be turned on and off
     static int do_rotation;
 
-    // put phi in the plotfile
-    static int plot_phiGrav;
-
     // How often to compute integral sums
     static int sum_interval;
 

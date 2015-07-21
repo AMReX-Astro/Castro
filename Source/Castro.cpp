@@ -113,7 +113,6 @@ Real         Castro::point_mass    = 0.0;
 
 #ifdef GRAVITY
 Gravity*     Castro::gravity  = 0;
-int          Castro::plot_phiGrav = 0;
 #endif
 
 #ifdef DIFFUSION
@@ -484,7 +483,6 @@ Castro::read_params ()
 
 #ifdef GRAVITY
     pp.get("do_grav",do_grav);
-    pp.query("plot_phiGrav",plot_phiGrav);
 
 #if (BL_SPACEDIM == 1)
     if (do_grav && !Geometry::IsSPHERICAL()) {
