@@ -31,6 +31,7 @@ enum StateType { State_Type = 0,
                  Rad_Type,
 #endif
 #ifdef GRAVITY
+                 PhiGrav_Type,
                  Gravity_Type,
 #endif
 #ifdef LEVELSET

@@ -211,6 +211,12 @@ BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
 #endif
 
 #ifdef GRAVITY
+BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+
 BL_FORT_PROC_DECL(CA_GRAVXFILL,ca_gravxfill)
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],

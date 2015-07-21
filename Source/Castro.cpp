@@ -608,6 +608,9 @@ Castro::Castro (Amr&            papa,
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
    new_grav_mf.setVal(0.0);
 
+   MultiFab& phi_new = get_new_data(PhiGrav_Type);
+   phi_new.setVal(0.0);
+
    if (do_grav) {
 
       // gravity is a static object, only alloc if not already there
@@ -872,11 +875,11 @@ Castro::initData ()
 #endif
 
 #ifdef GRAVITY
-    // Set these to zero so they're defined for the plotfile.
-    if (!do_grav) {
-       MultiFab& G_new = get_new_data(Gravity_Type);
-       G_new.setVal(0.);
-    }
+    MultiFab& G_new = get_new_data(Gravity_Type);
+    G_new.setVal(0.);
+
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    phi_new.setVal(0.);
 #endif
 
 #ifdef LEVELSET
@@ -2398,6 +2401,7 @@ Castro::avgDown ()
 
 #ifdef GRAVITY
   avgDown(Gravity_Type);
+  avgDown(PhiGrav_Type);
 #endif
 
 #ifdef REACTIONS
