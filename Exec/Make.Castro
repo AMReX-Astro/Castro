@@ -3,13 +3,8 @@ CASTRO_DIR ?= /path/to/Castro
 
 TOP := $(CASTRO_DIR)
 
-ifdef MICROPHYSICS_DIR
-	EOS_HOME ?= $(MICROPHYSICS_DIR)/eos
-	NETWORK_HOME ?= $(MICROPHYSICS_DIR)/networks
-else
-	EOS_HOME ?= $(TOP)/EOS
-	NETWORK_HOME ?= $(TOP)/Networks
-endif
+EOS_HOME ?= $(TOP)/EOS
+NETWORK_HOME ?= $(TOP)/Networks
 
 EBASE = Castro
 
@@ -111,9 +106,13 @@ all: $(executable)
 	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
-EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
-
-NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+ifdef MICROPHYSICS_DIR
+      EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
+      NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
+else
+      EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
+      NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+endif
 
 ifeq ($(USE_RAD), TRUE)
   ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
@@ -154,15 +153,15 @@ ifeq ($(USE_RAD), TRUE)
   EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
 endif
 
-INCLUDE_LOCATIONS += $(EOS_PATH)
 INCLUDE_LOCATIONS += $(EOS_HOME)
-VPATH_LOCATIONS   += $(EOS_PATH)
+INCLUDE_LOCATIONS += $(EOS_PATH)
 VPATH_LOCATIONS   += $(EOS_HOME)
+VPATH_LOCATIONS   += $(EOS_PATH)
 
-INCLUDE_LOCATIONS += $(NETWORK_PATH)
 INCLUDE_LOCATIONS += $(NETWORK_HOME)
-VPATH_LOCATIONS   += $(NETWORK_PATH)
+INCLUDE_LOCATIONS += $(NETWORK_PATH)
 VPATH_LOCATIONS   += $(NETWORK_HOME)
+VPATH_LOCATIONS   += $(NETWORK_PATH)
 
 ifeq ($(USE_RAD), TRUE)
   INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/

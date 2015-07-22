@@ -1,6 +1,0 @@
-# use the Coulomb corrections
-use_eos_coulomb                     logical            .true.       
-# Force the EOS output quantities to match input
-eos_input_is_constant               logical            .false.
-# Vector size cutoff for using the accelerator
-eos_acc_cutoff                      integer            128
