@@ -467,7 +467,7 @@ Castro::variableSetUp ()
 #ifdef GRAVITY
     if (do_grav) {
        set_scalar_bc(bc,phys_bc);
-       desc_lst.setComponent(PhiGrav_Type,0,"phi_grav",bc,
+       desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
        set_x_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,

@@ -67,8 +67,6 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   : 
     parent(Parent),
     LevelData(MAX_LEV),
-    phi_prev(MAX_LEV,PArrayManage),
-    phi_curr(MAX_LEV,PArrayManage),
     grad_phi_curr(MAX_LEV),
     grad_phi_prev(MAX_LEV),
     phi_flux_reg(MAX_LEV,PArrayManage),
@@ -205,14 +203,6 @@ Gravity::install_level (int                   level,
 
     if (gravity_type == "PoissonGrav") {
 
-       phi_prev.clear(level);
-       phi_prev.set(level,new MultiFab(grids[level],1,1));
-       phi_prev[level].setVal(0.0);
-
-       phi_curr.clear(level);
-       phi_curr.set(level,new MultiFab(grids[level],1,1));
-       phi_curr[level].setVal(0.0);
-
        grad_phi_prev[level].clear();
        grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
@@ -296,16 +286,6 @@ int Gravity::test_results_of_solves()
   return test_solves;
 }
 
-MultiFab* Gravity::get_phi_prev(int level)
-{
-  return &phi_prev[level];
-}
-
-MultiFab* Gravity::get_phi_curr(int level)
-{
-  return &phi_curr[level];
-}
-
 PArray<MultiFab>& 
 Gravity::get_grad_phi_prev(int level)
 {
@@ -325,12 +305,6 @@ Gravity::get_grad_phi_curr(int level)
 }
 
 void 
-Gravity::plus_phi_curr(int level, MultiFab& addend)
-{
-  phi_curr[level].plus(addend,0,1,0);
-}
-
-void 
 Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 {
   for (int n = 0; n < BL_SPACEDIM; n++)
@@ -340,23 +314,13 @@ Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 void
 Gravity::swapTimeLevels (int level)
 {
-  if (gravity_type == "PoissonGrav") {
-
-     MultiFab* dummy = phi_curr.remove(level);
-     phi_prev.clear(level);
-     phi_prev.set(level,dummy);
-
-     phi_curr.set(level,new MultiFab(grids[level],1,1));
-     phi_curr[level].setVal(1.e50);
-
-     for (int n=0; n < BL_SPACEDIM; n++) {
-        MultiFab* dummy = grad_phi_curr[level].remove(n);
-        grad_phi_prev[level].clear(n);
-        grad_phi_prev[level].set(n,dummy);
+  for (int n=0; n < BL_SPACEDIM; n++) {
+    MultiFab* dummy = grad_phi_curr[level].remove(n);
+    grad_phi_prev[level].clear(n);
+    grad_phi_prev[level].set(n,dummy);
    
-        grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
-        grad_phi_curr[level][n].setVal(1.e50);
-     }
+    grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+    grad_phi_curr[level][n].setVal(1.e50);
   } 
 }
 
@@ -368,7 +332,7 @@ Gravity::zeroPhiFluxReg (int level)
 
 void
 Gravity::solve_for_old_phi (int               level,
-                            MultiFab&         phi,
+			    MultiFab&         phi,
                             PArray<MultiFab>& grad_phi,
                             int               fill_interior)
 {
@@ -394,7 +358,7 @@ Gravity::solve_for_old_phi (int               level,
 
 void
 Gravity::solve_for_new_phi (int               level,
-                            MultiFab&         phi,
+			    MultiFab&         phi,
                             PArray<MultiFab>& grad_phi,
                             int               fill_interior)
 {
@@ -417,7 +381,7 @@ Gravity::solve_for_new_phi (int               level,
 void
 Gravity::solve_for_phi (int               level,
                         MultiFab&         Rhs,
-                        MultiFab&         phi,
+			MultiFab&         phi,
                         PArray<MultiFab>& grad_phi,
                         Real              time,
                         int               fill_interior)
@@ -813,20 +777,21 @@ Gravity::gravity_sync (int crse_level, int fine_level,
        }
     }
 
-    // Add delta_phi to phi_curr, and grad(delta_phi) to grad(delta_phi_curr) on each level
+    // Add delta_phi to phi_new, and grad(delta_phi) to grad(delta_phi_curr) on each level
     for (int lev = crse_level; lev <= fine_level; lev++) {
-       phi_curr[lev].plus(delta_phi[lev-crse_level],0,1,0);
+       LevelData[lev].get_new_data(PhiGrav_Type).plus(delta_phi[lev-crse_level],0,1,0);
        for (int n = 0; n < BL_SPACEDIM; n++) 
           grad_phi_curr[lev][n].plus(ec_gdPhi[lev-crse_level][n],0,1,0);
     }
 
     int is_new = 1;
 
-    // Average phi_curr from fine to coarse level
+    // Average phi_new from fine to coarse level
     for (int lev = fine_level-1; lev >= crse_level; lev--)
     {
        const IntVect& ratio = parent->refRatio(lev);
-       avgDown(phi_curr[lev],phi_curr[lev+1],ratio);
+       avgDown(LevelData[lev  ].get_new_data(PhiGrav_Type),
+	       LevelData[lev+1].get_new_data(PhiGrav_Type),ratio);
     } 
 
     // Average the edge-based grad_phi from finer to coarser level
@@ -888,8 +853,8 @@ Gravity::GetCrsePhi(int level,
 {
     BL_ASSERT(level!=0);
 
-    const Real t_old = LevelData[level-1].get_state_data(State_Type).prevTime();
-    const Real t_new = LevelData[level-1].get_state_data(State_Type).curTime();
+    const Real t_old = LevelData[level-1].get_state_data(PhiGrav_Type).prevTime();
+    const Real t_new = LevelData[level-1].get_state_data(PhiGrav_Type).curTime();
     Real alpha = (time - t_old)/(t_new - t_old);
     Real omalpha = 1.0 - alpha;
 
@@ -906,10 +871,10 @@ Gravity::GetCrsePhi(int level,
 	    
 	    PhiCrseTemp.resize(gtbx,1);
 	    
-	    PhiCrseTemp.copy(phi_prev[level-1][mfi]);
+	    PhiCrseTemp.copy(LevelData[level-1].get_old_data(PhiGrav_Type)[mfi]);
 	    PhiCrseTemp.mult(omalpha);
 	    
-	    phi_crse[mfi].copy(phi_curr[level-1][mfi], gtbx);
+	    phi_crse[mfi].copy(LevelData[level-1].get_new_data(PhiGrav_Type)[mfi], gtbx);
 	    phi_crse[mfi].mult(alpha, gtbx);
 	    phi_crse[mfi].plus(PhiCrseTemp);
 	}
@@ -980,7 +945,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level,phi_curr,grad_phi_curr, is_new, use_previous_phi_as_guess);
+    actual_multilevel_solve(level,finest_level,grad_phi_curr,is_new,use_previous_phi_as_guess);
 }
 
 void
@@ -1003,7 +968,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
     }
 
     int is_new = 0;
-    actual_multilevel_solve(level,finest_level,phi_prev,grad_phi_prev, is_new, use_previous_phi_as_guess);
+    actual_multilevel_solve(level,finest_level,grad_phi_prev,is_new,use_previous_phi_as_guess);
 }
 
 void
@@ -1014,7 +979,6 @@ Gravity::multilevel_solve_for_phi (int level, int finest_level, int use_previous
 
 void
 Gravity::actual_multilevel_solve (int level, int finest_level, 
-                                  PArray<MultiFab>& phi, 
                                   Array<PArray<MultiFab> >& grad_phi, int is_new, 
                                   int use_previous_phi_as_guess)
 {
@@ -1025,11 +989,11 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     std::vector<BoxArray> bav(nlevs);
     std::vector<DistributionMapping> dmv(nlevs);
 
-    // Ok to use S_new here because S_new and S_old have the same DistributionMap
+    // Ok to use phi_new here because phi_new and phi_old have the same DistributionMap
     for (int lev = 0; lev < nlevs; lev++) {
        bav[lev] = grids[level+lev];
-       MultiFab& S_new = LevelData[level+lev].get_new_data(State_Type);
-       dmv[lev] = S_new.DistributionMap();
+       MultiFab& phi_new = LevelData[level+lev].get_new_data(PhiGrav_Type);
+       dmv[lev] = phi_new.DistributionMap();
     }
     std::vector<Geometry> fgeom(nlevs);
     for (int i = 0; i < nlevs; i++) 
@@ -1081,7 +1045,13 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 
     for (int lev = 0; lev < nlevs; lev++) 
     {
-       phi_p[lev] = &phi[level+lev];         // Working in result data structure directly
+       if (is_new == 0)
+          // Working in result data structure directly
+	  phi_p[lev] = &LevelData[level+lev].get_old_data(PhiGrav_Type);
+       else
+          // Working in result data structure directly
+	  phi_p[lev] = &LevelData[level+lev].get_new_data(PhiGrav_Type);
+	
        if (!use_previous_phi_as_guess)
           phi_p[lev]->setVal(0.);
 
@@ -1194,7 +1164,7 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
         BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
         crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
 
-        bndry.setBndryValues(crse_br,src_comp,phi_curr[level],src_comp,
+        bndry.setBndryValues(crse_br,src_comp,*(phi_p[0]),src_comp,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
 
@@ -1228,11 +1198,13 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
        const IntVect& ratio = parent->refRatio(lev-1);
        if (is_new == 1)
        {
-           avgDown(phi_curr[lev-1],phi_curr[lev],ratio);
+	   avgDown(LevelData[lev-1].get_new_data(PhiGrav_Type),
+		   LevelData[lev  ].get_new_data(PhiGrav_Type),ratio);
        }
        else if (is_new == 0)
        {
-           avgDown(phi_prev[lev-1],phi_prev[lev],ratio);
+	   avgDown(LevelData[lev-1].get_old_data(PhiGrav_Type),
+		   LevelData[lev  ].get_old_data(PhiGrav_Type),ratio);
        }
 
     }
@@ -1646,7 +1618,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     if (verbose && ParallelDescriptor::IOProcessor())  
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
 
-    comp_minus_level_phi.copy(phi_prev[level],0,0,1);
+    comp_minus_level_phi.copy(LevelData[level].get_new_data(PhiGrav_Type),0,0,1);
     comp_minus_level_phi.minus(SL_phi,0,1,0);
 
     for (int n=0; n<BL_SPACEDIM; ++n)
@@ -1691,12 +1663,15 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
         }
     }
 
-    if (phi_current && (iteration == ncycle)) 
-      for (MFIter mfi(phi_curr[level]); mfi.isValid(); ++mfi) 
+    if (phi_current && (iteration == ncycle))
+    {
+      MultiFab& phi_curr = LevelData[level].get_new_data(PhiGrav_Type);
+      for (MFIter mfi(phi_curr); mfi.isValid(); ++mfi) 
       {
          for (int n=0; n<BL_SPACEDIM; ++n)
             phi_current->FineAdd(grad_phi_curr[level][n][mfi],area[level][n][mfi],n,mfi.index(),0,0,1,1.);
       }
+    }
 
 }
 
@@ -1862,7 +1837,7 @@ Gravity::test_composite_phi (int level)
        BoxArray boxes(grids[level+lev]);
 
        phi_p[lev] = new MultiFab(boxes,1,1);
-       MultiFab::Copy(*(phi_p[lev]),phi_curr[level+lev],0,0,1,1);
+       MultiFab::Copy(*(phi_p[lev]),LevelData[level+lev].get_new_data(PhiGrav_Type),0,0,1,1);
 
        Rhs_p[lev] = new MultiFab(boxes,1,0);
        Rhs_p[lev]->setVal(0.0);
@@ -1933,7 +1908,7 @@ Gravity::test_composite_phi (int level)
         const int extent_rad = 2;
         BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
         crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
-        bndry.setBndryValues(crse_br,src_comp,phi_curr[level],src_comp,
+        bndry.setBndryValues(crse_br,src_comp,LevelData[level].get_new_data(PhiGrav_Type),src_comp,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
 

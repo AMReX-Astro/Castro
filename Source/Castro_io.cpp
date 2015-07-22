@@ -438,7 +438,7 @@ Castro::writePlotFile (const std::string& dir,
         }
 #ifdef GRAVITY
         if (do_grav)
-            os << "phi_grav" << '\n';
+            os << "phiGrav" << '\n';
 #endif
 
 #ifdef RADIATION
