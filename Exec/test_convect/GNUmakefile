@@ -1,4 +1,4 @@
-CASTRO_DIR ?= /path/to/Castro
+CASTRO_DIR ?= ../..
 
 PRECISION        = DOUBLE
 PROFILE          = FALSE
@@ -16,12 +16,20 @@ USE_MODELPARSER  = TRUE
 
 USE_OLDPLOTPER   = TRUE
 
-# This sets the EOS directory in $(CASTRO_DIR)/EOS
-EOS_dir     := helmeos
+ifdef MICROPHYSICS_DIR
 
-# This sets the network directory in $(NETWORK_HOME)
+# This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
+EOS_dir     := helmholtz
+
+# This sets the EOS directory in $(MICROPHYSICS_DIR)/networks
 Network_dir := general_null
-GENERAL_NET_INPUTS := $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
+GENERAL_NET_INPUTS = $(MICROPHYSICS_DIR)/networks/$(Network_dir)/ignition.net
+
+else
+
+$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+
+endif
 
 Bpack   := ./Make.package
 Blocs   := .

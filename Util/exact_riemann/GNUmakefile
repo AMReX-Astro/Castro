@@ -22,15 +22,18 @@ Fmdirs :=
 # directories containing files that are 'include'-d via Fortran
 Fmincludes := 
 
-EOS_TOP_DIR := $(CASTRO_TOP_DIR)/EOS
-NETWORK_TOP_DIR := $(CASTRO_TOP_DIR)/Networks
+ifndef MICROPHYSICS_DIR
+$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+endif
 
-#EOS_DIR := gamma_law_general
-EOS_DIR := helmeos
+EOS_TOP_DIR := $(MICROPHYSICS_DIR)/eos
+NETWORK_TOP_DIR := $(MICROPHYSICS_DIR)/networks
+
+EOS_DIR := helmholtz
 
 NETWORK_DIR := ignition_simple
 
-MICROPHYS_CORE := $(CASTRO_TOP_DIR)/EOS
+MICROPHYS_CORE := $(MICROPHYSICS_DIR)/eos
 
 MICROPHYS_CORE += $(EOS_TOP_DIR)/$(EOS_DIR) \
                   $(NETWORK_TOP_DIR)/$(NETWORK_DIR) \
@@ -39,8 +42,8 @@ MICROPHYS_CORE += $(EOS_TOP_DIR)/$(EOS_DIR) \
 # manually add screen.f
 fsources += screen.f
 
-ifeq ($(findstring helmeos, $(EOS_DIR)), helmeos)
-  Fmincludes += EOS/helmeos
+ifeq ($(findstring helmholtz, $(EOS_DIR)), helmholtz)
+  Fmincludes += EOS/helmholtz
 endif
 
 ifeq ($(findstring gamma_law_general, $(EOS_DIR)), gamma_law_general)
@@ -58,8 +61,8 @@ programs += exact_riemann
 
 all: $(pnames)
 
-ifeq ($(findstring helmeos, $(EOS_DIR)), helmeos)
-  Fmincludes := EOS/helmeos
+ifeq ($(findstring helmholtz, $(EOS_DIR)), helmholtz)
+  Fmincludes := EOS/helmholtz
   EOS_PATH := $(CASTRO_TOP_DIR)/EOS/$(strip $(EOS_DIR))
   all: table
 endif
