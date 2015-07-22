@@ -265,15 +265,7 @@ Castro::advance_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior;
-           if ( (level == 0) and prev_time > 0.0 ) {  
-              // Here we use the "new" phi from the previous time step as a guess for this solve
-	      fill_interior = 0;
-           } else { 
-              // Here we use the monopole solve to fill the interior values as a guess for this solve
-              phi_old.setVal(0.0);
-	      fill_interior = 1;
-           }
+           int fill_interior = 0;
            gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
         }
     }
@@ -1382,13 +1374,7 @@ Castro::advance_no_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior;
-           if ( (level == 0) and prev_time > 0.0 ) {  
-              // Here we use the "new" phi from the previous time step as a guess for this solve fill_interior = 0; } else { 
-              // Here we use the monopole solve to fill the interior values as a guess for this solve
-              phi_old.setVal(0.0);
-	      fill_interior = 1;
-           }
+           int fill_interior = 0;
            gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
         }
     }
