@@ -18,7 +18,7 @@
 module network
 
   use bl_types
-  use specific_network
+  use actual_network
   
   implicit none
 
@@ -38,7 +38,7 @@ contains
     ! Note that the network MUST define nspec and naux
     ! as parameters, or else the compiler will throw an error.
     
-    call specific_network_init
+    call actual_network_init
 
     ! Check to make sure, and if not, throw an error.
 

@@ -4,7 +4,7 @@ module burner_module
   use bl_constants_module
   use network
   use eos_module
-  use specific_burner_module
+  use actual_burner_module
 
 contains
 
@@ -62,7 +62,7 @@ contains
 
     ! Do the burning.
     
-    call specific_burner(state_vector_in, state_vector_out, dt, time)
+    call actual_burner(state_vector_in, state_vector_out, dt, time)
 
     ! Normalize the mass fractions: they must be individually positive and less than one,
     ! and they must all sum to unity.

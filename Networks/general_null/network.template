@@ -14,7 +14,7 @@
 ! short_aux_names  -- an abbreviated form of the auxiliary variable
 
 
-module specific_network
+module actual_network
 
   use bl_types
 
@@ -32,7 +32,7 @@ module specific_network
 
 contains
   
-  subroutine specific_network_init
+  subroutine actual_network_init
 
     @@SPEC_NAMES@@
 
@@ -44,6 +44,6 @@ contains
 
     @@AUX_NAMES@@
 
-  end subroutine specific_network_init
+  end subroutine actual_network_init
 
-end module specific_network
+end module actual_network

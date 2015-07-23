@@ -1,4 +1,4 @@
-module specific_burner_module
+module actual_burner_module
 
   use bl_types
   use bl_constants_module
@@ -7,7 +7,7 @@ module specific_burner_module
   
 contains
 
-  subroutine specific_burner(state_in, state_out, dt, time)
+  subroutine actual_burner(state_in, state_out, dt, time)
 
     implicit none
 
@@ -17,6 +17,6 @@ contains
 
     ! Do nothing in this burner.
     
-  end subroutine specific_burner
+  end subroutine actual_burner
 
-end module specific_burner_module
+end module actual_burner_module
