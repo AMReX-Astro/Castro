@@ -572,7 +572,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
     BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
 BL_FORT_PROC_DECL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
-   (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+   (const int * lo, const int* hi,
     BL_FORT_FAB_ARG_3D(kpr),
     BL_FORT_FAB_ARG_3D(kps),
     const BL_FORT_FAB_ARG_3D(state));
