@@ -1618,7 +1618,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     if (verbose && ParallelDescriptor::IOProcessor())  
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
 
-    comp_minus_level_phi.copy(LevelData[level].get_new_data(PhiGrav_Type),0,0,1);
+    comp_minus_level_phi.copy(LevelData[level].get_old_data(PhiGrav_Type),0,0,1);
     comp_minus_level_phi.minus(SL_phi,0,1,0);
 
     for (int n=0; n<BL_SPACEDIM; ++n)
