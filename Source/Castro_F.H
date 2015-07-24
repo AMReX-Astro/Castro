@@ -358,7 +358,7 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      int* nstep_fsp); 
 
 BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
-    (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+    (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(Erout),
      const BL_FORT_FAB_ARG_3D(kappa_s),
