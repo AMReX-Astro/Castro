@@ -397,10 +397,6 @@ Castro::writePlotFile (const std::string& dir,
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
-#ifdef GRAVITY
-    if (do_grav) 
-      n_data_items++;
-#endif
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
@@ -436,10 +432,6 @@ Castro::writePlotFile (const std::string& dir,
 	    const DeriveRec* rec = derive_lst.get(*it);
             os << rec->variableName(0) << '\n';
         }
-#ifdef GRAVITY
-        if (do_grav)
-            os << "phiGrav" << '\n';
-#endif
 
 #ifdef RADIATION
 	for (i=0; i<Radiation::nplotvar; ++i)
@@ -765,14 +757,6 @@ Castro::writePlotFile (const std::string& dir,
 	    cnt++;
 	}
     }
-
-#ifdef GRAVITY
-    //
-    // Copy phi into plotMF.
-    //
-    if (do_grav)
-        MultiFab::Copy(plotMF,get_new_data(PhiGrav_Type),0,cnt++,1,nGrow);
-#endif
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {
