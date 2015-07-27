@@ -61,6 +61,8 @@ static Real fixed_dt     = -1.0;
 static Real initial_dt   = -1.0;
 static Real dt_cutoff    = 0.0;
 
+int          Castro::checkpoint_version = 1;
+
 bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
@@ -84,7 +86,6 @@ int          Castro::Temp          = -1;
 int          Castro::Xmom          = -1;
 int          Castro::Ymom          = -1;
 int          Castro::Zmom          = -1;
-
 
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;

@@ -77,6 +77,10 @@ public:
                           istream& is,
 			  bool bReadSpecial = false);
     //
+    //This is called only when we restart from an old checkpoint.
+    //
+    virtual void set_state_in_checkpoint (Array<int>& state_in_checkpoint);
+    //
     //Call AmrLevel::checkPoint and then add radiation info
     //
     virtual void checkPoint(const std::string& dir,
@@ -562,6 +566,7 @@ protected:
     //
     // Static data members.
     //
+    static int       checkpoint_version;
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
