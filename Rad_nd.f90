@@ -209,7 +209,7 @@
 
 ! ::: -----------------------------------------------------------
 
-      subroutine ca_inelastic_sct (lo1,lo2,lo3,hi1,hi2,hi3, &
+      subroutine ca_inelastic_sct (lo, hi, &
            uu,uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3, &
            Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3, &
            ks,ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3, &
@@ -217,7 +217,7 @@
         use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
         use rad_params_module, only : ngroups, nugroup, dlognu
         use radhydro_nd_module, only : inelastic_scatter
-        integer, intent(in) :: lo1,lo2,lo3,hi1,hi2,hi3
+        integer, intent(in) :: lo(3), hi(3)
         integer, intent(in) :: uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3
         integer, intent(in) :: Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3
         integer, intent(in) :: ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3
@@ -232,9 +232,9 @@
 
         Erscale = nugroup*dlognu
 
-        do       k = lo3, hi3
-           do    j = lo2, hi2
-              do i = lo1, hi1
+        do       k = lo(3), hi(3)
+           do    j = lo(2), hi(2)
+              do i = lo(1), hi(1)
                  Ertmp = Er(i,j,k,:)
                  Ertotold = sum(Ertmp)
                  Ertmp = Ertmp / Erscale
@@ -254,7 +254,7 @@
 
 ! ::: -----------------------------------------------------------
 
-      subroutine ca_compute_ros_sct(lo1,lo2,lo3,hi1,hi2,hi3, &
+      subroutine ca_compute_ros_sct(lo, hi, &
            kpr,kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3, &
            kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
            sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3)
@@ -266,7 +266,7 @@
         
         implicit none
         
-        integer, intent(in) :: lo1,lo2,lo3,hi1,hi2,hi3
+        integer, intent(in) :: lo(3), hi(3)
         integer, intent(in) :: kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3
         integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
         integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
@@ -283,9 +283,9 @@
            
            nu = nugroup(g)
            
-           do k = lo3, hi3
-           do j = lo2, hi2
-           do i = lo1, hi1
+           do k = lo(3), hi(3)
+           do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
               
               rho = sta(i,j,k,URHO)
               temp = sta(i,j,k,UTEMP)
