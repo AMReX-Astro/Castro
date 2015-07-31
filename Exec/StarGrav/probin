@@ -20,7 +20,7 @@
 
   dengrad            = 1.e18
   denerr             = 2.e8
-  denerr             = 0.e0
+  denerr             = 1.e0
 
   velgrad            = 1.e18
   velerr             = 1.e18
