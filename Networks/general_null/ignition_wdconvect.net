@@ -1,0 +1,7 @@
+# The ignition network is used for wdconvect with the ignition_chamulak burner.
+
+# name       short name    aion     zion
+ carbon-12      C12         12.0     6.0
+ oxygen-16      O16         16.0     8.0
+ ash            ash         18.0     8.8
+
