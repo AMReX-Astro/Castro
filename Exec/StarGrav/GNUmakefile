@@ -3,10 +3,9 @@ CASTRO_DIR ?= /path/to/Castro
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
 DEBUG      = FALSE
 
-DIM        = 3
+DIM        = 2
 
 COMP	   = gcc
 FCOMP	   = gfortran
