@@ -1529,7 +1529,8 @@ Castro::post_restart ()
             {
                 if (gravity->NoComposite() != 1)
                 {
-                   gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+ 		   int use_previous_phi = 1;
+		   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
                 }

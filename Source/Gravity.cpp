@@ -1083,8 +1083,15 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 	   if (verbose && ParallelDescriptor::IOProcessor()) 
 	       std::cout << " ... Making bc's for phi at level 0 " << std::endl;
 
-	   int fill_interior = 1;
+	   int fill_interior;
+
+	   if (use_previous_phi_as_guess)
+	       fill_interior = 0;
+	   else
+  	       fill_interior = 1;
+
 	   make_radial_phi(0,*(Rhs_p[0]),*(phi_p[0]),fill_interior);
+
 #if (BL_SPACEDIM == 3)
 	   if ( direct_sum_bcs )
                fill_direct_sum_BCs(0,*(Rhs_p[0]),*(phi_p[0]));
