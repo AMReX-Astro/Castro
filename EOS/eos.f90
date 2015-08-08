@@ -56,6 +56,8 @@ contains
 
     assume_neutral = eos_assume_neutral
 
+    initialized = .true.
+
   end subroutine eos_init
 
 
