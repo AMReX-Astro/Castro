@@ -25,7 +25,11 @@ released with CASTRO:
    gamma exponent can either be specified by the user in the extern
    namelist, or select one of the predefined types.
 
-4) multigamma
+4) ztwd:
+
+  A zero-temperature white dwarf EOS from Chandrasekhar (1935).
+
+5) multigamma
 
    The multigamma EOS allows each fluid to specify their own gamma.
    Each species acts as an ideal gas.
