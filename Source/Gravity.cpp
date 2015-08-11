@@ -748,7 +748,6 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     MultiFab CrseRhsSync(grids[crse_level],1,0);
     MultiFab::Copy(CrseRhsSync,drho_and_drhoU,0,0,1,0);
     CrseRhsSync.mult(Ggravity);
-    CrseRhsSync.plus(dphi,0,1,0);
 
     if (crse_level == 0 && crse_level < parent->finestLevel() && !Geometry::isAllPeriodic())
     {
@@ -757,9 +756,9 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(crse_level+1)));
 	const MultiFab* mask = fine_level->build_fine_mask();
 	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0); 
-
-	CrseRhsAvgDown.minus(CrseRhsSync,0,1,0);
     }
+
+    CrseRhsSync.plus(dphi,0,1,0);
 
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
@@ -776,7 +775,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     }
 
     // Using the average-down contribution, construct the boundary conditions for the Poisson solve.                                                                                                                                        
-    if (crse_level == 0) {
+    if (crse_level == 0 && !Geometry::isAllPeriodic()) {
       if (verbose && ParallelDescriptor::IOProcessor()) 
          std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
 #if (BL_SPACEDIM == 3)
