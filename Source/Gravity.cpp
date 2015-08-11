@@ -591,8 +591,12 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
                                         : IntVect::TheZeroVector();
 
-    // Set homogeneous Dirichlet values for the solve.
-    bndry.setHomogValues(*phys_bc,crse_ratio);
+    // Set homogeneous Dirichlet values for the solve if we're not on the coarsest level;
+    // otherwise, read in the values we set using the physical BC construction.
+    if (crse_level > 0)
+      bndry.setHomogValues(*phys_bc,crse_ratio);
+    else if (crse_level == 0 && !Geometry::isAllPeriodic())
+      bndry.setBndryValues(delta_phi[crse_level],0,0,1,*phys_bc);
 
     std::vector<BoxArray> bav(nlevs);
     std::vector<DistributionMapping> dmv(nlevs);
@@ -733,14 +737,29 @@ Gravity::gravity_sync (int crse_level, int fine_level,
           std::cout << " ...     up to finest_level     " << fine_level << '\n';
     }
 
-    // Build Rhs for solve for delta_phi
-    MultiFab CrseRhs(grids[crse_level],1,0);
-    MultiFab::Copy(CrseRhs,drho_and_drhoU,0,0,1,0);
-    CrseRhs.mult(Ggravity);
-    CrseRhs.plus(dphi,0,1,0);
-
     const Geometry& crse_geom = parent->Geom(crse_level);
     const Box&    crse_domain = crse_geom.Domain();
+
+    // This RHS will hold only the contribution from the average down.
+    MultiFab CrseRhsAvgDown(grids[crse_level],1,0);
+
+    // This RHS will contain everything but the average down contribution and is the source term
+    // for the delta phi solve.
+    MultiFab CrseRhsSync(grids[crse_level],1,0);
+    MultiFab::Copy(CrseRhsSync,drho_and_drhoU,0,0,1,0);
+    CrseRhsSync.mult(Ggravity);
+    CrseRhsSync.plus(dphi,0,1,0);
+
+    if (crse_level == 0 && crse_level < parent->finestLevel() && !Geometry::isAllPeriodic())
+    {
+        MultiFab::Copy(CrseRhsAvgDown,CrseRhsSync,0,0,1,0);
+
+	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(crse_level+1)));
+	const MultiFab* mask = fine_level->build_fine_mask();
+	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0); 
+
+	CrseRhsAvgDown.minus(CrseRhsSync,0,1,0);
+    }
 
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
@@ -756,8 +775,23 @@ Gravity::gravity_sync (int crse_level, int fine_level,
           ec_gdPhi[lev-crse_level].set(n,new MultiFab(BoxArray(grids[lev]).surroundingNodes(n),1,0));
     }
 
+    // Using the average-down contribution, construct the boundary conditions for the Poisson solve.                                                                                                                                        
+    if (crse_level == 0) {
+      if (verbose && ParallelDescriptor::IOProcessor()) 
+         std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
+#if (BL_SPACEDIM == 3)
+      if ( direct_sum_bcs )
+        fill_direct_sum_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+      else
+        fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+#else
+      int fill_interior = 0;
+      make_radial_phi(crse_level,CrseRhsAvgDown,delta_phi[crse_level],fill_interior);
+#endif
+    }
+
     // Do multi-level solve for delta_phi
-    solve_for_delta_phi(crse_level,fine_level,CrseRhs,delta_phi,ec_gdPhi);
+    solve_for_delta_phi(crse_level,fine_level,CrseRhsSync,delta_phi,ec_gdPhi);
 
     // In the all-periodic case we enforce that delta_phi averages to zero.
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
