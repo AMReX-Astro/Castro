@@ -1935,7 +1935,8 @@ Gravity::test_composite_phi (int level)
     //
     if (level == 0)
     {
-        bndry.setHomogValues(*phys_bc,crse_ratio);
+//        bndry.setHomogValues(*phys_bc,crse_ratio);
+        bndry.setBndryValues(*(phi_p[0]),src_comp,dest_comp,num_comp,*phys_bc);
     }
     else
     {
