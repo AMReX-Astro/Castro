@@ -67,6 +67,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   : 
     parent(Parent),
     LevelData(MAX_LEV),
+    comp_minus_level_phi(MAX_LEV,PArrayManage),
     grad_phi_curr(MAX_LEV),
     grad_phi_prev(MAX_LEV),
     phi_flux_reg(MAX_LEV,PArrayManage),
@@ -203,6 +204,10 @@ Gravity::install_level (int                   level,
 
     if (gravity_type == "PoissonGrav") {
 
+       comp_minus_level_phi.clear(level);
+       comp_minus_level_phi.set(level, new MultiFab(grids[level],1,1));
+       comp_minus_level_phi[level].setVal(0.0);
+	
        grad_phi_prev[level].clear();
        grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
@@ -286,6 +291,11 @@ int Gravity::test_results_of_solves()
   return test_solves;
 }
 
+MultiFab* Gravity::get_comp_minus_level_phi(int level)
+{
+  return &comp_minus_level_phi[level];
+}
+
 PArray<MultiFab>& 
 Gravity::get_grad_phi_prev(int level)
 {
@@ -360,7 +370,8 @@ void
 Gravity::solve_for_new_phi (int               level,
 			    MultiFab&         phi,
                             PArray<MultiFab>& grad_phi,
-                            int               fill_interior)
+                            int               fill_interior,
+			    int               before_sync_solve)
 {
     BL_PROFILE("Gravity::solve_for_new_phi()");
 
@@ -375,7 +386,7 @@ Gravity::solve_for_new_phi (int               level,
 
     Real time = LevelData[level].get_state_data(State_Type).curTime();
 
-    solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior);
+    solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior,before_sync_solve);
 }
 
 void
@@ -384,7 +395,8 @@ Gravity::solve_for_phi (int               level,
 			MultiFab&         phi,
                         PArray<MultiFab>& grad_phi,
                         Real              time,
-                        int               fill_interior)
+                        int               fill_interior,
+			int               before_sync_solve)
 
 {
     BL_PROFILE("Gravity::solve_for_phi()");
@@ -469,7 +481,7 @@ Gravity::solve_for_phi (int               level,
     else
     {
         MultiFab CPhi;
-        GetCrsePhi(level,CPhi,time);
+        GetCrsePhi(level,CPhi,time,before_sync_solve);
         BoxArray crse_boxes = BoxArray(grids[level]).coarsen(crse_ratio);
         const int in_rad     = 0;
         const int out_rad    = 1;
@@ -640,7 +652,8 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     for (int lev = crse_level; lev <= fine_level; lev++)
     {
         phi_p[lev-crse_level] = delta_phi.remove(lev-crse_level); // Turn ctrl of ptr over for a moment
-        phi_p[lev-crse_level]->setVal(0.);
+	phi_p[lev-crse_level]->setVal(0.);
+	// xxxxx MultiFab::Copy(*phi_p[lev-crse_level], comp_minus_level_phi[lev], 0, 0, 1, 0);
 
         if (lev == crse_level) {
             Rhs_p[0] = &CrseRhs;
@@ -717,6 +730,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     for (int lev = 0; lev < nlevs; lev++)
     {
         delta_phi.set(lev,phi_p[lev]); // Return ctrl of ptr
+	delta_phi[lev].minus(comp_minus_level_phi[lev+crse_level],0,1,0);
         if (lev != 0)
             delete Rhs_p[lev]; // Do not delete the [0] Rhs, it is passed in
     }
@@ -747,7 +761,6 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // for the delta phi solve.
     MultiFab CrseRhsSync(grids[crse_level],1,0);
     MultiFab::Copy(CrseRhsSync,drho_and_drhoU,0,0,1,0);
-    CrseRhsSync.mult(Ggravity);
 
     if (crse_level == 0 && crse_level < parent->finestLevel() && !Geometry::isAllPeriodic())
     {
@@ -758,6 +771,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0); 
     }
 
+    CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
     // delta_phi needs a ghost cell for the solve
@@ -882,7 +896,8 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 void
 Gravity::GetCrsePhi(int level,
                     MultiFab& phi_crse,
-                    Real      time      )
+                    Real      time,
+		    int       before_sync_solve)
 {
     BL_ASSERT(level!=0);
 
@@ -913,6 +928,10 @@ Gravity::GetCrsePhi(int level,
 	}
     }
 
+    if (before_sync_solve) {
+	phi_crse.minus(comp_minus_level_phi[level-1],0,1,0);
+    }
+    
     phi_crse.FillBoundary();
 
     const Geometry& geom = parent->Geom(level-1);
@@ -1624,27 +1643,14 @@ Gravity::test_level_grad_phi_curr(int level)
 }
 
 void 
-Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_phi,
-                                          PArray<MultiFab>& comp_minus_level_grad_phi) 
+Gravity::create_comp_minus_level_grad_phi(int level, PArray<MultiFab>& comp_minus_level_grad_phi) 
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
-    MultiFab SL_phi;
-    PArray<MultiFab> SL_grad_phi(BL_SPACEDIM,PArrayManage);
+    comp_minus_level_phi[level].setVal(0.);
 
-    SL_phi.define(grids[level],1,1,Fab_allocate);
-    SL_phi.setVal(0.);
-
-    comp_minus_level_phi.setVal(0.);
     for (int n=0; n<BL_SPACEDIM; ++n)
       comp_minus_level_grad_phi[n].setVal(0.);
-
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        SL_grad_phi.clear(n);
-        SL_grad_phi.set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,0));
-        SL_grad_phi[n].setVal(0.);
-    }
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
@@ -1653,22 +1659,19 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
 #ifdef PARTICLES
     BoxLib::Error("Particles + Gravity + AMR: here be dragons... ( Gravity.cpp Gravity::create_comp_minus_level_grad_phi() )");
 #endif
-    solve_for_old_phi(level,SL_phi,SL_grad_phi,fill_interior);
+    solve_for_old_phi(level, comp_minus_level_phi[level], comp_minus_level_grad_phi, fill_interior);
 
     if (verbose && ParallelDescriptor::IOProcessor())  
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
 
-    comp_minus_level_phi.copy(LevelData[level].get_old_data(PhiGrav_Type),0,0,1);
-    comp_minus_level_phi.minus(SL_phi,0,1,0);
-
+    comp_minus_level_phi[level].mult(-1.0);
+    comp_minus_level_phi[level].plus(LevelData[level].get_old_data(PhiGrav_Type),0,1,0);
+    
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
-        comp_minus_level_grad_phi[n].copy(grad_phi_prev[level][n],0,0,1);
-        comp_minus_level_grad_phi[n].minus(SL_grad_phi[n],0,1,0);
+	comp_minus_level_grad_phi[n].mult(-1.0);
+        comp_minus_level_grad_phi[n].plus(grad_phi_prev[level][n],0,1,0);
     }
-
-    // Just do this to release the memory
-    for (int n=0; n<BL_SPACEDIM; ++n) SL_grad_phi.clear(n);
 }
 
 void
@@ -1705,12 +1708,9 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
 
     if (phi_current && (iteration == ncycle))
     {
-      MultiFab& phi_curr = LevelData[level].get_new_data(PhiGrav_Type);
-      for (MFIter mfi(phi_curr); mfi.isValid(); ++mfi) 
-      {
-         for (int n=0; n<BL_SPACEDIM; ++n)
-            phi_current->FineAdd(grad_phi_curr[level][n][mfi],area[level][n][mfi],n,mfi.index(),0,0,1,1.);
-      }
+	for (int n=0; n<BL_SPACEDIM; ++n) {
+	    phi_current->FineAdd(grad_phi_curr[level][n],area[level][n],n,0,0,1,1.);
+	}
     }
 
 }
@@ -1819,7 +1819,7 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
 }
 
 void
-Gravity::test_composite_phi (int level)
+Gravity::test_composite_phi (int level, int before_sync_solve)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
 
@@ -1879,6 +1879,10 @@ Gravity::test_composite_phi (int level)
        phi_p[lev] = new MultiFab(boxes,1,1);
        MultiFab::Copy(*(phi_p[lev]),LevelData[level+lev].get_new_data(PhiGrav_Type),0,0,1,1);
 
+       if (before_sync_solve && lev<nlevs-1) {
+	   phi_p[lev]->minus(comp_minus_level_phi[level+lev],0,1,0);
+       }
+       
        Rhs_p[lev] = new MultiFab(boxes,1,0);
        Rhs_p[lev]->setVal(0.0);
 
@@ -1942,7 +1946,7 @@ Gravity::test_composite_phi (int level)
     {
         MultiFab CPhi;
         Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
-        GetCrsePhi(level,CPhi,cur_time);
+        GetCrsePhi(level,CPhi,cur_time,before_sync_solve);
         BoxArray crse_boxes = BoxArray(grids[level]).coarsen(crse_ratio);
         const int in_rad     = 0;
         const int out_rad    = 1;

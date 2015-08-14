@@ -1350,7 +1350,8 @@ Castro::post_timestep (int iteration)
     {
        if (verbose && ParallelDescriptor::IOProcessor())
           std::cout << "before gravity_sync " << std::endl;
-       gravity->test_composite_phi(level);
+       int before_sync_solve = 1;
+       gravity->test_composite_phi(level, before_sync_solve);
     }
 #endif
 

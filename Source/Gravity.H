@@ -31,6 +31,8 @@ public:
   
   void set_mass_offset(Real time, bool multi_level=true);
 
+  MultiFab* get_comp_minus_level_phi(int level);
+    
   PArray<MultiFab>& get_grad_phi_prev(int level);
   PArray<MultiFab>& get_grad_phi_curr(int level);
 
@@ -48,14 +50,16 @@ public:
   void solve_for_new_phi (int               level,
 			  MultiFab&         phi,
                           PArray<MultiFab>& grad_phi,
-                          int               fill_interior);
+                          int               fill_interior,
+			  int               before_sync_solve);
 
   void solve_for_phi (int               level,
                       MultiFab&         Rhs,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
                       Real              time,
-                      int               fill_interior);
+                      int               fill_interior,
+		      int               before_sync_solve=0);
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
@@ -79,8 +83,7 @@ public:
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
-  void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
-                                        PArray<MultiFab>& cmlgp);
+  void create_comp_minus_level_grad_phi(int level, PArray<MultiFab>& cmlgp);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,
@@ -88,7 +91,8 @@ public:
 
   void GetCrsePhi(int level, 
                   MultiFab& phi_crse,
-                  Real time);
+                  Real time,
+		  int before_sync_solve=0);
 
   void zeroPhiFluxReg (int level);
 
@@ -97,7 +101,7 @@ public:
 
   void test_level_grad_phi_prev(int level);
   void test_level_grad_phi_curr(int level);
-  void test_composite_phi(int level);
+  void test_composite_phi(int level, int before_sync_solve=0);
 
   static void avgDown(MultiFab& crse, const MultiFab& fine, const IntVect& ratio);
 
@@ -131,6 +135,10 @@ protected:
   //
   Amr*             parent;
   PArray<AmrLevel> LevelData;
+  //
+  // Pointers to phi_composite - phi_level
+  //
+  PArray <MultiFab> comp_minus_level_phi;
   //
   // Pointers to grad_phi at previous and current time
   //
