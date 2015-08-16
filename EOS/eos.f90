@@ -6,7 +6,7 @@ module eos_module
   use network, only: nspec, aion, zion
   use eos_type_module
   use eos_data_module
-  use specific_eos_module
+  use actual_eos_module
 
   implicit none
 
@@ -91,7 +91,7 @@ contains
     
     ! Call the EOS.
 
-    call specific_eos(input, state_vector)
+    call actual_eos(input, state_vector)
 
     ! Get dpdX, dedX, dhdX.
 

@@ -6,7 +6,7 @@
 ! expression for entropy is only valid for an ideal MONATOMIC gas
 ! (gamma = 5/3).  
 
-module specific_eos_module
+module actual_eos_module
 
   use bl_types
   use bl_space
@@ -22,7 +22,7 @@ module specific_eos_module
 
 contains
 
-  subroutine specific_eos_init
+  subroutine actual_eos_init
 
     use extern_probin_module, only: eos_gamma
 
@@ -37,11 +37,11 @@ contains
  
     initialized = .true.
  
-  end subroutine specific_eos_init
+  end subroutine actual_eos_init
 
 
 
-  subroutine specific_eos(input, state)
+  subroutine actual_eos(input, state)
 
     use fundamental_constants_module, only: k_B, n_A, hbar
 
@@ -216,6 +216,6 @@ contains
 
     enddo
 
-  end subroutine specific_eos
+  end subroutine actual_eos
 
-end module specific_eos_module
+end module actual_eos_module
