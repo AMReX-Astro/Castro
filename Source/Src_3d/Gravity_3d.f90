@@ -854,7 +854,7 @@
                                                dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
                                                lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only)
 
-        use prob_params_module, only: problo, center, probhi, dim
+        use prob_params_module, only: problo, center, probhi
         use bl_constants_module
         use meth_params_module, only: deterministic
 
