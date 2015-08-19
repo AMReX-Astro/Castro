@@ -6,14 +6,14 @@ CASTRO_DIR ?= ../../
 # Location of this directory. Useful if
 # you're trying to compile this from another location.
 
-TEST_DIR = $(CASTRO_DIR)/Exec/evrard_collapse
+TEST_DIR = $(CASTRO_DIR)/Exec/KH
 
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 3
+DIM        = 2
 
 COMP	   = gcc
 FCOMP	   = gfortran
@@ -28,7 +28,7 @@ EOS_dir     := gamma_law_general
 Network_dir := general_null
 GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
 
-Bpack   += ./Make.package
-Blocs   += .
+Bpack   += $(TEST_DIR)/Make.package
+Blocs   += $(TEST_DIR)/.
 
-include ../Make.Castro
+include $(CASTRO_DIR)/Exec/Make.Castro
