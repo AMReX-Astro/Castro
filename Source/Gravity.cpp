@@ -537,7 +537,10 @@ Gravity::solve_for_phi (int               level,
 
     Real     tol = sl_tol;
     Real abs_tol = 0.0;
-    mgt_solver.solve(phi_p, Rhs_p, tol, abs_tol, bndry, 1, level_solver_resnorm[level]);
+    int need_grad_phi = 1;
+    int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
+    mgt_solver.solve(phi_p, Rhs_p, bndry, tol, abs_tol, always_use_bnorm,
+		     level_solver_resnorm[level], need_grad_phi);
     
     int mglev = 0;
     const Real* dx   = geom.CellSize();
@@ -698,8 +701,11 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     for (int lev = crse_level+1; lev < fine_level; lev++)
         abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
   
-    Real final_resnorm = 0.0;
-    mgt_solver.solve(phi_p, Rhs_p, tol, abs_tol, bndry, 1, final_resnorm);
+    Real final_resnorm;
+    int need_grad_phi = 1;
+    int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
+    mgt_solver.solve(phi_p, Rhs_p, bndry, tol, abs_tol, always_use_bnorm,
+		     final_resnorm, need_grad_phi);
 
     for (int lev = crse_level; lev <= fine_level; lev++)
     {
@@ -1218,8 +1224,11 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     Real     tol = ml_tol;
     Real abs_tol = 0.0;
 
-    Real final_resnorm = 0.0;
-    mgt_solver.solve(phi_p, Rhs_p, tol, abs_tol, bndry, 1, final_resnorm);
+    Real final_resnorm;
+    int need_grad_phi = 1;
+    int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
+    mgt_solver.solve(phi_p, Rhs_p, bndry, tol, abs_tol, always_use_bnorm,
+		     final_resnorm, need_grad_phi);
 
     for (int lev = 0; lev < nlevs; lev++) {
       const Real* dx   = parent->Geom(level+lev).CellSize();
