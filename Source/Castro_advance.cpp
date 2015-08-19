@@ -245,19 +245,21 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef GRAVITY
+    MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
+    for (int n=0; n<BL_SPACEDIM; ++n)
+    {
+        comp_minus_level_grad_phi.clear(n);
+        comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+    }
+
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
     if (do_grav)
     {
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    comp_minus_level_grad_phi.clear(n);
-	    comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
-	}
-	(gravity->get_comp_minus_level_phi(level))->setVal(0.0);
-	
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-           gravity->create_comp_minus_level_grad_phi(level,comp_minus_level_grad_phi);
+           gravity->create_comp_minus_level_grad_phi(level,
+                           comp_minus_level_phi,comp_minus_level_grad_phi);
         } else {
            if (verbose && ParallelDescriptor::IOProcessor()) {
               std::cout << " " << '\n';
@@ -1012,9 +1014,7 @@ Castro::advance_hydro (Real time,
             // Here we use the "old" phi from the current time step as a guess for this solve
 	    MultiFab::Copy(phi_new,phi_old,0,0,1,0);
             int fill_interior = 0;
-	    int before_sync_solve = (iteration == ncycle) ? 1 : 0;
-            gravity->solve_for_new_phi(level,phi_new,gravity->get_grad_phi_curr(level),
-				       fill_interior,before_sync_solve);
+            gravity->solve_for_new_phi(level,phi_new,gravity->get_grad_phi_curr(level),fill_interior);
 	    
             if (gravity->test_results_of_solves() == 1)
 	      {
@@ -1025,13 +1025,8 @@ Castro::advance_hydro (Real time,
 		  }
 		gravity->test_level_grad_phi_curr(level);
 	      }
-
-	    // This needs to be done before adding comp_minus_level_grad_phi
-	    // because the rhs of sync solve should not include it. 
-	    if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
-
+	    
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-	      const MultiFab& comp_minus_level_phi = *(gravity->get_comp_minus_level_phi(level));
 	      phi_new.plus(comp_minus_level_phi, 0, 1, 0);
 	      gravity->plus_grad_phi_curr(level,comp_minus_level_grad_phi);
             }
@@ -1044,7 +1039,9 @@ Castro::advance_hydro (Real time,
 		}
 		gravity->test_level_grad_phi_curr(level);
 	      }
-            }	    
+            }
+	    
+            if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
 	  }
 
 	// Now do corrector part of source term update
@@ -1357,20 +1354,21 @@ Castro::advance_no_hydro (Real time,
 #endif
  
 #ifdef GRAVITY
+    MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
+    for (int n=0; n<BL_SPACEDIM; ++n)
+    {
+        comp_minus_level_grad_phi.clear(n);
+        comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+    }
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
     {
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    comp_minus_level_grad_phi.clear(n);
-	    comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
-	}
-	(gravity->get_comp_minus_level_phi(level))->setVal(0.0);
-
-	if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-           gravity->create_comp_minus_level_grad_phi(level, comp_minus_level_grad_phi);
+        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
+           gravity->create_comp_minus_level_grad_phi(level,
+                           comp_minus_level_phi,comp_minus_level_grad_phi);
         } else {
            if (verbose && ParallelDescriptor::IOProcessor()) {
               std::cout << " " << '\n';
