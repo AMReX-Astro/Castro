@@ -61,6 +61,8 @@ static Real fixed_dt     = -1.0;
 static Real initial_dt   = -1.0;
 static Real dt_cutoff    = 0.0;
 
+int          Castro::checkpoint_version = 1;
+
 bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
@@ -84,7 +86,6 @@ int          Castro::Temp          = -1;
 int          Castro::Xmom          = -1;
 int          Castro::Ymom          = -1;
 int          Castro::Zmom          = -1;
-
 
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
@@ -113,7 +114,6 @@ Real         Castro::point_mass    = 0.0;
 
 #ifdef GRAVITY
 Gravity*     Castro::gravity  = 0;
-int          Castro::plot_phiGrav = 0;
 #endif
 
 #ifdef DIFFUSION
@@ -484,7 +484,6 @@ Castro::read_params ()
 
 #ifdef GRAVITY
     pp.get("do_grav",do_grav);
-    pp.query("plot_phiGrav",plot_phiGrav);
 
 #if (BL_SPACEDIM == 1)
     if (do_grav && !Geometry::IsSPHERICAL()) {
@@ -607,6 +606,9 @@ Castro::Castro (Amr&            papa,
    // Initialize to zero here in case we run with do_grav = false.
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
    new_grav_mf.setVal(0.0);
+
+   MultiFab& phi_new = get_new_data(PhiGrav_Type);
+   phi_new.setVal(0.0);
 
    if (do_grav) {
 
@@ -872,11 +874,11 @@ Castro::initData ()
 #endif
 
 #ifdef GRAVITY
-    // Set these to zero so they're defined for the plotfile.
-    if (!do_grav) {
-       MultiFab& G_new = get_new_data(Gravity_Type);
-       G_new.setVal(0.);
-    }
+    MultiFab& G_new = get_new_data(Gravity_Type);
+    G_new.setVal(0.);
+
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    phi_new.setVal(0.);
 #endif
 
 #ifdef LEVELSET
@@ -1527,7 +1529,8 @@ Castro::post_restart ()
             {
                 if (gravity->NoComposite() != 1)
                 {
-                   gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+ 		   int use_previous_phi = 1;
+		   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
                 }
@@ -2398,6 +2401,7 @@ Castro::avgDown ()
 
 #ifdef GRAVITY
   avgDown(Gravity_Type);
+  avgDown(PhiGrav_Type);
 #endif
 
 #ifdef REACTIONS

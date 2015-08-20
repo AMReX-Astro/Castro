@@ -43,7 +43,6 @@ amr.plot_files_output = 1
 amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 1        # timesteps between plotfiles
 amr.derive_plot_vars  = ALL
-castro.plot_phiGrav   = 1
 
 # PROBIN FILENAME
 amr.probin_file = probin
