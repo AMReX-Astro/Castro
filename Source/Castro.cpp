@@ -1627,8 +1627,10 @@ Castro::post_regrid (int lbase,
        const Real cur_time = state[State_Type].curTime();
        if ( (level == lbase) && cur_time > 0.)  
        {
-          if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) )  
-              gravity->multilevel_solve_for_phi(level,new_finest);
+	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+	       int use_previous_phi = 1;
+	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
+	   }
        }
     }
 #endif

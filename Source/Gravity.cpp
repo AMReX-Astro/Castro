@@ -1016,7 +1016,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
 void
 Gravity::multilevel_solve_for_phi (int level, int finest_level, int use_previous_phi_as_guess)
 {
-    multilevel_solve_for_new_phi (level, finest_level);
+    multilevel_solve_for_new_phi (level, finest_level,use_previous_phi_as_guess);
 }
 
 void
