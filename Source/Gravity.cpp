@@ -1638,11 +1638,13 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
+    const MultiFab& phi_old = LevelData[level].get_old_data(PhiGrav_Type);
+
     MultiFab SL_phi;
     PArray<MultiFab> SL_grad_phi(BL_SPACEDIM,PArrayManage);
 
     SL_phi.define(grids[level],1,1,Fab_allocate);
-    SL_phi.setVal(0.);
+    MultiFab::Copy(SL_phi,phi_old,0,0,1,0);
 
     comp_minus_level_phi.setVal(0.);
     for (int n=0; n<BL_SPACEDIM; ++n)
@@ -1658,7 +1660,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
 
-    int fill_interior = 1;
+    int fill_interior = 0;
 #ifdef PARTICLES
     BoxLib::Error("Particles + Gravity + AMR: here be dragons... ( Gravity.cpp Gravity::create_comp_minus_level_grad_phi() )");
 #endif
@@ -1667,7 +1669,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     if (verbose && ParallelDescriptor::IOProcessor())  
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
 
-    comp_minus_level_phi.copy(LevelData[level].get_old_data(PhiGrav_Type),0,0,1);
+    comp_minus_level_phi.copy(phi_old,0,0,1);
     comp_minus_level_phi.minus(SL_phi,0,1,0);
 
     for (int n=0; n<BL_SPACEDIM; ++n)
