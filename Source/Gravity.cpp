@@ -314,14 +314,17 @@ Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 void
 Gravity::swapTimeLevels (int level)
 {
-  for (int n=0; n < BL_SPACEDIM; n++) {
-    MultiFab* dummy = grad_phi_curr[level].remove(n);
-    grad_phi_prev[level].clear(n);
-    grad_phi_prev[level].set(n,dummy);
-   
-    grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
-    grad_phi_curr[level][n].setVal(1.e50);
-  } 
+    if (gravity_type == "PoissonGrav") {
+	for (int n=0; n < BL_SPACEDIM; n++) {
+	    MultiFab* dummy = grad_phi_curr[level].remove(n);
+	    grad_phi_prev[level].clear(n);
+	    grad_phi_prev[level].set(n,dummy);
+	    
+	    grad_phi_curr[level].set(n,
+                new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+	    grad_phi_curr[level][n].setVal(1.e50);
+	} 
+    }
 }
 
 void
