@@ -250,7 +250,7 @@ Castro::advance_hydro (Real time,
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
-    if (do_grav)
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
