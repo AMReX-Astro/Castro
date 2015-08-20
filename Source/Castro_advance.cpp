@@ -229,6 +229,7 @@ Castro::advance_hydro (Real time,
     {
        MultiFab& new_grav_mf = get_new_data(Gravity_Type);
        new_grav_mf.setVal(0.0);
+       phi_new.setVal(0.0);
     }
 #endif
 
@@ -1046,6 +1047,9 @@ Castro::advance_hydro (Real time,
 	    
             if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
 	  }
+	else {
+	    phi_new.setVal(0.0);  // so that plotfiles do not contain nans
+	}
 
 	// Now do corrector part of source term update
 	MultiFab grav_vec_new(grids,BL_SPACEDIM,1,Fab_allocate);
@@ -1320,6 +1324,7 @@ Castro::advance_no_hydro (Real time,
     {
        MultiFab& new_grav_mf = get_new_data(Gravity_Type);
        new_grav_mf.setVal(0.0);
+       phi_new.setVal(0.0);
     }
 #endif 
 
@@ -1410,6 +1415,10 @@ Castro::advance_no_hydro (Real time,
     }
 
     computeTemp(S_new);
+
+#ifdef GRAVITY
+    MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
+#endif
 
     // ******************
     //  Note: If add_ext_src changed the density, 
