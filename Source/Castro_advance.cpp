@@ -245,21 +245,21 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef GRAVITY
-    MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
+    MultiFab comp_minus_level_phi;
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        comp_minus_level_grad_phi.clear(n);
-        comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
-    }
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
     if (do_grav)
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-           gravity->create_comp_minus_level_grad_phi(level,
-                           comp_minus_level_phi,comp_minus_level_grad_phi);
+	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
+	    for (int n=0; n<BL_SPACEDIM; ++n) {
+		comp_minus_level_grad_phi.set(n, 
+		           new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+	    }
+	    gravity->create_comp_minus_level_grad_phi(level,
+                            comp_minus_level_phi,comp_minus_level_grad_phi);
         } else {
            if (verbose && ParallelDescriptor::IOProcessor()) {
               std::cout << " " << '\n';
@@ -1013,6 +1013,9 @@ Castro::advance_hydro (Real time,
 	    
             // Here we use the "old" phi from the current time step as a guess for this solve
 	    MultiFab::Copy(phi_new,phi_old,0,0,1,0);
+            if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
+		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+	    }
             int fill_interior = 0;
             gravity->solve_for_new_phi(level,phi_new,gravity->get_grad_phi_curr(level),fill_interior);
 	    
@@ -1354,21 +1357,21 @@ Castro::advance_no_hydro (Real time,
 #endif
  
 #ifdef GRAVITY
-    MultiFab comp_minus_level_phi(grids,1,0,Fab_allocate);
+    MultiFab comp_minus_level_phi;
     PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        comp_minus_level_grad_phi.clear(n);
-        comp_minus_level_grad_phi.set(n,new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
-    }
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-           gravity->create_comp_minus_level_grad_phi(level,
-                           comp_minus_level_phi,comp_minus_level_grad_phi);
+	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
+	    for (int n=0; n<BL_SPACEDIM; ++n) {
+		comp_minus_level_grad_phi.set(n,
+                           new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+	    }
+	    gravity->create_comp_minus_level_grad_phi(level,
+                            comp_minus_level_phi,comp_minus_level_grad_phi);
         } else {
            if (verbose && ParallelDescriptor::IOProcessor()) {
               std::cout << " " << '\n';
