@@ -6,7 +6,8 @@ program riemann_exact
   use eos_type_module
   use network, only: nspec
   use probin_module, only: rho_l, u_l, p_l, T_l, rho_r, u_r, p_r, T_r, &
-                           xmin, xmax, xjump, t, npts, use_Tinit
+                           xmin, xmax, xjump, t, npts, use_Tinit, &
+                           co_moving_frame
   use extern_probin_module, only: use_eos_coulomb
   use riemann_support
   use runtime_init_module
@@ -18,6 +19,7 @@ program riemann_exact
   real (kind=dp_t) :: xn(nspec)
 
   real (kind=dp_t) :: pstar, ustar
+  real (kind=dp_t) :: W_avg
 
   real (kind=dp_t) :: W_l, W_r
 
@@ -67,11 +69,14 @@ program riemann_exact
      print *, 'p_r = ', p_r
   endif
 
+  if (co_moving_frame) then
+     W_avg = 0.5d0*(u_l + u_r)
+     u_l = u_l - W_avg
+     u_r = u_r - W_avg
+  endif
 
   call riemann_star_state(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn, &
                           ustar, pstar, W_l, W_r, .true.)
-
-
 
   !---------------------------------------------------------------------------
   ! find the solution as a function of xi = x/t
@@ -88,12 +93,19 @@ program riemann_exact
 
      ! compute xi = x/t -- this is the similarity variable for the
      ! solution
-     x  = xmin + (dble(i) - HALF)*dx
+     x  = xmin + (dble(i) - HALF)*dx 
+     if (co_moving_frame) then
+        x = x - W_avg*t
+     endif
 
      call riemann_sample(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn, &
                          ustar, pstar, W_l, W_r, &
                          x, xjump, t, &
                          rho, u, p, xn_s)
+
+     if (co_moving_frame) then
+        u = u + W_avg
+     endif
 
      ! get the thermodynamics for this state for output
      eos_state%rho = rho
