@@ -702,10 +702,11 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_put_multipole_bc (lo,hi,domlo,domhi,dx,&
-                                      phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-                                      problo,probhi,lnum,q0,qC,qS)
-        use prob_params_module, only: center
+      subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx,&
+                                       phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
+                                       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only)
+        
+        use prob_params_module, only: problo, center, probhi
         use fundamental_constants_module, only: Gconst
         use bl_constants_module
 
@@ -714,22 +715,31 @@
         integer          :: lo(3),hi(3)
         integer          :: domlo(3),domhi(3)
         double precision :: dx(3), dV
-        double precision :: problo(3),probhi(3)
 
-        integer          :: lnum
-        double precision :: q0(0:lnum), qC(0:lnum,0:lnum), qS(0:lnum,0:lnum)
+        integer          :: lnum, npts, boundary_only
+        double precision :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+        double precision :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
         integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
         double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
-        integer          :: i,j,k
-        integer          :: l,m
-        double precision :: x,y,z,r,cosTheta,phiAngle
+        integer          :: i, j, k
+        integer          :: l, m, n, nlo
+        double precision :: x, y, z, r, cosTheta, phiAngle
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
-        double precision :: r_to_mlm1
+        double precision :: r_L, r_U
 
         dV = dx(1) * dx(2) * dx(3)
+
+        ! If we're using this to construct boundary values, then only use
+        ! the outermost bin.
+        
+        if (boundary_only .eq. 1) then
+           nlo = npts-1
+        else
+           nlo = 0
+        endif
 
         rmax = probhi(1)
         if ( probhi(2) > rmax ) then
@@ -806,21 +816,26 @@
 
                    ! Now compute the potentials on the ghost cells.
 
-                   do l = 0, lnum
+                   do n = nlo, npts-1
+                   
+                      do l = 0, lnum
 
-                     r_to_mlm1 = r**(-l-1)
- 
-                     phi(i,j,k) = phi(i,j,k) + q0(l) * legPolyArr(l) * r_to_mlm1
+                         r_L = r**dble( l  )
+                         r_U = r**dble(-l-1)
+                                                
+                         phi(i,j,k) = phi(i,j,k) + qL0(l,n) * legPolyArr(l) * r_U
 
-                     do m = 1, l
-       
-                       phi(i,j,k) = phi(i,j,k) + (qC(l,m) * cos(m * phiAngle) + qS(l,m) * sin(m * phiAngle)) * &
-                                                 assocLegPolyArr(l,m) * r_to_mlm1
+                         do m = 1, l
 
-                     enddo
+                            phi(i,j,k) = phi(i,j,k) + (qLC(l,m,n) * cos(m * phiAngle) + qLS(l,m,n) * sin(m * phiAngle)) * &
+                                                       assocLegPolyArr(l,m) * r_U
+
+                         enddo
+
+                      enddo
 
                    enddo
-
+                      
                    phi(i,j,k) = Gconst * phi(i,j,k) * dV / rmax
 
                  endif
@@ -829,7 +844,7 @@
            enddo
         enddo
 
-      end subroutine ca_put_multipole_bc
+      end subroutine ca_put_multipole_phi
 
 ! ::
 ! :: ----------------------------------------------------------
@@ -837,8 +852,9 @@
 
       subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,symmetry_type,lo_bc,hi_bc,&
                                                dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
-                                               problo,probhi,lnum,q0,qC,qS)
-        use prob_params_module, only: center
+                                               lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only)
+
+        use prob_params_module, only: problo, center, probhi
         use bl_constants_module
         use meth_params_module, only: deterministic
 
@@ -849,32 +865,34 @@
         integer          :: symmetry_type
         integer          :: domlo(3),domhi(3)
         double precision :: dx(3)
-        double precision :: problo(3), probhi(3)
+        integer          :: boundary_only, npts, lnum
 
-        integer          :: lnum
-        double precision :: q0(0:lnum), qC(0:lnum,0:lnum), qS(0:lnum,0:lnum)
+        double precision :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+        double precision :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
         double precision :: factArray(0:lnum,0:lnum)
 
         integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
         double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
-        integer          :: i,j,k
-        integer          :: l,m,b
+        integer          :: i, j, k
+        integer          :: l, m, n, nlo, b, index
 
         double precision :: factorial
 
-        double precision :: x,y,z,r,cosTheta,phiAngle
+        double precision :: x, y, z, r, drInv, cosTheta, phiAngle
 
         double precision :: volumeFactor, parityFactor
-        double precision, parameter :: edgeTolerance = 1.0d-2
+        double precision :: edgeTolerance = 1.0d-2
         double precision :: rmax
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
-        double precision :: rho_r_to_l
+        double precision :: rho_r_L, rho_r_U
         double precision :: parity_q0(0:lnum), parity_qC_qS(0:lnum,0:lnum)
 
         logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
         logical          :: doReflectionLo(3), doReflectionHi(3)
 
+        double precision :: q
+        
         ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
         ! to lie on the opposite side of the symmetric axis. If the center in any direction 
         ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
@@ -980,6 +998,19 @@
 
         rmax = rmax * sqrt(THREE) / TWO ! This is the distance from the center to the corner of a cube. 
 
+        ! Note that we don't currently support dx != dy != dz, so this is acceptable.
+
+        drInv = ONE / dx(1)
+
+        ! If we're using this to construct boundary values, then only fill
+        ! the outermost bin.
+        
+        if (boundary_only .eq. 1) then
+           nlo = npts-1
+        else
+           nlo = 0
+        endif
+        
         if ( lnum > 50 ) then
           print *, ">>> CA_COMPUTE_MULTIPOLE_MOMENTS: The value of l you have chosen is too large."
           print *, ">>> Try again with max_multipole_order <= 50."
@@ -996,6 +1027,9 @@
                  x = ( problo(1) + (dble(i)+HALF) * dx(1) - center(1) ) / rmax
 
                  r = sqrt( x**2 + y**2 + z**2 )
+                 
+                 index = int(r*drInv)
+                 
                  cosTheta = z / r
                  phiAngle = atan2(y,x)
 
@@ -1010,22 +1044,42 @@
 
                  ! Now, compute the multipole moments using the tabulated polynomials.
 
-                 do l = 0, lnum 
+                 do n = nlo, npts-1
                  
-                   rho_r_to_l = rho(i,j,k) * (r**dble(l))
+                    do l = 0, lnum 
+                 
+                       rho_r_L = rho(i,j,k) * (r**dble( l  ))
+                       rho_r_U = rho(i,j,k) * (r**dble(-l-1))
 
-                   q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l * volumeFactor * parity_q0(l)
+                       if (index .le. n) then
+                          qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * volumeFactor * parity_q0(l)
+                       else
+                          qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * volumeFactor * parity_q0(l)
+                       endif
+                       
+                       do m = 1, l
 
-                   do m = 1, l
+                          if (index .le. n) then
+                             
+                             qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
+                                          rho_r_L * parity_qC_qS(l,m)
 
-                     qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
-                                         rho_r_to_l * parity_qC_qS(l,m)
+                             qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
+                                          rho_r_L * parity_qC_qS(l,m)
 
-                     qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
-                                         rho_r_to_l * parity_qC_qS(l,m)
+                          else
+                             
+                             qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
+                                          rho_r_U * parity_qC_qS(l,m)
 
-                   enddo
+                             qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
+                                          rho_r_U * parity_qC_qS(l,m)
 
+                          endif
+                       enddo
+
+                    enddo
+                    
                  enddo
 
                  ! Now add in contributions if we have any symmetric boundaries
@@ -1035,7 +1089,7 @@
                    call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
                         x, y, z, problo, probhi, rmax, &
                         rho(i,j,k), factArray, &
-                        q0, qC, qS, lnum)
+                        qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
                  endif
 
@@ -1159,14 +1213,14 @@
       subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
                       x, y, z, problo, probhi, rmax, &
                       rho, factArray, &
-                      q0, qC, qS, lnum)
+                      qU0, qUC, qUS, qL0, qLC, qLS, lnum, npts, nlo, index)
 
         use prob_params_module, only: center
         use bl_constants_module
 
         implicit none
 
-        integer,          intent(in) :: lnum
+        integer,          intent(in) :: lnum, npts, nlo, index
         double precision, intent(in) :: factArray(0:lnum,0:lnum)
         double precision, intent(in) :: x, y, z
         double precision, intent(in) :: problo(3), probhi(3), rmax
@@ -1174,8 +1228,11 @@
 
         logical,          intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
 
-        double precision, intent(inout) :: q0(0:lnum)
-        double precision, intent(inout) :: qC(0:lnum,0:lnum), qS(0:lnum,0:lnum)
+        double precision, intent(inout) :: qL0(0:lnum,0:npts-1)
+        double precision, intent(inout) :: qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+
+        double precision, intent(inout) :: qU0(0:lnum,0:npts-1)
+        double precision, intent(inout) :: qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
         double precision :: cosTheta, phiAngle, r
         double precision :: xLo, yLo, zLo, xHi, yHi, zHi
@@ -1195,7 +1252,7 @@
           phiAngle = atan2(y, xLo)
           cosTheta = z / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+          call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           if ( doSymmetricAddLo(2) ) then
 
@@ -1203,7 +1260,7 @@
             phiAngle = atan2(yLo, xLo)
             cosTheta = z / r
 
-            call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+            call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           endif
 
@@ -1213,7 +1270,7 @@
             phiAngle = atan2(y, xLo)
             cosTheta = zLo / r
 
-            call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+            call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           endif
 
@@ -1223,7 +1280,7 @@
             phiAngle = atan2(yLo, xLo)
             cosTheta = zLo / r
 
-            call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+            call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           endif
 
@@ -1235,7 +1292,7 @@
           phiAngle = atan2(yLo, x)
           cosTheta = z / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+          call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           if ( doSymmetricAddLo(3) ) then
 
@@ -1243,7 +1300,7 @@
             phiAngle = atan2(yLo, x)
             cosTheta = zLo / r
 
-            call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+            call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
           endif
 
@@ -1255,7 +1312,7 @@
           phiAngle = atan2(y, x)
           cosTheta = zLo / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+          call multipole_add(cosTheta, phiAngle, r, rho, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
         endif
 
@@ -1265,20 +1322,22 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine multipole_add(cosTheta, phiAngle, r, rho, factArray, q0, qC, qS, lnum)
+      subroutine multipole_add(cosTheta, phiAngle, r, rho, factArray, &
+                               qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
         implicit none
 
-        integer,          intent(in) :: lnum
-        double precision, intent(in) :: cosTheta, phiAngle, r, rho, factArray(0:lnum,0:lnum)
+        integer,          intent(in)    :: lnum, npts, nlo, index
+        double precision, intent(in)    :: cosTheta, phiAngle, r, rho, factArray(0:lnum,0:lnum)
 
-        double precision, intent(inout) :: q0(0:lnum), qC(0:lnum,0:lnum), qS(0:lnum,0:lnum)
+        double precision, intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+        double precision, intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
-        integer :: l, m
+        integer :: l, m, n
 
         double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
-        double precision :: rho_r_to_l
+        double precision :: rho_r_L, rho_r_U
 
         call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
@@ -1286,18 +1345,32 @@
 
         assocLegPolyArr = assocLegPolyArr * factArray
 
-        do l = 0, lnum
+        do n = nlo, npts-1
+        
+           do l = 0, lnum
 
-          rho_r_to_l = rho * (r ** l)
+              rho_r_L = rho * (r ** dble( l  ))
+              rho_r_U = rho * (r ** dble(-l-1))
 
-          q0(l) = q0(l) + legPolyArr(l) * rho_r_to_l
+              if (n .le. index) then
+                 qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L
+              else
+                 qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U
+              endif
 
-          do m = 1, l
-            
-            qC(l,m) = qC(l,m) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_to_l
-            qS(l,m) = qS(l,m) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_to_l
+              do m = 1, l
 
-          enddo
+                 if (n .le. index) then
+                    qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_L
+                    qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_L
+                 else
+                    qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_U
+                    qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_U
+                 endif
+                 
+              enddo
+
+           enddo
 
         enddo
 

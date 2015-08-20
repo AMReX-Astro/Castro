@@ -194,6 +194,11 @@ Castro::advance_hydro (Real time,
     MultiFab grav_vec_old;
 
 #ifdef GRAVITY
+    // Old and new gravitational potential.
+       
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    
     if (do_grav) {
 
        // Swap the old and new data at this level and all finer levels,
@@ -208,7 +213,7 @@ Castro::advance_hydro (Real time,
            for (int lev = level; lev <= finest_level; lev++)
                gravity->swapTimeLevels(lev);
        }
-       
+
        grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
        
        // Define the old gravity vector (aka grad_phi on cell centers)
@@ -250,7 +255,7 @@ Castro::advance_hydro (Real time,
 
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
+    if (do_grav)
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
            gravity->create_comp_minus_level_grad_phi(level,
@@ -260,17 +265,8 @@ Castro::advance_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior;
-           if ( (level == 0) and prev_time > 0.0) {  
-              // Here we use the "new" phi from the previous time step as a guess for this solve
-	      fill_interior = 0;
-           } else { 
-              // Here we use the monopole solve to fill the interior values as a guess for this solve
-              (*gravity->get_phi_prev(level)).setVal(0.0);
-	      fill_interior = 1;
-           }
-           gravity->solve_for_old_phi(level,*gravity->get_phi_prev(level),
-                                      gravity->get_grad_phi_prev(level),fill_interior);
+           int fill_interior = 0;
+           gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
         }
     }
 #endif
@@ -1016,10 +1012,9 @@ Castro::advance_hydro (Real time,
             }
 	    
             // Here we use the "old" phi from the current time step as a guess for this solve
-	    MultiFab::Copy(*gravity->get_phi_curr(level),*gravity->get_phi_prev(level),0,0,1,0);
+	    MultiFab::Copy(phi_new,phi_old,0,0,1,0);
             int fill_interior = 0;
-            gravity->solve_for_new_phi(level,*gravity->get_phi_curr(level),
-                                       gravity->get_grad_phi_curr(level),fill_interior);
+            gravity->solve_for_new_phi(level,phi_new,gravity->get_grad_phi_curr(level),fill_interior);
 	    
             if (gravity->test_results_of_solves() == 1)
 	      {
@@ -1032,7 +1027,7 @@ Castro::advance_hydro (Real time,
 	      }
 	    
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-	      gravity->plus_phi_curr(level,comp_minus_level_phi);
+	      phi_new.plus(comp_minus_level_phi, 0, 1, 0);
 	      gravity->plus_grad_phi_curr(level,comp_minus_level_grad_phi);
             }
 	    
@@ -1068,13 +1063,6 @@ Castro::advance_hydro (Real time,
 	    {
 		const Box& bx = mfi.tilebox();
 		
-#if (BL_SPACEDIM == 3)
-		FArrayBox& phi_prev_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
-		    (*gravity->get_phi_prev(level))[mfi] : single_cell_fab;
-		FArrayBox& phi_curr_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
-		    (*gravity->get_phi_curr(level))[mfi] : single_cell_fab;
-#endif
-
 		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 		    (bx.loVect(), bx.hiVect(),
 		     BL_TO_FORTRAN(grav_vec_old[mfi]),
@@ -1082,8 +1070,8 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN(S_old[mfi]),
 		     BL_TO_FORTRAN(S_new[mfi]),
 #if (BL_SPACEDIM == 3)
-		     BL_TO_FORTRAN(phi_prev_fab),
-		     BL_TO_FORTRAN(phi_curr_fab),
+		     BL_TO_FORTRAN(phi_old[mfi]),
+		     BL_TO_FORTRAN(phi_new[mfi]),
 		     BL_TO_FORTRAN(fluxes[0][mfi]),
 		     BL_TO_FORTRAN(fluxes[1][mfi]),
 		     BL_TO_FORTRAN(fluxes[2][mfi]),
@@ -1303,6 +1291,11 @@ Castro::advance_no_hydro (Real time,
     MultiFab grav_vec_old;
 
 #ifdef GRAVITY
+    // Old and new gravitational potential.
+       
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    
     if (do_grav) {
        if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav")
            gravity->zeroPhiFluxReg(level+1);
@@ -1381,15 +1374,8 @@ Castro::advance_no_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior;
-           if ( (level == 0) and prev_time > 0.0) {  
-              // Here we use the "new" phi from the previous time step as a guess for this solve fill_interior = 0; } else { 
-              // Here we use the monopole solve to fill the interior values as a guess for this solve
-              (*gravity->get_phi_prev(level)).setVal(0.0);
-	      fill_interior = 1;
-           }
-           gravity->solve_for_old_phi(level,*gravity->get_phi_prev(level),
-                                      gravity->get_grad_phi_prev(level),fill_interior);
+           int fill_interior = 0;
+           gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
         }
     }
 #endif

@@ -80,10 +80,15 @@ The main descriptors are:
 \item {\tt Rad\_Type}: the radiation quantities (only enabled if {\tt
   RADIATION} is defined).
 
-\item {\tt Gravity\_Type}: the data required for the gravity solve (only
+\item {\tt PhiGrav\_Type}: the data required for the gravitational potential solve (only
+  enabled if {\tt GRAVITY} is defined).  
+  
+\item {\tt Gravity\_Type}: the data required for the gravitational acceleration solve (only
   enabled if {\tt GRAVITY} is defined).
 
-\item {\tt Reactions\_Type}: {\color{red} what is this for?}
+\item {\tt Reactions\_Type}: stores state data in addition to components
+  for internal energy generation and species change; used for interfacing
+  with burning module.
 \end{itemize}
 
 The state data is registered with \boxlib\ in {\tt Castro\_setup.cpp}.
@@ -274,122 +279,125 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
      prob\_params\_module}.)
      
     \end{itemize}
+  \end{itemize}    
+
+\item {\tt bc\_fill\_?d.f90}:
+
+  These routines handle how \castro\ fills ghostcells {\em
+  at physical boundaries} for specific data.  Most problem
+  setups won't need to do anything special here, and inclusion
+  of this file is optional -- only use it if you need to set
+  specific boundary conditions.
+
+  These routines are registered in {\tt Castro\_setup.cpp}, and
+  called as needed.  By default, they just
+  pass the arguments through to {\tt filcc}, which handles all of
+  the generic boundary conditions (like reflecting, extrapolation,
+  etc.).  The specific `{\tt fill}' routines can then supply the
+  problem-specific boundary conditions, which are typically just
+  Dirichlet boundary conditions (usually this means looking to see
+  if the {\tt bc()} flag at a boundary is {\tt EXT\_DIR}.  The
+  problem-specific code implementing these specific conditions
+  should {\em follow} the {\tt filcc} call.
+        
+  \begin{itemize}
+  \item {\tt ca\_hypfill}:
+    This handles the boundary filling for the hyperbolic system.
+
+  \item {\tt ca\_denfill}: At times, we need to fill just the density
+    (always assumed to be the first element in the hyperbolic state)
+    instead of the entire state.  When the fill patch routine is called
+    with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
+    use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
+    
+    (Note: it seems that this may be used for more than just
+    density, but it is only used for tagging and the plotfile)
       
+  \item {\tt ca\_grav?fill}: These routines fill will the ghostcells
+    of the gravitational acceleration grids with the gravitational
+    acceleration.
 
-  \item the {\tt *fill} routines:
+    Note: for constant gravity, these routines will never be called.
+    For one of the Poisson-type gravities, you only need to do
+    something special here if you are implementing an {\tt Interior}
+    boundary type (which you can test for by comparing {\tt
+    bc(:,:,:)} to {\tt EXT\_DIR}.
 
-    The following routines handle how \castro\ fills ghostcells {\em
-      at physical boundaries} for specific data.  Most problem
-    setups won't need to do anything special here.
+    For the other standard physical boundary types, the ghost cell
+    filling will be handled automatically by the default {\tt filcc}
+    call in these routines.
 
-    The idea is that these routines are registered in {\tt
-      Castro\_setup.cpp}, and called as needed.  By default, they just
-    pass the arguments through to {\tt filcc}, which handles all of
-    the generic boundary conditions (like reflecting, extrapolation,
-    etc.).  The specific `{\tt fill}' routines can then supply the
-    problem-specific boundary conditions, which are typically just
-    Dirichlet boundary conditions (usually this means looking to see
-    if the {\tt bc()} flag at a boundary is {\tt EXT\_DIR}.  The
-    problem-specific code implementing these specific conditions
-    should {\em follow} the {\tt filcc} call.
+    The gravitational acceleration in the ghost cells is used during
+    the hydrodynamics portion of the code in predicting the
+    interface states.
+
+  \item {\tt ca\_reactfill}: This handles boundary filling for
+    any {\tt Reactions\_Type} MultiFABs, which are sometimes used to interface
+    with the nuclear burning module. It stores the normal state data
+    in addition to components for the energy release and species change.
+
+  \end{itemize}
+
+  These routines take the following arguments:
+  \begin{itemize}
+  \item {\tt adv\_l1}, {\tt adv\_l2}, ({\tt adv\_l3}): the indicies of
+    the lower left corner of the box holding the data we are working on.
+    These indices refer to the entire box, including ghost cells.
+
+  \item {\tt adv\_h1}, {\tt adv\_h2}, ({\tt adv\_h3}): the indicies of
+    the upper right corner of the box holding the data we are working on.
+    These indices refer to the entire box, including ghost cells.
+
+  \item {\tt adv()}: the array of data whose ghost cells we are filling.
+    Depending on the routine, this may have an additional index refering
+    to the variable.
     
-    
-    \begin{itemize}
-    \item {\tt ca\_hypfill}:
-      This handles the boundary filling for the hyperbolic system.
-
-    \item {\tt ca\_denfill}: At times, we need to fill just the density
-      (always assumed to be the first element in the hyperbolic state)
-      instead of the entire state.  When the fill patch routine is called
-      with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
-      use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
-
-      (Note: it seems that this may be used for more than just
-      density, but it is only used for tagging and the plotfile)
-      
-    \item {\tt ca\_grav?fill}: These routines fill will the ghostcells
-      of the gravitational acceleration grids with the gravitational
-      acceleration.
-
-      Note: for constant gravity, these routines will never be called.
-      For one of the Poisson-type gravities, you only need to do
-      something special here if you are implementing an {\tt Interior}
-      boundary type (which you can test for by comparing {\tt
-        bc(:,:,:)} to {\tt EXT\_DIR}.
-
-      For the other standard physical boundary types, the ghost cell
-      filling will be handled automatically by the default {\tt filcc}
-      call in these routines.
-
-      The gravitational acceleration in the ghost cells is used during
-      the hydrodynamics portion of the code in predicting the
-      interface states.
-
-    \item {\tt ca\_reactfill}
-    \end{itemize}
-
-    These routines that the following arguments:
-    \begin{itemize}
-    \item {\tt adv\_l1}, {\tt adv\_l2}, ({\tt adv\_l3}): the indicies of
-      the lower left corner of the box holding the data we are working on.
-      These indices refer to the entire box, including ghost cells.
-
-    \item {\tt adv\_h1}, {\tt adv\_h2}, ({\tt adv\_h3}): the indicies of
-      the upper right corner of the box holding the data we are working on.
-      These indices refer to the entire box, including ghost cells.
-
-    \item {\tt adv()}: the array of data whose ghost cells we are filling.
-      Depending on the routine, this may have an additional index refering
-      to the variable.
-    
-      This is dimensioned as:
+    This is dimensioned as:
 \begin{verbatim}
   double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)                             
 \end{verbatim}
 
-    \item {\tt domlo()}, {\tt domhi()}: the integer indices of the lower
-      left and upper right corners of the valid region of the {\em entire
-        domain}.  These are used to test against to see if we are filling
-      physical boundary ghost cells.
+  \item {\tt domlo()}, {\tt domhi()}: the integer indices of the lower
+    left and upper right corners of the valid region of the {\em entire
+    domain}.  These are used to test against to see if we are filling
+    physical boundary ghost cells.
 
-      This changes according to refinement level: level-0 will
-      range from {\tt 0} to {\tt castro.max\_grid\_size},
-      and level-n will range from {\tt 0} to
-      $\mathtt{castro.max\_grid\_size} \cdot \prod_n \mathtt{castro.ref\_ratio(n)}$.
+    This changes according to refinement level: level-0 will
+    range from {\tt 0} to {\tt castro.max\_grid\_size},
+    and level-n will range from {\tt 0} to
+    $\mathtt{castro.max\_grid\_size} \cdot \prod_n \mathtt{castro.ref\_ratio(n)}$.
 
-    \item {\tt delta()}: is the zone width in each coordinate direction,
-      as in {\tt initdata()} above.
+  \item {\tt delta()}: is the zone width in each coordinate direction,
+    as in {\tt initdata()} above.
 
-    \item {\tt xlo()}: this is the physical coordinate of the lower
-      left corner of the box we are filling---including the ghost cells.
+  \item {\tt xlo()}: this is the physical coordinate of the lower
+    left corner of the box we are filling---including the ghost cells.
 
-      Note: this is different than how {\tt xlo()} was defined in
-      {\tt initdata()} above.
+    Note: this is different than how {\tt xlo()} was defined in
+    {\tt initdata()} above.
 
-    \item {\tt time}: the simulation time
+  \item {\tt time}: the simulation time
 
-    \item {\tt bc()}: an array that holds the type of boundary conditions
-      to enforce at the physical boundaries for {\tt adv}.
+  \item {\tt bc()}: an array that holds the type of boundary conditions
+    to enforce at the physical boundaries for {\tt adv}.
 
-      Sometimes it appears of the form {\tt bc(:,:)} and sometimes
-      {\tt bc(:,:,:)}---the last index of the latter holds the variable
-      index, i.e., density, pressure, species, etc.
+    Sometimes it appears of the form {\tt bc(:,:)} and sometimes
+    {\tt bc(:,:,:)}---the last index of the latter holds the variable
+    index, i.e., density, pressure, species, etc.
 
-      The first index is the coordinate direction and the second index
-      is the domain face ({\tt 1} is low, {\tt 2} is hi), so {\tt
-        bc(1,1)} is the lower $x$ boundary type, {\tt bc(1,2)} is
-      the upper $x$ boundary type, {\tt bc(2,1)} is the lower
-      $y$ boundary type, etc.
+    The first index is the coordinate direction and the second index
+    is the domain face ({\tt 1} is low, {\tt 2} is hi), so {\tt
+    bc(1,1)} is the lower $x$ boundary type, {\tt bc(1,2)} is
+    the upper $x$ boundary type, {\tt bc(2,1)} is the lower
+    $y$ boundary type, etc.
 
-      To interpret the array values, we test against the quantities
-      defined in {\tt bc\_types.fi} included in each subroutine,
-      for example, {\tt EXT\_DIR}, {\tt FOEXTRAP}, $\ldots$.  The
-      meaning of these are explained below.
+    To interpret the array values, we test against the quantities
+    defined in {\tt bc\_types.fi} included in each subroutine,
+    for example, {\tt EXT\_DIR}, {\tt FOEXTRAP}, $\ldots$.  The
+    meaning of these are explained below.
       
-    \end{itemize}
-    
   \end{itemize}
-
+    
 \end{itemize}
 
 
