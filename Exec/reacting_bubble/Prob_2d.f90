@@ -12,7 +12,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ model_name, npts_model, pert_temp_factor, pert_rad_factor
+  namelist /fortin/ model_name, pert_temp_factor, pert_rad_factor
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)

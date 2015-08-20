@@ -58,14 +58,14 @@ module fundamental_constants_module
   real(kind=dp_t), parameter :: a_rad = 4.0_dp_t*sigma_SB/c_light
 
   ! Number of centimeters in a parsec and an AU.
-  ! Note that the length of an AU is defined exactly
+  ! Note that since the length of an AU is defined exactly
   ! by IAU convention, the length of a parsec is also
   ! defined exactly as (6.48e5 / pi) AU.
-  real(kind=dp_t), parameter :: AU = 1.49597871e13
-  real(kind=dp_t), parameter :: parsec = (648000 / M_PI) * AU
+  real(kind=dp_t), parameter :: AU = 1.49597871e13_dp_t            ! cm
+  real(kind=dp_t), parameter :: parsec = 3.085677587679311e18_dp_t ! cm
 
   ! Hubble constant (in s^{-1}, converted from 100 (km/s)/Mpc by dividing by 3.08568025e19km/Mpc)
-  real(kind=dp_t), parameter :: Hubble_const = 32.407764868e-19
+  real(kind=dp_t), parameter :: Hubble_const = 32.407764868e-19_dp_t
 
   ! solar mass (from http://asa.usno.navy.mil/SecK/Constants.html)
   real(kind=dp_t), parameter :: M_solar = 1.9884e33_dp_t
