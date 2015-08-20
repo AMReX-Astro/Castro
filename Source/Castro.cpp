@@ -601,6 +601,10 @@ Castro::Castro (Amr&            papa,
 
     fine_mask = 0;
 
+    // Initialize to zero here in case we run with do_grav = false.
+    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
+    new_grav_mf.setVal(0.0);
+       
 #ifdef GRAVITY
    if (do_grav) {
       // gravity is a static object, only alloc if not already there
@@ -622,10 +626,6 @@ Castro::Castro (Amr&            papa,
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
    } else {
-       // Initialize to zero here in case we run with do_grav = false.
-       MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-       new_grav_mf.setVal(0.0);
-       
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
        phi_new.setVal(0.0);
    }
@@ -945,6 +945,13 @@ Castro::init (AmrLevel &old)
     }
 #endif
 
+#ifdef GRAVITY
+    if (do_grav) {
+	MultiFab& phi_new = get_new_data(PhiGrav_Type);
+	FillPatch(old,phi_new,0,cur_time,PhiGrav_Type,0,1);
+    }
+#endif
+
 #ifdef REACTIONS
     {
 	MultiFab& React_new = get_new_data(Reactions_Type);
@@ -1014,6 +1021,13 @@ Castro::init ()
       MultiFab& Er_new = get_new_data(Rad_Type);
       int ncomp = Er_new.nComp();
       FillCoarsePatch(Er_new, 0, cur_time, Rad_Type, 0, ncomp);
+    }
+#endif
+
+#ifdef GRAVITY
+    if (do_grav) {
+	MultiFab& phi_new = get_new_data(PhiGrav_Type);
+	FillCoarsePatch(phi_new, 0, cur_time, PhiGrav_Type, 0, 1);
     }
 #endif
 
