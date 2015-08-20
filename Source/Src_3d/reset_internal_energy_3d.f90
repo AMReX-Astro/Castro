@@ -93,5 +93,7 @@
          enddo
 
       endif
+
+      call eos_deallocate(eos_state)
       
       end subroutine reset_internal_e

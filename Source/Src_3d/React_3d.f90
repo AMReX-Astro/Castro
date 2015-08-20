@@ -74,4 +74,7 @@
          enddo
       enddo
 
+      call eos_deallocate(state_in)
+      call eos_deallocate(state_out)
+
   end subroutine ca_react_state

@@ -278,6 +278,8 @@
          enddo
       enddo
 
+      call eos_deallocate(eos_state)
+
       end subroutine ca_derpres
 
 !-----------------------------------------------------------------------
@@ -405,6 +407,8 @@
          enddo
       enddo
 
+      call eos_deallocate(eos_state)
+
       end subroutine ca_dersoundspeed
 
 !-----------------------------------------------------------------------
@@ -463,6 +467,8 @@
          enddo
       enddo
 
+      call eos_deallocate(eos_state)
+
       end subroutine ca_dermachnumber
 
 !-----------------------------------------------------------------------
@@ -519,6 +525,8 @@
             enddo
          enddo
       enddo
+
+      call eos_deallocate(eos_state)
 
       end subroutine ca_derentropy
 

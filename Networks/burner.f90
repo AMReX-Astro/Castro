@@ -12,11 +12,11 @@ contains
 
     implicit none
 
-    class (eos_type), intent(inout)  :: state_in
-    class (eos_type), intent(inout)  :: state_out
-    double precision, intent(in) :: dt, time
+    class (eos_type), intent(inout) :: state_in
+    class (eos_type), intent(inout) :: state_out
+    double precision, intent(in)    :: dt, time
 
-    integer :: i
+    integer             :: i
     type (eos_t_vector) :: state_vector_in
     type (eos_t_vector) :: state_vector_out
     
@@ -29,6 +29,7 @@ contains
     ! Initialize the final state by assuming it does not change.
 
     select type (state_in)
+
     type is (eos_t_1D)
        select type (state_out)
        type is (eos_t_1D)
@@ -55,8 +56,7 @@ contains
     call eos_vector_in(state_vector_out, state_out)
 
     ! We assume that the valid quantities coming in are (rho, e); do an EOS call
-    ! to make sure all other variables are consistent. This will also
-    ! properly
+    ! to make sure all other variables are consistent.
 
     call eos(eos_input_re, state_vector_in)
 
@@ -78,6 +78,9 @@ contains
     ! Now update the temperature to match the new internal energy.
 
     call eos(eos_input_re, state_vector_out)
+
+    call eos_deallocate(state_vector_in)
+    call eos_deallocate(state_vector_out)
 
   end subroutine burner
 

@@ -104,4 +104,6 @@
          enddo
      enddo
 
+     call eos_deallocate(eos_state)
+
      end subroutine ca_estdt

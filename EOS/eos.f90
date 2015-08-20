@@ -28,7 +28,7 @@ contains
  
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
-    call specific_eos_init
+    call actual_eos_init
 
     ! If they exist, save the minimum permitted user temperature and density.
     ! These cannot be less than zero and they also cannot be less than the 
@@ -55,6 +55,10 @@ contains
     endif
 
     assume_neutral = eos_assume_neutral
+
+    ! Allocate the space for a single-element EOS type which serves as a working array.   
+
+    working_state_1D = eos_type_1D( (/ 1 /), (/ 1 /) )
 
     initialized = .true.
 

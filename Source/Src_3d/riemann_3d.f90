@@ -235,6 +235,8 @@ contains
     call bl_deallocate( gamcm)
     call bl_deallocate( gamcp)
 
+    call eos_deallocate(eos_state)
+
   end subroutine cmpflx
 
 
@@ -883,6 +885,8 @@ contains
 
     call bl_deallocate(pstar_hist)
     call bl_deallocate(us1d)
+
+    call eos_deallocate(eos_state)
 
   end subroutine riemanncg
 

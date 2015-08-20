@@ -768,6 +768,8 @@ contains
        
        call bl_deallocate ( Ip_gc)
        call bl_deallocate ( Im_gc)
+
+       call eos_deallocate(eos_state)
     else
        call bl_deallocate ( dqx)
        call bl_deallocate ( dqy)
@@ -1092,6 +1094,7 @@ contains
     call bl_deallocate( dpdrho)
     call bl_deallocate(   dpde)
 !    call bl_deallocate(dpdX_er)
+    call eos_deallocate(eos_state)
     
   end subroutine ctoprim
 
@@ -1420,9 +1423,8 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, UFX, &
                                      UFA, small_dens, small_temp, nadv
     use bl_constants_module
-    use eos_type_module, only : eos_t
-    use eos_module, only : eos
-    use eos_data_module, only : eos_input_rt
+    use eos_type_module
+    use eos_module
 
     implicit none
 
@@ -1573,6 +1575,8 @@ contains
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
     endif
+
+    call eos_deallocate(eos_state)
     
   end subroutine enforce_minimum_density
 

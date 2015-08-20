@@ -82,5 +82,7 @@
             enddo
          enddo
       enddo
+
+      call eos_deallocate(eos_state)
       
       end subroutine compute_temp
