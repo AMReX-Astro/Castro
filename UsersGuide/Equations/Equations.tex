@@ -56,7 +56,7 @@ but can be useful as tracer quantities.
 \item There are {\tt nspec} species (defined in the {\tt network}
   directory), which range from {\tt UFS: UFS+nspec-1}.
 
-\item There are {\it naux} auxiliary variables, from {\tt
+\item There are {\tt naux} auxiliary variables, from {\tt
   UFX:UFX+naux-1} The auxiliary variables are passed into the equation
   of state routines along with the species; An example of an auxiliary
   variable is the electron fraction, $Y_e$, in core collapse simulations.
@@ -582,6 +582,31 @@ For the reconstruction of the interface states, the following apply:
 
 
 
+The interface states are corrected with information from the
+transverse directions to make this a second-order update.  These
+transverse directions involve separate Riemann solves.  Sometimes, the
+update to the interface state from the transverse directions can make
+the state ill-posed.  There are several parameters that help fix this:
+\begin{itemize}
+  \item {\tt transverse\_use\_eos}: If this is {\tt 1}, then we call
+    the equation of state on the interface, using $\rho$, $e$, and
+    $X_k$, to get the interface pressure.  This should result in a
+    thermodynamically consistent interface state.
+
+  \item {\tt transverse\_reset\_density}: If the transverse
+    corrections result in a negative density on the interface, then we
+    reset all of the interface states to their values before the
+    transverse corrections.
+
+  \item {\tt transverse\_reset\_rhoe}: The transverse updates operate
+    on the conserved state.  Usually, we construct the interface
+    $(\rho e)$ in the transverse update from total energy and the
+    kinetic energy, however, if the interface $(rho e)$ is negative,
+    and {\tt transverse\_reset\_rhoe = 1}, then we explicitly
+    discretize an equation for the evolution of $(\rho e)$, including
+    its transverse update.
+\end{itemize}
+
 
 
 
@@ -698,13 +723,14 @@ parameters apply:
      for the ``star'' state (Real; default: 1.0e-5)
   \end{itemize}
 
-\item {castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
+\item {\tt castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
   in a zone with a shock (0 or 1; default 0)
 
   This eliminates an odd-even decoupling issue (see the {\tt oddeven}
   problem.
   
 \end{itemize}
+
 
 
 
