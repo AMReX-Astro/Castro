@@ -601,11 +601,12 @@ Castro::Castro (Amr&            papa,
 
     fine_mask = 0;
 
-    // Initialize to zero here in case we run with do_grav = false.
-    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-    new_grav_mf.setVal(0.0);
-       
 #ifdef GRAVITY
+
+   // Initialize to zero here in case we run with do_grav = false.
+   MultiFab& new_grav_mf = get_new_data(Gravity_Type);
+   new_grav_mf.setVal(0.0);
+       
    if (do_grav) {
       // gravity is a static object, only alloc if not already there
       if (gravity == 0) 
