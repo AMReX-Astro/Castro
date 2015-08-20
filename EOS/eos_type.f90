@@ -3,6 +3,7 @@ module eos_type_module
   use bl_types
   use network
   use eos_data_module
+  use mempool_module
   
   implicit none
 
