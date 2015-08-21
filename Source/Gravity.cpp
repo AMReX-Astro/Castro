@@ -843,9 +843,11 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // Add the contribution of grad(delta_phi) to the flux register below if necessary.
     if (crse_level > 0)
     {
-        for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi) 
-            for (int n=0; n<BL_SPACEDIM; ++n)
-               phi_flux_reg[crse_level].FineAdd(ec_gdPhi[0][n][mfi],n,mfi.index(),0,0,1,1);
+        for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi) {
+            for (int n=0; n<BL_SPACEDIM; ++n) {
+		phi_flux_reg[crse_level].FineAdd(ec_gdPhi[0][n][mfi],area[crse_level][n][mfi],n,mfi.index(),0,0,1,1.);
+	    }
+	}
     }
 
     int lo_bc[BL_SPACEDIM];
