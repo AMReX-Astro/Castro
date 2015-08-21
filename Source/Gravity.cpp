@@ -756,7 +756,6 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // for the delta phi solve.
     MultiFab CrseRhsSync(grids[crse_level],1,0);
     MultiFab::Copy(CrseRhsSync,drho_and_drhoU,0,0,1,0);
-    CrseRhsSync.mult(Ggravity);
 
     if (crse_level == 0 && crse_level < parent->finestLevel() && !Geometry::isAllPeriodic())
     {
@@ -767,6 +766,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0); 
     }
 
+    CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
     // delta_phi needs a ghost cell for the solve
