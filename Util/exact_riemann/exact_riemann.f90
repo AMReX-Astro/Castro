@@ -78,6 +78,12 @@ program riemann_exact
   call riemann_star_state(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn, &
                           ustar, pstar, W_l, W_r, .true.)
 
+  !if (co_moving_frame) then
+  !   u_l = u_l + W_avg
+  !   u_r = u_r + W_avg
+  !   ustar = ustar + W_avg
+  !endif
+
   !---------------------------------------------------------------------------
   ! find the solution as a function of xi = x/t
   !---------------------------------------------------------------------------
@@ -94,9 +100,9 @@ program riemann_exact
      ! compute xi = x/t -- this is the similarity variable for the
      ! solution
      x  = xmin + (dble(i) - HALF)*dx 
-     if (co_moving_frame) then
-        x = x - W_avg*t
-     endif
+     !if (co_moving_frame) then
+     !   x = x + W_avg*t
+     !endif
 
      call riemann_sample(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn, &
                          ustar, pstar, W_l, W_r, &
@@ -105,6 +111,7 @@ program riemann_exact
 
      if (co_moving_frame) then
         u = u + W_avg
+        x = x + t*W_avg
      endif
 
      ! get the thermodynamics for this state for output
