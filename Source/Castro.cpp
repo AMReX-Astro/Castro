@@ -1409,7 +1409,9 @@ Castro::post_timestep (int iteration)
                                      new MultiFab(getLevel(lev).boxArray(),BL_SPACEDIM,0,Fab_allocate));
                grad_delta_phi_cc[lev-level].setVal(0.);
             }
-            gravity->gravity_sync(level,finest_level,drho_and_drhoU,dphi,grad_delta_phi_cc);
+
+	    int ncycle = parent->nCycle(level);
+	    gravity->gravity_sync(level,finest_level,iteration,ncycle,drho_and_drhoU,dphi,grad_delta_phi_cc);
 
             for (int lev = level; lev <= finest_level; lev++)  
             {

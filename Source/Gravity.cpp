@@ -734,7 +734,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 }
 
 void
-Gravity::gravity_sync (int crse_level, int fine_level, 
+Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
                        const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                        PArray<MultiFab>& grad_delta_phi_cc)
 {
@@ -841,7 +841,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
        average_fine_ec_onto_crse_ec(lev,is_new);
 
     // Add the contribution of grad(delta_phi) to the flux register below if necessary.
-    if (crse_level > 0)
+    if (crse_level > 0 && iteration == ncycle)
     {
         for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi) {
             for (int n=0; n<BL_SPACEDIM; ++n) {
