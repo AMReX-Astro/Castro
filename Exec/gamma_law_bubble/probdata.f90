@@ -9,10 +9,4 @@ module probdata_module
 
   double precision, save :: frac
 
-  double precision, save :: INLET_RHO, INLET_EINT, INLET_TEMP, INLET_CS
-
-  integer,          save :: npts_model
-  double precision, save :: model_r(2560)
-  double precision, save :: model_rho(2560)
-
 end module probdata_module
