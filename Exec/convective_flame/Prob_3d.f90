@@ -84,7 +84,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                          state_l2:state_h2, &
                          state_l3:state_h3,NVAR)
 
-  integer :: i,j,npts_1d
+  integer :: i,j,k,npts_1d
   double precision :: H,z,xn(nspec),x,y,x1,y1,z1,r1,const
   double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
 
