@@ -28,7 +28,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
   double precision const
 
   type (eos_t) :: eos_state
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! compute background state
 
@@ -80,7 +80,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
      eint(j) = eos_state%e
      temp(j) = eos_state%T
-     
+
   end do
 
   do j=-1,-5,-1
@@ -226,8 +226,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
            adv(i,j,UMX) = 0.d0
 
            if (boundary_type .eq. 1) then
-              ! extrapolate normal momentum  
-              ! enforces pi=0 at boundary               
+              ! extrapolate normal momentum
+              ! enforces pi=0 at boundary
               adv(i,j,UMY) = adv(i,domhi(2),UMY)
            else
               ! zero normal momentum
@@ -393,3 +393,22 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
 end subroutine ca_gravyfill
+
+
+subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
+                          phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc)
+
+  implicit none
+
+  include 'bc_types.fi'
+
+  integer          :: phi_l1,phi_l2,phi_h1,phi_h2
+  integer          :: bc(2,2,*)
+  integer          :: domlo(2), domhi(2)
+  double precision :: delta(2), xlo(2), time
+  double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+
+  call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
+             domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_phigravfill
