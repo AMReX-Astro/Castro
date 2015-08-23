@@ -7,7 +7,7 @@ module castro_burner_module
   use eos_data_module
   use eos_type_module
   use network
-
+  use extern_probin_module, only: A_burn
   private
   public :: burner
 
@@ -25,7 +25,7 @@ contains
     logical, parameter :: verbose = .false.
 
     ! set the number of independent variable
-    integer, parameter :: NEQ = nspec_advance
+    integer, parameter :: NEQ = nspec
 
 
     ! allocate storage for the input state
@@ -97,9 +97,9 @@ contains
     endif
 
     ! set the tolerances. 
-    atol(1:nspec_advance) = 1.d-12    ! mass fractions
+    atol(1:nspec) = 1.d-12    ! mass fractions
 
-    rtol(1:nspec_advance) = 1.d-12    ! mass fractions
+    rtol(1:nspec) = 1.d-12    ! mass fractions
 
 
     ! we want VODE to re-initialize each time we call it
@@ -131,8 +131,8 @@ contains
 
 
     ! store the new mass fractions -- make sure that they are positive
-    Xout(_ifuel)= max(y(_ifuel), ZERO)
-    Xout(_iash) = min(y(_iash), ONE)
+    Xout(ifuel_)= max(y(ifuel_), ZERO)
+    Xout(iash_) = min(y(iash_), ONE)
 
     ! compute the energy release and update the enthalpy.  Our convention
     ! is that the binding energies are negative, so the energy release is
@@ -140,7 +140,7 @@ contains
     !
     ! since this version of the network only evolves C12, we can
     ! compute the energy release easily
-    enuc = A_burning*(Xout(_ifuel) - Xin(_ifuel))
+    enuc = A_burn*(Xout(ifuel_) - Xin(ifuel_))
 
     eout = ein + enuc
 

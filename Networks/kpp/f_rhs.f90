@@ -16,13 +16,12 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   integer :: ipar
 
   real(kind=dp_t) :: t
+  real(kind=dp_t) :: xfueltmp
 
+  xfueltmp = max(y(ifuel_),0.d0)
 
-  xfueltmp = max(y(_ifuel),0.d0)
-  ydot(ic12) = -one_twelvth*dens*sc1212*rate*xc12tmp**2
-
-  ydot(_ifuel) = -xfueltmp*(ONE-xfueltmp)
-  ydot(_iash)  =  xfueltmp*(ONE-xfueltmp)
+  ydot(ifuel_) = -xfueltmp*(ONE-xfueltmp)
+  ydot(iash_)  =  xfueltmp*(ONE-xfueltmp)
   return
 
 end subroutine f_rhs
@@ -35,7 +34,6 @@ subroutine jac(neq, t, y, ml, mu, pd, nrpd, rpar, ipar)
   use network
 
   ! EOS calls
-  use burner_aux_module, only : dens_pass, c_p_pass, dhdx_pass
 
   implicit none
 
