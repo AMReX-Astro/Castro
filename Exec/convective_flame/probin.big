@@ -5,8 +5,6 @@
   boundary_type = 1
 
   pert_factor = 8.1d-3
-!  pert_factor = 8.3d-2
-!  pert_factor = 3.47d0
   dens_base = 1.65d-3
   pres_base = 1.65d6
   y_pert_center = 0.7d0
