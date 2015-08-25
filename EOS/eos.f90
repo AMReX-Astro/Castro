@@ -56,10 +56,6 @@ contains
 
     assume_neutral = eos_assume_neutral
 
-    ! Allocate the space for a single-element EOS type which serves as a working array.   
-
-    working_state_1D = eos_type_1D( (/ 1 /), (/ 1 /) )
-
     initialized = .true.
 
   end subroutine eos_init

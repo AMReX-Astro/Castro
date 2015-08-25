@@ -331,10 +331,6 @@ module eos_type_module
      module procedure eos_type_3D
   end interface eos_t_3D
 
-  type (eos_t_1D) :: working_state_1D
-
-  !$OMP THREADPRIVATE(working_state_1D)
-  
 contains
 
   function eos_type_1D(lo, hi)
@@ -808,6 +804,8 @@ contains
     class (eos_type),    intent(in   ) :: state_in
     type (eos_t_vector), intent(inout) :: state
 
+    type (eos_t_1D) :: working_state_1D
+
     integer :: lo(3), hi(3)
     integer :: i
 
@@ -818,7 +816,9 @@ contains
        state = state_in
        
     type is (eos_t)
-    
+
+       working_state_1D = eos_type_1D( (/ 1 /), (/ 1 /) )
+
        working_state_1D % rho(1) = state_in % rho
        working_state_1D % T(1)   = state_in % T
        working_state_1D % p(1)   = state_in % p
@@ -1273,9 +1273,56 @@ contains
 
     type is (eos_t)
 
-       ! Nothing to do here since no arrays are call bl_allocated.
+       ! Nothing to do here since no arrays are allocated.
 
     type is (eos_t_vector)
+
+       ! Nothing to do here since we don't allocate new space
+       ! for this type, we only point to existing data.
+
+    type is (eos_t_1D)
+
+       call bl_deallocate(state % rho)
+       call bl_deallocate(state % T)
+       call bl_deallocate(state % p)
+       call bl_deallocate(state % e)
+       call bl_deallocate(state % h)
+       call bl_deallocate(state % s)
+       call bl_deallocate(state % dpdT)
+       call bl_deallocate(state % dpdr)
+       call bl_deallocate(state % dedT)
+       call bl_deallocate(state % dedr)
+       call bl_deallocate(state % dhdT)
+       call bl_deallocate(state % dhdr)
+       call bl_deallocate(state % dsdT)
+       call bl_deallocate(state % dsdr)
+       call bl_deallocate(state % dpde)
+       call bl_deallocate(state % dpdr_e)
+       call bl_deallocate(state % xn)
+       call bl_deallocate(state % aux)
+       call bl_deallocate(state % cv)
+       call bl_deallocate(state % cp)
+       call bl_deallocate(state % xne)
+       call bl_deallocate(state % xnp)
+       call bl_deallocate(state % eta)
+       call bl_deallocate(state % pele)
+       call bl_deallocate(state % ppos)
+       call bl_deallocate(state % mu)
+       call bl_deallocate(state % mu_e)
+       call bl_deallocate(state % y_e)
+       call bl_deallocate(state % dedX)
+       call bl_deallocate(state % dpdX)
+       call bl_deallocate(state % dhdX)
+       call bl_deallocate(state % gam1)
+       call bl_deallocate(state % cs)
+       call bl_deallocate(state % abar)
+       call bl_deallocate(state % zbar)
+       call bl_deallocate(state % dpdA)
+       call bl_deallocate(state % dpdZ)
+       call bl_deallocate(state % dedA)
+       call bl_deallocate(state % dedZ)
+
+    type is (eos_t_2D)
 
        call bl_deallocate(state % rho)
        call bl_deallocate(state % T)
