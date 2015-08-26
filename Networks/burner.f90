@@ -28,27 +28,7 @@ contains
 
     ! Initialize the final state by assuming it does not change.
 
-    select type (state_in)
-
-    type is (eos_t_1D)
-       select type (state_out)
-       type is (eos_t_1D)
-          state_out = state_in
-       end select
-
-    type is (eos_t_2D)
-       select type (state_out)
-       type is (eos_t_2D)
-          state_out = state_in
-       end select
-
-    type is (eos_t_3D)
-       select type (state_out)
-       type is (eos_t_3D)
-          state_out = state_in
-       end select
-
-    end select
+    call eos_copy(state_in, state_out)
 
     ! Get an EOS vector for each case.
 
@@ -78,9 +58,6 @@ contains
     ! Now update the temperature to match the new internal energy.
 
     call eos(eos_input_re, state_vector_out)
-
-    call eos_deallocate(state_vector_in)
-    call eos_deallocate(state_vector_out)
 
   end subroutine burner
 

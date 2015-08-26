@@ -112,11 +112,6 @@ module eos_type_module
 
   type, extends(eos_type) :: eos_t_vector
 
-    ! Record the layout of the input state.
-
-    integer :: lo(3) = 1
-    integer :: hi(3) = 1
-     
     double precision, pointer :: rho(:)
     double precision, pointer :: T(:)
     double precision, pointer :: p(:)
@@ -874,9 +869,6 @@ contains
        state % aux_width(1) = state % N
        state % aux_width(2) = naux
     
-       state % lo(1) = lo(1)
-       state % hi(1) = hi(1)
-
        call c_f_pointer(c_loc(state_in % rho(lo(1))), state % rho, state % width)
        call c_f_pointer(c_loc(state_in % T(lo(1))), state % T, state % width)
        call c_f_pointer(c_loc(state_in % p(lo(1))), state % p, state % width)
@@ -931,9 +923,6 @@ contains
        state % aux_width(1) = state % N
        state % aux_width(2) = naux
        
-       state % lo(1:2) = lo(1:2)
-       state % hi(1:2) = hi(1:2)
-
        call c_f_pointer(c_loc(state_in % rho(lo(1),lo(2))), state % rho, state % width)
        call c_f_pointer(c_loc(state_in % T(lo(1),lo(2))), state % T, state % width)
        call c_f_pointer(c_loc(state_in % p(lo(1),lo(2))), state % p, state % width)
@@ -988,9 +977,6 @@ contains
        state % aux_width(1) = state % N
        state % aux_width(2) = naux
        
-       state % lo = lo
-       state % hi = hi
-              
        call c_f_pointer(c_loc(state_in % rho(lo(1),lo(2),lo(3))), state % rho, state % width)
        call c_f_pointer(c_loc(state_in % T(lo(1),lo(2),lo(3))), state % T, state % width)
        call c_f_pointer(c_loc(state_in % p(lo(1),lo(2),lo(3))), state % p, state % width)
@@ -1039,7 +1025,7 @@ contains
 
   
 
-  recursive subroutine eos_vector_out(state, state_out)
+  subroutine eos_vector_out(state, state_out)
 
     use iso_c_binding
     
@@ -1047,8 +1033,6 @@ contains
 
     class (eos_type),    intent(inout) :: state_out
     type (eos_t_vector), intent(in)    :: state
-
-    integer         :: lo(3), hi(3)
 
     ! Note that for this function, we only need to take action
     ! for the scalar eos_t case. In the other cases, the pointers
@@ -1102,6 +1086,159 @@ contains
 
     
   end subroutine eos_vector_out
+
+
+
+  subroutine eos_copy(state_in, state_out)
+
+    class (eos_type) :: state_in, state_out
+
+    select type (state_in)
+
+    type is (eos_t_1D)
+       select type (state_out)
+       type is (eos_t_1D)
+          state_out % rho = state_in % rho
+          state_out % T   = state_in % T
+          state_out % p   = state_in % p
+          state_out % e   = state_in % e
+          state_out % h   = state_in % h
+          state_out % s   = state_in % s
+          state_out % dpdT = state_in % dpdT
+          state_out % dpdr = state_in % dpdr
+          state_out % dedT = state_in % dedT
+          state_out % dedr = state_in % dedr
+          state_out % dhdT = state_in % dhdT
+          state_out % dhdr = state_in % dhdr
+          state_out % dsdT = state_in % dsdT
+          state_out % dsdr = state_in % dsdr
+          state_out % dpde = state_in % dpde
+          state_out % dpdr_e = state_in % dpdr_e
+          state_out % xn = state_in % xn
+          state_out % aux = state_in % aux
+          state_out % cv = state_in % cv
+          state_out % cp = state_in % cp
+          state_out % xne = state_in % xne
+          state_out % xnp = state_in % xnp
+          state_out % eta = state_in % eta
+          state_out % pele = state_in % pele
+          state_out % ppos = state_in % ppos
+          state_out % mu = state_in % mu
+          state_out % mu_e = state_in % mu
+          state_out % y_e = state_in % y_e
+          state_out % dedX = state_in % dedX
+          state_out % dpdX = state_in % dpdX
+          state_out % dhdX = state_in % dhdX
+          state_out % gam1 = state_in % gam1
+          state_out % cs = state_in % cs
+          state_out % abar = state_in % abar
+          state_out % zbar = state_in % zbar
+          state_out % dpdA = state_in % dpdA
+          state_out % dpdZ = state_in % dpdZ
+          state_out % dedA = state_in % dedA
+          state_out % dedZ = state_in % dedZ
+       class default
+          call bl_error("Error: Cannot copy a eos_t_1D to a different EOS type.")
+       end select
+
+    type is (eos_t_2D)
+       select type (state_out)
+       type is (eos_t_2D)
+          state_out % rho = state_in % rho
+          state_out % T   = state_in % T
+          state_out % p   = state_in % p
+          state_out % e   = state_in % e
+          state_out % h   = state_in % h
+          state_out % s   = state_in % s
+          state_out % dpdT = state_in % dpdT
+          state_out % dpdr = state_in % dpdr
+          state_out % dedT = state_in % dedT
+          state_out % dedr = state_in % dedr
+          state_out % dhdT = state_in % dhdT
+          state_out % dhdr = state_in % dhdr
+          state_out % dsdT = state_in % dsdT
+          state_out % dsdr = state_in % dsdr
+          state_out % dpde = state_in % dpde
+          state_out % dpdr_e = state_in % dpdr_e
+          state_out % xn = state_in % xn
+          state_out % aux = state_in % aux
+          state_out % cv = state_in % cv
+          state_out % cp = state_in % cp
+          state_out % xne = state_in % xne
+          state_out % xnp = state_in % xnp
+          state_out % eta = state_in % eta
+          state_out % pele = state_in % pele
+          state_out % ppos = state_in % ppos
+          state_out % mu = state_in % mu
+          state_out % mu_e = state_in % mu
+          state_out % y_e = state_in % y_e
+          state_out % dedX = state_in % dedX
+          state_out % dpdX = state_in % dpdX
+          state_out % dhdX = state_in % dhdX
+          state_out % gam1 = state_in % gam1
+          state_out % cs = state_in % cs
+          state_out % abar = state_in % abar
+          state_out % zbar = state_in % zbar
+          state_out % dpdA = state_in % dpdA
+          state_out % dpdZ = state_in % dpdZ
+          state_out % dedA = state_in % dedA
+          state_out % dedZ = state_in % dedZ
+       class default
+          call bl_error("Error: Cannot copy a eos_t_2D to a different EOS type.")
+       end select
+
+    type is (eos_t_3D)
+       select type (state_out)
+       type is (eos_t_3D)
+          state_out % rho = state_in % rho
+          state_out % T   = state_in % T
+          state_out % p   = state_in % p
+          state_out % e   = state_in % e
+          state_out % h   = state_in % h
+          state_out % s   = state_in % s
+          state_out % dpdT = state_in % dpdT
+          state_out % dpdr = state_in % dpdr
+          state_out % dedT = state_in % dedT
+          state_out % dedr = state_in % dedr
+          state_out % dhdT = state_in % dhdT
+          state_out % dhdr = state_in % dhdr
+          state_out % dsdT = state_in % dsdT
+          state_out % dsdr = state_in % dsdr
+          state_out % dpde = state_in % dpde
+          state_out % dpdr_e = state_in % dpdr_e
+          state_out % xn = state_in % xn
+          state_out % aux = state_in % aux
+          state_out % cv = state_in % cv
+          state_out % cp = state_in % cp
+          state_out % xne = state_in % xne
+          state_out % xnp = state_in % xnp
+          state_out % eta = state_in % eta
+          state_out % pele = state_in % pele
+          state_out % ppos = state_in % ppos
+          state_out % mu = state_in % mu
+          state_out % mu_e = state_in % mu
+          state_out % y_e = state_in % y_e
+          state_out % dedX = state_in % dedX
+          state_out % dpdX = state_in % dpdX
+          state_out % dhdX = state_in % dhdX
+          state_out % gam1 = state_in % gam1
+          state_out % cs = state_in % cs
+          state_out % abar = state_in % abar
+          state_out % zbar = state_in % zbar
+          state_out % dpdA = state_in % dpdA
+          state_out % dpdZ = state_in % dpdZ
+          state_out % dedA = state_in % dedA
+          state_out % dedZ = state_in % dedZ
+       class default
+          call bl_error("Error: Cannot copy a eos_t_3D to a different EOS type.")
+       end select
+
+    class default
+       call bl_error("Error: eos_copy does not recognize the input EOS state type.")
+
+    end select
+
+  end subroutine eos_copy
 
 
 
