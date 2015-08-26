@@ -75,7 +75,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use eos_module
   use eos_type_module
-  
+  use network, only: nspec
   implicit none
 
   integer level, nscal
@@ -85,7 +85,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   integer i,j,npts_1d
-  double precision H,z,xn(1),x,y,x1,y1,r1,const
+  double precision H,z,xn(nspec),x,y,x1,y1,r1,const
   double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
 
   type (eos_t) :: eos_state
@@ -104,6 +104,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   density(0)  = dens_base
 
   ! only initialize the first species
+  xn(:) = 0.0d0
   xn(1) = 1.d0
 
   ! compute the pressure scale height (for an isothermal, ideal-gas

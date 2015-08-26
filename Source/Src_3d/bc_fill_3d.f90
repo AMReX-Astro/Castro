@@ -142,3 +142,23 @@ subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_l3, &
              domlo,domhi,delta,xlo,bc)
 
 end subroutine ca_phigravfill
+
+
+
+subroutine ca_radfill(rad,rad_l1,rad_l2,rad_l3, &
+                      rad_h1,rad_h2,rad_h3,domlo,domhi,delta,xlo,time,bc)
+
+  implicit none
+
+  include 'bc_types.fi'
+
+  integer          :: rad_l1,rad_l2,rad_l3,rad_h1,rad_h2,rad_h3
+  integer          :: bc(3,2,*)
+  integer          :: domlo(3), domhi(3)
+  double precision :: delta(3), xlo(3), time
+  double precision :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
+
+  call filcc(rad,rad_l1,rad_l2,rad_l3,rad_h1,rad_h2,rad_h3, &
+             domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_radfill

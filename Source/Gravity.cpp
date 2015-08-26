@@ -314,14 +314,17 @@ Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 void
 Gravity::swapTimeLevels (int level)
 {
-  for (int n=0; n < BL_SPACEDIM; n++) {
-    MultiFab* dummy = grad_phi_curr[level].remove(n);
-    grad_phi_prev[level].clear(n);
-    grad_phi_prev[level].set(n,dummy);
-   
-    grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
-    grad_phi_curr[level][n].setVal(1.e50);
-  } 
+    if (gravity_type == "PoissonGrav") {
+	for (int n=0; n < BL_SPACEDIM; n++) {
+	    MultiFab* dummy = grad_phi_curr[level].remove(n);
+	    grad_phi_prev[level].clear(n);
+	    grad_phi_prev[level].set(n,dummy);
+	    
+	    grad_phi_curr[level].set(n,
+                new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+	    grad_phi_curr[level][n].setVal(1.e50);
+	} 
+    }
 }
 
 void
@@ -731,7 +734,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 }
 
 void
-Gravity::gravity_sync (int crse_level, int fine_level, 
+Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
                        const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                        PArray<MultiFab>& grad_delta_phi_cc)
 {
@@ -753,7 +756,6 @@ Gravity::gravity_sync (int crse_level, int fine_level,
     // for the delta phi solve.
     MultiFab CrseRhsSync(grids[crse_level],1,0);
     MultiFab::Copy(CrseRhsSync,drho_and_drhoU,0,0,1,0);
-    CrseRhsSync.mult(Ggravity);
 
     if (crse_level == 0 && crse_level < parent->finestLevel() && !Geometry::isAllPeriodic())
     {
@@ -764,6 +766,7 @@ Gravity::gravity_sync (int crse_level, int fine_level,
 	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0); 
     }
 
+    CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
     // delta_phi needs a ghost cell for the solve
@@ -838,11 +841,13 @@ Gravity::gravity_sync (int crse_level, int fine_level,
        average_fine_ec_onto_crse_ec(lev,is_new);
 
     // Add the contribution of grad(delta_phi) to the flux register below if necessary.
-    if (crse_level > 0)
+    if (crse_level > 0 && iteration == ncycle)
     {
-        for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi) 
-            for (int n=0; n<BL_SPACEDIM; ++n)
-               phi_flux_reg[crse_level].FineAdd(ec_gdPhi[0][n][mfi],n,mfi.index(),0,0,1,1);
+        for (MFIter mfi(delta_phi[0]); mfi.isValid(); ++mfi) {
+            for (int n=0; n<BL_SPACEDIM; ++n) {
+		phi_flux_reg[crse_level].FineAdd(ec_gdPhi[0][n][mfi],area[crse_level][n][mfi],n,mfi.index(),0,0,1,1.);
+	    }
+	}
     }
 
     int lo_bc[BL_SPACEDIM];
@@ -1013,7 +1018,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
 void
 Gravity::multilevel_solve_for_phi (int level, int finest_level, int use_previous_phi_as_guess)
 {
-    multilevel_solve_for_new_phi (level, finest_level);
+    multilevel_solve_for_new_phi (level, finest_level,use_previous_phi_as_guess);
 }
 
 void

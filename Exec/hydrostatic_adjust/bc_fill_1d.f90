@@ -81,3 +81,22 @@ subroutine ca_gravxfill(grav,grav_l1,grav_h1, &
   call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
 end subroutine ca_gravxfill
+
+
+subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
+                          domlo,domhi,delta,xlo,time,bc)
+
+  implicit none
+
+  include 'bc_types.fi'
+
+  integer          :: phi_l1,phi_h1
+  integer          :: bc(1,2,*)
+  integer          :: domlo(1), domhi(1)
+  double precision :: delta(1), xlo(1), time
+  double precision :: phi(phi_l1:phi_h1)
+
+  call filcc(phi,phi_l1,phi_h1, &
+             domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_phigravfill

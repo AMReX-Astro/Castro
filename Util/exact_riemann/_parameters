@@ -17,3 +17,5 @@ t          real     0.2d0
 npts       integer  128
 
 use_Tinit  logical  .false.
+
+co_moving_frame logical .false.
