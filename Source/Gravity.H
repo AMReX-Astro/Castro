@@ -63,7 +63,7 @@ public:
                             PArray<MultiFab>&          delta_phi,
                             PArray<PArray<MultiFab> >& grad_delta_phi);
 
-  void gravity_sync (int crse_level, int fine_level,
+  void gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
                      const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                      PArray<MultiFab>& grad_delta_phi_cc);
 

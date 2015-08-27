@@ -612,12 +612,8 @@ Castro::Castro (Amr&            papa,
    // Initialize to zero here in case we run with do_grav = false.
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
    new_grav_mf.setVal(0.0);
-
-   MultiFab& phi_new = get_new_data(PhiGrav_Type);
-   phi_new.setVal(0.0);
-
+       
    if (do_grav) {
-
       // gravity is a static object, only alloc if not already there
       if (gravity == 0) 
 	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
@@ -635,6 +631,10 @@ Castro::Castro (Amr&            papa,
 
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) 
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+
+   } else {
+       MultiFab& phi_new = get_new_data(PhiGrav_Type);
+       phi_new.setVal(0.0);
    }
 #endif
 
@@ -952,6 +952,13 @@ Castro::init (AmrLevel &old)
     }
 #endif
 
+#ifdef GRAVITY
+    if (do_grav) {
+	MultiFab& phi_new = get_new_data(PhiGrav_Type);
+	FillPatch(old,phi_new,0,cur_time,PhiGrav_Type,0,1);
+    }
+#endif
+
 #ifdef REACTIONS
     {
 	MultiFab& React_new = get_new_data(Reactions_Type);
@@ -1021,6 +1028,13 @@ Castro::init ()
       MultiFab& Er_new = get_new_data(Rad_Type);
       int ncomp = Er_new.nComp();
       FillCoarsePatch(Er_new, 0, cur_time, Rad_Type, 0, ncomp);
+    }
+#endif
+
+#ifdef GRAVITY
+    if (do_grav) {
+	MultiFab& phi_new = get_new_data(PhiGrav_Type);
+	FillCoarsePatch(phi_new, 0, cur_time, PhiGrav_Type, 0, 1);
     }
 #endif
 
@@ -1401,7 +1415,9 @@ Castro::post_timestep (int iteration)
                                      new MultiFab(getLevel(lev).boxArray(),BL_SPACEDIM,0,Fab_allocate));
                grad_delta_phi_cc[lev-level].setVal(0.);
             }
-            gravity->gravity_sync(level,finest_level,drho_and_drhoU,dphi,grad_delta_phi_cc);
+
+	    int ncycle = parent->nCycle(level);
+	    gravity->gravity_sync(level,finest_level,iteration,ncycle,drho_and_drhoU,dphi,grad_delta_phi_cc);
 
             for (int lev = level; lev <= finest_level; lev++)  
             {
@@ -1619,8 +1635,10 @@ Castro::post_regrid (int lbase,
        const Real cur_time = state[State_Type].curTime();
        if ( (level == lbase) && cur_time > 0.)  
        {
-          if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) )  
-              gravity->multilevel_solve_for_phi(level,new_finest);
+	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+	       int use_previous_phi = 1;
+	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
+	   }
        }
     }
 #endif

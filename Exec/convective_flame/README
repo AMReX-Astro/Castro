@@ -1,0 +1,29 @@
+New toy problem of a convectively propagate flame, where rotation
+keeps it localized.
+
+There are several parameters that affect the dynamics of this problem:
+
+ -- atmosphere
+
+    * rho_base
+    * p_base
+    * g
+
+ -- reaction rate, simple KPP: H_nuc = A X^n (1 - X^n)
+
+   * n
+   * A
+
+ -- rotation:
+
+   * omega
+
+
+
+Numbers of interest:
+
+   * Rossby,  Ro ~ U/(L Omega)
+   
+   * scale height, H ~ p_base / (rho_base g)
+
+   * burning front speed? thickness?
