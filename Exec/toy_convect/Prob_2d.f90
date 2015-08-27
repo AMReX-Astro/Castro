@@ -16,7 +16,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       interp_BC, zero_vels
+       H_min, cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -37,6 +37,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   velpert_amplitude = 1.0d2
   velpert_height_loc = 6.5d3
   num_vortices = 1
+
+  ! these are used in tagging
+  H_min = 1.d-4
+  cutoff_density = 50.d0
+
   interp_BC = .false.
   zero_vels = .false.
 
