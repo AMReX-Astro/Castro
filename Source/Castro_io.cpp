@@ -44,6 +44,11 @@
 
 using std::string;
 
+namespace 
+{
+    int version = -1;
+}
+
 // I/O routines for Castro
 
 void
@@ -51,7 +56,38 @@ Castro::restart (Amr&     papa,
                  istream& is,
                  bool     bReadSpecial)
 {
+    // Let's check Castro checkpoint version first; 
+    // trying to read from checkpoint; if nonexisting, set it to 0.
+    if (version == -1) {
+   	if (ParallelDescriptor::IOProcessor()) {
+   	    std::ifstream CastroHeaderFile;
+   	    std::string FullPathCastroHeaderFile = papa.theRestartFile();
+   	    FullPathCastroHeaderFile += "/CastroHeader";
+   	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::in);
+   	    if (CastroHeaderFile.good()) {
+		char foo[256];
+		// first line: Checkpoint version: ?
+		CastroHeaderFile.getline(foo, 256, ':');  
+		CastroHeaderFile >> version;
+   		CastroHeaderFile.close();
+  	    } else {
+   		version = 0;
+   	    }
+   	}
+  	ParallelDescriptor::Bcast(&version, 1, ParallelDescriptor::IOProcessorNumber());
+    }
+ 
+    BL_ASSERT(version >= 0);
+ 
+    // also need to mod checkPoint function to store the new version in a text file
+
     AmrLevel::restart(papa,is,bReadSpecial);
+
+    if (version == 0) { // old chcekpoint w/o PhiGrav_Type
+#ifdef GRAVITY
+	state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
+#endif      
+    }
 
     buildMetrics();
 
@@ -235,6 +271,27 @@ Castro::restart (Amr&     papa,
 }
 
 void
+Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
+{
+#ifdef GRAVITY
+    if (version == 0) {
+	// We are reading an old checkpoint with no PhiGrav_Type
+	for (int i=0; i<NUM_STATE_TYPE; ++i) {
+	    if (i == PhiGrav_Type) {
+		state_in_checkpoint[i] = 0;
+	    } else {
+		state_in_checkpoint[i] = 1;
+	    }
+	}
+    } else {
+	BoxLib::Error("Castro::set_state_in_checkpoint: should not get here?");
+    }
+#else
+    BoxLib::Error("Castro::set_state_in_checkpoint: how did we get here?");
+#endif 
+}
+
+void
 Castro::checkPoint(const std::string& dir,
                    std::ostream&  os,
                    VisMF::How     how,
@@ -254,31 +311,43 @@ Castro::checkPoint(const std::string& dir,
 
   if (level == 0 && ParallelDescriptor::IOProcessor())
     {
-      // store ellapsed CPU time
-      std::ofstream CPUFile;
-      std::string FullPathCPUFile = dir;
-      FullPathCPUFile += "/CPUtime";
-      CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);	
-  
-      CPUFile << std::setprecision(15) << getCPUTime();
-      CPUFile.close();
+	{
+	    std::ofstream CastroHeaderFile;
+	    std::string FullPathCastroHeaderFile = dir;
+	    FullPathCastroHeaderFile += "/CastroHeader";
+	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
+	    CastroHeaderFile << "Checkpoint version: 1" << std::endl;
+	    CastroHeaderFile.close();
+	}
 
-      // store any problem-specific stuff
-      char * dir_for_pass = new char[dir.size() + 1];
-      std::copy(dir.begin(), dir.end(), dir_for_pass);
-      dir_for_pass[dir.size()] = '\0';
+	{
+	    // store ellapsed CPU time
+	    std::ofstream CPUFile;
+	    std::string FullPathCPUFile = dir;
+	    FullPathCPUFile += "/CPUtime";
+	    CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);	
+	    
+	    CPUFile << std::setprecision(15) << getCPUTime();
+	    CPUFile.close();
+	}
 
-      int len = dir.size();
-      
-      Array<int> int_dir_name(len);
-      for (int j = 0; j < len; j++)
-	int_dir_name[j] = (int) dir_for_pass[j];
-
-      BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT, problem_checkpoint)(int_dir_name.dataPtr(), &len);      
-
-      delete [] dir_for_pass;
-
+	{
+	    // store any problem-specific stuff
+	    char * dir_for_pass = new char[dir.size() + 1];
+	    std::copy(dir.begin(), dir.end(), dir_for_pass);
+	    dir_for_pass[dir.size()] = '\0';
+	    
+	    int len = dir.size();
+	    
+	    Array<int> int_dir_name(len);
+	    for (int j = 0; j < len; j++)
+		int_dir_name[j] = (int) dir_for_pass[j];
+	    
+	    BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT, problem_checkpoint)(int_dir_name.dataPtr(), &len);      
+	    
+	    delete [] dir_for_pass;
+	}
     }
 
 }
@@ -397,10 +466,6 @@ Castro::writePlotFile (const std::string& dir,
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
-#ifdef GRAVITY
-    if (do_grav) 
-      if (gravity->get_gravity_type() == "PoissonGrav" && plot_phiGrav) n_data_items++;
-#endif
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
@@ -436,10 +501,6 @@ Castro::writePlotFile (const std::string& dir,
 	    const DeriveRec* rec = derive_lst.get(*it);
             os << rec->variableName(0) << '\n';
         }
-#ifdef GRAVITY
-        if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
-            os << "phiGrav" << '\n';
-#endif
 
 #ifdef RADIATION
 	for (i=0; i<Radiation::nplotvar; ++i)
@@ -765,14 +826,6 @@ Castro::writePlotFile (const std::string& dir,
 	    cnt++;
 	}
     }
-
-#ifdef GRAVITY
-    //
-    // Copy phi into plotMF.
-    //
-    if (do_grav && plot_phiGrav && gravity->get_gravity_type() == "PoissonGrav")
-        MultiFab::Copy(plotMF,*gravity->get_phi_curr(level),0,cnt++,1,nGrow);
-#endif
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {

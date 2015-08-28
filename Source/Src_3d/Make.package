@@ -18,6 +18,8 @@ f90EXE_sources += flatten_$(DIM)d.f90
 f90EXE_sources += Castro_advection_$(DIM)d.f90 
 f90EXE_sources += riemann_$(DIM)d.f90 
 
+f90EXE_sources += bc_fill_$(DIM)d.f90
+
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += Gravity_$(DIM)d.f90
 ifeq ($(USE_GR), TRUE)

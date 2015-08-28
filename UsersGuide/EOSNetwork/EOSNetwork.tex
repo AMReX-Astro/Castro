@@ -24,6 +24,28 @@ user either selects from a set of predefined options reflecting
 physical polytropes (e.g. a non-relativistic, fully degenerate
 electron gas) or inputs their own values for $K$ and $\gamma$.
 
+\item {\tt ztwd} is the zero-temperature degenerate electron equation of state 
+of Chandrasekhar (1935), which is designed to describe white dward material. The 
+pressure satisfies the equation:
+\begin{equation}
+  P(x) = A \left( x(2x^2-3)(x^2 + 1)^{1/2} + 3\, \text{sinh}^{-1}(x) \right),
+\end{equation}
+with $A = \pi m_e^4 c^5 / (3 h^3)$. Here $x$ is a dimensionless measure of density,
+with $\rho = B x^3$ and $B = 8\pi \mu_e m_p m_e^3 c^3 / (3h^3)$, 
+where $\mu_e$ is the electron fraction and $h$ is the Planck constant. The enthalpy 
+was worked out by Hachisu (1986):
+\begin{equation}
+  h(x) = \frac{8A}{B}\left(x^2 + 1\right)^{1/2}.
+\end{equation}
+The internal energy satisfies the standard relationship to the enthalpy:
+\begin{equation}
+  e = h + p / \rho.
+\end{equation}
+Since the pressure-density relationship does not admit a closed-form 
+solution for the density in terms of the pressure, if we call the EOS 
+with pressure as a primary input then we do Newton-Raphson iteration 
+to find the density that matches this pressure.
+
 \item {\tt multigamma} is an ideal gas equation of state where each
   species can have a different value of $\gamma$.  This mainly affects
   how the internal energy is constructed as each species, represented

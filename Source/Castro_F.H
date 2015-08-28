@@ -211,6 +211,12 @@ BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
 #endif
 
 #ifdef GRAVITY
+BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+
 BL_FORT_PROC_DECL(CA_GRAVXFILL,ca_gravxfill)
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
@@ -358,7 +364,7 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      int* nstep_fsp); 
 
 BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
-    (ARLIM_P_3D(lo),ARLIM_P_3D(hi),
+    (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(Erout),
      const BL_FORT_FAB_ARG_3D(kappa_s),

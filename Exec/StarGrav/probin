@@ -1,0 +1,34 @@
+&fortin
+
+  model_name =  "WD_rhoc_2.e9_M_1.1.hse.2560"
+
+/
+
+&tagging
+
+  max_dengrad_lev    = -1
+  max_denerr_lev     = 10
+
+  max_pressgrad_lev  = -1
+  max_presserr_lev   = -1
+
+  max_velgrad_lev    = -1
+  max_velerr_lev     = -1
+
+  max_temperr_lev    = -1
+  max_tempgrad_lev   = -1
+
+  dengrad            = 1.e18
+  denerr             = 2.e8
+  denerr             = 1.e0
+
+  velgrad            = 1.e18
+  velerr             = 1.e18
+
+  pressgrad          = 1.e18
+  presserr           = 1.e10
+
+  temperr            = 1.d20
+  tempgrad           = 1.d20
+
+/

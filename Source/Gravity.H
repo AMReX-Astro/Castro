@@ -31,32 +31,28 @@ public:
   
   void set_mass_offset(Real time, bool multi_level=true);
 
-  MultiFab* get_phi_prev(int level);
-  MultiFab* get_phi_curr(int level);
-
   PArray<MultiFab>& get_grad_phi_prev(int level);
   PArray<MultiFab>& get_grad_phi_curr(int level);
 
   MultiFab* get_grad_phi_prev_comp(int level,int comp);
 
-  void plus_phi_curr(int level, MultiFab& addend);
   void plus_grad_phi_curr(int level, PArray<MultiFab>& addend);
 
   void swapTimeLevels (int level);
 
   void solve_for_old_phi (int               level,
-                          MultiFab&         phi,
+			  MultiFab&         phi,
                           PArray<MultiFab>& grad_phi,
                           int               fill_interior);
 
   void solve_for_new_phi (int               level,
-                          MultiFab&         phi,
+			  MultiFab&         phi,
                           PArray<MultiFab>& grad_phi,
                           int               fill_interior);
 
   void solve_for_phi (int               level,
                       MultiFab&         Rhs,
-                      MultiFab&         phi,
+		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
                       Real              time,
                       int               fill_interior);
@@ -67,7 +63,7 @@ public:
                             PArray<MultiFab>&          delta_phi,
                             PArray<PArray<MultiFab> >& grad_delta_phi);
 
-  void gravity_sync (int crse_level, int fine_level,
+  void gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
                      const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                      PArray<MultiFab>& grad_delta_phi_cc);
 
@@ -77,7 +73,7 @@ public:
                                      int use_previous_phi_as_guess = 0);
   void multilevel_solve_for_phi     (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
-  void actual_multilevel_solve      (int level, int finest_level, PArray<MultiFab>& phi,
+  void actual_multilevel_solve      (int level, int finest_level, 
                                      Array<PArray<MultiFab> >& grad_phi, int is_new,
                                      int use_previous_phi_as_guess = 0);
 
@@ -135,11 +131,6 @@ protected:
   //
   Amr*             parent;
   PArray<AmrLevel> LevelData;
-  //
-  // Pointers to phi at previous and current time
-  //
-  PArray<MultiFab> phi_prev;
-  PArray<MultiFab> phi_curr;
   //
   // Pointers to grad_phi at previous and current time
   //

@@ -131,13 +131,15 @@ BL_FORT_PROC_DECL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
      const Real* problo, 
      const int* numpts_1d, const int* fill_interior);
 
-BL_FORT_PROC_DECL(CA_PUT_MULTIPOLE_BC,ca_put_multipole_bc)
+BL_FORT_PROC_DECL(CA_PUT_MULTIPOLE_PHI,ca_put_multipole_phi)
     (const int lo[], const int hi[], 
      const int domlo[], const int domhi[], 
      const Real* dx,
      const BL_FORT_FAB_ARG(phi),
-     const Real* problo, const Real* probhi, const int* lnum,
-     Real* q0, Real* qC, Real* qS); 
+     const int* lnum,
+     Real* qL0, Real* qLC, Real* qLS,
+     Real* qU0, Real* qUC, Real* qUS,
+     const int* npts, const int* boundary_only); 
 
 BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
     (const int lo[], const int hi[], 
@@ -145,8 +147,10 @@ BL_FORT_PROC_DECL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
      const int* symmetry_type, const int lo_bc[], const int hi_bc[],
      const Real* dx,
      const BL_FORT_FAB_ARG(rho),
-     const Real* problo, const Real* probhi, const int* lnum,
-     Real* q0, Real* qC, Real* qS); 
+     const int* lnum,
+     Real* qL0, Real* qLC, Real* qLS,
+     Real* qU0, Real* qUC, Real* qUS,
+     const int* npts, const int* boundary_only); 
 
 BL_FORT_PROC_DECL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
    (const int lo[], const int hi[],

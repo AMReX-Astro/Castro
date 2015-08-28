@@ -501,24 +501,8 @@ Castro::volProductSum (const std::string& name1,
     MultiFab*   mf1;
     MultiFab*   mf2;
 
-    if (name1 == "phi" || name1 == "PHI" || name1 == "Phi" || name1 == "phiGrav")
-    {
-      BoxLib::Abort("volProductSum can only have phi be in the second string location.");
-    }
-    else
-      mf1 = derive(name1,time,0);
-      
-    if (name2 == "phi" || name2 == "PHI" || name2 == "Phi" || name1 == "phiGrav")
-    {
-#ifdef GRAVITY
-      mf2 = gravity->get_phi_curr(level);
-#else
-      BoxLib::Abort("Phi does not exist when gravity is not turned on.");
-#endif
-    }
-    else
-      mf2 = derive(name2,time,0);
-    
+    mf1 = derive(name1,time,0);      
+    mf2 = derive(name2,time,0);   
 
     BL_ASSERT(mf1 != 0);
     BL_ASSERT(mf2 != 0);
