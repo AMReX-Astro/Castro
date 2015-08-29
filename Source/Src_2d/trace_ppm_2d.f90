@@ -160,7 +160,7 @@ contains
     ! each wave to each interface
     do n=1,QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
-                q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                 flatn, &
                 Ip(:,:,:,:,n),Im(:,:,:,:,n), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
@@ -203,7 +203,7 @@ contains
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
           call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
@@ -214,7 +214,7 @@ contains
     if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
        do n = 1,2
           call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
@@ -226,7 +226,7 @@ contains
     if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
        do n = 1,2
           call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
