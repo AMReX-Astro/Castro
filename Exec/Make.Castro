@@ -3,13 +3,8 @@ CASTRO_DIR ?= /path/to/Castro
 
 TOP := $(CASTRO_DIR)
 
-ifdef MICROPHYSICS_DIR
-	EOS_HOME ?= $(MICROPHYSICS_DIR)/eos
-	NETWORK_HOME ?= $(MICROPHYSICS_DIR)/networks
-else
-	EOS_HOME ?= $(TOP)/EOS
-	NETWORK_HOME ?= $(TOP)/Networks
-endif
+EOS_HOME ?= $(TOP)/EOS
+NETWORK_HOME ?= $(TOP)/Networks
 
 EBASE = Castro
 
@@ -137,14 +132,13 @@ EXTERN_CORE += $(EOS_PATH)
 
 # the helmholtz EOS has an include file -- also add a target to link the table
 # into the problem directory.
-ifeq ($(findstring helmholtz, $(EOS_dir)), helmholtz)
+ifeq ($(findstring helmeos, $(EOS_dir)), helmeos)
   all: table
 endif
 
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
-include $(NETWORK_HOME)/Make.package
 include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)

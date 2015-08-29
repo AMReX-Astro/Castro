@@ -65,8 +65,8 @@
                     print *,'    '
                  end if
 
-                 u(i,j,k,UEINT) = u(i,j,k,URHO) *  eint_new
-                 u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
+                 u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                 u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
 
               end if
          enddo

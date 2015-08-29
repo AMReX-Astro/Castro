@@ -19,10 +19,8 @@
      double precision :: sqrtK, grid_scl, dt4
      integer          :: i, j, k, n
 
-     type (eos_t_3D) :: eos_state
+     type (eos_t) :: eos_state
 
-     eos_state = eos_t_3D(lo,hi)
-     
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
      ! Call EOS for the purpose of computing sound speed
@@ -32,25 +30,16 @@
            do i = lo(1), hi(1)
               rhoInv = ONE / u(i,j,k,URHO)
               
-              eos_state % rho(i,j,k) = u(i,j,k,URHO )
-              eos_state % T(i,j,k)   = u(i,j,k,UTEMP)
-              eos_state % e(i,j,k)   = u(i,j,k,UEINT) * rhoInv
+              eos_state % rho = u(i,j,k,URHO )
+              eos_state % T   = u(i,j,k,UTEMP)
+              eos_state % e   = u(i,j,k,UEINT) * rhoInv
 
-              eos_state % xn(i,j,k,:)  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-              eos_state % aux(i,j,k,:) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-           enddo
-        enddo
-     enddo
+              eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+              eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-     call eos(eos_input_re, eos_state)
+              call eos(eos_input_re, eos_state)
 
-     ! Compute velocity and then calculate CFL timestep.
-
-     do k = lo(3),hi(3)
-         do j = lo(2),hi(2)
-            do i = lo(1),hi(1)
-
-               rhoInv = ONE / u(i,j,k,URHO)
+              ! Compute velocity and then calculate CFL timestep.
 
                ux = u(i,j,k,UMX) * rhoInv
                uy = u(i,j,k,UMY) * rhoInv
@@ -60,8 +49,8 @@
                   sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 
                ! Protect against negative e
-               if (eos_state % e(i,j,k) .gt. ZERO .or. allow_negative_energy .eq. 1) then
-                  c = eos_state % cs(i,j,k)
+               if (eos_state % e .gt. ZERO .or. allow_negative_energy .eq. 1) then
+                  c = eos_state % cs
                else
                   c = ZERO
                end if

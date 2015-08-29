@@ -18,7 +18,7 @@ contains
     real(kind=dp_t), intent(out) :: Xout(nspec), eout
         
     Xout(:) = Xin(:)
-    eout = ZERO
+    eout = ein
   
   end subroutine burner
 
