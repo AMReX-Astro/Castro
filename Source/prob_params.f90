@@ -7,15 +7,15 @@ module prob_params_module
   implicit none
 
   ! boundary condition information
-  integer         , save, allocatable :: physbc_lo(:)
-  integer         , save, allocatable :: physbc_hi(:)
-  integer         , save :: Outflow, Symmetry, SlipWall, NoSlipWall
+  integer :: physbc_lo(3)
+  integer :: physbc_hi(3)
+  integer :: Outflow, Symmetry, SlipWall, NoSlipWall
 
   ! geometry information
-  integer         , save :: coord_type
-  double precision, save :: center(3), problo(3), probhi(3)
+  integer          :: coord_type
+  double precision :: center(3), problo(3), probhi(3)
 
   ! dimension information
-  integer         , save :: dim
+  integer          :: dim
   
 end module prob_params_module

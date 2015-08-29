@@ -274,7 +274,6 @@
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
                                    do_rotation_in, rot_source_type_in, rot_axis_in, rot_period_in, &
                                    const_grav_in, deterministic_in, do_acc_in)
-!                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
 
@@ -337,8 +336,8 @@
         ! We use these to index into the state "U"
         URHO  = Density   + 1
         UMX   = Xmom      + 1
-        UMY = UMX + 1
-        UMZ = UMY + 1
+        UMY   = Xmom      + 2
+        UMZ   = Xmom      + 3
         UEDEN = Eden      + 1
         UEINT = Eint      + 1
         if (use_sgs .eq. 1) then
@@ -368,7 +367,7 @@
         !---------------------------------------------------------------------
 
         ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
-        !         + dm velocity components + 1 SGS components (if defined)
+        !         + 3 velocity components + 1 SGS components (if defined)
         ! QVAR  : number of total variables in primitive form
       
         QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
@@ -382,10 +381,9 @@
         QU    = 2
         QV    = 3
         QW    = 4
-        QLAST = 4
 
         ! we'll carry this around as an potential alternate to (rho e)
-        QGAME   = QLAST + 1
+        QGAME   = 5
         QLAST   = QGAME
 
         QPRES   = QLAST + 1
@@ -506,15 +504,6 @@
         dual_energy_eta2             = dual_energy_eta2_in
         dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
-!       allocate(outflow_bc_lo(dm))
-!       allocate(outflow_bc_hi(dm))
-
-!       outflow_bc_lo(:) = phys_bc_lo(:)
-!       outflow_bc_hi(:) = phys_bc_hi(:)
-
-!       print *,'OUTFLOW_BC_LO ',outflow_bc_lo(:)
-!       print *,'OUTFLOW_BC_HI ',outflow_bc_hi(:)
-
       end subroutine set_method_params
 
 ! ::: 
@@ -524,7 +513,7 @@
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
                                     Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
                                     coord_type_in, &
-                                    xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in, center_in)
+                                    problo_in, probhi_in, center_in)
 
         ! Passing data from C++ into f90
 
@@ -537,16 +526,12 @@
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
-        double precision, intent(in) :: xmin_in, xmax_in, ymin_in, ymax_in, zmin_in, zmax_in
-        double precision, intent(in) :: center_in(dm)
-
-        allocate(physbc_lo(dm))
-        allocate(physbc_hi(dm))
+        double precision, intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
         dim = dm
 
-        physbc_lo(:) = physbc_lo_in(:)
-        physbc_hi(:) = physbc_hi_in(:)
+        physbc_lo(1:dm) = physbc_lo_in(1:dm)
+        physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
         Outflow    = Outflow_in
         Symmetry   = Symmetry_in
@@ -555,15 +540,12 @@
 
         coord_type = coord_type_in
 
-        problo(1) = xmin_in
-        problo(2) = ymin_in
-        problo(3) = zmin_in
+        problo = ZERO
+        probhi = ZERO
+        center = ZERO
 
-        probhi(1) = xmax_in
-        probhi(2) = ymax_in
-        probhi(3) = zmax_in
-
-        center       = ZERO
+        problo(1:dm) = problo_in(1:dm)
+        probhi(1:dm) = probhi_in(1:dm)
         center(1:dm) = center_in(1:dm)
 
       end subroutine set_problem_params

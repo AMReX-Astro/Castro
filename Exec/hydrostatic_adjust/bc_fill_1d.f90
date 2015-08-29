@@ -82,6 +82,43 @@ subroutine ca_gravxfill(grav,grav_l1,grav_h1, &
 
 end subroutine ca_gravxfill
 
+! ::: -----------------------------------------------------------
+
+subroutine ca_gravyfill(grav,grav_l1,grav_h1, &
+                        domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+
+  integer          :: grav_l1,grav_h1
+  integer          :: bc(1,2,*)
+  integer          :: domlo(1), domhi(1)
+  double precision :: delta(1), xlo(1), time
+  double precision :: grav(grav_l1:grav_h1)
+
+  call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_gravyfill
+
+! ::: -----------------------------------------------------------
+
+subroutine ca_gravzfill(grav,grav_l1,grav_h1, &
+                        domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+
+  integer          :: grav_l1,grav_h1
+  integer          :: bc(1,2,*)
+  integer          :: domlo(1), domhi(1)
+  double precision :: delta(1), xlo(1), time
+  double precision :: grav(grav_l1:grav_h1)
+
+  call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_gravzfill
+
+! ::: -----------------------------------------------------------
 
 subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
                           domlo,domhi,delta,xlo,time,bc)

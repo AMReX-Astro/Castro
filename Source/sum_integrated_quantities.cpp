@@ -15,9 +15,9 @@ Castro::sum_integrated_quantities ()
     int finest_level = parent->finestLevel();
     Real time        = state[State_Type].curTime();
     Real mass        = 0.0;
-    Real xmom        = 0.0;
-    Real ymom        = 0.0;
-    Real zmom        = 0.0;
+    Real mom[3]      = { 0.0 };
+    Real com[3]      = { 0.0 };
+    Real com_vel[3]  = { 0.0 };
     Real rho_e       = 0.0;
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
@@ -31,36 +31,25 @@ Castro::sum_integrated_quantities ()
     Real turb_src    = 0.0;
     Real rms_mach    = 0.0;
 #endif
-    Real com_xloc    = 0.0;
-    Real com_yloc    = 0.0;
-    Real com_zloc    = 0.0;
 
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
 
-        mass     += ca_lev.volWgtSum("density", time, local_flag);
-        xmom     += ca_lev.volWgtSum("xmom", time, local_flag);
-#if (BL_SPACEDIM == 2)
-       if (Geometry::IsRZ()) 
-          xmom = 0.;
-#endif
+        mass   += ca_lev.volWgtSum("density", time, local_flag);
+        mom[0] += ca_lev.volWgtSum("xmom", time, local_flag);
+	mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
+	mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
 
-       if (show_center_of_mass) 
-	   com_xloc += ca_lev.locWgtSum("density", time, 0, local_flag);
-       ymom     += ca_lev.volWgtSum("ymom", time, local_flag);
+	if (show_center_of_mass) {
+	   com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
+	   com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
+	   com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
+	}
 
-       if (show_center_of_mass) 
-	   com_yloc += ca_lev.locWgtSum("density", time, 1, local_flag);
-
-       zmom     += ca_lev.volWgtSum("zmom", time, local_flag);
-
-       if (show_center_of_mass) 
-	   com_zloc += ca_lev.locWgtSum("density", time, 2, local_flag);
-
-       rho_e    += ca_lev.volWgtSum("rho_e", time, local_flag);
-       rho_K    += ca_lev.volWgtSum("kineng", time, local_flag);
-       rho_E    += ca_lev.volWgtSum("rho_E", time, local_flag);
+       rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
+       rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
+       rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
 
 #ifdef SGS
         Real  cur_time = state[SGS_Type].curTime();
@@ -88,15 +77,13 @@ Castro::sum_integrated_quantities ()
     if (verbose > 0)
     {
 #ifdef SGS
-	const int nfoo = 11+BL_SPACEDIM;
-	Real foo[nfoo] = {mass, D_DECL(xmom,ymom,zmom), rho_e, rho_K, rho_E, Etot, delta_E, delta_K, 
+	const int nfoo = 14;
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, Etot, delta_E, delta_K, 
 			  prod_sgs, diss_sgs, turb_src, rms_mach};
 #else
 	const int nfoo = 7;
-	Real foo[nfoo] = {mass, xmom, ymom, zmom, rho_e, rho_K, rho_E};
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E};
 #endif
-
-	Real coms[BL_SPACEDIM] = {D_DECL(com_xloc, com_yloc, com_zloc)};
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -105,18 +92,18 @@ Castro::sum_integrated_quantities ()
 	ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
 
 	if (show_center_of_mass)
-	    ParallelDescriptor::ReduceRealSum(coms, BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(com, 3, ParallelDescriptor::IOProcessorNumber());
 
 	if (ParallelDescriptor::IOProcessor()) {
 
 	    int i = 0;
 	    mass     = foo[i++];
-	    xmom     = foo[i++];
-            ymom     = foo[i++];
-            zmom     = foo[i++];
+	    mom[0]   = foo[i++];
+            mom[1]   = foo[i++];
+            mom[2]   = foo[i++];
 	    rho_e    = foo[i++];
-            rho_E    = foo[i++];
 	    rho_K    = foo[i++];
+            rho_E    = foo[i++];
 #ifdef SGS
 	    Etot     = foo[i++];
 	    delta_E  = foo[i++];
@@ -128,10 +115,10 @@ Castro::sum_integrated_quantities ()
 #endif
 
 	    std::cout << '\n';
-	    std::cout << "TIME= " << time << " MASS        = "   << mass  << '\n';
-	    std::cout << "TIME= " << time << " XMOM        = "   << xmom     << '\n';
-	    std::cout << "TIME= " << time << " YMOM        = "   << ymom     << '\n';
-	    std::cout << "TIME= " << time << " ZMOM        = "   << zmom     << '\n';
+	    std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
+	    std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
+	    std::cout << "TIME= " << time << " YMOM        = "   << mom[1]    << '\n';
+	    std::cout << "TIME= " << time << " ZMOM        = "   << mom[2]    << '\n';
 	    std::cout << "TIME= " << time << " RHO*e       = "   << rho_e     << '\n';
 	    std::cout << "TIME= " << time << " RHO*K       = "   << rho_K     << '\n';
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
@@ -166,9 +153,9 @@ Castro::sum_integrated_quantities ()
 		      // Write the quantities at this time
 		  data_log1 << std::setw(14) <<  time;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << mass;
-		  data_log1 << std::setw(14) <<  std::setprecision(6) << xmom;
-		  data_log1 << std::setw(14) <<  std::setprecision(6) << ymom;
-		  data_log1 << std::setw(14) <<  std::setprecision(6) << zmom;
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[0];
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[1];
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[2];
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_K;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_e;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E << std::endl;
@@ -211,22 +198,19 @@ Castro::sum_integrated_quantities ()
 #endif
 	    
 	    if (show_center_of_mass) {
-		com_xloc = com_xloc / mass;
-		Real com_xvel = xmom / mass;
-		std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com_xloc  << '\n';
-		std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_xvel  << '\n';
-#if (BL_SPACEDIM>=2)
-		com_yloc = com_yloc / mass;
-		Real com_yvel = ymom / mass;
-		std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com_yloc  << '\n';
-		std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_yvel  << '\n';
-#endif
-#if (BL_SPACEDIM==3)
-		com_zloc = com_zloc / mass;
-		Real com_zvel = zmom / mass;
-		std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com_zloc  << '\n';
-		std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_zvel  << '\n';
-#endif
+	        for (int i = 0; i <= 2; i++) {
+		  com[i]     = com[i] / mass;
+		  com_vel[i] = mom[i] / mass;
+		}
+
+		std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
+
+		std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
+
+		std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
+		std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
 	    }
 	}
 #ifdef BL_LAZY
