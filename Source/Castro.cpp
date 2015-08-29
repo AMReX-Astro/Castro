@@ -808,15 +808,21 @@ Castro::initData ()
     {
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-          RealBox    gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
   
+#ifdef DIMENSION_AGNOSTIC
+          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+          (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
+  	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+  	   ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
+#else
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
   	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   gridloc.lo(), gridloc.hi());
+  	   geom.ProbLo(), geom.ProbHi());
+#endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
           BL_FORT_PROC_CALL(CA_CHECK_INITIAL_SPECIES, ca_check_initial_species)

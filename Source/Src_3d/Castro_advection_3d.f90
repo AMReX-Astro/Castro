@@ -49,7 +49,7 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
                                    do_grav, do_rotation, hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm

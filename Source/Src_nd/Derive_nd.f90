@@ -81,6 +81,112 @@
 
 !-----------------------------------------------------------------------
 
+      subroutine ca_deruplusc(vel,v_lo,v_hi,nv, &
+                              dat,d_lo,d_hi,nc,lo,hi,domlo, &
+                              domhi,delta,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+      use bl_constants_module
+
+      implicit none
+
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
+ 
+      integer          :: i, j, k
+      double precision :: rhoInv
+      type (eos_t) :: eos_state
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+
+               vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1)
+               rhoInv = ONE / dat(i,j,k,URHO)
+               eos_state % e = dat(i,j,k,UEINT) * rhoInv
+
+               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+                  eos_state % T = dat(i,j,k,UTEMP)
+                  eos_state % rho = dat(i,j,k,URHO)
+                  eos_state % xn = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                  call eos(eos_input_re, eos_state)
+
+                  vel(i,j,k,1) = vel(i,j,k,1) + eos_state % cs
+               end if
+
+            end do
+         end do
+      end do
+ 
+      end subroutine ca_deruplusc
+
+!-----------------------------------------------------------------------
+
+      subroutine ca_deruminusc(vel,v_lo,v_hi,nv, &
+                               dat,d_lo,d_hi,nc,lo,hi,domlo, &
+                               domhi,delta,xlo,time,dt,bc,level,grid_no)
+
+      use network, only : nspec, naux
+      use eos_module
+      use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+                                     allow_negative_energy
+      use bl_constants_module
+
+      implicit none
+
+      integer          :: lo(3), hi(3)
+      integer          :: v_lo(3), v_hi(3), nv
+      integer          :: d_lo(3), d_hi(3), nc
+      integer          :: domlo(3), domhi(3)
+      integer          :: bc(3,2,nc)
+      double precision :: delta(3), xlo(3), time, dt
+      double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+      double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+      integer          :: level, grid_no
+ 
+      integer          :: i, j, k
+      double precision :: rhoInv
+      type (eos_t) :: eos_state
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+
+               vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1)
+               rhoInv = ONE / dat(i,j,k,URHO)
+               eos_state % e = dat(i,j,k,UEINT) * rhoInv
+
+               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
+                  eos_state % T = dat(i,j,k,UTEMP)
+                  eos_state % rho = dat(i,j,k,URHO)
+                  eos_state % xn = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                  eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                  call eos(eos_input_re, eos_state)
+
+                  vel(i,j,k,1) = vel(i,j,k,1) - eos_state % cs
+               end if
+
+            end do
+         end do
+      end do
+ 
+      end subroutine ca_deruminusc
+
+!-----------------------------------------------------------------------
+
       subroutine ca_dermagvel(magvel,v_lo,v_hi,nv, &
                               dat,d_lo,d_hi,nc,lo,hi,domlo, &
                               domhi,delta,xlo,time,dt,bc,level,grid_no)

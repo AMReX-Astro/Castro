@@ -215,16 +215,24 @@ Castro::restart (Amr&     papa,
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-           RealBox    gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo()); 
            const Box& bx      = mfi.validbox();
            const int* lo      = bx.loVect();
            const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
+
+#ifdef DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, lo, hi, ns,
-                 BL_TO_FORTRAN(S_new[mfi]), dx,
-                 gridloc.lo(), gridloc.hi());
+                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
+		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
+#else
+	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+		(level, cur_time, lo, hi, ns,
+		 BL_TO_FORTRAN(S_new[mfi]), dx,
+		 geom.ProbLo(), geom.ProbHi());
+#endif
+
            }
        }
     }

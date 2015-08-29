@@ -12,3 +12,8 @@ endif
 ifeq ($(USE_REACT), TRUE)
 f90EXE_sources += React_nd.f90
 endif
+
+ifeq ($(DIMENSION_AGNOSTIC), TRUE)
+f90EXE_sources += bc_fill_nd.f90
+f90EXE_sources += Prob_nd.f90
+endif
