@@ -13,8 +13,8 @@ contains
                     gegdx, gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
-                    grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                    rot, rt_l1, rt_l2, rt_h1, rt_h2, &
+                    grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                    rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                     hdt, cdtdx,  &
                     area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -41,8 +41,8 @@ contains
     integer ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2
     integer gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2
     integer src_l1, src_l2, src_h1, src_h2
-    integer gv_l1, gv_l2, gv_h1, gv_h2
-    integer rt_l1, rt_l2, rt_h1, rt_h2
+    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer area1_l1, area1_l2, area1_h1, area1_h2
     integer vol_l1, vol_l2, vol_h1, vol_h2
     integer ilo, ihi, jlo, jhi
@@ -57,26 +57,26 @@ contains
     double precision gegdx(gegdx_l1:gegdx_h1,gegdx_l2:gegdx_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision hdt, cdtdx
     
-    integer i, j
-    integer n, nq, ipassive
+    integer          :: i, j, k = 0
+    integer          :: n, nq, ipassive
     
-    double precision rr, rrnew, compo, compn
-    double precision rrr, rur, rvr, rer, ekinr, rhoekinr
-    double precision rrnewr, runewr, rvnewr, renewr
-    double precision rrl, rul, rvl, rel, ekinl, rhoekinl
-    double precision rrnewl, runewl, rvnewl, renewl
-    double precision pgp, pgm, ugp, ugm, dAup, pav, uav, dAu, pnewl,pnewr
-    double precision geav, dge, gegp, gegm
-    double precision rhotmp
+    double precision :: rr, rrnew, compo, compn
+    double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
+    double precision :: rrnewr, runewr, rvnewr, renewr
+    double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
+    double precision :: rrnewl, runewl, rvnewl, renewl
+    double precision :: pgp, pgm, ugp, ugm, dAup, pav, uav, dAu, pnewl,pnewr
+    double precision :: geav, dge, gegp, gegm
+    double precision :: rhotmp
 
     type (eos_t) :: eos_state
-    
+
     ! NOTE: it is better *not* to protect against small density in this routine
 
     ! update all of the passively-advective quantities in a single loop
@@ -345,22 +345,22 @@ contains
           ! piecewise parabolic traced gravity to the normal edge
           ! states
           if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-             qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,1)
-             qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,2)
+             qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,k,1)
+             qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,k,2)
              
-             qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*grav(i,j,1)
-             qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*grav(i,j,2)
+             qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*grav(i,j,k,1)
+             qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*grav(i,j,k,2)
           endif
 
           ! if ppm_trace_rot == 1, then we already added the
           ! piecewise parabolic traced rotation to the normal edge
           ! states
           if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-             qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*rot(i,j,1)
-             qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*rot(i,j,2)
+             qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*rot(i,j,k,1)
+             qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*rot(i,j,k,2)
              
-             qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*rot(i,j,1)
-             qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*rot(i,j,2)
+             qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*rot(i,j,k,1)
+             qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*rot(i,j,k,2)
           endif
           
        enddo
@@ -379,8 +379,8 @@ contains
                     gegdy, gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
-                    grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                    rot, rt_l1, rt_l2, rt_h1, rt_h2, &
+                    grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                    rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
     use network, only : nspec, naux
@@ -403,8 +403,8 @@ contains
     integer ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2
     integer gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2
     integer src_l1, src_l2, src_h1, src_h2
-    integer gv_l1, gv_l2, gv_h1, gv_h2
-    integer rt_l1, rt_l2, rt_h1, rt_h2
+    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer ilo, ihi, jlo, jhi
 
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -417,25 +417,25 @@ contains
     double precision gegdy(gegdy_l1:gegdy_h1,gegdy_l2:gegdy_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt, cdtdy
     
-    integer i, j
-    integer n, nq, ipassive
+    integer          :: i, j, k = 0
+    integer          :: n, nq, ipassive
   
-    double precision rr,rrnew
-    double precision pgp, pgm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
-    double precision gegp, gegm, geav, dge
-    double precision rrr, rur, rvr, rer, ekinr, rhoekinr
-    double precision rrnewr, runewr, rvnewr, renewr
-    double precision rrl, rul, rvl, rel, ekinl, rhoekinl
-    double precision rrnewl, runewl, rvnewl, renewl
-    double precision rhotmp
-    double precision compo, compn
+    double precision :: rr,rrnew
+    double precision :: pgp, pgm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
+    double precision :: gegp, gegm, geav, dge
+    double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
+    double precision :: rrnewr, runewr, rvnewr, renewr
+    double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
+    double precision :: rrnewl, runewl, rvnewl, renewl
+    double precision :: rhotmp
+    double precision :: compo, compn
 
     type (eos_t) :: eos_state
-    
+
     ! NOTE: it is better *not* to protect against small density in this routine
 
     ! update all of the passively-advective quantities in a single loop
@@ -680,22 +680,22 @@ contains
           ! piecewise parabolic traced gravity to the normal edge
           ! states
           if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-             qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,1)
-             qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,2)
+             qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,k,1)
+             qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,k,2)
              
-             qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*grav(i,j,1)
-             qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*grav(i,j,2)
+             qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*grav(i,j,k,1)
+             qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*grav(i,j,k,2)
           endif
 
           ! if ppm_trace_rot == 1, then we already added the
           ! piecewise parabolic traced rotation to the normal edge
           ! states
           if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-             qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*rot(i,j,1)
-             qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*rot(i,j,2)
+             qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*rot(i,j,k,1)
+             qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*rot(i,j,k,2)
              
-             qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*rot(i,j,1)
-             qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*rot(i,j,2)
+             qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*rot(i,j,k,1)
+             qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*rot(i,j,k,2)
           endif
           
        enddo

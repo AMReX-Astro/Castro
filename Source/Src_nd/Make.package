@@ -1,3 +1,10 @@
+f90EXE_sources += Castro_nd.f90
+f90EXE_sources += Problem.f90
+f90EXE_sources += meth_params.f90
+f90EXE_sources += prob_params.f90
+f90EXE_sources += tagging_params.f90
+f90EXE_sources += interpolate.f90
+
 f90EXE_sources += compute_temp_nd.f90
 f90EXE_sources += reset_internal_energy_nd.f90
 f90EXE_sources += enforce_consistent_e_nd.f90
@@ -7,6 +14,13 @@ f90EXE_sources += Derive_nd.f90
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav_nd.f90
+f90EXE_sources += Gravity_nd.f90
+f90EXE_sources += gravity_sources_nd.f90
+endif
+
+ifeq ($(USE_ROTATION), TRUE)
+f90EXE_sources += Rotation_nd.f90
+f90EXE_sources += rotation_sources_nd.f90
 endif
 
 ifeq ($(USE_REACT), TRUE)

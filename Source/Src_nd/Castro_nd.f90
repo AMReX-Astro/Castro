@@ -415,11 +415,30 @@
         ! in a single loop.
         allocate(qpass_map(QVAR))
         allocate(upass_map(NVAR))
-        npassive = 0
-        if (QESGS > -1) then
-           upass_map(1) = UESGS
-           qpass_map(1) = QESGS
+
+        ! Transverse velocities
+
+        if (dm .eq. 1) then
+           upass_map(1) = UMY
+           qpass_map(1) = QV
+
+           upass_map(2) = UMZ
+           qpass_map(2) = QW
+
+           npassive = 2
+        else if (dm .eq. 2) then
+           upass_map(1) = UMZ
+           qpass_map(1) = QW
+
            npassive = 1
+        else
+           npassive = 0
+        endif
+
+        if (QESGS > -1) then
+           upass_map(npassive + 1) = UESGS
+           qpass_map(npassive + 1) = QESGS
+           npassive = npassive + 1
         endif
         do iadv = 1, nadv
            upass_map(npassive + iadv) = UFA + iadv - 1
@@ -546,7 +565,17 @@
 
         problo(1:dm) = problo_in(1:dm)
         probhi(1:dm) = probhi_in(1:dm)
-        center(1:dm) = center_in(1:dm)
+        center(1:dm) = center_in(1:dm)        
+
+        dg(:) = 1
+
+        if (dim .lt. 2) then
+           dg(2) = 0
+        endif
+
+        if (dim .lt. 3) then
+           dg(3) = 0
+        endif
 
       end subroutine set_problem_params
 

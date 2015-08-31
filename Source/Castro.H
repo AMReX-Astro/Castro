@@ -34,6 +34,10 @@ enum StateType { State_Type = 0,
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
+#ifdef ROTATION
+		 PhiRot_Type,
+		 Rotation_Type,
+#endif
 #ifdef LEVELSET
                  LS_State_Type,
 #endif
@@ -342,6 +346,10 @@ public:
 #endif
                       Real       time,
                       Real       dt);
+#endif
+
+#ifdef ROTATION
+    void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state);
 #endif
 
 #ifdef RADIATION

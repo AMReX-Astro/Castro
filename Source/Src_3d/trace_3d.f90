@@ -15,8 +15,8 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
-                                     ppm_type
+                                     QREINT, QESGS, QPRES, QFS, QFX, &
+                                     npassive, qpass_map, small_dens, ppm_type
       use bl_constants_module
       implicit none
 
@@ -39,8 +39,7 @@ contains
       double precision dx, dy, dt
 
       ! Local variables
-      integer i, j, n
-      integer iadv, ispec, iaux
+      integer i, j, n, ipassive
 
       double precision dtdx, dtdy
       double precision cc, csq, rho, u, v, w, p, rhoe
@@ -195,8 +194,8 @@ contains
          enddo
       endif
 
-      do iadv = 1, nadv
-         n = QFA + iadv - 1
+      do ipassive = 1, npassive
+         n = qpass_map(ipassive)
 
          do j = ilo2-1, ihi2+1
 
@@ -222,70 +221,6 @@ contains
                endif
                acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
-            enddo
-
-         enddo
-      enddo
-
-      do ispec = 1, nspec
-         n = QFS + ispec - 1
-
-         do j = ilo2-1, ihi2+1
-
-            ! Right state
-            do i = ilo1, ihi1+1
-               u = q(i,j,k3d,QU)
-               if (u .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = u*dtdx
-               endif
-               ascmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
-               qxp(i,j,kc,n) = q(i,j,k3d,n) + ascmprght
-            enddo
-
-            ! Left state
-            do i = ilo1-1, ihi1
-               u = q(i,j,k3d,QU)
-               if (u .ge. ZERO) then
-                  spzero = u*dtdx
-               else
-                  spzero = ONE
-               endif
-               ascmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
-               qxm(i+1,j,kc,n) = q(i,j,k3d,n) + ascmpleft
-            enddo
-
-         enddo
-      enddo
-
-      do iaux = 1, naux
-         n = QFX + iaux - 1
-
-         do j = ilo2-1, ihi2+1
-
-            ! Right state
-            do i = ilo1, ihi1+1
-               u = q(i,j,k3d,QU)
-               if (u .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = u*dtdx
-               endif
-               ascmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
-               qxp(i,j,kc,n) = q(i,j,k3d,n) + ascmprght
-            enddo
-
-            ! Left state
-            do i = ilo1-1, ihi1
-               u = q(i,j,k3d,QU)
-               if (u .ge. ZERO) then
-                  spzero = u*dtdx
-               else
-                  spzero = ONE
-               endif
-               ascmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
-               qxm(i+1,j,kc,n) = q(i,j,k3d,n) + ascmpleft
             enddo
 
          enddo
@@ -418,8 +353,8 @@ contains
          enddo
       endif
 
-      do iadv = 1, nadv
-         n = QFA + iadv - 1
+      do ipassive = 1, npassive
+         n = qpass_map(ipassive)
 
          do i = ilo1-1, ihi1+1
 
@@ -450,69 +385,6 @@ contains
          enddo
       enddo
 
-      do ispec = 1, nspec
-         n = QFS + ispec - 1
-
-         do i = ilo1-1, ihi1+1
-
-            ! Top state
-            do j = ilo2, ihi2+1
-               v = q(i,j,k3d,QV)
-               if (v .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = v*dtdy
-               endif
-               ascmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
-               qyp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
-            enddo
-
-            ! Bottom state
-            do j = ilo2-1, ihi2
-               v = q(i,j,k3d,QV)
-               if (v .ge. ZERO) then
-                  spzero = v*dtdy
-               else
-                  spzero = ONE
-               endif
-               ascmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
-               qym(i,j+1,kc,n) = q(i,j,k3d,n) + ascmpbot
-            enddo
-         enddo
-      enddo
-
-      do iaux = 1, naux
-         n = QFX + iaux - 1
-
-         do i = ilo1-1, ihi1+1
-
-            ! Top state
-            do j = ilo2, ihi2+1
-               v = q(i,j,k3d,QV)
-               if (v .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = v*dtdy
-               endif
-               ascmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
-               qyp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
-            enddo
-
-            ! Bottom state
-            do j = ilo2-1, ihi2
-               v = q(i,j,k3d,QV)
-               if (v .ge. ZERO) then
-                  spzero = v*dtdy
-               else
-                  spzero = ONE
-               endif
-               ascmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
-               qym(i,j+1,kc,n) = q(i,j,k3d,n) + ascmpbot
-            enddo
-
-         enddo
-      enddo
-
     end subroutine tracexy
 
 ! ::: 
@@ -526,8 +398,8 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, QFA, QFS, QFX, nadv, small_dens, &
-                                     ppm_type
+                                     QREINT, QESGS, QPRES, QFS, QFX, &
+                                     npassive, qpass_map, small_dens, ppm_type
       use bl_constants_module
 
       implicit none
@@ -548,8 +420,7 @@ contains
 
       ! Local variables
       integer i, j
-      integer n
-      integer iadv, ispec, iaux
+      integer n, ipassive
 
       double precision dtdz
       double precision cc, csq, rho, u, v, w, p, rhoe
@@ -723,8 +594,8 @@ contains
          enddo
       endif
 
-      do iadv = 1, nadv
-         n = QFA + iadv - 1
+      do ipassive = 1, npassive
+         n = qpass_map(ipassive)
 
          do j = ilo2-1, ihi2+1
             do i = ilo1-1, ihi1+1
@@ -748,64 +619,6 @@ contains
                endif
                acmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
                qzm(i,j,kc,n) = q(i,j,k3d-1,n) + acmpbot
-            enddo
-         enddo
-      enddo
-
-      do ispec = 1, nspec
-         n = QFS + ispec - 1
-
-         do j = ilo2-1, ihi2+1
-            do i = ilo1-1, ihi1+1
-
-               ! Top state
-               w = q(i,j,k3d,QW)
-               if (w .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = w*dtdz
-               endif
-               ascmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
-               qzp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
-
-               ! Bottom state
-               w = q(i,j,k3d-1,QW)
-               if (w .ge. ZERO) then
-                  spzero = w*dtdz
-               else
-                  spzero = ONE
-               endif
-               ascmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
-               qzm(i,j,kc,n) = q(i,j,k3d-1,n) + ascmpbot
-            enddo
-         enddo
-      enddo
-
-      do iaux = 1, naux
-         n = QFX + iaux - 1
-
-         do j = ilo2-1, ihi2+1
-            do i = ilo1-1, ihi1+1
-
-               ! Top state
-               w = q(i,j,k3d,QW)
-               if (w .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = w*dtdz
-               endif
-               ascmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
-               qzp(i,j,kc,n) = q(i,j,k3d,n) + ascmptop
-
-               ! Bottom state
-               w = q(i,j,k3d-1,QW)
-               if (w .ge. ZERO) then
-                  spzero = w*dtdz
-               else
-                  spzero = ONE
-               endif
-               ascmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
-               qzm(i,j,kc,n) = q(i,j,k3d-1,n) + ascmpbot
             enddo
          enddo
       enddo

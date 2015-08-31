@@ -49,7 +49,7 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
                                    do_grav, do_rotation, hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
@@ -789,10 +789,10 @@ contains
     use eos_module
     use eos_type_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UESGS, UTEMP, UFA, UFS, UFX, &
+                                   UEDEN, UEINT, UESGS, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QESGS, QPRES, QTEMP, QGAME, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp, use_flattening, &
+                                   QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1
     
     use flatten_module
@@ -820,17 +820,14 @@ contains
 
     double precision, pointer:: dpdrho(:,:,:)
     double precision, pointer:: dpde(:,:,:)
-    double precision, pointer:: dpdX_er(:,:,:,:)
+!    double precision, pointer:: dpdX_er(:,:,:,:)
 
     integer          :: i, j, k
     integer          :: ngp, ngf, loq(3), hiq(3)
-    integer          :: n, nq
-    integer          :: iadv, ispec, iaux
+    integer          :: n, nq, ipassive
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
     double precision :: dtdx, dtdy, dtdz
-
-    integer :: ipassive
 
     type (eos_t) :: eos_state
 
@@ -894,10 +891,10 @@ contains
        enddo
     enddo
 
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! Load passively advected quatities into q
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
        do k = loq(3),hiq(3)
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
@@ -907,32 +904,6 @@ contains
        enddo
     enddo
       
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-      
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
@@ -1097,7 +1068,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
          UEDEN, UEINT, UTEMP, normalize_species
     use bl_constants_module
 
@@ -1400,8 +1371,8 @@ contains
                                      lo,hi,mass_added,eint_added,eden_added,verbose)
     
     use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, UFX, &
-                                     UFA, small_dens, small_temp, nadv
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, &
+                                   small_dens, small_temp, npassive, upass_map
     use bl_constants_module
     use eos_type_module, only : eos_t
     use eos_module, only : eos
@@ -1417,7 +1388,7 @@ contains
     double precision :: mass_added, eint_added, eden_added
     
     ! Local variables
-    integer          :: i,ii,j,jj,k,kk,n
+    integer          :: i,ii,j,jj,k,kk,n,ipassive
     integer          :: i_set, j_set, k_set
     double precision :: max_dens
     
@@ -1481,13 +1452,8 @@ contains
 
                 if (max_dens < small_dens) then
 
-                   do n = UFS, UFS+nspec-1
-                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
-                   end do
-                   do n = UFX, UFX+naux-1
-                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
-                   end do
-                   do n = UFA, UFA+nadv-1
+                   do ipassive = 1, npassive
+                      n = upass_map(ipassive)
                       uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
                    end do
 
@@ -1531,13 +1497,8 @@ contains
                 uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
                 uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
    
-                do n = UFS, UFS+nspec-1
-                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
-                end do
-                do n = UFX, UFX+naux-1
-                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
-                end do
-                do n = UFA, UFA+nadv-1
+                do ipassive = 1, npassive
+                   n = upass_map(ipassive)
                    uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
                 end do
                 

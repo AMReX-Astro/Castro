@@ -8,8 +8,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                     ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                     ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-                    src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                    grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                    src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+                    grav,gv_lo,gv_hi, &
+                    rot,rt_lo,rt_hi, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                     flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -20,19 +21,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    xmom_added_grav,ymom_added_grav,zmom_added_grav,&
-                    xmom_added_rot,ymom_added_rot,zmom_added_rot,&
                     xmom_added_sponge,ymom_added_sponge,zmom_added_sponge,&
-                    E_added_rot,E_added_flux,E_added_grav,E_added_sponge)
+                    E_added_flux,E_added_sponge)
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
-                                 normalize_species, do_grav, do_rotation
+                                 normalize_species
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
        normalize_new_species
   use sponge_module, only : sponge
-  use grav_sources_module, only : add_grav_source
-  use rot_sources_module, only : add_rot_source, fill_rotation_field
 
   implicit none
 
@@ -52,14 +49,16 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
   integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+  integer gv_lo(3),gv_hi(3)
+  integer rt_lo(3),rt_hi(3)
   double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
   double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
   double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
   double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
   double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
   double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
-  double precision  grav( gv_l1:gv_h1,  gv_l2:gv_h2,   gv_l3:gv_h3,    3)
+  double precision grav(gv_lo(1):gv_hi(1),gv_lo(2):gv_hi(2),gv_lo(3):gv_hi(3),3)
+  double precision  rot(rt_lo(1):rt_hi(1),rt_lo(2):rt_hi(2),rt_lo(3):rt_hi(3),3)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
   double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
   double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
@@ -67,11 +66,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_grav,E_added_rot,E_added_sponge
+  double precision delta(3),dt,time,courno,E_added_flux,E_added_sponge
   double precision mass_added,eint_added,eden_added
   double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision xmom_added_grav,ymom_added_grav,zmom_added_grav
-  double precision xmom_added_rot,ymom_added_rot,zmom_added_rot
   double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
@@ -83,7 +80,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer:: div(:,:,:)
   double precision, pointer:: pdivu(:,:,:)
   double precision, pointer:: srcQ(:,:,:,:)
-  double precision, pointer:: rot(:,:,:,:)
   
   double precision dx,dy,dz
   integer ngq,ngf
@@ -109,7 +105,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
 
   call bl_allocate(  srcQ, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,QVAR)
-  call bl_allocate(   rot, lo(1)-ngq,hi(1)+ngq,lo(2)-ngq,hi(2)+ngq,lo(3)-ngq,hi(3)+ngq,1,3)
   
   dx = delta(1)
   dy = delta(2)
@@ -126,24 +121,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
-  ! Compute the rotation field, which depends on position and velocity
-
-  if (do_rotation .eq. 1) then
-     
-     call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq, &
-                              hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
-                              q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                              lo,hi,delta)
-
-  else
-     rot = 0.d0
-  endif
-
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
-               grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-               rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq,hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
+               grav,gv_lo(1),gv_lo(2),gv_lo(3),gv_hi(1),gv_hi(2),gv_hi(3), &
+               rot,rt_lo(1),rt_lo(2),rt_lo(3),rt_hi(1),rt_hi(2),rt_hi(3), &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -192,21 +174,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                 lo,hi)
   end if
 
-  if (do_grav .eq. 1) then
-     call add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                          grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                          lo,hi,dt,E_added_grav,&
-                          xmom_added_grav,ymom_added_grav,zmom_added_grav)
-  endif
-
-  if (do_rotation .eq. 1) then
-     call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                         lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
-                         xmom_added_rot,ymom_added_rot,zmom_added_rot)
-  endif
-
   ! Impose sponge
   if (do_sponge .eq. 1) then
      call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
@@ -225,7 +192,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_deallocate( pdivu)
 
   call bl_deallocate(  srcQ)
-  call bl_deallocate(   rot)
 
 end subroutine ca_umdrv
 

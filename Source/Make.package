@@ -20,13 +20,6 @@ FEXE_headers += Castro_F.H
 FEXE_headers += Problem_F.H
 FEXE_headers += Castro_error_F.H
 
-f90EXE_sources += Castro_nd.f90
-f90EXE_sources += Problem.f90
-f90EXE_sources += meth_params.f90
-f90EXE_sources += prob_params.f90
-f90EXE_sources += tagging_params.f90
-f90EXE_sources += interpolate.f90
-
 ifeq ($(USE_REACT), TRUE)
 CEXE_sources += Castro_react.cpp
 endif
@@ -35,7 +28,10 @@ ifeq ($(USE_GRAV), TRUE)
 CEXE_sources += Gravity.cpp
 CEXE_headers += Gravity.H
 FEXE_headers += Gravity_F.H
-f90EXE_sources += Gravity_nd.f90
+endif
+
+ifeq ($(USE_ROTATION), TRUE)
+CEXE_sources += Castro_rotation.cpp
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)

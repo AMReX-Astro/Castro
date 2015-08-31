@@ -349,10 +349,10 @@ contains
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QESGS, QFA, QFS, &
+                                   QPRES, QREINT, QESGS, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   UESGS, UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres, small_temp, &
+                                   UESGS, UFS, UFX, &
+                                   small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module
@@ -384,9 +384,8 @@ contains
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
-    integer :: i,j,kc,kflux,k3d, ipassive
-    integer :: n, nq
-    integer :: iadv, ispec, iaux
+    integer :: i,j,kc,kflux,k3d
+    integer :: n, nq, ipassive
 
     double precision :: rgdnv,v1gdnv,v2gdnv,ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
@@ -935,9 +934,9 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, QFA, QFS, &
-                                     QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, UFX, &
-                                     nadv, small_dens, small_pres, npassive, upass_map, qpass_map
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, &
+                                     URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
+                                     small_dens, small_pres, npassive, upass_map, qpass_map
     use bl_constants_module
 
     implicit none
@@ -968,9 +967,8 @@ contains
     !         kflux is used for indexing into the uflx array -- in the initial calls to
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
-    integer :: i,j,kc,kflux,k3d, ipassive
-    integer :: n, nq
-    integer :: iadv, ispec, iaux
+    integer :: i,j,kc,kflux,k3d
+    integer :: n, nq, ipassive
 
     double precision :: rgdnv,v1gdnv,v2gdnv,regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel

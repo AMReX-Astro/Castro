@@ -1284,8 +1284,8 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,0            ,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
+       grav_vector.setVal(0.0       ,0            ,3,ng);
+       grav_vector.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
@@ -1365,7 +1365,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab& G_old = LevelData[level].get_old_data(Gravity_Type);
  
     // Fill G_old from grav_vector
-    MultiFab::Copy(G_old,grav_vector,0,0,BL_SPACEDIM,0);
+    MultiFab::Copy(G_old,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
@@ -1374,7 +1374,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
     }
 #endif
 
@@ -1395,8 +1395,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,            0,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
+       grav_vector.setVal(0.0       ,            0,3,ng);
+       grav_vector.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
@@ -1476,7 +1476,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab& G_new = LevelData[level].get_new_data(Gravity_Type);
 
     // Fill G_new from grav_vector
-    MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
+    MultiFab::Copy(G_new,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
@@ -1485,7 +1485,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
     }
 #endif
 
@@ -2277,9 +2277,9 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-           (bx.loVect(), bx.hiVect(),dx,&dr,
-            BL_TO_FORTRAN(grav_vector[mfi]),
-            radial_grav.dataPtr(),geom.ProbLo(),
+	   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,
+            BL_TO_FORTRAN_3D(grav_vector[mfi]),
+            radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
             &n1d,&level);
     }
 }

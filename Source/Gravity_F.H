@@ -115,9 +115,9 @@ BL_FORT_PROC_DECL(CA_INTEGRATE_PHI,ca_integrate_phi)
      const Real* dr, const int* numpts_1d);
 
 BL_FORT_PROC_DECL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-    (const int lo[], const int hi[], 
+    (const int* lo, const int* hi, 
      const Real* dx, const Real* dr,
-     const BL_FORT_FAB_ARG(grav_vector),
+     const BL_FORT_FAB_ARG_3D(grav_vector),
      const Real* radial_grav, 
      const Real* problo, 
      const int* n1d, const int* level); 

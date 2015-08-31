@@ -60,10 +60,14 @@ set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,norm_vel_bc[lo_bc[0]]);
     bc.setHi(0,norm_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)
     bc.setLo(1,tang_vel_bc[lo_bc[1]]);
     bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,tang_vel_bc[lo_bc[2]]);
     bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
 }
 
 static
@@ -74,10 +78,14 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,tang_vel_bc[lo_bc[0]]);
     bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)    
     bc.setLo(1,norm_vel_bc[lo_bc[1]]);
     bc.setHi(1,norm_vel_bc[hi_bc[1]]);
+#endif
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,tang_vel_bc[lo_bc[2]]);
     bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
 }
 
 static
@@ -88,10 +96,14 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,tang_vel_bc[lo_bc[0]]);
     bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)
     bc.setLo(1,tang_vel_bc[lo_bc[1]]);
     bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,norm_vel_bc[lo_bc[2]]);
     bc.setHi(2,norm_vel_bc[hi_bc[2]]);
+#endif
 }
 
 void
@@ -301,6 +313,19 @@ Castro::variableSetUp ()
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+#ifdef ROTATION
+    store_in_checkpoint = false;
+    desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
+                           StateDescriptor::Point, 1, 1,
+                           &cell_cons_interp, state_data_extrap,
+                           store_in_checkpoint);
+
+    store_in_checkpoint = false;
+    desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
+                           StateDescriptor::Point,ngrow_state,3,
+                           &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+#endif    
+
 #ifdef LEVELSET
     store_in_checkpoint = true;
     desc_lst.addDescriptor(LS_State_Type,IndexType::TheCellType(),
@@ -432,6 +457,26 @@ Castro::variableSetUp ()
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    }
+#endif
+
+// For rotation we'll use the same boundary condition routines as for gravity, 
+// since we use the rotation in the same manner as in the gravity.
+
+#ifdef ROTATION
+    if (do_rotation) {
+       set_scalar_bc(bc,phys_bc);
+       desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+       set_x_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+       set_y_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+       set_z_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
     }
 #endif

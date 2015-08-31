@@ -11,14 +11,14 @@ contains
   subroutine trace_ppm(q,dq,c,flatn,gamc,qd_l1,qd_h1, &
                        dloga,dloga_l1,dloga_h1, &
                        srcQ,src_l1,src_h1,&
-                       grav,gv_l1,gv_h1, &
+                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                       rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
-    use network, only : nspec, naux
     use meth_params_module, only : iorder, QVAR, QRHO, QU, &
-         QREINT, QPRES, QFA, QFS, QFX, & 
-         nadv, small_dens, ppm_type, fix_mass_flux, &
+         QREINT, QPRES, QFS, QFX, & 
+         small_dens, ppm_type, fix_mass_flux, &
          ppm_reference, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, &
          npassive, qpass_map
@@ -34,7 +34,8 @@ contains
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    integer    gv_l1,   gv_h1
+    integer    gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+    integer    rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     double precision dx, dt
     double precision     q( qd_l1: qd_h1,QVAR)
     double precision  srcQ(src_l1:src_h1,QVAR)
@@ -46,17 +47,18 @@ contains
     double precision   dq( qpd_l1: qpd_h1,QVAR)
     double precision  qxm( qpd_l1: qpd_h1,QVAR)
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
-    double precision grav(  gv_l1:  gv_h1)
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     
     ! Local variables
-    integer i
-    integer n, ipassive
+    integer          :: i, j = 0, k = 0
+    integer          :: n, ipassive
 
-    double precision hdt,dtdx
-    double precision cc, csq, Clag, rho, u, p, rhoe
-    double precision drho, dp, drhoe
-    double precision dup, dpp, drhoep
-    double precision dum, dpm, drhoem
+    double precision :: hdt,dtdx
+    double precision :: cc, csq, Clag, rho, u, p, rhoe
+    double precision :: drho, dp, drhoe
+    double precision :: dup, dpp, drhoep
+    double precision :: dum, dpm, drhoem
 
     double precision :: rho_ref, u_ref, p_ref, rhoe_ref
 
@@ -64,13 +66,13 @@ contains
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
     double precision :: gam
 
-    double precision enth, alpham, alphap, alpha0r, alpha0e
-    double precision spminus, spplus, spzero
-    double precision apright, amright, azrright, azeright
-    double precision apleft, amleft, azrleft, azeleft
-    double precision acmprght, acmpleft
-    double precision ascmprght, ascmpleft
-    double precision sourcr,sourcp,source,courn,eta,dlogatmp
+    double precision :: enth, alpham, alphap, alpha0r, alpha0e
+    double precision :: spminus, spplus, spzero
+    double precision :: apright, amright, azrright, azeright
+    double precision :: apleft, amleft, azrleft, azeleft
+    double precision :: acmprght, acmpleft
+    double precision :: ascmprght, ascmpleft
+    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
     
     double precision :: xi, xi1
 
@@ -297,7 +299,7 @@ contains
           qxp(i  ,QPRES ) = qxp(i,QPRES ) + hdt*srcQ(i,QPRES)
           
           ! add gravitational source term
-          qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i)
+          qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i,j,k,1)
        end if
 
 
@@ -432,7 +434,7 @@ contains
           qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
           
           ! add gravitational source term
-          qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i)
+          qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i,j,k,1)
        end if
        
   

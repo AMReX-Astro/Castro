@@ -23,6 +23,10 @@
 #include "LevelSet_F.H"
 #endif
 
+#ifdef ROTATION
+#include "Rotation.H"
+#endif
+
 #include <cmath>
 
 using std::string;
@@ -214,7 +218,7 @@ Castro::advance_hydro (Real time,
                gravity->swapTimeLevels(lev);
        }
 
-       grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
+       grav_vec_old.define(grids,3,NUM_GROW,Fab_allocate); 
        
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
@@ -256,8 +260,8 @@ Castro::advance_hydro (Real time,
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		comp_minus_level_grad_phi.set(n, 
-		           new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+		  comp_minus_level_grad_phi.set(n, 
+			     new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
 	    }
 	    gravity->create_comp_minus_level_grad_phi(level,
                             comp_minus_level_phi,comp_minus_level_grad_phi);
@@ -271,7 +275,7 @@ Castro::advance_hydro (Real time,
         }
     }
 #endif
-    
+
     //
     // Get pointers to Flux registers, or set pointer to zero if not there.
     //
@@ -304,7 +308,7 @@ Castro::advance_hydro (Real time,
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
     
-    MultiFab fluxes[BL_SPACEDIM];
+    MultiFab fluxes[3];
 
     // We want to define this on every grid, because we may need the fluxes
     // when computing the source terms later.
@@ -312,10 +316,17 @@ Castro::advance_hydro (Real time,
     for (int j = 0; j < BL_SPACEDIM; j++)
        {
          BoxArray ba = S_new.boxArray();
-         ba.surroundingNodes(j);
+	 ba.surroundingNodes(j);
          fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
          fluxes[j].setVal(0.0);
        }
+
+    for (int j = BL_SPACEDIM; j < 3; j++)
+      {
+	BoxArray ba = S_new.boxArray();
+	fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
+	fluxes[j].setVal(0.0);
+      }
 
 #ifdef SGS
     // We need these even if we are single-level because they are used in the source construction.
@@ -339,18 +350,45 @@ Castro::advance_hydro (Real time,
       }
     }
 #endif
-    
+
     // Define the gravity vector so we can pass this to ca_umdrv.
-    MultiFab grav_vector(grids,BL_SPACEDIM,NUM_GROW);
+    MultiFab grav_vector(grids,3,NUM_GROW);
     grav_vector.setVal(0.);
     
 #ifdef GRAVITY
     if (do_grav) {
       // Copy the gravity vector (including NUM_GROW ghost cells) for passing to umdrv.
-      MultiFab::Copy(grav_vector,grav_vec_old,0,0,BL_SPACEDIM,NUM_GROW);
+      MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
     }
 #endif
-    
+
+    // Define the rotation vector so we can pass this to ca_umdrv.
+    MultiFab rot_vector(grids,3,NUM_GROW);
+    rot_vector.setVal(0.);
+
+#ifdef ROTATION
+    MultiFab& phirot_old = get_old_data(PhiRot_Type);
+    MultiFab& rot_vec_old = get_old_data(Rotation_Type);
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_vec_new = get_new_data(Rotation_Type);
+
+    if (do_rotation) {
+
+      // This fills the old state data.
+
+      fill_rotation_field(phirot_old, rot_vec_old, S_old);
+
+      // Fill ghost cells for rot_vector analogous to how we do it for gravity.
+
+      AmrLevel* amrlev = &parent->getLevel(level);
+      AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,time,Rotation_Type,0,3); 
+
+    } else {
+      phirot_old.setVal(0.);
+      rot_vec_old.setVal(0.);
+    } 
+#endif
+
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
@@ -390,7 +428,14 @@ Castro::advance_hydro (Real time,
     ext_src_old.FillBoundary();
     geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
 
-    { // limit the scope of fpi
+    {
+        // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
+        // but the state data does not carry ghost zones. So we use a FillPatchIterator
+        // on S_new (which currently is equal to the old time data) to give us Sborder,
+        // which does have ghost zones. Note that we do the react_half_dt on Sborder
+        // because of our Strang splitting approach -- the "old" data sent to the hydro,
+        // which Sborder represents, has already had a half-timestep of burning.
+        // The FillPatchIterator is inside the brackets to limit its scope.
         FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
         MultiFab& Sborder = fpi.get_mf();
 
@@ -624,7 +669,8 @@ Castro::advance_hydro (Real time,
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
 			 BL_TO_FORTRAN(ext_src_old[mfi]),
-			 BL_TO_FORTRAN(grav_vector[mfi]), 
+			 BL_TO_FORTRAN_3D(grav_vector[mfi]), 
+			 BL_TO_FORTRAN_3D(rot_vector[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -645,22 +691,6 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 	                 zmom_added_flux,
 #endif
-	                 xmom_added_grav, 
-#if (BL_SPACEDIM >= 2)
-	                 ymom_added_grav, 
-#endif
-#if (BL_SPACEDIM == 3)
-	                 zmom_added_grav,
-#endif
-#if (BL_SPACEDIM > 1)
-	                 xmom_added_rot,
-#endif
-#if (BL_SPACEDIM >= 2)
-	                 ymom_added_rot,  
-#endif
-#if (BL_SPACEDIM == 3)
-	                 zmom_added_rot,
-#endif
 	                 xmom_added_sponge, 
 #if (BL_SPACEDIM >= 2)
 	                 ymom_added_sponge, 
@@ -668,10 +698,7 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 	                 zmom_added_sponge,
 #endif
-#if (BL_SPACEDIM > 1)
-	                 E_added_rot, 
-#endif
-                         E_added_flux, E_added_grav, E_added_sponge);
+                         E_added_flux, E_added_sponge);
 	    
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
@@ -682,6 +709,49 @@ Castro::advance_hydro (Real time,
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++)
 		      fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));	  
+
+		    // Gravitational source term for the time-level n data.
+
+		    Real mom_added[3] = { 0.0 };
+
+#ifdef GRAVITY
+		    if (do_grav)
+		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
+			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 BL_TO_FORTRAN_3D(phi_old[mfi]),
+			 BL_TO_FORTRAN_3D(grav_vec_old[mfi]),
+			 BL_TO_FORTRAN_3D(S_old[mfi]),
+			 BL_TO_FORTRAN_3D(S_new[mfi]),
+			 ZFILL(dx),dt,
+			 E_added_grav,mom_added);
+#endif
+
+		    xmom_added_grav += mom_added[0];
+		    ymom_added_grav += mom_added[1];
+		    zmom_added_grav += mom_added[2];
+
+		    mom_added[0] = 0.0;
+		    mom_added[1] = 0.0;
+		    mom_added[2] = 0.0;
+
+		    // Rotational source term for the time-level n data.
+
+#ifdef ROTATION
+		    if (do_rotation)
+		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
+			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
+			 BL_TO_FORTRAN_3D(rot_vec_old[mfi]),
+			 BL_TO_FORTRAN_3D(S_old[mfi]),
+			 BL_TO_FORTRAN_3D(S_new[mfi]),
+			 ZFILL(dx),dt,
+			 E_added_rot,mom_added);
+
+#endif
+
+		    xmom_added_rot += mom_added[0];
+		    ymom_added_rot += mom_added[1];
+		    zmom_added_rot += mom_added[2];
 		    
 #ifdef POINTMASS
 		    if (level == finest_level)
@@ -693,7 +763,7 @@ Castro::advance_hydro (Real time,
 			     geom.ProbLo(), dx, &time, &dt);
 #endif
 		}
-		
+
 #ifdef _OPENMP
 #pragma omp critical (hydro_courno)
 #endif
@@ -752,14 +822,10 @@ Castro::advance_hydro (Real time,
 				 E_added_flux*cell_vol << std::endl;
 		   std::cout << "xmom added from fluxes                      : " << 
 				 xmom_added_flux*cell_vol << std::endl;
-#if (BL_SPACEDIM >= 2)
 		   std::cout << "ymom added from fluxes                      : " << 
 				 ymom_added_flux*cell_vol << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
 		   std::cout << "zmom added from fluxes                      : " << 
 				 zmom_added_flux*cell_vol << std::endl;
-#endif
 #ifdef GRAVITY
 		   if (do_grav) 
 		   {	 
@@ -767,14 +833,10 @@ Castro::advance_hydro (Real time,
 				    E_added_grav*cell_vol << std::endl;
 		      std::cout << "xmom added from grav. source terms             : " << 
 				    xmom_added_grav*cell_vol << std::endl;
-#if (BL_SPACEDIM >= 2)
 		      std::cout << "ymom added from grav. source terms             : " << 
 				    ymom_added_grav*cell_vol << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
 		      std::cout << "zmom added from grav. source terms             : " << 
 				    zmom_added_grav*cell_vol << std::endl;
-#endif
 		   }
 #endif
 #ifdef ROTATION
@@ -782,16 +844,12 @@ Castro::advance_hydro (Real time,
 		   {	 
 		      std::cout << "(rho E) added from rot. source terms          : " << 
 				    E_added_rot*cell_vol << std::endl;
-#if (BL_SPACEDIM >= 2)
 		      std::cout << "xmom added from rot. source terms             : " << 
 				    xmom_added_rot*cell_vol << std::endl;
 		      std::cout << "ymom added from rot. source terms             : " << 
 				    ymom_added_rot*cell_vol << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
 		      std::cout << "zmom added from rot. source terms             : " << 
 				    zmom_added_rot*cell_vol << std::endl;
-#endif
 		   }
 #endif
 
@@ -801,14 +859,10 @@ Castro::advance_hydro (Real time,
 				    E_added_sponge*cell_vol << std::endl;
 		      std::cout << "xmom added from sponge                        : " << 
 				    xmom_added_sponge*cell_vol << std::endl;
-#if (BL_SPACEDIM >= 2)
 		      std::cout << "ymom added from sponge                        : " << 
 				    ymom_added_sponge*cell_vol << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
 		      std::cout << "zmom added from sponge                        : " << 
 				    zmom_added_sponge*cell_vol << std::endl;
-#endif
 		   }
 	       }
 #ifdef BL_LAZY
@@ -1044,47 +1098,42 @@ Castro::advance_hydro (Real time,
 	}
 
 	// Now do corrector part of source term update
-	MultiFab grav_vec_new(grids,BL_SPACEDIM,1,Fab_allocate);
+	MultiFab grav_vec_new(grids,3,1,Fab_allocate);
 	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
 
-        Real E_added = 0.;
-	Real xmom_added      = 0.;
-	Real ymom_added      = 0.;
-	Real zmom_added      = 0.;
+        Real E_added    = 0.;
+	Real xmom_added = 0.;
+	Real ymom_added = 0.;
+	Real zmom_added = 0.;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
 	{
-	    FArrayBox single_cell_fab(Box(IntVect::TheZeroVector(),IntVect::TheZeroVector()));
-	    
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-		
+
+		Real mom_added[3] = { 0.0 };
+
 		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(grav_vec_old[mfi]),
-		     BL_TO_FORTRAN(grav_vec_new[mfi]),
-		     BL_TO_FORTRAN(S_old[mfi]),
-		     BL_TO_FORTRAN(S_new[mfi]),
-#if (BL_SPACEDIM == 3)
-		     BL_TO_FORTRAN(phi_old[mfi]),
-		     BL_TO_FORTRAN(phi_new[mfi]),
-		     BL_TO_FORTRAN(fluxes[0][mfi]),
-		     BL_TO_FORTRAN(fluxes[1][mfi]),
-		     BL_TO_FORTRAN(fluxes[2][mfi]),
-#endif
-		     dx,dt,
-		     BL_TO_FORTRAN(volume[mfi]),
-		     xmom_added,
-#if (BL_SPACEDIM >= 2)
-		     ymom_added,
-#endif
-#if (BL_SPACEDIM == 3)
-		     zmom_added,
-#endif
-		     E_added);
+		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     BL_TO_FORTRAN_3D(phi_old[mfi]),
+		     BL_TO_FORTRAN_3D(phi_new[mfi]),
+		     BL_TO_FORTRAN_3D(grav_vec_old[mfi]),
+		     BL_TO_FORTRAN_3D(grav_vec_new[mfi]),
+		     BL_TO_FORTRAN_3D(S_old[mfi]),
+		     BL_TO_FORTRAN_3D(S_new[mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+		     ZFILL(dx),dt,
+		     BL_TO_FORTRAN_3D(volume[mfi]),
+		     E_added, mom_added);
+
+		xmom_added += mom_added[0];
+		ymom_added += mom_added[1];
+		zmom_added += mom_added[2];
 	    }
 	}
 
@@ -1131,9 +1180,12 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
-#if (BL_SPACEDIM > 1)
-    if (do_rotation)
-      {
+    if (do_rotation) {
+
+        // Fill the new state data.
+      
+        fill_rotation_field(phirot_new, rot_vec_new, S_new);
+
 	// Now do corrector part of rotation source term update
 
         Real E_added    = 0.;
@@ -1148,62 +1200,62 @@ Castro::advance_hydro (Real time,
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-		
+
+		Real mom_added[3] = { 0.0 };
+
 		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(S_old[mfi]),
-		     BL_TO_FORTRAN(S_new[mfi]),
-		     BL_TO_FORTRAN(fluxes[0][mfi]),
-#if (BL_SPACEDIM >= 2)
-		     BL_TO_FORTRAN(fluxes[1][mfi]),
-#endif
-#if (BL_SPACEDIM == 3)
-		     BL_TO_FORTRAN(fluxes[2][mfi]),
-#endif
-		     dx,dt,
-		     BL_TO_FORTRAN(volume[mfi]),
-		     xmom_added,
-#if (BL_SPACEDIM >= 2)
-		     ymom_added,
-#endif
-#if (BL_SPACEDIM == 3)
-		     zmom_added,
-#endif
-		     E_added);
+		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     BL_TO_FORTRAN_3D(phirot_old[mfi]),
+		     BL_TO_FORTRAN_3D(phirot_new[mfi]),
+		     BL_TO_FORTRAN_3D(rot_vec_old[mfi]),
+		     BL_TO_FORTRAN_3D(rot_vec_new[mfi]),
+		     BL_TO_FORTRAN_3D(S_old[mfi]),
+		     BL_TO_FORTRAN_3D(S_new[mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+		     ZFILL(dx),dt,
+		     BL_TO_FORTRAN_3D(volume[mfi]),
+		     E_added,mom_added);
+
+		xmom_added += mom_added[0];
+		ymom_added += mom_added[1];
+		zmom_added += mom_added[2];
 	    }
-	}
+	} 
 
         if (print_energy_diagnostics)
         {
 	    const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
+	    Real foo[4] = {E_added, xmom_added, ymom_added, zmom_added};
 #ifdef BL_LAZY
             Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(foo, 4, ParallelDescriptor::IOProcessorNumber());
 	    if (ParallelDescriptor::IOProcessor()) {
 		E_added = foo[0];
-		D_EXPR(xmom_added = foo[1],
-		       ymom_added = foo[2],
-		       zmom_added = foo[3]);
+		xmom_added = foo[1],
+		ymom_added = foo[2],
+		zmom_added = foo[3];
 
 		std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
 		std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
-#if (BL_SPACEDIM >= 2)	       
 		std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
 		std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
-#endif
 	    }
 #ifdef BL_LAZY
 	    });
 #endif
-        }	
+        }
 
 	computeTemp(S_new);
-      }
-#endif
+
+    } else {
+
+        phirot_new.setVal(0.0);
+        rot_vec_new.setVal(0.0);
+
+    }
 #endif
 
     reset_internal_energy(S_new);

@@ -17,5 +17,9 @@ module prob_params_module
 
   ! dimension information
   integer          :: dim
+
+  ! indices that we use for dimension agnostic routines 
+  ! to ensure we don't illegally access non-existent ghost cells
+  integer          :: dg(3)
   
 end module prob_params_module

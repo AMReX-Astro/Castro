@@ -11,8 +11,8 @@ contains
   subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                       rot,rt_l1,rt_l2,rt_h1,rt_h2, &
+                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                        gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -35,8 +35,8 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer gv_l1,gv_l2,gv_h1,gv_h2
-    integer rt_l1,rt_l2,rt_h1,rt_h2
+    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -49,21 +49,21 @@ contains
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
     
     ! Local variables
-    integer i, j, iwave, idim
-    integer n, ipassive
+    integer          :: i, j, iwave, idim, k = 0
+    integer          :: n, ipassive
     
-    double precision dtdx, dtdy
-    double precision cc, csq, Clag, rho, u, v, p, rhoe
-    double precision drho, du, dv, dp, drhoe, dtau
-    double precision dup, dvp, dpp
-    double precision dum, dvm, dpm
+    double precision :: dtdx, dtdy
+    double precision :: cc, csq, Clag, rho, u, v, p, rhoe
+    double precision :: drho, du, dv, dp, drhoe, dtau
+    double precision :: dup, dvp, dpp
+    double precision :: dum, dvm, dpm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de, dge
@@ -72,12 +72,12 @@ contains
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
     double precision :: gam, game
     
-    double precision enth, alpham, alphap, alpha0r, alpha0e
-    double precision apright, amright, azrright, azeright
-    double precision azu1rght, azv1rght
-    double precision apleft, amleft, azrleft, azeleft
-    double precision azu1left, azv1left
-    double precision sourcr,sourcp,source,courn,eta,dlogatmp
+    double precision :: enth, alpham, alphap, alpha0r, alpha0e
+    double precision :: apright, amright, azrright, azeright
+    double precision :: azu1rght, azv1rght
+    double precision :: apleft, amleft, azrleft, azeleft
+    double precision :: azu1left, azv1left
+    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
     double precision :: xi, xi1
     double precision :: halfdt
@@ -213,7 +213,7 @@ contains
     ! acceleration -- we'll use this for the force on the velocity
     if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
        do n = 1,2
-          call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
+          call ppm(grav(:,:,k,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
@@ -225,7 +225,7 @@ contains
     ! source -- we'll use this for the force on the velocity
     if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
        do n = 1,2
-          call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
+          call ppm(rot(:,:,k,n),rt_l1,rt_l2,rt_h1,rt_h2, &
                    q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &

@@ -22,9 +22,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
@@ -386,9 +386,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
@@ -750,9 +750,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
@@ -1109,9 +1109,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
@@ -1478,9 +1478,9 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
@@ -2091,9 +2091,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &            
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
@@ -2505,13 +2505,8 @@ contains
        do j = jlo, jhi 
           !DIR$ vector always
           do i = ilo, ihi          
-             qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*grav(i,j,k3d,1)
-             qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*grav(i,j,k3d,2)
-             qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*grav(i,j,k3d,3)
-             
-             qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*grav(i,j,k3d-1,1)
-             qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*grav(i,j,k3d-1,2)
-             qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*grav(i,j,k3d-1,3)
+             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * grav(i,j,k3d  ,:)
+             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * grav(i,j,k3d-1,:)
           enddo
        enddo
     endif
@@ -2522,13 +2517,8 @@ contains
        do j = jlo, jhi
           !DIR$ vector always
           do i = ilo, ihi
-             qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
-             qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*rot(i,j,k3d,2)
-             qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*rot(i,j,k3d,3)
-
-             qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*rot(i,j,k3d-1,1)
-             qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*rot(i,j,k3d-1,2)
-             qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*rot(i,j,k3d-1,3)
+             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * rot(i,j,k3d  ,:)
+             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * rot(i,j,k3d-1,:)
           enddo
        enddo
     endif
@@ -2552,9 +2542,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
@@ -2999,9 +2989,9 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
-                                   nadv, small_pres, small_temp, &
+                                   QPRES, QREINT, QGAME, QESGS, QFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                   small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &

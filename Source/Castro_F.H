@@ -388,7 +388,8 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
-     const BL_FORT_FAB_ARG(grav),
+     const BL_FORT_FAB_ARG_3D(grav),
+     const BL_FORT_FAB_ARG_3D(rot),
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
@@ -412,22 +413,6 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      Real& zmom_added_flux,
 #endif
-     Real& xmom_added_grav,
-#if (BL_SPACEDIM >= 2)
-     Real& ymom_added_grav,
-#endif
-#if (BL_SPACEDIM == 3)
-     Real& zmom_added_grav,
-#endif
-#if (BL_SPACEDIM > 1)
-     Real& xmom_added_rot,
-#endif
-#if (BL_SPACEDIM >= 2)
-     Real& ymom_added_rot,
-#endif
-#if (BL_SPACEDIM == 3)
-     Real& zmom_added_rot,
-#endif
      Real& xmom_added_sponge,
 #if (BL_SPACEDIM >= 2)
      Real& ymom_added_sponge,
@@ -435,11 +420,7 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      Real& zmom_added_sponge,
 #endif
-#if (BL_SPACEDIM > 1)
-     Real& E_added_rot,
-#endif
      Real& E_added_flux,
-     Real& E_added_grav,
      Real& E_added_sponge);
 
 #ifdef RADIATION
@@ -488,54 +469,71 @@ BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
      const Real& dt);
 #endif
 
+#ifdef GRAVITY
+
+BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(phi),
+     const BL_FORT_FAB_ARG_3D(grav),
+     const BL_FORT_FAB_ARG_3D(s_old),
+     BL_FORT_FAB_ARG_3D(s_new),
+     const Real* dx, const Real& dt, 
+     const Real& E_added, const Real* mom_added);
+
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(grav_src_old),
-     const BL_FORT_FAB_ARG(grad_phi_cc),
-     const BL_FORT_FAB_ARG(S_old),
-     BL_FORT_FAB_ARG(S_new),
-#if (BL_SPACEDIM == 3)
-     const BL_FORT_FAB_ARG(phi_old),
-     const BL_FORT_FAB_ARG(phi_new),
-     BL_FORT_FAB_ARG(xflux),
-     BL_FORT_FAB_ARG(yflux),
-     BL_FORT_FAB_ARG(zflux),
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(phi_old),
+     const BL_FORT_FAB_ARG_3D(phi_new),
+     const BL_FORT_FAB_ARG_3D(grav_old),
+     const BL_FORT_FAB_ARG_3D(grav_new),
+     const BL_FORT_FAB_ARG_3D(S_old),
+     BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     const Real* dx, const Real& dt, 
+     const BL_FORT_FAB_ARG_3D(volume), 
+     const Real& E_added, const Real* mom_added);
+
 #endif
-     const Real dx[], const Real& dt, 
-     const BL_FORT_FAB_ARG(volume), 
-     const Real& xmom_added, 
-#if (BL_SPACEDIM >= 2)
-     const Real& ymom_added, 
-#endif
-#if (BL_SPACEDIM == 3)
-     const Real& zmom_added,
-#endif
-     const Real& E_added);
 
 #ifdef ROTATION
-#if (BL_SPACEDIM > 1)
+
+BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_POTENTIAL,ca_fill_rotational_potential)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(phi),
+     const Real* dx);
+
+BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_ACCELERATION,ca_fill_rotational_acceleration)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(rot),
+     const BL_FORT_FAB_ARG_3D(state),
+     const Real* dx);
+
+BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(phi),
+     const BL_FORT_FAB_ARG_3D(rot),
+     const BL_FORT_FAB_ARG_3D(s_old),
+     BL_FORT_FAB_ARG_3D(s_new),
+     const Real* dx, const Real& dt, 
+     const Real& E_added, const Real* mom_added);
+
 BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(S_old),
-     BL_FORT_FAB_ARG(S_new),
-     BL_FORT_FAB_ARG(xflux),
-#if (BL_SPACEDIM >= 2)
-     BL_FORT_FAB_ARG(yflux),
-#endif
-#if (BL_SPACEDIM == 3)
-     BL_FORT_FAB_ARG(zflux),
-#endif
-     const Real dx[], const Real& dt, 
-     const BL_FORT_FAB_ARG(volume), 
-     const Real& xmom_added, 
-#if (BL_SPACEDIM >= 2)
-     const Real& ymom_added, 
-#endif
-#if (BL_SPACEDIM == 3)
-     const Real& zmom_added,
-#endif
-     const Real& E_added);
-#endif
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(phi_old),
+     const BL_FORT_FAB_ARG_3D(phi_new),
+     const BL_FORT_FAB_ARG_3D(rot_old),
+     const BL_FORT_FAB_ARG_3D(rot_new),
+     const BL_FORT_FAB_ARG_3D(S_old),
+     BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     const Real* dx, const Real& dt, 
+     const BL_FORT_FAB_ARG_3D(volume), 
+     const Real& E_added, const Real* mom_added);
+
 #endif
 
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
@@ -553,12 +551,12 @@ BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
 #endif
 
 BL_FORT_PROC_DECL(CA_SYNCGSRC,ca_syncgsrc)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(gPhi),
-     const BL_FORT_FAB_ARG(gdPhi),
-     const BL_FORT_FAB_ARG(S),
-     const BL_FORT_FAB_ARG(dS),
-     BL_FORT_FAB_ARG(src),
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(gPhi),
+     const BL_FORT_FAB_ARG_3D(gdPhi),
+     const BL_FORT_FAB_ARG_3D(S),
+     const BL_FORT_FAB_ARG_3D(dS),
+     BL_FORT_FAB_ARG_3D(src),
      const Real& dt);
 
 BL_FORT_PROC_DECL(CA_SUMMASS,ca_summass)

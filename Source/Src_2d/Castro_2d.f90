@@ -8,7 +8,8 @@
                           ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
                           ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
                           src,src_l1,src_l2,src_h1,src_h2, &
-                          grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+                          grav,gv_lo,gv_hi, &
+                          rot,rt_lo,rt_hi, &
                           delta,dt, &
                           flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                           flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -18,19 +19,14 @@
                           vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                           courno,verbose,mass_added,eint_added,eden_added,&
                           xmom_added_flux, ymom_added_flux, &
-                          xmom_added_grav, ymom_added_grav, &
-                          xmom_added_rot,  ymom_added_rot,  &
                           xmom_added_sponge, ymom_added_sponge, &
-                          E_added_rot,E_added_flux,E_added_grav,E_added_sponge)
+                          E_added_flux,E_added_sponge)
 
-      use meth_params_module, only : URHO, QVAR, NVAR, NHYP, &
-                                     do_sponge, normalize_species, allow_negative_energy, &
-                                     do_grav, do_rotation
+      use meth_params_module, only : QVAR, NVAR, NHYP, &
+                                     do_sponge, normalize_species
       use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
            normalize_new_species
       use sponge_module, only : sponge
-      use grav_sources_module, only : add_grav_source
-      use rot_sources_module, only : add_rot_source, fill_rotation_field
 
       implicit none
 
@@ -48,14 +44,16 @@
       integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
       integer vol_l1,vol_l2,vol_h1,vol_h2
       integer src_l1,src_l2,src_h1,src_h2
-      integer gv_l1,gv_l2,gv_h1,gv_h2
+      integer gv_lo(3),gv_hi(3)
+      integer rt_lo(3),rt_hi(3)
 
       double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
       double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
       double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
       double precision src(src_l1:src_h1,src_l2:src_h2,NVAR)
-      double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
+      double precision grav(gv_lo(1):gv_hi(1),gv_lo(2):gv_hi(2),gv_lo(3):gv_hi(3),3)
+      double precision  rot(rt_lo(1):rt_hi(1),rt_lo(2):rt_hi(2),rt_lo(3):rt_hi(3),3)
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
       double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -63,10 +61,8 @@
       double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
       double precision delta(2),dt,time,courno
-      double precision E_added_flux,E_added_grav,E_added_rot,E_added_sponge
+      double precision E_added_flux,E_added_sponge
       double precision xmom_added_flux, ymom_added_flux
-      double precision xmom_added_grav, ymom_added_grav
-      double precision xmom_added_rot,  ymom_added_rot
       double precision xmom_added_sponge, ymom_added_sponge
       double precision mass_added,eint_added,eden_added
 
@@ -81,7 +77,6 @@
       double precision, allocatable:: pgdy(:,:)
       double precision, allocatable:: srcQ(:,:,:)
       double precision, allocatable:: pdivu(:,:)
-      double precision, allocatable:: rot(:,:,:)
 
       integer ngq,ngf
 !     integer i_c,j_c
@@ -111,8 +106,6 @@
       allocate(  pgdx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1))
       allocate(  pgdy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1))
 
-      allocate(   rot(lo(1)-ngq:hi(1)+ngq,lo(2)-ngq:hi(2)+ngq,2))
-
       dx = delta(1)
       dy = delta(2)
 
@@ -125,23 +118,11 @@
                    srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
                    courno,dx,dy,dt,ngq,ngf)
 
-      ! Fill in the rotation field for use in the edge state prediction
-
-      if (do_rotation .eq. 1) then
-
-         call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,hi(1)+ngq,hi(2)+ngq,&
-                                  q,q_l1,q_l2,q_h1,q_h2, &
-                                  lo, hi, delta)
-
-      else
-         rot = 0.d0
-      endif
-
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                    srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
-                   grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                   rot, lo(1)-ngq,lo(2)-ngq,hi(1)+ngq,hi(2)+ngq, &
+                   grav,gv_lo(1),gv_lo(2),gv_lo(3),gv_hi(1),gv_hi(2),gv_hi(3), &
+                   rot, rt_lo(1),rt_lo(2),rt_lo(3),rt_hi(1),rt_hi(2),rt_hi(3), &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -186,32 +167,13 @@
       if (normalize_species .eq. 1) &
          call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
 
-      if (do_grav .eq. 1) then
-
-         call add_grav_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
-                              uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                              grav, gv_l1, gv_l2, gv_h1, gv_h2, &
-                              lo,hi,dt,E_added_grav,&
-                              xmom_added_grav,ymom_added_grav)
-
-      endif
-
-      if (do_rotation .eq. 1) then
-
-         call add_rot_source(uin,uin_l1,uin_l2,uin_h1,uin_h2,&
-                             uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-                             lo,hi,delta,dt,E_added_rot,&
-                             xmom_added_rot,ymom_added_rot)
-
-      endif
-
       if (do_sponge .eq. 1) &
            call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
                        time,dt, &
                        dx,dy,domlo,domhi, &
                        E_added_sponge,xmom_added_sponge,ymom_added_sponge)
 
-      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu,rot)
+      deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
 
       end subroutine ca_umdrv
 
