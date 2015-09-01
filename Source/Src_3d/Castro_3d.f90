@@ -133,7 +133,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
      call fill_rotation_field(rot,lo(1)-ngq,lo(2)-ngq,lo(3)-ngq, &
                               hi(1)+ngq,hi(2)+ngq,hi(3)+ngq, &
                               q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                              lo,hi,delta)
+                              lo,hi,delta,time)
 
   else
      rot = 0.d0
@@ -203,7 +203,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   if (do_rotation .eq. 1) then
      call add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                          uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                         lo,hi,(/dx,dy,dz/),dt,E_added_rot, &
+                         lo,hi,(/dx,dy,dz/),dt,time,E_added_rot, &
                          xmom_added_rot,ymom_added_rot,zmom_added_rot)
   endif
 

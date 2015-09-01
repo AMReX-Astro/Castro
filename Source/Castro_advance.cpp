@@ -1168,7 +1168,7 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 		     BL_TO_FORTRAN(fluxes[2][mfi]),
 #endif
-		     dx,dt,
+		     dx,dt,time,
 		     BL_TO_FORTRAN(volume[mfi]),
 		     xmom_added,
 #if (BL_SPACEDIM >= 2)
