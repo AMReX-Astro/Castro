@@ -1850,8 +1850,7 @@ Castro::advance_levelset(Real time, Real dt)
         
         phidt = phit;
         
-        LStype.FillBoundary();
-        BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
+	BoxLib::fill_boundary(LStype, 0, 1, geom);
         
         for (FillPatchIterator fpi(*this,LS_new,nGrowLS,state[LS_State_Type].curTime(),LS_State_Type,0,nCompLS);
              fpi.isValid(); ++fpi)
@@ -1951,10 +1950,9 @@ Castro::reinit_phi(Real time)
     const Real* dx   = geom.CellSize();
     int nGrowLS = 2;
     int nCompLS = 1;
-    
-    LStype.FillBoundary();
-    BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
-    
+
+    BoxLib::fill_boundary(LStype, 0, 1, geom);
+        
     // Load valid region of phi
     Array<int> intfacep, intfacen, heap, heaploc;
     for (FillPatchIterator fpi(*this,LS_new,nGrowLS,state[LS_State_Type].curTime(),LS_State_Type,0,nCompLS);
@@ -2022,10 +2020,8 @@ Castro::reinit_phi(Real time)
     // Check grow region and see if anything changes due to neighboring grids
     while (notdone)
     {
-        LS_new.FillBoundary();
-        geom.FillPeriodicBoundary(LS_new);
-        LStype.FillBoundary();
-        BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
+	BoxLib::fill_boundary(LS_new, geom);
+	BoxLib::fill_boundary(LStype, 0, 1, geom);
         
         for (MFIter mfi(LS_new); mfi.isValid(); ++mfi)
         {

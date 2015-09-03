@@ -387,8 +387,7 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
-    ext_src_old.FillBoundary();
-    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
+    BoxLib::fill_boundary(ext_src_old, geom);
 
     { // limit the scope of fpi
 	FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);

@@ -924,10 +924,8 @@ Gravity::GetCrsePhi(int level,
 	}
     }
 
-    phi_crse.FillBoundary();
-
     const Geometry& geom = parent->Geom(level-1);
-    geom.FillPeriodicBoundary(phi_crse,true);
+    BoxLib::fill_boundary(phi_crse, geom);
 }
 
 void
@@ -1318,8 +1316,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              for (int i = 0; i < BL_SPACEDIM ; i++)
              {
                  grad_phi_prev[level][i].setBndry(0.0);
-                 grad_phi_prev[level][i].FillBoundary();
-                 geom.FillPeriodicBoundary(grad_phi_prev[level][i]);
+		 BoxLib::fill_boundary(grad_phi_prev[level][i], geom);
              }
  
        } else {
@@ -1429,8 +1426,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             for (int i = 0; i < BL_SPACEDIM ; i++)
             {
                 grad_phi_curr[level][i].setBndry(0.0);
-                grad_phi_curr[level][i].FillBoundary();
-                geom.FillPeriodicBoundary(grad_phi_curr[level][i]);
+		BoxLib::fill_boundary(grad_phi_curr[level][i], geom);
             }
 
       } else {
@@ -2151,8 +2147,7 @@ Gravity::fill_ec_grow (int level,
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
     {
-        ecF[n].FillBoundary();
-        fgeom.FillPeriodicBoundary(ecF[n],true);
+	BoxLib::fill_boundary(ecF[n], fgeom);
     }
 }
 
