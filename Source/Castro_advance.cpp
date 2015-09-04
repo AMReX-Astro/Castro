@@ -376,7 +376,7 @@ Castro::advance_hydro (Real time,
 
       // This fills the old state data.
 
-      fill_rotation_field(phirot_old, rot_vec_old, S_old);
+      fill_rotation_field(phirot_old, rot_vec_old, S_old, prev_time);
 
       // Fill ghost cells for rot_vector analogous to how we do it for gravity.
 
@@ -1132,7 +1132,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,&time,
+		     ZFILL(dx),dt,&cur_time,
 		     BL_TO_FORTRAN_3D(volume[mfi]),
 		     E_added, mom_added);
 
@@ -1189,7 +1189,7 @@ Castro::advance_hydro (Real time,
 
         // Fill the new state data.
       
-        fill_rotation_field(phirot_new, rot_vec_new, S_new);
+      fill_rotation_field(phirot_new, rot_vec_new, S_new, cur_time);
 
 	// Now do corrector part of rotation source term update
 
@@ -1219,7 +1219,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,&time,
+		     ZFILL(dx),dt,&cur_time,
 		     BL_TO_FORTRAN_3D(volume[mfi]),
 		     E_added,mom_added);
 

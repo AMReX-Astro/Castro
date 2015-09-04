@@ -502,13 +502,13 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
 BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_POTENTIAL,ca_fill_rotational_potential)
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),
-     const Real* dx);
+     const Real* dx, const Real& time);
 
 BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_ACCELERATION,ca_fill_rotational_acceleration)
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(state),
-     const Real* dx);
+     const Real* dx, const Real& time);
 
 BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
     (const int* lo, const int* hi,

@@ -349,7 +349,7 @@ public:
 #endif
 
 #ifdef ROTATION
-    void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state);
+    void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
 
 #ifdef RADIATION
