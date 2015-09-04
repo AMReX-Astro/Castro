@@ -1,8 +1,10 @@
 module helmeos_module
 
 !..for the tables, in general
-      integer          imax,jmax,itmax,jtmax
-      parameter        (imax = 271, jmax = 101)
+      integer, private, parameter :: imax = 271, jmax = 101
+
+      integer itmax, jtmax
+
       double precision d(imax),t(jmax)
       
       double precision tlo, thi, tstp, tstpi
