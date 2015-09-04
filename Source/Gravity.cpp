@@ -769,6 +769,25 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
+    // In the all-periodic case we enforce that CrseRhsSync sums to zero.
+    if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()))
+    {
+        Real local_correction = 0;
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            local_correction += CrseRhsSync[mfi].sum(mfi.validbox(), 0, 1);
+        ParallelDescriptor::ReduceRealSum(local_correction);
+
+        local_correction /= grids[crse_level].numPts();
+
+        if (verbose && ParallelDescriptor::IOProcessor())
+            std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            CrseRhsSync[mfi].plus(-local_correction,0,1,0);
+    }
+
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
     for (int lev = crse_level; lev <= fine_level; lev++) {
