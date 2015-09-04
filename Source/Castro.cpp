@@ -2262,12 +2262,21 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
        for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.growntilebox();
+#ifdef DIMENSION_AGNOSTIC	   
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+   	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
+		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
+		BL_TO_FORTRAN_3D(ext_src[mfi]),
+		ZFILL(prob_lo),ZFILL(dx),&old_time,&dt);
+#else	   
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
 		BL_TO_FORTRAN(S_old_fp[mfi]),
 		BL_TO_FORTRAN(S_old_fp[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&old_time,&dt);
+#endif	   
        }
    }
 }
@@ -2294,12 +2303,21 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
        for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.tilebox();
+#ifdef DIMENSION_AGNOSTIC
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(S_old[mfi]),
+		BL_TO_FORTRAN_3D(S_new[mfi]),
+		BL_TO_FORTRAN_3D(ext_src[mfi]),
+		ZFILL(prob_lo),ZFILL(dx),&new_time,&dt);
+#else	   
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
 		BL_TO_FORTRAN(S_old[mfi]),
 		BL_TO_FORTRAN(S_new[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&new_time,&dt);
+#endif	   
        }
    }
 }

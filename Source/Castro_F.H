@@ -601,6 +601,15 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      BL_FORT_FAB_ARG(turb_src),
      const Real* dx, const Real* time, const Real* dt);
 #else
+#ifdef DIMENSION_AGNOSTIC
+BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(old_state),
+     const BL_FORT_FAB_ARG_3D(new_state),
+     BL_FORT_FAB_ARG_3D(ext_src),
+     const Real* prob_lo, const Real* dx, 
+     const Real* time, const Real* dt);
+#else
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG(old_state),
@@ -608,6 +617,7 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      BL_FORT_FAB_ARG(ext_src),
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
+#endif
 #endif
 
 BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
