@@ -850,43 +850,12 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
 	}
     }
 
-    int lo_bc[BL_SPACEDIM];
-    int hi_bc[BL_SPACEDIM];
-    for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-      lo_bc[dir] = (phys_bc->lo(dir) == Symmetry); 
-      hi_bc[dir] = (phys_bc->hi(dir) == Symmetry); 
-    }
-    int symmetry_type = Symmetry;
-
-    int coord_type = Geometry::Coord();
-
     for (int lev = crse_level; lev <= fine_level; lev++) {
-
-       const Real* problo = parent->Geom(lev).ProbLo();
-
-       MultiFab& S = LevelData[lev].get_new_data(State_Type);
-    
-       grad_delta_phi_cc[lev-crse_level].setVal(0.0);
-
-       const Real* dx = parent->Geom(lev).CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel	      
-#endif
-       for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
-       {
-          const Box& bx = mfi.tilebox();
-
-          // Average edge-centered gradients of crse dPhi to cell centers
-          BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-              (bx.loVect(), bx.hiVect(),
-               lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grad_delta_phi_cc[lev-crse_level][mfi]),
-               D_DECL(BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][0][mfi]),
-                      BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][1][mfi]),
-                      BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][2][mfi])),
-                      dx,problo,&coord_type);
-       }
+	grad_delta_phi_cc[lev-crse_level].setVal(0.0);
+	const Geometry& geom = parent->Geom(lev);
+	BoxLib::average_face_to_cellcenter(grad_delta_phi_cc[lev-crse_level],
+					   ec_gdPhi[lev-crse_level],
+					   geom);
     }
 }
 
@@ -924,10 +893,8 @@ Gravity::GetCrsePhi(int level,
 	}
     }
 
-    phi_crse.FillBoundary();
-
     const Geometry& geom = parent->Geom(level-1);
-    geom.FillPeriodicBoundary(phi_crse,true);
+    BoxLib::fill_boundary(phi_crse, geom);
 }
 
 void
@@ -1327,8 +1294,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              for (int i = 0; i < BL_SPACEDIM ; i++)
              {
                  grad_phi_prev[level][i].setBndry(0.0);
-                 grad_phi_prev[level][i].FillBoundary();
-                 geom.FillPeriodicBoundary(grad_phi_prev[level][i]);
+		 BoxLib::fill_boundary(grad_phi_prev[level][i], geom);
              }
  
        } else {
@@ -1338,35 +1304,8 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              fill_ec_grow(level,grad_phi_prev[level],crse_grad_phi);
        }
  
-       int lo_bc[BL_SPACEDIM];
-       int hi_bc[BL_SPACEDIM];
-       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-         lo_bc[dir] = phys_bc->lo(dir);
-         hi_bc[dir] = phys_bc->hi(dir);
-       }
-       int symmetry_type = Symmetry;
+       BoxLib::average_face_to_cellcenter(grav, grad_phi_prev[level], geom);
 
-       int coord_type = Geometry::Coord();
-       const Real*     dx = parent->Geom(level).CellSize();
-       const Real* problo = parent->Geom(level).ProbLo();
-
-       // Average edge-centered gradients to cell centers, excluding grow cells
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-       for (MFIter mfi(grav,true); mfi.isValid(); ++mfi) 
-       {
-           const Box& bx = mfi.tilebox();
- 
-           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-               (bx.loVect(), bx.hiVect(),
-                lo_bc, hi_bc, &symmetry_type,
-                BL_TO_FORTRAN(grav[mfi]),
-                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
-                       dx,problo,&coord_type);
-       }
     } else {
        BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
     }
@@ -1455,8 +1394,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             for (int i = 0; i < BL_SPACEDIM ; i++)
             {
                 grad_phi_curr[level][i].setBndry(0.0);
-                grad_phi_curr[level][i].FillBoundary();
-                geom.FillPeriodicBoundary(grad_phi_curr[level][i]);
+		BoxLib::fill_boundary(grad_phi_curr[level][i], geom);
             }
 
       } else {
@@ -1466,35 +1404,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             fill_ec_grow(level,grad_phi_curr[level],crse_grad_phi);
       }
 
-       int lo_bc[BL_SPACEDIM];
-       int hi_bc[BL_SPACEDIM];
-       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-         lo_bc[dir] = phys_bc->lo(dir);
-         hi_bc[dir] = phys_bc->hi(dir);
-       }
-       int symmetry_type = Symmetry;
+      BoxLib::average_face_to_cellcenter(grav, grad_phi_curr[level], geom);
 
-       int coord_type = Geometry::Coord();
-       const Real*     dx = parent->Geom(level).CellSize();
-       const Real* problo = parent->Geom(level).ProbLo();
-
-      // Average edge-centered gradients to cell centers, excluding grow cells
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-       for (MFIter mfi(grav,true); mfi.isValid(); ++mfi)
-       {
-	  const Box& bx = mfi.tilebox();
-
-          BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-              (bx.loVect(), bx.hiVect(),
-               lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grav[mfi]),
-               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
-                      dx,problo,&coord_type);
-       }
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
     }
@@ -2186,8 +2097,7 @@ Gravity::fill_ec_grow (int level,
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
     {
-        ecF[n].FillBoundary();
-        fgeom.FillPeriodicBoundary(ecF[n],true);
+	BoxLib::fill_boundary(ecF[n], fgeom);
     }
 }
 

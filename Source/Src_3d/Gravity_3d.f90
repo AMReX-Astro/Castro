@@ -234,49 +234,6 @@
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
-
-      subroutine ca_avg_ec_to_cc(lo, hi, bc_lo, bc_hi, &
-           symmetry_type, &
-           cc, ccl1, ccl2, ccl3, cch1, cch2, cch3, &
-           ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
-           ecy, ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3, &
-           ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
-           dx, problo, coord_type)
-
-      use bl_constants_module
-
-      implicit none
-      integer          :: lo(3),hi(3)
-      integer          :: bc_lo(3),bc_hi(3)
-      integer          :: symmetry_type, coord_type
-      integer          :: ccl1, ccl2, ccl3, cch1, cch2, cch3
-      integer          :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
-      integer          :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
-      integer          :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-      double precision :: cc(ccl1:cch1,ccl2:cch2,ccl3:cch3, 3)
-      double precision :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-      double precision :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-      double precision :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
-      double precision :: dx(3), problo(3)
-
-      ! Local variables
-      integer          :: i,j,k
-
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               cc(i,j,k,1) = HALF * ( ecx(i+1,j,k) + ecx(i,j,k) )
-               cc(i,j,k,2) = HALF * ( ecy(i,j+1,k) + ecy(i,j,k) )
-               cc(i,j,k,3) = HALF * ( ecz(i,j,k+1) + ecz(i,j,k) )
-            enddo
-         enddo
-      enddo
-         
-      end subroutine ca_avg_ec_to_cc
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
  
       subroutine ca_test_residual(lo, hi, &
            rhs, rhl1, rhl2, rhl3, rhh1, rhh2, rhh3, &

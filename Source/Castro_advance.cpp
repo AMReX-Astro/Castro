@@ -425,8 +425,7 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
-    ext_src_old.FillBoundary();
-    geom.FillPeriodicBoundary(ext_src_old,0,NUM_STATE,true);
+    BoxLib::fill_boundary(ext_src_old, geom);
 
     {
         // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
