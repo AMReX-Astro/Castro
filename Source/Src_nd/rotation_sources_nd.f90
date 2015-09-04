@@ -1,5 +1,5 @@
   subroutine ca_rsrc(lo,hi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,E_added,mom_added)
+                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
@@ -17,7 +17,7 @@
     double precision, intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     double precision, intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     double precision, intent(inout) :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
-    double precision, intent(in   ) :: dx(3), dt
+    double precision, intent(in   ) :: dx(3), dt, time
 
     integer          :: i, j ,k
     double precision :: Sr(3),SrE
@@ -94,7 +94,7 @@
                          flux1,f1_lo,f1_hi, &
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
-                         dx,dt, &
+                         dx,dt,time, &
                          vol,vol_lo,vol_hi, &
                          E_added,mom_added)
 
@@ -147,7 +147,8 @@
 
     double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    double precision :: dx(3), dt, E_added, mom_added(3)
+    double precision :: dx(3), dt, time
+    double precision :: E_added, mom_added(3)
 
     integer          :: i,j,k
     double precision :: r(3)

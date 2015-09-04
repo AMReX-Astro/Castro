@@ -77,7 +77,8 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
      const Real* problo, const Real* probhi,
      const Real* center);
 
-BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);;
+BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
+BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);
 
 #ifdef DIMENSION_AGNOSTIC
 
@@ -413,15 +414,7 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      Real& zmom_added_flux,
 #endif
-     Real& xmom_added_sponge,
-#if (BL_SPACEDIM >= 2)
-     Real& ymom_added_sponge,
-#endif
-#if (BL_SPACEDIM == 3)
-     Real& zmom_added_sponge,
-#endif
-     Real& E_added_flux,
-     Real& E_added_sponge);
+     Real& E_added_flux);
 
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -469,6 +462,12 @@ BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
      const Real& dt);
 #endif
 
+BL_FORT_PROC_DECL(CA_SPONGE,ca_sponge)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state),
+     const Real* dx, const Real& dt, const Real* time, 
+     const Real& E_added, const Real* mom_added);
+
 #ifdef GRAVITY
 
 BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
@@ -477,7 +476,7 @@ BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
      const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(s_new),
-     const Real* dx, const Real& dt, 
+     const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
@@ -491,7 +490,7 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      BL_FORT_FAB_ARG_3D(xflux),
      BL_FORT_FAB_ARG_3D(yflux),
      BL_FORT_FAB_ARG_3D(zflux),
-     const Real* dx, const Real& dt, 
+     const Real* dx, const Real& dt, const Real* time,
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
@@ -516,7 +515,7 @@ BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
      const BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(s_new),
-     const Real* dx, const Real& dt, 
+     const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);
 
 BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
@@ -530,7 +529,7 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
      BL_FORT_FAB_ARG_3D(xflux),
      BL_FORT_FAB_ARG_3D(yflux),
      BL_FORT_FAB_ARG_3D(zflux),
-     const Real* dx, const Real& dt, 
+     const Real* dx, const Real& dt, const Real* time, 
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 

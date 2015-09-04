@@ -691,14 +691,7 @@ Castro::advance_hydro (Real time,
 #if (BL_SPACEDIM == 3)
 	                 zmom_added_flux,
 #endif
-	                 xmom_added_sponge, 
-#if (BL_SPACEDIM >= 2)
-	                 ymom_added_sponge, 
-#endif
-#if (BL_SPACEDIM == 3)
-	                 zmom_added_sponge,
-#endif
-                         E_added_flux, E_added_sponge);
+                         E_added_flux);
 	    
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
@@ -722,7 +715,7 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN_3D(grav_vec_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_new[mfi]),
-			 ZFILL(dx),dt,
+			 ZFILL(dx),dt,&time,
 			 E_added_grav,mom_added);
 #endif
 
@@ -730,9 +723,8 @@ Castro::advance_hydro (Real time,
 		    ymom_added_grav += mom_added[1];
 		    zmom_added_grav += mom_added[2];
 
-		    mom_added[0] = 0.0;
-		    mom_added[1] = 0.0;
-		    mom_added[2] = 0.0;
+		    for (int dir = 0; dir < 3; dir++)
+			 mom_added[dir] = 0.0;
 
 		    // Rotational source term for the time-level n data.
 
@@ -744,7 +736,7 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN_3D(rot_vec_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_new[mfi]),
-			 ZFILL(dx),dt,
+			 ZFILL(dx),dt,&time,
 			 E_added_rot,mom_added);
 
 #endif
@@ -752,6 +744,20 @@ Castro::advance_hydro (Real time,
 		    xmom_added_rot += mom_added[0];
 		    ymom_added_rot += mom_added[1];
 		    zmom_added_rot += mom_added[2];
+
+		    for (int dir = 0; dir < 3; dir++)
+			 mom_added[dir] = 0.0;
+
+		    if (do_sponge)
+		      BL_FORT_PROC_CALL(CA_SPONGE,ca_sponge)
+			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx), dt, &time,
+			 E_added_sponge,mom_added);
+
+		    xmom_added_sponge += mom_added[0];
+		    ymom_added_sponge += mom_added[1];
+		    zmom_added_sponge += mom_added[2];
+			 
 		    
 #ifdef POINTMASS
 		    if (level == finest_level)
@@ -1127,7 +1133,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,
+		     ZFILL(dx),dt,&time,
 		     BL_TO_FORTRAN_3D(volume[mfi]),
 		     E_added, mom_added);
 
@@ -1214,7 +1220,7 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,
+		     ZFILL(dx),dt,&time,
 		     BL_TO_FORTRAN_3D(volume[mfi]),
 		     E_added,mom_added);
 

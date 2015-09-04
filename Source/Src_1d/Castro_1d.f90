@@ -17,14 +17,12 @@
                           vol,vol_l1,vol_h1,courno,verbose,&
                           mass_added,eint_added,eden_added,&
                           xmom_added_flux, &
-                          E_added_flux, E_added_sponge)
+                          E_added_flux)
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
-                                     do_sponge, &
                                      normalize_species, use_flattening
       use advection_module, only : umeth1d, ctoprim, consup, enforce_minimum_density, &
            normalize_new_species
-      use sponge_module, only : sponge
       use bl_constants_module
 
       implicit none
@@ -65,8 +63,8 @@
       double precision, allocatable:: srcQ(:,:)
       double precision, allocatable:: pdivu(:)
 
-      double precision :: dx,E_added_flux,E_added_sponge
-      double precision :: xmom_added_flux, xmom_added_sponge
+      double precision :: dx,E_added_flux
+      double precision :: xmom_added_flux
       double precision :: mass_added, eint_added, eden_added
       integer i,ngf,ngq
       integer q_l1, q_h1
@@ -143,10 +141,6 @@
       ! Normalize the species
       if (normalize_species .eq. 1) &
          call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
-
-      if (do_sponge .eq. 1) &
-           call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi,&
-                       E_added_sponge,xmom_added_sponge)
 
       deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 

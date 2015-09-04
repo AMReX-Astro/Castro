@@ -269,6 +269,13 @@ Castro::variableSetUp ()
       (probin_file_name.dataPtr(),
        &probin_file_length);
 
+    // Read in the parameters for the sponge
+    // and store them in the Fortran module.
+    
+    BL_FORT_PROC_CALL(GET_SPONGE_PARAMS, get_sponge_params)
+      (probin_file_name.dataPtr(),
+       &probin_file_length);    
+
     Interpolater* interp = &cell_cons_interp;
 
 #ifdef RADIATION

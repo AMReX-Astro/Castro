@@ -13,6 +13,10 @@
 
 /
 
+&sponge
+
+  sponge_upper_density = 
+
 &extern
  use_eos_coulomb = F
 /

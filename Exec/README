@@ -84,5 +84,4 @@ toy_convect:
   A simple nova-like convection problem with an external heating
   source.  This problem shows how to use the model parser to
   initialize a 1-d atmosphere on the Castro grid, incorporate a custom
-  tagging routine, sponge the fluid above the atmosphere, and write a
-  custom diagnostics routine.
+  tagging routine, and write a custom diagnostics routine.

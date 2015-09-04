@@ -20,8 +20,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   namelist /fortin/ &
        model_name,  &
        heating_time, heating_rad, heating_peak, heating_sigma, &
-       prob_type, &
-       sponge_weighting, sponge_start_density, sponge_width_factor
+       prob_type
 
 
   !
@@ -49,10 +48,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   heating_peak = 1.d16
   heating_sigma = 1.d7
   prob_type = 1
-
-  sponge_weighting = 1.d3
-  sponge_start_density = 1.d4
-  sponge_width_factor = 10.0d0
 
 
   !     Read namelists in probin file

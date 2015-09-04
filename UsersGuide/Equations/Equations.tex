@@ -248,11 +248,16 @@ runtime parameters for hydrodynamics:
 \item {\tt castro.add\_ext\_src}: include additional user-specified
   source term (0 or 1; default 0)
   
-\item {\tt castro.do\_sponge}: call a user-supplied sponging routine
+\item {\tt castro.do\_sponge}: call the sponge routine
   after the solution update (0 or 1; default: 0)
 
   The purpose of the sponge is to damp velocities outside of a star, to
-  prevent them from dominating the timestep constraint.
+  prevent them from dominating the timestep constraint. The sponge parameters
+  are set in your probin file, in the {\tt sponge} namelist. You can sponge either
+  on radius from the center (using {\tt sponge\_lower\_radius} and
+  {\tt sponge\_lower\_radius}) or on density (using {\tt sponge\_lower\_density}
+  and {\tt sponge\_upper\_density}). The timescale of the damping is
+  set through {\tt sponge\_timescale}.
   
 \item {\tt castro.normalize\_species}: enforce that $\sum_i X_i = 1$
   (0 or 1; default: 0)

@@ -673,3 +673,67 @@
         close (unit=un)
 
       end subroutine get_tagging_params
+
+
+
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
+
+      subroutine get_sponge_params(name, namlen)
+
+        use sponge_params_module
+
+        ! Initialize the sponge parameters
+
+        integer :: namlen
+        integer :: name(namlen)
+        
+        integer :: un, i, status
+
+        integer, parameter :: maxlen = 256
+        character (len=maxlen) :: probin
+
+        namelist /sponge/ &
+             sponge_lower_radius, sponge_upper_radius, &
+             sponge_lower_density, sponge_upper_density, &
+             sponge_timescale
+
+        ! Set namelist defaults
+
+        sponge_lower_radius = -1.d0
+        sponge_upper_radius = -1.d0
+        
+        sponge_lower_density = -1.d0
+        sponge_upper_density = -1.d0
+        
+        sponge_timescale    = -1.d0
+
+        ! create the filename
+        if (namlen > maxlen) then
+           print *, 'probin file name too long'
+           stop
+        endif
+
+        do i = 1, namlen
+           probin(i:i) = char(name(i))
+        end do
+
+        ! read in the namelist
+        un = 9
+        open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+        read (unit=un, nml=sponge, iostat=status)
+
+        if (status < 0) then
+           ! the namelist does not exist, so we just go with the defaults
+           continue
+
+        else if (status > 0) then
+           ! some problem in the namelist
+           print *, 'ERROR: problem in the sponge namelist'
+           stop
+        endif
+
+        close (unit=un)
+
+      end subroutine get_sponge_params

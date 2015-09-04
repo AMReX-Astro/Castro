@@ -11,8 +11,12 @@
  zero_vels = F
  interp_BC = F
 
- sponge_center_density = 2.e3
- sponge_start_factor = 25.0
- sponge_kappa = 10.0
- 
+/
+
+&sponge
+
+  sponge_upper_density = 5.0d4
+  sponge_lower_density = 8.0d1
+  sponge_timescae      = 1.0d-3
+  
 /

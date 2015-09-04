@@ -23,7 +23,7 @@
 
       if (nv .ne. 3) then
           print *,'... confusion in derstate ... nv should be 3 but is ',nv
-          call bl_error('Error:: Derive_3d.f90 :: ca_derstate')
+          call bl_error('Error:: Derive_nd.f90 :: ca_derstate')
       end if
 
       do k = lo(3), hi(3)
