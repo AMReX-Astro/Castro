@@ -741,15 +741,7 @@
            nlo = 0
         endif
 
-        rmax = probhi(1)
-        if ( probhi(2) > rmax ) then
-          rmax = probhi(2)
-        endif
-        if ( probhi(3) > rmax ) then
-          rmax = probhi(3)
-        endif
-
-        rmax = rmax * sqrt(THREE) / TWO
+        rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE)
         
         do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
@@ -979,24 +971,12 @@
         ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
         ! we will normalize all distances to the maximum possible physical distance from the center,
         ! which is the diagonal from the center to the edge of the box. Then r^l will always be
-        ! less than or equal to one. For large enough lnum, this will still result in roundoff
+        ! less than or equal to one. For large enough lnum, this may still result in roundoff
         ! errors that don't make your answer any more precise, but at least it avoids
         ! possible NaN issues from having numbers that are too large for double precision.
-        ! We will put the rmax factor back in at the end of ca_put_multipole_bc.
+        ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
 
-        ! Another constraint is that the method used to calculate the Legendre polynomials
-        ! is numerically unstable for large l, just because of how big they get, so
-        ! for lnum > 50 we'll throw an error (this number was determined by experiment).
-
-        rmax = probhi(1)
-        if ( probhi(2) > rmax ) then
-          rmax = probhi(2)
-        endif
-        if ( probhi(3) > rmax ) then
-          rmax = probhi(3)
-        endif
-
-        rmax = rmax * sqrt(THREE) / TWO ! This is the distance from the center to the corner of a cube. 
+        rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE) ! Account for distance rom the center to the corner of a cube. 
 
         ! Note that we don't currently support dx != dy != dz, so this is acceptable.
 
@@ -1011,12 +991,6 @@
            nlo = 0
         endif
         
-        if ( lnum > 50 ) then
-          print *, ">>> CA_COMPUTE_MULTIPOLE_MOMENTS: The value of l you have chosen is too large."
-          print *, ">>> Try again with max_multipole_order <= 50."
-          call bl_error("Error: Gravity_3d.f90: ca_compute_multipole_moments")
-        endif
-
         do k = lo(3), hi(3)
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
@@ -1056,7 +1030,7 @@
                        else
                           qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * volumeFactor * parity_q0(l)
                        endif
-                       
+
                        do m = 1, l
 
                           if (index .le. n) then

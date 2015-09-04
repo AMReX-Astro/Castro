@@ -707,6 +707,7 @@ protected:
 
 #ifdef ROTATION
   static Real rotational_period;
+  static Real rotational_period_dot;
   static int rot_source_type;
   static int rot_axis;
 #endif
