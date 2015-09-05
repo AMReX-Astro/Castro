@@ -315,6 +315,16 @@ clean::
 	$(SILENT) $(RM) extern.f90
 	$(SILENT) $(RM) buildInfo.cpp
 
+# Older versions of CASTRO generated a
+# "network.f90" file when using the
+# general_null network, which conflicts
+# with our generalized network.f90 file.
+# So we should delete the local copy if
+# we are trying to rebuild from an old directory.
+
+clean::
+	$(RM) network.f90
+
 
 #-----------------------------------------------------------------------------
 # for debugging.  To see the value of a Makefile variable,
