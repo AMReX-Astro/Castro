@@ -785,7 +785,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
         if (verbose && ParallelDescriptor::IOProcessor())
             std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
         for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
-            CrseRhsSync[mfi].plus(-local_correction,0,1,0);
+            CrseRhsSync.plus(-local_correction,0,1,0);
     }
 
     // delta_phi needs a ghost cell for the solve
@@ -1688,41 +1688,13 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     if (is_new == 1)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-	    {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_curr[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_curr[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
     }
     else if (is_new == 0)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-            {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_prev[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_prev[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
     }
