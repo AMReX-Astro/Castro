@@ -177,33 +177,6 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_average_ec ( &
-           fx, fxl1, fxh1, &
-           cx, cxl1, cxh1, &
-           lo, hi, rr, idir)
- 
-      implicit none
-      integer lo(1),hi(1)
-      integer fxl1, fxh1
-      integer cxl1, cxh1
-      double precision fx(fxl1:fxh1)
-      double precision cx(cxl1:cxh1)
-      integer rr(1), idir
- 
-      integer i,facx
-      facx = rr(1)
-
-      ! lo(1)..hi(1) are edge base indice
-      do i = lo(1), hi(1)
-         cx(i) = fx(facx*i)
-      end do
- 
-      end subroutine ca_average_ec
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
       subroutine ca_compute_1d_grav(rho, r_l1, r_h1, grav, dx, problo)
 
       use fundamental_constants_module, only : Gconst
@@ -218,7 +191,7 @@
 
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision :: rc,rlo,mass_encl,halfdx
-      integer          :: i,n
+      integer          :: i
 
       halfdx = HALF * dx
 

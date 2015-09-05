@@ -769,6 +769,25 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
+    // In the all-periodic case we enforce that CrseRhsSync sums to zero.
+    if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()))
+    {
+        Real local_correction = 0;
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            local_correction += CrseRhsSync[mfi].sum(mfi.validbox(), 0, 1);
+        ParallelDescriptor::ReduceRealSum(local_correction);
+
+        local_correction /= grids[crse_level].numPts();
+
+        if (verbose && ParallelDescriptor::IOProcessor())
+            std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            CrseRhsSync.plus(-local_correction,0,1,0);
+    }
+
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
     for (int lev = crse_level; lev <= fine_level; lev++) {
@@ -1669,41 +1688,13 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     if (is_new == 1)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-	    {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_curr[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_curr[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
     }
     else if (is_new == 0)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-            {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_prev[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_prev[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
     }
