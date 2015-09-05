@@ -289,7 +289,7 @@ end module rot_sources_module
              r = (/ x, y, ZERO /)
              omegacrossr = cross_product(omega,r)
 
-             phi(i,j) = - HALF * dot_product(omegacrossr,omegacrossr)
+             phi(i,j) = HALF * dot_product(omegacrossr,omegacrossr)
 
           enddo
        enddo
@@ -439,10 +439,10 @@ end module rot_sources_module
 
              ! Conservative energy formulation.
 
-             SrEcorr = - ( drho1(i  ,j) * (phi(i,j) - phi(i-1,j)) - &
-                           drho1(i+1,j) * (phi(i,j) - phi(i+1,j)) + &
-                           drho2(i,j  ) * (phi(i,j) - phi(i,j-1)) - &
-                           drho2(i,j+1) * (phi(i,j) - phi(i,j+1)) )
+             SrEcorr = - HALF * ( drho1(i  ,j) * (phi(i,j) - phi(i-1,j)) - &
+                                  drho1(i+1,j) * (phi(i,j) - phi(i+1,j)) + &
+                                  drho2(i,j  ) * (phi(i,j) - phi(i,j-1)) - &
+                                  drho2(i,j+1) * (phi(i,j) - phi(i,j+1)) )
 
              unew(i,j,UEDEN) = unew(i,j,UEDEN) + SrEcorr
 
