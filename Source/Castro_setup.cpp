@@ -465,7 +465,6 @@ Castro::variableSetUp ()
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
-    }
 #endif
 
 // For rotation we'll use the same boundary condition routines as for gravity, 
