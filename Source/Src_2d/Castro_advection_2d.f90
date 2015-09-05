@@ -287,7 +287,7 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
-                                   QVAR, QRHO, QU, QV, QREINT, QPRES, QTEMP, QGAME, &
+                                   QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
                                    allow_negative_energy, small_temp, use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1
@@ -341,6 +341,18 @@ contains
     do j = loq(2),hiq(2)
        do i = loq(1),hiq(1)
 
+          q(i,j,QRHO) = uin(i,j,URHO)
+          
+          ! Load passively-advected quatities, c, into q, assuming they
+          ! arrived in uin as rho.c. Note that for DIM < 3, this includes
+          ! the transverse velocities that are not explicitly evolved.
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
+             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
+          enddo          
+          
           if (uin(i,j,URHO) .le. ZERO) then
              print *,'   '
              print *,'>>> Error: Castro_2d::ctoprim ',i,j
@@ -349,7 +361,6 @@ contains
              call bl_error("Error:: Castro_2d.f90 :: ctoprim")
           end if
           
-          q(i,j,QRHO) = uin(i,j,URHO)
           q(i,j,QU:QV) = uin(i,j,UMX:UMY)/uin(i,j,URHO)
 
           ! Get the internal energy, which we'll use for determining the pressure.
@@ -358,8 +369,8 @@ contains
           ! Therefore we'll use the result of the separately updated internal energy equation.
           ! Otherwise, we'll set e = E - K.
 
-          kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QV)**2)
-
+          kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QW)**2)
+          
           if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
              q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
           else
@@ -367,15 +378,6 @@ contains
           endif
 
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
-
-          ! Load passively-advected quatities, c, into q, assuming they
-          ! arrived in uin as rho.c 
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
-
-             q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo
 
           ! Get gamc, p, T, c, csml using q state 
           eos_state % T   = q(i,j,QTEMP)

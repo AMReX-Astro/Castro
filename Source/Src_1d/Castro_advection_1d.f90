@@ -184,6 +184,14 @@ contains
        end if
        
        q(i,QRHO) = uin(i,URHO)
+
+       ! Load passively advected qunatities into q
+       do ipassive = 1, npassive
+          n  = upass_map(ipassive)
+          nq = qpass_map(ipassive)
+          q(i,nq) = uin(i,n)/q(i,QRHO)
+       enddo
+
        q(i,QU  ) = uin(i,UMX )/uin(i,URHO)
 
        ! Get the internal energy, which we'll use for determining the pressure.
@@ -192,7 +200,7 @@ contains
        ! Therefore we'll use the result of the separately updated internal energy equation.
        ! Otherwise, we'll set e = E - K.
 
-       kineng = HALF * q(i,QRHO) * q(i,QU)**2
+       kineng = HALF * q(i,QRHO) * sum(q(i,QU:QW)**2)
 
        if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .lt. dual_energy_eta1) then
           q(i,QREINT) = (uin(i,UEDEN) - kineng) / q(i,QRHO)
@@ -202,13 +210,6 @@ contains
 
        q(i,QTEMP ) = uin(i,UTEMP)
 
-    enddo
-    
-    ! Load passively advected qunatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
     enddo
     
     ! Get gamc, p, T, c, csml using q state
