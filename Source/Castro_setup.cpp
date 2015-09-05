@@ -453,7 +453,6 @@ Castro::variableSetUp ()
                                     BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));
 
 #ifdef GRAVITY
-    if (do_grav) {
        set_scalar_bc(bc,phys_bc);
        desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
@@ -473,7 +472,6 @@ Castro::variableSetUp ()
 // since we use the rotation in the same manner as in the gravity.
 
 #ifdef ROTATION
-    if (do_rotation) {
        set_scalar_bc(bc,phys_bc);
        desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
@@ -486,7 +484,6 @@ Castro::variableSetUp ()
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
-    }
 #endif
 
 #ifdef LEVELSET

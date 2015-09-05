@@ -304,16 +304,17 @@
                else if (grav_source_type .eq. 4) then
 
                   ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                  ! the change in the gravitational potential energy, (1/2) rho * phi.
-                  ! This must be true for the total energy, rho * E_g + (1/2) rho * phi, to be conserved.
+                  ! the change in the gravitational potential energy, rho * phi.
+                  ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
                   ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                  ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
-                  ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new gravitational
-                  ! energy is equal to the mass changed multiplied by the difference between these two
-                  ! potentials. This is a generalization of the cell-centered approach implemented in 
+                  ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
+                  ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
+                  ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
+                  ! change multiplied by the difference between these two potentials.
+                  ! This is a generalization of the cell-centered approach implemented in 
                   ! the other source options, which effectively are equal to 
-                  ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
-                  ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
+                  ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
+                  ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                   SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                        drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &

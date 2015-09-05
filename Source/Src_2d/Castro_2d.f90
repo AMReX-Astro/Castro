@@ -21,8 +21,7 @@
                           xmom_added_flux, ymom_added_flux, &
                           E_added_flux)
 
-      use meth_params_module, only : QVAR, NVAR, NHYP, &
-                                     normalize_species
+      use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
       use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
            normalize_new_species
 

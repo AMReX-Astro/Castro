@@ -376,8 +376,8 @@ end module rot_sources_module
                 omegacrossrold = cross_product(omega_old, r)
                 omegacrossrnew = cross_product(omega_new, r)
 
-                phi(i,j,k) = - HALF * HALF * (dot_product(omegacrossrold, omegacrossrold) + &
-                                              dot_product(omegacrossrnew, omegacrossrnew) )
+                phi(i,j,k) = HALF * HALF * (dot_product(omegacrossrold, omegacrossrold) + &
+                                            dot_product(omegacrossrnew, omegacrossrnew) )
 
              enddo
           enddo
@@ -570,12 +570,12 @@ end module rot_sources_module
                 ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
 
-                SrEcorr = - ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                              drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                              drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                              drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                              drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                              drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                     drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                     drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                     drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                     drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                     drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
 
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step

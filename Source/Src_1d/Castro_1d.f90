@@ -19,10 +19,9 @@
                           xmom_added_flux, &
                           E_added_flux)
 
-      use meth_params_module, only : QVAR, QU, NVAR, NHYP, URHO, &
-                                     normalize_species, use_flattening
-      use advection_module, only : umeth1d, ctoprim, consup, enforce_minimum_density, &
-           normalize_new_species
+
+      use meth_params_module, only : QVAR, QU, NVAR, NHYP, do_sponge, normalize_species
+      use advection_module  , only : umeth1d, ctoprim, consup, enforce_minimum_density, normalize_new_species
       use bl_constants_module
 
       implicit none
@@ -143,13 +142,6 @@
          call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
 
       deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
-
-!     if ( (is_finest_level      .eq. 1) .and. &
-!          (lo(1) .eq. 0               ) ) then
-!        print *,'CEN0  ',time, uin(0,URHO)
-!        print *,'CEN1  ',time, uin(1,URHO)
-!        print *,'CEN2  ',time, uin(2,URHO)
-!     end if
 
       end subroutine ca_umdrv
 

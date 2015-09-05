@@ -230,54 +230,6 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_average_ec ( &
-           f, fl1, fl2, fh1, fh2, &
-           c, cl1, cl2, ch1, ch2, &
-           lo, hi, rr, idir)
-
-      use bl_constants_module
-      
-      implicit none
-
-      integer lo(2),hi(2)
-      integer fl1, fl2, fh1, fh2
-      integer cl1, cl2, ch1, ch2
-      double precision f(fl1:fh1,fl2:fh2)
-      double precision c(cl1:ch1,cl2:ch2)
-      integer rr(2), idir
-      integer i,j,n,facx,facy
-
-      facx = rr(1)
-      facy = rr(2)
-
-      if (idir .eq. 0) then
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
-               c(i,j) = ZERO
-               do n = 0,facy-1
-                  c(i,j) = c(i,j) + f(facx*i,facy*j+n)
-               end do
-               c(i,j) = c(i,j) / facy
-            end do
-         end do
-      else 
-         do i = lo(1), hi(1)
-            do j = lo(2), hi(2)
-               c(i,j) = ZERO
-               do n = 0,facx-1
-                  c(i,j) = c(i,j) + f(facx*i+n,facy*j)
-               end do
-               c(i,j) = c(i,j) / facx
-            end do
-         end do
-      end if
-!
-      end subroutine ca_average_ec
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
       subroutine ca_compute_avgden (lo,hi,dx,dr,&
                                     rho,r_l1,r_l2,r_h1,r_h2, &
                                     radial_den,radial_vol,problo, &
