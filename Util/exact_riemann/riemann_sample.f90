@@ -7,7 +7,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
                           xn_l, xn_r, &
                           ustar, pstar, &
                           W_l, W_r, &
-                          x, xjump, t, &
+                          x, xjump, time, &
                           rho, u, p, xn)
 
   use bl_types
@@ -24,7 +24,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
   real (kind=dp_t), intent(in) :: xn_l(nspec), xn_r(nspec)
   real (kind=dp_t), intent(in) :: ustar, pstar
   real (kind=dp_t), intent(in) :: W_l, W_r
-  real (kind=dp_t), intent(in) :: x, xjump, t
+  real (kind=dp_t), intent(in) :: x, xjump, time
   real (kind=dp_t), intent(out) :: rho, u, p, xn(nspec)
 
   real (kind=dp_t) :: cs_l, cs_r
@@ -69,7 +69,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
   ! compute xi = x/t -- this is the similarity variable for the
   ! solution
-  xi = (x - xjump)/t
+  xi = (x - xjump)/time
 
   ! check which side of the contact we need to worry about
   chi = sign(ONE, xi - ustar)

@@ -824,6 +824,7 @@ Castro::initData ()
     {
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
+	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());	 
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -832,12 +833,12 @@ Castro::initData ()
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
-  	   ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
+  	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 #else
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
   	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   geom.ProbLo(), geom.ProbHi());
+  	   gridloc.lo(), gridloc.hi());
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
