@@ -211,4 +211,7 @@ BL_FORT_PROC_DECL(CA_DERFORCEZ,ca_derforcez)
      const int* level, const int* grid_no);
 #endif
 
+/* problem-specific includes */
+#include <Problem_Derive_F.H>
+
 #endif
