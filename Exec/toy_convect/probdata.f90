@@ -1,5 +1,7 @@
 module probdata_module
 
+  double precision, save :: H_min, cutoff_density
+
   character(len=80), save :: model_name
 
   ! Velocity perturbation

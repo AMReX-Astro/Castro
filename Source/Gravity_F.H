@@ -20,16 +20,6 @@ BL_FORT_PROC_DECL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
      const BL_FORT_FAB_ARG(crse),
      BL_FORT_FAB_ARG(fine));
 
-BL_FORT_PROC_DECL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-    (const int* lo, const int* hi,
-     const int* bc_lo, const int* bc_hi,
-     const int* symmetry_type,
-     BL_FORT_FAB_ARG(phi_cc),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad),
-            const BL_FORT_FAB_ARG(ygrad),
-            const BL_FORT_FAB_ARG(zgrad)),
-     const Real* dx, const Real* problo, const int* coord_type);
-
 BL_FORT_PROC_DECL(CA_AVERAGE_EC,ca_average_ec)
     (const BL_FORT_FAB_ARG(grad_fine),
            BL_FORT_FAB_ARG(grad_crse),

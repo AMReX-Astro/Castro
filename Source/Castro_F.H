@@ -66,7 +66,8 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const Real& dual_energy_eta2,
      const Real& dual_energy_eta3,
      const int& dual_energy_update_E_from_e,
-     const int& do_rotation, const int& rot_source_type, const int& rot_axis, const Real& rotational_period, 
+     const int& do_rotation, const int& rot_source_type, const int& rot_axis, 
+     const Real& rotational_period, const Real& rotational_period_dot,
      const Real& const_grav, const int& deterministic, const int& do_acc);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
@@ -410,6 +411,7 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
      BL_FORT_FAB_ARG(zflux),
 #endif
      const Real dx[], const Real& dt, 
+     const Real& time, 
      const BL_FORT_FAB_ARG(volume), 
      const Real& xmom_added, 
 #if (BL_SPACEDIM >= 2)

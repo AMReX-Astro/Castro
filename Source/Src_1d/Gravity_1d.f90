@@ -115,68 +115,6 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_avg_ec_to_cc(lo, hi, bc_lo, bc_hi, symmetry_type, &
-                                 cc, ccl1, cch1, ecx, ecxl1, ecxh1, &
-                                 dx, problo, coord_type) 
-
-      use bl_constants_module
-
-      implicit none
-
-      integer          :: lo(1),hi(1)
-      integer          :: symmetry_type
-      integer          :: coord_type
-      integer          :: bc_lo(1),bc_hi(1)
-      integer          :: ccl1, cch1
-      integer          :: ecxl1, ecxh1
-      double precision :: cc(ccl1:cch1)
-      double precision :: ecx(ecxl1:ecxh1)
-      double precision :: dx(1), problo(1)
-
-      ! Local variables
-      integer          :: i
-      double precision :: rlo,rhi,rcen
-
-      ! Cartesian
-      if (coord_type .eq. 0) then
-
-         do i=lo(1),hi(1)
-            cc(i) = HALF * ( ecx(i+1) + ecx(i) )
-         enddo
-
-      ! R-Z
-      else if (coord_type .eq. 1) then
-
-         do i=lo(1),hi(1)
-            rlo = problo(1) + (dble(i)  )*dx(1)
-            rhi = problo(1) + (dble(i)+1)*dx(1)
-            rcen = HALF * (rlo + rhi)
-            cc(i) = HALF * ( rhi*ecx(i+1) + rlo*ecx(i) ) / rcen
-         enddo
-
-      ! Spherical
-      else if (coord_type .eq. 2) then
-
-         do i=lo(1),hi(1)
-            rlo = problo(1) + (dble(i)  )*dx(1)
-            rhi = problo(1) + (dble(i)+1)*dx(1)
-            rcen = HALF * (rlo + rhi)
-            cc(i) = HALF * ( rhi**2 * ecx(i+1) + rlo**2 * ecx(i) ) / rcen**2
-         enddo
-
-      else 
-
-         print *,'Bogus coord_type in avg_ec_to_cc ' ,coord_type
-         call bl_error("Error:: Gravity_1d.f90 :: ca_avg_ec_to_cc")
-
-      end if
-
-      end subroutine ca_avg_ec_to_cc
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
       subroutine ca_test_residual(lo, hi, &
            rhs, rhl1, rhh1,  &
            ecx, ecxl1, ecxh1, &
@@ -239,33 +177,6 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_average_ec ( &
-           fx, fxl1, fxh1, &
-           cx, cxl1, cxh1, &
-           lo, hi, rr, idir)
- 
-      implicit none
-      integer lo(1),hi(1)
-      integer fxl1, fxh1
-      integer cxl1, cxh1
-      double precision fx(fxl1:fxh1)
-      double precision cx(cxl1:cxh1)
-      integer rr(1), idir
- 
-      integer i,facx
-      facx = rr(1)
-
-      ! lo(1)..hi(1) are edge base indice
-      do i = lo(1), hi(1)
-         cx(i) = fx(facx*i)
-      end do
- 
-      end subroutine ca_average_ec
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
       subroutine ca_compute_1d_grav(rho, r_l1, r_h1, grav, dx, problo)
 
       use fundamental_constants_module, only : Gconst
@@ -280,7 +191,7 @@
 
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision :: rc,rlo,mass_encl,halfdx
-      integer          :: i,n
+      integer          :: i
 
       halfdx = HALF * dx
 

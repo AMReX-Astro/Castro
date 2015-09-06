@@ -273,7 +273,8 @@
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    dual_energy_eta1_in,  dual_energy_eta2_in, &
                                    dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
-                                   do_rotation_in, rot_source_type_in, rot_axis_in, rot_period_in, &
+                                   do_rotation_in, rot_source_type_in, rot_axis_in, &
+                                   rot_period_in, rot_period_dot_in, &
                                    const_grav_in, deterministic_in, do_acc_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -309,7 +310,7 @@
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
-        double precision, intent(in) :: rot_period_in, const_grav_in
+        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in
         integer, intent(in) :: do_acc_in
         integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
         integer, intent(in) :: deterministic_in
@@ -506,6 +507,7 @@
         fix_mass_flux                = fix_mass_flux_in
         do_rotation                  = do_rotation_in
         rot_period                   = rot_period_in
+        rot_period_dot               = rot_period_dot_in
         rot_source_type              = rot_source_type_in
         rot_axis                     = rot_axis_in
         const_grav                   = const_grav_in

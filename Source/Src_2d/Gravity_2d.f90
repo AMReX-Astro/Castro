@@ -163,77 +163,6 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_avg_ec_to_cc(lo, hi, bc_lo, bc_hi, symmetry_type, &
-           cc, ccl1, ccl2, cch1, cch2, &
-           ecx, ecxl1, ecxl2, ecxh1, ecxh2, &
-           ecy, ecyl1, ecyl2, ecyh1, ecyh2, &
-           dx, problo, coord_type)
-
-      use bl_constants_module
-
-      implicit none
-
-      integer          :: lo(2),hi(2)
-      integer          :: bc_lo(2),bc_hi(2)
-      integer          :: symmetry_type
-      integer          :: coord_type
-      integer          :: ccl1, ccl2, cch1, cch2
-      integer          :: ecxl1, ecxl2, ecxh1, ecxh2
-      integer          :: ecyl1, ecyl2, ecyh1, ecyh2
-      double precision :: cc(ccl1:cch1,ccl2:cch2,2)
-      double precision :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
-      double precision :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-      double precision :: dx(2), problo(2)
-
-      ! Local variables
-      integer          :: i,j
-      double precision :: rlo,rhi,rcen
-
-      ! Cartesian
-      if (coord_type .eq. 0) then
-
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               cc(i,j,1) = HALF * ( ecx(i+1,j) + ecx(i,j) )
-            enddo
-         enddo
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               cc(i,j,2) = HALF * ( ecy(i,j+1) + ecy(i,j) )
-            enddo
-         enddo
-
-      ! R-Z 
-      else if (coord_type .eq. 1) then
-
-         do i=lo(1),hi(1)
-!           rlo = (dble(i)  )*dx(1)
-!           rhi = (dble(i)+1)*dx(1)
-!           rcen = HALF * (rlo + rhi)
-            do j=lo(2),hi(2)
-!              cc(i,j,1) = HALF * ( rhi*ecx(i+1,j) + rlo*ecx(i,j) ) / rcen
-               cc(i,j,1) = HALF * ( ecx(i+1,j) + ecx(i,j) )
-            enddo
-         enddo
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               cc(i,j,2) = HALF * ( ecy(i,j+1) + ecy(i,j) )
-            enddo
-         enddo
-
-      else
-
-         print *,'Bogus coord_type in avg_ec_to_cc ' ,coord_type
-         call bl_error("Error:: Gravity_2d.f90 :: ca_avg_ec_to_cc")
-
-      end if
-
-      end subroutine ca_avg_ec_to_cc
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
       subroutine ca_test_residual(lo, hi, &
            rhs, rhl1, rhl2, rhh1, rhh2, &
            ecx, ecxl1, ecxl2, ecxh1, ecxh2, &
@@ -296,54 +225,6 @@
       end if
 
       end subroutine ca_test_residual
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-      subroutine ca_average_ec ( &
-           f, fl1, fl2, fh1, fh2, &
-           c, cl1, cl2, ch1, ch2, &
-           lo, hi, rr, idir)
-
-      use bl_constants_module
-      
-      implicit none
-
-      integer lo(2),hi(2)
-      integer fl1, fl2, fh1, fh2
-      integer cl1, cl2, ch1, ch2
-      double precision f(fl1:fh1,fl2:fh2)
-      double precision c(cl1:ch1,cl2:ch2)
-      integer rr(2), idir
-      integer i,j,n,facx,facy
-
-      facx = rr(1)
-      facy = rr(2)
-
-      if (idir .eq. 0) then
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
-               c(i,j) = ZERO
-               do n = 0,facy-1
-                  c(i,j) = c(i,j) + f(facx*i,facy*j+n)
-               end do
-               c(i,j) = c(i,j) / facy
-            end do
-         end do
-      else 
-         do i = lo(1), hi(1)
-            do j = lo(2), hi(2)
-               c(i,j) = ZERO
-               do n = 0,facx-1
-                  c(i,j) = c(i,j) + f(facx*i+n,facy*j)
-               end do
-               c(i,j) = c(i,j) / facx
-            end do
-         end do
-      end if
-!
-      end subroutine ca_average_ec
 
 ! ::
 ! :: ----------------------------------------------------------

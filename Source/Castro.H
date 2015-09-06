@@ -507,31 +507,6 @@ protected:
 #endif
 
     //
-    // Interpolate cell-centered cync correction from coarse to fine.
-    //
-    enum SyncInterpType
-    {
-        PC_T,
-        CellCons_T,
-        CellConsLin_T,
-        CellConsProt_T
-    };
-
-    void SyncInterp (MultiFab&      CrseSync,
-                     int            c_lev,
-                     MultiFab&      FineSync,
-                     int            f_lev,
-                     IntVect&       ratio,
-                     int            src_comp,
-                     int            dest_comp,
-                     int            num_comp,
-                     int            increment,
-                     Real           dt_clev,
-                     int**          bc_orig_qty,
-                     SyncInterpType which_interp = CellCons_T,
-                     int            state_comp   = -1);
-
-    //
     // The data.
     //
     MultiFab             volume;
@@ -700,6 +675,7 @@ protected:
 
 #ifdef ROTATION
   static Real rotational_period;
+  static Real rotational_period_dot;
   static int rot_source_type;
   static int rot_axis;
 #endif

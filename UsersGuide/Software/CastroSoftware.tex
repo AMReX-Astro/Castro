@@ -194,10 +194,12 @@ side of \castro\ or perform other useful tasks.
 \section{Setting Up Your Own Problem}
 
 To define a new problem, we create a new directory under {\tt Exec/},
-and place in it a {\tt Prob\_2d.f90} file (or {\tt 1d}/{\tt 3d}, depending on the
-dimensionality of the problem), a {\tt probdata.f90} file, the {\tt
-  inputs} and {\tt probin} files, and a {\tt Make.package} file that
-tells the build system what problem-specific routines exist.  The
+and place in it a {\tt Prob\_2d.f90} file (or {\tt 1d}/{\tt 3d},
+depending on the dimensionality of the problem), a {\tt probdata.f90}
+file, the {\tt inputs} and {\tt probin} files, and a {\tt
+  Make.package} file that tells the build system what problem-specific
+routines exist.  Finally, if you need custom boundary conditions, a
+{\tt bc\_fill\_2d.f90} (or {\tt 1d}/{\tt 3d}) file is needed.  The
 simplest way to get started is to copy these files from an existing
 problem.  Here we describe how to customize your problem.
 

@@ -234,49 +234,6 @@
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
-
-      subroutine ca_avg_ec_to_cc(lo, hi, bc_lo, bc_hi, &
-           symmetry_type, &
-           cc, ccl1, ccl2, ccl3, cch1, cch2, cch3, &
-           ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
-           ecy, ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3, &
-           ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
-           dx, problo, coord_type)
-
-      use bl_constants_module
-
-      implicit none
-      integer          :: lo(3),hi(3)
-      integer          :: bc_lo(3),bc_hi(3)
-      integer          :: symmetry_type, coord_type
-      integer          :: ccl1, ccl2, ccl3, cch1, cch2, cch3
-      integer          :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
-      integer          :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
-      integer          :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-      double precision :: cc(ccl1:cch1,ccl2:cch2,ccl3:cch3, 3)
-      double precision :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-      double precision :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-      double precision :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
-      double precision :: dx(3), problo(3)
-
-      ! Local variables
-      integer          :: i,j,k
-
-      do k=lo(3),hi(3)
-         do j=lo(2),hi(2)
-            do i=lo(1),hi(1)
-               cc(i,j,k,1) = HALF * ( ecx(i+1,j,k) + ecx(i,j,k) )
-               cc(i,j,k,2) = HALF * ( ecy(i,j+1,k) + ecy(i,j,k) )
-               cc(i,j,k,3) = HALF * ( ecz(i,j,k+1) + ecz(i,j,k) )
-            enddo
-         enddo
-      enddo
-         
-      end subroutine ca_avg_ec_to_cc
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
  
       subroutine ca_test_residual(lo, hi, &
            rhs, rhl1, rhl2, rhl3, rhh1, rhh2, rhh3, &
@@ -315,78 +272,6 @@
       enddo
  
       end subroutine ca_test_residual
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-      subroutine ca_average_ec ( &
-           f, fl1, fl2, fl3, fh1, fh2, fh3, &
-           c, cl1, cl2, cl3, ch1, ch2, ch3, &
-           lo, hi, rr, idir)
-
-      use bl_constants_module
-
-      implicit none
-
-      integer lo(3),hi(3)
-      integer fl1, fl2, fl3, fh1, fh2, fh3
-      integer cl1, cl2, cl3, ch1, ch2, ch3
-      double precision f(fl1:fh1,fl2:fh2,fl3:fh3)
-      double precision c(cl1:ch1,cl2:ch2,cl3:ch3)
-      integer rr(3), idir
-
-      integer i,j,k,n,m,facx,facy,facz
-
-      facx = rr(1)
-      facy = rr(2)
-      facz = rr(3)
-
-      if (idir .eq. 0) then
-         do k = lo(3), hi(3)
-            do j = lo(2), hi(2)
-               do i = lo(1), hi(1)
-                  c(i,j,k) = ZERO
-                  do n = 0,facy-1
-                     do m = 0,facz-1
-                        c(i,j,k) = c(i,j,k) + f(facx*i,facy*j+n,facz*k+m)
-                     end do
-                  end do
-                  c(i,j,k) = c(i,j,k) / (facy*facz)
-               end do
-            end do
-         end do
-      else if (idir .eq. 1) then
-         do k = lo(3), hi(3)
-            do j = lo(2), hi(2)
-               do i = lo(1), hi(1)
-                  c(i,j,k) = ZERO
-                  do n = 0,facx-1
-                     do m = 0,facz-1
-                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j,facz*k+m)
-                     end do
-                  end do
-                  c(i,j,k) = c(i,j,k) / (facx*facz)
-               end do
-            end do
-         end do
-      else
-         do k = lo(3), hi(3)
-            do j = lo(2), hi(2)
-               do i = lo(1), hi(1)
-                  c(i,j,k) = ZERO
-                  do n = 0,facx-1
-                     do m = 0,facy-1
-                        c(i,j,k) = c(i,j,k) + f(facx*i+n,facy*j+m,facz*k)
-                     end do
-                  end do
-                  c(i,j,k) = c(i,j,k) / (facx*facy)
-               end do
-            end do
-         end do
-      end if
-
-      end subroutine ca_average_ec
 
 ! ::
 ! :: ----------------------------------------------------------
@@ -741,15 +626,7 @@
            nlo = 0
         endif
 
-        rmax = probhi(1)
-        if ( probhi(2) > rmax ) then
-          rmax = probhi(2)
-        endif
-        if ( probhi(3) > rmax ) then
-          rmax = probhi(3)
-        endif
-
-        rmax = rmax * sqrt(THREE) / TWO
+        rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE)
         
         do k = lo(3), hi(3)
            if (k .gt. domhi(3)) then
@@ -979,24 +856,12 @@
         ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
         ! we will normalize all distances to the maximum possible physical distance from the center,
         ! which is the diagonal from the center to the edge of the box. Then r^l will always be
-        ! less than or equal to one. For large enough lnum, this will still result in roundoff
+        ! less than or equal to one. For large enough lnum, this may still result in roundoff
         ! errors that don't make your answer any more precise, but at least it avoids
         ! possible NaN issues from having numbers that are too large for double precision.
-        ! We will put the rmax factor back in at the end of ca_put_multipole_bc.
+        ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
 
-        ! Another constraint is that the method used to calculate the Legendre polynomials
-        ! is numerically unstable for large l, just because of how big they get, so
-        ! for lnum > 50 we'll throw an error (this number was determined by experiment).
-
-        rmax = probhi(1)
-        if ( probhi(2) > rmax ) then
-          rmax = probhi(2)
-        endif
-        if ( probhi(3) > rmax ) then
-          rmax = probhi(3)
-        endif
-
-        rmax = rmax * sqrt(THREE) / TWO ! This is the distance from the center to the corner of a cube. 
+        rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE) ! Account for distance rom the center to the corner of a cube. 
 
         ! Note that we don't currently support dx != dy != dz, so this is acceptable.
 
@@ -1011,12 +876,6 @@
            nlo = 0
         endif
         
-        if ( lnum > 50 ) then
-          print *, ">>> CA_COMPUTE_MULTIPOLE_MOMENTS: The value of l you have chosen is too large."
-          print *, ">>> Try again with max_multipole_order <= 50."
-          call bl_error("Error: Gravity_3d.f90: ca_compute_multipole_moments")
-        endif
-
         do k = lo(3), hi(3)
            z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
 
@@ -1056,7 +915,7 @@
                        else
                           qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * volumeFactor * parity_q0(l)
                        endif
-                       
+
                        do m = 1, l
 
                           if (index .le. n) then
