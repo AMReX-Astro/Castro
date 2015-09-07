@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 500000
+max_step = 5000000
 stop_time = 1.0
 
 # PROBLEM SIZE & GEOMETRY
@@ -7,7 +7,7 @@ geometry.is_periodic =  1 1
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0    0 
 geometry.prob_hi     =  1    1 
-amr.n_cell           =  64   64
+amr.n_cell           =  40   40
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
