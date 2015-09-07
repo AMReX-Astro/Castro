@@ -7,15 +7,15 @@ geometry.is_periodic =  0 0
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0    0 
 geometry.prob_hi     =  1    1 
-amr.n_cell           = 32   32
+amr.n_cell           = 40   40
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   2
-castro.hi_bc       =  2   2
+castro.lo_bc       =  -1  -1
+castro.hi_bc       =  -1  -1
 
 # WHICH PHYSICS 
 castro.do_hydro = 1
@@ -43,11 +43,11 @@ amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
 amr.check_file      = gresho_chk   # root name of checkpoint file
-amr.check_int       = 200       # number of timesteps between checkpoints
+amr.check_int       = 500       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = gresho_plt
-amr.plot_int        = 200
+amr.plot_int        = 500
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
