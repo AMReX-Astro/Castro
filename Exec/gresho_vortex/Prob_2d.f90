@@ -96,7 +96,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(2), xhi(2), time, delta(2)
   double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision :: xl, yl, xx, yy
+  double precision :: xl, yl, xx, yy, xc, yc
   double precision :: r
   double precision :: reint, p, u_phi, u_tot
 
@@ -144,8 +144,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,URHO) = rho0
 
         ! velocity is based on the reference velocity, q_r
-        state(i,j,UMX) = rho0*q_r*u_phi*((xx-center(1))/r)  ! cos(phi) = x/r
-        state(i,j,UMY) = rho0*q_r*u_phi*((yy-center(2))/r)  ! sin(phi) = y/r
+        xc = xl + HALF*delta(1)
+        yc = yl + HALF*delta(2)
+
+        ! phi unit vector: \hat{\phi} = -sin(phi) \hat{x} + cos(phi) \hat{y}
+        ! with cos(phi) = x/r; sin(phi) = y/r
+        state(i,j,UMX) = -rho0*q_r*u_phi*((yc-center(1))/r)  ! -sin(phi) = y/r
+        state(i,j,UMY) = rho0*q_r*u_phi*((xc-center(2))/r)   ! cos(phi) = x/r
 
         state(i,j,UEDEN) = reint +  &
              0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
