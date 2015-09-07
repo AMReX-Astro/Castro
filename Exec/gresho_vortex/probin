@@ -3,7 +3,12 @@
   rho0 = 1.0
 
   ! p0 = rho0 u_phi**2/(gamma * M**2) - 1/2  -- specify M to get p0
-  p0 = 5999.5
+
+  ! M ~ 0.01
+  p0 = 5999.5  
+
+  ! M ~ 0.1
+  p0 = 59.5
 
   ! t_r = 1.0
 
