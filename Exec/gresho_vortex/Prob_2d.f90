@@ -19,7 +19,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer :: untin,i
 
-  namelist /fortin/ p0, rho0, t_r
+  namelist /fortin/ p0, rho0, t_r, nsub
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -37,7 +37,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   p0 = 1.0
   rho0 = 1.0
   t_r = 1.0
-
+  nsub = 4
 
   ! read namelists
   untin = 9
@@ -96,34 +96,50 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(2), xhi(2), time, delta(2)
   double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision :: xx, yy
+  double precision :: xl, yl, xx, yy
   double precision :: r
-  double precision :: reint, p, u_phi
+  double precision :: reint, p, u_phi, u_tot
 
-  integer :: i,j
+  integer :: i,j,ii,jj
 
   do j = lo(2), hi(2)
-     yy = problo(2) + delta(2)*dble(j + HALF)
+     yl = problo(2) + delta(2)*dble(j)
 
      do i = lo(1), hi(1)
-        xx = problo(1) + delta(1)*dble(i + HALF)
+        xl = problo(1) + delta(1)*dble(i)
 
-        r = sqrt((xx - center(1))**2 + (yy - center(2))**2)
+        reint = ZERO
+        u_tot = ZERO
 
-        if (r < 0.2_dp_t) then
-           u_phi = FIVE*r
-           p = p0 + 12.5_dp_t*r**2
+        do jj = 0, nsub-1
+           yy = yl + delta(2)*dble(jj + HALF)/nsub
 
-        else if (r < 0.4_dp_t) then
-           u_phi = TWO - FIVE*r
-           p = p0 + 12.5_dp_t*r**2 + FOUR*(ONE - FIVE*r - log(0.2_dp_t) + log(r))
+           do ii = 0, nsub-1
+              xx = xl + delta(1)*dble(ii + HALF)/nsub
 
-        else
-           u_phi = ZERO
-           p = p0 - TWO + FOUR*log(TWO)
-        endif
+              r = sqrt((xx - center(1))**2 + (yy - center(2))**2)
 
-        reint = p/(gamma_const - ONE)
+              if (r < 0.2_dp_t) then
+                 u_phi = FIVE*r
+                 p = p0 + 12.5_dp_t*r**2
+
+              else if (r < 0.4_dp_t) then
+                 u_phi = TWO - FIVE*r
+                 p = p0 + 12.5_dp_t*r**2 + FOUR*(ONE - FIVE*r - log(0.2_dp_t) + log(r))
+
+              else
+                 u_phi = ZERO
+                 p = p0 - TWO + FOUR*log(TWO)
+              endif
+
+              u_tot = u_tot + u_phi
+              reint = reint + p/(gamma_const - ONE)
+
+           enddo
+        enddo
+
+        u_phi = u_tot/(nsub*nsub)
+        reint = reint/(nsub*nsub)
 
         state(i,j,URHO) = rho0
 
