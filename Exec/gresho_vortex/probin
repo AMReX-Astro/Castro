@@ -1,11 +1,12 @@
 &fortin
 
-  probtype = 21
-  r_init = 0.01
-  p_ambient = 1.d-6
-  exp_energy = 1.0
-  dens_ambient = 1.0
-  nsub = 10
+  rho0 = 1.0
+
+  ! p0 = rho0 u_phi**2/(gamma * M**2) - 1/2  -- specify M to get p0
+  p0 = 5999.5
+
+  ! t_r = 1.0
+
 
 /
 

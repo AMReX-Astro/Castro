@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 500
-stop_time = 0.1
+max_step = 500000
+stop_time = 1.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic =  0 0
@@ -25,7 +25,7 @@ castro.allow_negative_energy = 0
 # TIME STEP CONTROL
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
-castro.init_shrink    = 0.01    # scale back initial timestep
+castro.init_shrink    = 0.1    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
 
 # DIAGNOSTICS & VERBOSITY
@@ -35,20 +35,20 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 3       # maximum level number allowed
+amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
-amr.check_file      = sedov_2d_cyl_in_cart_chk   # root name of checkpoint file
-amr.check_int       = 20       # number of timesteps between checkpoints
+amr.check_file      = gresho_chk   # root name of checkpoint file
+amr.check_int       = 200       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = sedov_2d_cyl_in_cart_plt
-amr.plot_int        = 20
+amr.plot_file       = gresho_plt
+amr.plot_int        = 200
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords
+amr.probin_file = probin
