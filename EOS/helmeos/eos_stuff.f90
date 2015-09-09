@@ -40,7 +40,7 @@ contains
     smallt = 1.d4
 
     if (present(small_temp)) then
-      if (small_temp > ZERO) then
+      if (small_temp > smallt) then
        smallt = small_temp
       end if
     endif
@@ -48,7 +48,7 @@ contains
     smalld = 1.d-5
  
     if (present(small_dens)) then
-       if (small_dens > ZERO) then
+       if (small_dens > smalld) then
          smalld = small_dens
        endif
     endif
