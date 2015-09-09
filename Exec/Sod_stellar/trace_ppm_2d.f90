@@ -285,7 +285,7 @@ contains
           p = q(i,j,QPRES)
           rhoe = q(i,j,QREINT)
           enth = ( (rhoe+p)/rho )/csq
-          T = q(i,j,QTEMP)
+          temp = q(i,j,QTEMP)
 
           Clag = rho*cc
 
