@@ -32,3 +32,11 @@
   tempgrad           = 1.d20
 
 /
+
+&sponge
+
+  sponge_upper_density = 1.d4
+  sponge_lower_density = 1.d2
+  sponge_timescale     = 1.d-3
+
+/

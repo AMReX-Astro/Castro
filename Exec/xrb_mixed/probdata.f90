@@ -15,7 +15,4 @@ module probdata_module
   ! lower boundary
   logical         , save :: interp_BC, zero_vels
 
-  ! sponge
-  double precision, save :: sponge_center_density, sponge_start_factor, sponge_kappa
-  
 end module probdata_module

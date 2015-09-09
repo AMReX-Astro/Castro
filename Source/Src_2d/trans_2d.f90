@@ -21,7 +21,7 @@ contains
                     ilo, ihi, jlo, jhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QGAME, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
@@ -134,14 +134,14 @@ contains
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
-          ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
+          ekinr = HALF*rrr*sum(qp(i,j,QU:QW)**2)
           rer = qp(i,j,QREINT) + ekinr
           
           ! "left" state on the j+1/2 interface
           rrl = qm(i,j+1,QRHO)
           rul = rrl*qm(i,j+1,QU)
           rvl = rrl*qm(i,j+1,QV)
-          ekinl = HALF*rrl*(qm(i,j+1,QU)**2 + qm(i,j+1,QV)**2)
+          ekinl = HALF*rrl*sum(qm(i,j+1,QU:QW)**2)
           rel = qm(i,j+1,QREINT) + ekinl
           
           ! Add transverse predictor 
@@ -204,7 +204,7 @@ contains
           qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  
 
           ! note: we run the risk of (rho e) being negative here
-          rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
+          rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
           qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
           if (transverse_reset_rhoe == 1 .and. j >= jlo+1 ) then
@@ -276,7 +276,7 @@ contains
           qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
           qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
           qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
-          rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
+          rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i,j+1,QW))**2)/rhotmp
           qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
 
           if (transverse_reset_rhoe == 1 .and. j <= jhi-1) then
@@ -384,7 +384,7 @@ contains
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, QGAME, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
@@ -489,14 +489,14 @@ contains
           rrr = qp(i,j,QRHO)
           rur = rrr*qp(i,j,QU)
           rvr = rrr*qp(i,j,QV)
-          ekinr = HALF*rrr*(qp(i,j,QU)**2 + qp(i,j,QV)**2)
+          ekinr = HALF*rrr*sum(qp(i,j,QU:QW)**2)
           rer = qp(i,j,QREINT) + ekinr
           
           ! left state on the i+1/2 interface
           rrl = qm(i+1,j,QRHO)
           rul = rrl*qm(i+1,j,QU)
           rvl = rrl*qm(i+1,j,QV)
-          ekinl = HALF*rrl*(qm(i+1,j,QU)**2 + qm(i+1,j,QV)**2)
+          ekinl = HALF*rrl*sum(qm(i+1,j,QU:QW)**2)
           rel = qm(i+1,j,QREINT) + ekinl
           
           ! Add transverse predictor 
@@ -550,7 +550,7 @@ contains
           qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
           qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) 
           qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
-          rhoekinr = HALF*(runewr**2+rvnewr**2)/rhotmp
+          rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
           qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
           if (transverse_reset_rhoe == 1) then
@@ -615,7 +615,7 @@ contains
           qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
           qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) 
           qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
-          rhoekinl = HALF*(runewl**2+rvnewl**2)/rhotmp
+          rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i+1,j,QW))**2)/rhotmp
           qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
 
 

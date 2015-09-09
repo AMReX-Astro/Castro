@@ -3,7 +3,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
-void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state)
+void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time)
 {
     const Real* dx = geom.CellSize();
 
@@ -22,7 +22,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state)
       BL_FORT_PROC_CALL(CA_FILL_ROTATIONAL_POTENTIAL,ca_fill_rotational_potential)
 		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
 		 BL_TO_FORTRAN_3D(phi[mfi]),
-		 ZFILL(dx));
+		 ZFILL(dx),time);
 
     }
 
@@ -42,7 +42,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state)
 		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
 		 BL_TO_FORTRAN_3D(rot[mfi]),
 		 BL_TO_FORTRAN_3D(state[mfi]),
-		 ZFILL(dx));
+		 ZFILL(dx),time);
 
     }
 

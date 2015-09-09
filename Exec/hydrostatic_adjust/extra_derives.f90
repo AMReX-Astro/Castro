@@ -20,7 +20,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
   double precision dx(1), xlo(1), time, dt
   integer bc(1,2,ncomp_u), level, grid_no
   
-  double precision :: e, T, X(nspec+naux)
+  double precision :: e, temp, X(nspec+naux)
   double precision :: rhoInv
   integer          :: i,n
 
@@ -31,7 +31,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
      
      rhoInv = 1.d0/u(i,URHO)
      e  = u(i,UEINT)*rhoInv
-     T  = u(i,UTEMP)
+     temp  = u(i,UTEMP)
      do n=1,nspec
         X(n) = u(i,UFS+n-1)*rhoInv
      enddo
@@ -42,7 +42,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
      ! Protect against negative internal energy
      if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
         eos_state%rho = u(i,URHO)
-        eos_state%T = T
+        eos_state%T = temp
         eos_state%xn(:) = X
 
         call eos(eos_input_rt, eos_state)
@@ -50,7 +50,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
         p(i,1) = eos_state%p
      else
         eos_state%rho = u(i,URHO)
-        eos_state%T = T
+        eos_state%T = temp
         eos_state%xn(:) = X
         eos_state%e = e
 
@@ -88,7 +88,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
   double precision dx(1), xlo(1), time, dt
   integer bc(1,2,ncomp_u), level, grid_no
   
-  double precision :: e, T, X(nspec+naux)
+  double precision :: e, temp, X(nspec+naux)
   double precision :: rhoInv
   integer          :: i,n
 
@@ -99,7 +99,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
 
      rhoInv = 1.d0/u(i,URHO)
      e  = u(i,UEINT)*rhoInv
-     T  = u(i,UTEMP)
+     temp  = u(i,UTEMP)
      do n=1,nspec
         X(n) = u(i,UFS+n-1)*rhoInv
      enddo
@@ -110,7 +110,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
      ! Protect against negative internal energy
      if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
         eos_state%rho = u(i,URHO)
-        eos_state%T = T
+        eos_state%T = temp
         eos_state%xn(:) = X
 
         call eos(eos_input_rt, eos_state)
@@ -118,7 +118,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
         p(i,1) = eos_state%p
      else
         eos_state%rho = u(i,URHO)
-        eos_state%T = T
+        eos_state%T = temp
         eos_state%xn(:) = X
         eos_state%e = e
 

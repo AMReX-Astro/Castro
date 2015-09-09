@@ -769,6 +769,25 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     CrseRhsSync.mult(Ggravity);
     CrseRhsSync.plus(dphi,0,1,0);
 
+    // In the all-periodic case we enforce that CrseRhsSync sums to zero.
+    if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()))
+    {
+        Real local_correction = 0;
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:local_correction)
+#endif
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            local_correction += CrseRhsSync[mfi].sum(mfi.validbox(), 0, 1);
+        ParallelDescriptor::ReduceRealSum(local_correction);
+
+        local_correction /= grids[crse_level].numPts();
+
+        if (verbose && ParallelDescriptor::IOProcessor())
+            std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
+        for (MFIter mfi(CrseRhsSync); mfi.isValid(); ++mfi)
+            CrseRhsSync.plus(-local_correction,0,1,0);
+    }
+
     // delta_phi needs a ghost cell for the solve
     PArray<MultiFab>  delta_phi(fine_level-crse_level+1, PArrayManage);
     for (int lev = crse_level; lev <= fine_level; lev++) {
@@ -850,43 +869,12 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
 	}
     }
 
-    int lo_bc[BL_SPACEDIM];
-    int hi_bc[BL_SPACEDIM];
-    for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-      lo_bc[dir] = (phys_bc->lo(dir) == Symmetry); 
-      hi_bc[dir] = (phys_bc->hi(dir) == Symmetry); 
-    }
-    int symmetry_type = Symmetry;
-
-    int coord_type = Geometry::Coord();
-
     for (int lev = crse_level; lev <= fine_level; lev++) {
-
-       const Real* problo = parent->Geom(lev).ProbLo();
-
-       MultiFab& S = LevelData[lev].get_new_data(State_Type);
-    
-       grad_delta_phi_cc[lev-crse_level].setVal(0.0);
-
-       const Real* dx = parent->Geom(lev).CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel	      
-#endif
-       for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
-       {
-          const Box& bx = mfi.tilebox();
-
-          // Average edge-centered gradients of crse dPhi to cell centers
-          BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-              (bx.loVect(), bx.hiVect(),
-               lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grad_delta_phi_cc[lev-crse_level][mfi]),
-               D_DECL(BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][0][mfi]),
-                      BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][1][mfi]),
-                      BL_TO_FORTRAN(ec_gdPhi[lev-crse_level][2][mfi])),
-                      dx,problo,&coord_type);
-       }
+	grad_delta_phi_cc[lev-crse_level].setVal(0.0);
+	const Geometry& geom = parent->Geom(lev);
+	BoxLib::average_face_to_cellcenter(grad_delta_phi_cc[lev-crse_level],
+					   ec_gdPhi[lev-crse_level],
+					   geom);
     }
 }
 
@@ -924,10 +912,8 @@ Gravity::GetCrsePhi(int level,
 	}
     }
 
-    phi_crse.FillBoundary();
-
     const Geometry& geom = parent->Geom(level-1);
-    geom.FillPeriodicBoundary(phi_crse,true);
+    BoxLib::fill_boundary(phi_crse, geom);
 }
 
 void
@@ -1281,35 +1267,44 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
+    // Note that grav_vector coming into this routine always has three components.
+    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
+    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // the outgoing grav_vector, leaving any higher dimensions unchanged.
+
+    MultiFab grav(grids[level], BL_SPACEDIM, ng);
+    grav.setVal(0.);
+    
     if (gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,0            ,3,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,1,ng);
+       // Set to constant value in the BL_SPACEDIM direction and zero in all others.
+      
+       grav.setVal(0.0       ,0            ,BL_SPACEDIM,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav_vector);
+       make_one_d_grav(level,time,grav);
 #else
 
        if (gravity_type == "MonopoleGrav") 
        {
           const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
           make_radial_gravity(level,prev_time,radial_grav_old[level]);
-          interpolate_monopole_grav(level,radial_grav_old[level],grav_vector);
+          interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
        }
        else if (gravity_type == "PrescribedGrav") 
        {
-          make_prescribed_grav(level,time,grav_vector);
+          make_prescribed_grav(level,time,grav);
        }  
 
 #endif 
     } else if (gravity_type == "PoissonGrav") {
 
        // Set to zero to fill ghost cells.
-       grav_vector.setVal(0.);
+       grav.setVal(0.);
 
        // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
        const Geometry& geom = parent->Geom(level);
@@ -1318,8 +1313,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              for (int i = 0; i < BL_SPACEDIM ; i++)
              {
                  grad_phi_prev[level][i].setBndry(0.0);
-                 grad_phi_prev[level][i].FillBoundary();
-                 geom.FillPeriodicBoundary(grad_phi_prev[level][i]);
+		 BoxLib::fill_boundary(grad_phi_prev[level][i], geom);
              }
  
        } else {
@@ -1329,42 +1323,24 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              fill_ec_grow(level,grad_phi_prev[level],crse_grad_phi);
        }
  
-       int lo_bc[BL_SPACEDIM];
-       int hi_bc[BL_SPACEDIM];
-       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-         lo_bc[dir] = phys_bc->lo(dir);
-         hi_bc[dir] = phys_bc->hi(dir);
-       }
-       int symmetry_type = Symmetry;
+       BoxLib::average_face_to_cellcenter(grav, grad_phi_prev[level], geom);
 
-       int coord_type = Geometry::Coord();
-       const Real*     dx = parent->Geom(level).CellSize();
-       const Real* problo = parent->Geom(level).ProbLo();
-
-       // Average edge-centered gradients to cell centers, excluding grow cells
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi) 
-       {
-           const Box& bx = mfi.tilebox();
- 
-           BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-               (bx.loVect(), bx.hiVect(),
-                lo_bc, hi_bc, &symmetry_type,
-                BL_TO_FORTRAN(grav_vector[mfi]),
-                D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
-                       BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
-                       dx,problo,&coord_type);
-       }
     } else {
        BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
     }
- 
+
+    // Do the copy to the output vector.
+
+    for (int dir = 0; dir < 3; dir++)
+      if (dir < BL_SPACEDIM)
+	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+      else
+	grav_vector.setVal(0.);
+    
+    // Fill G_old from grav_vector.
+	
     MultiFab& G_old = LevelData[level].get_old_data(Gravity_Type);
  
-    // Fill G_old from grav_vector
     MultiFab::Copy(G_old,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
@@ -1392,16 +1368,24 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
+    // Note that grav_vector coming into this routine always has three components.
+    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
+    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // the outgoing grav_vector, leaving any higher dimensions unchanged.
+
+    MultiFab grav(grids[level],BL_SPACEDIM,ng);
+    grav.setVal(0.);
+    
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,            0,3,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,1,ng);
+       grav.setVal(0.0       ,            0,BL_SPACEDIM,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav_vector);
+       make_one_d_grav(level,time,grav);
 #else
 
        // We always fill radial_grav_new (at every level)
@@ -1409,18 +1393,18 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        {
           const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
           make_radial_gravity(level,cur_time,radial_grav_new[level]);
-          interpolate_monopole_grav(level,radial_grav_new[level],grav_vector);
+          interpolate_monopole_grav(level,radial_grav_new[level],grav);
        }
        else if (gravity_type == "PrescribedGrav") 
        {
-          make_prescribed_grav(level,time,grav_vector);
+          make_prescribed_grav(level,time,grav);
        }
 #endif
 
     } else if (gravity_type == "PoissonGrav") {
 
        // Set to zero to fill ghost cells
-       grav_vector.setVal(0.);
+       grav.setVal(0.);
 
       // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
       const Geometry& geom = parent->Geom(level);
@@ -1429,8 +1413,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             for (int i = 0; i < BL_SPACEDIM ; i++)
             {
                 grad_phi_curr[level][i].setBndry(0.0);
-                grad_phi_curr[level][i].FillBoundary();
-                geom.FillPeriodicBoundary(grad_phi_curr[level][i]);
+		BoxLib::fill_boundary(grad_phi_curr[level][i], geom);
             }
 
       } else {
@@ -1440,42 +1423,24 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             fill_ec_grow(level,grad_phi_curr[level],crse_grad_phi);
       }
 
-       int lo_bc[BL_SPACEDIM];
-       int hi_bc[BL_SPACEDIM];
-       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-         lo_bc[dir] = phys_bc->lo(dir);
-         hi_bc[dir] = phys_bc->hi(dir);
-       }
-       int symmetry_type = Symmetry;
+      BoxLib::average_face_to_cellcenter(grav, grad_phi_curr[level], geom);
 
-       int coord_type = Geometry::Coord();
-       const Real*     dx = parent->Geom(level).CellSize();
-       const Real* problo = parent->Geom(level).ProbLo();
-
-      // Average edge-centered gradients to cell centers, excluding grow cells
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-       for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
-       {
-	  const Box& bx = mfi.tilebox();
-
-          BL_FORT_PROC_CALL(CA_AVG_EC_TO_CC,ca_avg_ec_to_cc)
-              (bx.loVect(), bx.hiVect(),
-               lo_bc, hi_bc, &symmetry_type,
-               BL_TO_FORTRAN(grav_vector[mfi]),
-               D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
-                      BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
-                      dx,problo,&coord_type);
-       }
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
     }
 
+    // Do the copy to the output vector.
+
+    for (int dir = 0; dir < 3; dir++)
+      if (dir < BL_SPACEDIM)
+	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+      else
+	grav_vector.setVal(0.);
+
+    // Fill G_new from grav_vector.
+	
     MultiFab& G_new = LevelData[level].get_new_data(Gravity_Type);
 
-    // Fill G_new from grav_vector
     MultiFab::Copy(G_new,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
@@ -1758,41 +1723,13 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     if (is_new == 1)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-	    {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_curr[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_curr[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
     }
     else if (is_new == 0)
     {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	for (int n=0; n<BL_SPACEDIM; ++n) {
-	    for (MFIter mfi(crse_gphi_fine[n],true); mfi.isValid(); ++mfi)
-            {
-		const Box& tbx = mfi.tilebox();
-
-   		BL_FORT_PROC_CALL(CA_AVERAGE_EC,ca_average_ec)
-		    (BL_TO_FORTRAN(grad_phi_prev[level+1][n][mfi]),
-		     BL_TO_FORTRAN(crse_gphi_fine        [n][mfi]),
-		     tbx.loVect(),tbx.hiVect(),fine_ratio.getVect(),n);
-	    }
-	}
-   
+        BoxLib::average_down_faces(grad_phi_prev[level+1],crse_gphi_fine,fine_ratio);
 	for (int n=0; n<BL_SPACEDIM; ++n)
 	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
     }
@@ -2151,8 +2088,7 @@ Gravity::fill_ec_grow (int level,
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
     {
-        ecF[n].FillBoundary();
-        fgeom.FillPeriodicBoundary(ecF[n],true);
+	BoxLib::fill_boundary(ecF[n], fgeom);
     }
 }
 
@@ -2277,9 +2213,9 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-	   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,
-            BL_TO_FORTRAN_3D(grav_vector[mfi]),
-            radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
+	   (bx.loVect(),bx.hiVect(),dx,&dr,
+            BL_TO_FORTRAN(grav_vector[mfi]),
+            radial_grav.dataPtr(),geom.ProbLo(),
             &n1d,&level);
     }
 }

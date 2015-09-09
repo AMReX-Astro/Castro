@@ -15,8 +15,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       H_min, cutoff_density, interp_BC, zero_vels, &
-       sponge_center_density, sponge_start_factor, sponge_kappa
+       H_min, cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -41,10 +40,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   cutoff_density = 50.d0
   interp_BC = .false.
   zero_vels = .false.
-  
-  sponge_center_density = 25.d0
-  sponge_start_factor = 2.0d0
-  sponge_kappa = 1000.d0
   
   ! Read namelists
   untin = 9

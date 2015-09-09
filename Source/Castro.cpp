@@ -130,6 +130,7 @@ Radiation*   Castro::radiation = 0;
 
 #ifdef ROTATION
 Real         Castro::rotational_period = -1.e200;
+Real         Castro::rotational_period_dot = 0.0;
 int          Castro::rot_source_type = 1;
 int          Castro::rot_axis = 3;
 #endif
@@ -529,6 +530,7 @@ Castro::read_params ()
       }
     }
     else pp.query("rotational_period",rotational_period);
+    pp.query("rotational_period_dot",rotational_period_dot);
     pp.query("rot_source_type",rot_source_type);
     if (Geometry::IsRZ())
       rot_axis = 2;
@@ -822,6 +824,7 @@ Castro::initData ()
     {
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
+	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());	 
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -830,12 +833,12 @@ Castro::initData ()
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
-  	   ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
+  	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 #else
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
   	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   geom.ProbLo(), geom.ProbHi());
+  	   gridloc.lo(), gridloc.hi());
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
@@ -1894,8 +1897,7 @@ Castro::advance_levelset(Real time, Real dt)
         
         phidt = phit;
         
-        LStype.FillBoundary();
-        BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
+	BoxLib::fill_boundary(LStype, 0, 1, geom);
         
         for (FillPatchIterator fpi(*this,LS_new,nGrowLS,state[LS_State_Type].curTime(),LS_State_Type,0,nCompLS);
              fpi.isValid(); ++fpi)
@@ -1995,10 +1997,9 @@ Castro::reinit_phi(Real time)
     const Real* dx   = geom.CellSize();
     int nGrowLS = 2;
     int nCompLS = 1;
-    
-    LStype.FillBoundary();
-    BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
-    
+
+    BoxLib::fill_boundary(LStype, 0, 1, geom);
+        
     // Load valid region of phi
     Array<int> intfacep, intfacen, heap, heaploc;
     for (FillPatchIterator fpi(*this,LS_new,nGrowLS,state[LS_State_Type].curTime(),LS_State_Type,0,nCompLS);
@@ -2066,10 +2067,8 @@ Castro::reinit_phi(Real time)
     // Check grow region and see if anything changes due to neighboring grids
     while (notdone)
     {
-        LS_new.FillBoundary();
-        geom.FillPeriodicBoundary(LS_new);
-        LStype.FillBoundary();
-        BoxLib::FillPeriodicBoundary(geom,LStype,0,1);
+	BoxLib::fill_boundary(LS_new, geom);
+	BoxLib::fill_boundary(LStype, 0, 1, geom);
         
         for (MFIter mfi(LS_new); mfi.isValid(); ++mfi)
         {
@@ -2264,12 +2263,21 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
        for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.growntilebox();
+#ifdef DIMENSION_AGNOSTIC	   
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+   	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
+		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
+		BL_TO_FORTRAN_3D(ext_src[mfi]),
+		ZFILL(prob_lo),ZFILL(dx),&old_time,&dt);
+#else	   
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
 		BL_TO_FORTRAN(S_old_fp[mfi]),
 		BL_TO_FORTRAN(S_old_fp[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&old_time,&dt);
+#endif	   
        }
    }
 }
@@ -2296,12 +2304,21 @@ Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
        for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.tilebox();
+#ifdef DIMENSION_AGNOSTIC
+	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(S_old[mfi]),
+		BL_TO_FORTRAN_3D(S_new[mfi]),
+		BL_TO_FORTRAN_3D(ext_src[mfi]),
+		ZFILL(prob_lo),ZFILL(dx),&new_time,&dt);
+#else	   
 	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	       (bx.loVect(), bx.hiVect(),
 		BL_TO_FORTRAN(S_old[mfi]),
 		BL_TO_FORTRAN(S_new[mfi]),
 		BL_TO_FORTRAN(ext_src[mfi]),
 		prob_lo,dx,&new_time,&dt);
+#endif	   
        }
    }
 }
@@ -2685,14 +2702,23 @@ Castro::errorEst (TagBoxArray& tags,
 	    int*        tptr    = itags.dataPtr();
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
-	    
+
+#ifdef DIMENSION_AGNOSTIC
+	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
+	                     (tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
+			      BL_TO_FORTRAN_3D(S_new[mfi]),
+			      &tagval, &clearval, 
+			      ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()), 
+			      ZFILL(dx), ZFILL(prob_lo), &time, &level);
+#else	    
 	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
 	                     (tptr,  ARLIM(tlo), ARLIM(thi),
 			      BL_TO_FORTRAN(S_new[mfi]),
 			      &tagval, &clearval, 
 			      tilebx.loVect(), tilebx.hiVect(), 
 			      dx, prob_lo, &time, &level);
-
+#endif
+	    
 	    //
 	    // Now update the tags in the TagBox.
 	    //
@@ -2754,206 +2780,6 @@ Castro::derive (const std::string& name,
 #endif
 
     AmrLevel::derive(name,time,mf,dcomp);
-}
-
-//
-// Helper function for Castro::SyncInterp().
-//
-
-static
-void
-set_bc_new (int*            bc_new,
-            int             n,
-            int             src_comp,
-            const int*      clo,
-            const int*      chi,
-            const int*      cdomlo,
-            const int*      cdomhi,
-            const BoxArray& cgrids,
-            int**           bc_orig_qty)
-            
-{
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-        int bc_index = (n+src_comp)*(2*BL_SPACEDIM) + dir;
-        bc_new[bc_index]             = INT_DIR;
-        bc_new[bc_index+BL_SPACEDIM] = INT_DIR;
- 
-        if (clo[dir] < cdomlo[dir] || chi[dir] > cdomhi[dir])
-        {
-            for (int crse = 0; crse < cgrids.size(); crse++)
-            {
-                const int* c_lo = cgrids[crse].loVect();
-                const int* c_hi = cgrids[crse].hiVect();
-
-                if (clo[dir] < cdomlo[dir] && c_lo[dir] == cdomlo[dir])
-                    bc_new[bc_index] = bc_orig_qty[crse][bc_index];
-                if (chi[dir] > cdomhi[dir] && c_hi[dir] == cdomhi[dir])
-                    bc_new[bc_index+BL_SPACEDIM] = bc_orig_qty[crse][bc_index+BL_SPACEDIM]; 
-            }
-        }
-    }
-}
-
-//
-// Interpolate a cell-centered Sync correction from a
-// coarse level (c_lev) to a fine level (f_lev).
-//
-// This routine interpolates the num_comp components of CrseSync
-// (starting at src_comp) and either increments or puts the result into
-// the num_comp components of FineSync (starting at dest_comp)
-// The components of bc_orig_qty corespond to the quantities of CrseSync.
-//
-
-void
-Castro::SyncInterp (MultiFab&      CrseSync,
-                    int            c_lev,
-                    MultiFab&      FineSync,
-                    int            f_lev,
-                    IntVect&       ratio,
-                    int            src_comp,
-                    int            dest_comp,
-                    int            num_comp,
-                    int            increment,
-                    Real           dt_clev, 
-                    int**          bc_orig_qty,
-                    SyncInterpType which_interp,
-                    int            state_comp)
-{
-    BL_PROFILE("Castro::SyncInterp()");
-
-    BL_ASSERT(which_interp >= 0 && which_interp <= 5);
-
-    Interpolater* interpolater = 0;
-
-    switch (which_interp)
-    {
-    case PC_T:           interpolater = &pc_interp;           break;
-    case CellCons_T:     interpolater = &cell_cons_interp;    break;
-    case CellConsLin_T:  interpolater = &lincc_interp;        break;
-    case CellConsProt_T: interpolater = &protected_interp;    break;
-    default:
-        BoxLib::Abort("Castro::SyncInterp(): how did this happen");
-    }
-
-    Castro&   fine_level = getLevel(f_lev);
-    const BoxArray& fgrids     = fine_level.boxArray();
-    const Geometry& fgeom      = parent->Geom(f_lev);
-    const BoxArray& cgrids     = getLevel(c_lev).boxArray();
-    const Geometry& cgeom      = parent->Geom(c_lev);
-    const Real*     dx_crse    = cgeom.CellSize();
-    Box             cdomain    = BoxLib::coarsen(fgeom.Domain(),ratio);
-    const int*      cdomlo     = cdomain.loVect();
-    const int*      cdomhi     = cdomain.hiVect();
-    int*            bc_new     = new int[2*BL_SPACEDIM*(src_comp+num_comp)];
-
-    BoxArray cdataBA(fgrids.size());
-
-    for (int i = 0; i < fgrids.size(); i++)
-        cdataBA.set(i,interpolater->CoarseBox(fgrids[i],ratio));
-    //
-    // Note: The boxes in cdataBA may NOT be disjoint !!!
-    //
-    MultiFab cdataMF(cdataBA,num_comp,0);
-
-    cdataMF.setVal(0);
-
-    cdataMF.copy(CrseSync, src_comp, 0, num_comp);
-    //
-    // Set physical boundary conditions in cdataMF.
-    //
-    // HACK HACK HACK -- for now to get it to compile
-#if 1
-    for (MFIter mfi(cdataMF); mfi.isValid(); ++mfi)
-    {
-        int         i       = mfi.index();
-        RealBox     gridloc = RealBox(fine_level.boxArray()[i],
-                                      fine_level.Geom().CellSize(),
-                                      fine_level.Geom().ProbLo());
-        FArrayBox&  cdata   = cdataMF[mfi];
-        const int*  clo     = cdata.loVect();
-        const int*  chi     = cdata.hiVect();
-        const Real* xlo     = gridloc.lo();
-
-        for (int n = 0; n < num_comp; n++)
-        {
-            set_bc_new(bc_new,n,src_comp,clo,chi,cdomlo,cdomhi,cgrids,bc_orig_qty);
-
-            BL_FORT_PROC_CALL(FILCC,filcc)
-                (BL_TO_FORTRAN(cdata),
-                 cdomlo, cdomhi, dx_crse, xlo,
-                 &(bc_new[2*BL_SPACEDIM*(n+src_comp)]));
-        }
-    }
-#endif
-    cgeom.FillPeriodicBoundary(cdataMF, 0, num_comp);
-    //
-    // Interpolate from cdataMF to fdata and update FineSync.
-    // Note that FineSync and cdataMF will have the same distribution
-    // since the length of their BoxArrays are equal.
-    //
-    FArrayBox    fdata;
-    Array<BCRec> bc_interp(num_comp);
-
-    MultiFab* fine_stateMF = 0;
-    if (interpolater == &protected_interp)
-    {
-        fine_stateMF = &(getLevel(f_lev).get_new_data(State_Type));
-    }
-
-    for (MFIter mfi(cdataMF); mfi.isValid(); ++mfi)
-    {
-        int        i     = mfi.index();
-        FArrayBox& cdata = cdataMF[mfi];
-        const int* clo   = cdata.loVect();
-        const int* chi   = cdata.hiVect();
-
-        fdata.resize(fgrids[i], num_comp);
-        //
-        // Set the boundary condition array for interpolation.
-        //
-        for (int n = 0; n < num_comp; n++)
-        {
-            set_bc_new(bc_new,n,src_comp,clo,chi,cdomlo,cdomhi,cgrids,bc_orig_qty);
-        }
-
-        for (int n = 0; n < num_comp; n++)
-        {
-            for (int dir = 0; dir < BL_SPACEDIM; dir++)
-            {
-                int bc_index = (n+src_comp)*(2*BL_SPACEDIM) + dir;
-                bc_interp[n].setLo(dir,bc_new[bc_index]);
-                bc_interp[n].setHi(dir,bc_new[bc_index+BL_SPACEDIM]);
-            }
-        }
-
-        interpolater->interp(cdata,0,fdata,0,num_comp,fgrids[i],ratio,
-                             cgeom,fgeom,bc_interp,src_comp,State_Type);
-
-        if (increment)
-        {
-            fdata.mult(dt_clev);
-
-            if (interpolater == &protected_interp)
-            {
-              cdata.mult(dt_clev);
-              FArrayBox& fine_state = (*fine_stateMF)[mfi];
-              interpolater->protect(cdata,0,fdata,0,fine_state,state_comp,
-                                    num_comp,fgrids[i],ratio,
-                                    cgeom,fgeom,bc_interp);
-              Real dt_clev_inv = 1./dt_clev;
-              cdata.mult(dt_clev_inv);
-            }
-            
-            FineSync[mfi].plus(fdata,0,dest_comp,num_comp);
-        }
-        else
-        {
-            FineSync[mfi].copy(fdata,0,dest_comp,num_comp);
-        }
-    }
-
-    delete [] bc_new;
 }
 
 void

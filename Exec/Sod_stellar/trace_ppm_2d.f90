@@ -11,8 +11,8 @@ contains
   subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
-                       rot,rt_l1,rt_l2,rt_h1,rt_h2, &
+                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                        gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -35,8 +35,8 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer gv_l1,gv_l2,gv_h1,gv_h2
-    integer rt_l1,rt_l2,rt_h1,rt_h2
+    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -49,27 +49,27 @@ contains
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,2)
+    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
 
     ! Local variables
-    integer i, j, iwave, idim
-    integer n, ipassive
+    integer          :: i, j, iwave, idim, k = 0
+    integer          :: n, ipassive
 
     double precision dtdx, dtdy
-    double precision cc, csq, Clag, rho, u, v, p, rhoe, T
+    double precision cc, csq, Clag, rho, u, v, p, rhoe, temp
     double precision drho, du, dv, dp, drhoe, dT0, dtau
     double precision dup, dvp, dpp, dTp, dtaup
     double precision dum, dvm, dpm, dTm, dtaum
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, T_ref, tau_ref
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, temp_ref, tau_ref
     double precision :: tau_s, e_s, de
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, T_ev, tau_ev
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, temp_ev, tau_ev
     double precision :: gam
     double precision :: p_r, p_T
 
@@ -246,7 +246,7 @@ contains
     ! acceleration -- we'll use this for the force on the velocity
     if (do_grav == 1 .and. ppm_trace_grav == 1) then
        do n = 1,2
-          call ppm(grav(:,:,n),gv_l1,gv_l2,gv_h1,gv_h2, &
+          call ppm(grav(:,:,k,n),gv_l1,gv_l2,gv_h1,gv_h2, &
                    q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
@@ -258,7 +258,7 @@ contains
     ! source -- we'll use this for the force on the velocity
     if (do_rotation == 1 .and. ppm_trace_rot == 1) then
        do n = 1,2
-          call ppm(rot(:,:,n),rt_l1,rt_l2,rt_h1,rt_h2, &
+          call ppm(rot(:,:,k,n),rt_l1,rt_l2,rt_h1,rt_h2, &
                    q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
@@ -306,7 +306,7 @@ contains
 
              p_ref    = p
              rhoe_ref = rhoe
-             T_ref    = T
+             temp_ref = temp
 
              tau_ref  = tau(i,j)
 
@@ -321,7 +321,7 @@ contains
 
              p_ref    = Im(i,j,1,1,QPRES)
              rhoe_ref = Im(i,j,1,1,QREINT)
-             T_ref = Im(i,j,1,1,QTEMP)
+             temp_ref = Im(i,j,1,1,QTEMP)
 
              if (ppm_temp_fix == 3) then
                 ! use the parabolic reconstruction of tau
@@ -345,17 +345,17 @@ contains
 
           dum    = u_ref    - Im(i,j,1,1,QU)
           dpm    = p_ref    - Im(i,j,1,1,QPRES)
-          dTm    = T_ref    - Im(i,j,1,1,QTEMP)
+          dTm    = temp_ref - Im(i,j,1,1,QTEMP)
 
           drho  = rho_ref  - Im(i,j,1,2,QRHO)
           du    = u_ref    - Im(i,j,1,2,QU)
           dp    = p_ref    - Im(i,j,1,2,QPRES)
           drhoe = rhoe_ref - Im(i,j,1,2,QREINT)
-          dT0   = T_ref    - Im(i,j,1,2,QTEMP)
+          dT0   = temp_ref - Im(i,j,1,2,QTEMP)
 
           dup    = u_ref    - Im(i,j,1,3,QU)
           dpp    = p_ref    - Im(i,j,1,3,QPRES)
-          dTp    = T_ref    - Im(i,j,1,3,QTEMP)
+          dTp    = temp_ref - Im(i,j,1,3,QTEMP)
 
           if (ppm_temp_fix < 3) then
              ! we are relying on tau as built from the reconstructed rho
@@ -396,7 +396,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
-             T_ev    = T
+             temp_ev = temp
              tau_ev  = tau(i,j)
           else
              rho_ev  = rho_ref
@@ -405,7 +405,7 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
-             T_ev    = T_ref
+             temp_ev = temp_ref
              tau_ev  = tau_ref
           endif
 
@@ -512,7 +512,7 @@ contains
              ! (tau, u, T) eigensystem PPM
 
              ! eos to get some thermodynamics
-             eos_state%T = T_ev
+             eos_state%T = temp_ev
              eos_state%rho = rho_ev
              eos_state%xn(:) = q(i,j,QFS:QFS-1+nspec)
 
@@ -579,7 +579,7 @@ contains
                 enddo
 
                 ! T state
-                qxp(i,j,QTEMP) = T_ref
+                qxp(i,j,QTEMP) = temp_ref
                 do iwave = 1, 3
                    if (eval(iwave) <= ZERO) qxp(i,j,QTEMP) = qxp(i,j,QTEMP) - beta(iwave)*rvec(iwave,3)
                 enddo
@@ -651,7 +651,7 @@ contains
              p_ref    = p
              rhoe_ref = rhoe
 
-             T_ref    = T
+             temp_ref = temp
 
              tau_ref  = tau(i,j)
 
@@ -666,7 +666,7 @@ contains
              p_ref    = Ip(i,j,1,3,QPRES)
              rhoe_ref = Ip(i,j,1,3,QREINT)
 
-             T_ref    = Ip(i,j,1,3,QTEMP)
+             temp_ref = Ip(i,j,1,3,QTEMP)
 
              if (ppm_temp_fix == 3) then
                 ! use the parabolic reconstruction of tau
@@ -690,17 +690,17 @@ contains
 
           dum    = u_ref    - Ip(i,j,1,1,QU)
           dpm    = p_ref    - Ip(i,j,1,1,QPRES)
-          dTm    = T_ref    - Ip(i,j,1,1,QTEMP)
+          dTm    = temp_ref - Ip(i,j,1,1,QTEMP)
 
           drho  = rho_ref  - Ip(i,j,1,2,QRHO)
           du    = u_ref    - Ip(i,j,1,2,QU)
           dp    = p_ref    - Ip(i,j,1,2,QPRES)
           drhoe = rhoe_ref - Ip(i,j,1,2,QREINT)
-          dT0   = T_ref    - Ip(i,j,1,2,QTEMP)
+          dT0   = temp_ref - Ip(i,j,1,2,QTEMP)
 
           dup    = u_ref    - Ip(i,j,1,3,QU)
           dpp    = p_ref    - Ip(i,j,1,3,QPRES)
-          dTp    = T_ref    - Ip(i,j,1,3,QTEMP)
+          dTp    = temp_ref - Ip(i,j,1,3,QTEMP)
 
           if (ppm_temp_fix < 3) then
              ! we are relying on tau as built from the reconstructed rho
@@ -740,7 +740,7 @@ contains
              Clag_ev = Clag
              enth_ev = enth
              p_ev    = p
-             T_ev    = T
+             temp_ev = temp
              tau_ev  = tau(i,j)
           else
              rho_ev  = rho_ref
@@ -749,7 +749,7 @@ contains
              Clag_ev = Clag_ref
              enth_ev = enth_ref
              p_ev    = p_ref
-             T_ev    = T_ref
+             temp_ev = temp_ref
              tau_ev  = tau_ref
           endif
 
@@ -851,7 +851,7 @@ contains
              ! T eigensystem
 
              ! eos to get some thermodynamics
-             eos_state%T = T_ev
+             eos_state%T = temp_ev
              eos_state%rho = rho_ev
              eos_state%xn(:) = q(i,j,QFS:QFS-1+nspec)
 
@@ -918,7 +918,7 @@ contains
                 enddo
 
                 ! T state
-                qxm(i+1,j,QTEMP) = T_ref
+                qxm(i+1,j,QTEMP) = temp_ref
                 do iwave = 1, 3
                    if (eval(iwave) > ZERO) qxm(i+1,j,QTEMP) = qxm(i+1,j,QTEMP) - beta(iwave)*rvec(iwave,3)
                 enddo

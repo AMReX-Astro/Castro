@@ -4,19 +4,22 @@ module rot_sources_module
 
   private
 
-  public add_rot_source, cross_product, fill_rotation_field, get_omega
+  public add_rot_source, cross_product, fill_rotation_field, get_omega, get_domegadt
 
 contains
 
-  function get_omega() result(omega)
+  function get_omega(time) result(omega)
 
     use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period, rot_axis
+    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
     implicit none
 
+    double precision :: time
     double precision :: omega(3)
+
+    double precision :: curr_period
 
     if (coord_type == 0) then
        ! If rot_period is less than zero, that means rotation is disabled, and so we should effectively
@@ -25,18 +28,62 @@ contains
        omega = (/ ZERO, ZERO, ZERO /)
 
        if (rot_period > ZERO) then
-          omega(rot_axis) = TWO * M_PI / rot_period
+
+          ! If we have a time rate of change of the rotational period,
+          ! adjust it accordingly in the calculation of omega. We assume 
+          ! that the change has been linear and started at t == 0.
+
+          curr_period = rot_period + rot_period_dot * time
+
+          omega(rot_axis) = TWO * M_PI / curr_period
+
        endif
     else
-       call bl_error("Error:: Rotate_3d.f90 :: unknown coord_type")
+       call bl_error("Error:: Castro_rot_sources_3d.f90 :: unknown coord_type")
     endif
 
   end function
 
 
 
+  function get_domegadt(time) result(domegadt)
+
+    use prob_params_module, only: coord_type
+    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
+    use bl_constants_module, only: ZERO, TWO, M_PI
+
+    implicit none
+
+    double precision :: time
+    double precision :: domegadt(3)
+
+    double precision :: curr_period, curr_omega(3)
+
+    if (coord_type == 0) then
+
+       domegadt = (/ ZERO, ZERO, ZERO /)
+
+       if (rot_period > ZERO) then
+
+          ! Rate of change of the rotational frequency is given by
+          ! d( ln(period) ) / dt = - d( ln(omega) ) / dt
+
+          curr_period = rot_period + rot_period_dot * time
+          curr_omega  = get_omega(time)
+
+          domegadt = curr_omega * (-rot_period_dot / curr_period)
+
+       endif
+    else
+       call bl_error("Error:: Castro_rot_sources_3d.f90 :: unknown coord_type")
+    endif
+
+  end function get_domegadt
+    
+
+
   subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
-                                 q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
+                                 q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx,time)
 
     ! fill_rotation_field returns the sources to the velocity
     ! equations (not the conserved momentum equations) that are used
@@ -53,16 +100,17 @@ contains
 
     double precision, intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3,3)
     double precision, intent(in   ) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-    double precision, intent(in   ) :: dx(3)
+    double precision, intent(in   ) :: dx(3),time
 
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
-    double precision :: v(3),omega(3)
-    double precision :: omegadotr,omegacrossr(3),omegacrossomegacrossr(3),omegacrossv(3)
+    double precision :: v(3),omega(3),domegadt(3)
+    double precision :: omegacrossr(3),omegacrossomegacrossr(3),omegacrossv(3)
 
     integer, parameter :: ngq = NHYP
     
-    omega = get_omega()
+    omega = get_omega(time)
+    domegadt = get_domegadt(time)
 
     ! fill all the rotation ghost cells, because we do tracing in the
     ! PPM routines
@@ -84,7 +132,7 @@ contains
 
              omegacrossv = cross_product(omega,v)
 
-             rot(i,j,k,:) = -TWO * omegacrossv - omegacrossomegacrossr
+             rot(i,j,k,:) = -TWO * omegacrossv - omegacrossomegacrossr - cross_product(domegadt, r)
              
           enddo
        enddo
@@ -95,7 +143,7 @@ contains
 
   subroutine add_rot_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                             uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                            lo,hi,dx,dt,E_added,xmom_added,ymom_added,zmom_added)
+                            lo,hi,dx,dt,time,E_added,xmom_added,ymom_added,zmom_added)
 
     ! Here we add dt * S_rot^n -- the time-level n rotation source to
     ! the momentum equation.  Note that uin here is the state at time
@@ -114,23 +162,22 @@ contains
 
     double precision, intent(in   ) ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
     double precision, intent(inout) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-    double precision, intent(in   ) :: dx(3), dt
+    double precision, intent(in   ) :: dx(3), dt, time
 
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
-    double precision :: v(3),omega(3)
+    double precision :: v(3),omega(3),domegadt(3)
     double precision :: Sr(3),SrU,SrV,SrW,SrE
     double precision :: dens
-    double precision :: omegadotr,omegacrossr(3),omegacrossv(3),omega2
+    double precision :: omegacrossr(3),omegacrossv(3)
 
     double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
     double precision :: old_xmom, old_ymom, old_zmom
     double precision :: E_added, xmom_added, ymom_added, zmom_added
 
-    omega = get_omega()
+    omega = get_omega(time)
+    domegadt = get_domegadt(time)
 
-    omega2 = dot_product(omega,omega)
-    
     do k = lo(3), hi(3)
        z = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
@@ -160,13 +207,13 @@ contains
 
              omegacrossr = cross_product(omega,r)
              omegacrossv = cross_product(omega,v)
-             omegadotr   = dot_product(omega,r)
 
              ! momentum sources: this is the Coriolis force
              ! (-2 rho omega x v) and the centrifugal force
              ! (-rho omega x ( omega x r))
 
-             Sr = -TWO * dens * omegacrossv(:) - dens * (omegadotr * omega(:) - omega2 * r(:))
+             Sr = - TWO * dens * omegacrossv(:) - dens * cross_product(omega, omegacrossr) &
+                  - dens * cross_product(domegadt, r)
 
              SrU = Sr(1)
              SrV = Sr(2)
@@ -242,7 +289,7 @@ end module rot_sources_module
                          flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                          flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                          flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                         dx,dt, &
+                         dx,dt,time, &
                          vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                          xmom_added,ymom_added,zmom_added,E_added)
 
@@ -255,12 +302,12 @@ end module rot_sources_module
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
-    use rot_sources_module, only: cross_product, get_omega
+    use rot_sources_module, only: cross_product, get_omega, get_domegadt
 
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
-    double precision, intent(in   ) :: dx(3), dt
+    double precision, intent(in   ) :: dx(3), dt, time
 
     integer :: uold_l1,uold_l2,uold_l3,uold_h1,uold_h2,uold_h3
     integer :: unew_l1,unew_l2,unew_l3,unew_h1,unew_h2,unew_h3
@@ -282,11 +329,10 @@ end module rot_sources_module
 
     integer          :: i,j,k
     double precision :: x,y,z,r(3)
-    double precision :: vnew(3),vold(3),omega(3)
-    double precision :: SrCor_old(3), SrCfg_old(3), SrCor_new(3), SrCfg_new(3)
+    double precision :: vnew(3),vold(3),omega_old(3),domegadt_old(3),omega_new(3),domegadt_new(3)
     double precision :: Sr_old(3), Sr_new(3), SrUcorr, SrVcorr, SrWcorr, SrEcorr, SrE_old, SrE_new
     double precision :: rhoo, rhon, rhooinv, rhoninv
-    double precision :: omegadotr,omegacrossr(3),omega2
+    double precision :: omegacrossrold(3),omegacrossrnew(3)
     double precision :: omegacrossvold(3),omegacrossvnew(3)
 
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
@@ -300,9 +346,11 @@ end module rot_sources_module
 
     integer :: idir1, idir2, midx1, midx2
 
-    omega = get_omega()
+    omega_old = get_omega(time)
+    domegadt_old = get_domegadt(time)
 
-    omega2 = dot_product(omega,omega)
+    omega_new = get_omega(time + dt)
+    domegadt_new = get_domegadt(time + dt)
 
     if (rot_source_type == 4) then
 
@@ -321,9 +369,15 @@ end module rot_sources_module
                 x = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
                 
                 r = (/ x, y, z /)
-                omegacrossr = cross_product(omega,r)
 
-                phi(i,j,k) = - HALF * dot_product(omegacrossr,omegacrossr)
+                ! Average old and new time rotational potentials
+                ! to get time-centered potential
+
+                omegacrossrold = cross_product(omega_old, r)
+                omegacrossrnew = cross_product(omega_new, r)
+
+                phi(i,j,k) = HALF * HALF * (dot_product(omegacrossrold, omegacrossrold) + &
+                                            dot_product(omegacrossrnew, omegacrossrnew) )
 
              enddo
           enddo
@@ -381,8 +435,6 @@ end module rot_sources_module
 
              r = (/ x, y, z /)
 
-             omegadotr = dot_product(omega,r)
-
              ! Define old source terms
 
              rhoo = uold(i,j,k,URHO)
@@ -392,11 +444,11 @@ end module rot_sources_module
                        uold(i,j,k,UMY) * rhooinv, &
                        uold(i,j,k,UMZ) * rhooinv /)
 
-             omegacrossvold = cross_product(omega,vold)
+             omegacrossrold = cross_product(omega_old, r   )
+             omegacrossvold = cross_product(omega_old, vold)
 
-             SrCor_old = - TWO * rhoo * omegacrossvold(:) ! Coriolis force
-             SrCfg_old = - rhoo * (omegadotr * omega(:) - omega2 * r(:)) ! Centrifugal force
-             Sr_old = SrCor_old + SrCfg_old ! Momentum update: Coriolis + centrifugal
+             Sr_old = - TWO * rhoo * omegacrossvold - rhoo * cross_product(omega_old, omegacrossrold) &
+                      - rhoo * cross_product(domegadt_old, r)
 
              SrE_old = dot_product(vold, Sr_old) ! Energy update; only centrifugal term does work
 
@@ -409,17 +461,21 @@ end module rot_sources_module
                        unew(i,j,k,UMY) * rhoninv, &
                        unew(i,j,k,UMZ) * rhoninv /)
 
-             omegacrossvnew = cross_product(omega,vnew)
+             omegacrossrnew = cross_product(omega_new, r   )
+             omegacrossvnew = cross_product(omega_new ,vnew)
 
-             SrCor_new = - TWO * rhon * omegacrossvnew(:) ! Coriolis force
-             SrCfg_new = - rhon * (omegadotr * omega(:) - omega2 * r(:)) ! Centrifugal force
-             Sr_new = SrCor_new + SrCfg_new ! Momentum update: Coriolis + centrifugal
+             Sr_new = - TWO * rhon * omegacrossvnew - rhon * cross_product(omega_new, omegacrossrnew) &
+                      - rhon * cross_product(domegadt_new, r)
+
+             SrE_new = dot_product(vnew, Sr_new)
 
              ! Define correction terms
 
              SrUcorr = HALF * (Sr_new(1) - Sr_old(1))
              SrVcorr = HALF * (Sr_new(2) - Sr_old(2))
              SrWcorr = HALF * (Sr_new(3) - Sr_old(3))
+
+             SrEcorr = HALF * (SrE_new - SrE_old)
 
              ! Correct state with correction terms
 
@@ -430,9 +486,6 @@ end module rot_sources_module
              if (rot_source_type == 1) then
 
                ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
-
-                SrE_new = dot_product(vnew, Sr_new)
-                SrEcorr = HALF * (SrE_new - SrE_old)
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr * dt
 
@@ -445,9 +498,12 @@ end module rot_sources_module
                 vnew(2) = unew(i,j,k,UMY) * rhoninv
                 vnew(3) = unew(i,j,k,UMZ) * rhoninv
 
-                omegacrossvnew = cross_product(omega,vnew)
+                omegacrossrnew = cross_product(omega_new, r   )
+                omegacrossvnew = cross_product(omega_new, vnew)
 
-                Sr_new = -TWO * rhon * omegacrossvnew(:) - rhon * (omegadotr * omega(:) - omega2 * r(:))
+                Sr_new = - TWO * rhon * omegacrossvnew - rhon * cross_product(omega_new, omegacrossrnew) &
+                         - rhon * cross_product(domegadt_new, r)
+
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -480,24 +536,27 @@ end module rot_sources_module
                 midx1 = UMX + idir1 - 1
                 midx2 = UMX + idir2 - 1
 
-                mom1 = unew(i,j,k,midx1)
-                mom2 = unew(i,j,k,midx2)
+                ! We need to use vnew because the state has already been updated by this point
+                ! using the standard method; we need to look at the velocities before that has occurred.
+
+                mom1 = rhon * vnew(idir1)
+                mom2 = rhon * vnew(idir2)
 
                 ! Now do the implicit solve for the time-level n+1 Coriolis term. 
                 ! It would be nice if this all could be generalized so that we don't 
                 ! have to break it up by coordinate axis (in case the user wants to 
                 ! rotate about multiple axes).
 
-                unew(i,j,k,midx1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
-                unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
+                unew(i,j,k,midx1) = (mom1 + dt * omega_new(rot_axis) * mom2) / (ONE + (dt * omega_new(rot_axis))**2)
+                unew(i,j,k,midx2) = (mom2 - dt * omega_new(rot_axis) * mom1) / (ONE + (dt * omega_new(rot_axis))**2)
 
                 ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
                 ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
-                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
-                                - dt * omega(rot_axis) * uold(i,j,k,midx2)
-                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) &
-                                + dt * omega(rot_axis) * uold(i,j,k,midx1)
+                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega_new(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
+                                - dt * omega_old(rot_axis) * uold(i,j,k,midx2)
+                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega_new(rot_axis)**2 * r(idir2) * (rhon - rhoo) &
+                                + dt * omega_old(rot_axis) * uold(i,j,k,midx1)
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, (1/2) rho * phi.
@@ -511,12 +570,25 @@ end module rot_sources_module
                 ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
 
-                SrEcorr = - ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                              drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                              drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                              drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                              drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) + &
-                              drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                     drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                     drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                     drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                     drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                     drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+
+                ! Correct for the time rate of change of the potential, which acts 
+                ! purely as a source term. For the velocities this is a corrector step
+                ! and for the energy we add the full source term.
+
+                Sr_old = - rhoo * cross_product(domegadt_old, r)
+                Sr_new = - rhon * cross_product(domegadt_new, r)
+
+                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
+
+                vnew = unew(i,j,k,UMX:UMZ) / rhon
+                                
+                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
 
                 unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
 

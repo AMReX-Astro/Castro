@@ -272,8 +272,10 @@
                                    do_grav_in, grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
-                                   do_rotation_in, rot_source_type_in, rot_axis_in, rot_period_in, &
+                                   do_rotation_in, rot_source_type_in, rot_axis_in, &
+                                   rot_period_in, rot_period_dot_in, &
                                    const_grav_in, deterministic_in, do_acc_in)
+!                                  phys_bc_lo,phys_bc_hi
 
         ! Passing data from C++ into f90
 
@@ -307,10 +309,9 @@
         integer, intent(in) :: normalize_species_in
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
-        double precision, intent(in) :: rot_period_in, const_grav_in
-        integer, intent(in) :: do_acc_in
+        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in
         integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
-        integer, intent(in) :: deterministic_in
+        integer, intent(in) :: deterministic_in, do_acc_in
         integer :: iadv, ispec
 
         integer             :: QLAST
@@ -513,6 +514,7 @@
         fix_mass_flux                = fix_mass_flux_in
         do_rotation                  = do_rotation_in
         rot_period                   = rot_period_in
+        rot_period_dot               = rot_period_dot_in
         rot_source_type              = rot_source_type_in
         rot_axis                     = rot_axis_in
         const_grav                   = const_grav_in
@@ -673,3 +675,67 @@
         close (unit=un)
 
       end subroutine get_tagging_params
+
+
+
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
+
+      subroutine get_sponge_params(name, namlen)
+
+        use sponge_params_module
+
+        ! Initialize the sponge parameters
+
+        integer :: namlen
+        integer :: name(namlen)
+        
+        integer :: un, i, status
+
+        integer, parameter :: maxlen = 256
+        character (len=maxlen) :: probin
+
+        namelist /sponge/ &
+             sponge_lower_radius, sponge_upper_radius, &
+             sponge_lower_density, sponge_upper_density, &
+             sponge_timescale
+
+        ! Set namelist defaults
+
+        sponge_lower_radius = -1.d0
+        sponge_upper_radius = -1.d0
+        
+        sponge_lower_density = -1.d0
+        sponge_upper_density = -1.d0
+        
+        sponge_timescale    = -1.d0
+
+        ! create the filename
+        if (namlen > maxlen) then
+           print *, 'probin file name too long'
+           stop
+        endif
+
+        do i = 1, namlen
+           probin(i:i) = char(name(i))
+        end do
+
+        ! read in the namelist
+        un = 9
+        open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+        read (unit=un, nml=sponge, iostat=status)
+
+        if (status < 0) then
+           ! the namelist does not exist, so we just go with the defaults
+           continue
+
+        else if (status > 0) then
+           ! some problem in the namelist
+           print *, 'ERROR: problem in the sponge namelist'
+           stop
+        endif
+
+        close (unit=un)
+
+      end subroutine get_sponge_params

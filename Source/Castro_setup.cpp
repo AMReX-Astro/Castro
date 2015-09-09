@@ -207,6 +207,7 @@ Castro::variableSetUp ()
 
 #ifndef ROTATION
     static Real rotational_period = -1.e200;
+    static Real rotational_period_dot = 0.0;
     static int  rot_axis = 3;
     static int  rot_source_type = -1;
 #endif
@@ -234,7 +235,7 @@ Castro::variableSetUp ()
 	 do_sponge,
          normalize_species,fix_mass_flux,use_sgs,
 	 dual_energy_eta1, dual_energy_eta2, dual_energy_update_E_from_e,
-	 do_rotation, rot_source_type, rot_axis, rotational_period, 
+	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_period_dot,
 	 const_grav, deterministic, do_acc);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
@@ -268,6 +269,13 @@ Castro::variableSetUp ()
     BL_FORT_PROC_CALL(GET_TAGGING_PARAMS, get_tagging_params)
       (probin_file_name.dataPtr(),
        &probin_file_length);
+
+    // Read in the parameters for the sponge
+    // and store them in the Fortran module.
+    
+    BL_FORT_PROC_CALL(GET_SPONGE_PARAMS, get_sponge_params)
+      (probin_file_name.dataPtr(),
+       &probin_file_length);    
 
     Interpolater* interp = &cell_cons_interp;
 
@@ -445,7 +453,6 @@ Castro::variableSetUp ()
                                     BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));
 
 #ifdef GRAVITY
-    if (do_grav) {
        set_scalar_bc(bc,phys_bc);
        desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
@@ -458,14 +465,12 @@ Castro::variableSetUp ()
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
-    }
 #endif
 
 // For rotation we'll use the same boundary condition routines as for gravity, 
 // since we use the rotation in the same manner as in the gravity.
 
 #ifdef ROTATION
-    if (do_rotation) {
        set_scalar_bc(bc,phys_bc);
        desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
@@ -478,7 +483,6 @@ Castro::variableSetUp ()
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
-    }
 #endif
 
 #ifdef LEVELSET

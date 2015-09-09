@@ -1,5 +1,5 @@
     subroutine ca_gsrc(lo,hi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
-                       uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,E_added,mom_added)
+                       uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
       use bl_constants_module
@@ -16,7 +16,7 @@
       double precision :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
       double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
       double precision :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
-      double precision :: dx(3), dt
+      double precision :: dx(3), dt, time
       double precision :: E_added, mom_added(3)
 
       double precision :: rho, rhoInv
@@ -99,7 +99,7 @@
                              flux1,f1_lo,f1_hi, &
                              flux2,f2_lo,f2_hi, &
                              flux3,f3_lo,f3_hi, &
-                             dx,dt, &
+                             dx,dt,time, &
                              vol,vol_lo,vol_hi, &
                              E_added,mom_added)
 
@@ -147,9 +147,10 @@
       double precision :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
 
       double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-      double precision :: dx(3), dt, E_added, mom_added(3)
+      double precision :: dx(3), dt, time
+      double precision :: E_added, mom_added(3)
 
-      integer         :: i, j, k
+      integer          :: i, j, k
 
       double precision :: Sr_old(3), Sr_new(3), Srcorr(3)
       double precision :: vold(3), vnew(3)
@@ -303,16 +304,17 @@
                else if (grav_source_type .eq. 4) then
 
                   ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                  ! the change in the gravitational potential energy, (1/2) rho * phi.
-                  ! This must be true for the total energy, rho * E_g + (1/2) rho * phi, to be conserved.
+                  ! the change in the gravitational potential energy, rho * phi.
+                  ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
                   ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                  ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
-                  ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new gravitational
-                  ! energy is equal to the mass changed multiplied by the difference between these two
-                  ! potentials. This is a generalization of the cell-centered approach implemented in 
+                  ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
+                  ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
+                  ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
+                  ! change multiplied by the difference between these two potentials.
+                  ! This is a generalization of the cell-centered approach implemented in 
                   ! the other source options, which effectively are equal to 
-                  ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
-                  ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
+                  ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
+                  ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                   SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                        drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &

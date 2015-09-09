@@ -19,14 +19,11 @@
                           vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                           courno,verbose,mass_added,eint_added,eden_added,&
                           xmom_added_flux, ymom_added_flux, &
-                          xmom_added_sponge, ymom_added_sponge, &
-                          E_added_flux,E_added_sponge)
+                          E_added_flux)
 
-      use meth_params_module, only : QVAR, NVAR, NHYP, &
-                                     do_sponge, normalize_species
+      use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
       use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
            normalize_new_species
-      use sponge_module, only : sponge
 
       implicit none
 
@@ -61,9 +58,8 @@
       double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
       double precision delta(2),dt,time,courno
-      double precision E_added_flux,E_added_sponge
+      double precision E_added_flux
       double precision xmom_added_flux, ymom_added_flux
-      double precision xmom_added_sponge, ymom_added_sponge
       double precision mass_added,eint_added,eden_added
 
 !     Automatic arrays for workspace
@@ -166,12 +162,6 @@
       ! Normalize the species 
       if (normalize_species .eq. 1) &
          call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-
-      if (do_sponge .eq. 1) &
-           call sponge(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi, &
-                       time,dt, &
-                       dx,dy,domlo,domhi, &
-                       E_added_sponge,xmom_added_sponge,ymom_added_sponge)
 
       deallocate(q,gamc,flatn,c,csml,div,pgdx,pgdy,srcQ,pdivu)
 

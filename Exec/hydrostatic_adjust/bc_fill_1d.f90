@@ -3,7 +3,8 @@
 subroutine ca_hypfill(adv,adv_l1,adv_h1, &
                       domlo,domhi,delta,xlo,time,bc)
 
-  use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UTEMP, UEINT, UFS
+  use bl_constants_module
+  use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, UTEMP, UEINT, UFS
   use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
        hse_eint_top, hse_p_top
   use network, only: nspec
@@ -35,6 +36,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_h1, &
            vel = max(adv(i,UMX)/adv(i,URHO),0.d0)
            adv(i,URHO)  = hse_rho_top
            adv(i,UMX)   = adv(i,URHO)*vel
+           adv(i,UMY)   = ZERO
+           adv(i,UMZ)   = ZERO
            adv(i,UTEMP) = hse_T_top
            adv(i,UEINT) = hse_rho_top*hse_eint_top
            adv(i,UEDEN) = hse_rho_top*hse_eint_top + &

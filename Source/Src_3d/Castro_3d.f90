@@ -21,15 +21,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,&
                     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    xmom_added_sponge,ymom_added_sponge,zmom_added_sponge,&
-                    E_added_flux,E_added_sponge)
+                    E_added_flux)
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, do_sponge, &
+  use meth_params_module, only : QVAR, NVAR, NHYP, &
                                  normalize_species
   use advection_module, only : umeth3d, ctoprim, divu, consup, enforce_minimum_density, &
        normalize_new_species
-  use sponge_module, only : sponge
 
   implicit none
 
@@ -66,10 +64,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
   double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno,E_added_flux,E_added_sponge
+  double precision delta(3),dt,time,courno,E_added_flux
   double precision mass_added,eint_added,eden_added
   double precision xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
   double precision, pointer:: q(:,:,:,:)
@@ -172,14 +169,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   if (normalize_species .eq. 1) then
      call normalize_new_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                                 lo,hi)
-  end if
-
-  ! Impose sponge
-  if (do_sponge .eq. 1) then
-     call sponge(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3,lo,hi, &
-                 time,dt, &
-                 dx,dy,dz,domlo,domhi, &
-                 E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
 
   call bl_deallocate(     q)

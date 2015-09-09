@@ -1,5 +1,5 @@
   subroutine ca_rsrc(lo,hi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,E_added,mom_added)
+                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
@@ -17,7 +17,7 @@
     double precision, intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     double precision, intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     double precision, intent(inout) :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
-    double precision, intent(in   ) :: dx(3), dt
+    double precision, intent(in   ) :: dx(3), dt, time
 
     integer          :: i, j ,k
     double precision :: Sr(3),SrE
@@ -94,7 +94,7 @@
                          flux1,f1_lo,f1_hi, &
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
-                         dx,dt, &
+                         dx,dt,time, &
                          vol,vol_lo,vol_hi, &
                          E_added,mom_added)
 
@@ -107,7 +107,7 @@
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, rot_period, rot_source_type, rot_axis
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
-    use rotation_module, only: cross_product, get_omega, rotational_acceleration, rotational_potential
+    use rotation_module, only: cross_product, get_omega, get_domegadt, rotational_acceleration
 
     implicit none
 
@@ -147,11 +147,12 @@
 
     double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    double precision :: dx(3), dt, E_added, mom_added(3)
+    double precision :: dx(3), dt, time
+    double precision :: E_added, mom_added(3)
 
     integer          :: i,j,k
     double precision :: r(3)
-    double precision :: vnew(3),vold(3),omega(3)
+    double precision :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
     double precision :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
     double precision :: rhoo, rhon, rhooinv, rhoninv
 
@@ -165,7 +166,14 @@
 
     integer :: idir1, idir2, midx1, midx2
 
-    omega = get_omega()
+    ! Note that the time passed to this function
+    ! is the new time at time-level n+1.
+    
+    omega_old = get_omega(time-dt)
+    omega_new = get_omega(time   )
+
+    domegadt_old = get_domegadt(time-dt)
+    domegadt_new = get_domegadt(time   )
 
     if (rot_source_type == 4) then
 
@@ -279,7 +287,7 @@
                 ! before we calculate the energy source term.
 
                 vnew = unew(i,j,k,UMX:UMZ) * rhoninv
-                Sr_new = rhon * rotational_acceleration(r, vnew) * dt
+                Sr_new = rhon * rotational_acceleration(r, vnew, time) * dt
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -315,36 +323,52 @@
                 ! have to break it up by coordinate axis (in case the user wants to 
                 ! rotate about multiple axes).
 
-                unew(i,j,k,midx1) = (mom1 + dt * omega(rot_axis) * mom2) / (ONE + (dt * omega(rot_axis))**2)
-                unew(i,j,k,midx2) = (mom2 - dt * omega(rot_axis) * mom1) / (ONE + (dt * omega(rot_axis))**2)
+                unew(i,j,k,midx1) = (mom1 + dt * omega_new(rot_axis) * mom2) / (ONE + (dt * omega_new(rot_axis))**2)
+                unew(i,j,k,midx2) = (mom2 - dt * omega_new(rot_axis) * mom1) / (ONE + (dt * omega_new(rot_axis))**2)
 
                 ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
                 ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
-                unew(i,j,k,midx1) = unew(i,j,k,midx1) + HALF * dt * omega(rot_axis)**2 * r(idir1) * (rhon - rhoo) &
-                                - dt * omega(rot_axis) * uold(i,j,k,midx2)
-                unew(i,j,k,midx2) = unew(i,j,k,midx2) + HALF * dt * omega(rot_axis)**2 * r(idir2) * (rhon - rhoo) &
-                                + dt * omega(rot_axis) * uold(i,j,k,midx1)
+                unew(i,j,k,midx1) = unew(i,j,k,midx1) - dt * omega_old(rot_axis) * uold(i,j,k,midx2) &
+                                  + HALF * dt * r(idir1) * omega_new(rot_axis)**2 * rhon &
+                                  - HALF * dt * r(idir1) * omega_old(rot_axis)**2 * rhoo
+                unew(i,j,k,midx2) = unew(i,j,k,midx2) + dt * omega_old(rot_axis) * uold(i,j,k,midx1) &
+                                  + HALF * dt * r(idir2) * omega_new(rot_axis)**2 * rhon &
+                                  - HALF * dt * r(idir2) * omega_old(rot_axis)**2 * rhoo
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                ! the change in the rotational potential energy, (1/2) rho * phi.
+                ! the change in the rotational potential energy, rho * phi.
                 ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
                 ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                ! There is an amount of mass drho_{i+1/2} leaving the zone. It is going from 
-                ! a potential of phi_i to a potential of phi_{i+1}. Therefore the new rotational
-                ! energy is equal to the mass changed multiplied by the difference between these two
-                ! potentials. This is a generalization of the cell-centered approach implemented in 
+                ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
+                ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
+                ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
+                ! change multiplied by the difference between these two potentials.
+                ! This is a generalization of the cell-centered approach implemented in 
                 ! the other source options, which effectively are equal to 
-                ! SrEcorr = - HALF * drho(i,j,k) * phi(i,j,k),
-                ! where drho(i,j,k) = unew(i,j,k,URHO) - uold(i,j,k,URHO).
+                ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
+                ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                SrEcorr = - ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                              drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                              drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                              drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                              drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                              drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                     drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                     drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                     drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                     drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                     drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
 
+                ! Correct for the time rate of change of the potential, which acts 
+                ! purely as a source term. For the velocities this is a corrector step
+                ! and for the energy we add the full source term.
+
+                Sr_old = - rhoo * cross_product(domegadt_old, r)
+                Sr_new = - rhon * cross_product(domegadt_new, r)
+               
+                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
+
+                vnew = unew(i,j,k,UMX:UMZ) / rhon
+                                
+                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
+                
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
              end if
