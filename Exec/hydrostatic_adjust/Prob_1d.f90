@@ -204,7 +204,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   do i = lo(1), hi(1)
-     state(i,UMX) = 0.d0
+     state(i,UMX:UMZ) = 0.d0
      state(i,UEINT) = state(i,URHO) * state(i,UEINT)
      state(i,UEDEN) = state(i,UEINT)
      state(i,UFS:UFS+nspec-1) = state(i,URHO) * state(i,UFS:UFS+nspec-1)
