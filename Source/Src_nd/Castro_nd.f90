@@ -486,6 +486,13 @@
 
         call eos_init(small_dens=small_dens, small_temp=small_temp)
 
+        ! The EOS might have modified our choices because of its
+        ! internal limitations, so let's get small_dens and small_temp
+        ! again just to make sure we're consistent with the EOS.
+        
+        call eos_get_small_dens(small_dens)
+        call eos_get_small_temp(small_temp)
+        
         allow_negative_energy        = allow_negative_energy_in
         ppm_type                     = ppm_type_in
         ppm_reference                = ppm_reference_in
