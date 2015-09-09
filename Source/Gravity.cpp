@@ -2384,12 +2384,12 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    PArray<FArrayBox> priv_qL0(nthreads);
-    PArray<FArrayBox> priv_qLC(nthreads);
-    PArray<FArrayBox> priv_qLS(nthreads);
-    PArray<FArrayBox> priv_qU0(nthreads);
-    PArray<FArrayBox> priv_qUC(nthreads);
-    PArray<FArrayBox> priv_qUS(nthreads);
+    PArray<FArrayBox> priv_qL0(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_qLC(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_qLS(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_qU0(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_qUC(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_qUS(nthreads, PArrayManage);
     for (int i=0; i<nthreads; i++) {
 	priv_qL0.set(i, new FArrayBox(boxq0));
 	priv_qLC.set(i, new FArrayBox(boxqC));
@@ -2611,12 +2611,12 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    PArray<FArrayBox> priv_bcXYLo(nthreads);
-    PArray<FArrayBox> priv_bcXYHi(nthreads);
-    PArray<FArrayBox> priv_bcXZLo(nthreads);
-    PArray<FArrayBox> priv_bcXZHi(nthreads);
-    PArray<FArrayBox> priv_bcYZLo(nthreads);
-    PArray<FArrayBox> priv_bcYZHi(nthreads);
+    PArray<FArrayBox> priv_bcXYLo(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_bcXYHi(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_bcXZLo(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_bcXZHi(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_bcYZLo(nthreads, PArrayManage);
+    PArray<FArrayBox> priv_bcYZHi(nthreads, PArrayManage);
     for (int i=0; i<nthreads; i++) {
 	priv_bcXYLo.set(i, new FArrayBox(boxXY));
 	priv_bcXYHi.set(i, new FArrayBox(boxXY));
