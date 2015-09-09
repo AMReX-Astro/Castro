@@ -1,0 +1,45 @@
+! -*- f90 -*-
+! HELMEOS table data
+
+!..for the tables, in general
+      integer          imax,jmax
+      parameter        (imax = 271, jmax = 101)
+      double precision d(imax),t(jmax)
+      
+      double precision tlo, thi, tstp, tstpi
+      double precision dlo, dhi, dstp, dstpi
+
+!..for the helmholtz free energy tables
+      double precision f(imax,jmax),fd(imax,jmax),                     &
+                       ft(imax,jmax),fdd(imax,jmax),ftt(imax,jmax),    &
+                       fdt(imax,jmax),fddt(imax,jmax),fdtt(imax,jmax), &
+                       fddtt(imax,jmax)
+
+!..for the pressure derivative with density ables
+      double precision dpdf(imax,jmax),dpdfd(imax,jmax),                &
+                       dpdft(imax,jmax),dpdfdt(imax,jmax)
+
+!..for chemical potential tables
+      double precision ef(imax,jmax),efd(imax,jmax),                    &
+                       eft(imax,jmax),efdt(imax,jmax)
+
+!..for the number density tables
+      double precision xf(imax,jmax),xfd(imax,jmax),                    &
+                       xft(imax,jmax),xfdt(imax,jmax)
+
+!..for storing the differences
+      double precision dt_sav(jmax),dt2_sav(jmax),                      &
+                       dti_sav(jmax),dt2i_sav(jmax),                    &
+                       dd_sav(imax),dd2_sav(imax),                      &
+                       ddi_sav(imax),dd2i_sav(imax)
+
+
+      common /eoscom1/ tlo, thi, tstp, tstpi,                           &
+                       dlo, dhi, dstp, dstpi, d, t
+      common /eoscom2/ f, fd, ft, fdd, ftt, fdt, fddt, fdtt, fddtt
+      common /eoscom3/ dpdf, dpdfd, dpdft, dpdfdt
+      common /eoscom4/ ef, efd, eft, efdt
+      common /eoscom5/ xf, xfd, xft, xfdt
+      common /eoscom6/ dt_sav, dt2_sav, dti_sav, dt2i_sav,              &
+                       dd_sav, dd2_sav, ddi_sav, dd2i_sav
+
