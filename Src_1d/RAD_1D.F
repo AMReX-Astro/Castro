@@ -23,8 +23,8 @@ c#define BIGKP 1.d0
       integer FirstSpec, FirstAux, NUM_STATE
       DEN = Den_in
       XMOM = Xmom_in
-      YMOM = -1
-      ZMOM = -1
+      YMOM = Xmom_in+1
+      ZMOM = Xmom_in+2
       EDEN = Eden_in
       EINT = Eint_in
       ITEMP = Temp_in

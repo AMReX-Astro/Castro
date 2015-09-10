@@ -24,7 +24,7 @@ c#define BIGKP 1.d0
       DEN = Den_in
       XMOM = Xmom_in
       YMOM = Xmom_in+1
-      ZMOM = -1
+      ZMOM = Xmom_in+2
       EDEN = Eden_in
       EINT = Eint_in
       ITEMP = Temp_in

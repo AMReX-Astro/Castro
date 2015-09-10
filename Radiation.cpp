@@ -2716,8 +2716,9 @@ void Radiation::computeTemp(MultiFab& State, int resetEint)
 
 	    if (do_real_eos == 0) {
 		BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-		    (BL_TO_FORTRAN(State[mfi]),
-		     bx.loVect(), bx.hiVect(),verbose);
+		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     BL_TO_FORTRAN_3D(State[mfi]),
+		     verbose);
 
 		temp.resize(bx);
 		temp.copy(State[mfi],bx,Eint,bx,0,1);

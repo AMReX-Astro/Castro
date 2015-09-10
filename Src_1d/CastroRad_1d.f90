@@ -16,12 +16,11 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol,vol_l1,vol_h1,courno,verbose, &
                         nstep_fsp)
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP, do_sponge, normalize_species
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_module, only : enforce_minimum_density, normalize_new_species
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
-  use sponge_module, only : sponge
 
   implicit none
 
@@ -69,7 +68,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: pdivu(:)
   
   double precision dx,mass_added,eint_added,eden_added
-  double precision E_added_sponge,xmom_added_sponge
   integer i,ngf,ngq,iflaten
   integer q_l1, q_h1
 
@@ -168,10 +166,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   ! Normalize the species
   if (normalize_species .eq. 1) &
        call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
-  
-  if (do_sponge .eq. 1) &
-       call sponge(uout,uout_l1,uout_h1,lo,hi,time,dt,dx,domlo,domhi,&
-                   E_added_sponge,xmom_added_sponge)
   
   deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
 
