@@ -672,7 +672,8 @@
       !     
 
       use bl_constants_module
-
+      use prob_params_module, only: dg
+      
       implicit none
 
       integer          :: lo(3), hi(3)
@@ -687,12 +688,22 @@
       integer          :: i, j, k
       double precision :: uy, uz, vx, vz, wx, wy, v1, v2, v3
       double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
+
+      ldat = ZERO
+
+      uy = ZERO
+      uz = ZERO
+      vx = ZERO
+      vz = ZERO
+      wx = ZERO
+      wy = ZERO
+      
       !
       ! Convert momentum to velocity.
       !
-      do k = lo(3)-1, hi(3)+1
-         do j = lo(2)-1, hi(2)+1
-            do i = lo(1)-1, hi(1)+1
+      do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+         do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+            do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
                ldat(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,1)
                ldat(i,j,k,3) = dat(i,j,k,3) / dat(i,j,k,1)
                ldat(i,j,k,4) = dat(i,j,k,4) / dat(i,j,k,1)
@@ -705,16 +716,25 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               uy = HALF * (ldat(i,j+1,k,2) - ldat(i,j-1,k,2)) / delta(2)
-               uz = HALF * (ldat(i,j,k+1,2) - ldat(i,j,k-1,2)) / delta(3)
+
                vx = HALF * (ldat(i+1,j,k,3) - ldat(i-1,j,k,3)) / delta(1)
-               vz = HALF * (ldat(i,j,k+1,3) - ldat(i,j,k-1,3)) / delta(3)
                wx = HALF * (ldat(i+1,j,k,4) - ldat(i-1,j,k,4)) / delta(1)
-               wy = HALF * (ldat(i,j+1,k,4) - ldat(i,j-1,k,4)) / delta(2)
+                  
+               if (delta(2) > ZERO) then
+                  uy = HALF * (ldat(i,j+1,k,2) - ldat(i,j-1,k,2)) / delta(2)
+                  wy = HALF * (ldat(i,j+1,k,4) - ldat(i,j-1,k,4)) / delta(2)
+               endif
+
+               if (delta(3) > ZERO) then
+                  uz = HALF * (ldat(i,j,k+1,2) - ldat(i,j,k-1,2)) / delta(3)
+                  vz = HALF * (ldat(i,j,k+1,3) - ldat(i,j,k-1,3)) / delta(3)
+               endif
+
                v1 = wy - vz
                v2 = uz - wx
                v3 = vx - uy
                vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
+
             end do
          end do
       end do
@@ -731,7 +751,8 @@
       !
 
       use bl_constants_module
-
+      use prob_params_module, only: dg
+      
       implicit none
 
       integer          :: lo(3), hi(3)
@@ -750,15 +771,19 @@
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               uhi = dat(i+1,j,k,2) / dat(i+1,j,k,1)
-               ulo = dat(i-1,j,k,2) / dat(i-1,j,k,1)
-               vhi = dat(i,j+1,k,3) / dat(i,j+1,k,1)
-               vlo = dat(i,j-1,k,3) / dat(i,j-1,k,1)
-               whi = dat(i,j,k+1,4) / dat(i,j,k+1,1)
-               wlo = dat(i,j,k-1,4) / dat(i,j,k-1,1)
-               divu(i,j,k,1) = HALF * ( (uhi-ulo) / delta(1) + &
-                                         (vhi-vlo) / delta(2) + &
-                                         (whi-wlo) / delta(3) )
+               uhi = dat(i+1*dg(1),j,k,2) / dat(i+1*dg(1),j,k,1)
+               ulo = dat(i-1*dg(1),j,k,2) / dat(i-1*dg(1),j,k,1)
+               vhi = dat(i,j+1*dg(2),k,3) / dat(i,j+1*dg(2),k,1)
+               vlo = dat(i,j-1*dg(2),k,3) / dat(i,j-1*dg(2),k,1)
+               whi = dat(i,j,k+1*dg(3),4) / dat(i,j,k+1*dg(3),1)
+               wlo = dat(i,j,k-1*dg(3),4) / dat(i,j,k-1*dg(3),1)
+               divu(i,j,k,1) = HALF * (uhi-ulo) / delta(1)
+               if (delta(2) > ZERO) then
+                  divu(i,j,k,1) = divu(i,j,k,1) + HALF * (vhi-vlo) / delta(2)
+               endif
+               if (delta(3) > ZERO) then
+                  divu(i,j,k,1) = divu(i,j,k,1) + HALF * (whi-wlo) / delta(3)
+               endif
             end do
          end do
       end do
