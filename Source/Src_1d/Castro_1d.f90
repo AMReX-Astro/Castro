@@ -20,7 +20,7 @@
                           E_added_flux)
 
 
-      use meth_params_module, only : QVAR, QU, NVAR, NHYP, do_sponge, normalize_species
+      use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
       use advection_module  , only : umeth1d, ctoprim, consup, enforce_minimum_density, normalize_new_species
       use bl_constants_module
 
