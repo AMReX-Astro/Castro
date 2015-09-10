@@ -29,7 +29,7 @@ subroutine update_sponge_params(time)
         r_guess = r_guess + dr
      endif
 
-     if (abs(dr/r_guess) < TOL) then
+     if (abs(dr/r_guess) < tol) then
         converged = .true.
         r = r_guess
         r_old_s = r_guess
@@ -44,6 +44,7 @@ subroutine update_sponge_params(time)
   
   sponge_lower_radius = r + 2.5d7
   sponge_upper_radius = r + 5.0d7
+  sponge_timescale    = 1.0d-3
   
 end subroutine update_sponge_params
 
