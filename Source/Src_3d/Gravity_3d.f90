@@ -396,7 +396,7 @@
       integer          :: n1d,level
       double precision :: radial_grav(0:n1d-1)
 
-      integer          :: g_l1,g_l2,g_l3,g_h1,g_h2,g_H3
+      integer          :: g_l1,g_l2,g_l3,g_h1,g_h2,g_h3
       double precision :: grav(g_l1:g_h1,g_l2:g_h2,g_l3:g_h3,3)
 
       integer          :: i,j,k,index
