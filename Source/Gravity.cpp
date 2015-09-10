@@ -1335,7 +1335,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
       if (dir < BL_SPACEDIM)
 	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
       else
-	grav_vector.setVal(0.);
+	grav_vector.setVal(0.,dir,1,ng);
     
     // Fill G_old from grav_vector.
 	
@@ -1435,7 +1435,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
       if (dir < BL_SPACEDIM)
 	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
       else
-	grav_vector.setVal(0.);
+	grav_vector.setVal(0.,dir,1,ng);
 
     // Fill G_new from grav_vector.
 	
