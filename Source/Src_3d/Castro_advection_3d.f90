@@ -793,7 +793,8 @@ contains
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
-                                   npassive, upass_map, qpass_map, dual_energy_eta1
+                                   npassive, upass_map, qpass_map, dual_energy_eta1, &
+                                   allow_negative_energy, small_temp
     
     use flatten_module
     use bl_constants_module
@@ -913,6 +914,24 @@ contains
 
              eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
              eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
+
+             ! If necessary, reset the energy using small_temp
+             if ((allow_negative_energy .eq. 0) .and. (q(i,j,k,QREINT) .lt. ZERO)) then
+                q(i,j,k,QTEMP) = small_temp
+                eos_state % T =  q(i,j,k,QTEMP)
+
+                call eos(eos_input_rt, eos_state)
+                q(i,j,k,QREINT) = eos_state % e
+
+                if (q(i,j,k,QREINT) .lt. ZERO) then
+                   print *,'   '
+                   print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
+                   print *,'>>> ... new e from eos (input_rt) call is negative ' &
+                        ,q(i,j,k,QREINT)
+                   print *,'    '
+                   call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
+                end if
+             end if
 
              call eos(eos_input_re, eos_state)
 
