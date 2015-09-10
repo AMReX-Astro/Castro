@@ -383,13 +383,11 @@ contains
 
                    do j = ilo2-1, ihi2+1
                       do i = ilo1-1, ihi1+1
-                         rhoInv = ONE / Im(i,j,kc,idim,iwave,QRHO)
-                         
                          eos_state % rho(i,j,1)   = Im(i,j,kc,idim,iwave,QRHO)
                          eos_state % T(i,j,1)     = Im(i,j,kc,idim,iwave,QTEMP)
 
-                         eos_state % xn(i,j,1,:)  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1) * rhoInv
-                         eos_state % aux(i,j,1,:) = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1) * rhoInv
+                         eos_state % xn(i,j,1,:)  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux(i,j,1,:) = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1)
                       enddo
                    enddo
 
