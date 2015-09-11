@@ -160,13 +160,14 @@ c#define KAVG(a,b,d) KAVG2(a,b,d)
       real*8 function kavg(a, b, d, iopt)
       implicit none
       real*8 a, b, d
-      integer iopt, opt
-      save opt
+      integer iopt
+      integer, save :: opt=100
       if (iopt .ge. 0) then
          opt = iopt
          if (opt .gt. 2) then
             print *, "Fortran KAVG: invalid averaging option"
          endif
+         return
       endif
       if (opt .eq. 0) then
          kavg = KAVG0(a,b)
