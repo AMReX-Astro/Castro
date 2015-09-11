@@ -70,7 +70,6 @@ set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
 #endif
 }
 
-#if (BL_SPACEDIM >= 2)
 static
 void
 set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
@@ -79,16 +78,16 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,tang_vel_bc[lo_bc[0]]);
     bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)    
     bc.setLo(1,norm_vel_bc[lo_bc[1]]);
     bc.setHi(1,norm_vel_bc[hi_bc[1]]);
+#endif
 #if (BL_SPACEDIM == 3)
     bc.setLo(2,tang_vel_bc[lo_bc[2]]);
     bc.setHi(2,tang_vel_bc[hi_bc[2]]);
 #endif
 }
-#endif
 
-#if (BL_SPACEDIM == 3)
 static
 void
 set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
@@ -97,12 +96,15 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
     const int* hi_bc = phys_bc.hi();
     bc.setLo(0,tang_vel_bc[lo_bc[0]]);
     bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (BL_SPACEDIM >= 2)
     bc.setLo(1,tang_vel_bc[lo_bc[1]]);
     bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (BL_SPACEDIM == 3)
     bc.setLo(2,norm_vel_bc[lo_bc[2]]);
     bc.setHi(2,norm_vel_bc[hi_bc[2]]);
-}
 #endif
+}
 
 void
 Castro::variableSetUp ()
@@ -158,12 +160,8 @@ Castro::variableSetUp ()
     int cnt = 0;
     Density = cnt++;
     Xmom = cnt++;
-#if (BL_SPACEDIM >= 2)
     Ymom = cnt++;
-#endif
-#if (BL_SPACEDIM == 3)
     Zmom = cnt++;
-#endif
     Eden = cnt++;
     Eint = cnt++;
 #ifdef SGS
@@ -174,16 +172,6 @@ Castro::variableSetUp ()
 
     NumAdv = 0;
 
-    // if we are in 2-d with rotation, carry an advected quantity that
-    // will be the velocity through the plane of the domain (i.e. w).
-    // This can participate in the Coriolis force
-#ifdef ROTATION
-#if (BL_SPACEDIM == 2)
-    if ( Geometry::IsRZ()) {
-      NumAdv = 1;
-    }
-#endif
-#endif
     if (NumAdv > 0)
     {
         FirstAdv = cnt;
@@ -259,32 +247,15 @@ Castro::variableSetUp ()
 
     int coord_type = Geometry::Coord();
 
-    Real xmin = Geometry::ProbLo(0);
-    Real xmax = Geometry::ProbHi(0);
-#if (BL_SPACEDIM >= 2)
-    Real ymin = Geometry::ProbLo(1);
-    Real ymax = Geometry::ProbHi(1);
-#else
-    Real ymin = 0.0;
-    Real ymax = 0.0;
-#endif
-#if (BL_SPACEDIM == 3)
-    Real zmin = Geometry::ProbLo(2);
-    Real zmax = Geometry::ProbHi(2);
-#else
-    Real zmin = 0.0;
-    Real zmax = 0.0;
-#endif
-
     // Get the center variable from the inputs and pass it directly to Fortran.
     Array<Real> center(BL_SPACEDIM, 0.0);
     ParmParse ppc("castro");
     ppc.queryarr("center",center,0,BL_SPACEDIM);
-        
+
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
          (dm,phys_bc.lo(),phys_bc.hi(),
 	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-	  xmin,xmax,ymin,ymax,zmin,zmax,center.dataPtr());
+	  Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
 
     // Read in the parameters for the tagging criteria
     // and store them in the Fortran module.
@@ -298,6 +269,13 @@ Castro::variableSetUp ()
     BL_FORT_PROC_CALL(GET_TAGGING_PARAMS, get_tagging_params)
       (probin_file_name.dataPtr(),
        &probin_file_length);
+
+    // Read in the parameters for the sponge
+    // and store them in the Fortran module.
+    
+    BL_FORT_PROC_CALL(GET_SPONGE_PARAMS, get_sponge_params)
+      (probin_file_name.dataPtr(),
+       &probin_file_length);    
 
     Interpolater* interp = &cell_cons_interp;
 
@@ -339,9 +317,22 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,0,BL_SPACEDIM,
+                           StateDescriptor::Point,0,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
+
+#ifdef ROTATION
+    store_in_checkpoint = false;
+    desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
+                           StateDescriptor::Point, 1, 1,
+                           &cell_cons_interp, state_data_extrap,
+                           store_in_checkpoint);
+
+    store_in_checkpoint = false;
+    desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
+                           StateDescriptor::Point,ngrow_state,3,
+                           &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+#endif    
 
 #ifdef LEVELSET
     store_in_checkpoint = true;
@@ -378,12 +369,8 @@ Castro::variableSetUp ()
     cnt = 0;
     set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "density";
     cnt++; set_x_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "xmom";
-#if (BL_SPACEDIM >= 2)
     cnt++; set_y_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "ymom";
-#endif
-#if (BL_SPACEDIM == 3)
     cnt++; set_z_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "zmom";
-#endif
     cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
     cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
 #ifdef SGS
@@ -472,16 +459,30 @@ Castro::variableSetUp ()
        set_x_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
-#if (BL_SPACEDIM > 1)
        set_y_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
-#endif
-#if (BL_SPACEDIM > 2)
        set_z_vel_bc(bc,phys_bc);
        desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
+
+// For rotation we'll use the same boundary condition routines as for gravity, 
+// since we use the rotation in the same manner as in the gravity.
+
+#ifdef ROTATION
+       set_scalar_bc(bc,phys_bc);
+       desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+       set_x_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+       set_y_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+       set_z_vel_bc(bc,phys_bc);
+       desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
+                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
 
 #ifdef LEVELSET
@@ -593,7 +594,7 @@ Castro::variableSetUp ()
     derive_lst.add("kineng",IndexType::TheCellType(),1,
                    BL_FORT_PROC_CALL(CA_DERKINENG,ca_derkineng),the_same_box);
     derive_lst.addComponent("kineng",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("kineng",desc_lst,State_Type,Xmom,BL_SPACEDIM);
+    derive_lst.addComponent("kineng",desc_lst,State_Type,Xmom,3);
 
     //
     // Sound speed (c)
@@ -642,7 +643,6 @@ Castro::variableSetUp ()
                    BL_FORT_PROC_CALL(CA_DERENTROPY,ca_derentropy),the_same_box);
     derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
 
-#if (BL_SPACEDIM > 1)
     //
     // Vorticity
     //
@@ -652,8 +652,7 @@ Castro::variableSetUp ()
     //   in order to use the correct interpolation.
     if (Xmom != Density+1)
        BoxLib::Error("We are assuming Xmom = Density + 1 in Castro_setup.cpp");
-    derive_lst.addComponent("magvort",desc_lst,State_Type,Density,BL_SPACEDIM+1);
-#endif
+    derive_lst.addComponent("magvort",desc_lst,State_Type,Density,4);
 
     //
     // Div(u)
@@ -661,7 +660,7 @@ Castro::variableSetUp ()
     derive_lst.add("divu",IndexType::TheCellType(),1,
                    BL_FORT_PROC_CALL(CA_DERDIVU,ca_derdivu),grow_box_by_one);
     derive_lst.addComponent("divu",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("divu",desc_lst,State_Type,Xmom,BL_SPACEDIM);
+    derive_lst.addComponent("divu",desc_lst,State_Type,Xmom,3);
 
     //
     // Internal energy as derived from rho*E, part of the state
@@ -710,19 +709,15 @@ Castro::variableSetUp ()
     derive_lst.addComponent("x_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("x_velocity",desc_lst,State_Type,Xmom,1);
 
-#if (BL_SPACEDIM >= 2)
     derive_lst.add("y_velocity",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERVEL,ca_dervel),the_same_box);
     derive_lst.addComponent("y_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("y_velocity",desc_lst,State_Type,Ymom,1);
-#endif
 
-#if (BL_SPACEDIM == 3)
     derive_lst.add("z_velocity",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERVEL,ca_dervel),the_same_box);
     derive_lst.addComponent("z_velocity",desc_lst,State_Type,Density,1);
     derive_lst.addComponent("z_velocity",desc_lst,State_Type,Zmom,1);
-#endif
 
 #ifdef SGS
     derive_lst.add("K",IndexType::TheCellType(),1,
@@ -746,25 +741,21 @@ Castro::variableSetUp ()
     derive_lst.add("magvel",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERMAGVEL,ca_dermagvel),the_same_box);
     derive_lst.addComponent("magvel",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("magvel",desc_lst,State_Type,Xmom,BL_SPACEDIM);
+    derive_lst.addComponent("magvel",desc_lst,State_Type,Xmom,3);
 
-#if (BL_SPACEDIM > 1)
     derive_lst.add("radvel",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERRADIALVEL,ca_derradialvel),the_same_box);
     derive_lst.addComponent("radvel",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("radvel",desc_lst,State_Type,Xmom,BL_SPACEDIM);
-#endif
+    derive_lst.addComponent("radvel",desc_lst,State_Type,Xmom,3);
 
     derive_lst.add("magmom",IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERMAGMOM,ca_dermagmom),the_same_box);
-    derive_lst.addComponent("magmom",desc_lst,State_Type,Xmom,BL_SPACEDIM);
+    derive_lst.addComponent("magmom",desc_lst,State_Type,Xmom,3);
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
     derive_lst.add("maggrav",IndexType::TheCellType(),1,
-          BL_FORT_PROC_CALL(CA_DERMAGGRAV,ca_dermaggrav),the_same_box);
-    derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,BL_SPACEDIM);
-#endif
+		   BL_FORT_PROC_CALL(CA_DERMAGGRAV,ca_dermaggrav),the_same_box);
+    derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
 
 #ifdef PARTICLES

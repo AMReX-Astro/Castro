@@ -1,13 +1,5 @@
 f90EXE_sources += Castro_$(DIM)d.f90 
-f90EXE_sources += Castro_sums_$(DIM)d.f90 
 f90EXE_sources += Tagging_$(DIM)d.f90
-f90EXE_sources += problem_tagging_$(DIM)d.f90
-f90EXE_sources += sponge_$(DIM)d.f90
-f90EXE_sources += ext_src_$(DIM)d.f90
-f90EXE_sources += enforce_consistent_e_$(DIM)d.f90
-f90EXE_sources += prescribe_grav_$(DIM)d.f90
-f90EXE_sources += Castro_grav_sources_$(DIM)d.f90
-f90EXE_sources += Castro_rot_sources_$(DIM)d.f90
 
 #f90EXE_sources += estdt_burning_$(DIM)d.f90
 
@@ -20,22 +12,19 @@ f90EXE_sources += flatten_$(DIM)d.f90
 
 f90EXE_sources += Castro_advection_$(DIM)d.f90 
 f90EXE_sources += riemann_$(DIM)d.f90 
-f90EXE_sources += compute_temp_$(DIM)d.f90
-f90EXE_sources += Derive_$(DIM)d.f90
-f90EXE_sources += EstDt_$(DIM)d.f90
-f90EXE_sources += reset_internal_energy_$(DIM)d.f90
 
+ifneq ($(DIMENSION_AGNOSTIC), TRUE)
 f90EXE_sources += bc_fill_$(DIM)d.f90
+f90EXE_sources += ext_src_$(DIM)d.f90
+f90EXE_sources += Prob_$(DIM)d.f90
+f90EXE_sources += problem_tagging_$(DIM)d.f90
+endif
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += Gravity_$(DIM)d.f90
 ifeq ($(USE_GR), TRUE)
 f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif
-endif
-
-ifeq ($(USE_REACT), TRUE)
-f90EXE_sources += React_$(DIM)d.f90
 endif
 
 ifeq ($(USE_POINTMASS), TRUE)

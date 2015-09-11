@@ -66,7 +66,8 @@ contains
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
-      subroutine pslope(p,rho,flatn,qd_l1,qd_h1,dp,qpd_l1,qpd_h1,grav,gv_l1,gv_h1,ilo,ihi,dx)
+      subroutine pslope(p,rho,flatn,qd_l1,qd_h1,dp,qpd_l1,qpd_h1, &
+                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,ilo,ihi,dx)
 
       use bl_constants_module
 
@@ -75,19 +76,19 @@ contains
       integer ilo, ihi
       integer  qd_l1, qd_h1
       integer qpd_l1,qpd_h1
-      integer  gv_l1, gv_h1
+      integer  gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
       double precision, intent(in   ) ::      p( qd_l1: qd_h1)
       double precision, intent(in   ) ::    rho( qd_l1: qd_h1)
       double precision, intent(in   ) ::  flatn( qd_l1: qd_h1)
       double precision, intent(  out) ::     dp(qpd_l1:qpd_h1)
-      double precision, intent(in   ) ::   grav( gv_l1: gv_h1)
+      double precision, intent(in   ) ::   grav(gv_l1: gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
       double precision, intent(in   ) ::  dx
 
 !     Local arrays
-      double precision, allocatable::dsgn(:),dlim(:),df(:),dcen(:)
+      double precision, allocatable :: dsgn(:), dlim(:), df(:), dcen(:)
 
-      integer i
-      double precision dlft, drgt, dp1
+      integer          :: i, j = 0, k = 0
+      double precision :: dlft, drgt, dp1
 
       allocate (dsgn(ilo-2:ihi+2))
       allocate (dlim(ilo-2:ihi+2))
@@ -100,10 +101,10 @@ contains
           drgt = p(i+1) - p(i  )
 
           ! Here we subtract off (rho * grav) so as not to limit that part of the slope
-          dlft = dlft - FOURTH * (rho(i)+rho(i-1))*(grav(i)+grav(i-1))*dx
-          drgt = drgt - FOURTH * (rho(i)+rho(i+1))*(grav(i)+grav(i+1))*dx
-!         dlft = dlft - rho(i)*grav(i)*dx
-!         drgt = drgt - rho(i)*grav(i)*dx
+          dlft = dlft - FOURTH * (rho(i)+rho(i-1))*(grav(i,j,k,1)+grav(i-1,j,k,1))*dx
+          drgt = drgt - FOURTH * (rho(i)+rho(i+1))*(grav(i,j,k,1)+grav(i+1,j,k,1))*dx
+!         dlft = dlft - rho(i)*grav(i,j,k,1)*dx
+!         drgt = drgt - rho(i)*grav(i,j,k,1)*dx
 
           dcen(i) = HALF*(dlft+drgt)
           dsgn(i) = sign(ONE, dcen(i))
@@ -126,7 +127,7 @@ contains
           dp1 = FOUR3RD*dcen(i) - SIXTH*(df(i+1) + df(i-1))
           dp(i) = flatn(i)* &
                       dsgn(i)*min(dlim(i),abs(dp1))
-          dp(i) = dp(i) + rho(i)*grav(i)*dx
+          dp(i) = dp(i) + rho(i)*grav(i,j,k,1)*dx
       enddo
 
       ! Here we are assuming a symmetry boundary condition

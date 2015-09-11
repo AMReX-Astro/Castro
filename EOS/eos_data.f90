@@ -1,7 +1,5 @@
 module eos_data_module
 
-  use bl_types
-
   implicit none
 
   integer, parameter :: eos_input_rt = 1  ! rho, T are inputs

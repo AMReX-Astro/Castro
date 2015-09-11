@@ -1267,35 +1267,44 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
+    // Note that grav_vector coming into this routine always has three components.
+    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
+    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // the outgoing grav_vector, leaving any higher dimensions unchanged.
+
+    MultiFab grav(grids[level], BL_SPACEDIM, ng);
+    grav.setVal(0.);
+    
     if (gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,0            ,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
+       // Set to constant value in the BL_SPACEDIM direction and zero in all others.
+      
+       grav.setVal(0.0       ,0            ,BL_SPACEDIM,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav_vector);
+       make_one_d_grav(level,time,grav);
 #else
 
        if (gravity_type == "MonopoleGrav") 
        {
           const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
           make_radial_gravity(level,prev_time,radial_grav_old[level]);
-          interpolate_monopole_grav(level,radial_grav_old[level],grav_vector);
+          interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
        }
        else if (gravity_type == "PrescribedGrav") 
        {
-          make_prescribed_grav(level,time,grav_vector);
+          make_prescribed_grav(level,time,grav);
        }  
 
 #endif 
     } else if (gravity_type == "PoissonGrav") {
 
        // Set to zero to fill ghost cells.
-       grav_vector.setVal(0.);
+       grav.setVal(0.);
 
        // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
        const Geometry& geom = parent->Geom(level);
@@ -1314,16 +1323,25 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
              fill_ec_grow(level,grad_phi_prev[level],crse_grad_phi);
        }
  
-       BoxLib::average_face_to_cellcenter(grav_vector, grad_phi_prev[level], geom);
+       BoxLib::average_face_to_cellcenter(grav, grad_phi_prev[level], geom);
 
     } else {
        BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
     }
- 
+
+    // Do the copy to the output vector.
+
+    for (int dir = 0; dir < 3; dir++)
+      if (dir < BL_SPACEDIM)
+	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+      else
+	grav_vector.setVal(0.,dir,1,ng);
+    
+    // Fill G_old from grav_vector.
+	
     MultiFab& G_old = LevelData[level].get_old_data(Gravity_Type);
  
-    // Fill G_old from grav_vector
-    MultiFab::Copy(G_old,grav_vector,0,0,BL_SPACEDIM,0);
+    MultiFab::Copy(G_old,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
@@ -1332,7 +1350,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
     }
 #endif
 
@@ -1350,16 +1368,24 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
+    // Note that grav_vector coming into this routine always has three components.
+    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
+    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // the outgoing grav_vector, leaving any higher dimensions unchanged.
+
+    MultiFab grav(grids[level],BL_SPACEDIM,ng);
+    grav.setVal(0.);
+    
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,            0,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
+       grav.setVal(0.0       ,            0,BL_SPACEDIM,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav_vector);
+       make_one_d_grav(level,time,grav);
 #else
 
        // We always fill radial_grav_new (at every level)
@@ -1367,18 +1393,18 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        {
           const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
           make_radial_gravity(level,cur_time,radial_grav_new[level]);
-          interpolate_monopole_grav(level,radial_grav_new[level],grav_vector);
+          interpolate_monopole_grav(level,radial_grav_new[level],grav);
        }
        else if (gravity_type == "PrescribedGrav") 
        {
-          make_prescribed_grav(level,time,grav_vector);
+          make_prescribed_grav(level,time,grav);
        }
 #endif
 
     } else if (gravity_type == "PoissonGrav") {
 
        // Set to zero to fill ghost cells
-       grav_vector.setVal(0.);
+       grav.setVal(0.);
 
       // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
       const Geometry& geom = parent->Geom(level);
@@ -1397,16 +1423,25 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
             fill_ec_grow(level,grad_phi_curr[level],crse_grad_phi);
       }
 
-      BoxLib::average_face_to_cellcenter(grav_vector, grad_phi_curr[level], geom);
+      BoxLib::average_face_to_cellcenter(grav, grad_phi_curr[level], geom);
 
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
     }
 
+    // Do the copy to the output vector.
+
+    for (int dir = 0; dir < 3; dir++)
+      if (dir < BL_SPACEDIM)
+	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+      else
+	grav_vector.setVal(0.,dir,1,ng);
+
+    // Fill G_new from grav_vector.
+	
     MultiFab& G_new = LevelData[level].get_new_data(Gravity_Type);
 
-    // Fill G_new from grav_vector
-    MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
+    MultiFab::Copy(G_new,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
@@ -1415,7 +1450,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
     }
 #endif
 
@@ -2140,9 +2175,9 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
-           (bx.loVect(), bx.hiVect(), dx,
-            BL_TO_FORTRAN(grav_vector[mfi]),
-            geom.ProbLo());
+	   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            BL_TO_FORTRAN_3D(grav_vector[mfi]),
+	    dx);
     }
 
     if (verbose)
@@ -2178,7 +2213,7 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-           (bx.loVect(), bx.hiVect(),dx,&dr,
+	   (bx.loVect(),bx.hiVect(),dx,&dr,
             BL_TO_FORTRAN(grav_vector[mfi]),
             radial_grav.dataPtr(),geom.ProbLo(),
             &n1d,&level);
@@ -2906,6 +2941,7 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
     for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
+
         Real s;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
@@ -2916,7 +2952,7 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // whatever quantity is passed in, not strictly the "mass".
         //
 	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-            (BL_TO_FORTRAN(fab),lo,hi,dx,&s);
+	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),dx,BL_TO_FORTRAN_3D(volume[level][mfi]),&s);
         sum += s;
     }
 

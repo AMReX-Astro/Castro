@@ -1,4 +1,5 @@
 &fortin
+
   model_name='sub_chandra.M_WD-1.00.M_He-0.05.hse.C.768'
 
   heating_time = 25.0d0
@@ -7,8 +8,12 @@
   heating_sigma = 1.d7
   prob_type = 3
 
-  sponge_weighting = 1.d3
-  sponge_start_density = 1.d4
-  sponge_width_factor = 2.d0
+/
+
+&sponge
+
+  sponge_upper_density = 1.d4
+  sponge_lower_density = 5.d3
+  sponge_timescale     = 1.d-3
 
 /

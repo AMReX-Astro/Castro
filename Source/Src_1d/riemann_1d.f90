@@ -90,10 +90,10 @@ contains
     use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, &
-                                   QPRES, QREINT, QFA, QFS, &
+                                   QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, &
-                                   nadv, small_dens, small_pres, small_temp, &
+                                   UFS, UFX, &
+                                   npassive, upass_map, qpass_map, small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol
 
 
@@ -116,8 +116,7 @@ contains
     double precision :: pgdnv(pg_l1:pg_h1)
 
     integer :: ilo,ihi
-    integer :: n, nq
-    integer :: iadv, ispec, iaux
+    integer :: n, nq, ipassive
 
     double precision :: rgdnv,ustar,gamgdnv
     double precision :: rl, ul, pl, rel
@@ -454,38 +453,10 @@ contains
        uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv(k))
        uflx(k,UEINT) = ugdnv(k)*pgdnv(k)/(gamgdnv - 1.d0)
 
-       ! advected quantities -- only the contact matters
-       do iadv = 1, nadv
-          n = UFA + iadv - 1
-          nq = QFA + iadv - 1
-          if (ustar .gt. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else if (ustar .lt. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          else
-             qavg = 0.5d0 * (ql(k,nq) + qr(k,nq))
-             uflx(k,n) = uflx(k,URHO)*qavg
-          endif
-       enddo
-
-       ! species -- only the contact matters
-       do ispec = 1, nspec
-          n = UFS + ispec - 1
-          nq = QFS + ispec - 1
-          if (ustar .gt. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else if (ustar .lt. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          else
-             qavg = 0.5d0 * (ql(k,nq) + qr(k,nq))
-             uflx(k,n) = uflx(k,URHO)*qavg
-          endif
-       enddo
-
-       ! auxillary quantities -- only the contact matters
-       do iaux = 1, naux
-          n = UFX + iaux - 1
-          nq = QFX + iaux - 1
+       ! passively advected quantities -- only the contact matters
+       do ipassive = 1, npassive
+          n  = upass_map(ipassive)
+          nq = qpass_map(ipassive)
           if (ustar .gt. 0.d0) then
              uflx(k,n) = uflx(k,URHO)*ql(k,nq)
           else if (ustar .lt. 0.d0) then
@@ -555,9 +526,9 @@ contains
                        ilo,ihi,domlo,domhi)
     
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QPRES, QREINT, QFA, QFS, QFX, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QPRES, QREINT, QFS, QFX, &
                                    URHO, UMX, UEDEN, UEINT, &
-                                   UFA, UFS, UFX, nadv, small_dens, small_pres, &
+                                   UFS, UFX, npassive, upass_map, qpass_map, small_dens, small_pres, &
                                    fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 
@@ -588,8 +559,8 @@ contains
     double precision sgnm, spin, spout, ushock, frac
     
     double precision wsmall, csmall
-    integer iadv, n, nq
-    integer k,ispec, iaux
+    integer ipassive, n, nq
+    integer k
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
     
     ! Solve Riemann Problem
@@ -700,29 +671,9 @@ contains
        uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv(k))
        uflx(k,UEINT) = ugdnv(k)*regdnv
        
-       do iadv = 1, nadv
-          n = UFA + iadv - 1
-          nq = QFA + iadv - 1
-          if (ustar .ge. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          endif
-       enddo
-       
-       do ispec = 1, nspec
-          n  = UFS + ispec - 1
-          nq = QFS + ispec - 1
-          if (ustar .ge. 0.d0) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
-          endif
-       enddo
-       
-       do iaux = 1, naux
-          n  = UFX + iaux - 1
-          nq = QFX + iaux - 1
+       do ipassive = 1, npassive
+          n  = upass_map(ipassive)
+          nq = qpass_map(ipassive)
           if (ustar .ge. 0.d0) then
              uflx(k,n) = uflx(k,URHO)*ql(k,nq)
           else

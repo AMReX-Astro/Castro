@@ -12,3 +12,11 @@
  interp_BC = F
 
 /
+
+&sponge
+
+  sponge_upper_density = 50.0d0
+  sponge_lower_density = 12.5d0
+  sponge_timescale     = 1.d-3
+
+/

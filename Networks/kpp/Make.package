@@ -1,5 +1,0 @@
-f90EXE_sources += network.f90
-f90EXE_sources += castro_burner.f90
-f90EXE_sources += f_rhs.f90
-
-

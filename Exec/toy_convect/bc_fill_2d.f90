@@ -331,6 +331,25 @@ end subroutine ca_gravyfill
 
 ! ::: -----------------------------------------------------------
 
+subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
+                        domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+  include 'bc_types.fi'
+
+  integer :: grav_l1,grav_l2,grav_h1,grav_h2
+  integer :: bc(2,2,*)
+  integer :: domlo(2), domhi(2)
+  double precision delta(2), xlo(2), time
+  double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+
+  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_gravzfill
+
+! ::: -----------------------------------------------------------
+
 subroutine ca_reactfill(react,react_l1,react_l2, &
                         react_h1,react_h2,domlo,domhi,delta,xlo,time,bc)
 

@@ -14,13 +14,13 @@ contains
       subroutine trace(q,dq,c,flatn,qd_l1,qd_h1, &
                        dloga,dloga_l1,dloga_h1, &
                        srcQ,src_l1,src_h1,&
-                       grav,gv_l1,gv_h1, &
+                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                       rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
-      use network, only : nspec, naux
-      use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, QFA, QFS, QFX, & 
-                                     nadv, small_dens, ppm_type, fix_mass_flux, use_pslope
+      use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, QFS, QFX, & 
+                                     npassive, qpass_map, small_dens, ppm_type, fix_mass_flux, use_pslope
       use prob_params_module, only : physbc_lo, physbc_hi, Outflow
       use slope_module, only : uslope, pslope
       use bl_constants_module
@@ -33,7 +33,8 @@ contains
       integer dloga_l1,dloga_h1
       integer   qpd_l1,  qpd_h1
       integer   src_l1,  src_h1
-      integer    gv_l1,   gv_h1
+      integer    gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+      integer    rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
       double precision dx, dt
       double precision     q( qd_l1: qd_h1,QVAR)
       double precision  srcQ(src_l1:src_h1,QVAR)
@@ -44,24 +45,24 @@ contains
       double precision   dq( qpd_l1: qpd_h1,QVAR)
       double precision  qxm( qpd_l1: qpd_h1,QVAR)
       double precision  qxp( qpd_l1: qpd_h1,QVAR)
-      double precision grav(  gv_l1:  gv_h1)
+      double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+      double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
 
 !     Local variables
-      integer i
-      integer n, iadv
-      integer ns, ispec, iaux
+      integer          :: i, j = 0, k = 0
+      integer          :: n, ipassive
 
-      double precision hdt,dtdx
-      double precision cc, csq, rho, u, p, rhoe
-      double precision drho, du, dp, drhoe
+      double precision :: hdt,dtdx
+      double precision :: cc, csq, rho, u, p, rhoe
+      double precision :: drho, du, dp, drhoe
 
-      double precision enth, alpham, alphap, alpha0r, alpha0e
-      double precision spminus, spplus, spzero
-      double precision apright, amright, azrright, azeright
-      double precision apleft, amleft, azrleft, azeleft
-      double precision acmprght, acmpleft
-      double precision ascmprght, ascmpleft
-      double precision sourcr,sourcp,source,courn,eta,dlogatmp
+      double precision :: enth, alpham, alphap, alpha0r, alpha0e
+      double precision :: spminus, spplus, spzero
+      double precision :: apright, amright, azrright, azeright
+      double precision :: apleft, amleft, azrleft, azeleft
+      double precision :: acmprght, acmpleft
+      double precision :: ascmprght, ascmpleft
+      double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
       logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -93,7 +94,7 @@ contains
             call pslope(q(:,QPRES),q(:,QRHO), &
                  flatn      , qd_l1, qd_h1, &
                  dq(:,QPRES),qpd_l1,qpd_h1, &
-                 grav       , gv_l1, gv_h1, &
+                 grav       , gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                  ilo,ihi,dx)
 
       endif
@@ -155,7 +156,7 @@ contains
             qxp(i  ,QPRES ) = qxp(i,QPRES ) + hdt*srcQ(i,QPRES)
             
             ! add gravitational source term
-            qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i)
+            qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i,j,k,1)
          end if
 
          if (u-cc .ge. ZERO) then
@@ -194,7 +195,7 @@ contains
             qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
 
             ! add gravitational source term
-             qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i)
+             qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i,j,k,1)
          end if
 
          if(dloga(i).ne.0)then
@@ -235,8 +236,8 @@ contains
           qxp(ihi+1,QREINT) = q(domhi(1)+1,QREINT)
       end if
 
-      do iadv = 1, nadv
-         n = QFA + iadv - 1
+      do ipassive = 1, npassive
+         n = qpass_map(ipassive)
 
          ! Right state
          do i = ilo,ihi+1
@@ -264,68 +265,6 @@ contains
          enddo
          if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
       enddo
-
-      do ispec = 1, nspec
-         ns = QFS + ispec - 1
-
-         ! Right state
-         do i = ilo,ihi+1
-            u = q(i,QU)
-            if (u .gt. ZERO) then
-               spzero = -ONE
-            else
-               spzero = u*dtdx
-            endif
-            ascmprght = HALF*(-ONE - spzero )*dq(i,ns)
-            qxp(i,ns) = q(i,ns) + ascmprght
-            if (fix_mass_flux_hi .and. i.eq.domhi(1)+1) & 
-               qxp(i,ns) = q(i,ns)
-         enddo
-         if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
-
-         ! Left state
-         do i = ilo-1,ihi
-            u = q(i,QU)
-            if (u .ge. ZERO) then
-               spzero = u*dtdx
-            else
-               spzero = ONE
-            endif
-            ascmpleft = HALF*(ONE - spzero )*dq(i,ns)
-            qxm(i+1,ns) = q(i,ns) + ascmpleft
-         enddo
-         if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
-      enddo
-
-      do iaux = 1, naux
-         ns = QFX + iaux - 1
-
-         ! Right state
-         do i = ilo,ihi+1
-            u = q(i,QU)
-            if (u .gt. ZERO) then
-               spzero = -ONE
-            else
-               spzero = u*dtdx
-            endif
-            ascmprght = HALF*(-ONE - spzero )*dq(i,ns)
-            qxp(i,ns) = q(i,ns) + ascmprght
-         enddo
-         if (fix_mass_flux_hi) qxp(ihi+1,ns) = q(ihi+1,ns)
-
-         ! Left state
-         do i = ilo-1,ihi
-            u = q(i,QU)
-            if (u .ge. ZERO) then
-               spzero = u*dtdx
-            else
-               spzero = ONE
-            endif
-            ascmpleft = HALF*(ONE - spzero )*dq(i,ns)
-            qxm(i+1,ns) = q(i,ns) + ascmpleft
-         enddo
-         if (fix_mass_flux_lo) qxm(ilo,ns) = q(ilo-1,ns)
-      end do
 
      end subroutine trace
 

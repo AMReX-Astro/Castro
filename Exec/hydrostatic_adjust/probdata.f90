@@ -22,8 +22,6 @@ module probdata_module
   double precision, save :: heating_time, heating_rad, &
                             heating_peak, heating_sigma
 
-  double precision, save :: sponge_weighting, sponge_start_density, &
-                            sponge_width_factor
 
 
   ! the prob_type matches MAESTRO test_basestate

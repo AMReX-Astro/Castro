@@ -18,13 +18,19 @@ git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git
 \end{verbatim}
 
 This will create a directory called {\tt BoxLib/} on your machine.
-Put this somewhere out of the way and set the environment variable,
-{\tt BOXLIB\_HOME}, on your machine to the path name where you have
-put \boxlib.  You will want to periodically update \boxlib\ by typing
+
+You will want to periodically update \boxlib\ by typing
 \begin{verbatim}
 git pull
 \end{verbatim}
-in the \boxlib\ directory.  
+in the {\tt BoxLib/} directory.  
+
+\item Set the environment variable, {\tt BOXLIB\_HOME}, on your
+  machine to point to the path name where you have put \boxlib.
+  You can add this to your {\tt .bashrc} as:
+\begin{verbatim}
+export BOXLIB_HOME="/path/to/BoxLib/"
+\end{verbatim}
 
 \item Clone/fork the \castro\ repository from the \boxlib\ Codes {\sf
   github} page (\url{https://github.com/BoxLib-Codes/Castro}).  To

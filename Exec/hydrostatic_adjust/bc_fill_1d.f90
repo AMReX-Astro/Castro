@@ -3,7 +3,8 @@
 subroutine ca_hypfill(adv,adv_l1,adv_h1, &
                       domlo,domhi,delta,xlo,time,bc)
 
-  use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UTEMP, UEINT, UFS
+  use bl_constants_module
+  use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, UTEMP, UEINT, UFS
   use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
        hse_eint_top, hse_p_top
   use network, only: nspec
@@ -35,6 +36,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_h1, &
            vel = max(adv(i,UMX)/adv(i,URHO),0.d0)
            adv(i,URHO)  = hse_rho_top
            adv(i,UMX)   = adv(i,URHO)*vel
+           adv(i,UMY)   = ZERO
+           adv(i,UMZ)   = ZERO
            adv(i,UTEMP) = hse_T_top
            adv(i,UEINT) = hse_rho_top*hse_eint_top
            adv(i,UEDEN) = hse_rho_top*hse_eint_top + &
@@ -82,6 +85,43 @@ subroutine ca_gravxfill(grav,grav_l1,grav_h1, &
 
 end subroutine ca_gravxfill
 
+! ::: -----------------------------------------------------------
+
+subroutine ca_gravyfill(grav,grav_l1,grav_h1, &
+                        domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+
+  integer          :: grav_l1,grav_h1
+  integer          :: bc(1,2,*)
+  integer          :: domlo(1), domhi(1)
+  double precision :: delta(1), xlo(1), time
+  double precision :: grav(grav_l1:grav_h1)
+
+  call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_gravyfill
+
+! ::: -----------------------------------------------------------
+
+subroutine ca_gravzfill(grav,grav_l1,grav_h1, &
+                        domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+
+  integer          :: grav_l1,grav_h1
+  integer          :: bc(1,2,*)
+  integer          :: domlo(1), domhi(1)
+  double precision :: delta(1), xlo(1), time
+  double precision :: grav(grav_l1:grav_h1)
+
+  call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_gravzfill
+
+! ::: -----------------------------------------------------------
 
 subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
                           domlo,domhi,delta,xlo,time,bc)

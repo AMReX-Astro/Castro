@@ -431,10 +431,10 @@
          y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
          do i = lo(1), hi(1)
             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
-            r = sqrt( x**2 + y**2)
+            r = sqrt( x**2 + y**2 )
             index = int(r/dr)
             cen = (dble(index)+HALF)*dr
-             xi = r - cen
+            xi = r - cen
             if (index == 0) then
                ! Linear interpolation or extrapolation
                slope = ( radial_grav(index+1) - radial_grav(index) ) / dr
@@ -459,10 +459,10 @@
                gmd = radial_grav(index  )
                glo = radial_grav(index-1)
                mag_grav = &
-                ( ghi -  TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
-                ( ghi       - glo     )*xi   /(TWO*dr   ) + &
-                (-ghi + 26.d0*gmd - glo)/24.d0
- 
+                    ( ghi -  TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
+                    ( ghi       - glo     )*xi   /(TWO*dr   ) + &
+                    (-ghi + 26.d0*gmd - glo)/24.d0
+
                minvar = min(gmd, min(glo,ghi))
                maxvar = max(gmd, max(glo,ghi))
                mag_grav = max(mag_grav,minvar)
