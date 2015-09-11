@@ -31,6 +31,8 @@ module blackbody_module
 
       if (x .gt. xmagic) then
          integ = integlarge(x)
+      else if (x .lt. 1.d-12) then
+         integ = 0.d0
       else
          integ = integsmall(x)
       end if
