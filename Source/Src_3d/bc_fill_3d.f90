@@ -16,9 +16,9 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
   integer          :: n
 
   do n = 1,NVAR
-     call filcc(adv(adv_l1,adv_l2,adv_l3,n), &
+     call filcc(adv(:,:,:,n), &
                 adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-                domlo,domhi,delta,xlo,bc(1,1,n))
+                domlo,domhi,delta,xlo,bc(:,:,n))
   enddo
 
 end subroutine ca_hypfill
