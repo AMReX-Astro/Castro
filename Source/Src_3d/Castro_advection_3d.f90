@@ -802,7 +802,7 @@ contains
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy, small_temp
+                                   allow_negative_energy
     
     use flatten_module
     use bl_constants_module
@@ -927,6 +927,7 @@ contains
        enddo
     enddo
 
+    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
     call eos(eos_input_re, eos_state)
 
     do k = loq(3), hiq(3)

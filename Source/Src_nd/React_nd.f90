@@ -6,7 +6,7 @@
       use eos_module
       use network           , only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-                                     UFS, UFX, dual_energy_eta3
+                                     UFS, UFX, dual_energy_eta3, allow_negative_energy
       use burner_module
       use bl_constants_module
 
@@ -34,7 +34,7 @@
 
                state_in % rho(i,j,k)   = state(i,j,k,URHO)
                state_in % T(i,j,k)     = state(i,j,k,UTEMP)
-
+               
                rho_e_K = state(i,j,k,UEDEN) - HALF * rhoInv * (state(i,j,k,UMX)**2 + state(i,j,k,UMY)**2 + state(i,j,k,UMZ)**2)
 
                ! Dual energy formalism: switch between e and (E - K) depending on (E - K) / E.
@@ -47,11 +47,14 @@
 
                state_in % xn(i,j,k,:)  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
                state_in % aux(i,j,k,:) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
+               
             enddo
          enddo
       enddo
 
+      if (allow_negative_energy .eq. 0) state_in % reset = .true.
+      if (allow_negative_energy .eq. 0) state_out % reset = .true.
+      
       call burner(state_in, state_out, dt_react, time)
 
       do k = lo(3), hi(3)

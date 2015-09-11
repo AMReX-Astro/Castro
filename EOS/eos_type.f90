@@ -4,6 +4,7 @@ module eos_type_module
   use network
   use eos_data_module
   use mempool_module
+  use bl_constants_module
   
   implicit none
 
@@ -106,6 +107,8 @@ module eos_type_module
     double precision :: dedA
     double precision :: dedZ
 
+    logical :: reset
+    
   end type eos_t
 
 
@@ -154,6 +157,8 @@ module eos_type_module
     double precision, pointer :: dedA(:)
     double precision, pointer :: dedZ(:)
 
+    logical :: reset
+    
   end type eos_t_vector
 
   
@@ -204,6 +209,8 @@ module eos_type_module
     double precision, pointer :: dedA(:)         
     double precision, pointer :: dedZ(:)         
 
+    logical :: reset
+    
   end type eos_t_1D
 
  
@@ -254,6 +261,8 @@ module eos_type_module
     double precision, pointer :: dedA(:,:)         
     double precision, pointer :: dedZ(:,:)         
 
+    logical :: reset
+    
   end type eos_t_2D
 
 
@@ -304,6 +313,8 @@ module eos_type_module
     double precision, pointer :: dedA(:,:,:)         
     double precision, pointer :: dedZ(:,:,:)         
 
+    logical :: reset
+    
   end type eos_t_3D
 
 
@@ -387,13 +398,15 @@ contains
     eos_type_1D % s(:)     = init_num
     eos_type_1D % xn(:,:)  = init_num
     eos_type_1D % aux(:,:) = init_num
+
+    eos_type_1D % reset = .false.
     
     eos_type_1D % N = (hi(1) - lo(1) + 1)
     eos_type_1D % width(1) = eos_type_1D % N
     eos_type_1D % spec_width(1) = eos_type_1D % N
     eos_type_1D % spec_width(2) = nspec
     eos_type_1D % aux_width(1) = eos_type_1D % N
-    eos_type_1D % aux_width(2) = naux
+    eos_type_1D % aux_width(2) = naux    
 
   end function eos_type_1D
 
@@ -458,6 +471,8 @@ contains
     eos_type_2D % s(:,:)     = init_num
     eos_type_2D % xn(:,:,:)  = init_num
     eos_type_2D % aux(:,:,:) = init_num
+
+    eos_type_2D % reset = .false.
     
     eos_type_2D % N = (hi(2) - lo(2) + 1) * (hi(1) - lo(1) + 1)
     eos_type_2D % width(1) = eos_type_2D % N
@@ -529,6 +544,8 @@ contains
     eos_type_3D % s(:,:,:)     = init_num
     eos_type_3D % xn(:,:,:,:)  = init_num
     eos_type_3D % aux(:,:,:,:) = init_num
+
+    eos_type_3D % reset = .false.
     
     eos_type_3D % N = (hi(3) - lo(3) + 1) * (hi(2) - lo(2) + 1) * (hi(1) - lo(1) + 1)
     eos_type_3D % width(1) = eos_type_3D % N
@@ -725,7 +742,8 @@ contains
     state % dpdZ = state_vector % dpdZ(i)
     state % dedA = state_vector % dedA(i)
     state % dedZ = state_vector % dedZ(i)
-
+    state % reset = state_vector % reset
+    
   end subroutine get_eos_t
 
 
@@ -786,7 +804,8 @@ contains
     state_vector % dpdZ(i) = state % dpdZ
     state_vector % dedA(i) = state % dedA
     state_vector % dedZ(i) = state % dedZ
-
+    state_vector % reset = state % reset
+    
   end subroutine put_eos_t
   
 
@@ -854,7 +873,8 @@ contains
        working_state_1D % dpdZ(1) = state_in % dpdZ
        working_state_1D % dedA(1) = state_in % dedA
        working_state_1D % dedZ(1) = state_in % dedZ
-
+       working_state_1D % reset = state_in % reset
+       
        call eos_vector_in(state, working_state_1D)
 
     type is (eos_t_1D)
@@ -911,6 +931,8 @@ contains
        call c_f_pointer(c_loc(state_in % dedA(lo(1))), state % dedA, state % width)
        call c_f_pointer(c_loc(state_in % dedZ(lo(1))), state % dedZ, state % width)
 
+       state % reset = state_in % reset
+       
     type is (eos_t_2D)
     
        lo(1:2) = state_in % lo
@@ -965,6 +987,8 @@ contains
        call c_f_pointer(c_loc(state_in % dedA(lo(1),lo(2))), state % dedA, state % width)
        call c_f_pointer(c_loc(state_in % dedZ(lo(1),lo(2))), state % dedZ, state % width)
 
+       state % reset = state_in % reset
+       
     type is (eos_t_3D)
        
        lo = state_in % lo
@@ -1019,6 +1043,8 @@ contains
        call c_f_pointer(c_loc(state_in % dedA(lo(1),lo(2),lo(3))), state % dedA, state % width)
        call c_f_pointer(c_loc(state_in % dedZ(lo(1),lo(2),lo(3))), state % dedZ, state % width)
 
+       state % reset = state_in % reset
+       
     end select
        
   end subroutine eos_vector_in
@@ -1082,6 +1108,8 @@ contains
        state_out % dedA   = state % dedA(1)
        state_out % dedZ   = state % dedZ(1)
 
+       state_out % reset  = state % reset
+       
     end select
 
     
@@ -1137,6 +1165,8 @@ contains
           state_out % dpdZ = state_in % dpdZ
           state_out % dedA = state_in % dedA
           state_out % dedZ = state_in % dedZ
+
+          state_out % reset = state_in % reset
        class default
           call bl_error("Error: Cannot copy a eos_t_1D to a different EOS type.")
        end select
@@ -1183,6 +1213,8 @@ contains
           state_out % dpdZ = state_in % dpdZ
           state_out % dedA = state_in % dedA
           state_out % dedZ = state_in % dedZ
+
+          state_out % reset = state_in % reset
        class default
           call bl_error("Error: Cannot copy a eos_t_2D to a different EOS type.")
        end select
@@ -1229,6 +1261,8 @@ contains
           state_out % dpdZ = state_in % dpdZ
           state_out % dedA = state_in % dedA
           state_out % dedZ = state_in % dedZ
+
+          state_out % reset = state_in % reset
        class default
           call bl_error("Error: Cannot copy a eos_t_3D to a different EOS type.")
        end select
@@ -1239,90 +1273,6 @@ contains
     end select
 
   end subroutine eos_copy
-
-
-
-  subroutine check_inputs(input, state)
-
-    implicit none
-
-    integer,             intent(in) :: input
-    type (eos_t_vector), intent(in) :: state
-
-    integer :: i, n
-
-    do i = 1, state % N
-
-       ! Check the inputs, and do initial setup for iterations.
-
-       do n = 1, nspec
-          if (state % xn(i,n) .lt. init_test) call eos_type_error(ierr_init_xn, input)
-       enddo
-
-       if ( state % T(i) .lt. mintemp ) then
-          print *, 'TEMP = ', state % T(i)
-          call bl_error('EOS: temp less than minimum possible temperature.')
-       end if
-       if ( state % T(i) .gt. maxtemp ) then
-          print *, 'TEMP = ', state % T(i)
-          call bl_error('EOS: temp greater than maximum possible temperature.')
-       end if
-
-       if ( state % rho(i) .lt. mindens ) then
-          print *, 'DENS = ', state % rho(i)
-          call bl_error('EOS: dens less than minimum possible density.')
-       end if
-       if ( state % rho(i) .gt. maxdens ) then
-          print *, 'DENS = ', state % rho(i)
-          call bl_error('EOS: dens greater than maximum possible density.')
-       end if
-
-       if ( state % y_e(i) .lt. minye ) then
-          print *, 'Y_E = ', state % y_e(i)
-          call bl_error('EOS: y_e less than minimum possible electron fraction.')
-       endif
-       if ( state % y_e(i) .gt. maxye ) then
-          print *, 'Y_E = ', state % y_e(i)
-          call bl_error('EOS: y_e greater than maximum possible electron fraction.')
-       endif
-
-       if (input .eq. eos_input_rt) then
-
-         if (state % rho(i) .lt. init_test .or. state % T(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_rh) then
-
-         if (state % rho(i) .lt. init_test .or. state % h(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_tp) then
-
-         if (state % T  (i) .lt. init_test .or. state % p(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_rp) then
-
-         if (state % rho(i) .lt. init_test .or. state % p(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_re) then
-
-         if (state % rho(i) .lt. init_test .or. state % e(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_ps) then
-
-         if (state % p  (i) .lt. init_test .or. state % s(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_ph) then
-
-         if (state % p  (i) .lt. init_test .or. state % h(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       elseif (input .eq. eos_input_th) then
-
-         if (state % T  (i) .lt. init_test .or. state % h(i) .lt. init_test) call eos_type_error(ierr_init, input)
-
-       endif
-
-    enddo
-    
-  end subroutine check_inputs
 
 
 
