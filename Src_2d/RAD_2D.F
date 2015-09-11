@@ -153,7 +153,7 @@ c#define KAVG(a,b,d) KAVG2(a,b,d)
       real*8 function kavg(a, b, d, iopt)
       implicit none
       real*8 a, b, d
-      integer iopt, opt
+      integer iopt
       integer, save :: opt=100
       if (iopt .ge. 0) then
          opt = iopt
