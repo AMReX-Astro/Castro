@@ -361,13 +361,11 @@ contains
 
                    do j = ilo2-1, ihi2+1
                       do i = ilo1-1, ihi1+1
-                         rhoInv = ONE / Ip(i,j,kc,idim,iwave,QRHO)
-                      
                          eos_state % rho   = Ip(i,j,kc,idim,iwave,QRHO)
                          eos_state % T     = Ip(i,j,kc,idim,iwave,QTEMP)
                          
-                         eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS+nspec-1) * rhoInv
-                         eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX+naux-1) * rhoInv
+                         eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX+naux-1)
                          
                          call eos(eos_input_rt, eos_state)
 
@@ -379,13 +377,11 @@ contains
 
                    do j = ilo2-1, ihi2+1
                       do i = ilo1-1, ihi1+1
-                         rhoInv = ONE / Im(i,j,kc,idim,iwave,QRHO)
-                         
                          eos_state % rho   = Im(i,j,kc,idim,iwave,QRHO)
                          eos_state % T     = Im(i,j,kc,idim,iwave,QTEMP)
 
-                         eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1) * rhoInv
-                         eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1) * rhoInv
+                         eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1)
 
                          call eos(eos_input_rt, eos_state)
 
