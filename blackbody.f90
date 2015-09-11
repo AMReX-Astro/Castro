@@ -12,14 +12,20 @@ module blackbody_module
   double precision :: bk_const = a_rad * 15.d0/pi**4
   !                            = 8 * pi * k**4 / (c**3 * h**3)
   double precision :: magic_const = pi**4/15.d0
-  double precision, parameter :: xmagic = 2.061981d0
   integer, parameter :: Ncoefs = 8
   double precision, dimension(0:Ncoefs) :: coefs =  &
        (/ 1.d0/60.d0, -1.d0/5040.d0, 1.d0/272160.d0, -1.d0/13305600.d0, &
        1.d0/622702080.d0, -691.d0/19615115520000.d0, 1.d0/1270312243200.d0,  &
        -3617.d0/202741834014720000.d0, 43867.d0/107290978560589824000.d0 /)
   double precision, parameter :: tol = 1.0d-10
+
+  double precision, parameter :: xmagic = 2.061981d0
+  double precision, parameter :: xsmall = 1.d-5
+  double precision, parameter :: xlarge = 100.d0
   
+  private
+  public :: BdBdTIndefInteg, BIndefInteg, BGroup
+
   contains
 
     subroutine BdBdTIndefInteg(T, nu, B, dBdT)
@@ -29,25 +35,22 @@ module blackbody_module
       
       x = hplanck*nu/(k_B*T)
 
-      if (x .gt. xmagic) then
-         integ = integlarge(x)
-      else if (x .lt. 1.d-12) then
-         integ = 0.d0
+      if (x .gt. xlarge) then
+         B = a_rad * T**4
+         dBdT = 0.d0
+      else if ( x .lt. xsmall) then
+         B = 0.d0
+         dBdT = 0.d0
       else
-         integ = integsmall(x)
-      end if
-      
-      B = bk_const*T**4 * integ
-
-      if (x .gt. 100.d0) then
-         part = 0.d0
-      else if (x .lt. 1.d-12) then
-         part = 0.d0
-      else
+         if (x .gt. xmagic) then
+            integ = integlarge(x)
+         else
+            integ = integsmall(x)
+         end if
          part = x**4/(exp(x) - 1.d0)
+         B = bk_const*T**4 * integ
+         dBdT = bk_const*T**3 * (4.*integ - part)
       end if
-
-      dBdT = bk_const*T**3 * (4.*integ - part)
     end subroutine BdBdTIndefInteg
 
     function BIndefInteg(T, nu)
@@ -57,13 +60,18 @@ module blackbody_module
       
       x = hplanck*nu/(k_B*T)
 
-      if (x .gt. xmagic) then
-         integ = integlarge(x)
+      if (x .gt. xlarge) then
+         BIndefInteg = a_rad * T**4
+      else if ( x .lt. xsmall) then
+         BIndefInteg = 0.d0
       else
-         integ = integsmall(x)
+         if (x .gt. xmagic) then
+            integ = integlarge(x)
+         else
+            integ = integsmall(x)
+         end if
+         BIndefInteg = bk_const*T**4 * integ
       end if
-      
-      BIndefInteg = bk_const*T**4 * integ
     end function BIndefInteg
 
     function BGroup(T, nu0, nu1)
@@ -91,7 +99,6 @@ module blackbody_module
     function integlarge(x)
       double precision, intent(in) :: x
       double precision :: integlarge, z
-
       z = exp(-x)
       integlarge = magic_const & 
            - (x**3 * Li(1,z) + 3.d0 * x**2 * Li(2,z) &
@@ -103,7 +110,6 @@ module blackbody_module
       double precision :: integsmall, t
       integer :: i
       double precision :: x2, x3, xfoo
-
       x2 = x**2
       x3 = x**3
       integsmall = x3/3.d0 - x2**2/8.d0
