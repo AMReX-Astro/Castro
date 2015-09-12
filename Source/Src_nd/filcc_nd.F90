@@ -16,13 +16,19 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
   double precision :: delta(3), xlo(3)
   double precision :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
-  if (dim .eq. 1) then
+#if (BL_SPACEDIM == 1)
+
      call filcc(adv(:,0,0),adv_lo(1),adv_hi(1),domlo(1:dim),domhi(1:dim),delta(1:dim),xlo(1:dim),bc)
-  else if (dim .eq. 2) then
+
+#elif (BL_SPACEDIM == 2)
+
      call filcc(adv(:,:,0),adv_lo(1),adv_lo(2),adv_hi(1),adv_hi(2),domlo(1:dim),domhi(1:dim),delta(1:dim),xlo(1:dim),bc)
-  else
+
+#else
+
      call filcc(adv(:,:,:),adv_lo(1),adv_lo(2),adv_lo(3),adv_hi(1),adv_hi(2),adv_hi(3),domlo,domhi,delta,xlo,bc)
-  endif
+
+#endif
 
 
 end subroutine filcc_nd

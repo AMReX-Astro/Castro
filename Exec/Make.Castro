@@ -300,6 +300,7 @@ vpath %.h   . $(VPATH_LOCATIONS)
 vpath %.H   . $(VPATH_LOCATIONS)
 vpath %.F   . $(VPATH_LOCATIONS)
 vpath %.f90 . $(VPATH_LOCATIONS)
+vpath %.F90 . $(VPATH_LOCATIONS)
 vpath %.f   . $(VPATH_LOCATIONS)
 vpath %.fi  . $(VPATH_LOCATIONS)
 
