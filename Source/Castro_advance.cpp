@@ -502,6 +502,12 @@ Castro::advance_hydro (Real time,
 			flux[i].resize(BoxLib::surroundingNodes(bx,i),NUM_STATE);
 			rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
+#if (BL_SPACEDIM == 1) 
+			flux[i].setVal(0.0, Ymom);
+#endif
+#if (BL_SPACEDIM < 3) 
+			flux[i].setVal(0.0, Zmom);
+#endif
 		    }
 		
 		    BL_FORT_PROC_CALL(CA_UMDRV_RAD,ca_umdrv_rad)
@@ -657,6 +663,12 @@ Castro::advance_hydro (Real time,
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 			flux[i].resize(bxtmp,NUM_STATE);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
+#if (BL_SPACEDIM == 1) 
+			flux[i].setVal(0.0, Ymom);
+#endif
+#if (BL_SPACEDIM < 3) 
+			flux[i].setVal(0.0, Zmom);
+#endif
 		    }
 	  
 		    BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
