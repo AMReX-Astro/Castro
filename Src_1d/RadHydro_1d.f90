@@ -24,7 +24,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
        QVAR, QRHO, QU, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
-       nadv, small_temp, allow_negative_energy
+       npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
@@ -64,7 +64,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   integer          :: i, g
   integer          :: ngp, ngf, loq(1), hiq(1)
   integer          :: n, nq
-  integer          :: iadv, ispec, iaux
+  integer          :: iadv, ispec, iaux, ipassive
   double precision :: courx, courmx
 
   double precision, allocatable :: dpdrho(:), dpde(:), flatg(:)
@@ -98,6 +98,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      q(i,QTEMP ) = uin(i,UTEMP)
      q(i,qrad:qradhi) = Erin(i,0:ngroups-1)
   enddo
+
+  do ipassive = 1, npassive
+     n  = upass_map(ipassive)
+     nq = qpass_map(ipassive)
+     q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
+  end do
 
 !     Load advected quatities, c, into q, assuming they arrived in uin as rho.c
   do iadv = 1, nadv
@@ -188,6 +194,13 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
               dpdrho(i) * srcQ(i,QRHO)! - &
 !              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
+
+
+     do ipassive = 1, npassive
+        n  = upass_map(ipassive)
+        nq = qpass_map(ipassive)
+        srcQ(i,nq) = (src(i,n) - q(i,nq) * srcQ(i,QRHO))/q(i,QRHO)
+     enddo
 
      do ispec=1,nspec
         srcQ(i,QFS+ispec-1) = ( src(i,UFS+ispec-1) - q(i,QFS+ispec-1) * srcQ(i,QRHO) ) / q(i,QRHO)
