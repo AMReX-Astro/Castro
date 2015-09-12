@@ -3,7 +3,7 @@
  
       use eos_module
       use probdata_module
-      use meth_params_module, only: NVAR,URHO,UMX,UMY,UFS,UFX,UEINT,UEDEN,UTEMP,&
+      use meth_params_module, only: NVAR,URHO,UMX,UMY,UMZ,UFS,UFX,UEINT,UEDEN,UTEMP,&
                                     outflow_data_old, outflow_data_new, &
                                     outflow_data_old_time, outflow_data_new_time
       use prob_params_module, only : center
@@ -165,6 +165,7 @@
                !   now we project it back along the normal
                adv(i,j,UMX) = adv(i,j,UMX) * (x/r)
                adv(i,j,UMY) = adv(i,j,UMY) * (y/r)
+               adv(i,j,UMZ) = 0.d0
 
                if (adv(i,j,1) <= 0.0) then
                    print *,"XLO:BAD DENSITY AT ",i,j 
@@ -218,6 +219,7 @@
                !   now we project it back along the normal
                adv(i,j,UMX) = adv(i,j,UMX) * (x/r)
                adv(i,j,UMY) = adv(i,j,UMY) * (y/r)
+               adv(i,j,UMZ) = 0.d0
 
                if (adv(i,j,1) <= 0.0) then
                    print *,"XHI:BAD DENSITY AT ",i,j 
@@ -271,6 +273,7 @@
                !   now we project it back along the normal
                adv(i,j,UMX) = adv(i,j,UMX) * (x/r)
                adv(i,j,UMY) = adv(i,j,UMY) * (y/r)
+               adv(i,j,UMZ) = 0.d0
 
                if (adv(i,j,1) <= 0.0) then
                    print *,"YLO:BAD DENSITY AT ",i,j 
@@ -323,6 +326,7 @@
                !   now we project it back along the normal
                adv(i,j,UMX) = adv(i,j,UMX) * (x/r)
                adv(i,j,UMY) = adv(i,j,UMY) * (y/r)
+               adv(i,j,UMZ) = 0.d0
 
                if (adv(i,j,1) <= 0.0) then
                    print *,"YHI:BAD DENSITY AT ",i,j 

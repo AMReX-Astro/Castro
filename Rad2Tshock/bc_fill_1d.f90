@@ -3,7 +3,7 @@
 subroutine ca_hypfill(adv,adv_l1,adv_h1, &
      domlo,domhi,delta,xlo,time,bc)
   
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
   use eos_module
   use probdata_module
@@ -61,6 +61,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_h1, &
      do i = adv_l1, domlo(1)-1
         adv(i,URHO) = rho0
         adv(i,UMX) = rho0*v0
+        adv(i,UMY) = 0.d0
+        adv(i,UMZ) = 0.d0
         adv(i,UFS) = adv(i,URHO)
         if (naux>0) then
            adv(i,UFX) = adv(i,URHO)           
@@ -76,6 +78,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_h1, &
      do i = domhi(1)+1, adv_h1
         adv(i,URHO) = rho1
         adv(i,UMX) = rho1*v1
+        adv(i,UMY) = 0.d0
+        adv(i,UMZ) = 0.d0
         adv(i,UFS) = adv(i,URHO)
         if (naux>0) then
            adv(i,UFX) = adv(i,URHO)           
