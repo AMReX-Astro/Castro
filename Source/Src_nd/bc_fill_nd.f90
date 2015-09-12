@@ -145,6 +145,8 @@ end subroutine ca_phigravfill
 
 subroutine ca_radfill(rad,rad_lo,rad_hi,domlo,domhi,delta,xlo,time,bc)
 
+  use prob_params_module, only: dim  
+
   implicit none
 
   include 'bc_types.fi'

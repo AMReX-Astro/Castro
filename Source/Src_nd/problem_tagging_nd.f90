@@ -7,6 +7,7 @@ subroutine set_problem_tags(tag,tag_lo,tag_hi, &
                             lo,hi,&
                             dx,problo,time,level)
 
+  use meth_params_module, only : NVAR
   implicit none
   
   integer          :: lo(3),hi(3)

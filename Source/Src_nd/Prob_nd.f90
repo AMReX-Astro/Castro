@@ -38,7 +38,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
 
   implicit none
 
-  integer :: level, nscal
+  integer :: level, nvar
   integer :: lo(3), hi(3)
   integer :: state_lo(3), state_hi(3)
   double precision :: xlo(3), xhi(3), time, dx(3)
