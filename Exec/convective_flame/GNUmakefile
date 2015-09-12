@@ -17,11 +17,19 @@ USE_MAESTRO_INIT = FALSE
 USE_OLDPLOTPER = TRUE
 USE_REACT = TRUE
 
-# This sets the EOS directory in $(CASTRO_DIR)/EOS
-EOS_dir     := gamma_law_general
+ifdef MICROPHYSICS_DIR
 
-# This sets the network directory in $(CASTRO_DIR)/Networks
-Network_dir := kpp
+  # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
+  EOS_dir     := gamma_law_general
+
+  # This sets the network directory in $(MICROPHYSICS_DIR)/networks
+  Network_dir := kpp
+
+else
+
+  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+
+endif
 
 Bpack   := ./Make.package
 Blocs   := .
