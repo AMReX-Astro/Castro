@@ -496,13 +496,10 @@ Castro::volProductSum (const std::string& name1,
 {
     BL_PROFILE("Castro::volProductSum()");
 
-    Real        sum     = 0.0;
-    const Real* dx      = geom.CellSize();
-    MultiFab*   mf1;
-    MultiFab*   mf2;
-
-    mf1 = derive(name1,time,0);      
-    mf2 = derive(name2,time,0);   
+    Real        sum = 0.0;
+    const Real* dx  = geom.CellSize();
+    MultiFab*   mf1 = derive(name1,time,0);
+    MultiFab*   mf2 = derive(name2,time,0);
 
     BL_ASSERT(mf1 != 0);
     BL_ASSERT(mf2 != 0);
@@ -511,6 +508,7 @@ Castro::volProductSum (const std::string& name1,
     {
 	const MultiFab* mask = getLevel(level+1).build_fine_mask();
 	MultiFab::Multiply(*mf1, *mask, 0, 0, 1, 0);
+	MultiFab::Multiply(*mf2, *mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -533,10 +531,8 @@ Castro::volProductSum (const std::string& name1,
         sum += s;
     }
 
-    if ( name1 != "phi" )
-      delete mf1;
-    if ( name2 != "phi" )
-      delete mf2;
+    delete mf1;
+    delete mf2;
 
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
