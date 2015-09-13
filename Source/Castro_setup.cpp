@@ -534,9 +534,6 @@ Castro::variableSetUp ()
           std::cout << " " << Radiation::nNeutrinoGroups[n];
         }
         std::cout << std::endl;
-        if (Temp != BL_SPACEDIM + 3) {
-          BoxLib::Error("Neutrino solver assumes Temp == BL_SPACEDIM + 3");
-        }
         if (Radiation::nNeutrinoGroups[0] > 0 &&
             NumAdv != 0) {
           BoxLib::Error("Neutrino solver assumes NumAdv == 0");
