@@ -99,7 +99,7 @@
        subroutine ca_sumlocmass(lo,hi,rho,r_lo,r_hi,dx,&
                                 vol,v_lo,v_hi,mass,idir)
 
-       use prob_params_module, only: problo, center, dim
+       use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
        use bl_constants_module
 
        implicit none
@@ -114,12 +114,23 @@
 
        integer          :: i, j, k
        double precision :: x, y, z
-
+       double precision :: symlo, symhi
+       
        mass = ZERO
 
+       symlo = ZERO
+       symhi = ZERO
+       
        if (idir .eq. 0) then
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+             if (physbc_lo(1) .eq. Symmetry) then
+                symlo = problo(1) - x
+             endif
+             if (physbc_hi(1) .eq. Symmetry) then
+                symhi = x - probhi(1)
+             endif
+             x = x + symlo + symhi
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
                    mass = mass + rho(i,j,k) * vol(i,j,k) * x
@@ -129,6 +140,13 @@
        else if (idir .eq. 1 .and. dim .ge. 2) then
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+             if (physbc_lo(2) .eq. Symmetry) then
+                symlo = problo(2) - y
+             endif
+             if (physbc_hi(2) .eq. Symmetry) then
+                symhi = y - probhi(2)
+             endif
+             y = y + symlo + symhi
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * vol(i,j,k) * y
@@ -138,6 +156,13 @@
        else if (dim .eq. 3) then
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+             if (physbc_lo(3) .eq. Symmetry) then
+                symlo = problo(3) - z
+             endif
+             if (physbc_hi(3) .eq. Symmetry) then
+                symhi = z - probhi(3)
+             endif
+             z = z + symlo + symhi
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
                    mass = mass + rho(i,j,k) * vol(i,j,k) * z
@@ -171,7 +196,7 @@
        subroutine ca_sumlocmass2d(lo,hi,rho,r_lo,r_hi,dx,&
                                   vol,v_lo,v_hi,mass,idir1,idir2)
 
-       use prob_params_module, only: problo, center, dim
+       use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
        use bl_constants_module
 
        implicit none
@@ -186,12 +211,25 @@
 
        integer          :: i, j, k
        double precision :: x, y, z
-
+       double precision :: symlo1, symhi1, symlo2, symhi2
+       
        mass = ZERO
 
+       symlo1 = ZERO
+       symlo2 = ZERO
+       symhi1 = ZERO
+       symhi2 = ZERO
+       
        if (idir1 .eq. 0) then
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+             if (physbc_lo(1) .eq. Symmetry) then
+                symlo1 = problo(1) - x
+             endif
+             if (physbc_hi(1) .eq. Symmetry) then
+                symhi1 = x - probhi(1)
+             endif
+             x = x + symlo1 + symhi1
              if (idir2 .eq. 0) then
                 do k = lo(3), hi(3)
                    do j = lo(2), hi(2)
@@ -201,6 +239,13 @@
              elseif (idir2 .eq. 1 .and. dim .ge. 2) then
                 do j = lo(2), hi(2)
                    y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+                   if (physbc_lo(2) .eq. Symmetry) then
+                      symlo2 = problo(2) - y
+                   endif
+                   if (physbc_hi(2) .eq. Symmetry) then
+                      symhi2 = y - probhi(2)
+                   endif
+                   y = y + symlo2 + symhi2
                    do k = lo(3), hi(3)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * x * y
                    enddo
@@ -208,6 +253,13 @@
              elseif (dim .eq. 3) then
                 do k = lo(3), hi(3)
                    z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+                   if (physbc_lo(3) .eq. Symmetry) then
+                      symlo2 = problo(3) - z
+                   endif
+                   if (physbc_hi(3) .eq. Symmetry) then
+                      symhi2 = z - probhi(3)
+                   endif
+                   z = z + symlo2 + symhi2
                    do j = lo(2), hi(2)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * x * z
                    enddo
@@ -217,9 +269,23 @@
        else if (idir1 .eq. 1 .and. dim .ge. 2) then
           do j = lo(2), hi(2)
              y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+             if (physbc_lo(2) .eq. Symmetry) then
+                symlo1 = problo(2) - y
+             endif
+             if (physbc_hi(2) .eq. Symmetry) then
+                symhi1 = y - probhi(2)
+             endif
+             y = y + symlo1 + symhi1
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
                    x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+                   if (physbc_lo(1) .eq. Symmetry) then
+                      symlo2 = problo(1) - x
+                   endif
+                   if (physbc_hi(1) .eq. Symmetry) then
+                      symhi2 = x - probhi(1)
+                   endif
+                   x = x + symlo2 + symhi2
                    do k = lo(3), hi(3)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * y * x
                    enddo
@@ -233,6 +299,13 @@
              elseif (dim .eq. 3) then
                 do k = lo(3), hi(3)
                    z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+                   if (physbc_lo(3) .eq. Symmetry) then
+                      symlo2 = problo(3) - z
+                   endif
+                   if (physbc_hi(3) .eq. Symmetry) then
+                      symhi2 = z - probhi(3)
+                   endif
+                   z = z + symlo2 + symhi2                   
                    do i = lo(1), hi(1)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * y * z
                    enddo
@@ -242,9 +315,23 @@
        elseif (dim .eq. 3) then
           do k = lo(3), hi(3)
              z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+             if (physbc_lo(3) .eq. Symmetry) then
+                symlo1 = problo(3) - z
+             endif
+             if (physbc_hi(3) .eq. Symmetry) then
+                symhi1 = z - probhi(3)
+             endif
+             z = z + symlo1 + symhi1
              if (idir2 .eq. 0) then
                 do i = lo(1), hi(1)
                    x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+                   if (physbc_lo(1) .eq. Symmetry) then
+                      symlo2 = problo(1) - x
+                   endif
+                   if (physbc_hi(1) .eq. Symmetry) then
+                      symhi2 = x - probhi(1)
+                   endif
+                   x = x + symlo2 + symhi2
                    do j = lo(2), hi(2)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * z * x
                    enddo
@@ -252,6 +339,13 @@
              elseif (idir2 .eq. 1) then
                 do j = lo(2), hi(2)
                    y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+                   if (physbc_lo(2) .eq. Symmetry) then
+                      symlo2 = problo(2) - y
+                   endif
+                   if (physbc_hi(2) .eq. Symmetry) then
+                      symhi2 = y - probhi(2)
+                   endif
+                   y = y + symlo2 + symhi2
                    do i = lo(1), hi(1)
                       mass = mass + rho(i,j,k) * vol(i,j,k) * z * y
                    enddo
