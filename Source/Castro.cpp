@@ -1632,6 +1632,18 @@ Castro::post_restart ()
     }
 #endif
 
+#ifdef ROTATION
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+    if (do_rotation)
+      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    else {
+      phirot_new.setVal(0.0);
+      rot_new.setVal(0.0);
+    }
+#endif    
+    
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0)
@@ -1711,8 +1723,9 @@ Castro::post_init (Real stop_time)
     for (int k = finest_level-1; k>= 0; k--)
         getLevel(k).avgDown();
 
-#ifdef GRAVITY
     Real cur_time = state[State_Type].curTime();
+    
+#ifdef GRAVITY
     if (do_grav) {
        if (gravity->get_gravity_type() == "PoissonGrav") {
 
@@ -1736,6 +1749,18 @@ Castro::post_init (Real stop_time)
     }
 #endif
 
+#ifdef ROTATION
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+    if (do_rotation)
+      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    else {
+      phirot_new.setVal(0.0);
+      rot_new.setVal(0.0);
+    }
+#endif
+    
 #ifdef RADIATION
     if (do_radiation) {
       // The option of whether to do a multilevel initialization is
@@ -1780,8 +1805,9 @@ Castro::post_grown_restart ()
         return;
 
     int finest_level = parent->finestLevel();
-#ifdef GRAVITY
     Real cur_time = state[State_Type].curTime();
+    
+#ifdef GRAVITY
     if (do_grav) {
        if (gravity->get_gravity_type() == "PoissonGrav") {
 
@@ -1805,6 +1831,18 @@ Castro::post_grown_restart ()
     }
 #endif
 
+#ifdef ROTATION
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+    if (do_rotation)
+      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    else {
+      phirot_new.setVal(0.0);
+      rot_new.setVal(0.0);
+    }
+#endif    
+    
 #ifdef RADIATION
     if (do_radiation) {
       // The option of whether to do a multilevel initialization is
