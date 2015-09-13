@@ -17,8 +17,6 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
 
     const Real strt_time = ParallelDescriptor::second();
 
-    const Real cur_time = state[State_Type].curTime();
-
     r.setVal(0.0);
     
     if (do_react == 1) 
