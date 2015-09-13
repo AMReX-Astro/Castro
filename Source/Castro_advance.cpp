@@ -237,6 +237,11 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
+#ifdef REACTIONS
+    MultiFab& reactions_old = get_old_data(Reactions_Type);
+    MultiFab& reactions_new = get_new_data(Reactions_Type);
+#endif
+    
     // It's possible for interpolation to create very small negative values for
     //   species so we make sure here that all species are non-negative after this point
     enforce_nonnegative_species(S_old);
@@ -440,9 +445,9 @@ Castro::advance_hydro (Real time,
 
 #ifdef REACTIONS
 #ifdef TAU
-	react_half_dt(Sborder,tau_diff,time,dt,NUM_GROW);
+	react_half_dt(Sborder,reactions_old,tau_diff,time,dt,NUM_GROW);
 #else
-	react_half_dt(Sborder,time,dt,NUM_GROW);
+	react_half_dt(Sborder,reactions_old,time,dt,NUM_GROW);
 #endif
 #endif
 
@@ -1267,9 +1272,9 @@ Castro::advance_hydro (Real time,
     
 #ifdef REACTIONS
 #ifdef TAU
-    react_half_dt(S_new,tau_diff,cur_time,dt);
+    react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
 #else
-    react_half_dt(S_new,cur_time,dt);
+    react_half_dt(S_new,reactions_new,cur_time,dt);
 #endif
 #endif
 
@@ -1377,6 +1382,11 @@ Castro::advance_no_hydro (Real time,
     }
 #endif 
 
+#ifdef REACTIONS
+    MultiFab& reactions_old = get_old_data(Reactions_Type);
+    MultiFab& reactions_new = get_new_data(Reactions_Type);
+#endif    
+    
 #ifdef DIFFUSION
 #ifdef TAU
     MultiFab tau_diff(grids,1,1);
@@ -1393,9 +1403,9 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef REACTIONS
 #ifdef TAU
-    react_half_dt(S_old,tau_diff,time,dt);
+    react_half_dt(S_old,reactions_old,tau_diff,time,dt);
 #else
-    react_half_dt(S_old,time,dt);
+    react_half_dt(S_old,reactions_old,time,dt);
 #endif
 #endif
  
@@ -1474,9 +1484,9 @@ Castro::advance_no_hydro (Real time,
         
 #ifdef REACTIONS
 #ifdef TAU
-       react_half_dt(S_new,tau_diff,cur_time,dt);
+       react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
 #else
-       react_half_dt(S_new,cur_time,dt);
+       react_half_dt(S_new,reactions_new,cur_time,dt);
 #endif
 #endif
 

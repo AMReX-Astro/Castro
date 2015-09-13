@@ -331,7 +331,8 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
-    void react_half_dt(MultiFab& state, 
+    void react_half_dt(MultiFab& state,
+		       MultiFab& reactions,
 #ifdef TAU
 		       MultiFab& tau,
 #endif

@@ -648,10 +648,19 @@ Castro::Castro (Amr&            papa,
    phirot_new.setVal(0.0);
 
    MultiFab& rot_new = get_new_data(Rotation_Type);
-   phirot_new.setVal(0.0);
+   rot_new.setVal(0.0);
 
 #endif
 
+#ifdef REACTIONS
+
+   // Initialize reaction data to zero.
+
+   MultiFab& reactions_new = get_new_data(Reactions_Type);
+   reactions_new.setVal(0.0);
+
+#endif
+   
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0) 

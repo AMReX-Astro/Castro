@@ -8,9 +8,9 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_half_dt(MultiFab& s, MultiFab& tau_diff, Real time, Real dt, int ngrow) 
+Castro::react_half_dt(MultiFab& s, MultiFab& r, MultiFab& tau_diff, Real time, Real dt, int ngrow) 
 #else
-Castro::react_half_dt(MultiFab& s, Real time, Real dt, int ngrow) 
+Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow) 
 #endif
 {
     BL_PROFILE("Castro::react_half_dt()");
@@ -19,6 +19,8 @@ Castro::react_half_dt(MultiFab& s, Real time, Real dt, int ngrow)
 
     const Real cur_time = state[State_Type].curTime();
 
+    r.setVal(0.0);
+    
     if (do_react == 1) 
     {
 
