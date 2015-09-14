@@ -1,6 +1,7 @@
 
   subroutine ca_react_state(lo,hi, &
                             state,s_lo,s_hi, &
+                            reactions,r_lo,r_hi, &
                             time,dt_react)
 
       use eos_module
@@ -14,12 +15,14 @@
 
       integer          :: lo(3), hi(3)
       integer          :: s_lo(3), s_hi(3)
+      integer          :: r_lo(3), r_hi(3)
       double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+      double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
       double precision :: time, dt_react
 
       integer          :: i,j,k,n
       double precision :: rho, rhoInv, u, v, w, ke, e_in, e_out, temp
-      double precision :: delta_rho_e
+      double precision :: delta_x(nspec), delta_e, delta_rho_e
       double precision :: x_in(nspec+naux), x_out(nspec+naux)
 
       type (eos_t) :: eos_state
@@ -61,8 +64,24 @@
                   x_out(n) = max(min(x_out(n),ONE),ZERO)
                end do
 
-               delta_rho_e = rho * e_out - rho * e_in
+               delta_x     = x_out(1:nspec) - x_in(1:nspec)
+               delta_e     = e_out - e_in
+               delta_rho_e = rho * delta_e
 
+               ! Add burning rates to reactions MultiFab, but be
+               ! careful because the reactions and state MFs may
+               ! not have the same number of ghost cells.
+               
+               if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
+                    j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
+                    k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
+                  
+                  reactions(i,j,k,1:nspec) = reactions(i,j,k,1:nspec) + delta_x
+                  reactions(i,j,k,nspec+1) = reactions(i,j,k,nspec+1) + delta_e
+                  reactions(i,j,k,nspec+1) = reactions(i,j,k,nspec+2) + delta_rho_e
+
+               endif
+               
                state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
                state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
                state(i,j,k,UFS:UFS+nspec-1) = rho * x_out(1:nspec)
