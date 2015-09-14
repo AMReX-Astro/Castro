@@ -1,6 +1,7 @@
 
   subroutine ca_react_state(lo,hi, &
                             state,s_lo,s_hi, &
+                            reactions,r_lo,r_hi, &
                             time,dt_react)
 
       use eos_module
@@ -14,11 +15,13 @@
 
       integer          :: lo(3), hi(3)
       integer          :: s_lo(3), s_hi(3)
+      integer          :: r_lo(3), r_hi(3)
       double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+      double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
       double precision :: time, dt_react
 
       integer          :: i, j, k
-      double precision :: rhoInv, rho_e_K, delta_rho_e
+      double precision :: rhoInv, rho_e_K, delta_x(nspec), delta_e, delta_rho_e
 
       type (eos_t_3D)  :: state_in
       type (eos_t_3D)  :: state_out
@@ -66,14 +69,30 @@
                ! this reset should be enforced through an appropriate choice for the dual energy 
                ! formalism parameter dual_energy_eta2 in reset_internal_energy.
 
-               delta_rho_e = state(i,j,k,URHO) * state_out % e(i,j,k) - state(i,j,k,UEINT)
+               delta_x     = state_out % xn(i,j,k,:) - state_in % xn(i,j,k,:)
+               delta_e     = state_out % e(i,j,k) - state_in % e(i,j,k)
+               delta_rho_e = state_out % rho(i,j,k) * delta_e
 
                state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
                state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
                state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * state_out % xn(i,j,k,:)
-               state(i,j,k,UFX:UFX+naux -1) = state(i,j,k,URHO) * state_out % aux(i,j,k,:)
+               state(i,j,k,UFX:UFX+naux-1)  = state(i,j,k,URHO) * state_out % aux(i,j,k,:)
                state(i,j,k,UTEMP)           = state_out % T(i,j,k)
 
+               ! Add burning rates to reactions MultiFab, but be
+               ! careful because the reactions and state MFs may
+               ! not have the same number of ghost cells.
+               
+               if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
+                    j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
+                    k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
+                  
+                  reactions(i,j,k,1:nspec) = delta_x
+                  reactions(i,j,k,nspec+1) = delta_e
+                  reactions(i,j,k,nspec+1) = delta_rho_e
+
+               endif               
+               
             enddo
          enddo
       enddo
