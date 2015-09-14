@@ -89,6 +89,64 @@ Castro::restart (Amr&     papa,
 #endif      
     }
 
+    // For versions < 2, we didn't store all three components
+    // of the momenta in the checkpoint when doing 1D or 2D simulations.
+    // So the state data that was read in will be a MultiFab with a
+    // number of components that doesn't include the extra momenta,
+    // which is incompatible with what we want. Our strategy is therefore
+    // to create a new MultiFab with the right number of components, and
+    // copy the data from the old MultiFab into the new one in the correct
+    // slots. Then we'll swap pointers so that the new MultiFab is where
+    // the new state data lives, and delete the old data as we no longer need it.
+    
+#if (BL_SPACEDIM < 3)    
+
+    if (version < 2) {
+
+      int ns = desc_lst[State_Type].nComp();
+      int ng = desc_lst[State_Type].nExtra();
+      MultiFab* new_data = new MultiFab(grids,ns,ng,Fab_allocate);
+      MultiFab& chk_data = get_state_data(State_Type).newData();
+
+#if (BL_SPACEDIM == 1)      
+      
+      // In 1D, we can copy everything below the y-momentum as normal,
+      // and everything above the z-momentum as normal but shifted by
+      // two components. The y- and z-momentum are zeroed out.
+
+      for (int n = 0; n < ns; n++) {
+	if (n < Ymom)
+	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	else if (n == Ymom || n == Zmom)
+	  new_data->setVal(0.0, n, 1, ng);
+	else
+	  MultiFab::Copy(*new_data, chk_data, n-2, n, 1, ng);
+      }
+
+#elif (BL_SPACEDIM == 2)
+      
+      // Strategy is the same in 2D but we only need to worry about
+      // shifting by one component.
+
+      for (int n = 0; n < ns; n++) {
+	if (n < Zmom)
+	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	else if (n == Zmom)
+	  new_data->setVal(0.0, n, 1, ng);
+	else
+	  MultiFab::Copy(*new_data, chk_data, n-1, n, 1, ng);
+      }
+
+#endif
+
+      // Now swap the pointers.
+
+      get_state_data(State_Type).replaceNewData(new_data);
+
+    }
+ 
+#endif
+      
     buildMetrics();
 
     // get the elapsed CPU time to now;
@@ -325,7 +383,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCastroHeaderFile += "/CastroHeader";
 	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
-	    CastroHeaderFile << "Checkpoint version: 1" << std::endl;
+	    CastroHeaderFile << "Checkpoint version: 2" << std::endl;
 	    CastroHeaderFile.close();
 	}
 
