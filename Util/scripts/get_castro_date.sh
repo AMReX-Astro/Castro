@@ -30,6 +30,8 @@ echo " "
 echo "cloning BoxLib"
 git clone ${server}/BoxLib.git
 
+cd ..
+
 echo " "
 echo "resetting to before ${date}"
 cd BoxLib
