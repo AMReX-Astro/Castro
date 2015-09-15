@@ -22,7 +22,6 @@ contains
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix, hybrid_riemann, &
@@ -362,7 +361,6 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use bl_error_module
     use network, only : nspec, naux
-    use eos_type_module
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &

@@ -59,7 +59,6 @@ contains
     use slope_module, only : uslope, pslope
     use network
     use eos_module
-    use eos_type_module
     use riemann_module, only: cmpflx, shock
     use bl_constants_module
 
@@ -793,7 +792,6 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use eos_module
-    use eos_type_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UESGS, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
@@ -1389,7 +1387,6 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, &
                                    small_dens, small_temp, npassive, upass_map
     use bl_constants_module
-    use eos_type_module
     use eos_module
 
     implicit none
