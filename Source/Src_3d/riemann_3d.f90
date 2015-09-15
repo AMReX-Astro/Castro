@@ -73,7 +73,7 @@ contains
 
     double precision :: rhoInv
     
-    eos_state = eos_t_3D( (/ ilo, jlo, 1 /), (/ ihi, jhi, 1 /) )
+    call eos_allocate(eos_state, (/ ilo, jlo, 1 /), (/ ihi, jhi, 1 /) )
     
     call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
     call bl_allocate (   cavg, ilo,ihi,jlo,jhi)

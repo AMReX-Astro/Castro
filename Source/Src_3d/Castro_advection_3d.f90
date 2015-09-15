@@ -148,8 +148,6 @@ contains
     
     type (eos_t_3D) :: eos_state
 
-    double precision :: rhoInv
-
     call bl_allocate ( pgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
     call bl_allocate ( ugdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
     call bl_allocate (gegdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
@@ -254,7 +252,7 @@ contains
        call bl_allocate ( Ip_gc, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,1)
        call bl_allocate ( Im_gc, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,1)
 
-       eos_state = eos_t_3D( (/ ilo1-1, ilo2-1, 1 /), (/ ihi1+1, ihi2+1, 1 /) )
+       call eos_allocate( eos_state, (/ ilo1-1, ilo2-1, 1 /), (/ ihi1+1, ihi2+1, 1 /) )
     else
        call bl_allocate ( dqx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
        call bl_allocate ( dqy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
@@ -844,16 +842,15 @@ contains
     dtdy = dt/dy
     dtdz = dt/dz
 
-    call bl_allocate( dpdrho, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
-    call bl_allocate(   dpde, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
-!    call bl_allocate(dpdX_er, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,nspec)
-
     do i=1,3
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
-    enddo
-
-    eos_state = eos_t_3D(loq, hiq)
+    enddo    
+    
+    call bl_allocate( dpdrho, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+    call bl_allocate(   dpde, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
+!    call bl_allocate(dpdX_er, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,nspec)
+    call eos_allocate(eos_state, loq, hiq)
 
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
@@ -918,11 +915,11 @@ contains
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
-             eos_state % T(i,j,k)     = q(i,j,k,QTEMP )
-             eos_state % rho(i,j,k)   = q(i,j,k,QRHO  )
-             eos_state % e(i,j,k)     = q(i,j,k,QREINT)
-             eos_state % xn(i,j,k,:)  = q(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux(i,j,k,:) = q(i,j,k,QFX:QFX+naux-1)
+             eos_state % T(i,j,k)    = q(i,j,k,QTEMP )
+             eos_state % rho(i,j,k)  = q(i,j,k,QRHO  )
+             eos_state % e(i,j,k)    = q(i,j,k,QREINT)
+             eos_state % xn(i,j,k,:) = q(i,j,k,QFS:QFS+nspec-1)
+             eos_state % aux(i,j,k,1:naux) = q(i,j,k,QFX:QFX+naux-1)
           enddo
        enddo
     enddo

@@ -317,244 +317,212 @@ module eos_type_module
     
   end type eos_t_3D
 
-
-
-  ! State of 1D arrays
-  
-  interface eos_t_1D
-     module procedure eos_type_1D
-  end interface eos_t_1D
-
-  ! State of 2D arrays
-  
-  interface eos_t_2D
-     module procedure eos_type_2D
-  end interface eos_t_2D
-
-  ! State of 3D arrays
-  
-  interface eos_t_3D
-     module procedure eos_type_3D
-  end interface eos_t_3D
-
 contains
 
-  function eos_type_1D(lo, hi)
+  subroutine eos_allocate(state, lo, hi)
 
     implicit none
+
+    class (eos_type) :: state
+    integer          :: lo(:), hi(:)
+
+    integer :: ndim
+
+    if (size(hi) .ne. size(lo)) then
+       call bl_error("Error: cannot have different lo and hi dimensions in EOS type constructor.")
+    endif
+
+    ndim = size(lo)
     
-    integer, intent(in) :: lo(1), hi(1)
+    select type (state)
 
-    type (eos_t_1D) :: eos_type_1D
+    type is (eos_t_1D)
 
-    eos_type_1D % lo = lo
-    eos_type_1D % hi = hi
+       if (ndim .ne. 1) then
+          call bl_error("Error: dimensionality of lo and hi must match EOS dimensionality.")
+       endif
 
-    call bl_allocate(eos_type_1D % rho, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % T, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % p, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % e, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % h, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % s, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpdT, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpdr, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dedT, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dedr, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dhdT, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dhdr, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dsdT, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dsdr, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpde, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpdr_e, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % xn, lo(1), hi(1), 1, nspec)
-    call bl_allocate(eos_type_1D % aux, lo(1), hi(1), 1, naux)
-    call bl_allocate(eos_type_1D % cv, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % cp, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % xne, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % xnp, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % eta, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % pele, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % ppos, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % mu, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % mu_e, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % y_e, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dedX, lo(1), hi(1), 1, nspec)
-    call bl_allocate(eos_type_1D % dpdX, lo(1), hi(1), 1, nspec)
-    call bl_allocate(eos_type_1D % dhdX, lo(1), hi(1), 1, nspec)
-    call bl_allocate(eos_type_1D % gam1, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % cs, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % abar, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % zbar, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpdA, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dpdZ, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dedA, lo(1), hi(1))
-    call bl_allocate(eos_type_1D % dedZ, lo(1), hi(1))
+       state % lo = lo
+       state % hi = hi
+       state % reset = .false.
+       
+       call bl_allocate(state % rho, lo(1), hi(1))
+       call bl_allocate(state % T, lo(1), hi(1))
+       call bl_allocate(state % p, lo(1), hi(1))
+       call bl_allocate(state % e, lo(1), hi(1))
+       call bl_allocate(state % h, lo(1), hi(1))
+       call bl_allocate(state % s, lo(1), hi(1))
+       call bl_allocate(state % dpdT, lo(1), hi(1))
+       call bl_allocate(state % dpdr, lo(1), hi(1))
+       call bl_allocate(state % dedT, lo(1), hi(1))
+       call bl_allocate(state % dedr, lo(1), hi(1))
+       call bl_allocate(state % dhdT, lo(1), hi(1))
+       call bl_allocate(state % dhdr, lo(1), hi(1))
+       call bl_allocate(state % dsdT, lo(1), hi(1))
+       call bl_allocate(state % dsdr, lo(1), hi(1))
+       call bl_allocate(state % dpde, lo(1), hi(1))
+       call bl_allocate(state % dpdr_e, lo(1), hi(1))
+       call bl_allocate(state % xn, lo(1), hi(1), 1, nspec)
+       call bl_allocate(state % aux, lo(1), hi(1), 1, naux)
+       call bl_allocate(state % cv, lo(1), hi(1))
+       call bl_allocate(state % cp, lo(1), hi(1))
+       call bl_allocate(state % xne, lo(1), hi(1))
+       call bl_allocate(state % xnp, lo(1), hi(1))
+       call bl_allocate(state % eta, lo(1), hi(1))
+       call bl_allocate(state % pele, lo(1), hi(1))
+       call bl_allocate(state % ppos, lo(1), hi(1))
+       call bl_allocate(state % mu, lo(1), hi(1))
+       call bl_allocate(state % mu_e, lo(1), hi(1))
+       call bl_allocate(state % y_e, lo(1), hi(1))
+       call bl_allocate(state % dedX, lo(1), hi(1), 1, nspec)
+       call bl_allocate(state % dpdX, lo(1), hi(1), 1, nspec)
+       call bl_allocate(state % dhdX, lo(1), hi(1), 1, nspec)
+       call bl_allocate(state % gam1, lo(1), hi(1))
+       call bl_allocate(state % cs, lo(1), hi(1))
+       call bl_allocate(state % abar, lo(1), hi(1))
+       call bl_allocate(state % zbar, lo(1), hi(1))
+       call bl_allocate(state % dpdA, lo(1), hi(1))
+       call bl_allocate(state % dpdZ, lo(1), hi(1))
+       call bl_allocate(state % dedA, lo(1), hi(1))
+       call bl_allocate(state % dedZ, lo(1), hi(1))
+
+       state % rho(:)   = init_num
+       state % T(:)     = init_num
+       state % p(:)     = init_num
+       state % e(:)     = init_num
+       state % h(:)     = init_num
+       state % s(:)     = init_num
+       state % xn(:,:)  = init_num
+       state % aux(:,:) = init_num
+
+    type is (eos_t_2D)
+
+       if (ndim .ne. 2) then
+          call bl_error("Error: dimensionality of lo and hi must match EOS dimensionality.")
+       endif       
+
+       state % lo = lo
+       state % hi = hi
+       state % reset = .false.
+       
+       call bl_allocate(state % rho, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % T, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % p, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % e, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % h, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % s, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpdT, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpdr, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dedT, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dedr, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dhdT, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dhdr, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dsdT, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dsdr, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpde, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpdr_e, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % xn, lo(1), hi(1), lo(2), hi(2), 1, nspec)
+       call bl_allocate(state % aux, lo(1), hi(1), lo(2), hi(2), 1, naux)
+       call bl_allocate(state % cv, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % cp, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % xne, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % xnp, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % eta, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % pele, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % ppos, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % mu, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % mu_e, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % y_e, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dedX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
+       call bl_allocate(state % dpdX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
+       call bl_allocate(state % dhdX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
+       call bl_allocate(state % gam1, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % cs, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % abar, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % zbar, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpdA, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dpdZ, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dedA, lo(1), hi(1), lo(2), hi(2))
+       call bl_allocate(state % dedZ, lo(1), hi(1), lo(2), hi(2))
+
+       state % rho(:,:)   = init_num
+       state % T(:,:)     = init_num
+       state % p(:,:)     = init_num
+       state % e(:,:)     = init_num
+       state % h(:,:)     = init_num
+       state % s(:,:)     = init_num
+       state % xn(:,:,:)  = init_num
+       state % aux(:,:,:) = init_num
+
+    type is (eos_t_3D)
+
+       if (ndim .ne. 3) then
+          call bl_error("Error: dimensionality of lo and hi must match EOS dimensionality.")
+       endif       
+
+       state % lo = lo
+       state % hi = hi
+       state % reset = .false.
+       
+       call bl_allocate(state % rho, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % T, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % p, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % h, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % s, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dedT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dedr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dhdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dhdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dsdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dsdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpde, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpdr_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % xn, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
+       call bl_allocate(state % aux, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, naux)
+       call bl_allocate(state % cv, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % cp, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % xne, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % xnp, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % eta, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % pele, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % ppos, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % mu, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % mu_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % y_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dedX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
+       call bl_allocate(state % dpdX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
+       call bl_allocate(state % dhdX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
+       call bl_allocate(state % gam1, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % cs, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % abar, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % zbar, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpdA, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dpdZ, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dedA, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+       call bl_allocate(state % dedZ, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
+
+       state % rho(:,:,:)   = init_num
+       state % T(:,:,:)     = init_num
+       state % p(:,:,:)     = init_num
+       state % e(:,:,:)     = init_num
+       state % h(:,:,:)     = init_num
+       state % s(:,:,:)     = init_num
+       state % xn(:,:,:,:)  = init_num
+       state % aux(:,:,:,:) = init_num
+
+    end select
+
+    state % N = product(hi - lo + 1)
+    state % width(1) = state % N
+    state % spec_width(1) = state % N
+    state % spec_width(2) = nspec
+    state % aux_width(1) = state % N
+    state % aux_width(2) = naux    
     
-    eos_type_1D % rho(:)   = init_num
-    eos_type_1D % T(:)     = init_num
-    eos_type_1D % p(:)     = init_num
-    eos_type_1D % e(:)     = init_num
-    eos_type_1D % h(:)     = init_num
-    eos_type_1D % s(:)     = init_num
-    eos_type_1D % xn(:,:)  = init_num
-    eos_type_1D % aux(:,:) = init_num
-
-    eos_type_1D % reset = .false.
-    
-    eos_type_1D % N = (hi(1) - lo(1) + 1)
-    eos_type_1D % width(1) = eos_type_1D % N
-    eos_type_1D % spec_width(1) = eos_type_1D % N
-    eos_type_1D % spec_width(2) = nspec
-    eos_type_1D % aux_width(1) = eos_type_1D % N
-    eos_type_1D % aux_width(2) = naux    
-
-  end function eos_type_1D
-
-
-
-  function eos_type_2D(lo, hi)
-
-    implicit none
-    
-    integer, intent(in) :: lo(2), hi(2)
-
-    type (eos_t_2D) :: eos_type_2D
-
-    eos_type_2D % lo = lo
-    eos_type_2D % hi = hi
-
-    call bl_allocate(eos_type_2D % rho, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % T, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % p, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % e, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % h, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % s, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpdT, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpdr, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dedT, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dedr, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dhdT, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dhdr, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dsdT, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dsdr, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpde, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpdr_e, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % xn, lo(1), hi(1), lo(2), hi(2), 1, nspec)
-    call bl_allocate(eos_type_2D % aux, lo(1), hi(1), lo(2), hi(2), 1, naux)
-    call bl_allocate(eos_type_2D % cv, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % cp, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % xne, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % xnp, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % eta, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % pele, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % ppos, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % mu, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % mu_e, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % y_e, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dedX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
-    call bl_allocate(eos_type_2D % dpdX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
-    call bl_allocate(eos_type_2D % dhdX, lo(1), hi(1), lo(2), hi(2), 1, nspec)
-    call bl_allocate(eos_type_2D % gam1, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % cs, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % abar, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % zbar, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpdA, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dpdZ, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dedA, lo(1), hi(1), lo(2), hi(2))
-    call bl_allocate(eos_type_2D % dedZ, lo(1), hi(1), lo(2), hi(2))
-    
-    eos_type_2D % rho(:,:)   = init_num
-    eos_type_2D % T(:,:)     = init_num
-    eos_type_2D % p(:,:)     = init_num
-    eos_type_2D % e(:,:)     = init_num
-    eos_type_2D % h(:,:)     = init_num
-    eos_type_2D % s(:,:)     = init_num
-    eos_type_2D % xn(:,:,:)  = init_num
-    eos_type_2D % aux(:,:,:) = init_num
-
-    eos_type_2D % reset = .false.
-    
-    eos_type_2D % N = (hi(2) - lo(2) + 1) * (hi(1) - lo(1) + 1)
-    eos_type_2D % width(1) = eos_type_2D % N
-    eos_type_2D % spec_width(1) = eos_type_2D % N
-    eos_type_2D % spec_width(2) = nspec
-    eos_type_2D % aux_width(1) = eos_type_2D % N
-    eos_type_2D % aux_width(2) = naux
-    
-  end function eos_type_2D
-
-  
-  
-  function eos_type_3D(lo, hi)
-
-    implicit none
-    
-    integer, intent(in) :: lo(3), hi(3)
-
-    type (eos_t_3D) :: eos_type_3D
-
-    eos_type_3D % lo = lo
-    eos_type_3D % hi = hi
-
-    call bl_allocate(eos_type_3D % rho, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % T, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % p, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % h, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % s, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dedT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dedr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dhdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dhdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dsdT, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dsdr, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpde, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpdr_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % xn, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
-    call bl_allocate(eos_type_3D % aux, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, naux)
-    call bl_allocate(eos_type_3D % cv, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % cp, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % xne, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % xnp, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % eta, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % pele, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % ppos, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % mu, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % mu_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % y_e, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dedX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
-    call bl_allocate(eos_type_3D % dpdX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
-    call bl_allocate(eos_type_3D % dhdX, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3), 1, nspec)
-    call bl_allocate(eos_type_3D % gam1, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % cs, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % abar, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % zbar, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpdA, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dpdZ, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dedA, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    call bl_allocate(eos_type_3D % dedZ, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3))
-    
-    eos_type_3D % rho(:,:,:)   = init_num
-    eos_type_3D % T(:,:,:)     = init_num
-    eos_type_3D % p(:,:,:)     = init_num
-    eos_type_3D % e(:,:,:)     = init_num
-    eos_type_3D % h(:,:,:)     = init_num
-    eos_type_3D % s(:,:,:)     = init_num
-    eos_type_3D % xn(:,:,:,:)  = init_num
-    eos_type_3D % aux(:,:,:,:) = init_num
-
-    eos_type_3D % reset = .false.
-    
-    eos_type_3D % N = (hi(3) - lo(3) + 1) * (hi(2) - lo(2) + 1) * (hi(1) - lo(1) + 1)
-    eos_type_3D % width(1) = eos_type_3D % N
-    eos_type_3D % spec_width(1) = eos_type_3D % N
-    eos_type_3D % spec_width(2) = nspec
-    eos_type_3D % aux_width(1) = eos_type_3D % N
-    eos_type_3D % aux_width(2) = naux
-    
-  end function eos_type_3D
+  end subroutine eos_allocate
 
 
   
@@ -720,7 +688,9 @@ contains
     state % dpde = state_vector % dpde(i)
     state % dpdr_e = state_vector % dpdr_e(i)
     state % xn(:) = state_vector % xn(i,:)
-    state % aux(:) = state_vector % aux(i,:)
+    if (naux > 0) then
+       state % aux(:) = state_vector % aux(i,:)
+    endif
     state % cv = state_vector % cv(i)
     state % cp = state_vector % cp(i)
     state % xne = state_vector % xne(i)
@@ -782,7 +752,9 @@ contains
     state_vector % dpde(i) = state % dpde
     state_vector % dpdr_e(i) = state % dpdr_e
     state_vector % xn(i,:) = state % xn(:)
-    state_vector % aux(i,:) = state % aux(:)
+    if (naux > 0) then
+       state_vector % aux(i,:) = state % aux
+    endif
     state_vector % cv(i) = state % cv
     state_vector % cp(i) = state % cp
     state_vector % xne(i) = state % xne
@@ -821,7 +793,6 @@ contains
     type (eos_t_1D) :: working_state_1D
 
     integer :: lo(3), hi(3)
-    integer :: i
 
     select type (state_in)
 
@@ -831,7 +802,7 @@ contains
        
     type is (eos_t)
 
-       working_state_1D = eos_type_1D( (/ 1 /), (/ 1 /) )
+       call eos_allocate(working_state_1D,  (/ 1 /), (/ 1 /) )
 
        working_state_1D % rho(1) = state_in % rho
        working_state_1D % T(1)   = state_in % T
@@ -1085,7 +1056,7 @@ contains
        state_out % dpdr_e = state % dpdr_e(1)
        state_out % xn     = state % xn(1,:)
        if (naux > 0) then
-          state_out % aux    = state % aux(1,:)
+          state_out % aux = state % aux(1,:)
        endif
        state_out % cv     = state % cv(1)
        state_out % cp     = state % cp(1)

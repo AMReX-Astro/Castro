@@ -26,8 +26,8 @@
       type (eos_t_3D)  :: state_in
       type (eos_t_3D)  :: state_out
 
-      state_in  = eos_t_3D(lo,hi)
-      state_out = eos_t_3D(lo,hi)
+      call eos_allocate(state_in, lo, hi)
+      call eos_allocate(state_out, lo, hi)
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
@@ -48,8 +48,8 @@
                   state_in % e(i,j,k) = state(i,j,k,UEINT) * rhoInv
                endif
 
-               state_in % xn(i,j,k,:)  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               state_in % aux(i,j,k,:) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+               state_in % xn(i,j,k,:)       = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               state_in % aux(i,j,k,1:naux) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
                
             enddo
          enddo
@@ -76,7 +76,7 @@
                state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
                state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
                state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * state_out % xn(i,j,k,:)
-               state(i,j,k,UFX:UFX+naux-1)  = state(i,j,k,URHO) * state_out % aux(i,j,k,:)
+               state(i,j,k,UFX:UFX+naux-1)  = state(i,j,k,URHO) * state_out % aux(i,j,k,1:naux)
                state(i,j,k,UTEMP)           = state_out % T(i,j,k)
 
                ! Add burning rates to reactions MultiFab, but be
