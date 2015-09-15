@@ -5,7 +5,7 @@
 # with this source.
 
 
-server=https://github.com/BoxLib-Codes/
+server=https://github.com/BoxLib-Codes
 
 #-----------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ git clone ${server}/Castro.git
 
 echo " "
 echo "resetting to before ${date}"
-cd MAESTRO
+cd Castro
 hash=`git rev-list -n 1 --before="$date" master`
 git reset --hard ${hash}
 
