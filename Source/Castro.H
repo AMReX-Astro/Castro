@@ -537,6 +537,7 @@ protected:
     static int       radius_grow;
     static int       verbose;
     static Real      cfl;
+    static Real      burning_timestep_factor;  
     static Real      init_shrink;
     static Real      change_max;
     static int       do_reflux;
