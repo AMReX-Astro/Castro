@@ -2,7 +2,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
 
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use interpolate_module
   use eos_module
   use network, only: nspec
@@ -60,7 +60,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  ! zero transverse momentum
                  adv(i,j,UMY) = 0.d0
-
+                 adv(i,j,UMZ) = 0.d0
+                 
                  eos_state%rho = density
                  eos_state%T = temperature
                  eos_state%xn(:) = species(:)
@@ -105,7 +106,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  ! zero transverse momentum
                  adv(i,j,UMY) = 0.d0
-
+                 adv(i,j,UMZ) = 0.d0
+                 
                  eos_state%rho = density
                  eos_state%T = temperature
                  eos_state%xn(:) = species(:)
@@ -152,7 +154,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  ! zero transverse momentum
                  adv(i,j,UMX) = 0.d0
-
+                 adv(i,j,UMZ) = 0.d0
+                 
                  eos_state%rho = density
                  eos_state%T = temperature
                  eos_state%xn(:) = species(:)
@@ -195,7 +198,8 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  ! zero transverse momentum
                  adv(i,j,UMX) = 0.d0
-
+                 adv(i,j,UMZ) = 0.d0
+                 
                  eos_state%rho = density
                  eos_state%T = temperature
                  eos_state%xn(:) = species(:)
