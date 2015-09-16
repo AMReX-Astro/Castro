@@ -375,7 +375,7 @@ BL_FORT_PROC_DECL(CA_ESTDT_BURNING,ca_estdt_burning)
      const BL_FORT_FAB_ARG_3D(reactions),
      const int* lo, const int* hi,
      const Real* dx, Real* dt);
-#endif REACTIONS
+#endif
 
 BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
     (const int* is_finest_level,
