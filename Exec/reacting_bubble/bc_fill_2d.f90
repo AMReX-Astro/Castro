@@ -70,7 +70,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  adv(i,j,URHO) = density
                  adv(i,j,UEINT) = density*eos_state%e
-                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/density
+                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
                  adv(i,j,UTEMP) = temperature
                  adv(i,j,UFS:UFS+2) = density*species
 
@@ -116,7 +116,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  adv(i,j,URHO) = density
                  adv(i,j,UEINT) = density*eos_state%e
-                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/density
+                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
                  adv(i,j,UTEMP) = temperature
                  adv(i,j,UFS:UFS+2) = density*species
 
@@ -164,7 +164,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  adv(i,j,URHO) = density
                  adv(i,j,UEINT) = density*eos_state%e
-                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/density
+                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
                  adv(i,j,UTEMP) = temperature
                  adv(i,j,UFS:UFS+2) = density*species
 
@@ -208,7 +208,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  adv(i,j,URHO) = density
                  adv(i,j,UEINT) = density*eos_state%e
-                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/density
+                 adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
                  adv(i,j,UTEMP) = temperature
                  adv(i,j,UFS:UFS+2) = density*species
 
