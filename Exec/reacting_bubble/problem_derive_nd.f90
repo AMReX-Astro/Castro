@@ -4,7 +4,7 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
@@ -60,7 +60,7 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
@@ -116,7 +116,7 @@ subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
@@ -161,7 +161,7 @@ subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
