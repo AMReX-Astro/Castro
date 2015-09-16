@@ -62,6 +62,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
+     const Real& burning_timestep_factor,
      const Real& dual_energy_eta1,
      const Real& dual_energy_eta2,
      const int& dual_energy_update_E_from_e,
@@ -368,12 +369,13 @@ BL_FORT_PROC_DECL(CA_ESTDT_RAD,ca_estdt_rad)
      const Real dx[], Real* dt);
 #endif
 
+#ifdef REACTIONS
 BL_FORT_PROC_DECL(CA_ESTDT_BURNING,ca_estdt_burning)
-    (const BL_FORT_FAB_ARG(state),
-     const BL_FORT_FAB_ARG(reaction_terms),
-     const int lo[], const int hi[],
-     Real* dt_hydro, Real* dt_nuc, 
-     int* initial_step);
+    (const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(reactions),
+     const int* lo, const int* hi,
+     const Real* dx, Real* dt);
+#endif
 
 BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
     (const int* is_finest_level,
