@@ -569,6 +569,7 @@ protected:
     static int       transverse_use_eos;
     static int       transverse_reset_density;
     static int       transverse_reset_rhoe;
+    static int       source_term_predictor;
 
     static int       dual_energy_update_E_from_e;
     static Real      dual_energy_eta1;

@@ -158,6 +158,8 @@ int          Castro::ppm_predict_gammae = 0;
 int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
 
+int          Castro::source_term_predictor = 0;
+
 int          Castro::hybrid_riemann = 0;
 int          Castro::use_colglaz = 0;
 int          Castro::cg_maxiter  = 12;
@@ -413,6 +415,7 @@ Castro::read_params ()
     pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
+    pp.query("source_term_predictor", source_term_predictor);
     pp.query("hybrid_riemann",hybrid_riemann);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
