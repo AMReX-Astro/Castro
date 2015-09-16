@@ -151,12 +151,10 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     phi_p[0] = &Temperature;
     Res_p[0] = &DiffTerm;
 
-    // Need to do this even if Cartesian because the array is needed in set_coefficients
     coeffs[0].resize(BL_SPACEDIM,PArrayManage);
-    Geometry g = cs->Geom();
     for (int i = 0; i < BL_SPACEDIM ; i++) {
-        coeffs[0].set(i, new MultiFab);
-        g.GetFaceArea(coeffs[0][i],grids[level],i,0);
+        coeffs[0].set(i, new MultiFab(grids[level], 1, 0, Fab_allocate, 
+				      IntVect::TheDimensionVector(i)));
         MultiFab::Copy(coeffs[0][i],temp_cond_coef[i],0,0,1,0);
     }
 
@@ -166,7 +164,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
        applyMetricTerms(level,(*Res_p[0]),coeffs[0]);
 #endif
 
-    mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+    mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
  
     mgt_solver.applyop(phi_p, Res_p, bndry);
 
@@ -262,8 +260,8 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     coeffs[0].resize(BL_SPACEDIM,PArrayManage);
     Geometry g = cs->Geom();
     for (int i = 0; i < BL_SPACEDIM ; i++) {
-        coeffs[0].set(i, new MultiFab);
-        g.GetFaceArea(coeffs[0][i],grids[level],i,0);
+        coeffs[0].set(i, new MultiFab(grids[level], 1, 0, Fab_allocate, 
+				      IntVect::TheDimensionVector(i)));
         MultiFab::Copy(coeffs[0][i],temp_cond_coef[i],0,0,1,0);
     }
 
@@ -273,7 +271,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
        applyMetricTerms(level,(*Res_p[0]),coeffs[0]);
 #endif
 
-    mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+    mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
  
     mgt_solver.applyop(phi_p, Res_p, bndry);
 
