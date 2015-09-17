@@ -1006,7 +1006,7 @@ void HypreMultiABec::buildMatrixStructure()
       bcoefs[level][i].setVal(0.0);
     }
 
-    SPa.set(level, 0);
+    SPa.clear(level);
   }
 
   // This can be done now that addLevel has been called for each level:

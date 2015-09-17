@@ -46,9 +46,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Tuple<MultiFab, BL_SPACEDIM> lambda;
   if (limiter > 0) {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      BoxArray edge_boxes(grids);
-      edge_boxes.surroundingNodes(idim);
-      lambda[idim].define(edge_boxes, nGroups, 0, Fab_allocate);
+      lambda[idim].define(castro->getEdgeBoxArray(idim), nGroups, 0, Fab_allocate);
     }
 
     if (inner_update_limiter == -1) {
@@ -78,9 +76,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
   else {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      BoxArray edge_boxes(grids);
-      edge_boxes.surroundingNodes(idim);
-      lambda[idim].define(edge_boxes, 1, 0, Fab_allocate);
+      lambda[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
       lambda[idim].setVal(1./3.);
     }    
   }
@@ -243,9 +239,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   Tuple<MultiFab, BL_SPACEDIM> Flux;
   for (int n = 0; n < BL_SPACEDIM; n++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(n);
-    Flux[n].define(edge_boxes, 1, 0, Fab_allocate);
+    Flux[n].define(castro->getEdgeBoxArray(n), 1, 0, Fab_allocate);
   }
 
   PArray<MultiFab> flxsave(1, PArrayManage);

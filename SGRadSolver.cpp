@@ -42,9 +42,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   Tuple<MultiFab, BL_SPACEDIM> Ff_new;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      BoxArray edge_boxes(grids);
-      edge_boxes.surroundingNodes(idim);
-      Ff_new[idim].define(edge_boxes, 1, 0, Fab_allocate);
+      Ff_new[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
   }
 
   MultiFab Dterm;  
@@ -94,9 +92,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   Tuple<MultiFab, BL_SPACEDIM> lambda;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(idim);
-    lambda[idim].define(edge_boxes, 1, 0, Fab_allocate);
+    lambda[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
   }
 
   if (update_limiter == 0) {

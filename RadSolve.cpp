@@ -365,13 +365,11 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 			    MultiFab& vel, MultiFab& dcf)
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
-    const BoxArray& grids = parent->boxArray(level);
+    const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
-	BoxArray edge_boxes(grids);
-	edge_boxes.surroundingNodes(idim);
-	MultiFab dcoefs(edge_boxes, 1, 0, Fab_allocate);
+	MultiFab dcoefs(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -640,12 +638,11 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   BL_PROFILE("RadSolve::levelDterm");
   const BoxArray& grids = parent->boxArray(level);
   const Real* dx = parent->Geom(level).CellSize();
+  const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
   Tuple<MultiFab, BL_SPACEDIM> Dterm_face;
   for (int idim=0; idim<BL_SPACEDIM; idim++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(idim);
-    Dterm_face[idim].define(edge_boxes, 1, 0, Fab_allocate);
+    Dterm_face[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
   }
 
   // grow a larger MultiFab to hold Er so we can difference across faces

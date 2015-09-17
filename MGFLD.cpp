@@ -467,6 +467,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 {
   const Geometry& geom = parent->Geom(level);
   const Real* dx = parent->Geom(level).CellSize();
+  const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
   if (nGroups > 1) {
     solver.setHypreMulti(1.0);
@@ -558,8 +559,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   // B & C coefficients
   Tuple<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-    BoxArray edge_boxes(grids);
-    edge_boxes.surroundingNodes(idim);
+    const BoxArray& edge_boxes = castro->getEdgeBoxArray(idim);
 
     bcoefs[idim].define(edge_boxes, 1, 0, Fab_allocate);
     bcoefs[idim].setVal(0.0);
