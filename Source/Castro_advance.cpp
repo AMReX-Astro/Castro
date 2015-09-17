@@ -106,9 +106,7 @@ Castro::advance_hydro (Real time,
     u_gdnv = new MultiFab[BL_SPACEDIM];
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
-	BoxArray edge_grids(grids);
-	edge_grids.surroundingNodes(dir);
-	u_gdnv[dir].define(edge_grids,1,1,Fab_allocate);
+	u_gdnv[dir].define(getEdgeBoxArray(dir),1,1,Fab_allocate);
 	u_gdnv[dir].setVal(1.e40,1);
     }
     
@@ -265,8 +263,7 @@ Castro::advance_hydro (Real time,
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		  comp_minus_level_grad_phi.set(n, 
-			     new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+		  comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
 	    }
 	    gravity->create_comp_minus_level_grad_phi(level,
                             comp_minus_level_phi,comp_minus_level_grad_phi);
@@ -320,9 +317,7 @@ Castro::advance_hydro (Real time,
 
     for (int j = 0; j < BL_SPACEDIM; j++)
        {
-         BoxArray ba = S_new.boxArray();
-	 ba.surroundingNodes(j);
-         fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
+         fluxes[j].define(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
          fluxes[j].setVal(0.0);
        }
 
@@ -338,9 +333,7 @@ Castro::advance_hydro (Real time,
     MultiFab sgs_fluxes[BL_SPACEDIM];
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
       {
-	BoxArray ba = S_new.boxArray();
-	ba.surroundingNodes(dir);
-	sgs_fluxes[dir].define(ba, NUM_STATE, 0, Fab_allocate);
+	sgs_fluxes[dir].define(getEdgeBoxArray(dir), NUM_STATE, 0, Fab_allocate);
       }
 #endif
     
@@ -349,9 +342,7 @@ Castro::advance_hydro (Real time,
     MultiFab rad_fluxes[BL_SPACEDIM];
     if (Radiation::rad_hydro_combined) {
       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	BoxArray ba = Er_new.boxArray();
-	ba.surroundingNodes(dir);
-	rad_fluxes[dir].define(ba, Radiation::nGroups, 0, Fab_allocate);
+	rad_fluxes[dir].define(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
       }
     }
 #endif
@@ -1484,8 +1475,7 @@ Castro::advance_no_hydro (Real time,
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		comp_minus_level_grad_phi.set(n,
-                           new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+		comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
 	    }
 	    gravity->create_comp_minus_level_grad_phi(level,
                             comp_minus_level_phi,comp_minus_level_grad_phi);

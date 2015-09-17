@@ -206,12 +206,12 @@ Gravity::install_level (int                   level,
        grad_phi_prev[level].clear();
        grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_prev[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+           grad_phi_prev[level].set(n,new MultiFab(getEdgeBoxArray(level,n),1,1));
 
        grad_phi_curr[level].clear();
        grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+           grad_phi_curr[level].set(n,new MultiFab(getEdgeBoxArray(level,n),1,1));
 
        if (level > 0) {
           phi_flux_reg.clear(level);
@@ -320,8 +320,7 @@ Gravity::swapTimeLevels (int level)
 	    grad_phi_prev[level].clear(n);
 	    grad_phi_prev[level].set(n,dummy);
 	    
-	    grad_phi_curr[level].set(n,
-                new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+	    grad_phi_curr[level].set(n, new MultiFab(getEdgeBoxArray(level,n),1,1));
 	    grad_phi_curr[level][n].setVal(1.e50);
 	} 
     }
@@ -797,7 +796,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     for (int lev = crse_level; lev <= fine_level; lev++) {
        ec_gdPhi.set(lev-crse_level,new PArray<MultiFab>(BL_SPACEDIM,PArrayManage));
        for (int n=0; n<BL_SPACEDIM; ++n)  
-          ec_gdPhi[lev-crse_level].set(n,new MultiFab(BoxArray(grids[lev]).surroundingNodes(n),1,0));
+	   ec_gdPhi[lev-crse_level].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,0));
     }
 
     // Using the average-down contribution, construct the boundary conditions for the Poisson solve.                                                                                                                                        
@@ -930,8 +929,7 @@ Gravity::GetCrseGradPhi(int level,
     for (int i=0; i<BL_SPACEDIM; ++i)
     {
         BL_ASSERT(!grad_phi_crse.defined(i));
-        const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
-        grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
+        grad_phi_crse.set(i,new MultiFab(getEdgeBoxArray(level-1,i), 1, 0));
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -967,8 +965,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_curr[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
-           grad_phi_curr[lev].set(n,new MultiFab(eba,1,1));
+           grad_phi_curr[lev].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,1));
        }
     }
 
@@ -990,8 +987,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_prev[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
-           grad_phi_prev[lev].set(n,new MultiFab(eba,1,1));
+           grad_phi_prev[lev].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,1));
        }
     }
 
@@ -1619,7 +1615,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
         SL_grad_phi.clear(n);
-        SL_grad_phi.set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,0));
+        SL_grad_phi.set(n,new MultiFab(getEdgeBoxArray(level,n),1,0));
         SL_grad_phi[n].setVal(0.);
     }
 
@@ -1661,9 +1657,7 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
 
         for (int n=0; n<BL_SPACEDIM; ++n) {
 
-            BoxArray ba = grids[level];
-            ba.surroundingNodes(n);
-            MultiFab fluxes(ba, 1, 0);
+            MultiFab fluxes(getEdgeBoxArray(level,n), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel

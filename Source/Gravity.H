@@ -152,6 +152,8 @@ protected:
   PArray<MultiFab> volume;
   Array<MultiFab*> area;
 
+  const BoxArray& getEdgeBoxArray (int lev, int dir) const { return area[lev][dir].boxArray(); }
+
   int Density;
   int finest_level;
   int finest_level_allocated;

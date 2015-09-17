@@ -2431,10 +2431,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
-      coeffs.set(dir,new MultiFab);
-      BoxArray edge_boxes(grids);
-      edge_boxes.surroundingNodes(dir);
-      coeffs[dir].define(edge_boxes,1,0,Fab_allocate);
+       coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate);
    }
 
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());
