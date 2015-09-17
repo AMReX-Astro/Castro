@@ -25,8 +25,8 @@ Fmincludes :=
 EOS_TOP_DIR := $(CASTRO_TOP_DIR)/EOS
 NETWORK_TOP_DIR := $(CASTRO_TOP_DIR)/Networks
 
-#EOS_DIR := gamma_law_general
-EOS_DIR := helmeos
+EOS_DIR := gamma_law_general
+#EOS_DIR := helmeos
 
 NETWORK_DIR := ignition_simple
 
