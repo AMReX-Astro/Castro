@@ -1,48 +1,30 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 20000
 
-# for pert_factor = 8.1d-3 -> max Mach number ~0.05
-stop_time    = 4.5e-4
-amr.plot_per = 4.5e-5
+stop_time    = 10.0
 
-# for pert_factor = 8.3d-2 -> max Mach number ~0.15
-#stop_time    = 1.5e-4
-#amr.plot_per = 1.5e-5
-
-# for pert_factor = 3.47d0 -> max Mach number ~0.45
-#stop_time    = 5.e-5
-#amr.plot_per = 5.e-6
-
-castro.MAESTRO_plotfile = "MAESTRO_plt00000"
-castro.MAESTRO_modelfile = "./MAESTRO_plt00000/model_cc_00000"
-castro.MAESTRO_first_species = "X(X)"
-castro.MAESTRO_npts_model = 512
-
-castro.MAESTRO_cutoff_density = 1.e-10
-castro.MAESTRO_init_type = 2
-castro.MAESTRO_spherical = 0
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1   0
-geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
+geometry.is_periodic = 0   0
+geometry.coord_sys   = 1        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0   0
 geometry.prob_hi     = 2.0 2.0
-amr.n_cell           = 512 512
-
-castro.ppm_type = 0
+amr.n_cell           = 128 128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   1
-castro.hi_bc       =  0   1
+castro.lo_bc       =  3   1
+castro.hi_bc       =  2   1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav  = 1
+
+castro.ppm_type = 1
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.e9
@@ -69,10 +51,11 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = -1         # number of timesteps between checkpoints
+amr.check_int       = 100       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
+amr.plot_int        = 100
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
