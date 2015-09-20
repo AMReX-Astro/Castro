@@ -8,7 +8,6 @@ program riemann_exact
   use probin_module, only: rho_l, u_l, p_l, T_l, rho_r, u_r, p_r, T_r, &
                            xmin, xmax, xjump, t, npts, use_Tinit, &
                            co_moving_frame
-  use extern_probin_module, only: use_eos_coulomb
   use riemann_support
   use runtime_init_module
   use riemann_sample_module
@@ -32,7 +31,6 @@ program riemann_exact
 
   ! general Maestro initializations
   call runtime_init()
-  print *, 'use_eos_coulomb = ', use_eos_coulomb
 
   ! microphysics
   call network_init()

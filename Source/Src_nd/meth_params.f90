@@ -52,6 +52,8 @@ module meth_params_module
   integer         , save :: transverse_reset_density
   integer         , save :: transverse_reset_rhoe
 
+  double precision, save :: burning_timestep_factor
+  
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
   integer         , save :: use_pslope

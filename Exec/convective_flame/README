@@ -20,10 +20,16 @@ There are several parameters that affect the dynamics of this problem:
 
 
 
-Numbers of interest:
+Numbers / quantities of interest:
 
    * Rossby,  Ro ~ U/(L Omega)
    
    * scale height, H ~ p_base / (rho_base g)
 
    * burning front speed? thickness?
+
+   * sound speed: c ~ \sqrt(p_base / rho_base)
+
+     do we want t_cs ~ H/c ~ 1?
+
+  

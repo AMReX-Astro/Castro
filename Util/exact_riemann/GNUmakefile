@@ -29,7 +29,8 @@ endif
 EOS_TOP_DIR := $(MICROPHYSICS_DIR)/eos
 NETWORK_TOP_DIR := $(MICROPHYSICS_DIR)/networks
 
-EOS_DIR := helmholtz
+EOS_DIR := gamma_law_general
+#EOS_DIR := helmholtz
 
 NETWORK_DIR := ignition_simple
 

@@ -29,6 +29,7 @@ f90EXE_sources += rotation_sources_nd.f90
 endif
 
 ifeq ($(USE_REACT), TRUE)
+f90EXE_sources += EstDt_burning_nd.f90
 f90EXE_sources += React_nd.f90
 endif
 

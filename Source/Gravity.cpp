@@ -206,12 +206,12 @@ Gravity::install_level (int                   level,
        grad_phi_prev[level].clear();
        grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_prev[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+           grad_phi_prev[level].set(n,new MultiFab(getEdgeBoxArray(level,n),1,1));
 
        grad_phi_curr[level].clear();
        grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+           grad_phi_curr[level].set(n,new MultiFab(getEdgeBoxArray(level,n),1,1));
 
        if (level > 0) {
           phi_flux_reg.clear(level);
@@ -320,8 +320,7 @@ Gravity::swapTimeLevels (int level)
 	    grad_phi_prev[level].clear(n);
 	    grad_phi_prev[level].set(n,dummy);
 	    
-	    grad_phi_curr[level].set(n,
-                new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+	    grad_phi_curr[level].set(n, new MultiFab(getEdgeBoxArray(level,n),1,1));
 	    grad_phi_curr[level][n].setVal(1.e50);
 	} 
     }
@@ -517,25 +516,25 @@ Gravity::solve_for_phi (int               level,
     phi_p[0] = &phi;
     Rhs_p[0] = &Rhs;
 
-    // Need to do this even if Cartesian because the array is needed in set_gravity_coefficients
-    Array< PArray<MultiFab> > coeffs(1);
-    coeffs[0].resize(BL_SPACEDIM,PArrayManage);
-    for (int i = 0; i < BL_SPACEDIM ; i++) {
-        coeffs[0].set(i, new MultiFab);
-        geom.GetFaceArea(coeffs[0][i],grids[level],i,0);
-        coeffs[0][i].setVal(1.0);
-    }
-
 #if (BL_SPACEDIM < 3)
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
     {
-      applyMetricTerms(level,(*Rhs_p[0]),coeffs[0]);
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+	Array< PArray<MultiFab> > coeffs(1);
+	coeffs[0].resize(BL_SPACEDIM,PArrayManage);
+	for (int i = 0; i < BL_SPACEDIM ; i++) {
+	    coeffs[0].set(i, new MultiFab(grids[level], 1, 0, Fab_allocate, 
+					  IntVect::TheDimensionVector(i)));
+	    coeffs[0][i].setVal(1.0);
+	}
+
+	applyMetricTerms(level,(*Rhs_p[0]),coeffs[0]);
+
+	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
     } 
     else 
 #endif
     {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,1);
+	mgt_solver.set_const_gravity_coeffs(xa,xb);
     }
 
     Real     tol = sl_tol;
@@ -655,18 +654,17 @@ Gravity::solve_for_delta_phi (int                        crse_level,
             Rhs_p[lev-crse_level]->setVal(0.0);
         }
 
-       // Need to do this even if Cartesian because the array is needed in set_gravity_coefficients
-       coeffs[lev-crse_level].resize(BL_SPACEDIM,PArrayManage);
-       Geometry g = LevelData[lev].Geom();
-       for (int i = 0; i < BL_SPACEDIM ; i++) {
-           coeffs[lev-crse_level].set(i, new MultiFab);
-           g.GetFaceArea(coeffs[lev-crse_level][i],grids[lev],i,0);
-           coeffs[lev-crse_level][i].setVal(1.0);
-       }
-
 #if (BL_SPACEDIM < 3)
-       if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
-          applyMetricTerms(lev,(*Rhs_p[lev-crse_level]),coeffs[lev-crse_level]);
+	if (Geometry::IsRZ() || Geometry::IsSPHERICAL()) {
+	   coeffs[lev-crse_level].resize(BL_SPACEDIM,PArrayManage);
+	   for (int i = 0; i < BL_SPACEDIM ; i++) {
+	       coeffs[lev-crse_level].set(i, new MultiFab(grids[lev], 1, 0, Fab_allocate,
+							  IntVect::TheDimensionVector(i)));
+	       coeffs[lev-crse_level][i].setVal(1.0);
+	   }
+
+	   applyMetricTerms(lev,(*Rhs_p[lev-crse_level]),coeffs[lev-crse_level]);
+	}
 #endif
     }
 
@@ -692,11 +690,10 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        }
     }
 
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
     } else {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,1);
+	mgt_solver.set_const_gravity_coeffs(xa,xb);
     }
 
     Real     tol = delta_tol;
@@ -799,7 +796,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     for (int lev = crse_level; lev <= fine_level; lev++) {
        ec_gdPhi.set(lev-crse_level,new PArray<MultiFab>(BL_SPACEDIM,PArrayManage));
        for (int n=0; n<BL_SPACEDIM; ++n)  
-          ec_gdPhi[lev-crse_level].set(n,new MultiFab(BoxArray(grids[lev]).surroundingNodes(n),1,0));
+	   ec_gdPhi[lev-crse_level].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,0));
     }
 
     // Using the average-down contribution, construct the boundary conditions for the Poisson solve.                                                                                                                                        
@@ -932,8 +929,7 @@ Gravity::GetCrseGradPhi(int level,
     for (int i=0; i<BL_SPACEDIM; ++i)
     {
         BL_ASSERT(!grad_phi_crse.defined(i));
-        const BoxArray eba = BoxArray(grids[level-1]).surroundingNodes(i);
-        grad_phi_crse.set(i,new MultiFab(eba, 1, 0));
+        grad_phi_crse.set(i,new MultiFab(getEdgeBoxArray(level-1,i), 1, 0));
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -969,8 +965,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_curr[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
-           grad_phi_curr[lev].set(n,new MultiFab(eba,1,1));
+           grad_phi_curr[lev].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,1));
        }
     }
 
@@ -992,8 +987,7 @@ Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_prev[lev].clear(n);
-           const BoxArray eba = BoxArray(grids[lev]).surroundingNodes(n);
-           grad_phi_prev[lev].set(n,new MultiFab(eba,1,1));
+           grad_phi_prev[lev].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,1));
        }
     }
 
@@ -1099,15 +1093,6 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
        }
 #endif
 
-       // Need to do this even if Cartesian because the array is needed in set_gravity_coefficients
-       coeffs[lev].resize(BL_SPACEDIM,PArrayManage);
-       Geometry g = LevelData[level+lev].Geom();
-       for (int i = 0; i < BL_SPACEDIM ; i++) {
-           coeffs[lev].set(i, new MultiFab);
-           g.GetFaceArea(coeffs[lev][i],grids[level+lev],i,0);
-           coeffs[lev][i].setVal(1.0);
-       }
-
        if ( (level == 0) && (lev == 0) && !Geometry::isAllPeriodic() ) 
        {
 	   if (verbose && ParallelDescriptor::IOProcessor()) 
@@ -1158,8 +1143,16 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 
 #if (BL_SPACEDIM < 3)
        // Adjust by metric terms
-       if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
-          applyMetricTerms(level+lev,(*Rhs_p[lev]),coeffs[lev]);
+       if (Geometry::IsRZ() || Geometry::IsSPHERICAL()) {
+	   coeffs[lev].resize(BL_SPACEDIM,PArrayManage);
+	   for (int i = 0; i < BL_SPACEDIM ; i++) {
+	       coeffs[lev].set(i, new MultiFab(grids[level+lev], 1, 0, Fab_allocate, 
+					       IntVect::TheDimensionVector(i)));
+	       coeffs[lev][i].setVal(1.0);
+	   }
+
+	   applyMetricTerms(level+lev,(*Rhs_p[lev]),coeffs[lev]);
+       }
 #endif
     }
      
@@ -1205,11 +1198,10 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
 
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
     } else {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,1);
+	mgt_solver.set_const_gravity_coeffs(xa,xb);
     }
 
     Real     tol = ml_tol;
@@ -1623,7 +1615,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
         SL_grad_phi.clear(n);
-        SL_grad_phi.set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,0));
+        SL_grad_phi.set(n,new MultiFab(getEdgeBoxArray(level,n),1,0));
         SL_grad_phi[n].setVal(0.);
     }
 
@@ -1665,9 +1657,7 @@ Gravity::add_to_fluxes(int level, int iteration, int ncycle)
 
         for (int n=0; n<BL_SPACEDIM; ++n) {
 
-            BoxArray ba = grids[level];
-            ba.surroundingNodes(n);
-            MultiFab fluxes(ba, 1, 0);
+            MultiFab fluxes(getEdgeBoxArray(level,n), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1848,18 +1838,17 @@ Gravity::test_composite_phi (int level)
 
        Rhs_p[lev]->mult(Ggravity,0,1);
 
-       // Need to do this even if Cartesian because the array is needed in set_gravity_coefficients
-       coeffs[lev].resize(BL_SPACEDIM,PArrayManage);
-       Geometry g = LevelData[level+lev].Geom();
-       for (int i = 0; i < BL_SPACEDIM ; i++) {
-           coeffs[lev].set(i, new MultiFab);
-           g.GetFaceArea(coeffs[lev][i],boxes,i,0);
-           coeffs[lev][i].setVal(1.0);
-       }
-
 #if (BL_SPACEDIM < 3)
-       if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
-          applyMetricTerms(level+lev,(*Rhs_p[lev]),coeffs[lev]);
+       if (Geometry::IsRZ() || Geometry::IsSPHERICAL()) {
+	   coeffs[lev].resize(BL_SPACEDIM,PArrayManage);
+	   for (int i = 0; i < BL_SPACEDIM ; i++) {
+	       coeffs[lev].set(i, new MultiFab(grids[level+lev], 1, 0, Fab_allocate, 
+					       IntVect::TheDimensionVector(i)));
+	       coeffs[lev][i].setVal(1.0);
+	   }
+	   
+	   applyMetricTerms(level+lev,(*Rhs_p[lev]),coeffs[lev]);
+       }
 #endif
 
        Res_p[lev] = new MultiFab(boxes,1,0);
@@ -1906,11 +1895,10 @@ Gravity::test_composite_phi (int level)
                              dest_comp,num_comp,crse_ratio,*phys_bc);
     }
 
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,0);
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
     } else {
-      mgt_solver.set_gravity_coefficients(coeffs,xa,xb,1);
+	mgt_solver.set_const_gravity_coeffs(xa,xb);
     }
  
     mgt_solver.compute_residual(phi_p, Rhs_p, Res_p, bndry);

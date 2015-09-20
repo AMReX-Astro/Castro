@@ -67,6 +67,7 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 Real         Castro::cfl           = 0.8;
+Real         Castro::burning_timestep_factor = 1.e200;
 Real         Castro::init_shrink   = 1.0;
 Real         Castro::change_max    = 1.1;
 ErrorList    Castro::err_list;
@@ -156,6 +157,8 @@ int          Castro::ppm_tau_in_tracing = 0;
 int          Castro::ppm_predict_gammae = 0;
 int          Castro::ppm_reference_edge_limit = 1;
 int          Castro::ppm_reference_eigenvectors = 0;
+
+int          Castro::source_term_predictor = 0;
 
 int          Castro::hybrid_riemann = 0;
 int          Castro::use_colglaz = 0;
@@ -265,6 +268,7 @@ Castro::read_params ()
 //  verbose = (verbose ? 1 : 0);
     pp.query("init_shrink",init_shrink);
     pp.query("cfl",cfl);
+    pp.query("burning_timestep_factor",burning_timestep_factor);
     pp.query("change_max",change_max);
     pp.query("fixed_dt",fixed_dt);
     pp.query("initial_dt",initial_dt);
@@ -412,6 +416,7 @@ Castro::read_params ()
     pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
     pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
     pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
+    pp.query("source_term_predictor", source_term_predictor);
     pp.query("hybrid_riemann",hybrid_riemann);
     pp.query("use_colglaz",use_colglaz);
     pp.query("use_flattening",use_flattening);
@@ -1129,12 +1134,16 @@ Castro::estTimeStep (Real dt_old)
 
     const MultiFab& stateMF = get_new_data(State_Type);
 
+    const Real* dx = geom.CellSize();    
+    
     if (do_hydro) 
     {
-      const Real* dx    = geom.CellSize();
 
 #ifdef RADIATION
       if (Radiation::rad_hydro_combined) {
+
+	  // Compute radiation + hydro limited timestep.
+	
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1168,7 +1177,9 @@ Castro::estTimeStep (Real dt_old)
       else 
       {
 #endif
-	  
+
+	  // Compute hydro-limited timestep.
+	
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1199,44 +1210,46 @@ Castro::estTimeStep (Real dt_old)
        ParallelDescriptor::ReduceRealMin(estdt);
        estdt *= cfl;
        if (verbose && ParallelDescriptor::IOProcessor()) 
-           std::cout << "...estdt from     hydro at level " << level << ": " << estdt << std::endl;
+           std::cout << "...estimated hydro-limited timestep at level " << level << ": " << estdt << std::endl;
     }
 
 #ifdef REACTIONS
-#if 0
-    const MultiFab& reactMF = get_new_data(Reactions_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& reactions_new = get_new_data(Reactions_Type);
 
-    // If these quantities aren't defined yet then we haven't taken a step at this level yet
-    int initial_step = 0;
-
-    Real cur_time  = state[State_Type].curTime();
-    if (cur_time == 0.0) initial_step = 1;
-
-    Real estdt_burning = 1.e200;
-    Real dt            = 1.e200;
-    for (MFIter mfi(stateMF); mfi.isValid(); ++mfi)
-    {
-        const Box& box = mfi.validbox();
-        BL_FORT_PROC_CALL(CA_ESTDT_BURNING,ca_estdt_burning)
-            (BL_TO_FORTRAN(stateMF[mfi]),
-             BL_TO_FORTRAN(reactMF[mfi]),
-             box.loVect(),box.hiVect(),&dt_old,&dt,
-             &initial_step);
-
-        estdt_burning = std::min(estdt_burning,dt);
-    }
-
-    ParallelDescriptor::ReduceRealMin(estdt_burning);
-
-    if (verbose && ParallelDescriptor::IOProcessor())
-        cout << "hydro timestep at level " << level << ":  estdt = " << estdt << '\n';
-
-    if (verbose && ParallelDescriptor::IOProcessor())
-        cout << "burning timestep at level " << level << ":  estdt_burning = " << estdt_burning << '\n';
-
-    estdt = std::min(estdt, estdt_burning);
-
+    if (do_react) {
+    
+        // Compute burning-limited timestep.
+    
+#ifdef _OPENMP
+#pragma omp parallel
 #endif
+        {
+            Real dt = 1.e200;
+    
+	    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+	    {
+	        const Box& box = mfi.validbox();
+		BL_FORT_PROC_CALL(CA_ESTDT_BURNING,ca_estdt_burning)
+                    (BL_TO_FORTRAN_3D(S_new[mfi]),
+		     BL_TO_FORTRAN_3D(reactions_new[mfi]),
+		     ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),ZFILL(dx),&dt);
+
+	    }
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt_burning)
+#endif
+	    {
+	        estdt = std::min(estdt,dt);
+	    }
+	      
+        }
+    
+	ParallelDescriptor::ReduceRealMin(estdt);
+
+	if (verbose && ParallelDescriptor::IOProcessor()) 
+	  std::cout << "...estimated burning-limited and hydro-limited timestep at level " << level << ": " << estdt << std::endl;
+    }
 #endif
 
 #ifdef RADIATION
@@ -2420,10 +2433,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
-      coeffs.set(dir,new MultiFab);
-      BoxArray edge_boxes(grids);
-      edge_boxes.surroundingNodes(dir);
-      coeffs[dir].define(edge_boxes,1,0,Fab_allocate);
+       coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate);
    }
 
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());

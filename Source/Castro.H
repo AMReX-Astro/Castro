@@ -200,6 +200,10 @@ public:
     //
     MultiFab& Volume ();
     //
+    // Get Edge BoxArrays
+    //
+    const BoxArray& getEdgeBoxArray (int dir) const;
+    //
     //Set time levels of state data.
     //
     virtual void setTimeLevel (Real time,
@@ -537,6 +541,7 @@ protected:
     static int       radius_grow;
     static int       verbose;
     static Real      cfl;
+    static Real      burning_timestep_factor;  
     static Real      init_shrink;
     static Real      change_max;
     static int       do_reflux;
@@ -568,6 +573,7 @@ protected:
     static int       transverse_use_eos;
     static int       transverse_reset_density;
     static int       transverse_reset_rhoe;
+    static int       source_term_predictor;
 
     static int       dual_energy_update_E_from_e;
     static Real      dual_energy_eta1;
@@ -736,6 +742,13 @@ MultiFab&
 Castro::Volume ()
 {
     return volume;
+}
+
+inline
+const BoxArray&
+Castro::getEdgeBoxArray (int dir) const
+{
+    return area[dir].boxArray();
 }
 
 inline

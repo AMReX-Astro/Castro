@@ -39,7 +39,7 @@ Castro::advance (Real time,
 {
     BL_PROFILE("Castro::advance()");
 
-    Real dt_new = dt;
+   Real dt_new = dt;
 
     if (do_hydro) 
     {
@@ -106,9 +106,7 @@ Castro::advance_hydro (Real time,
     u_gdnv = new MultiFab[BL_SPACEDIM];
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
-	BoxArray edge_grids(grids);
-	edge_grids.surroundingNodes(dir);
-	u_gdnv[dir].define(edge_grids,1,1,Fab_allocate);
+	u_gdnv[dir].define(getEdgeBoxArray(dir),1,1,Fab_allocate);
 	u_gdnv[dir].setVal(1.e40,1);
     }
     
@@ -265,8 +263,7 @@ Castro::advance_hydro (Real time,
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		  comp_minus_level_grad_phi.set(n, 
-			     new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+		  comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
 	    }
 	    gravity->create_comp_minus_level_grad_phi(level,
                             comp_minus_level_phi,comp_minus_level_grad_phi);
@@ -320,9 +317,7 @@ Castro::advance_hydro (Real time,
 
     for (int j = 0; j < BL_SPACEDIM; j++)
        {
-         BoxArray ba = S_new.boxArray();
-	 ba.surroundingNodes(j);
-         fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
+         fluxes[j].define(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
          fluxes[j].setVal(0.0);
        }
 
@@ -338,9 +333,7 @@ Castro::advance_hydro (Real time,
     MultiFab sgs_fluxes[BL_SPACEDIM];
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
       {
-	BoxArray ba = S_new.boxArray();
-	ba.surroundingNodes(dir);
-	sgs_fluxes[dir].define(ba, NUM_STATE, 0, Fab_allocate);
+	sgs_fluxes[dir].define(getEdgeBoxArray(dir), NUM_STATE, 0, Fab_allocate);
       }
 #endif
     
@@ -349,9 +342,7 @@ Castro::advance_hydro (Real time,
     MultiFab rad_fluxes[BL_SPACEDIM];
     if (Radiation::rad_hydro_combined) {
       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	BoxArray ba = Er_new.boxArray();
-	ba.surroundingNodes(dir);
-	rad_fluxes[dir].define(ba, Radiation::nGroups, 0, Fab_allocate);
+	rad_fluxes[dir].define(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
       }
     }
 #endif
@@ -362,8 +353,50 @@ Castro::advance_hydro (Real time,
     
 #ifdef GRAVITY
     if (do_grav) {
-      // Copy the gravity vector (including NUM_GROW ghost cells) for passing to umdrv.
-      MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
+
+      // Default option here is to copy the old-time gravity vector (including NUM_GROW
+      // ghost cells) to UMDRV. However, optionally we can predict the gravitational 
+      // acceleration to t + dt/2, which is the time-level n+1/2 value, To do this we 
+      // use a lagged predictor estimate: dg/dt_n = (g_n - g_{n-1}) / dt, so 
+      // g_{n+1/2} = g_n + (dt / 2) * dg/dt_n = (3/2) * g_n - (1/2) * g_{n-1}.
+      // To get the old-time value of the gravity we use a small hack: 
+      // the 'new' state data has been swapped above so that its data pointer 
+      // actually currently points to the old-time data from the last advance. 
+      // This won't be overwritten until later in this advance.
+      // Note that we need to avoid doing this in cases where the old_data has not
+      // yet been initialized, which should only be in the case of the first timestep.
+
+      MultiFab& old_grav_mf = get_old_data(Gravity_Type); // Points to time-level n data
+      MultiFab& new_grav_mf = get_new_data(Gravity_Type); // Points to time-level n-1 data      
+      
+      if (source_term_predictor && prev_time != 0.0) {
+
+	old_grav_mf.mult( 3.0 / 2.0 ); // Contribution from time-level n is 3/2
+	new_grav_mf.mult(-1.0 / 2.0 ); // Contribution from time-level n-1 is -1/2
+
+	new_grav_mf.plus(old_grav_mf, 0, 1, 0);
+
+	// Use the same approach as in get_old_grav_vector for filling ghost cells.
+	// Note that we want to FillPatch at cur_time (which is the new time) because
+	// we are storing the relevant data in the new_data.
+
+	AmrLevel* amrlev = &parent->getLevel(level);
+	
+	AmrLevel::FillPatch(*amrlev, grav_vector, NUM_GROW, cur_time, Gravity_Type, 0, 3);
+
+	// Return the states to their original values.
+
+	new_grav_mf.minus(old_grav_mf, 0, 1, 0);
+	
+	new_grav_mf.mult(-2.0       );
+	old_grav_mf.mult( 2.0 / 3.0 );
+
+      } else {
+
+	MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
+
+      }
+
     }
 #endif
 
@@ -383,11 +416,33 @@ Castro::advance_hydro (Real time,
 
       fill_rotation_field(phirot_old, rot_vec_old, S_old, prev_time);
 
-      // Fill ghost cells for rot_vector analogous to how we do it for gravity.
+      // See the discussion above for the filling of grav_vector for an explanation
+      // of the source term predictor; it works the same way for rotation.
 
-      AmrLevel* amrlev = &parent->getLevel(level);
-      AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,time,Rotation_Type,0,3); 
+      if (source_term_predictor && prev_time != 0.0) {
 
+	rot_vec_old.mult( 3.0 / 2.0 );
+	rot_vec_new.mult(-1.0 / 2.0 );
+
+	rot_vec_new.plus(rot_vec_old, 0, 1, 0);
+
+	AmrLevel* amrlev = &parent->getLevel(level);
+      
+	AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,cur_time,Rotation_Type,0,3);       
+	
+	rot_vec_new.minus(rot_vec_old, 0, 1, 0);
+	
+	rot_vec_new.mult(-2.0       );
+	rot_vec_old.mult( 2.0 / 3.0 );
+
+      } else {
+
+	AmrLevel* amrlev = &parent->getLevel(level);
+      
+	AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,prev_time,Rotation_Type,0,3);       
+
+      }
+	
     } else {
       phirot_old.setVal(0.);
       rot_vec_old.setVal(0.);
@@ -1420,8 +1475,7 @@ Castro::advance_no_hydro (Real time,
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		comp_minus_level_grad_phi.set(n,
-                           new MultiFab(BoxArray(grids).surroundingNodes(n),1,0));
+		comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
 	    }
 	    gravity->create_comp_minus_level_grad_phi(level,
                             comp_minus_level_phi,comp_minus_level_grad_phi);

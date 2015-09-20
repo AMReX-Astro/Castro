@@ -89,7 +89,7 @@
                   
                   reactions(i,j,k,1:nspec) = delta_x
                   reactions(i,j,k,nspec+1) = delta_e
-                  reactions(i,j,k,nspec+1) = delta_rho_e
+                  reactions(i,j,k,nspec+2) = delta_rho_e
 
                endif               
                
