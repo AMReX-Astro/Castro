@@ -365,31 +365,38 @@ Castro::advance_hydro (Real time,
       // This won't be overwritten until later in this advance.
       // Note that we need to avoid doing this in cases where the old_data has not
       // yet been initialized, which should only be in the case of the first timestep.
+      // We also want to avoid doing this in cases where the data is filled with
+      // data that isn't from the simulation. In particular, on a restart from a checkpoint
+      // that only has new-time data, the old data gets filled with zeros, so avoid that.
 
       MultiFab& old_grav_mf = get_old_data(Gravity_Type); // Points to time-level n data
       MultiFab& new_grav_mf = get_new_data(Gravity_Type); // Points to time-level n-1 data      
       
       if (source_term_predictor && prev_time != 0.0) {
 
-	old_grav_mf.mult( 3.0 / 2.0 ); // Contribution from time-level n is 3/2
-	new_grav_mf.mult(-1.0 / 2.0 ); // Contribution from time-level n-1 is -1/2
+	if (!new_grav_mf.contains_nan() || abs(new_grav_mf.max(0)) > 0.0 || abs(new_grav_mf.max(1)) > 0.0 || abs(new_grav_mf.max(2)) > 0.0) {
 
-	new_grav_mf.plus(old_grav_mf, 0, 1, 0);
+	  old_grav_mf.mult( 3.0 / 2.0 ); // Contribution from time-level n is 3/2
+	  new_grav_mf.mult(-1.0 / 2.0 ); // Contribution from time-level n-1 is -1/2
 
-	// Use the same approach as in get_old_grav_vector for filling ghost cells.
-	// Note that we want to FillPatch at cur_time (which is the new time) because
-	// we are storing the relevant data in the new_data.
+	  new_grav_mf.plus(old_grav_mf, 0, 1, 0);
 
-	AmrLevel* amrlev = &parent->getLevel(level);
+	  // Use the same approach as in get_old_grav_vector for filling ghost cells.
+	  // Note that we want to FillPatch at cur_time (which is the new time) because
+	  // we are storing the relevant data in the new_data.
+
+	  AmrLevel* amrlev = &parent->getLevel(level);
+	  
+	  AmrLevel::FillPatch(*amrlev, grav_vector, NUM_GROW, cur_time, Gravity_Type, 0, 3);
+
+	  // Return the states to their original values.
+
+	  new_grav_mf.minus(old_grav_mf, 0, 1, 0);
 	
-	AmrLevel::FillPatch(*amrlev, grav_vector, NUM_GROW, cur_time, Gravity_Type, 0, 3);
+	  new_grav_mf.mult(-2.0       );
+	  old_grav_mf.mult( 2.0 / 3.0 );
 
-	// Return the states to their original values.
-
-	new_grav_mf.minus(old_grav_mf, 0, 1, 0);
-	
-	new_grav_mf.mult(-2.0       );
-	old_grav_mf.mult( 2.0 / 3.0 );
+	}
 
       } else {
 
@@ -421,20 +428,24 @@ Castro::advance_hydro (Real time,
 
       if (source_term_predictor && prev_time != 0.0) {
 
-	rot_vec_old.mult( 3.0 / 2.0 );
-	rot_vec_new.mult(-1.0 / 2.0 );
+	if (!rot_vec_new.contains_nan() || abs(rot_vec_new.max(0)) > 0.0 || abs(rot_vec_new.max(1)) > 0.0 || abs(rot_vec_new.max(2)) > 0.0) {	
+	
+	  rot_vec_old.mult( 3.0 / 2.0 );
+	  rot_vec_new.mult(-1.0 / 2.0 );
 
-	rot_vec_new.plus(rot_vec_old, 0, 1, 0);
+	  rot_vec_new.plus(rot_vec_old, 0, 1, 0);
 
-	AmrLevel* amrlev = &parent->getLevel(level);
+	  AmrLevel* amrlev = &parent->getLevel(level);
       
-	AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,cur_time,Rotation_Type,0,3);       
+	  AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,cur_time,Rotation_Type,0,3);       
 	
-	rot_vec_new.minus(rot_vec_old, 0, 1, 0);
+	  rot_vec_new.minus(rot_vec_old, 0, 1, 0);
 	
-	rot_vec_new.mult(-2.0       );
-	rot_vec_old.mult( 2.0 / 3.0 );
+	  rot_vec_new.mult(-2.0       );
+	  rot_vec_old.mult( 2.0 / 3.0 );
 
+	}
+	
       } else {
 
 	AmrLevel* amrlev = &parent->getLevel(level);
