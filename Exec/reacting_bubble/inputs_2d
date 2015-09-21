@@ -23,6 +23,8 @@ castro.do_react = 1
 castro.do_grav = 1
 castro.do_sponge = 1
 
+castro.small_temp = 1.e6
+
 castro.ppm_type = 1
 castro.ppm_reference = 1
 castro.ppm_trace_grav = 1

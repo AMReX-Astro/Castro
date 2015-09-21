@@ -23,6 +23,8 @@ castro.do_react = 1
 castro.do_grav = 1
 castro.do_sponge = 1
 
+castro.small_temp = 1.e6
+
 castro.allow_negative_energy = 0
 
 gravity.gravity_type = ConstantGrav
