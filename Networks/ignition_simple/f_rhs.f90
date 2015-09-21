@@ -7,7 +7,7 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   ! we get the thermodynamic state through the burner_aux module -- we freeze
   ! these to the values are the top of the timestep to avoid costly
   ! EOS calls
-  use burner_aux_module, only : dens_pass, c_p_pass, dhdx_pass, X_O16_pass
+  use burner_aux_module
 
   implicit none
 
@@ -24,10 +24,6 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   real(kind=dp_t) :: t
 
   real(kind=dp_t) :: dens, temp, T9, T9a, dT9dt, dT9adt
-
-  real(kind=dp_t) :: rate, dratedt
-  real(kind=dp_t) :: sc1212, dsc1212dt
-  real(kind=dp_t) :: xc12tmp
 
   real(kind=dp_t), PARAMETER :: &
                      one_twelvth = 1.0d0/12.0d0, &
@@ -134,15 +130,13 @@ subroutine jac(neq, t, y, ml, mu, pd, nrpd, rpar, ipar)
   ! we get the thermodynamic state through the burner_aux module -- we freeze
   ! these to the values are the top of the timestep to avoid costly
   ! EOS calls
-  use burner_aux_module, only : dens_pass, c_p_pass, dhdx_pass
+  use burner_aux_module
 
   implicit none
 
   integer        , intent(IN   ) :: neq, ml, mu, nrpd, ipar
   real(kind=dp_t), intent(IN   ) :: y(neq), rpar, t
   real(kind=dp_t), intent(  OUT) :: pd(neq,neq)
-
-  real(kind=dp_t) :: rate, dratedt, scorr, dscorrdt, xc12tmp
 
   integer :: itemp
 
@@ -161,13 +155,13 @@ subroutine jac(neq, t, y, ml, mu, pd, nrpd, rpar, ipar)
 
 
   ! carbon jacobian elements
-  pd(ic12, ic12) = -(1.0d0/6.0d0)*dens_pass*scorr*rate*xc12tmp
+  pd(ic12, ic12) = -(1.0d0/6.0d0)*dens_pass*sc1212*rate*xc12tmp
 
 
 
   ! add the temperature derivatives: df(y_i) / dT
-  pd(ic12,itemp) = -(1.0d0/12.0d0)*(dens_pass*rate*xc12tmp**2*dscorrdt    &
-                                    + dens_pass*scorr*xc12tmp**2*dratedt)  
+  pd(ic12,itemp) = -(1.0d0/12.0d0)*(dens_pass*rate*xc12tmp**2*dsc1212dt    &
+                                    + dens_pass*sc1212*xc12tmp**2*dratedt)  
 
   ! add the temperature jacobian elements df(T) / df(y)
   pd(itemp,ic12) =  ( (dhdx_pass(img24) - dhdx_pass(ic12)) + &

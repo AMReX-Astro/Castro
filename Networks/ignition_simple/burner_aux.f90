@@ -14,5 +14,9 @@ module burner_aux_module
   real(kind=dp_t) :: X_O16_pass
 
   !$OMP THREADPRIVATE(dens_pass,c_p_pass,dhdx_pass,X_O16_pass)
+
+  real(kind=dp_t) :: rate, dratedt, sc1212, dsc1212dt, xc12tmp
+
+  !$OMP THREADPRIVATE(rate,dratedt,sc1212,dsc1212dt,xc12tmp)
   
 end module burner_aux_module
