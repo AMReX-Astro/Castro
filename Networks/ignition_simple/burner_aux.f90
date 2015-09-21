@@ -8,9 +8,11 @@ module burner_aux_module
 
   implicit none
 
-  real(kind=dp_t), save :: dens_pass
-  real(kind=dp_t), save :: c_p_pass
-  real(kind=dp_t), save :: dhdx_pass(nspec)
-  real(kind=dp_t), save :: X_O16_pass
+  real(kind=dp_t) :: dens_pass
+  real(kind=dp_t) :: c_p_pass
+  real(kind=dp_t) :: dhdx_pass(nspec)
+  real(kind=dp_t) :: X_O16_pass
 
+  !$OMP THREADPRIVATE(dens_pass,c_p_pass,dhdx_pass,X_O16_pass)
+  
 end module burner_aux_module

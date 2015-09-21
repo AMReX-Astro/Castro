@@ -38,7 +38,7 @@ contains
     ! we will always refer to the species by integer indices that come from
     ! the network module -- this makes things robust to a shuffling of the 
     ! species ordering
-    integer, save :: ic12, io16, img24
+    integer :: ic12, io16, img24
 
     ! our problem is stiff, tell ODEPACK that. 21 means stiff, jacobian 
     ! function is supplied, 22 means stiff, figure out my jacobian through 
@@ -92,25 +92,18 @@ contains
 
     EXTERNAL jac, f_rhs
     
-    logical, save :: firstCall = .true.
-
     type (eos_t) :: eos_state
 
-    if (firstCall) then
+    if (.NOT. network_initialized) then
+       call bl_error("ERROR in burner: must initialize network first")
+    endif
 
-       if (.NOT. network_initialized) then
-          call bl_error("ERROR in burner: must initialize network first")
-       endif
-     
-       ic12 = network_species_index("carbon-12")
-       io16 = network_species_index("oxygen-16")
-       img24 = network_species_index("magnesium-24")
-       
-       if (ic12 < 0 .OR. io16 < 0 .OR. img24 < 0) then
-          call bl_error("ERROR in burner: species undefined")
-       endif
-       
-       firstCall = .false.
+    ic12 = network_species_index("carbon-12")
+    io16 = network_species_index("oxygen-16")
+    img24 = network_species_index("magnesium-24")
+
+    if (ic12 < 0 .OR. io16 < 0 .OR. img24 < 0) then
+       call bl_error("ERROR in burner: species undefined")
     endif
 
     ! set the tolerances.  We will be more relaxed on the temperature

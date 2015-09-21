@@ -28,7 +28,6 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   real(kind=dp_t) :: rate, dratedt
   real(kind=dp_t) :: sc1212, dsc1212dt
   real(kind=dp_t) :: xc12tmp
-  common /rate_info/ rate, dratedt, sc1212, dsc1212dt, xc12tmp
 
   real(kind=dp_t), PARAMETER :: &
                      one_twelvth = 1.0d0/12.0d0, &
@@ -40,18 +39,11 @@ subroutine f_rhs(n, t, y, ydot, rpar, ipar)
   
   real(kind=dp_t) :: a, b, dadt, dbdt
 
-  integer, save :: ic12, io16, img24
+  integer :: ic12, io16, img24
 
-  logical, save :: firstCall = .true.
-
-  if (firstCall) then
-     ic12 = network_species_index("carbon-12")
-     io16 = network_species_index("oxygen-16")
-     img24 = network_species_index("magnesium-24")
-
-     firstCall = .false.
-  end if
-
+  ic12 = network_species_index("carbon-12")
+  io16 = network_species_index("oxygen-16")
+  img24 = network_species_index("magnesium-24")
 
 
   ! compute the molar fractions -- needed for the screening
@@ -151,23 +143,17 @@ subroutine jac(neq, t, y, ml, mu, pd, nrpd, rpar, ipar)
   real(kind=dp_t), intent(  OUT) :: pd(neq,neq)
 
   real(kind=dp_t) :: rate, dratedt, scorr, dscorrdt, xc12tmp
-  common /rate_info/ rate, dratedt, scorr, dscorrdt, xc12tmp
 
   integer :: itemp
 
-  integer, save :: ic12, io16, img24
+  integer :: ic12, io16, img24
 
-  logical, save :: firstCall = .true.
-
-  if (firstCall) then
-     ic12 = network_species_index("carbon-12")
-     io16 = network_species_index("oxygen-16")
-     img24 = network_species_index("magnesium-24")
-
-     firstCall = .false.
-  end if
+  ic12 = network_species_index("carbon-12")
+  io16 = network_species_index("oxygen-16")
+  img24 = network_species_index("magnesium-24")
 
 
+  
   ! initialize
   pd(:,:)  = ZERO
 
