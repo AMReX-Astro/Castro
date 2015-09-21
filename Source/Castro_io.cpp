@@ -146,7 +146,37 @@ Castro::restart (Amr&     papa,
     }
  
 #endif
+
+#ifdef REACTIONS
+    
+    // Get data from the reactions header file.
+
+    Real delta_e = 0.0;
+
+    // Note that we want all grids on the domain to have this value,
+    // so we have all processors read this in. We could do the same
+    // with a broadcast from the IOProcessor but this avoids communication.
+    
+    std::ifstream ReactFile;
+    std::string FullPathReactFile = parent->theRestartFile();
+    FullPathReactFile += "/ReactHeader";
+    ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
+
+    // Maximum change in internal energy in last timestep.
       
+    ReactFile >> delta_e;
+
+    ReactFile.close();
+
+    // Set the energy change to the components of the
+    // reactions MultiFab; it will get overwritten later
+    // but will achieve our desired effect of being
+    // utilized in the first timestep calculation.
+    
+    get_new_data(Reactions_Type).setVal(delta_e);
+
+#endif
+	
     buildMetrics();
 
     // get the elapsed CPU time to now;
@@ -387,6 +417,31 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile.close();
 	}
 
+#ifdef REACTIONS	
+	
+	// Write out maximum value of delta_e from reactions data.
+
+	{
+	  Real delta_e = 0.0;
+
+	  // Determine the maximum absolute value of the delta_e component of the reactions MF.
+	  // Note that there are NumSpec components starting from 0.
+	  
+	  delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
+
+	  ParallelDescriptor::ReduceRealMax(delta_e);
+	  
+	  std::ofstream ReactHeaderFile;
+	  std::string FullPathReactHeaderFile = dir;
+	  FullPathReactHeaderFile += "/ReactHeader";
+	  ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
+
+	  ReactHeaderFile << delta_e;
+	  ReactHeaderFile.close();
+	}
+
+#endif	    
+						     
 	{
 	    // store ellapsed CPU time
 	    std::ofstream CPUFile;
