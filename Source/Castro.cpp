@@ -210,6 +210,7 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
+Real         Castro::max_delta_e = 0.0;
 
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 

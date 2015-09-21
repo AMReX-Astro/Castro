@@ -151,7 +151,7 @@ Castro::restart (Amr&     papa,
     
     // Get data from the reactions header file.
 
-    Real delta_e = 0.0;
+    max_delta_e = 0.0;
 
     // Note that we want all grids on the domain to have this value,
     // so we have all processors read this in. We could do the same
@@ -164,7 +164,7 @@ Castro::restart (Amr&     papa,
 
     // Maximum change in internal energy in last timestep.
       
-    ReactFile >> delta_e;
+    ReactFile >> max_delta_e;
 
     ReactFile.close();
 
@@ -173,7 +173,7 @@ Castro::restart (Amr&     papa,
     // but will achieve our desired effect of being
     // utilized in the first timestep calculation.
     
-    get_new_data(Reactions_Type).setVal(delta_e);
+    get_new_data(Reactions_Type).setVal(max_delta_e);
 
 #endif
 	
@@ -447,31 +447,35 @@ Castro::checkPoint(const std::string& dir,
     }
 
 #ifdef REACTIONS		
-	// Write out maximum value of delta_e from reactions data.
 
-        if (level == 0) {
-	  Real delta_e = 0.0;
+    // Write out maximum value of delta_e from reactions data.
+    // First, determine the maximum value of delta_e on all levels.
 
-	  // Determine the maximum absolute value of the delta_e component of the reactions MF.
-	  // Note that there are NumSpec components starting from 0.
+    if (level == 0)
+      max_delta_e = 0.0;
+
+    // Determine the maximum absolute value of the delta_e component of the reactions MF.
+    // Note that there are NumSpec components starting from 0 corresponding to the species changes.
 	  
-	  delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
+    max_delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
 
-	  ParallelDescriptor::ReduceRealMax(delta_e);
+    ParallelDescriptor::ReduceRealMax(max_delta_e);
 
-	  if (ParallelDescriptor::IOProcessor()) {
+    // Now, write out to the header if we're on the finest level and therefore have checked all entries for delta_e.
+    
+    if (level == parent->finestLevel() && ParallelDescriptor::IOProcessor()) {
 	  
-	    std::ofstream ReactHeaderFile;
-	    std::string FullPathReactHeaderFile = dir;
-	    FullPathReactHeaderFile += "/ReactHeader";
-	    ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
+      std::ofstream ReactHeaderFile;
+      std::string FullPathReactHeaderFile = dir;
+      FullPathReactHeaderFile += "/ReactHeader";
+      ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
 
-	    ReactHeaderFile << delta_e;
-	    ReactHeaderFile.close();
+      ReactHeaderFile << std::scientific << std::setprecision(16) << max_delta_e;
+      ReactHeaderFile.close();
 
-	  }
-	}
-#endif						      
+    }
+
+#endif	      
   
 }
 
