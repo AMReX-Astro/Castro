@@ -417,31 +417,6 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile.close();
 	}
 
-#ifdef REACTIONS	
-	
-	// Write out maximum value of delta_e from reactions data.
-
-	{
-	  Real delta_e = 0.0;
-
-	  // Determine the maximum absolute value of the delta_e component of the reactions MF.
-	  // Note that there are NumSpec components starting from 0.
-	  
-	  delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
-
-	  ParallelDescriptor::ReduceRealMax(delta_e);
-	  
-	  std::ofstream ReactHeaderFile;
-	  std::string FullPathReactHeaderFile = dir;
-	  FullPathReactHeaderFile += "/ReactHeader";
-	  ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
-
-	  ReactHeaderFile << delta_e;
-	  ReactHeaderFile.close();
-	}
-
-#endif	    
-						     
 	{
 	    // store ellapsed CPU time
 	    std::ofstream CPUFile;
@@ -471,6 +446,33 @@ Castro::checkPoint(const std::string& dir,
 	}
     }
 
+#ifdef REACTIONS		
+	// Write out maximum value of delta_e from reactions data.
+
+        if (level == 0) {
+	  Real delta_e = 0.0;
+
+	  // Determine the maximum absolute value of the delta_e component of the reactions MF.
+	  // Note that there are NumSpec components starting from 0.
+	  
+	  delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
+
+	  ParallelDescriptor::ReduceRealMax(delta_e);
+
+	  if (ParallelDescriptor::IOProcessor()) {
+	  
+	    std::ofstream ReactHeaderFile;
+	    std::string FullPathReactHeaderFile = dir;
+	    FullPathReactHeaderFile += "/ReactHeader";
+	    ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
+
+	    ReactHeaderFile << delta_e;
+	    ReactHeaderFile.close();
+
+	  }
+	}
+#endif						      
+  
 }
 
 std::string
