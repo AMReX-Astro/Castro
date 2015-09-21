@@ -457,7 +457,7 @@ Castro::checkPoint(const std::string& dir,
     // Determine the maximum absolute value of the delta_e component of the reactions MF.
     // Note that there are NumSpec components starting from 0 corresponding to the species changes.
 	  
-    max_delta_e = get_new_data(Reactions_Type).norm0(NumSpec);
+    max_delta_e = std::max(max_delta_e, get_new_data(Reactions_Type).norm0(NumSpec));
 
     ParallelDescriptor::ReduceRealMax(max_delta_e);
 
