@@ -2720,8 +2720,8 @@ Castro::errorEst (TagBoxArray& tags,
 		const int*  dhi     = datbox.hiVect();
 		const int   ncomp   = datfab.nComp();
 		
-		err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
-				      &clearval, dat, ARLIM(dlo), ARLIM(dhi),
+		err_list[j].errFunc()(tptr, tlo, thi, &tagval,
+				      &clearval, dat, dlo, dhi,
 				      lo,hi, &ncomp, domain_lo, domain_hi,
 				      dx, xlo, prob_lo, &time, &level);
 		//
