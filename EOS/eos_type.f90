@@ -790,8 +790,6 @@ contains
     class (eos_type),    intent(in   ) :: state_in
     type (eos_t_vector), intent(inout) :: state
 
-    type (eos_t_1D) :: working_state_1D
-
     integer :: lo(3), hi(3)
 
     select type (state_in)
@@ -802,52 +800,60 @@ contains
        
     type is (eos_t)
 
-       call eos_allocate(working_state_1D,  (/ 1 /), (/ 1 /) )
-
-       working_state_1D % rho(1) = state_in % rho
-       working_state_1D % T(1)   = state_in % T
-       working_state_1D % p(1)   = state_in % p
-       working_state_1D % e(1)   = state_in % e
-       working_state_1D % h(1)   = state_in % h
-       working_state_1D % dpdT(1) = state_in % dpdT
-       working_state_1D % dpdr(1) = state_in % dpdr
-       working_state_1D % dedT(1) = state_in % dedT
-       working_state_1D % dedr(1) = state_in % dedr
-       working_state_1D % dhdT(1) = state_in % dhdT
-       working_state_1D % dhdr(1) = state_in % dhdr
-       working_state_1D % dsdT(1) = state_in % dsdT
-       working_state_1D % dsdr(1) = state_in % dsdr
-       working_state_1D % dpde(1) = state_in % dpde
-       working_state_1D % dpdr_e(1) = state_in % dpdr_e
-       working_state_1D % xn(1,:) = state_in % xn
-       if (naux > 0) then
-          working_state_1D % aux(1,:) = state_in % aux
-       endif
-       working_state_1D % cv(1) = state_in % cv
-       working_state_1D % cp(1) = state_in % cp
-       working_state_1D % xne(1) = state_in % xne
-       working_state_1D % xnp(1) = state_in % xnp
-       working_state_1D % eta(1) = state_in % eta
-       working_state_1D % pele(1) = state_in % pele
-       working_state_1D % ppos(1) = state_in % ppos
-       working_state_1D % mu(1) = state_in % mu
-       working_state_1D % mu_e(1) = state_in % mu
-       working_state_1D % y_e(1) = state_in % y_e
-       working_state_1D % dedX(1,:) = state_in % dedX
-       working_state_1D % dpdX(1,:) = state_in % dpdX
-       working_state_1D % dhdX(1,:) = state_in % dhdX
-       working_state_1D % gam1(1) = state_in % gam1
-       working_state_1D % cs(1) = state_in % cs
-       working_state_1D % abar(1) = state_in % abar
-       working_state_1D % zbar(1) = state_in % zbar
-       working_state_1D % dpdA(1) = state_in % dpdA
-       working_state_1D % dpdZ(1) = state_in % dpdZ
-       working_state_1D % dedA(1) = state_in % dedA
-       working_state_1D % dedZ(1) = state_in % dedZ
-       working_state_1D % reset = state_in % reset
+       lo(1) = 1
+       hi(1) = 1
        
-       call eos_vector_in(state, working_state_1D)
+       state % N = 1
+       state % width(1) = state % N
+       state % spec_width(1) = state % N
+       state % spec_width(2) = nspec
+       state % aux_width(1) = state % N
+       state % aux_width(2) = naux       
+       
+       call c_f_pointer(c_loc(state_in % rho), state % rho, state % width)
+       call c_f_pointer(c_loc(state_in % T), state % T, state % width)
+       call c_f_pointer(c_loc(state_in % p), state % p, state % width)
+       call c_f_pointer(c_loc(state_in % e), state % e, state % width)
+       call c_f_pointer(c_loc(state_in % h), state % h, state % width)
+       call c_f_pointer(c_loc(state_in % s), state % s, state % width)
+       call c_f_pointer(c_loc(state_in % dpdT), state % dpdT, state % width)
+       call c_f_pointer(c_loc(state_in % dpdr), state % dpdr, state % width)
+       call c_f_pointer(c_loc(state_in % dedT), state % dedT, state % width)
+       call c_f_pointer(c_loc(state_in % dedr), state % dedr, state % width)
+       call c_f_pointer(c_loc(state_in % dhdT), state % dhdT, state % width)
+       call c_f_pointer(c_loc(state_in % dhdr), state % dhdr, state % width)
+       call c_f_pointer(c_loc(state_in % dsdT), state % dsdT, state % width)
+       call c_f_pointer(c_loc(state_in % dsdr), state % dsdr, state % width)
+       call c_f_pointer(c_loc(state_in % dpde), state % dpde, state % width)
+       call c_f_pointer(c_loc(state_in % dpdr_e), state % dpdr_e, state % width)
+       call c_f_pointer(c_loc(state_in % xn(1)), state % xn, state % spec_width)
+       if (naux > 0) then
+          call c_f_pointer(c_loc(state_in % aux(1)), state % aux, state % aux_width)
+       endif
+       call c_f_pointer(c_loc(state_in % cv), state % cv, state % width)
+       call c_f_pointer(c_loc(state_in % cp), state % cp, state % width)
+       call c_f_pointer(c_loc(state_in % xne), state % xne, state % width)
+       call c_f_pointer(c_loc(state_in % xnp), state % xnp, state % width)
+       call c_f_pointer(c_loc(state_in % eta), state % eta, state % width)
+       call c_f_pointer(c_loc(state_in % pele), state % pele, state % width)
+       call c_f_pointer(c_loc(state_in % ppos), state % ppos, state % width)
+       call c_f_pointer(c_loc(state_in % mu), state % mu, state % width)
+       call c_f_pointer(c_loc(state_in % mu_e), state % mu_e, state % width)
+       call c_f_pointer(c_loc(state_in % y_e), state % y_e, state % width)
+       call c_f_pointer(c_loc(state_in % dedX(1)), state % dedX, state % spec_width)
+       call c_f_pointer(c_loc(state_in % dpdX(1)), state % dpdX, state % spec_width)
+       call c_f_pointer(c_loc(state_in % dhdX(1)), state % dhdX, state % spec_width)
+       call c_f_pointer(c_loc(state_in % gam1), state % gam1, state % width)
+       call c_f_pointer(c_loc(state_in % cs), state % cs, state % width)
+       call c_f_pointer(c_loc(state_in % abar), state % abar, state % width)
+       call c_f_pointer(c_loc(state_in % zbar), state % zbar, state % width)
+       call c_f_pointer(c_loc(state_in % dpdA), state % dpdA, state % width)
+       call c_f_pointer(c_loc(state_in % dpdZ), state % dpdZ, state % width)
+       call c_f_pointer(c_loc(state_in % dedA), state % dedA, state % width)
+       call c_f_pointer(c_loc(state_in % dedZ), state % dedZ, state % width)
 
+       state % reset = state_in % reset       
+       
     type is (eos_t_1D)
 
        lo(1) = state_in % lo(1)
@@ -1031,56 +1037,10 @@ contains
     class (eos_type),    intent(inout) :: state_out
     type (eos_t_vector), intent(in)    :: state
 
-    ! Note that for this function, we only need to take action
-    ! for the scalar eos_t case. In the other cases, the pointers
-    ! automatically handle updating the data.
+    ! At present there are no EOS types that need to have any special handling.
     
     select type (state_out)
 
-    type is (eos_t)
-    
-       state_out % rho    = state % rho(1)
-       state_out % T      = state % T(1)
-       state_out % p      = state % p(1)
-       state_out % e      = state % e(1)
-       state_out % h      = state % h(1)
-       state_out % dpdT   = state % dpdT(1)
-       state_out % dpdr   = state % dpdr(1)
-       state_out % dedT   = state % dedT(1)
-       state_out % dedr   = state % dedr(1)
-       state_out % dhdT   = state % dhdT(1)
-       state_out % dhdr   = state % dhdr(1)
-       state_out % dsdT   = state % dsdT(1)
-       state_out % dsdr   = state % dsdr(1)
-       state_out % dpde   = state % dpde(1)
-       state_out % dpdr_e = state % dpdr_e(1)
-       state_out % xn     = state % xn(1,:)
-       if (naux > 0) then
-          state_out % aux = state % aux(1,:)
-       endif
-       state_out % cv     = state % cv(1)
-       state_out % cp     = state % cp(1)
-       state_out % xne    = state % xne(1)
-       state_out % xnp    = state % xnp(1)
-       state_out % eta    = state % eta(1)
-       state_out % pele   = state % pele(1)
-       state_out % ppos   = state % ppos(1)
-       state_out % mu     = state % mu(1)
-       state_out % mu_e   = state % mu_e(1)
-       state_out % y_e    = state % y_e(1)
-       state_out % dedX   = state % dedX(1,:)
-       state_out % dpdX   = state % dpdX(1,:)
-       state_out % gam1   = state % gam1(1)
-       state_out % cs     = state % cs(1)
-       state_out % abar   = state % abar(1)
-       state_out % zbar   = state % zbar(1)
-       state_out % dpdA   = state % dpdA(1)
-       state_out % dpdZ   = state % dpdZ(1)
-       state_out % dedA   = state % dedA(1)
-       state_out % dedZ   = state % dedZ(1)
-
-       state_out % reset  = state % reset
-       
     end select
 
     
@@ -1267,11 +1227,11 @@ contains
 
     elseif (err .eq. ierr_init) then
 
-      err_string = 'EOS: the input variables were not initialized.'
+      err_string = 'EOS: input variables were not initialized.'
 
     elseif (err .eq. ierr_init_xn) then
 
-      err_string = 'EOS: the species abundances were not initialized.'
+      err_string = 'EOS: species abundances were not initialized.'
 
     else
 
@@ -1315,7 +1275,9 @@ contains
 
     endif
 
-    call bl_error(err_string, zone_string)
+    err_string = err_string // zone_string
+    
+    call bl_error(err_string)
 
   end subroutine eos_type_error
 
