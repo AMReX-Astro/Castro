@@ -17,23 +17,26 @@
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
-      subroutine ca_laplac_error(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+      subroutine ca_laplac_error(tag,taglo,taghi, &
                                  set,clear, &
-                                 var,varl1,varl2,varl3,varh1,varh2,varh3, &
+                                 var,varlo,varhi, &
                                  lo,hi,nd,domlo,domhi, &
                                  delta,xlo,problo,time,level)
+
       use tagging_params_module
+      use prob_params_module, only: dg, dim
+      
       implicit none
 
       integer          :: set, clear, nd, level
-      integer          :: tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer          :: varl1,varl2,varl3,varh1,varh2,varh3
+      integer          :: taglo(3), taghi(3)
+      integer          :: varlo(3), varhi(3)
       integer          :: lo(3), hi(3), domlo(3), domhi(3)
-      integer          :: tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision :: var(varl1:varh1,varl2:varh2,varl3:varh3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: var(varlo(1):varhi(1),varlo(2):varhi(2),varlo(3):varhi(3))
       double precision :: delta(3), xlo(3), problo(3), time
-      integer          :: i,j,k
 
+      integer          :: i, j, k
       double precision ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
       double precision :: delua(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
       double precision :: delu2(9), delu3(9), delu4(9)
@@ -41,111 +44,107 @@
 
       ! This value is  taken from FLASH
       double precision, parameter :: ctore=0.8
-      double precision, parameter:: epsil=0.02
+      double precision, parameter :: epsil=0.02
 
       ! adapted from ref_marking.f90 in FLASH2.5
 
+      delu = 0.0
+      delua = 0.0
+      
       ! d/dx
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(i,j,k,1) =     var(i+1,j,k)  -     var(i-1,j,k) 
-         delua(i,j,k,1) = abs(var(i+1,j,k)) + abs(var(i-1,j,k))
-      end do
-      end do
+      do k=lo(3)-1*dg(3),hi(3)+1*dg(3)
+         do j=lo(2)-1*dg(2),hi(2)+1*dg(2)
+            do i=lo(1)-1*dg(1),hi(1)+1*dg(1)
+               delu(i,j,k,1)  =     var(i+1*dg(1),j,k)  -     var(i-1*dg(1),j,k) 
+               delua(i,j,k,1) = abs(var(i+1*dg(1),j,k)) + abs(var(i-1*dg(1),j,k))
+            end do
+         end do
       end do
 
       ! d/dy
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(i,j,k,2) =     var(i,j+1,k)  -     var(i,j-1,k) 
-         delua(i,j,k,2) = abs(var(i,j+1,k)) + abs(var(i,j-1,k))
-      end do
-      end do
-      end do
-
+      if (dim .ge. 2) then
+         do k=lo(3)-1*dg(3),hi(3)+1*dg(3)
+            do j=lo(2)-1*dg(2),hi(2)+1*dg(2)
+               do i=lo(1)-1*dg(1),hi(1)+1*dg(1)
+                  delu(i,j,k,2)  =     var(i,j+1*dg(2),k)  -     var(i,j-1*dg(2),k) 
+                  delua(i,j,k,2) = abs(var(i,j+1*dg(2),k)) + abs(var(i,j-1*dg(2),k))
+               end do
+            end do
+         end do
+      endif
+         
       ! d/dz
-      do k=lo(3)-1,hi(3)+1
-      do j=lo(2)-1,hi(2)+1
-      do i=lo(1)-1,hi(1)+1
-          delu(i,j,k,3) =     var(i,j,k+1)  -     var(i,j,k-1)
-         delua(i,j,k,3) = abs(var(i,j,k+1)) + abs(var(i,j,k-1))
-      end do
-      end do
-      end do
+      if (dim .eq. 3) then
+         do k=lo(3)-1*dg(3),hi(3)+1*dg(3)
+            do j=lo(2)-1*dg(2),hi(2)+1*dg(2)
+               do i=lo(1)-1*dg(1),hi(1)+1*dg(1)
+                  delu(i,j,k,3)  =     var(i,j,k+1*dg(3))  -     var(i,j,k-1*dg(3))
+                  delua(i,j,k,3) = abs(var(i,j,k+1*dg(3))) + abs(var(i,j,k-1*dg(3)))
+               end do
+            end do
+         end do
+      endif
 
       do k = lo(3),hi(3)
-      do j = lo(2),hi(2)
-      do i = lo(1),hi(1)
+         do j = lo(2),hi(2)
+            do i = lo(1),hi(1)
          
+               ! d/dxdx
+               delu2(1) =     delu(i+1,j,k,1)  -     delu(i-1,j,k,1)
+               delu3(1) = abs(delu(i+1,j,k,1)) + abs(delu(i-1,j,k,1))
+               delu4(1) =    delua(i+1,j,k,1)  +    delua(i-1,j,k,1)
 
-         ! d/dxdx
-          delu2(1) =     delu(i+1,j,k,1)  -     delu(i-1,j,k,1)
-          delu3(1) = abs(delu(i+1,j,k,1)) + abs(delu(i-1,j,k,1))
-          delu4(1) =    delua(i+1,j,k,1)  +    delua(i-1,j,k,1)
+               ! d/dydx
+               delu2(2) =     delu(i,j+1,k,1)  -     delu(i,j-1,k,1)
+               delu3(2) = abs(delu(i,j+1,k,1)) + abs(delu(i,j-1,k,1))
+               delu4(2) =    delua(i,j+1,k,1)  +    delua(i,j-1,k,1)
 
-          ! d/dydx
-          delu2(2) =     delu(i,j+1,k,1)  -     delu(i,j-1,k,1)
-          delu3(2) = abs(delu(i,j+1,k,1)) + abs(delu(i,j-1,k,1))
-          delu4(2) =    delua(i,j+1,k,1)  +    delua(i,j-1,k,1)
-
-          ! d/dxdy
-          delu2(3) =     delu(i+1,j,k,2)  -     delu(i-1,j,k,2)
-          delu3(3) = abs(delu(i+1,j,k,2)) + abs(delu(i-1,j,k,2))
-          delu4(3) =    delua(i+1,j,k,2)  +    delua(i-1,j,k,2)
+               ! d/dxdy
+               delu2(3) =     delu(i+1,j,k,2)  -     delu(i-1,j,k,2)
+               delu3(3) = abs(delu(i+1,j,k,2)) + abs(delu(i-1,j,k,2))
+               delu4(3) =    delua(i+1,j,k,2)  +    delua(i-1,j,k,2)
                                        
-          ! d/dydy                     
-          delu2(4) =     delu(i,j+1,k,2)  -     delu(i,j-1,k,2)
-          delu3(4) = abs(delu(i,j+1,k,2)) + abs(delu(i,j-1,k,2))
-          delu4(4) =    delua(i,j+1,k,2)  +    delua(i,j-1,k,2)
+               ! d/dydy                     
+               delu2(4) =     delu(i,j+1,k,2)  -     delu(i,j-1,k,2)
+               delu3(4) = abs(delu(i,j+1,k,2)) + abs(delu(i,j-1,k,2))
+               delu4(4) =    delua(i,j+1,k,2)  +    delua(i,j-1,k,2)
                                                               
-          ! d/dzdx                                            
-          delu2(5) =     delu(i,j,k+1,1)  -     delu(i,j,k-1,1)
-          delu3(5) = abs(delu(i,j,k+1,1)) + abs(delu(i,j,k-1,1))
-          delu4(5) =    delua(i,j,k+1,1)  +    delua(i,j,k-1,1)
+               ! d/dzdx                                            
+               delu2(5) =     delu(i,j,k+1,1)  -     delu(i,j,k-1,1)
+               delu3(5) = abs(delu(i,j,k+1,1)) + abs(delu(i,j,k-1,1))
+               delu4(5) =    delua(i,j,k+1,1)  +    delua(i,j,k-1,1)
                                                               
-          ! d/dzdy                                            
-          delu2(6) =     delu(i,j,k+1,2)  -     delu(i,j,k-1,2)
-          delu3(6) = abs(delu(i,j,k+1,2)) + abs(delu(i,j,k-1,2))
-          delu4(6) =    delua(i,j,k+1,2)  +    delua(i,j,k-1,2)
+               ! d/dzdy                                            
+               delu2(6) =     delu(i,j,k+1,2)  -     delu(i,j,k-1,2)
+               delu3(6) = abs(delu(i,j,k+1,2)) + abs(delu(i,j,k-1,2))
+               delu4(6) =    delua(i,j,k+1,2)  +    delua(i,j,k-1,2)
                                                               
-          ! d/dxdz                                            
-          delu2(7) =     delu(i+1,j,k,3)  -     delu(i-1,j,k,3)
-          delu3(7) = abs(delu(i+1,j,k,3)) + abs(delu(i-1,j,k,3))
-          delu4(7) =    delua(i+1,j,k,3)  +    delua(i-1,j,k,3)
+               ! d/dxdz                                            
+               delu2(7) =     delu(i+1,j,k,3)  -     delu(i-1,j,k,3)
+               delu3(7) = abs(delu(i+1,j,k,3)) + abs(delu(i-1,j,k,3))
+               delu4(7) =    delua(i+1,j,k,3)  +    delua(i-1,j,k,3)
                                                               
-          ! d/dydz                                            
-          delu2(8) =     delu(i,j+1,k,3)  -     delu(i,j-1,k,3)
-          delu3(8) = abs(delu(i,j+1,k,3)) + abs(delu(i,j-1,k,3))
-          delu4(8) =    delua(i,j+1,k,3)  +    delua(i,j-1,k,3)
-                                                              
-          ! d/dzdz                                            
-          delu2(9) =     delu(i,j,k+1,3)  -     delu(i,j,k-1,3)
-          delu3(9) = abs(delu(i,j,k+1,3)) + abs(delu(i,j,k-1,3))
-          delu4(9) =    delua(i,j,k+1,3)  +    delua(i,j,k-1,3)
+               ! d/dydz                                            
+               delu2(8) =     delu(i,j+1,k,3)  -     delu(i,j-1,k,3)
+               delu3(8) = abs(delu(i,j+1,k,3)) + abs(delu(i,j-1,k,3))
+               delu4(8) =    delua(i,j+1,k,3)  +    delua(i,j-1,k,3)
+               
+               ! d/dzdz                                            
+               delu2(9) =     delu(i,j,k+1,3)  -     delu(i,j,k-1,3)
+               delu3(9) = abs(delu(i,j,k+1,3)) + abs(delu(i,j,k-1,3))
+               delu4(9) =    delua(i,j,k+1,3)  +    delua(i,j,k-1,3)
 
-         ! compute the error
-         num   =  delu2(1)**2 + delu2(2)**2 + delu2(3)**2 + delu2(4)**2 &
-                 +delu2(5)**2 + delu2(6)**2 + delu2(7)**2 + delu2(8)**2 &
-                 +delu2(9)**2
+               ! compute the error
+               num   = sum(delu2**2)
 
-         denom = (delu3(1) + (epsil*delu4(1)+1.d-99))**2 + &
-                 (delu3(2) + (epsil*delu4(2)+1.d-99))**2 + &
-                 (delu3(3) + (epsil*delu4(3)+1.d-99))**2 + &
-                 (delu3(4) + (epsil*delu4(4)+1.d-99))**2 + &
-                 (delu3(5) + (epsil*delu4(5)+1.d-99))**2 + &
-                 (delu3(6) + (epsil*delu4(6)+1.d-99))**2 + &
-                 (delu3(7) + (epsil*delu4(7)+1.d-99))**2 + &
-                 (delu3(8) + (epsil*delu4(8)+1.d-99))**2 + &
-                 (delu3(9) + (epsil*delu4(9)+1.d-99))**2
+               denom = sum((delu3 + (epsil*delu4+1.d-99))**2)
 
-         error = sqrt(num/denom)
+               error = sqrt(num/denom)
 
-         if (error .gt. ctore) tag(i,j,k)=set
+               if (error .gt. ctore) tag(i,j,k) = set
 
-      end do
-      end do
+            end do
+         end do
       end do
 
       end subroutine ca_laplac_error
@@ -169,24 +168,27 @@
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
-      subroutine ca_denerror(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+      subroutine ca_denerror(tag,taglo,taghi, &
                              set,clear, &
-                             den,denl1,denl2,denl3,denh1,denh2,denh3, &
+                             den,denlo,denhi, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level)
+
       use tagging_params_module
+      use prob_params_module, only: dg
+      
       implicit none
 
-      integer set, clear, nd, level
-      integer tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer denl1,denl2,denl3,denh1,denh2,denh3
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      integer tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision den(denl1:denh1,denl2:denh2,denl3:denh3,nd)
-      double precision delta(3), xlo(3), problo(3), time
+      integer          :: set, clear, nd, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: denlo(3), denhi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
+      double precision :: delta(3), xlo(3), problo(3), time
 
-      double precision ax,ay,az
-      integer i, j, k
+      double precision :: ax, ay, az
+      integer          :: i, j, k
 
 !     Tag on regions of high density
       if (level .lt. max_denerr_lev) then
@@ -206,12 +208,12 @@
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  ax = ABS(den(i+1,j,k,1) - den(i,j,k,1))
-                  ay = ABS(den(i,j+1,k,1) - den(i,j,k,1))
-                  az = ABS(den(i,j,k+1,1) - den(i,j,k,1))
-                  ax = MAX(ax,ABS(den(i,j,k,1) - den(i-1,j,k,1)))
-                  ay = MAX(ay,ABS(den(i,j,k,1) - den(i,j-1,k,1)))
-                  az = MAX(az,ABS(den(i,j,k,1) - den(i,j,k-1,1)))
+                  ax = ABS(den(i+1*dg(1),j,k,1) - den(i,j,k,1))
+                  ay = ABS(den(i,j+1*dg(2),k,1) - den(i,j,k,1))
+                  az = ABS(den(i,j,k+1*dg(3),1) - den(i,j,k,1))
+                  ax = MAX(ax,ABS(den(i,j,k,1) - den(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(den(i,j,k,1) - den(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(den(i,j,k,1) - den(i,j,k-1*dg(3),1)))
                   if ( MAX(ax,ay,az) .ge. dengrad) then
                      tag(i,j,k) = set
                   endif
@@ -220,7 +222,7 @@
          enddo
       endif
 
-      end
+      end subroutine ca_denerror
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine will tag high error cells based on the temperature
@@ -242,27 +244,27 @@
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
 
-      subroutine ca_temperror(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+      subroutine ca_temperror(tag,taglo,taghi, &
                               set,clear, &
-                              temp,templ1,templ2,templ3,temph1, &
-                              temph2,temph3, &
+                              temp,templo,temphi, &
                               lo,hi,np,domlo,domhi, &
                               delta,xlo,problo,time,level)
 
       use tagging_params_module
+      use prob_params_module, only: dg
+      
       implicit none
 
-      integer set, clear, np, level
-      integer tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer templ1,templ2,templ3,temph1,temph2,temph3
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      integer tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision temp(templ1:temph1,templ2:temph2, &
-                            templ3:temph3,np)
-      double precision delta(3), xlo(3), problo(3), time
+      integer          :: set, clear, np, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: templo(3), temphi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+      double precision :: delta(3), xlo(3), problo(3), time
 
-      double precision ax,ay,az
-      integer i, j, k
+      double precision :: ax, ay, az
+      integer          :: i, j, k
 
 !     Tag on regions of high temperature
       if (level .lt. max_temperr_lev) then
@@ -282,12 +284,12 @@
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  ax = ABS(temp(i+1,j,k,1) - temp(i,j,k,1))
-                  ay = ABS(temp(i,j+1,k,1) - temp(i,j,k,1))
-                  az = ABS(temp(i,j,k+1,1) - temp(i,j,k,1))
-                  ax = MAX(ax,ABS(temp(i,j,k,1) - temp(i-1,j,k,1)))
-                  ay = MAX(ay,ABS(temp(i,j,k,1) - temp(i,j-1,k,1)))
-                  az = MAX(az,ABS(temp(i,j,k,1) - temp(i,j,k-1,1)))
+                  ax = ABS(temp(i+1*dg(1),j,k,1) - temp(i,j,k,1))
+                  ay = ABS(temp(i,j+1*dg(2),k,1) - temp(i,j,k,1))
+                  az = ABS(temp(i,j,k+1*dg(3),1) - temp(i,j,k,1))
+                  ax = MAX(ax,ABS(temp(i,j,k,1) - temp(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(temp(i,j,k,1) - temp(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(temp(i,j,k,1) - temp(i,j,k-1*dg(3),1)))
                   if ( MAX(ax,ay,az) .ge. tempgrad) then
                      tag(i,j,k) = set
                   endif
@@ -296,7 +298,7 @@
          enddo
       endif
 
-      end
+      end subroutine ca_temperror
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine will tag high error cells based on the pressure
@@ -317,27 +319,27 @@
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
-      subroutine ca_presserror(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
-                             set,clear, &
-                             press,pressl1,pressl2,pressl3,pressh1, &
-                             pressh2,pressh3, &
-                             lo,hi,np,domlo,domhi, &
-                             delta,xlo,problo,time,level)
+      subroutine ca_presserror(tag,taglo,taghi, &
+                               set,clear, &
+                               press,presslo,presshi, &
+                               lo,hi,np,domlo,domhi, &
+                               delta,xlo,problo,time,level)
 
       use tagging_params_module
+      use prob_params_module, only: dg
+      
       implicit none
 
-      integer set, clear, np, level
-      integer tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer pressl1,pressl2,pressl3,pressh1,pressh2,pressh3
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      integer tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision press(pressl1:pressh1,pressl2:pressh2, &
-                             pressl3:pressh3,np)
-      double precision delta(3), xlo(3), problo(3), time
+      integer          :: set, clear, np, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: presslo(3), presshi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
+      double precision :: delta(3), xlo(3), problo(3), time
 
-      double precision ax,ay,az
-      integer i, j, k
+      double precision :: ax, ay, az
+      integer          :: i, j, k
 
 !     Tag on regions of high pressure
       if (level .lt. max_presserr_lev) then
@@ -357,12 +359,12 @@
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  ax = ABS(press(i+1,j,k,1) - press(i,j,k,1))
-                  ay = ABS(press(i,j+1,k,1) - press(i,j,k,1))
-                  az = ABS(press(i,j,k+1,1) - press(i,j,k,1))
-                  ax = MAX(ax,ABS(press(i,j,k,1) - press(i-1,j,k,1)))
-                  ay = MAX(ay,ABS(press(i,j,k,1) - press(i,j-1,k,1)))
-                  az = MAX(az,ABS(press(i,j,k,1) - press(i,j,k-1,1)))
+                  ax = ABS(press(i+1*dg(1),j,k,1) - press(i,j,k,1))
+                  ay = ABS(press(i,j+1*dg(2),k,1) - press(i,j,k,1))
+                  az = ABS(press(i,j,k+1*dg(3),1) - press(i,j,k,1))
+                  ax = MAX(ax,ABS(press(i,j,k,1) - press(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(press(i,j,k,1) - press(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(press(i,j,k,1) - press(i,j,k-1*dg(3),1)))
                   if ( MAX(ax,ay,az) .ge. pressgrad) then
                      tag(i,j,k) = set
                   endif
@@ -371,7 +373,7 @@
          enddo
       endif
 
-      end
+      end subroutine ca_presserror
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine will tag high error cells based on the velocity
@@ -392,37 +394,52 @@
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
-      subroutine ca_velerror(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+      subroutine ca_velerror(tag,taglo,taghi, &
                              set,clear, &
-                             vel,vell1,vell2,vell3,velh1,velh2,velh3, &
+                             vel,vello,velhi, &
                              lo,hi,nv,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
       use tagging_params_module
+      use prob_params_module, only: dg
+      
       implicit none
 
-      integer set, clear, nv, level
-      integer tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer vell1,vell2,vell3,velh1,velh2,velh3
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      integer tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision vel(vell1:velh1,vell2:velh2,vell3:velh3,nv)
-      double precision delta(3), xlo(3), problo(3), time
+      integer          :: set, clear, nv, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: vello(3), velhi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
+      double precision :: delta(3), xlo(3), problo(3), time
 
-      double precision ax,ay,az
-      integer i, j, k
+      double precision :: ax, ay, az
+      integer          :: i, j, k
 
+!     Tag on regions of high velocity
+      if (level .lt. max_velerr_lev) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  if (vel(i,j,k,1) .ge. velerr) then
+                     tag(i,j,k) = set
+                  endif
+               enddo
+            enddo
+         enddo
+      endif      
+      
 !     Tag on regions of high velocity gradient
       if (level .lt. max_velgrad_lev) then
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  ax = ABS(vel(i+1,j,k,1) - vel(i,j,k,1))
-                  ay = ABS(vel(i,j+1,k,1) - vel(i,j,k,1))
-                  az = ABS(vel(i,j,k+1,1) - vel(i,j,k,1))
-                  ax = MAX(ax,ABS(vel(i,j,k,1) - vel(i-1,j,k,1)))
-                  ay = MAX(ay,ABS(vel(i,j,k,1) - vel(i,j-1,k,1)))
-                  az = MAX(az,ABS(vel(i,j,k,1) - vel(i,j,k-1,1)))
+                  ax = ABS(vel(i+1*dg(1),j,k,1) - vel(i,j,k,1))
+                  ay = ABS(vel(i,j+1*dg(2),k,1) - vel(i,j,k,1))
+                  az = ABS(vel(i,j,k+1*dg(3),1) - vel(i,j,k,1))
+                  ax = MAX(ax,ABS(vel(i,j,k,1) - vel(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(vel(i,j,k,1) - vel(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(vel(i,j,k,1) - vel(i,j,k-1*dg(3),1)))
                   if ( MAX(ax,ay,az) .ge. velgrad) then
                      tag(i,j,k) = set
                   endif
@@ -431,7 +448,7 @@
          enddo
       endif
 
-      end
+      end subroutine ca_velerror
 
 
 ! ::: -----------------------------------------------------------
@@ -453,25 +470,27 @@
 ! ::: time      => problem evolution time
 ! ::: level     => refinement level of this array
 ! ::: -----------------------------------------------------------
-      subroutine ca_raderror(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
+      subroutine ca_raderror(tag,taglo,taghi, &
                              set,clear, &
-                             rad,radl1,radl2,radl3,radh1,radh2,radh3, &
+                             rad,radlo,radhi, &
                              lo,hi,nr,domlo,domhi, &
                              delta,xlo,problo,time,level)
 
       use tagging_params_module
+      use prob_params_module, only: dg
+      
       implicit none
 
-      integer set, clear, nr, level
-      integer tagl1,tagl2,tagl3,tagh1,tagh2,tagh3
-      integer radl1,radl2,radl3,radh1,radh2,radh3
-      integer lo(3), hi(3), domlo(3), domhi(3)
-      integer tag(tagl1:tagh1,tagl2:tagh2,tagl3:tagh3)
-      double precision rad(radl1:radh1,radl2:radh2,radl3:radh3,nr)
-      double precision delta(3), xlo(3), problo(3), time
+      integer          :: set, clear, nr, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: radlo(3), radhi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
+      double precision :: delta(3), xlo(3), problo(3), time
 
-      double precision ax,ay,az
-      integer i, j, k
+      double precision :: ax, ay, az
+      integer          :: i, j, k
 
 !     Tag on regions of high radiation
       if (level .lt. max_raderr_lev) then
@@ -491,12 +510,12 @@
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  ax = ABS(rad(i+1,j,k,1) - rad(i,j,k,1))
-                  ay = ABS(rad(i,j+1,k,1) - rad(i,j,k,1))
-                  az = ABS(rad(i,j,k+1,1) - rad(i,j,k,1))
-                  ax = MAX(ax,ABS(rad(i,j,k,1) - rad(i-1,j,k,1)))
-                  ay = MAX(ay,ABS(rad(i,j,k,1) - rad(i,j-1,k,1)))
-                  az = MAX(az,ABS(rad(i,j,k,1) - rad(i,j,k-1,1)))
+                  ax = ABS(rad(i+1*dg(1),j,k,1) - rad(i,j,k,1))
+                  ay = ABS(rad(i,j+1*dg(2),k,1) - rad(i,j,k,1))
+                  az = ABS(rad(i,j,k+1*dg(3),1) - rad(i,j,k,1))
+                  ax = MAX(ax,ABS(rad(i,j,k,1) - rad(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(rad(i,j,k,1) - rad(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(rad(i,j,k,1) - rad(i,j,k-1*dg(3),1)))
                   if ( MAX(ax,ay,az) .ge. radgrad) then
                      tag(i,j,k) = set
                   endif
@@ -505,4 +524,4 @@
          enddo
       endif
 
-      end
+      end subroutine ca_raderror

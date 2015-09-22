@@ -37,7 +37,7 @@
                e = u(i,j,k,UEINT) / u(i,j,k,URHO)
                delta_e = TWO * reactions(i,j,k,nspec+1)
 
-               if (abs(delta_e) > ZERO) then
+               if (abs(delta_e) > 1.d-100) then
                   dt = min(dt, burning_timestep_factor * e / abs(delta_e))
                endif
 

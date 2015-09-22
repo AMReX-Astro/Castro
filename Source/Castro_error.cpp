@@ -27,8 +27,8 @@ Castro::ErrorSetUp ()
 
     err_list.add("density",1,ErrorRec::Special,
 		 BL_FORT_PROC_CALL(CA_DENERROR,ca_denerror));
-//  err_list.add("Temp",1,ErrorRec::Special,
-//		 BL_FORT_PROC_CALL(CA_TEMPERROR,ca_temperror));
+    err_list.add("Temp",1,ErrorRec::Special,
+		 BL_FORT_PROC_CALL(CA_TEMPERROR,ca_temperror));
     err_list.add("pressure",1,ErrorRec::Special,
 		 BL_FORT_PROC_CALL(CA_PRESSERROR,ca_presserror));
     err_list.add("x_velocity",1,ErrorRec::Special,

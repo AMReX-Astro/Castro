@@ -211,6 +211,7 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
+Real         Castro::max_delta_e = 0.0;
 
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 
@@ -2721,8 +2722,8 @@ Castro::errorEst (TagBoxArray& tags,
 		const int*  dhi     = datbox.hiVect();
 		const int   ncomp   = datfab.nComp();
 		
-		err_list[j].errFunc()(tptr, ARLIM(tlo), ARLIM(thi), &tagval,
-				      &clearval, dat, ARLIM(dlo), ARLIM(dhi),
+		err_list[j].errFunc()(tptr, tlo, thi, &tagval,
+				      &clearval, dat, dlo, dhi,
 				      lo,hi, &ncomp, domain_lo, domain_hi,
 				      dx, xlo, prob_lo, &time, &level);
 		//

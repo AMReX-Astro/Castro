@@ -61,7 +61,7 @@ contains
     
     double precision :: dtdx, dtdy
     double precision :: cc, csq, Clag, rho, u, v, p, rhoe
-    double precision :: drho, du, dv, dp, drhoe, dtau
+    double precision :: drho, dp, drhoe, dtau
     double precision :: dup, dvp, dpp
     double precision :: dum, dvm, dpm
 
@@ -333,7 +333,6 @@ contains
              dup = dup - halfdt*Im_r(i,j,1,3,igx)
           endif
 
-
           ! optionally use the reference state in evaluating the
           ! eigenvectors
           if (ppm_reference_eigenvectors == 0) then
@@ -452,33 +451,30 @@ contains
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
              qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
 
-
              ! transverse velocity -- there is no projection here, so
              ! we don't need a reference state.  We only care about 
              ! the state traced under the middle wave
-             dv    = Im(i,j,1,2,QV)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
-             endif
 
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
              ! interface
              if (u > ZERO) then
                 if (ppm_reference_edge_limit == 1) then
-                   qxp(i,j,QV)     = Im(i,j,1,2,QV)
+                   qxp(i,j,QV) = Im(i,j,1,2,QV)
                 else
                    qxp(i,j,QV) = v
                 endif
              else ! wave moving toward the interface
-                qxp(i,j,QV) = dv
+                qxp(i,j,QV) = Im(i,j,1,2,QV)
              endif
 
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
+                qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_g(i,j,1,2,igy)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_r(i,j,1,2,igy)
+             endif
 
              ! we may have done the flattening already in the parabola
              if (ppm_flatten_before_integrals == 0) then
@@ -567,7 +563,6 @@ contains
              dum = dum - halfdt*Ip_r(i,j,1,1,igx)
              dup = dup - halfdt*Ip_r(i,j,1,3,igx)
           endif
-
 
           ! optionally use the reference state in evaluating the
           ! eigenvectors
@@ -685,18 +680,6 @@ contains
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
              qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
 
-
-             ! transverse velocity
-             dv    = Ip(i,j,1,2,QV)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
-             endif
-
              if (u < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
@@ -704,9 +687,16 @@ contains
                    qxm(i+1,j,QV) = v
                 endif
              else ! wave moving toward interface
-                qxm(i+1,j,QV) = dv
+                qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
              endif
 
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
+                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_g(i,j,1,2,igy)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_r(i,j,1,2,igy)
+             endif
 
              ! we may have already done the flattening in the parabola
              if (ppm_flatten_before_integrals == 0) then
@@ -1038,28 +1028,23 @@ contains
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
              qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
 
-
-             ! transverse velocity
-             du    = Im(i,j,2,2,QU)
+             if (v > ZERO) then
+                if (ppm_reference_edge_limit == 1) then
+                   qyp(i,j,QU)  = Im(i,j,2,2,QU)
+                else
+                   qyp(i,j,QU)  = u
+                endif
+             else ! wave moving toward the interface
+                qyp(i,j,QU)     = Im(i,j,2,2,QU)
+             endif
 
              if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                du  = du  + halfdt*Im_g(i,j,2,2,igx)
+                qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_g(i,j,2,2,igx)
              endif
 
              if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Im_r(i,j,2,2,igx)
+                qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_r(i,j,2,2,igx)
              endif
-
-             if (v > ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qyp(i,j,QU)     = Im(i,j,2,2,QU)
-                else
-                   qyp(i,j,QU)     = u
-                endif
-             else ! wave moving toward the interface
-                qyp(i,j,QU)     = du
-             endif
-
 
              ! we may have already done the flattening in the parabola
              if (ppm_flatten_before_integrals == 0) then
@@ -1257,18 +1242,6 @@ contains
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
              qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
 
-
-             ! transverse velocity
-             du    =  Ip(i,j,2,2,QU)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                du  = du  + halfdt*Ip_g(i,j,2,2,igx)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Ip_r(i,j,2,2,igx)
-             endif
-
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qym(i,j+1,QU) = Ip(i,j,2,2,QU)
@@ -1276,9 +1249,16 @@ contains
                    qym(i,j+1,QU) = u
                 endif
              else
-                qym(i,j+1,QU)     = du
+                qym(i,j+1,QU)    = Ip(i,j,2,2,QU)
              endif
 
+             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
+                qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_g(i,j,2,2,igx)
+             endif
+
+             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
+                qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_r(i,j,2,2,igx)
+             endif
 
              ! we may have already applied flattening in the parabola
              if (ppm_flatten_before_integrals == 0) then
