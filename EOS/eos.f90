@@ -239,14 +239,14 @@ contains
           if (state % reset) then
              state % T(i) = smallt
           else
-             print *, 'DENS = ', state % T(i)
-             call bl_error('EOS: T smaller than small_dens and we have not chosen to reset.')
+             print *, 'TEMP = ', state % T(i)
+             call bl_error('EOS: T smaller than small_temp and we have not chosen to reset.')
           endif
        endif
     
        if (state % T(i) .gt. maxdens) then
-          print *, 'DENS = ', state % T(i)
-          call bl_error('EOS: dens greater than maximum possible density.')
+          print *, 'TEMP = ', state % T(i)
+          call bl_error('EOS: T greater than maximum possible temperature.')
        endif
 
     enddo
