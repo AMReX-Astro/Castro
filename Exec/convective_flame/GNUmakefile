@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -16,6 +14,8 @@ USE_GRAV   = TRUE
 USE_MAESTRO_INIT = FALSE
 USE_OLDPLOTPER = TRUE
 USE_REACT = TRUE
+
+CASTRO_DIR = ../..
 
 ifdef MICROPHYSICS_DIR
 
@@ -34,4 +34,4 @@ endif
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro

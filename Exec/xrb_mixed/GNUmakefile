@@ -14,6 +14,9 @@ USE_MODELPARSER  = TRUE
 
 USE_OLDPLOTPER   = TRUE
 
+
+CASTRO_DIR = ../..
+
 ifdef MICROPHYSICS_DIR
 
 # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos

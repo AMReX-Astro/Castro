@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 

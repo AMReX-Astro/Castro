@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -13,6 +11,8 @@ FCOMP	   = gfortran
 USE_MPI    = FALSE
 
 USE_REACT  = TRUE
+
+CASTRO_DIR = ../..
 
 ifdef MICROPHYSICS_DIR
 
@@ -31,4 +31,4 @@ endif
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro
