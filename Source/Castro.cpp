@@ -178,6 +178,8 @@ int          Castro::dual_energy_update_E_from_e = 1;
 Real         Castro::dual_energy_eta1 = 1.0e0;
 Real         Castro::dual_energy_eta2 = 1.0e-4;
 
+int          Castro::hybrid_hydro = 0;
+
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
@@ -426,6 +428,9 @@ Castro::read_params ()
 
     pp.query("cg_maxiter",cg_maxiter);
     pp.query("cg_tol",cg_tol);
+
+    pp.query("hybrid_hydro",hybrid_hydro);    
+    
     pp.query("use_pslope",use_pslope);
     pp.query("grav_source_type",grav_source_type);
     pp.query("spherical_star",spherical_star);

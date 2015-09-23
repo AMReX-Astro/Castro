@@ -581,6 +581,9 @@ protected:
 
     static int       cg_maxiter;
     static Real      cg_tol;
+  
+    static int       hybrid_hydro;
+  
     static int       use_pslope;
     static int       grav_source_type;
     static int       spherical_star;

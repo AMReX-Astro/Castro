@@ -56,6 +56,9 @@ module meth_params_module
   
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
+
+  integer         , save :: hybrid_hydro
+  
   integer         , save :: use_pslope
   integer         , save :: do_grav
   integer         , save :: grav_source_type

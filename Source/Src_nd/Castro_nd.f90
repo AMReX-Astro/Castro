@@ -268,6 +268,7 @@
                                    hybrid_riemann_in, use_colglaz_in, use_flattening_in, &
                                    transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in, &
                                    cg_maxiter_in, cg_tol_in, &
+                                   hybrid_hydro_in, &
                                    use_pslope_in, &
                                    do_grav_in, grav_source_type_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
@@ -300,6 +301,7 @@
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
         integer, intent(in) :: dual_energy_update_E_from_e_in
         double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in
+        integer, intent(in) :: hybrid_hydro_in
         integer, intent(in) :: use_pslope_in
         integer, intent(in) :: do_grav_in, grav_source_type_in
         integer, intent(in) :: cg_maxiter_in
@@ -515,6 +517,7 @@
 
         cg_tol                       = cg_tol_in
         cg_maxiter                   = cg_maxiter_in
+        hybrid_hydro                 = hybrid_hydro_in
         use_pslope                   = use_pslope_in
         do_grav                      = do_grav_in
         grav_source_type             = grav_source_type_in
