@@ -14,6 +14,7 @@ USE_MODELPARSER  = TRUE
 
 USE_OLDPLOTPER   = TRUE
 
+CASTRO_DIR = ../..
 
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := helmeos

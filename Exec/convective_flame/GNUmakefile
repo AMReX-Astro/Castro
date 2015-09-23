@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -17,6 +15,9 @@ USE_MAESTRO_INIT = FALSE
 USE_OLDPLOTPER = TRUE
 USE_REACT = TRUE
 
+CASTRO_DIR = ../..
+
+
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := gamma_law_general
 
@@ -26,4 +27,4 @@ Network_dir := kpp
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro

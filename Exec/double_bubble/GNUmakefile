@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -14,7 +12,6 @@ FCOMP	   = gfortran
 USE_MPI    = TRUE
 USE_GRAV   = TRUE
 
-
 # define the location of the CASTRO top directory
 CASTRO_DIR  := ../..
 
@@ -28,4 +25,4 @@ GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/simple3.net
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro

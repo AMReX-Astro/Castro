@@ -1,5 +1,3 @@
-CASTRO_DIR ?= /path/to/Castro
-
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -14,6 +12,8 @@ USE_MPI    = FALSE
 
 USE_REACT  = TRUE
 
+CASTRO_DIR = ../..
+
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := helmeos
 
@@ -24,4 +24,4 @@ Network_dir := aprox13
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include ../Make.Castro
