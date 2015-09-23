@@ -325,6 +325,7 @@ clean::
 
 clean::
 	$(RM) network.f90
+	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 
 #-----------------------------------------------------------------------------
