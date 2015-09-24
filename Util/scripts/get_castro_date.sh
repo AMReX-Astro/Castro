@@ -6,6 +6,8 @@
 
 
 server=https://github.com/BoxLib-Codes
+server2=ssh://mzingale@gamera.lbl.gov:/usr/local/gitroot
+
 
 #-----------------------------------------------------------------------------
 
@@ -30,13 +32,28 @@ echo " "
 echo "cloning BoxLib"
 git clone ${server}/BoxLib.git
 
-cd ..
-
 echo " "
 echo "resetting to before ${date}"
 cd BoxLib
 hash=`git rev-list -n 1 --before="$date" master`
 git reset --hard ${hash}
+
+cd ..
+
+
+# Castro_Exec
+echo " "
+echo "cloning Castro_Exec"
+git clone ${server2}/Castro_Exec.git
+
+echo " "
+echo "resetting to before ${date}"
+cd Castro_Exec
+hash=`git rev-list -n 1 --before="$date" master`
+git reset --hard ${hash}
+
+cd ..
+
 
 
 # output the necessary environment changes
