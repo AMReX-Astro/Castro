@@ -1,7 +1,7 @@
 # Define the location of the CASTRO top directory,
 # if not already defined by an environment variable.
 
-CASTRO_DIR ?= ../../
+CASTRO_DIR = ../../
 
 # Location of this directory. Useful if
 # you're trying to compile this from another location.
