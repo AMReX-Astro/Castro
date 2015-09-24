@@ -1,4 +1,4 @@
-CASTRO_DIR ?= /path/to/Castro
+CASTRO_DIR := ../..
 
 PRECISION  = DOUBLE
 PROFILE    = FALSE
