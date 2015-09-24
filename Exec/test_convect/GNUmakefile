@@ -1,4 +1,4 @@
-CASTRO_DIR ?= ../..
+CASTRO_DIR := ../..
 
 PRECISION        = DOUBLE
 PROFILE          = FALSE
