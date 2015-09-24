@@ -536,7 +536,7 @@ contains
 
     implicit none
 
-    class (eos_type), intent(inout) :: state
+    type (eos_t_vector), intent(inout) :: state
 
     integer :: i
     
@@ -546,47 +546,25 @@ contains
     ! mu_e, the mean number of nucleons per electron, and
     ! y_e, the electron fraction.
 
-    select type (state)
+    do i = 1, state % N
 
-    type is (eos_t_vector)
-
-       do i = 1, state % N
-
-          state % abar(i) = sum(state % xn(i,:) * aion(:))
-          state % zbar(i) = sum(state % xn(i,:) * zion(:))
-          state % y_e(i)  = sum(state % xn(i,:) * zion(:) / aion(:))
-          state % mu_e(i) = ONE / state % y_e(i)
-
-          if (assume_neutral) then
-
-             state % mu(i) = state % abar(i)
-
-          else
-
-             state % mu(i) = ONE / sum( (ONE + zion(:)) * state % xn(i,:) / aion(:) )
-
-          endif
-
-       enddo
-
-    type is (eos_t)
-
-       state % abar = sum(state % xn(:) * aion(:))
-       state % zbar = sum(state % xn(:) * zion(:))
-       state % y_e  = sum(state % xn(:) * zion(:) / aion(:))
-       state % mu_e = ONE / state % y_e
+       state % mu_e(i) = ONE / (sum(state % xn(i,:) * zion(:) / aion(:)))       
+       state % y_e(i) = ONE / state % mu_e(i)
+       
+       state % abar(i) = ONE / (sum(state % xn(i,:) / aion(:)))
+       state % zbar(i) = state % abar(i) / state % mu_e(i)
 
        if (assume_neutral) then
 
-          state % mu = state % abar
+          state % mu(i) = state % abar(i)
 
        else
 
-          state % mu = ONE / sum( (ONE + zion(:)) * state % xn(:) / aion(:) )
+          state % mu(i) = ONE / sum( (ONE + zion(:)) * state % xn(i,:) / aion(:) )
 
        endif
 
-    end select
+    enddo
 
   end subroutine composition
 
@@ -601,49 +579,27 @@ contains
 
     implicit none
 
-    class (eos_type), intent(inout) :: state
+    type (eos_t_vector), intent(inout) :: state
 
     integer :: i
 
-    select type (state)
+    do i = 1, state % N
 
-    type is (eos_t_vector)
+       state % dpdX(i,:) = state % dpdA(i) * (state % abar(i)/aion(:)) &
+                         * (aion(:) - state % abar(i))             &
+                         + state % dpdZ(i) * (state % abar(i)/aion(:)) &
+                         * (zion(:) - state % zbar(i))
 
-       do i = 1, state % N
+       state % dEdX(i,:) = state % dedA(i) * (state % abar(i)/aion(:)) &
+                         * (aion(:) - state % abar(i))             &
+                         + state % dedZ(i) * (state % abar(i)/aion(:)) &
+                         * (zion(:) - state % zbar(i))
 
-          state % dpdX(i,:) = state % dpdA(i) * (state % abar(i)/aion(:)) &
-                            * (aion(:) - state % abar(i))             &
-                            + state % dpdZ(i) * (state % abar(i)/aion(:)) &
-                            * (zion(:) - state % zbar(i))
+       state % dhdX(i,:) = state % dedX(i,:) &
+                         + (state % p(i) / state % rho(i)**2 - state % dedr(i)) &
+                         *  state % dPdX(i,:) / state % dPdr(i)
+    enddo
 
-          state % dEdX(i,:) = state % dedA(i) * (state % abar(i)/aion(:)) &
-                            * (aion(:) - state % abar(i))             &
-                            + state % dedZ(i) * (state % abar(i)/aion(:)) &
-                            * (zion(:) - state % zbar(i))
-
-          state % dhdX(i,:) = state % dedX(i,:) &
-                            + (state % p(i) / state % rho(i)**2 - state % dedr(i)) &
-                            *  state % dPdX(i,:) / state % dPdr(i)
-       enddo
-
-    type is (eos_t)
-
-       state % dpdX(:) = state % dpdA * (state % abar/aion(:)) &
-                         * (aion(:) - state % abar)             &
-                         + state % dpdZ * (state % abar/aion(:)) &
-                         * (zion(:) - state % zbar)
-
-       state % dEdX(:) = state % dedA * (state % abar/aion(:)) &
-                         * (aion(:) - state % abar)             &
-                         + state % dedZ * (state % abar/aion(:)) &
-                         * (zion(:) - state % zbar)
-
-       state % dhdX(:) = state % dedX(:) &
-                         + (state % p / state % rho**2 - state % dedr) &
-                         *  state % dPdX(:) / state % dPdr
-
-     end select
-       
   end subroutine composition_derivatives
 
 
