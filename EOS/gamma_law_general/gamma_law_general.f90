@@ -35,8 +35,6 @@ contains
        gamma_const = FIVE3RD
     end if
  
-    initialized = .true.
- 
   end subroutine actual_eos_init
 
 
@@ -57,8 +55,6 @@ contains
     double precision, parameter :: m_nucleon = ONE / n_A
 
     integer :: j
-
-    if (.not. initialized) call bl_error('EOS: not initialized')
 
     !-------------------------------------------------------------------------
     ! For all EOS input modes EXCEPT eos_input_rt, first compute dens
