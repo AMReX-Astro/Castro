@@ -70,7 +70,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
   use probdata_module
   use prob_params_module, only: center
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use eos_module
   use eos_type_module
   use network, only: nspec
@@ -179,7 +179,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            ! assumes ke=0
            state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
-           state(i,j,k,UMX:UMY) = 0.d0
+           state(i,j,k,UMX:UMZ) = 0.d0
         enddo
      end do
   end do
