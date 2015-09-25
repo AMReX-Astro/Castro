@@ -8,7 +8,7 @@ stop_time    = 10.0
 geometry.is_periodic = 0   0
 geometry.coord_sys   = 1        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0   0
-geometry.prob_hi     = 2.0 2.0
+geometry.prob_hi     = 4.0 4.0
 amr.n_cell           = 128 128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -29,7 +29,7 @@ castro.ppm_type = 1
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.e9
 
-castro.do_rotation = 1
+castro.do_rotation = 0
 castro.rotational_period = 100.0
 
 # TIME STEP CONTROL
