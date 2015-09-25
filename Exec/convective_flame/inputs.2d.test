@@ -29,6 +29,9 @@ castro.ppm_type = 1
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.e9
 
+castro.do_rotation = 1
+castro.rotational_period = 100.0
+
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
