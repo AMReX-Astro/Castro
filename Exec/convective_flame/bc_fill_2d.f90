@@ -46,6 +46,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
   density(0)  = dens_base
 
   ! only initialize the first species
+  X_in(:) = 0.0d0
   X_in(1) = 1.d0
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
@@ -143,7 +144,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
            end if
 
            adv(i,j,URHO) = density(j)
-           adv(i,j,UFS) = adv(i,j,URHO)
+           adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*X_in(:)
            adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
            adv(i,j,UEDEN) = adv(i,j,UEINT) &
                 + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/adv(i,j,URHO)
