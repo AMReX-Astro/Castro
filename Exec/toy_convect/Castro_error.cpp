@@ -1,17 +1,13 @@
 #include <winstd.H>
 
 #include "Castro.H"
-#include "Castro_F.H"
+#include "Castro_error_F.H"
 #ifdef RADIATION
 # include "Radiation.H"
 # include "RAD_F.H"
 #endif
 
 using std::string;
-
-static Box the_same_box (const Box& b) { return b; }
-static Box grow_box_by_one (const Box& b) { return BoxLib::grow(b,1); }
-static Box grow_box_by_two (const Box& b) { return BoxLib::grow(b,2); }
 
 typedef StateDescriptor::BndryFunc BndryFunc;
 
