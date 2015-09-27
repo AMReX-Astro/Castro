@@ -103,6 +103,8 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
      domlo,domhi,delta,xlo,time,bc)
 
   use probdata_module
+  use meth_params_module, only: const_grav
+
   implicit none
   include 'bc_types.fi'
 
@@ -112,7 +114,20 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
+  integer :: i, j
+
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
+
+  !     YLO
+  if ( bc(2,1,1).eq.EXT_DIR .and. grav_l2.lt.domlo(2)) then
+     do j=domlo(2)-1,grav_l2,-1
+        do i=grav_l1, grav_h1
+           grav(i,j) = const_grav
+        enddo
+     enddo
+     
+  end if
+
 
 end subroutine ca_gravyfill
 
