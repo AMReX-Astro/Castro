@@ -67,12 +67,12 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
      call hse_bc_ylo(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                      domlo,domhi,delta,xlo,time,bc, density_only=.true.)
-
   end if
 
   !     YHI
   if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
-     call bl_error("denfill +y: we should never get here")
+     call hse_bc_yhi(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                     domlo,domhi,delta,xlo,time,bc, density_only=.true.)
   end if
 
 end subroutine ca_denfill
@@ -128,6 +128,15 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
      
   end if
 
+  !     YHI
+  if ( bc(2,2,1).eq.EXT_DIR .and. grav_h2.gt.domhi(2)) then
+     do j=domhi(2)+1,grav_h2
+        do i=grav_l1, grav_h1
+           grav(i,j) = const_grav
+        enddo
+     enddo
+     
+  end if
 
 end subroutine ca_gravyfill
 

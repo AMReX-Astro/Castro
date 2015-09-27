@@ -62,8 +62,8 @@ contains
        return
     endif
 
+    ! HSE integration to get density, pressure
 
-    ! this do loop counts backwards since we want to work downward
     do i=adv_l1,adv_h1
 
        ! temperature and species held constant in BCs
@@ -80,8 +80,8 @@ contains
        eint = eos_state%e
        pres_above = eos_state%p
 
+       ! this do loop counts backwards since we want to work downward
        do j=domlo(2)-1,adv_l2,-1
-          ! HSE integration to get density, pressure
 
           ! initial guesses
           dens_zone = adv(i,j+1,URHO)
@@ -168,10 +168,10 @@ contains
   end subroutine hse_bc_ylo
 
   subroutine hse_bc_yhi(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc)
+                        domlo,domhi,delta,xlo,time,bc, density_only)
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
     use interpolate_module
     use eos_module
     use network, only: nspec
@@ -182,20 +182,44 @@ contains
     integer domlo(2), domhi(2)
     double precision delta(2), xlo(2), time
     double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    logical, intent(in), optional :: density_only
 
-    integer i,j,q,n,iter
+    integer i,j,n
     double precision y
-    double precision pres_above,p_want,pres_zone, A
-    double precision drho,dpdr,temp_zone,eint,X_zone(nspec),dens_zone
 
-    integer, parameter :: MAX_ITER = 100
-    double precision, parameter :: TOL = 1.e-8_dp_t
+    logical :: just_density
 
-    logical converged_hse
+    if (present(density_only)) then
+       just_density = density_only
+    else
+       just_density = .false.
+    endif
 
-    type (eos_t) :: eos_state
+    if (just_density) then
+       ! we cannot rely on any of the other state variables being
+       ! initialized, so the only thing we can do here is extrapolate
+       ! the density from the domain interior
+       do j=domhi(2)+1,adv_h2
+          do i=adv_l1,adv_h1
+             adv(i,j,URHO) = adv(i,domhi(2),URHO)
+          enddo
+       enddo
 
-    call bl_error("hse bc on +y not yet implemented")
+       return
+    endif
+
+    ! outflow, zeroing the normal velocity
+
+    do i=adv_l1,adv_h1
+       do j=domhi(2)+1,adv_h2
+          adv(i,j,:) = adv(i,domhi(2),:)
+
+          adv(i,j,UMY) = max(ZERO, adv(i,j,UMY))
+
+          adv(i,j,UEDEN) = adv(i,j,UEINT) + &
+               HALF*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/adv(i,j,URHO)
+       enddo
+    enddo
 
   end subroutine hse_bc_yhi
 

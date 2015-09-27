@@ -28,3 +28,11 @@
   max_pressgrad_lev = 5
 
 /
+
+&sponge
+
+  sponge_upper_density = 5.0d-8
+  sponge_lower_density = 1.0d-8
+  sponge_timescale     = 1.0d-6
+  
+/
