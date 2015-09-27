@@ -12,9 +12,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ pert_factor,dens_base,pres_base,y_pert_center, &
+  namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
        cutoff_density, &
-       pert_width,gravity,do_isentropic,boundary_type, &
+       pert_width,gravity, do_isentropic, boundary_type, &
+       zero_vels, &
        frac
 
   !
@@ -31,7 +32,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! set namelist defaults here
   frac = 0.5
-
+  zero_vels = .false.
   do_isentropic = .false.
 
   !     Read namelists

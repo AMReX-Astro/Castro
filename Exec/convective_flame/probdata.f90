@@ -10,4 +10,5 @@ module probdata_module
 
   double precision, save :: frac
 
+  logical         , save :: zero_vels
 end module probdata_module
