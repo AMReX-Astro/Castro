@@ -4,7 +4,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                       domlo,domhi,delta,xlo,time,bc)
   
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
   use interpolate_module
   use eos_module
   use network, only: nspec
@@ -148,11 +148,13 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                     ! zero transverse momentum
                     adv(i,j,UMX) = 0.d0
+                    adv(i,j,UMZ) = 0.d0
                  else
 
                     ! zero gradient velocity
                     adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
                     adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
+                    adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
                  endif
 
                  eos_state%rho = dens_zone
@@ -167,7 +169,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                  adv(i,j,URHO) = dens_zone
                  adv(i,j,UEINT) = dens_zone*eint
                  adv(i,j,UEDEN) = dens_zone*eint + & 
-                      0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
+                      0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                  adv(i,j,UTEMP) = temp_zone
                  adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -205,6 +207,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
                  ! zero transverse momentum
                  adv(i,j,UMX) = 0.d0
+                 adv(i,j,UMZ) = 0.d0
 
                  eos_state%rho = dens_zone
                  eos_state%T = temp_zone
@@ -218,7 +221,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                  adv(i,j,URHO) = dens_zone
                  adv(i,j,UEINT) = dens_zone*eint
                  adv(i,j,UEDEN) = dens_zone*eint + &
-                      0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
+                      0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                  adv(i,j,UTEMP) = temp_zone
                  adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                  
@@ -350,7 +353,7 @@ subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
 end subroutine ca_gravzfill
 
 ! ::: -----------------------------------------------------------
-
+h
 subroutine ca_reactfill(react,react_l1,react_l2, &
                         react_h1,react_h2,domlo,domhi,delta,xlo,time,bc)
 
