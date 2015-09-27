@@ -17,24 +17,24 @@ contains
     use network, only: nspec
 
     implicit none
-    integer adv_l1,adv_l2,adv_h1,adv_h2
-    integer bc(2,2,*)
-    integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    integer :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer :: bc(2,2,*)
+    integer :: domlo(2), domhi(2)
+    double precision :: delta(2), xlo(2), time
+    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
     logical, intent(in), optional :: density_only
 
-    integer i,j,q,n,iter
-    double precision y, y0, slope
-    double precision pres_above,p_want,pres_zone, A
-    double precision drho,dpdr,temp_zone,eint,X_zone(nspec),dens_zone
+    integer :: i, j, q, n, iter
+    double precision :: y, y0, slope
+    double precision :: pres_above, p_want, pres_zone, A
+    double precision :: drho,dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
     integer, parameter :: MAX_ITER = 100
     double precision, parameter :: TOL = 1.e-8_dp_t
 
     logical :: just_density
 
-    logical converged_hse
+    logical :: converged_hse
 
     type (eos_t) :: eos_state
 
@@ -64,7 +64,7 @@ contains
 
     ! HSE integration to get density, pressure
 
-    do i=adv_l1,adv_h1
+    do i = adv_l1, adv_h1
 
        ! temperature and species held constant in BCs
        temp_zone = adv(i,domlo(2),UTEMP)
@@ -81,7 +81,7 @@ contains
        pres_above = eos_state%p
 
        ! this do loop counts backwards since we want to work downward
-       do j=domlo(2)-1,adv_l2,-1
+       do j = domlo(2)-1, adv_l2, -1
 
           ! initial guesses
           dens_zone = adv(i,j+1,URHO)
@@ -110,7 +110,7 @@ contains
              drho = A/(dpdr + HALF*delta(2)*const_grav)
 
              dens_zone = max(0.9_dp_t*dens_zone, &
-                  min(dens_zone + drho, 1.1_dp_t*dens_zone))
+                             min(dens_zone + drho, 1.1_dp_t*dens_zone))
 
              ! convergence?
              if (abs(drho) < TOL*dens_zone) then
@@ -120,10 +120,7 @@ contains
 
           enddo
 
-          if (.not. converged_hse) then
-             print *, density_only
-             call bl_error("ERROR: failure to converge in -Y BC")
-          endif
+          if (.not. converged_hse) call bl_error("ERROR: failure to converge in -Y BC")
 
           ! velocity
           if (zero_vels) then
@@ -154,8 +151,7 @@ contains
           eint = eos_state%e
 
           adv(i,j,UEINT) = dens_zone*eint
-          adv(i,j,UEDEN) = dens_zone*eint + & 
-               HALF*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
+          adv(i,j,UEDEN) = dens_zone*eint + HALF*sum(adv(i,j,UMX:UMZ)**2)/dens_zone
           adv(i,j,UTEMP) = temp_zone
           adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -199,8 +195,8 @@ contains
        ! we cannot rely on any of the other state variables being
        ! initialized, so the only thing we can do here is extrapolate
        ! the density from the domain interior
-       do j=domhi(2)+1,adv_h2
-          do i=adv_l1,adv_h1
+       do j = domhi(2)+1, adv_h2
+          do i = adv_l1, adv_h1
              adv(i,j,URHO) = adv(i,domhi(2),URHO)
           enddo
        enddo
@@ -210,14 +206,13 @@ contains
 
     ! outflow, zeroing the normal velocity
 
-    do i=adv_l1,adv_h1
-       do j=domhi(2)+1,adv_h2
+    do i = adv_l1, adv_h1
+       do j = domhi(2)+1, adv_h2
           adv(i,j,:) = adv(i,domhi(2),:)
 
           adv(i,j,UMY) = max(ZERO, adv(i,j,UMY))
 
-          adv(i,j,UEDEN) = adv(i,j,UEINT) + &
-               HALF*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/adv(i,j,URHO)
+          adv(i,j,UEDEN) = adv(i,j,UEINT) + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
        enddo
     enddo
 
