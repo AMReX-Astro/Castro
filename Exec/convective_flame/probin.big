@@ -17,7 +17,7 @@
 
 &tagging
 
-  denerr = 1.d20
+  denerr = 1.d-7
   dengrad = 0.01
   max_denerr_lev = 5
   max_dengrad_lev = 5
