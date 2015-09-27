@@ -28,8 +28,9 @@ This may then be extended if {\tt amr.n\_error\_buf} $> 0$ to a certain number
 of zones beyond these tagged zones. This section describes the process 
 by which zones are tagged, and describes how to add customized tagging criteria.
 
-The routines for tagging cells are located in the {\tt Tagging\_*d.f90} files 
-in the respective {\tt Src\_*d} subdirectories. The main routines are 
+The routines for tagging cells are located in the {\tt Tagging\_nd.f90} file 
+in the {\tt Src\_nd} directory. (These are dimension-agnostic routines that loop 
+over all three dimensional indices even for 1D or 2D problems.) The main routines are 
 {\tt ca\_denerror}, {\tt ca\_temperror}, {\tt ca\_presserror}, {\tt ca\_velerror}, 
 and {\tt ca\_raderror}. They refine based on density, temperature, pressure, 
 velocity, and radiation (if enabled), respectively. The same approach is used 
@@ -94,7 +95,7 @@ In particular, notice that there is an order dependence of this operation; if {\
 {\tt CLEAR}s a zone and then {\tt errfunc[3]} {\tt SET}s that zone, the final operation will 
 be to tag that zone (and vice versa). In practice by default this does not matter, because the 
 built-in tagging routines never explicitly perform a \texttt{CLEAR}. However, 
-it is possible to overwrite the {\tt Tagging\_*d.f90} file if you want to change how 
+it is possible to overwrite the {\tt Tagging\_nd.f90} file if you want to change how 
 {\tt ca\_denerror, ca\_temperror}, etc. operate. This is not recommended, and if you do so
 be aware that {\tt CLEAR}ing a zone this way may not have the desired effect.
 
