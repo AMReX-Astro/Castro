@@ -1,32 +1,35 @@
-\subsection{List of Parameters}
+\section{Introduction}
 
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|} \hline
-Parameter & Definition & Acceptable Values &Default\\
-\hline
-{\bf castro.diffuse\_temp} & Include thermal diffusion & 0 if false, 1 if true & 0 \\
-{\bf diffusion.diff\_coeff} & & Real $> 0$ & 0.0 \\
-\hline
-\end{tabular}
-\label{Table:Diffusion}
-\end{center}
-\end{scriptsize}
-\end{table*}
+Castro incorporates explicit thermal diffusion into the energy equation.
+Support for diffusion must be compiled into the code by setting
+{\tt USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.
 
-\subsection{Notes}
+
+The following parameters affect diffusion:
 \begin{itemize}
-\item To include diffusion you must set
-\begin{itemize}
-\item USE\_DIFFUSION  = TRUE in the GNUmakefile
-\item {\bf castro.diffuse\_temp} = 1 in the inputs file
+\item {\tt castro.diffuse\_temp}:  enable thermal diffusion (0 or 1; default 0)
+
+\item {\tt diffusion.diff\_coeff}: {\color{red} no longer supported?}
 \end{itemize}
-\item You can run a pure diffusion problem (with no hydrodynamics) by setting 
-\begin{itemize}
-\item {\bf castro.diffuse\_temp} = 1
-\item {\bf castro.do\_hydro} = 0 
-\end{itemize}
-\item {\bf diffusion.diff\_coeff} is only relevant if {\bf castro.diffuse\_temp} = 1 
-\end{itemize}
+
+A pure diffusion problem (with no hydrodynamics) can be run by setting
+\begin{verbatim}
+castro.diffuse_temp = 1
+castro.do_hydro = 0
+\end{verbatim}
+
+To complete the setup, a thermal conductivity must be specified.
+This is done by a problem-specific routine {\tt ca\_fill\_temp\_cond},
+which has the calling sequence:
+\begin{verbatim}
+BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
+               (bx.loVect(), bx.hiVect(),
+                BL_TO_FORTRAN(state_old[mfi]),
+                D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
+                       BL_TO_FORTRAN(coeffs[1][mfi]),
+                       BL_TO_FORTRAN(coeffs[2][mfi])),
+                dx_fine);
+\end{verbatim}
+This passes in the current state and returns the thermal conductivity
+on all the edges of the zone.
 
