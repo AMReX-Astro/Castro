@@ -8,8 +8,8 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use eos_module
   use eos_type_module
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-       allow_negative_energy
-  use probdata_module, only: pres_base, dens_base, gravity, do_isentropic
+       allow_negative_energy, const_grav
+  use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   implicit none
 
@@ -47,7 +47,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   do j=0,npts_1d-1
 
@@ -56,7 +56,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         z = (dble(j)+0.5d0) * dx(2)
@@ -65,7 +65,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
@@ -119,8 +119,8 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use eos_module
   use eos_type_module
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-       allow_negative_energy
-  use probdata_module, only: pres_base, dens_base, gravity, do_isentropic
+       allow_negative_energy, const_grav
+  use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
   implicit none
@@ -159,7 +159,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   do j=0,npts_1d-1
 
@@ -168,7 +168,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         z = (dble(j)+0.5d0) * dx(2)
@@ -177,7 +177,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
@@ -229,7 +229,7 @@ subroutine ca_derrhopert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
      domhi,dx,xlo,time,dt,bc,level,grid_no)
 
   use network, only : nspec, naux
-  use meth_params_module, only : URHO
+  use meth_params_module, only : URHO, const_grav
   use eos_module, only: gamma_const
   use probdata_module
   use interpolate_module
@@ -253,7 +253,7 @@ subroutine ca_derrhopert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (do_isentropic) then
         y = xlo(2) + dx(2)*float(j-lo(2))
-        dens = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+        dens = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
@@ -277,8 +277,8 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use network, only : nspec, naux
   use eos_module
   use eos_type_module
-  use meth_params_module, only : UTEMP
-  use probdata_module, only: pres_base, dens_base, gravity, do_isentropic
+  use meth_params_module, only : UTEMP, const_grav
+  use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
   implicit none
@@ -315,7 +315,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   do j=0,npts_1d-1
 
@@ -324,7 +324,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         z = (dble(j)+0.5d0) * dx(2)
@@ -333,7 +333,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
