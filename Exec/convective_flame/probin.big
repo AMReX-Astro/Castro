@@ -1,6 +1,5 @@
 &fortin
 
-  gravity = -1.d9
   do_isentropic = .true.
 
   boundary_type = 1
