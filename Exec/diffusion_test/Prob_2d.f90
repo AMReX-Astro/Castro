@@ -13,7 +13,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ thermal_conductivity
+  namelist /fortin/ thermal_conductivity, T1, T2, t_0
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -27,6 +27,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
          
   ! Set namelist defaults
+  T1 = 1.0_dp_t
+  T2 = 2.0_dp_t
+  t_0 = 0.001_dp_t
   thermal_conductivity = 1.0_dp_t
 
   ! set center, domain extrema
@@ -67,26 +70,44 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
-  use probdata_module
+  use probdata_module, only : T1, T2, thermal_conductivity, t_0
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only : problo
+  use prob_params_module, only : problo, center
   
   implicit none
 
-  integer level, nscal
-  integer lo(2), hi(2)
-  integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  integer :: level, nscal
+  integer :: lo(2), hi(2)
+  integer :: state_l1,state_l2,state_h1,state_h2
+  double precision :: xlo(2), xhi(2), time, delta(2)
+  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision xc, yc
-  double precision dens, eint, xvel, X(nspec), temp
-  
-  integer i,j
+  double precision :: xc, yc
+  double precision :: X(nspec), temp
+  double precision :: dist2, diff_coeff, rho0
+  integer :: i,j
 
   type (eos_t) :: eos_state
+
+  ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
+  ! gas, so c_v is constant, and we are taking rho = constant too
+  rho0 = ONE
+
+  ! set the composition
+  X(:) = 0.d0
+  X(1) = 1.d0
+
+  eos_state%T = T1
+  eos_state%rho = rho0
+  eos_state%xn(:) = X(:)
+
+  call eos(eos_input_rt, eos_state)
+
+  diff_coeff = thermal_conductivity/(rho0*eos_state%cv)
+
+  print *, "diff_coeff = ", diff_coeff
 
   do j = lo(2), hi(2)
      yc = problo(2) + delta(2)*(dble(j) + HALF)
@@ -94,33 +115,30 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i = lo(1), hi(1)
         xc = problo(1) + delta(1)*(dble(i) + HALF)
 
-        state(i,j,URHO) = ONE
+        state(i,j,URHO) = rho0
 
-        state(i,j,UMX) = ZERO
-        state(i,j,UMY) = ZERO
+        dist2 = (xc - center(1))**2 + (yc - center(2))**2
 
-        ! set the composition
-        X(:) = 0.d0
-        X(1) = 1.d0
-        
+        temp = (T2 - T1)*exp(-0.25_dp_t*dist2/(diff_coeff*t_0) ) + T1
+        state(i,j,UTEMP) = temp
+
         ! compute the internal energy and temperature
-        eos_state%T = 1.d0 ! initial guess
+        eos_state%T = temp
         eos_state%rho = state(i,j,URHO)
         eos_state%xn(:) = X
 
         call eos(eos_input_rt, eos_state)
 
-        temp = eos_state%T
-        eint = eos_state%e
+        state(i,j,UMX) = ZERO
+        state(i,j,UMY) = ZERO
 
-        state(i,j,UEDEN) = dens*eint +  &
+        state(i,j,UEDEN) = rho0*eos_state%e +  &
              0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
                     state(i,j,UMY)**2/state(i,j,URHO))
 
-        state(i,j,UEINT) = dens*eint
-        state(i,j,UTEMP) = temp
+        state(i,j,UEINT) = rho0*eos_state%e
 
-        state(i,j,UFS:UFS-1+nspec) = dens*X(:)
+        state(i,j,UFS:UFS-1+nspec) = rho0*X(:)
 
      enddo
   enddo

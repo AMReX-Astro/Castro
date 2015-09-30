@@ -1,9 +1,6 @@
 &fortin
 
-  p_ambient = 1.0
-  dens_ambient = 1.0
-  dens_pert_factor = 1.01
-  vel_pert = 20.0
+  thermal_conductivity = 1.0
 
 /
 
