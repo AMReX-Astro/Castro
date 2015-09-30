@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_types
   use bl_error_module
   use probdata_module
   use prob_params_module, only: center
@@ -14,8 +15,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
        cutoff_density, &
-       pert_width,gravity, do_isentropic, boundary_type, &
-       zero_vels, &
+       pert_width, do_isentropic, boundary_type, &
+       zero_vels, thermal_conductivity, &
        frac
 
   !
@@ -34,6 +35,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   frac = 0.5
   zero_vels = .false.
   do_isentropic = .false.
+  thermal_conductivity = 1.0_dp_t
 
   !     Read namelists
   untin = 9
@@ -74,7 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
   use probdata_module
   use prob_params_module, only: center
-  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
   use eos_module
   use eos_type_module
   use network, only: nspec
@@ -111,7 +113,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   j_floor = -1
 
@@ -122,7 +124,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      if (do_isentropic) then
         z = dble(j) * delta(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         z = (dble(j)+HALF) * delta(2)
@@ -138,7 +140,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             delta(2) * HALF * (density(j)+density(j-1)) * abs(gravity)
+             delta(2) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      if (pressure(j) < ZERO) then
