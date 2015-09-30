@@ -4,6 +4,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use prob_params_module, only: center
   use probdata_module
   use bl_error_module
+  use eos_type_module
+  use eos_module
+  use network, only : nspec
 
   implicit none
 
@@ -13,12 +16,15 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ thermal_conductivity, T1, T2, t_0
+  namelist /fortin/ diff_coeff, T1, T2, rho0, t_0
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
+  real (kind=dp_t) :: X(nspec)
+
+  type (eos_t) :: eos_state
 
   if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
@@ -29,8 +35,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Set namelist defaults
   T1 = 1.0_dp_t
   T2 = 2.0_dp_t
+  rho0 = 1.0_dp_t
   t_0 = 0.001_dp_t
-  thermal_conductivity = 1.0_dp_t
+  diff_coeff = 1.0_dp_t
 
   ! set center, domain extrema
   center(1) = (problo(1)+probhi(1))/2.d0
@@ -41,6 +48,20 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   open(untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
+
+  ! compute the conductivity for this diffusion coefficient
+  X(:) = 0.d0
+  X(1) = 1.d0
+
+  eos_state%T = T1
+  eos_state%rho = rho0
+  eos_state%xn(:) = X(:)
+
+  call eos(eos_input_rt, eos_state)
+
+  ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
+  ! gas, so c_v is constant, and we are taking rho = constant too
+  thermal_conductivity = diff_coeff*rho0*eos_state%cv
 
 end subroutine PROBINIT
 
@@ -70,7 +91,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
-  use probdata_module, only : T1, T2, thermal_conductivity, t_0
+  use probdata_module, only : T1, T2, diff_coeff, t_0, rho0
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
@@ -86,28 +107,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   double precision :: xc, yc
   double precision :: X(nspec), temp
-  double precision :: dist2, diff_coeff, rho0
+  double precision :: dist2
   integer :: i,j
 
   type (eos_t) :: eos_state
 
-  ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
-  ! gas, so c_v is constant, and we are taking rho = constant too
-  rho0 = ONE
-
   ! set the composition
   X(:) = 0.d0
   X(1) = 1.d0
-
-  eos_state%T = T1
-  eos_state%rho = rho0
-  eos_state%xn(:) = X(:)
-
-  call eos(eos_input_rt, eos_state)
-
-  diff_coeff = thermal_conductivity/(rho0*eos_state%cv)
-
-  print *, "diff_coeff = ", diff_coeff
 
   do j = lo(2), hi(2)
      yc = problo(2) + delta(2)*(dble(j) + HALF)

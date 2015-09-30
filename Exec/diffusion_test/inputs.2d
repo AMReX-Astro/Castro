@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 50000
-stop_time = 0.1
+stop_time = 0.001
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
@@ -27,6 +27,7 @@ castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
+castro.fixed_dt = 2.e-5
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass

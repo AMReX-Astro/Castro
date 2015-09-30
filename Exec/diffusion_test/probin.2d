@@ -1,6 +1,6 @@
 &fortin
 
-  thermal_conductivity = 1.0
+ diff_coeff = 1.0
 
 /
 
