@@ -1,0 +1,2 @@
+f90EXE_sources += probdata.f90
+f90EXE_sources += fill_temp_cond_$(DIM)d.f90
