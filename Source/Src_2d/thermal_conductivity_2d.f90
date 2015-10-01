@@ -1,33 +1,3 @@
-! This routine computes the thermal conductivity at cell-centers
-
-subroutine ca_therm_cond_cc(lo, hi, &
-                            state,s_l1,s_l2,s_h1,s_h2, &
-                            cond,c_l1,c_l2,c_h1,c_h2)
-  use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
-
-  implicit none
-
-  integer         , intent(in   ) :: lo(2), hi(2)
-  integer         , intent(in   ) :: s_l1, s_l2, s_h1, s_h2
-  integer         , intent(in   ) :: c_l1, c_l2, c_h1, c_h2
-  real (kind=dp_t), intent(in   ) :: state(s_l1:s_h1,s_l2:s_h2,NVAR)
-  real (kind=dp_t), intent(inout) :: cond(c_l1:c_h1,c_l2:c_h2)
-
-  ! local variables
-  integer          :: i, j
-
-  ! fill the cell-centered conductivity
-
-  do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
-        cond(i,j) = conductivity
-     enddo
-  enddo
-
-end subroutine ca_therm_cond_cc
-
-
 ! This routine fills the thermal conductivity on the edges of a zone
 ! by calling the cell-centered conductivity routine and averaging to
 ! the interfaces
@@ -36,8 +6,11 @@ subroutine ca_fill_temp_cond(lo,hi, &
                              state,s_l1,s_l2,s_h1,s_h2, &
                              coefx,cx_l1,cx_l2,cx_h1,cx_h2, &
                              coefy,cy_l1,cy_l2,cy_h1,cy_h2, dx)
-  use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
+
+  use network, only : nspec, naux
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
+  use conductivity_module
+  use eos_type_module
 
   implicit none
 
@@ -54,10 +27,20 @@ subroutine ca_fill_temp_cond(lo,hi, &
   integer          :: i, j, n
   double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1)
 
+  type (eos_t) :: eos_state
+  double precision :: cond
+
   ! fill the cell-centered conductivity
   do j = lo(2)-1,hi(2)+1
      do i = lo(1)-1,hi(1)+1
-        coef_cc(i,j) = conductivity
+        eos_state%rho    = state(i,j,URHO)
+        eos_state%T      = state(i,j,UTEMP)
+        eos_state%xn(:)  = state(i,j,UFS:UFS-1+nspec)
+        eos_state%aux(:) = state(i,j,UFX:UFX-1+naux)
+
+        call thermal_conductivity(eos_state, cond)
+
+        coef_cc(i,j) = cond
      enddo
   enddo
 

@@ -5,6 +5,7 @@ TOP := $(CASTRO_DIR)
 
 EOS_HOME ?= $(TOP)/EOS
 NETWORK_HOME ?= $(TOP)/Networks
+COND_HOME ?= $(TOP)/Conductivity
 
 EBASE = Castro
 
@@ -110,6 +111,10 @@ EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
 
 NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
 
+ifeq ($(USE_DIFFUSION), TRUE)
+  COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
+endif
+
 ifeq ($(USE_RAD), TRUE)
   ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
     EOS_PATH     := $(RADIATION_DIR)/EOS/$(strip $(EOS_dir))
@@ -143,6 +148,11 @@ include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
+ifeq ($(USE_DIFFUSION), TRUE)
+  include $(COND_PATH)/Make.package
+  EXTERN_CORE += $(COND_PATH)
+endif	      
+
 ifeq ($(USE_RAD), TRUE)
   include $(RADIATION_DIR)/Opacity/$(Opacity_dir)/Make.package
   EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
@@ -157,6 +167,11 @@ INCLUDE_LOCATIONS += $(NETWORK_PATH)
 INCLUDE_LOCATIONS += $(NETWORK_HOME)
 VPATH_LOCATIONS   += $(NETWORK_PATH)
 VPATH_LOCATIONS   += $(NETWORK_HOME)
+
+ifeq ($(USE_DIFFUSION), TRUE)
+  INCLUDE_LOCATIONS += $(COND_PATH)
+  VPATH_LOCATIONS   += $(COND_PATH)
+endif
 
 ifeq ($(USE_RAD), TRUE)
   INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
