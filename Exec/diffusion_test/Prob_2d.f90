@@ -7,6 +7,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use eos_type_module
   use eos_module
   use network, only : nspec
+  use meth_params_module, only: conductivity
 
   implicit none
 
@@ -16,7 +17,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ diff_coeff, T1, T2, rho0, t_0
+  namelist /fortin/ diff_coeff, T1, T2, t_0
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -35,7 +36,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Set namelist defaults
   T1 = 1.0_dp_t
   T2 = 2.0_dp_t
-  rho0 = 1.0_dp_t
   t_0 = 0.001_dp_t
   diff_coeff = 1.0_dp_t
 
@@ -49,19 +49,27 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  ! compute the conductivity for this diffusion coefficient
+  ! the conductivity is the physical quantity that appears in the
+  ! diffusion term of the energy equation.  It is set via
+  ! diffusion.conductivity in the inputs file.  For this test problem,
+  ! we want to set the diffusion coefficient, D = k/(rho c_v), so the
+  ! free parameter we have to play with is rho.  Note that for an
+  ! ideal gas, c_v does not depend on rho, so we can call it the EOS
+  ! with any density.
   X(:) = 0.d0
   X(1) = 1.d0
 
   eos_state%T = T1
-  eos_state%rho = rho0
+  eos_state%rho = 1.0
   eos_state%xn(:) = X(:)
 
   call eos(eos_input_rt, eos_state)
 
   ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
-  ! gas, so c_v is constant, and we are taking rho = constant too
-  thermal_conductivity = diff_coeff*rho0*eos_state%cv
+  ! gas, so c_v is constant, so find the rho that combines with
+  ! the conductivity
+  print *, 'here!', conductivity, diff_coeff
+  rho0 = conductivity/(diff_coeff*eos_state%cv)
 
 end subroutine PROBINIT
 
