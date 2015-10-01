@@ -1,7 +1,6 @@
 #include <ParmParse.H>
 #include "Diffusion.H"
 #include "Castro.H"
-#include <Castro_F.H>
 #include <Gravity_F.H>
 
 #include <MacBndry.H>
@@ -42,9 +41,6 @@ Diffusion::read_params ()
 
         pp.query("v", verbose);
         pp.query("conductivity", conductivity);
-
-	BL_FORT_PROC_CALL(SET_METHOD_DIFFUSE_PARAMS, set_method_diffuse_params)
-	  (conductivity);
 
         done = true;
     }

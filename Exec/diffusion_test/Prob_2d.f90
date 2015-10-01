@@ -7,7 +7,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use eos_type_module
   use eos_module
   use network, only : nspec
-  use meth_params_module, only: conductivity
+  use extern_probin_module, only: const_conductivity
 
   implicit none
 
@@ -68,8 +68,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
   ! gas, so c_v is constant, so find the rho that combines with
   ! the conductivity
-  print *, 'here!', conductivity, diff_coeff
-  rho0 = conductivity/(diff_coeff*eos_state%cv)
+  print *, 'here!', const_conductivity, diff_coeff
+  rho0 = const_conductivity/(diff_coeff*eos_state%cv)
 
 end subroutine PROBINIT
 

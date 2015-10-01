@@ -15,3 +15,8 @@
   max_presserr_lev = 3
   max_pressgrad_lev = 3
 /
+
+
+&extern
+  const_conductivity = 10.0
+/
