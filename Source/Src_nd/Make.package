@@ -34,6 +34,10 @@ f90EXE_sources += EstDt_burning_nd.f90
 f90EXE_sources += React_nd.f90
 endif
 
+ifeq ($(USE_DIFFUSION), TRUE)
+f90EXE_sources += EstDt_diffusion_nd.f90
+endif
+
 ifeq ($(DIMENSION_AGNOSTIC), TRUE)
 f90EXE_sources += bc_fill_nd.f90
 F90EXE_sources += filcc_nd.F90
