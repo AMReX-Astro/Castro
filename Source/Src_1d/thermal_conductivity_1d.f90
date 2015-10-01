@@ -4,8 +4,7 @@ subroutine ca_therm_cond_cc(lo, hi, &
                             state,s_l1,s_h1, &
                             cond,c_l1,c_h1)
   use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
-  use probdata_module   , only : thermal_conductivity
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
 
   implicit none
 
@@ -21,7 +20,7 @@ subroutine ca_therm_cond_cc(lo, hi, &
   ! fill the cell-centered conductivity
 
   do i = lo(1), hi(1)
-     cond(i) = thermal_conductivity
+     cond(i) = conductivity
   enddo
 
 end subroutine ca_therm_cond_cc
@@ -36,8 +35,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
                              coefx,cx_l1,cx_h1, &
                              coefy,cy_l1,cy_h1, dx)
   use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
-  use probdata_module   , only : thermal_conductivity
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
 
   implicit none
 
@@ -57,7 +55,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
   ! fill the cell-centered conductivity
 
   do i = lo(1)-1,hi(1)+1
-     coef_cc(i) = thermal_conductivity
+     coef_cc(i) = conductivity
   enddo
 
   ! average to the interfaces

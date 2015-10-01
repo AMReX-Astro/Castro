@@ -2,7 +2,8 @@
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
-! These parameter are initialized in set_method_params().
+! These parameter are initialized in set_method_params() (or
+! set_method_diffuse_params()).
 
 module meth_params_module
 
@@ -88,5 +89,7 @@ module meth_params_module
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
   logical, save :: deterministic   ! set this to true for regression tests
+
+  double precision, save :: conductivity
 
 end module meth_params_module

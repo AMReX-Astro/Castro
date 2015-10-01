@@ -35,6 +35,9 @@ BL_FORT_PROC_DECL(SET_NEW_OUTFLOW_DATA,set_new_outflow_data)(Real* radial, Real*
 BL_FORT_PROC_DECL(SWAP_OUTFLOW_DATA,swap_outflow_data)();
 #endif
 
+BL_FORT_PROC_DECL(SET_METHOD_DIFFUSE_PARAMS,set_method_diffuse_params)
+    (const Real& conductivity);
+
 BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
     (const int& dm,
      const int& Density, const int& Xmom, 

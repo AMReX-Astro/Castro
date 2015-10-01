@@ -255,6 +255,19 @@
 ! ::: ----------------------------------------------------------------
 ! ::: 
 
+      subroutine set_method_diffuse_params(conductivity_in)
+
+        ! Passing data from C++ diffusion into f90
+
+        use meth_params_module
+        implicit none 
+ 
+        double precision, intent(in) :: conductivity_in
+
+        conductivity = conductivity_in
+
+      end subroutine set_method_diffuse_params
+
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
                                    difmag_in, small_dens_in, small_temp_in, small_pres_in, small_ener_in, &

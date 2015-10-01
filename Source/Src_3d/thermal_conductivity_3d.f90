@@ -4,8 +4,7 @@ subroutine ca_therm_cond_cc(lo, hi, &
                             state,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                             cond,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3)
   use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
-  use probdata_module   , only : thermal_conductivity
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
 
   implicit none
 
@@ -23,7 +22,7 @@ subroutine ca_therm_cond_cc(lo, hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           cond(i,j,k) = thermal_conductivity
+           cond(i,j,k) = conductivity
         enddo
      enddo
   enddo
@@ -41,8 +40,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
                              coefy,cy_l1,cy_l2,cy_l3,cy_h1,cy_h2,cy_h3, &
                              coefz,cz_l1,cz_l2,cz_l3,cz_h1,cz_h2,cz_h3, dx)
   use network
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
-  use probdata_module   , only : thermal_conductivity
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, conductivity
 
   implicit none
 
@@ -66,7 +64,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
   do k = lo(3)-1,hi(3)+1
      do j = lo(2)-1,hi(2)+1
         do i = lo(1)-1,hi(1)+1
-           coef_cc(i,j,k) = thermal_conductivity
+           coef_cc(i,j,k) = conductivity
         enddo
      enddo
   enddo
