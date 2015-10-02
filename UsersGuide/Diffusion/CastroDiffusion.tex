@@ -25,11 +25,9 @@ Support for diffusion must be compiled into the code by setting
 {\tt USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.
 
 
-The following parameters affect diffusion:
+The following parameter affects diffusion:
 \begin{itemize}
 \item {\tt castro.diffuse\_temp}:  enable thermal diffusion (0 or 1; default 0)
-
-\item {\tt diffusion.diff\_coeff}: {\color{red} no longer supported?}
 \end{itemize}
 
 A pure diffusion problem (with no hydrodynamics) can be run by setting
@@ -39,17 +37,23 @@ castro.do_hydro = 0
 \end{verbatim}
 
 To complete the setup, a thermal conductivity must be specified.
-This is done by a problem-specific routine {\tt ca\_fill\_temp\_cond},
-which has the calling sequence:
+A simple constant conductivity is provided in {\tt Conductivity/constant/}
+and can be selected by setting
 \begin{verbatim}
-BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-               (bx.loVect(), bx.hiVect(),
-                BL_TO_FORTRAN(state_old[mfi]),
-                D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
-                       BL_TO_FORTRAN(coeffs[1][mfi]),
-                       BL_TO_FORTRAN(coeffs[2][mfi])),
-                dx_fine);
+Conductivity_dir := constant
 \end{verbatim}
-This passes in the current state and returns the thermal conductivity
-on all the edges of the zone.
+in your GNUmakefile.  To set the value of the conductivity (e.g., to
+$100$), you add to your {\tt probin} file's {\tt \&extern} namelist:
+\begin{verbatim}
+const_conductivity = 100.0
+\end{verbatim}
+
+
+The interface for the conductivity routine takes
+the thermodynamic state through an {\tt eos\_t} type (you can assume
+that $\rho$, $T$, and $X_k$ are set).  More complicated conductivities
+can be created by modifying this simple version.
+
+A simple test problem that sets up a Gaussian temperature profile 
+and does pure diffusion is provided as {\tt diffusion\_test}.
 
