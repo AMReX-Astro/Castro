@@ -11,7 +11,7 @@
 #define MAX_LEV 15
 
 int  Diffusion::verbose      = 0;
-Real Diffusion::diff_coeff   = 0.0;
+Real Diffusion::conductivity   = 1.0;
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
@@ -40,7 +40,7 @@ Diffusion::read_params ()
         ParmParse pp("diffusion");
 
         pp.query("v", verbose);
-        pp.query("diff_coeff", diff_coeff);
+        pp.query("conductivity", conductivity);
 
         done = true;
     }

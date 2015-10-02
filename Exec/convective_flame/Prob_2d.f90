@@ -1,5 +1,6 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_types
   use bl_error_module
   use probdata_module
   use prob_params_module, only: center
@@ -12,8 +13,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ pert_factor,dens_base,pres_base,y_pert_center, &
-       pert_width,gravity,do_isentropic,boundary_type, &
+  namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
+       cutoff_density, &
+       pert_width, do_isentropic, boundary_type, &
+       zero_vels, thermal_conductivity, &
        frac
 
   !
@@ -30,8 +33,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! set namelist defaults here
   frac = 0.5
-
+  zero_vels = .false.
   do_isentropic = .false.
+  thermal_conductivity = 1.0_dp_t
 
   !     Read namelists
   untin = 9
@@ -72,7 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
   use probdata_module
   use prob_params_module, only: center
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
   use eos_module
   use eos_type_module
   use network, only: nspec
@@ -84,7 +88,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision xlo(2), xhi(2), time, delta(2)
   double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  integer i,j,npts_1d
+  integer i,j,npts_1d, j_floor
   double precision H,z,xn(nspec),x,y,x1,y1,r1,const
   double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
 
@@ -109,26 +113,42 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
-  do j=0,npts_1d-1
+  j_floor = -1
+
+  do j = 0, npts_1d-1
 
      ! initial guess
      temp(j) = 1000.d0
 
      if (do_isentropic) then
         z = dble(j) * delta(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
-        z = (dble(j)+0.5d0) * delta(2)
+        z = (dble(j)+HALF) * delta(2)
         density(j) = dens_base * exp(-z/H)
      end if
 
+     if (density(j) < cutoff_density) then
+        density(j) = cutoff_density
+        temp(j) = temp(j-1)
+        j_floor = j
+        exit
+     endif
+     
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             delta(2) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
+
+     if (pressure(j) < ZERO) then
+        density(j) = cutoff_density
+        temp(j) = temp(j-1)
+        j_floor = j
+        exit
+     endif
 
      eos_state%p = pressure(j)
      eos_state%T = temp(j)
@@ -141,6 +161,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      temp(j) = eos_state%T
 
   end do
+
+  if (j_floor > 0) then
+     eos_state%rho = density(j_floor)
+     eos_state%T = temp(j_floor)
+     eos_state%xn(:) = xn(:)
+
+     call eos(eos_input_rt, eos_state)
+
+     density(j_floor:) = eos_state%rho
+     temp(j_floor:) = eos_state%T
+     pressure(j_floor:) = eos_state%p
+     eint(j_floor:) = eos_state%e
+  endif
+
+  do j = 0, npts_1d-1
+     print *, j, density(j), temp(j), pressure(j)
+  enddo
 
   
   ! add an isobaric perturbation
@@ -155,7 +192,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / pert_width
 
         state(i,j,UTEMP) = temp(j) * (1.d0 + (pert_factor * (1.d0 + tanh(2.d0-r1))))
-        state(i,j,UFS) = 1.d0
+        state(i,j,UFS:UFS-1+nspec) = xn(:)
 
         eos_state%T = state(i,j,UTEMP)
         eos_state%rho = state(i,j,URHO)
@@ -168,13 +205,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UEINT) = eos_state%e
 
         ! make state conservative
-        state(i,j,UFS) = state(i,j,UFS)*state(i,j,URHO)
+        state(i,j,UFS:UFS-1+nspec) = state(i,j,UFS:UFS-1+nspec)*state(i,j,URHO)
         state(i,j,UEINT) = state(i,j,UEINT)*state(i,j,URHO)
 
         ! assumes ke=0
         state(i,j,UEDEN) = state(i,j,UEINT)
 
-        state(i,j,UMX:UMY) = 0.d0
+        state(i,j,UMX:UMZ) = 0.d0
 
      end do
   end do

@@ -4,7 +4,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
   use probdata_module
   use prob_params_module, only: center
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
   use interpolate_module
   use eos_module
   use eos_type_module
@@ -50,7 +50,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   do j=0,npts_1d+4
 
@@ -59,7 +59,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
      if (do_isentropic) then
         y = dble(j) * delta(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         y = (dble(j)+0.5d0) * delta(2)
@@ -68,7 +68,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
@@ -90,7 +90,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
      if (do_isentropic) then
         y = dble(j) * delta(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         y = (dble(j)+0.5d0) * delta(2)
@@ -98,7 +98,7 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
      end if
 
      pressure(j) = pressure(j+1) + &
-          delta(2) * 0.5d0 * (density(j)+density(j+1)) * abs(gravity)
+          delta(2) * 0.5d0 * (density(j)+density(j+1)) * abs(const_grav)
 
      eos_state%rho = density(j)
      eos_state%T = temp(j)
@@ -258,6 +258,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   use probdata_module
   use interpolate_module
   use eos_module, only: gamma_const
+  use meth_params_module, only : const_grav
 
   implicit none
   include 'bc_types.fi'
@@ -272,7 +273,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   !     Note: this function should not be needed, technically, but is provided
   !     to filpatch because there are many times in the algorithm when just
@@ -288,7 +289,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
            if (do_isentropic) then
               y = xlo(2) + delta(2)*float(j-adv_l2)
-              adv(i,j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+              adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                    (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
            else
               y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
@@ -306,7 +307,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
            if (do_isentropic) then
               y = xlo(2) + delta(2)*float(j-adv_l2)
-              adv(i,j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+              adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                    (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
            else
               y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
@@ -324,7 +325,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
            if (do_isentropic) then
               y = xlo(2) + delta(2)*float(j-adv_l2)
-              adv(i,j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+              adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                    (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
            else
               y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
@@ -342,7 +343,7 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
            if (do_isentropic) then
               y = xlo(2) + delta(2)*float(j-adv_l2)
-              adv(i,j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*y/ &
+              adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                    (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
            else
               y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)

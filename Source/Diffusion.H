@@ -57,7 +57,7 @@ protected:
   BCRec*       phys_bc;
 
   static int   verbose;
-  static Real  diff_coeff;
+  static Real  conductivity;
   static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)

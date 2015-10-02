@@ -1,7 +1,6 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
 DEBUG      = FALSE
 
 DIM        = 2
@@ -10,10 +9,11 @@ COMP	   = gcc
 FCOMP	   = gfortran
 
 USE_MPI    = TRUE
+
 USE_GRAV   = TRUE
-USE_MAESTRO_INIT = FALSE
-USE_OLDPLOTPER = TRUE
 USE_REACT = TRUE
+USE_ROTATION = TRUE
+USE_DIFFUSION = TRUE
 
 CASTRO_DIR = ../..
 
@@ -30,6 +30,9 @@ else
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
 
 endif
+
+Conductivity_dir := constant
+
 
 Bpack   := ./Make.package
 Blocs   := .

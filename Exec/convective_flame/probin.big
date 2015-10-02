@@ -1,19 +1,22 @@
 &fortin
 
-  gravity = -1.d9
   do_isentropic = .true.
+
   boundary_type = 1
 
   pert_factor = 8.1d-3
   dens_base = 1.65d-3
+  cutoff_density = 1.e-8
+
   pres_base = 1.65d6
+
   y_pert_center = 0.7d0
   pert_width = 0.025d0
 /
 
 &tagging
 
-  denerr = 1.d20
+  denerr = 1.d-7
   dengrad = 0.01
   max_denerr_lev = 5
   max_dengrad_lev = 5
@@ -23,4 +26,12 @@
   max_presserr_lev = 5
   max_pressgrad_lev = 5
 
+/
+
+&sponge
+
+  sponge_upper_density = 5.0d-8
+  sponge_lower_density = 1.0d-8
+  sponge_timescale     = 1.0d-6
+  
 /

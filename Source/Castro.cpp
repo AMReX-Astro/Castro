@@ -1137,7 +1137,11 @@ Castro::estTimeStep (Real dt_old)
 
     const Real* dx = geom.CellSize();    
     
-    if (do_hydro) 
+#ifdef DIFFUSION
+    if (do_hydro or diffuse_temp) 
+#else
+    if (do_hydro)
+#endif
     {
 
 #ifdef RADIATION
@@ -1177,32 +1181,64 @@ Castro::estTimeStep (Real dt_old)
       }
       else 
       {
-#endif
+#endif   
 
 	  // Compute hydro-limited timestep.
-	
+	if (do_hydro)
+	  {
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	  {
+	    {
 	      Real dt = 1.e200;
 	      
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-	      {
+		{
 		  const Box& box = mfi.tilebox();
-
+		  
 		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
 		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
 		       BL_TO_FORTRAN_3D(stateMF[mfi]),
 		       ZFILL(dx),&dt);
-	      }
+		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
 #endif
 	      {
-		  estdt = std::min(estdt,dt);
+		estdt = std::min(estdt,dt);
 	      }
+	    }
 	  }
+	    
+#ifdef DIFFUSION
+	// Diffusion-limited timestep
+	if (diffuse_temp)
+	  {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	    {
+	      Real dt = 1.e200;
+	      
+	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+		{
+		  const Box& box = mfi.tilebox();
+
+		  BL_FORT_PROC_CALL(CA_ESTDT_DIFFUSION,ca_estdt_diffusion)
+		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+		       BL_TO_FORTRAN_3D(stateMF[mfi]),
+		       ZFILL(dx),&dt);
+		}
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt)	      
+#endif
+	      {
+		estdt = std::min(estdt,dt);
+	      }
+	    }
+	  }
+#endif  // diffusion
 
 #ifdef RADIATION
       }
@@ -2434,7 +2470,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
-       coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate);
+       coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
    }
 
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());

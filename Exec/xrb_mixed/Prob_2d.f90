@@ -96,7 +96,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use interpolate_module
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
 
@@ -160,7 +160,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,:,UMX:UMY) = 0.d0
+  state(:,:,UMX:UMZ) = 0.d0
 
   ! Now add the velocity perturbation
   if (apply_vel_field) then
@@ -192,6 +192,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            
            state(i,j,UMX) = state(i,j,URHO) * upert(1)
            state(i,j,UMY) = state(i,j,URHO) * upert(2)                  
+           state(i,j,UMZ) = ZERO
            
         end do
      end do

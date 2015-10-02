@@ -2,7 +2,7 @@
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
-! These parameter are initialized in set_method_params().
+! These parameter are initialized in set_method_params() 
 
 module meth_params_module
 

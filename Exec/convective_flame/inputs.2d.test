@@ -3,13 +3,12 @@ max_step = 20000
 
 stop_time    = 10.0
 
-
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0   0
 geometry.coord_sys   = 1        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0   0
-geometry.prob_hi     = 2.0 2.0
-amr.n_cell           = 128 128
+geometry.prob_hi     = 8.0 4.0
+amr.n_cell           = 256 128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -17,17 +16,23 @@ amr.n_cell           = 128 128
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  3   1
-castro.hi_bc       =  2   1
+castro.hi_bc       =  2   2
 
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav  = 1
+castro.do_sponge = 0
 
 castro.ppm_type = 1
 
+castro.allow_negative_energy = 0
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.e9
+
+castro.do_rotation = 1
+castro.rotational_period = 100.0
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -41,7 +46,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 0       # maximum level number allowed
+amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 64      # block factor in grid generation

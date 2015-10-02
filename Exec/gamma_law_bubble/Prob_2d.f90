@@ -13,7 +13,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer untin,i
 
   namelist /fortin/ pert_factor,dens_base,pres_base,y_pert_center, &
-       pert_width,gravity,do_isentropic,boundary_type, &
+       pert_width,do_isentropic,boundary_type, &
        frac
 
   !
@@ -72,7 +72,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
   use probdata_module
   use prob_params_module, only: center
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
   use eos_module
   use eos_type_module
   
@@ -108,7 +108,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
-  H = pres_base / dens_base / abs(gravity)
+  H = pres_base / dens_base / abs(const_grav)
 
   do j=0,npts_1d-1
 
@@ -117,7 +117,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      if (do_isentropic) then
         z = dble(j) * delta(2)
-        density(j) = dens_base*(gravity*dens_base*(gamma_const - 1.0)*z/ &
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
      else
         z = (dble(j)+0.5d0) * delta(2)
@@ -126,7 +126,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(gravity)
+             delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%p = pressure(j)

@@ -15,7 +15,7 @@ amr.n_cell           = 256     768
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0   1
-castro.hi_bc       =  0   2
+castro.hi_bc       =  0   1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
