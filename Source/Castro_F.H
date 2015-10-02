@@ -361,6 +361,13 @@ BL_FORT_PROC_DECL(CA_ESTDT,ca_estdt)
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
 
+#ifdef DIFFUSION
+BL_FORT_PROC_DECL(CA_ESTDT_DIFFUSION,ca_estdt_diffusion)
+    (const int* lo, const int* hi, 
+     const BL_FORT_FAB_ARG_3D(state),
+     const Real* dx, Real* dt);
+#endif
+
 #ifdef RADIATION
 BL_FORT_PROC_DECL(CA_ESTDT_RAD,ca_estdt_rad)
     (const BL_FORT_FAB_ARG(state),

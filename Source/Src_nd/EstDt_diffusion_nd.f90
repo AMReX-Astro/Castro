@@ -68,4 +68,6 @@ subroutine ca_estdt_diffusion(lo,hi,state,s_lo,s_hi,dx,dt)
      enddo
   enddo
 
+  print *, "in estdt_diffusion", dt
+
 end subroutine ca_estdt_diffusion
