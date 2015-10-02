@@ -21,6 +21,8 @@ CASTRO_DIR = ../..
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
 EOS_dir     := gamma_law_general
 
+Conductivity_dir := constant
+
 # This sets the network directory in $(CASTRO_DIR)/Networks
 Network_dir := kpp
 
