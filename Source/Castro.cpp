@@ -1135,7 +1135,11 @@ Castro::estTimeStep (Real dt_old)
 
     const Real* dx = geom.CellSize();    
     
-    if (do_hydro) 
+#ifdef DIFFUSION
+    if (do_hydro or diffuse_temp) 
+#else
+    if (do_hydro)
+#endif
     {
 
 #ifdef RADIATION
@@ -1178,53 +1182,59 @@ Castro::estTimeStep (Real dt_old)
 #endif   
 
 	  // Compute hydro-limited timestep.
-	
+	if (do_hydro)
+	  {
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	  {
+	    {
 	      Real dt = 1.e200;
 	      
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-	      {
+		{
 		  const Box& box = mfi.tilebox();
-
+		  
 		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
 		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
 		       BL_TO_FORTRAN_3D(stateMF[mfi]),
 		       ZFILL(dx),&dt);
-	      }
+		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
 #endif
 	      {
-		  estdt = std::min(estdt,dt);
+		estdt = std::min(estdt,dt);
 	      }
+	    }
 	  }
-
+	    
 #ifdef DIFFUSION
-	  // Diffusion-limited timestep
+	// Diffusion-limited timestep
+	if (diffuse_temp)
+	  {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	  {
+	    {
 	      Real dt = 1.e200;
 	      
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-	      {
+		{
 		  const Box& box = mfi.tilebox();
 
 		  BL_FORT_PROC_CALL(CA_ESTDT_DIFFUSION,ca_estdt_diffusion)
 		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
 		       BL_TO_FORTRAN_3D(stateMF[mfi]),
 		       ZFILL(dx),&dt);
-	      }
+		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
 #endif
 	      {
-		  estdt = std::min(estdt,dt);
+		estdt = std::min(estdt,dt);
 	      }
+	    }
 	  }
 #endif  // diffusion
 
