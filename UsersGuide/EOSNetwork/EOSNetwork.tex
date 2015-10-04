@@ -133,12 +133,12 @@ The {\tt eos\_state} variable is a Fortran derived type (similar to
 a C++ struct). It stores a complete set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
 that are the inputs, for example with
-\begin{align*}
-  &\texttt{eos\_state } \% \texttt{ rho = state(i,j,k,URHO)} \\
-  &\texttt{eos\_state } \% \texttt{ e   = state(i,j,k,UEINT) / state(i,j,k,URHO)} \\
-  &\texttt{eos\_state } \% \texttt{ xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)} \\
-  &\texttt{eos\_state } \% \texttt{ aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)}.
-\end{align*}
+\begin{verbatim}
+  eos_state % rho = state(i,j,k,URHO)
+  eos_state % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
+  eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+  eos_state % aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
+\end{verbatim}
 Whenever the \texttt{eos\_state} type is initialized, the
 thermodynamic state variables are filled with unphysical numbers. If
 you do not input the correct arguments to match your input quantities,
