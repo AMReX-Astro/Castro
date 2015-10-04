@@ -1,4 +1,7 @@
 \section{Equation of State}
+
+\subsection{Standard \castro\ EOSes}
+
 \castro\ is written in a modular fashion so that the EOS and network
 burning routines can be supplied by the user.   However, for the
 examples presented later we use several EOS and network routines
@@ -103,6 +106,9 @@ described in (Timmes and Arnett 1999, Times and Swesty 2000, and Fryxell et al. 
 %% in the 1D core collapse supernova example in a later section.
 \end{itemize}
 
+
+\subsection{EOS Interfaces and Parameters}
+
 Each EOS should have two main routines by which it interfaces to the
 rest of \castro.  At the beginning of the simulation, {\tt eos\_init}
 will perform any initialization steps and save EOS variables (mainly
@@ -141,10 +147,7 @@ practice to fill the quantities that will be iterated over with an
 initial guess. The values they are initialized with will likely not
 converge. Usually a prior value of the temperature or density suffices
 if it's available, but if not then use \texttt{small\_temp} or
-\texttt{small\_dens}. \textbf{Please note that the auxiliary variables
-  now go in a separate field in the derived type, {\tt eos\_state \%
-  aux}. The original \castro\ behavior was to pack them in with the
-  species abundances, xn.}
+\texttt{small\_dens}. 
 
 The last two arguments are optional quantities: set \texttt{do\_eos\_diag} to \texttt{.true.} if you want diagnostic output as the iterations occur, and set \texttt{pt\_index} to be equal to the indices of the current zone if you want the zone information to be displayed on any error messages.
 
@@ -163,6 +166,35 @@ have found that retaining this thermodynamic consistency is necessary
 for accurately treating shocks. If you wish to disable this behavior,
 set \texttt{eos\_input\_is\_constant = F} in your \texttt{extern}
 namelist in your probin file.
+
+\subsection{Required Thermodynamics Quantities}
+
+The {\tt eos\_t} derived type holds a large number of thermodynamics
+quantities, but not all of these are needed for basic
+\castro\ operation.  The main quantties that any EOS needs to
+supply are:
+\begin{itemize}
+  \item {\tt eos\_state \% cs}: the adiabatic sound speed
+  \item {\tt eos\_state \% gam1}: the first adiabatic index, 
+       $\Gamma_1 = d\log P / d\log \rho |_s$
+  \item {\tt eos\_state \% p}: total pressure
+  \item {\tt eos\_state \% dpdr\_e}: the derivative, $\partial
+    p/\partial \rho |_e$---note that the specific internal energy, $e$
+    is held constant here.
+  \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
+    \partial e |_\rho$
+\end{itemize}
+
+A wider array of quantities (e.g., entropy) are needed for the derived
+variables that are optionally output into the plotfiles.
+
+Additionally, two input modes are required of any EOS:
+\begin{itemize}
+\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
+\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
+\end{itemize}
+
+
 
 \section{Burning Network}
 Burning network routines that come with \castro\ are (listed by directory name):
