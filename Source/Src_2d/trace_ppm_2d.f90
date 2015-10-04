@@ -680,6 +680,9 @@ contains
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
              qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
 
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about 
+             ! the state traced under the middle wave
              if (u < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
@@ -1028,6 +1031,9 @@ contains
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
              qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
 
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about 
+             ! the state traced under the middle wave
              if (v > ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qyp(i,j,QU)  = Im(i,j,2,2,QU)
@@ -1242,6 +1248,9 @@ contains
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
              qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
 
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about 
+             ! the state traced under the middle wave
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qym(i,j+1,QU) = Ip(i,j,2,2,QU)
