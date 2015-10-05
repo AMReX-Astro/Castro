@@ -1,5 +1,12 @@
 \section{Equation of State}
 
+\subsection{Standard \castro\ EOSes}
+
+\castro\ is written in a modular fashion so that the EOS and network
+burning routines can be supplied by the user. However, for the
+examples presented later we use several EOS and network routines
+that come with the \castro\ distribution.  
+
 \castro\ relies on routines to calculate the equation of state (EOS) 
 of a fluid, as well as a species network to define the components of 
 the fluid. The network optionally has the ability to do nuclear burning, 
@@ -48,11 +55,17 @@ A 3D example of how to use this inside a function that operates over array bound
 The \texttt{eos\_state = eos\_t\_3D(lo,hi)} line initializes the individual arrays (e.g. {\tt rho}, {\tt T})
 with the same array bounds as {\tt lo} and {\tt hi}.
 
-Once you have filled the {\tt eos\_state}, you call the EOS with:
+\subsection{EOS Interfaces and Parameters}
+
+Each EOS should have two main routines by which it interfaces to the
+rest of \castro.  At the beginning of the simulation, {\tt eos\_init}
+will perform any initialization steps and save EOS variables (mainly
+\texttt{smallt}, the temperature floor, and \texttt{smalld}, the
+density floor). Then, whenever you want to call the EOS, use
 \[
   {\tt call\ eos (eos\_input, eos\_state)}.
 \]
-The first argument specifies the inputs to the EOS.. The options 
+The first argument specifies the inputs to the EOS. The options 
 that are currently available are stored in
 {\tt EOS/eos\_data.F90}, and are always a combination of two
 thermodynamic quantities. For example, {\tt eos\_input\_rt} means 
@@ -68,7 +81,17 @@ e.g. {\tt eos\_input\_re}, a Newton-Raphson iteration is performed
 to find the density or temperature that corresponds to the given
 input.
 
-Whenever the \texttt{eos\_t} type is initialized, the
+The {\tt eos\_state} variable is a Fortran derived type (similar to
+a C++ struct). It stores a complete set of thermodynamic
+variables. When calling the EOS, you should first fill the variables
+that are the inputs, for example with
+\begin{verbatim}
+  eos_state % rho = state(i,j,k,URHO)
+  eos_state % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
+  eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+  eos_state % aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
+\end{verbatim}
+Whenever the \texttt{eos\_state} type is initialized, the
 thermodynamic state variables are filled with unphysical numbers. If
 you do not input the correct arguments to match your input quantities,
 the EOS will call an error. However, this means that it is good
@@ -79,6 +102,13 @@ they are initialized with will likely not
 converge. Usually a prior value of the temperature or density suffices
 if it's available, but if not then use \texttt{small\_temp} or
 \texttt{small\_dens}.
+
+There are a few parameters that exist for all equations of state.
+At present, the only one that hasn't been mentioned yet is
+\texttt{eos\_assume\_neutral}, which if set to true means that
+none of the atoms are ionized. Otherwise, by default we assume
+full ionization. For now, only the gamma law EOS is configured
+to permit this to be true.
 
 If you are interested in using more realistic and sophisticated equations of 
 state, you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics} 
@@ -124,3 +154,30 @@ repository. This is a collection of microphysics routines that are compatible wi
 and for information on the networks provided. That documentation 
 also goes into more detail about the details of the network code, in case you are interested in 
 how it works (and in case you want to develop your own network).
+
+\subsection{Required Thermodynamics Quantities}
+
+The {\tt eos\_t} derived type holds a large number of thermodynamics
+quantities, but not all of these are needed for basic
+\castro\ operation.  The main quantties that any EOS needs to
+supply are:
+\begin{itemize}
+  \item {\tt eos\_state \% cs}: the adiabatic sound speed
+  \item {\tt eos\_state \% gam1}: the first adiabatic index, 
+       $\Gamma_1 = d\log P / d\log \rho |_s$
+  \item {\tt eos\_state \% p}: total pressure
+  \item {\tt eos\_state \% dpdr\_e}: the derivative, $\partial
+    p/\partial \rho |_e$---note that the specific internal energy, $e$
+    is held constant here.
+  \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
+    \partial e |_\rho$
+\end{itemize}
+
+A wider array of quantities (e.g., entropy) are needed for the derived
+variables that are optionally output into the plotfiles.
+
+Additionally, two input modes are required of any EOS:
+\begin{itemize}
+\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
+\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
+\end{itemize}
