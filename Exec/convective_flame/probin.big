@@ -35,3 +35,9 @@
   sponge_timescale     = 1.0d-6
   
 /
+
+&extern
+
+  eos_assume_neutral = T
+
+/
