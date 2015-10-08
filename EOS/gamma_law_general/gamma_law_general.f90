@@ -64,11 +64,12 @@ contains
 
     select case (input)
 
-       !  case (eos_input_rt)
+    case (eos_input_rt)
 
        ! dens, temp and xmass are inputs
 
        ! We don't need to do anything here
+       continue
 
     case (eos_input_rh)
 
