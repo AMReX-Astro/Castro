@@ -78,7 +78,6 @@ contains
        ! Solve for the temperature:
        ! h = e + p/rho = (p/rho)*[1 + 1/(gamma-1)] = (p/rho)*gamma/(gamma-1)
        do j = 1, state % N
-          state % rho(j) =  state % rho(j)
           state % T(j)   = (state % h(j) * state % mu(j) * m_nucleon / k_B)*(gamma_const - ONE)/gamma_const
        end do
 
@@ -90,7 +89,6 @@ contains
        ! p = rho k T / (mu m_nucleon)
        do j = 1, state % N
           state % rho(j) =  state % p(j) * state % mu(j) * m_nucleon / (k_B * state % T(j))
-          state % T(j)   = state % T(j)
        end do
 
     case (eos_input_rp)
@@ -100,7 +98,6 @@ contains
        ! Solve for the temperature:
        ! p = rho k T / (mu m_nucleon)
        do j = 1, state % N
-          state % rho(j) =  state % rho(j)
           state % T(j)   = state % p(j) * state % mu(j) * m_nucleon / (k_B * state % rho(j))
        end do
 
@@ -111,7 +108,6 @@ contains
        ! Solve for the temperature
        ! e = k T / [(mu m_nucleon)*(gamma-1)]
        do j = 1, state % N
-          state % rho(j) =  state % rho(j)
           state % T(j)   = state % e(j) * state % mu(j) * m_nucleon * (gamma_const-ONE) / k_B
        end do
 
