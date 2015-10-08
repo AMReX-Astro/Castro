@@ -14,13 +14,13 @@ but for this section its main purpose is in defining the species so that
 the EOS can calculate fluid properties that depend on composition, such 
 as electron fraction.
 
-By default, \castro\ comes with the {\tt gamma\_law\_general}
+By default, \castro\ comes with the {\tt gamma\_law}
 EOS. This represents a gamma law gas, with equation of state:
 \begin{equation}
   P = (\gamma - 1) \rho e.
 \end{equation}
-The gas is currently assumed to be monatomic and ideal. The entropy comes from the Sackur-Tetrode equation. 
-It lives in {\tt EOS/gamma\_law\_general}.
+The gas is currently assumed to be monatomic and ideal. 
+%The entropy comes from the Sackur-Tetrode equation. It lives in {\tt EOS/gamma\_law\_general}.
 
 The equation of state interface is designed to accept a particular 
 type of Fortran derived data type (which for our purposes is analogous
@@ -157,27 +157,32 @@ how it works (and in case you want to develop your own network).
 
 \subsection{Required Thermodynamics Quantities}
 
+Three input models are required of any EOS:
+\begin{itemize}
+\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
+\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
+\item {\tt eos\_input\_rp}: $\rho$, $P$, and $X_k$ are input
+\end{itemize}
+
 The {\tt eos\_t} derived type holds a large number of thermodynamics
 quantities, but not all of these are needed for basic
-\castro\ operation.  The main quantties that any EOS needs to
-supply are:
+\castro\ operation.  The main quantties that any EOS in any mode needs to
+supply, if they are not input, are:
 \begin{itemize}
-  \item {\tt eos\_state \% cs}: the adiabatic sound speed
+  \item {\tt eos\_state \% T}: the temperature
+  \item {\tt eos\_state \% P}: total pressure
+  \item {\tt eos\_state \% e}: the specific energy
   \item {\tt eos\_state \% gam1}: the first adiabatic index, 
        $\Gamma_1 = d\log P / d\log \rho |_s$
-  \item {\tt eos\_state \% p}: total pressure
+\end{itemize}
+Additionally the {\tt eos\_input\_re} mode also needs to supply:
+\begin{itemize}
+  \item {\tt eos\_state \% cs}: the adiabatic sound speed
   \item {\tt eos\_state \% dpdr\_e}: the derivative, $\partial
     p/\partial \rho |_e$---note that the specific internal energy, $e$
     is held constant here.
   \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
     \partial e |_\rho$
 \end{itemize}
-
-A wider array of quantities (e.g., entropy) are needed for the derived
-variables that are optionally output into the plotfiles.
-
-Additionally, two input modes are required of any EOS:
-\begin{itemize}
-\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
-\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
-\end{itemize}
+Other quantities (e.g., entropy) might be needed for the derived
+variables that are optional output into the plotfiles.
