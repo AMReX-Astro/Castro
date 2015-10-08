@@ -33,17 +33,17 @@ module eos_data_module
 
   ! Minimum and maximum temperature, density, and ye permitted by the EOS.
 
-  double precision :: mintemp = 1.d-199
-  double precision :: maxtemp = 1.d199
-  double precision :: mindens = 1.d-199
-  double precision :: maxdens = 1.d199
-  double precision :: minye   = 1.d-199
+  double precision :: mintemp = 1.d-200
+  double precision :: maxtemp = 1.d200
+  double precision :: mindens = 1.d-200
+  double precision :: maxdens = 1.d200
+  double precision :: minye   = 1.d-200
   double precision :: maxye   = 1.d0
 
   ! Smallest possible temperature and density permitted by the user.
 
-  double precision :: smallt = 1.d-199
-  double precision :: smalld = 1.d-199
+  double precision :: smallt = 1.d-200
+  double precision :: smalld = 1.d-200
 
   logical :: initialized = .false.
 
