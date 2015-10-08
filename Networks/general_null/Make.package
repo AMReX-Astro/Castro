@@ -2,12 +2,12 @@ f90EXE_sources += general_null_network.f90
 f90EXE_sources += general_null_burner.f90
 
 # general_null_network.f90 is created at build time for this network
-general_null_network.f90:   $(GENERAL_NET_INPUTS) $(MICROPHYSICS_DIR)/networks/general_null/network.template
+general_null_network.f90:   $(GENERAL_NET_INPUTS) $(CASTRO_DIR)/networks/general_null/network.template
 	@echo " "
 	@echo "---------------------------------------------------------------------------"
 	@echo "WRITING general_null_network.f90:"
-	$(MICROPHYSICS_DIR)/networks/general_null/write_network.py \
-            -t $(MICROPHYSICS_DIR)/networks/general_null/network.template \
+	$(CASTRO_DIR)/networks/general_null/write_network.py \
+            -t $(CASTRO_DIR)/networks/general_null/network.template \
             -s $(GENERAL_NET_INPUTS) \
             -o general_null_network.f90
 	@echo "---------------------------------------------------------------------------"
