@@ -1,3 +1,0 @@
-f90EXE_sources += gamma_law_general.f90
-
-
