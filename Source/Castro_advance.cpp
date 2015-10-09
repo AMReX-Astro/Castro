@@ -426,7 +426,7 @@ Castro::advance_hydro (Real time,
       // See the discussion above for the filling of grav_vector for an explanation
       // of the source term predictor; it works the same way for rotation.
 
-      if (source_term_pedictor && prev_time != 0.0) {
+      if (source_term_predictor && prev_time != 0.0) {
 
 	if (!rot_vec_new.contains_nan() || abs(rot_vec_new.max(0)) > 0.0 || abs(rot_vec_new.max(1)) > 0.0 || abs(rot_vec_new.max(2)) > 0.0) {	
 	
