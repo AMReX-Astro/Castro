@@ -100,6 +100,10 @@ contains
 
           state % dpdr_e(j) = poverrho
           state % dpde(j) = (gamma_const-ONE) * state % rho(j)
+
+          ! Try to avoid the expensive log function.  Since we don't need entropy 
+          ! in hydro solver, set it to an invalid but "nice" value for the plotfile.
+          state % s(j) = ONE  
        end do
 
     case (eos_input_ps)
