@@ -691,7 +691,7 @@
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
-                  if (ye(i,j,k,1) .ge. yeerr) then
+                  if (ye(i,j,k,1) .lt. yeerr) then
                      tag(i,j,k) = set
                   endif
                enddo
