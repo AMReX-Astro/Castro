@@ -555,7 +555,7 @@
 
       use probdata_module
       use tagging_params_module
-      use prob_params_module, only: dg
+      use prob_params_module, only: dim
       
       implicit none
 
@@ -585,21 +585,61 @@
 
 !     Tag on regions of high entropy gradient
       if (level .lt. max_entgrad_lev) then
-         do k = lo(3), hi(3)
+         if (dim .eq. 1) then
+            j = lo(2)
+            k = lo(3)
+            do i = lo(1), hi(1)
+               ax = ABS(ent(i+1,j,k,1) - ent(i,j,k,1))
+               ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1,j,k,1)))
+               if ( ax .ge. entgrad) then
+                  tag(i,j,k) = set
+               endif
+            enddo
+         else if (dim .eq. 2 .and. time > 1.d-50) then
+            k = lo(3)
             do j = lo(2), hi(2)
+               if (j.eq.domhi(2) .or. j.eq.domlo(2)) then
+                  cycle
+               end if
                do i = lo(1), hi(1)
-                  ax = ABS(ent(i+1*dg(1),j,k,1) - ent(i,j,k,1))
-                  ay = ABS(ent(i,j+1*dg(2),k,1) - ent(i,j,k,1))
-                  az = ABS(ent(i,j,k+1*dg(3),1) - ent(i,j,k,1))
-                  ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1*dg(1),j,k,1)))
-                  ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1*dg(2),k,1)))
-                  az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1*dg(3),1)))
-                  if ( MAX(ax,ay,az) .ge. entgrad) then
+                  if (i.eq.domhi(1)) then
+                     cycle
+                  end if
+                  ax = ABS(ent(i+1,j,k,1) - ent(i,j,k,1))
+                  ay = ABS(ent(i,j+1,k,1) - ent(i,j,k,1))
+                  ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1,j,k,1)))
+                  ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1,k,1)))
+                  if ( MAX(ax,ay) .ge. entgrad) then
                      tag(i,j,k) = set
                   endif
                enddo
             enddo
-         enddo
+         else
+            do k = lo(3), hi(3)
+               if (k.eq.domhi(3) .or. k.eq.domlo(3)) then
+                  cycle
+               end if
+               do j = lo(2), hi(2)
+                  if (j.eq.domhi(2) .or. j.eq.domlo(2)) then
+                     cycle
+                  end if
+                  do i = lo(1), hi(1)
+                     if (i.eq.domhi(1) .or. i.eq.domlo(1)) then
+                        cycle
+                     end if
+                     ax = ABS(ent(i+1,j,k,1) - ent(i,j,k,1))
+                     ay = ABS(ent(i,j+1,k,1) - ent(i,j,k,1))
+                     az = ABS(ent(i,j,k+1,1) - ent(i,j,k,1))
+                     ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1,j,k,1)))
+                     ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1,k,1)))
+                     az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1,1)))
+                     if ( MAX(ax,ay,az) .ge. entgrad) then
+                        tag(i,j,k) = set
+                     endif
+                  enddo
+               enddo
+            enddo
+         end if
       endif
 
       end subroutine ca_enterror
@@ -631,7 +671,7 @@
 
       use probdata_module
       use tagging_params_module
-      use prob_params_module, only: dg
+      use prob_params_module, only: dim
       
       implicit none
 
@@ -661,21 +701,61 @@
 
 !     Tag on regions of high ye gradient
       if (level .lt. max_yegrad_lev) then
-         do k = lo(3), hi(3)
+         if (dim .eq. 1) then
+            j = lo(2)
+            k = lo(3)
+            do i = lo(1), hi(1)
+               ax = ABS(ye(i+1,j,k,1) - ye(i,j,k,1))
+               ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1,j,k,1)))
+               if ( ax .ge. yegrad) then
+                  tag(i,j,k) = set
+               endif
+            enddo
+         else if (dim .eq. 2) then
+            k = lo(3)
             do j = lo(2), hi(2)
+               if (j.eq.domhi(2) .or. j.eq.domlo(2)) then
+                  cycle
+               end if
                do i = lo(1), hi(1)
-                  ax = ABS(ye(i+1*dg(1),j,k,1) - ye(i,j,k,1))
-                  ay = ABS(ye(i,j+1*dg(2),k,1) - ye(i,j,k,1))
-                  az = ABS(ye(i,j,k+1*dg(3),1) - ye(i,j,k,1))
-                  ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1*dg(1),j,k,1)))
-                  ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1*dg(2),k,1)))
-                  az = MAX(az,ABS(ye(i,j,k,1) - ye(i,j,k-1*dg(3),1)))
-                  if ( MAX(ax,ay,az) .ge. yegrad) then
+                  if (i.eq.domhi(1)) then
+                     cycle
+                  end if
+                  ax = ABS(ye(i+1,j,k,1) - ye(i,j,k,1))
+                  ay = ABS(ye(i,j+1,k,1) - ye(i,j,k,1))
+                  ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1,j,k,1)))
+                  ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1,k,1)))
+                  if ( MAX(ax,ay) .ge. yegrad) then
                      tag(i,j,k) = set
                   endif
                enddo
             enddo
-         enddo
+         else
+            do k = lo(3), hi(3)
+               if (k.eq.domhi(3) .or. k.eq.domlo(3)) then
+                  cycle
+               end if
+               do j = lo(2), hi(2)
+                  if (j.eq.domhi(2) .or. j.eq.domlo(2)) then
+                     cycle
+                  end if
+                  do i = lo(1), hi(1)
+                     if (i.eq.domhi(1) .or. i.eq.domlo(1)) then
+                        cycle
+                     end if
+                     ax = ABS(Ye(i+1,j,k,1) - Ye(i,j,k,1))
+                     ay = ABS(Ye(i,j+1,k,1) - Ye(i,j,k,1))
+                     az = ABS(Ye(i,j,k+1,1) - Ye(i,j,k,1))
+                     ax = MAX(ax,ABS(Ye(i,j,k,1) - Ye(i-1,j,k,1)))
+                     ay = MAX(ay,ABS(Ye(i,j,k,1) - Ye(i,j-1,k,1)))
+                     az = MAX(az,ABS(Ye(i,j,k,1) - Ye(i,j,k-1,1)))
+                     if ( MAX(ax,ay,az) .ge. Yegrad) then
+                        tag(i,j,k) = set
+                     endif
+                  enddo
+               enddo
+            enddo
+         end if
       endif
 
       end subroutine ca_yeerror
