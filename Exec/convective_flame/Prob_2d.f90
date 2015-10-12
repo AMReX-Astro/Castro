@@ -20,9 +20,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
        pert_width, do_isentropic, boundary_type, &
        zero_vels
 
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
+  ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
@@ -185,8 +183,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i=lo(1),hi(1)
         x = problo(1) + (dble(i)+HALF)*delta(1)
 
-       
-        state(i,j,UTEMP) = temp(j) * (ONE + (pert_factor * (ONE + tanh((x_pert_loc-x)/pert_width)) ) )
+        if (density(j) > cutoff_density) then
+           state(i,j,UTEMP) = temp(j) * (ONE + (pert_factor * (ONE + tanh((x_pert_loc-x)/pert_width)) ) )
+        else
+           state(i,j,UTEMP) = temp(j)
+        endif
+
         state(i,j,UFS:UFS-1+nspec) = xn(:)
 
         eos_state%T = state(i,j,UTEMP)
