@@ -1,6 +1,7 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use bl_types
+  use bl_constants_module
   use bl_error_module
   use probdata_module
   use prob_params_module, only: center
@@ -13,11 +14,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
 
-  namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
+  namelist /fortin/ pert_factor, dens_base, pres_base, &
+       x_pert_loc, pert_width, &
        cutoff_density, &
        pert_width, do_isentropic, boundary_type, &
-       zero_vels, thermal_conductivity, &
-       frac
+       zero_vels
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -32,10 +33,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
 
   ! set namelist defaults here
-  frac = 0.5
   zero_vels = .false.
   do_isentropic = .false.
-  thermal_conductivity = 1.0_dp_t
+  x_pert_loc = ONE
+  pert_width = 0.1_dp_t
+  pert_factor = ONE
 
   !     Read namelists
   untin = 9
@@ -44,8 +46,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! set center variable in prob_params_module
-  center(1) = frac*(problo(1)+probhi(1))
-  center(2) = frac*(problo(2)+probhi(2))
+  center(1) = HALF*(problo(1)+probhi(1))
+  center(2) = HALF*(problo(2)+probhi(2))
 
 end subroutine PROBINIT
 
@@ -75,7 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
   use probdata_module
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
   use eos_module
   use eos_type_module
@@ -108,8 +110,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   density(0)  = dens_base
 
   ! only initialize the first species
-  xn(:) = 0.0d0
-  xn(1) = 1.d0
+  xn(:) = ZERO
+  xn(1) = ONE
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
@@ -124,8 +126,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      if (do_isentropic) then
         z = dble(j) * delta(2)
-        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+        density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
+             (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
      else
         z = (dble(j)+HALF) * delta(2)
         density(j) = dens_base * exp(-z/H)
@@ -138,7 +140,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         exit
      endif
      
-     if (j .gt. 0) then
+     if (j > 0) then
         pressure(j) = pressure(j-1) - &
              delta(2) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
@@ -175,23 +177,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eint(j_floor:) = eos_state%e
   endif
 
-  do j = 0, npts_1d-1
-     print *, j, density(j), temp(j), pressure(j)
-  enddo
-
   
   ! add an isobaric perturbation
-  x1 = center(1)
-  y1 = y_pert_center
-
   do j=lo(2),hi(2)
-     y = (dble(j)+0.5d0)*delta(2)
+     y = problo(2) + (dble(j)+HALF)*delta(2)
+
      do i=lo(1),hi(1)
-        x = (dble(i)+0.5d0)*delta(1)
+        x = problo(1) + (dble(i)+HALF)*delta(1)
 
-        r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / pert_width
-
-        state(i,j,UTEMP) = temp(j) * (1.d0 + (pert_factor * (1.d0 + tanh(2.d0-r1))))
+       
+        state(i,j,UTEMP) = temp(j) * (ONE + (pert_factor * (ONE + tanh((x_pert_loc-x)/pert_width)) ) )
         state(i,j,UFS:UFS-1+nspec) = xn(:)
 
         eos_state%T = state(i,j,UTEMP)
@@ -211,11 +206,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         ! assumes ke=0
         state(i,j,UEDEN) = state(i,j,UEINT)
 
-        state(i,j,UMX:UMZ) = 0.d0
+        state(i,j,UMX:UMZ) = ZERO
 
      end do
   end do
-
 
   deallocate(pressure,density,temp,eint)
 
