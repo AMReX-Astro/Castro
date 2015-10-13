@@ -9,10 +9,12 @@ There are several parameters that affect the dynamics of this problem:
     * p_base
     * g
 
- -- reaction rate, simple KPP: H_nuc = A X^n (1 - X^n)
+ -- reaction rate, simple powerlaw: r = r0 rho X T**nu
+    with eps = Q_burn r / rho
 
-   * n
-   * A
+   * nu
+   * Q_burn
+   * r0
 
  -- rotation:
 
