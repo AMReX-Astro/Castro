@@ -139,13 +139,8 @@ contains
     Xout(ifuel_)= max(y(ifuel_), ZERO)
     Xout(iash_) = min(y(iash_), ONE)
 
-    ! compute the energy release and update the enthalpy.  Our convention
-    ! is that the binding energies are negative, so the energy release is
-    ! - sum_k { (Xout(k) - Xin(k)) ebin(k) }
-    !
-    ! since this version of the network only evolves C12, we can
-    ! compute the energy release easily
-    enuc = Q_burn*(Xout(ifuel_) - Xin(ifuel_))
+    ! compute the energy release from the change in fuel mass fractions.
+    enuc = -Q_burn*(Xout(ifuel_) - Xin(ifuel_))
 
     eout = ein + enuc
 
