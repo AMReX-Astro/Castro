@@ -600,4 +600,4 @@
          enddo
       endif
 
-      end subroutine ca_entrror
+    end subroutine ca_enterror
