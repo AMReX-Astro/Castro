@@ -1,0 +1,12 @@
+# the coefficient for the reaction rate
+r0      real     1.d0    
+
+# exponent for the temperature
+nu      real     4.d0
+
+# reaction Q-value (in erg/g)
+Q_burn  real   10.d0
+
+
+
+
