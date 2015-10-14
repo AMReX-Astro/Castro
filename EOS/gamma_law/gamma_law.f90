@@ -56,7 +56,8 @@ contains
 
        ! dens, temp and xmass are inputs
        do j = 1, state % N
-          state % e(j) = R * state % T(j) / (state % mu(j) * (gamma_const-ONE))
+          state % cv(j) = R / (state % mu(j) * (gamma_const-ONE)) 
+          state % e(j) = state % cv(j) * state % T(j)
           state % p(j) = (gamma_const-ONE) * state % rho(j) * state % e(j)
           state % gam1(j) = gamma_const
        end do

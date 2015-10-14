@@ -184,5 +184,9 @@ Additionally the {\tt eos\_input\_re} mode also needs to supply:
   \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
     \partial e |_\rho$
 \end{itemize}
+For radiation hydro, the {\tt eos\_input\_rt} model needs to supply:
+\begin{itemize}
+  \item {\tt eos\_state \% cv}: the specific heat capacity.
+\end{itemize}
 Other quantities (e.g., entropy) might be needed for the derived
 variables that are optional output into the plotfiles.
