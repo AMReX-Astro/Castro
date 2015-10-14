@@ -150,8 +150,7 @@ int          Castro::do_special_tagging = 0;
 
 int          Castro::ppm_type = 1;
 int          Castro::ppm_reference = 1;
-int          Castro::ppm_trace_grav = 0;
-int          Castro::ppm_trace_rot = 0;
+int          Castro::ppm_trace_sources = 0;
 int          Castro::ppm_temp_fix = 0;
 int          Castro::ppm_tau_in_tracing = 0;
 int          Castro::ppm_predict_gammae = 0;
@@ -408,8 +407,7 @@ Castro::read_params ()
 
     pp.query("ppm_type", ppm_type);
     pp.query("ppm_reference", ppm_reference);
-    pp.query("ppm_trace_grav", ppm_trace_grav);
-    pp.query("ppm_trace_rot",ppm_trace_rot);
+    pp.query("ppm_trace_sources", ppm_trace_sources);
     pp.query("ppm_temp_fix", ppm_temp_fix);
     pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
     pp.query("ppm_predict_gammae", ppm_predict_gammae);
@@ -447,12 +445,12 @@ Castro::read_params ()
         BoxLib::Error();
       }	
 
-    // for the moment, ppm_type = 0 does not support ppm_trace_grav --
-    // we need to add the gravitational sources to the states (and not
+    // for the moment, ppm_type = 0 does not support ppm_trace_sources --
+    // we need to add the momentum sources to the states (and not
     // add it in trans_3d
-    if (ppm_type == 0 && ppm_trace_grav == 1)
+    if (ppm_type == 0 && ppm_trace_sources == 1)
       {
-        std::cerr << "ppm_trace_grav = 1 not implemented for ppm_type = 0 \n";
+        std::cerr << "ppm_trace_sources = 1 not implemented for ppm_type = 0 \n";
         BoxLib::Error();
       }
 
@@ -2238,17 +2236,13 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& ext_src_old, MultiFa
 
 #ifdef SGS
 void
-Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_fluxes)
+Castro::getSource (Real time, Real dt, MultiFab& state, MultiFab& ext_src, MultiFab& sgs_state, MultiFab* sgs_fluxes)
 {
    const Real* dx = geom.CellSize();
 
-   MultiFab& S_old = get_old_data(State_Type);
-   const int ncomp = S_old.nComp();
-
    ext_src.setVal(0.0,ext_src.nGrow());
 
-   MultiFab& sgs_mf = get_old_data(SGS_Type);
-   sgs_mf.setVal(0.0);
+   sgs_state.setVal(0.0);
 
    // Set these to zero so we always add them up correctly
    for (int dir = 0; dir < BL_SPACEDIM; dir++) 
@@ -2259,11 +2253,10 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
    //   needs to have a layer of ghost cells for fluxes
    FArrayBox fluxx, fluxy, fluxz;
 
-   for (FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-                          Old_fpi.isValid();++Old_fpi)
+   for (MFIter mfi(ext_src); mfi.isValid(); ++mfi)
    {
-        const Box& bx = grids[Old_fpi.index()];
- 
+        const Box& bx = grids[mfi.index()];
+	
         Box bxx = bx; bxx.surroundingNodes(0); bxx.grow(1);
         fluxx.resize(bxx,NUM_STATE);
 
@@ -2275,149 +2268,55 @@ Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src, MultiFab* sgs_
 
         BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
             (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  Old_fpi()),
+             BL_TO_FORTRAN(state[mfi]),
              BL_TO_FORTRAN(fluxx),
              BL_TO_FORTRAN(fluxy),
              BL_TO_FORTRAN(fluxz),
-             BL_TO_FORTRAN(ext_src[Old_fpi]),
-             BL_TO_FORTRAN_N(sgs_mf[Old_fpi],0),
-             BL_TO_FORTRAN_N(sgs_mf[Old_fpi],1),
-             BL_TO_FORTRAN_N(sgs_mf[Old_fpi],2),
-             dx,&old_time,&dt);
-
-        sgs_fluxes[0][Old_fpi].copy(fluxx,0,0,NUM_STATE);
-        sgs_fluxes[1][Old_fpi].copy(fluxy,0,0,NUM_STATE);
-        sgs_fluxes[2][Old_fpi].copy(fluxz,0,0,NUM_STATE);
+             BL_TO_FORTRAN(ext_src[mfi]),
+             BL_TO_FORTRAN_N(sgs_mf[mfi],0),
+             BL_TO_FORTRAN_N(sgs_mf[mfi],1),
+             BL_TO_FORTRAN_N(sgs_mf[mfi],2),
+             dx,&time,&dt);
+  
+        sgs_fluxes[0][mfi].copy(fluxx,0,0,NUM_STATE);
+        sgs_fluxes[1][mfi].copy(fluxy,0,0,NUM_STATE);
+        sgs_fluxes[2][mfi].copy(fluxz,0,0,NUM_STATE);
    }
    geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
-}
-
-void
-Castro::getNewSource (Real new_time, Real dt, MultiFab& ext_src, MultiFab* sgs_fluxes)
-{
-   const Real* dx = geom.CellSize();
-
-   MultiFab& S_new = get_new_data(State_Type);
-   const int ncomp = S_new.nComp();
-
-   ext_src.setVal(0.0,ext_src.nGrow());
-
-   MultiFab& sgs_mf = get_new_data(SGS_Type);
-   sgs_mf.setVal(0.0);
-
-   // Set these to zero so we always add them up correctly
-   for (int dir = 0; dir < BL_SPACEDIM; dir++) 
-       sgs_fluxes[dir].setVal(0.0);
-
-   for (FillPatchIterator New_fpi(*this,S_new,NUM_GROW,new_time,State_Type,Density,ncomp);
-                          New_fpi.isValid();++New_fpi)
-   {
-        const Box& bx = grids[New_fpi.index()];
-
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(  New_fpi()),
-             BL_TO_FORTRAN(sgs_fluxes[0][New_fpi]),
-             BL_TO_FORTRAN(sgs_fluxes[1][New_fpi]),
-#if (BL_SPACEDIM == 3)
-             BL_TO_FORTRAN(sgs_fluxes[2][New_fpi]),
-#endif
-             BL_TO_FORTRAN(ext_src[New_fpi]),
-             BL_TO_FORTRAN_N(sgs_mf[New_fpi],0),
-             BL_TO_FORTRAN_N(sgs_mf[New_fpi],1),
-             BL_TO_FORTRAN_N(sgs_mf[New_fpi],2),
-             dx,&new_time,&dt);
-   }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
-
 }
 
 #else
 
 void
-Castro::getOldSource (Real old_time, Real dt, MultiFab&  ext_src)
+Castro::getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src, int ng)
 {
    const Real* dx = geom.CellSize();
-   const Real* prob_lo   = geom.ProbLo();
-
-   MultiFab& S_old = get_old_data(State_Type);
-   const int ncomp = S_old.nComp();
+   const Real* prob_lo = geom.ProbLo();
 
    ext_src.setVal(0.0);
-
-   MultiFab levelArea[BL_SPACEDIM];
-   for (int i = 0; i < BL_SPACEDIM ; i++) {
-       geom.GetFaceArea(levelArea[i],grids,i,NUM_GROW);
-   }
-
-   {
-       FillPatchIterator Old_fpi(*this,S_old,NUM_GROW,old_time,State_Type,Density,ncomp);
-       const MultiFab& S_old_fp = Old_fpi.get_mf();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
-       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.growntilebox();
+   for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+     {
+       const Box& bx = mfi.growntilebox(ng);
 #ifdef DIMENSION_AGNOSTIC	   
-	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-   	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
-		BL_TO_FORTRAN_3D(S_old_fp[mfi]),
-		BL_TO_FORTRAN_3D(ext_src[mfi]),
-		ZFILL(prob_lo),ZFILL(dx),&old_time,&dt);
+       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	 (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	  BL_TO_FORTRAN_3D(state_old[mfi]),
+	  BL_TO_FORTRAN_3D(state_new[mfi]),
+	  BL_TO_FORTRAN_3D(ext_src[mfi]),
+	  ZFILL(prob_lo),ZFILL(dx),&time,&dt);
 #else	   
-	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(S_old_fp[mfi]),
-		BL_TO_FORTRAN(S_old_fp[mfi]),
-		BL_TO_FORTRAN(ext_src[mfi]),
-		prob_lo,dx,&old_time,&dt);
+       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	 (bx.loVect(), bx.hiVect(),
+	  BL_TO_FORTRAN(state_old[mfi]),
+	  BL_TO_FORTRAN(state_new[mfi]),
+	  BL_TO_FORTRAN(ext_src[mfi]),
+	  prob_lo,dx,&time,&dt);
 #endif	   
-       }
-   }
-}
-
-void
-Castro::getNewSource (Real old_time, Real new_time, Real dt, MultiFab& ext_src)
-{
-   const Real* dx = geom.CellSize();
-   const Real* prob_lo   = geom.ProbLo();
-
-   BL_ASSERT(ext_src.nGrow() == 0);
-
-   // Unlike getOldSource, there are no ghost cells in ext_src.
-   // So we don't need to call FillPatch for coarse-fine boundaries.
-   const MultiFab& S_old = get_old_data(State_Type);
-   const MultiFab& S_new = get_new_data(State_Type);
-
-   ext_src.setVal(0.0);
-
-   {
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-       for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.tilebox();
-#ifdef DIMENSION_AGNOSTIC
-	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(S_old[mfi]),
-		BL_TO_FORTRAN_3D(S_new[mfi]),
-		BL_TO_FORTRAN_3D(ext_src[mfi]),
-		ZFILL(prob_lo),ZFILL(dx),&new_time,&dt);
-#else	   
-	   BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(S_old[mfi]),
-		BL_TO_FORTRAN(S_new[mfi]),
-		BL_TO_FORTRAN(ext_src[mfi]),
-		prob_lo,dx,&new_time,&dt);
-#endif	   
-       }
-   }
+     }
 }
 
 #endif

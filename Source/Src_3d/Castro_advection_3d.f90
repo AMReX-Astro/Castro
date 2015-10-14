@@ -34,8 +34,6 @@ contains
 
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
                      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
-                     grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                     rot,  rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                      ilo1, ilo2, ilo3, ihi1, ihi2, ihi3, dx, dy, dz, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
                      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
@@ -50,8 +48,8 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
-                                   use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
-                                   do_grav, do_rotation, hybrid_riemann
+                                   use_pslope, ppm_trace_sources, ppm_temp_fix, &
+                                   hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
@@ -67,8 +65,6 @@ contains
 
     integer qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
     integer src_l1, src_l2, src_l3, src_h1, src_h2, src_h3
-    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
-    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
     integer fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3
     integer fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3
@@ -86,8 +82,6 @@ contains
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-    double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision   rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
     double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
@@ -140,8 +134,7 @@ contains
     double precision, pointer:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), gegdnvtmpz2(:,:,:)
     
     double precision, pointer:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
-    double precision, pointer:: Ip_g(:,:,:,:,:,:), Im_g(:,:,:,:,:,:)
-    double precision, pointer:: Ip_r(:,:,:,:,:,:), Im_r(:,:,:,:,:,:)
+    double precision, pointer:: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     double precision, pointer:: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
     double precision, pointer :: shk(:,:,:)
@@ -241,13 +234,9 @@ contains
        call bl_allocate ( Ip, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
        call bl_allocate ( Im, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
        
-       ! for gravity (last index is x,y,z component)
-       call bl_allocate ( Ip_g, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
-       call bl_allocate ( Im_g, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
-       
-       ! for rotation (last index is x,y,z component)
-       call bl_allocate ( Ip_r, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
-       call bl_allocate ( Im_r, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,3)
+       ! for source terms
+       call bl_allocate ( Ip_src, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
+       call bl_allocate ( Im_src, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,QVAR)
        
        ! for gamc -- needed for the reference state in eigenvectors
        call bl_allocate ( Ip_gc, ilo1-1,ihi1+1,ilo2-1,ihi2+1,1,2,1,3,1,3,1,1)
@@ -327,26 +316,15 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           end do
 
-          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-             do n=1,3
-                call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+          if (ppm_trace_sources .eq. 1) then
+             do n=1,QVAR
+                call ppm(srcQ(:,:,:,n),src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                          q(:,:,:,QU:QW),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
+                         Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n), &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
              enddo
           endif
-
-          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-             do n=1,3
-                call ppm(rot(:,:,:,n),rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
-                         q(:,:,:,QU:QW),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), &
-                         ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-             enddo
-          endif
-
 
           if (ppm_temp_fix /= 1) then
              call ppm(gamc(:,:,:),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
@@ -398,7 +376,7 @@ contains
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
+                           Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
                            qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                            ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
@@ -415,7 +393,7 @@ contains
                            flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                            dqx(:,:,:,QPRES),dqy(:,:,:,QPRES),dqz(:,:,:,QPRES), &
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                           grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                            ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
 
           ! Compute U_x and U_y at kc (k3d)
@@ -477,7 +455,7 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
              call tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
+                             Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                              gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                              ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
@@ -533,9 +511,7 @@ contains
                        ugdnvtmpx,pgdnvtmpx,gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        ugdnvtmpy,pgdnvtmpy,gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                       srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
+                       srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                        hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
@@ -595,9 +571,7 @@ contains
                           ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           ugdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                          srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                          grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
+                          srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                           hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
 
              ! Compute U''_y at km (k3d-1)
@@ -607,9 +581,7 @@ contains
                           ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           ugdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                          srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                          grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
-                          rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3,&
+                          srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                           hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
              ! Compute F^x at km (k3d-1)
@@ -746,11 +718,8 @@ contains
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
        
-       call bl_deallocate ( Ip_g)
-       call bl_deallocate ( Im_g)
-       
-       call bl_deallocate ( Ip_r)
-       call bl_deallocate ( Im_r)
+       call bl_deallocate ( Ip_src)
+       call bl_deallocate ( Im_src)
        
        call bl_deallocate ( Ip_gc)
        call bl_deallocate ( Im_gc)
@@ -1185,7 +1154,7 @@ contains
              enddo
           enddo
        else 
-          ! update everything else with fluxes and source terms
+          ! update everything else with fluxes
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -1194,14 +1163,18 @@ contains
                    uout(i,j,k,n) = uin(i,j,k,n) &
                           + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                           +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv &
-                          +   dt * src(i,j,k,n)
+                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
+
                    !
-                   ! Add the source term to (rho e)
+                   ! Add the p div(u) source term to (rho e)
                    !
                    if (n .eq. UEINT) then
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
-                   else if (n .eq. UMX) then
+                   endif
+                   
+                   ! Add up some diagnostic quantities.
+                      
+                   if (n .eq. UMX) then
                       xmom_added_flux = xmom_added_flux + &
                            ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &

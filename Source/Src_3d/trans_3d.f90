@@ -2085,8 +2085,6 @@ contains
                      ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -2097,8 +2095,7 @@ contains
                                    npassive, upass_map, qpass_map, &            
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
-                                   do_grav, do_rotation
+                                   ppm_type, ppm_trace_sources
     use eos_module
 
     implicit none
@@ -2110,8 +2107,6 @@ contains
     integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -2128,8 +2123,6 @@ contains
     double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdy
     
     integer i, j, n , nq, ipassive
@@ -2498,31 +2491,19 @@ contains
 
     enddo
 
-
-    ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
-    ! gravity to the normal edge states
-    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+    ! source terms to the normal edge states. Note that the remaining terms in the
+    ! srcQ array (the passively advected ones) have already been handled.
+    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
        do j = jlo, jhi 
           !DIR$ vector always
           do i = ilo, ihi          
-             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * grav(i,j,k3d  ,:)
-             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * grav(i,j,k3d-1,:)
+             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d  ,QU:QW)
+             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
           enddo
        enddo
     endif
 
-    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
-    ! rotation to the normal edge states
-    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi
-          !DIR$ vector always
-          do i = ilo, ihi
-             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * rot(i,j,k3d  ,:)
-             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * rot(i,j,k3d-1,:)
-          enddo
-       enddo
-    endif
-    
   end subroutine transxy
 
   
@@ -2536,8 +2517,6 @@ contains
                      ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
-                     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2548,8 +2527,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
-                                   do_grav, do_rotation
+                                   ppm_type, ppm_trace_sources
     use eos_module
 
     implicit none      
@@ -2561,8 +2539,6 @@ contains
     integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -2579,8 +2555,6 @@ contains
     double precision gegdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdx,cdtdz
     
     integer i, j, n, nq, ipassive
@@ -2928,48 +2902,23 @@ contains
        end if
     enddo
 
-    ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
-    ! gravity to the normal edge states
-    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+    ! source terms to the normal edge states
+    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
        do j = jlo+1, jhi 
           !DIR$ vector always
           do i = ilo, ihi 
-             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
-             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
-             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
+             qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
           end do
        end do
        do j = jlo, jhi-1 
           !DIR$ vector always
           do i = ilo, ihi 
-             qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*grav(i,j,k3d,1)
-             qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*grav(i,j,k3d,2)
-             qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*grav(i,j,k3d,3)
+             qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
           enddo
        enddo
     endif
 
-    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
-    ! rotation to the normal edge states
-    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do j = jlo+1, jhi 
-          !DIR$ vector always
-          do i = ilo, ihi 
-             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
-             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
-             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
-          end do
-       end do
-       do j = jlo, jhi-1 
-          !DIR$ vector always
-          do i = ilo, ihi              
-             qmo(i,j+1,km,QU    ) = qmo(i,j+1,km,QU    ) + hdt*rot(i,j,k3d,1)
-             qmo(i,j+1,km,QV    ) = qmo(i,j+1,km,QV    ) + hdt*rot(i,j,k3d,2)
-             qmo(i,j+1,km,QW    ) = qmo(i,j+1,km,QW    ) + hdt*rot(i,j,k3d,3)
-          enddo
-       enddo
-    endif
-    
   end subroutine transxz
 
 
@@ -2983,8 +2932,6 @@ contains
                      ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
-                     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2995,8 +2942,7 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
-                                   do_grav, do_rotation
+                                   ppm_type, ppm_trace_sources
     use eos_module
 
     implicit none
@@ -3008,8 +2954,6 @@ contains
     integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
@@ -3026,8 +2970,6 @@ contains
     double precision gegdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt,cdtdy,cdtdz
     
     integer i, j, n, nq, ipassive
@@ -3379,44 +3321,21 @@ contains
     enddo
 
 
-    ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
-    ! gravity to the normal edge states
-    if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+    ! source terms to the normal edge states
+    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
        do j = jlo, jhi 
           !DIR$ vector always
           do i = ilo+1, ihi 
-             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*grav(i,j,k3d,1)
-             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*grav(i,j,k3d,2)
-             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*grav(i,j,k3d,3)
+             qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
           end do
           !DIR$ vector always
           do i = ilo, ihi-1
-             qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*grav(i,j,k3d,1)
-             qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*grav(i,j,k3d,2)
-             qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*grav(i,j,k3d,3)
+             qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
           enddo
        enddo
     endif
 
-    ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
-    ! rotation to the normal edge states
-    if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi 
-          !DIR$ vector always
-          do i = ilo+1, ihi 
-             qpo(i,j,km,QU    ) = qpo(i,j,km,QU    ) + hdt*rot(i,j,k3d,1)
-             qpo(i,j,km,QV    ) = qpo(i,j,km,QV    ) + hdt*rot(i,j,k3d,2)
-             qpo(i,j,km,QW    ) = qpo(i,j,km,QW    ) + hdt*rot(i,j,k3d,3)
-          end do
-          !DIR$ vector always
-          do i = ilo, ihi-1             
-             qmo(i+1,j,km,QU     ) = qmo(i+1,j,km,QU     ) + hdt*rot(i,j,k3d,1)
-             qmo(i+1,j,km,QV     ) = qmo(i+1,j,km,QV     ) + hdt*rot(i,j,k3d,2)
-             qmo(i+1,j,km,QW     ) = qmo(i+1,j,km,QW     ) + hdt*rot(i,j,k3d,3)
-          enddo
-       enddo
-    endif
-    
   end subroutine transyz
 
 end module transverse_module

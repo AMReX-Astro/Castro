@@ -28,8 +28,6 @@ contains
   subroutine umeth1d(lo,hi,domlo,domhi, &
                      q,c,gamc,csml,flatn,qd_l1,qd_h1, &
                      srcQ,src_l1,src_h1, &
-                     grav, gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot,  rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                      ilo,ihi,dx,dt, &
                      flux ,   fd_l1,   fd_h1, &
                      pgdnv,pgdnv_l1,pgdnv_h1, &
@@ -50,8 +48,6 @@ contains
     integer fd_l1,fd_h1
     integer pgdnv_l1,pgdnv_h1
     integer ugdnv_l1,ugdnv_h1
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
     integer ilo,ihi
     double precision dx, dt
     double precision     q(   qd_l1:qd_h1,QVAR)
@@ -61,8 +57,6 @@ contains
     double precision     c(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
-    double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_h3,3)
-    double precision   rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_h3,3)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
     double precision ugdnv(ugdnv_l1:ugdnv_h1)
     double precision dloga(dloga_l1:dloga_h1)
@@ -80,16 +74,12 @@ contains
        call trace_ppm(q,dq,c,flatn,gamc,qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
-                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                      rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                       qm,qp,ilo-1,ihi+1, &
                       ilo,ihi,domlo,domhi,dx,dt)
     else
        call trace(q,dq,c,flatn,qd_l1,qd_h1, &
                   dloga,dloga_l1,dloga_h1, &
                   srcQ,src_l1,src_h1, &
-                  grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                  rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                   qm,qp,ilo-1,ihi+1, &
                   ilo,ihi,domlo,domhi,dx,dt)
     end if
@@ -379,8 +369,7 @@ contains
        else
           do i = lo(1),hi(1)
              uout(i,n) = uin(i,n) &
-                  + ( flux(i,n) - flux(i+1,n) ) / vol(i) &
-                  + dt * src(i,n)
+                  + ( flux(i,n) - flux(i+1,n) ) / vol(i)
           enddo
        end if
     enddo

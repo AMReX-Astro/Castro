@@ -181,7 +181,7 @@ contains
 
       subroutine pslope(p,rho,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                         dpx,dpy,dpz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
+                        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
         
         use mempool_module, only : bl_allocate, bl_deallocate
@@ -193,7 +193,7 @@ contains
         integer ilo,ihi
         integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
         integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-        integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
+        integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
         integer ilo1,ilo2,ihi1,ihi2,kc,k3d
 
         double precision p  (qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
@@ -202,7 +202,7 @@ contains
         double precision dpx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
         double precision dpy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
         double precision dpz(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
+        double precision src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
         double precision dx,dy,dz
 
         integer i, j, k
@@ -241,11 +241,11 @@ contains
                  dlft = p(i  ,j,k3d) - p(i-1,j,k3d)
                  drgt = p(i+1,j,k3d) - p(i  ,j,k3d)
 
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
+                 ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                  dlft = dlft - FOURTH * &
-                      (rho(i,j,k3d)+rho(i-1,j,k3d))*(grav(i,j,k3d,1)+grav(i-1,j,k3d,1))*dx
+                      (rho(i,j,k3d)+rho(i-1,j,k3d))*(src(i,j,k3d,QU)+src(i-1,j,k3d,QU))*dx
                  drgt = drgt - FOURTH * &
-                      (rho(i,j,k3d)+rho(i+1,j,k3d))*(grav(i,j,k3d,1)+grav(i+1,j,k3d,1))*dx
+                      (rho(i,j,k3d)+rho(i+1,j,k3d))*(src(i,j,k3d,QU)+src(i+1,j,k3d,QU))*dx
 
                  dcen(i,j) = HALF*(dlft+drgt)
                  dsgn(i,j) = sign(ONE, dcen(i,j))
@@ -261,7 +261,7 @@ contains
               do i = ilo1-1, ihi1+1
                  dp1         = FOUR3RD*dcen(i,j) - SIXTH*(df(i+1,j) + df(i-1,j))
                  dpx(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,1)*dx
+                 dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QU)*dx
               enddo
            enddo
 
@@ -273,11 +273,11 @@ contains
                  dlft = p(i,j  ,k3d) - p(i,j-1,k3d)
                  drgt = p(i,j+1,k3d) - p(i,j  ,k3d)
 
-                 ! Subtract off (rho * grav) so as not to limit that part of the slope
+                 ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                  dlft = dlft - FOURTH * &
-                      (rho(i,j,k3d)+rho(i,j-1,k3d))*(grav(i,j,k3d,2)+grav(i,j-1,k3d,2))*dy
+                      (rho(i,j,k3d)+rho(i,j-1,k3d))*(src(i,j,k3d,QV)+src(i,j-1,k3d,QV))*dy
                  drgt = drgt - FOURTH * &
-                      (rho(i,j,k3d)+rho(i,j+1,k3d))*(grav(i,j,k3d,2)+grav(i,j+1,k3d,2))*dy
+                      (rho(i,j,k3d)+rho(i,j+1,k3d))*(src(i,j,k3d,QV)+src(i,j+1,k3d,QV))*dy
 
                  dcen(i,j) = HALF*(dlft+drgt)
                  dsgn(i,j) = sign( ONE, dcen(i,j) )
@@ -293,7 +293,7 @@ contains
               do j = ilo2-1, ihi2+1
                  dp1 = FOUR3RD*dcen(i,j) - SIXTH*( df(i,j+1) + df(i,j-1) )
                  dpy(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,2)*dy
+                 dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QV)*dy
               enddo
            enddo
 
@@ -306,9 +306,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -323,9 +323,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -340,9 +340,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (grav(i,j,k,3)+grav(i,j,k-1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (grav(i,j,k,3)+grav(i,j,k+1,3))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -354,7 +354,7 @@ contains
                  ! now limited fourth order slopes
                  dp1 = FOUR3RD*dc - SIXTH*( dfp + dfm )
                  dpz(i,j,kc) = flatn(i,j,k3d)*ds*min(dl,abs(dp1))
-                 dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*grav(i,j,k3d,3)*dz
+                 dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QW)*dz
               enddo
            enddo
 

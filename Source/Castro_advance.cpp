@@ -347,7 +347,54 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    // Define the gravity vector so we can pass this to ca_umdrv.
+
+    
+    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
+    // but the state data does not carry ghost zones. So we use a FillPatchIterator
+    // on S_new (which currently is equal to the old time data) to give us Sborder,
+    // which does have ghost zones. 
+    FillPatchIterator state_fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
+    MultiFab& Sborder = state_fpi.get_mf();    
+
+
+    
+    // Set up external source terms
+    
+    MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    ext_src_old.setVal(0.0);
+
+    // Note that we're going to use ext_src_new to hold the
+    // hydro source terms going into UMDRV; it will then be
+    // overwritten later by the call to get the new external source terms.
+    
+    MultiFab ext_src_new(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    ext_src_new.setVal(0.0);
+
+#ifdef SGS
+    if (add_ext_src) {
+      reset_old_sgs(dt);
+      MultiFab& sgs_old = get_old_data(SGS_Type);
+      getSource(prev_time,dt,Sborder,ext_src_old,sgs_old,sgs_fluxes);
+    }
+#else
+    if (add_ext_src)
+      getSource(prev_time,dt,Sborder,Sborder,ext_src_old,NUM_GROW);
+#endif
+    
+#ifdef DIFFUSION
+    MultiFab OldTempDiffTerm(grids,1,1);
+#ifdef TAU
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
+#else
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
+#endif
+#endif
+
+    BoxLib::fill_boundary(ext_src_old, geom);    
+
+    MultiFab::Add(ext_src_new,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
+
+    // Define the gravity vector, which we will add to the hydro source terms.
     MultiFab grav_vector(grids,3,NUM_GROW);
     grav_vector.setVal(0.);
     
@@ -407,6 +454,13 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
+    // Multiply gravity by the density to put it in conservative form.
+
+    for (int i = 0; i < 3; i++)
+      MultiFab::Multiply(grav_vector,Sborder,Density,i,1,NUM_GROW);
+    
+    MultiFab::Add(ext_src_new,grav_vector,0,Xmom,3,NUM_GROW);
+    
     // Define the rotation vector so we can pass this to ca_umdrv.
     MultiFab rot_vector(grids,3,NUM_GROW);
     rot_vector.setVal(0.);
@@ -460,55 +514,23 @@ Castro::advance_hydro (Real time,
     } 
 #endif
 
+    // Multiply rotation by the density to put it in conservative form.
+
+    for (int i = 0; i < 3; i++)
+      MultiFab::Multiply(rot_vector,Sborder,Density,i,1,NUM_GROW);
+    
+    MultiFab::Add(ext_src_new,rot_vector,0,Xmom,3,NUM_GROW);    
+
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
-    
-    MultiFab ext_src_old(grids,NUM_STATE,1,Fab_allocate);
-    ext_src_old.setVal(0.0);
-    
-    MultiFab ext_src_new;
-    bool have_source_terms = add_ext_src;
-#ifdef DIFFUSION
-    have_source_terms = true;
-#endif
-    if (have_source_terms) {
-	ext_src_new.define(grids,NUM_STATE,0,Fab_allocate);
-	ext_src_new.setVal(0.0);
-    }
-
-#ifdef SGS
-    if (add_ext_src) {
-      reset_old_sgs(dt);
-      getOldSource(prev_time,dt,ext_src_old,sgs_fluxes);
-    }
-#else
-    if (add_ext_src)
-      getOldSource(prev_time,dt,ext_src_old);
-#endif
-    
-#ifdef DIFFUSION
-    MultiFab OldTempDiffTerm(grids,1,1);
-#ifdef TAU
-    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
-#else
-    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
-#endif
-#endif
-
-    BoxLib::fill_boundary(ext_src_old, geom);
 
     {
-        // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
-        // but the state data does not carry ghost zones. So we use a FillPatchIterator
-        // on S_new (which currently is equal to the old time data) to give us Sborder,
-        // which does have ghost zones. Note that we do the react_half_dt on Sborder
-        // because of our Strang splitting approach -- the "old" data sent to the hydro,
-        // which Sborder represents, has already had a half-timestep of burning.
-        // The FillPatchIterator is inside the brackets to limit its scope.
-        FillPatchIterator fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
-        MultiFab& Sborder = fpi.get_mf();
 
+      // Note that we do the react_half_dt on Sborder because of our Strang
+      // splitting approach -- the "old" data sent to the hydro,
+      // which Sborder represents, has already had a half-timestep of burning.      
+      
 #ifdef REACTIONS
 #ifdef TAU
 	react_half_dt(Sborder,reactions_old,tau_diff,time,dt,NUM_GROW);
@@ -738,9 +760,7 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(ext_src_old[mfi]),
-			 BL_TO_FORTRAN_3D(grav_vector[mfi]), 
-			 BL_TO_FORTRAN_3D(rot_vector[mfi]),
+			 BL_TO_FORTRAN(ext_src_new[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -762,7 +782,13 @@ Castro::advance_hydro (Real time,
 	                 zmom_added_flux,
 #endif
                          E_added_flux);
-	    
+
+		    // Add dt * old-time external source terms
+
+		    stateout.saxpy(dt,ext_src_old[mfi]);
+
+		    // Copy the normal velocities from the Riemann solver
+		    
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		    }
@@ -951,6 +977,11 @@ Castro::advance_hydro (Real time,
 #endif
     }
 
+    // Zero out the external source array that was temporarily holding the hydro sources.
+    // We will later fill it with the actual external source term data.
+
+    ext_src_new.setVal(0.0);
+    
 #ifdef PARTICLES
     if (do_dm_particles && particle_move_type == "Gravitational")
     {
@@ -1070,8 +1101,10 @@ Castro::advance_hydro (Real time,
            // Need to put this line here so that the state going into the source calculation
            //  satisfies K > energy_sgs_min
 	reset_new_sgs(dt);
+
+	sgs_new = get_new_data(SGS_Type);
 	
-	getNewSource(cur_time,dt,ext_src_new,sgs_fluxes);
+	getSource(cur_time,dt,S_new,ext_src_new,sgs_new,sgs_fluxes);
 
 	// Add half of new fluxes to the flux register
 	if (do_reflux)
@@ -1095,7 +1128,8 @@ Castro::advance_hydro (Real time,
 	      }
 	  }
 #else
-	getNewSource(prev_time,cur_time,dt,ext_src_new);
+	ext_src_new.setVal(0.0);	
+	getSource(cur_time,dt,S_old,S_new,ext_src_new,0);
 #endif
       }
 
@@ -1119,10 +1153,8 @@ Castro::advance_hydro (Real time,
 
 #endif
 
-    if (have_source_terms) {
-	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
-	computeTemp(S_new);
-    }
+    time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
+    computeTemp(S_new);
 
 #ifdef GRAVITY
     if (do_grav)
@@ -1508,7 +1540,7 @@ Castro::advance_no_hydro (Real time,
         
     if (add_ext_src) {
            MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);
-           getOldSource(prev_time,dt,ext_src_old);
+           getSource(prev_time,dt,S_old,S_old,ext_src_old,0);
            ext_src_old.mult(dt);
            MultiFab::Add(S_new,ext_src_old,0,0,NUM_STATE,0);
 
@@ -1517,7 +1549,7 @@ Castro::advance_no_hydro (Real time,
 
            // Compute source at new time
            MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
-           getNewSource(prev_time,cur_time,dt,ext_src_new);
+           getSource(cur_time,dt,S_old,S_new,ext_src_new,0);
 
            ext_src_old.mult(-0.5);
            ext_src_new.mult( 0.5*dt);

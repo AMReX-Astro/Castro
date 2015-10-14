@@ -11,8 +11,6 @@ contains
   subroutine trace_ppm(q,dq,c,flatn,gamc,qd_l1,qd_h1, &
                        dloga,dloga_l1,dloga_h1, &
                        srcQ,src_l1,src_h1,&
-                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                       rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
@@ -34,8 +32,6 @@ contains
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    integer    gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
-    integer    rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     double precision dx, dt
     double precision     q( qd_l1: qd_h1,QVAR)
     double precision  srcQ(src_l1:src_h1,QVAR)
@@ -47,8 +43,6 @@ contains
     double precision   dq( qpd_l1: qpd_h1,QVAR)
     double precision  qxm( qpd_l1: qpd_h1,QVAR)
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     
     ! Local variables
     integer          :: i, j = 0, k = 0
@@ -291,15 +285,12 @@ contains
 
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
 
-          ! add non-gravitational source term
+          ! add source terms
           qxp(i  ,QRHO  ) = qxp(i,QRHO  ) + hdt*srcQ(i,QRHO)
           qxp(i  ,QRHO  ) = max(small_dens,qxp(i,QRHO))
           qxp(i  ,QU    ) = qxp(i,QU    ) + hdt*srcQ(i,QU)
           qxp(i  ,QREINT) = qxp(i,QREINT) + hdt*srcQ(i,QREINT)
           qxp(i  ,QPRES ) = qxp(i,QPRES ) + hdt*srcQ(i,QPRES)
-          
-          ! add gravitational source term
-          qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i,j,k,1)
        end if
 
 
@@ -426,15 +417,12 @@ contains
 
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
 
-          ! add non-gravitational source term
+          ! add source terms
           qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + hdt*srcQ(i,QRHO)
           qxm(i+1,QRHO  ) = max(small_dens, qxm(i+1,QRHO))
           qxm(i+1,QU    ) = qxm(i+1,QU    ) + hdt*srcQ(i,QU)
           qxm(i+1,QREINT) = qxm(i+1,QREINT) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
-          
-          ! add gravitational source term
-          qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i,j,k,1)
        end if
        
   

@@ -377,11 +377,9 @@ public:
                             Real dt);
 
 #ifdef SGS
-    void getOldSource (Real old_time, Real dt, MultiFab& Rhs, MultiFab* sgs_fluxes);
-    void getNewSource (Real new_time, Real dt, MultiFab& Rhs, MultiFab* sgs_fluxes);
+    void getSource (Real time, Real dt, MultiFab& state, MultiFab& src, MultiFab& sgs_state, MultiFab* sgs_fluxes);
 #else
-    void getOldSource (Real old_time,                Real dt, MultiFab& Rhs);
-    void getNewSource (Real old_time, Real new_time, Real dt, MultiFab& Rhs);
+    void getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& src, int ngrow = 0);
 #endif
 
 #ifdef DIFFUSION
@@ -559,8 +557,7 @@ protected:
 
     static int       ppm_type;
     static int       ppm_reference;
-    static int       ppm_trace_grav;
-    static int       ppm_trace_rot;
+    static int       ppm_trace_sources;
     static int       ppm_temp_fix;
     static int       ppm_tau_in_tracing;
     static int       ppm_predict_gammae;

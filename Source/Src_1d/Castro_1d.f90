@@ -8,8 +8,6 @@
                           uout,uout_l1,uout_h1,&
                           ugdnv,ugdnv_l1,ugdnv_h1,&
                           src,src_l1,src_h1, &
-                          grav,gv_lo,gv_hi, &
-                          rot,rt_lo,rt_hi, &
                           delta,dt,&
                           flux,flux_l1,flux_h1,&
                           area,area_l1,area_h1,&
@@ -37,14 +35,10 @@
       integer dloga_l1,dloga_h1
       integer vol_l1,vol_h1
       integer src_l1,src_h1
-      integer gv_lo(3),gv_hi(3)
-      integer rt_lo(3),rt_hi(3)
       double precision   uin(  uin_l1:  uin_h1,NVAR)
       double precision  uout( uout_l1: uout_h1,NVAR)
       double precision ugdnv(ugdnv_l1:ugdnv_h1)
       double precision   src(  src_l1:  src_h1,NVAR)
-      double precision  grav(gv_lo(1):gv_hi(1),gv_lo(2):gv_hi(2),gv_lo(3):gv_hi(3),3)
-      double precision   rot(rt_lo(1):rt_hi(1),rt_lo(2):rt_hi(2),rt_lo(3):rt_hi(3),3)
       double precision  flux( flux_l1: flux_h1,NVAR)
       double precision  area( area_l1: area_h1     )
       double precision dloga(dloga_l1:dloga_h1     )
@@ -101,8 +95,6 @@
       call umeth1d(lo,hi,domlo,domhi, &
                    q,c,gamc,csml,flatn,q_l1,q_h1, &
                    srcQ, lo(1)-1,hi(1)+1, &
-                   grav, gv_lo(1),gv_lo(2),gv_lo(3),gv_hi(1),gv_hi(2),gv_hi(3), &
-                   rot,  rt_lo(1),rt_lo(2),rt_lo(3),rt_hi(1),rt_hi(2),rt_hi(3), &
                    lo(1),hi(1),dx,dt, &
                    flux,flux_l1,flux_h1, &
                    pgdnv,lo(1),hi(1)+1, &

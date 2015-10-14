@@ -13,8 +13,6 @@ contains
                     gegdx, gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
-                    grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                    rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                     hdt, cdtdx,  &
                     area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -25,9 +23,9 @@ contains
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav, ppm_trace_rot, &
+                                   transverse_use_eos, ppm_type, ppm_trace_sources, &
                                    transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae, do_grav, do_rotation
+                                   ppm_predict_gammae
 
     use eos_module
     use bl_constants_module
@@ -41,8 +39,6 @@ contains
     integer ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2
     integer gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2
     integer src_l1, src_l2, src_h1, src_h2
-    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
-    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer area1_l1, area1_l2, area1_h1, area1_h2
     integer vol_l1, vol_l2, vol_h1, vol_h2
     integer ilo, ihi, jlo, jhi
@@ -57,13 +53,11 @@ contains
     double precision gegdx(gegdx_l1:gegdx_h1,gegdx_l2:gegdx_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision hdt, cdtdx
     
-    integer          :: i, j, k = 0
+    integer          :: i, j
     integer          :: n, nq, ipassive
     
     double precision :: rr, rrnew, compo, compn
@@ -341,33 +335,17 @@ contains
 
           end if
              
-          ! if ppm_trace_grav == 1, then we already added the
-          ! piecewise parabolic traced gravity to the normal edge
+          ! if ppm_trace_sources == 1, then we already added the
+          ! piecewise parabolic traced source terms to the normal edge
           ! states
-          if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
              if (j.ge.jlo+1) then
-                qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,k,1)
-                qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,k,2)
+                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              end if
              if (j.le.jhi-1) then
-                qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*grav(i,j,k,1)
-                qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*grav(i,j,k,2)
+                qmo(i,j+1,QU:QV) = qmo(i,j+1,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
           end if
-
-          ! if ppm_trace_rot == 1, then we already added the
-          ! piecewise parabolic traced rotation to the normal edge
-          ! states
-          if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-             if (j.ge.jlo+1) then
-                qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*rot(i,j,k,1)
-                qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*rot(i,j,k,2)
-             end if
-             if (j.le.jhi-1) then
-                qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*rot(i,j,k,1)
-                qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*rot(i,j,k,2)
-             end if
-          endif
           
        enddo
     enddo
@@ -385,8 +363,6 @@ contains
                     gegdy, gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
-                    grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                    rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
     use network, only : nspec, naux
@@ -394,9 +370,9 @@ contains
                                    URHO, UMX, UMY, UEDEN, UEINT, QFS, &
                                    small_pres, small_temp, &
                                    npassive, qpass_map, upass_map, &
-                                   transverse_use_eos, ppm_type, ppm_trace_grav, ppm_trace_rot, &
+                                   transverse_use_eos, ppm_type, ppm_trace_sources, &
                                    transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae, do_grav, do_rotation
+                                   ppm_predict_gammae
 
     use eos_module
 
@@ -409,8 +385,6 @@ contains
     integer ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2
     integer gegdy_l1, gegdy_l2, gegdy_h1, gegdy_h2
     integer src_l1, src_l2, src_h1, src_h2
-    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
-    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer ilo, ihi, jlo, jhi
 
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -423,11 +397,9 @@ contains
     double precision gegdy(gegdy_l1:gegdy_h1,gegdy_l2:gegdy_h2)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
     double precision hdt, cdtdy
     
-    integer          :: i, j, k = 0
+    integer          :: i, j
     integer          :: n, nq, ipassive
   
     double precision :: rr,rrnew
@@ -680,33 +652,17 @@ contains
 
           end if
              
-          ! if ppm_trace_grav == 1, then we already added the
-          ! piecewise parabolic traced gravity to the normal edge
+          ! if ppm_trace_sources == 1, then we already added the
+          ! piecewise parabolic traced source terms to the normal edge
           ! states
-          if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
+          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
              if (i.ge.ilo+1) then
-                qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,k,1)
-                qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,k,2)
+                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              end if
              if (i.le.ihi-1) then             
-                qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*grav(i,j,k,1)
-                qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*grav(i,j,k,2)
+                qmo(i+1,j,QU:QV) = qmo(i+1,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
           end if
-             
-          ! if ppm_trace_rot == 1, then we already added the
-          ! piecewise parabolic traced rotation to the normal edge
-          ! states
-          if (do_rotation .eq. 1 .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-             if (i.ge.ilo+1) then
-                qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*rot(i,j,k,1)
-                qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*rot(i,j,k,2)
-             end if
-             if (i.le.ihi-1) then
-                qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*rot(i,j,k,1)
-                qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*rot(i,j,k,2)
-             end if
-          endif
           
        enddo
     enddo

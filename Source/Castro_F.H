@@ -47,7 +47,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const Real& small_pres, const Real& small_ener,
      const int& allow_negative_energy,
      const int& ppm_type, const int& ppm_reference, 
-     const int& ppm_trace_grav, const int& ppm_trace_rot,
+     const int& ppm_trace_sources,
      const int& ppm_temp_fix, 
      const int& ppm_tau_in_tracing, const int& ppm_predict_gammae,
      const int& ppm_reference_edge_limit, 
@@ -399,8 +399,6 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
-     const BL_FORT_FAB_ARG_3D(grav),
-     const BL_FORT_FAB_ARG_3D(rot),
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),

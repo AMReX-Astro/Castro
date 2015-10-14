@@ -32,8 +32,6 @@ contains
 
   subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
-                     grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                     rot,  rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
@@ -60,8 +58,6 @@ contains
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
     integer src_l1, src_l2, src_h1, src_h2
-    integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
-    integer rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
     integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
@@ -81,8 +77,6 @@ contains
     double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3, 3)
-    double precision   rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3, 3)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
     double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
@@ -156,15 +150,13 @@ contains
        call trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                   qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-                  grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                  rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
+                  srcQ,src_l1,src_l2,src_h1,src_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     else
        call trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-                      grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                      rot, rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
+                      srcQ,src_l1,src_l2,src_h1,src_h2, &
                       gamc,qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
@@ -201,8 +193,6 @@ contains
                 gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
-                grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
     
@@ -228,8 +218,6 @@ contains
                 gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
-                grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
-                rot, rt_l1, rt_l2, rt_l3, rt_h1, rt_h2, rt_h3, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                 vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -609,13 +597,16 @@ contains
              do i = lo(1),hi(1)
                 uout(i,j,n) = uin(i,j,n) + dt * &
                      ( flux1(i,j,n) - flux1(i+1,j,n) &
-                     +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
-                     +   dt * src(i,j,n)
+                     +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
                 
                 if (n .eq. UEINT) then
-                   ! Add source term to (rho e)
+                   ! Add p div(u) source term to (rho e)
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
-                else if (n .eq. UEDEN) then
+                endif
+                   
+                ! Add up some diagnostic quantities
+                   
+                if (n .eq. UEDEN) then
                    E_added_flux = E_added_flux + dt * & 
                         ( flux1(i,j,n) - flux1(i+1,j,n) &
                         +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
