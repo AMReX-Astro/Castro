@@ -9,7 +9,7 @@ PROFILE    = FALSE
 
 USE_NEUTRINO = FALSE
 
-EOS_dir     := gamma_law_general
+EOS_dir     := gamma_law
 Network_dir := general_null
 Network_inputs  := gammalaw.net
 Opacity_dir := null
