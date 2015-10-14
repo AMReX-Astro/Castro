@@ -15,7 +15,7 @@ module actual_eos_module
 
   character (len=64) :: eos_name = "gamma_law"  
   
-  double precision  :: gamma_const
+  double precision, save :: gamma_const
 
 contains
 
