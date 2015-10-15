@@ -656,6 +656,11 @@ Castro::Castro (Amr&            papa,
 
 #endif
 
+   // Initialize source term data to zero.
+
+   MultiFab& dSdt_new = get_new_data(Source_Type);
+   dSdt_new.setVal(0.0);
+   
 #ifdef REACTIONS
 
    // Initialize reaction data to zero.
@@ -921,6 +926,9 @@ Castro::initData ()
     phi_new.setVal(0.);
 #endif
 
+    MultiFab& dSdt_new = get_new_data(Source_Type);
+    dSdt_new.setVal(0.);
+
 #ifdef ROTATION
     MultiFab& rot_new = get_new_data(Rotation_Type);
     rot_new.setVal(0.);
@@ -1008,6 +1016,9 @@ Castro::init (AmrLevel &old)
     }
 #endif
 
+    MultiFab& dSdt_new = get_new_data(Source_Type);
+    FillPatch(old,dSdt_new,0,cur_time,Source_Type,0,NUM_STATE);
+    
 #ifdef REACTIONS
     {
 	MultiFab& React_new = get_new_data(Reactions_Type);
@@ -1087,6 +1098,9 @@ Castro::init ()
     }
 #endif
 
+    MultiFab& dSdt_new = get_new_data(Source_Type);
+    FillCoarsePatch(dSdt_new, 0, cur_time, Source_Type, 0, NUM_STATE);
+    
 #ifdef ROTATION
     if (do_rotation) {
       MultiFab& phirot_new = get_new_data(PhiRot_Type);
@@ -2483,6 +2497,8 @@ Castro::avgDown ()
   avgDown(PhiRot_Type);
 #endif
 
+  avgDown(Source_Type);
+  
 #ifdef REACTIONS
   avgDown(Reactions_Type);
 #endif

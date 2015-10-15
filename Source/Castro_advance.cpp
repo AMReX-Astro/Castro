@@ -136,6 +136,18 @@ Castro::advance_hydro (Real time,
         for (int lev = level; lev <= finest_level; lev++) {
             Real dt_lev = parent->dtLevel(lev);
             for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	        // The following is a hack to make sure that
+	        // we only ever have new data for the Source_Type;
+	        // by doing a swap now, we'll guarantee that
+	        // allocOldData() does nothing. We do this because
+	        // we never need the old data, so we don't wnat to
+	        // allocate memory for it.
+	      
+	        if (k == Source_Type) {
+		  getLevel(lev).state[k].swapTimeLevels(dt_lev);
+		}
+		
 	        getLevel(lev).state[k].allocOldData();
                 getLevel(lev).state[k].swapTimeLevels(dt_lev);
             }

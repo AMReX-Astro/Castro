@@ -38,6 +38,7 @@ enum StateType { State_Type = 0,
 		 PhiRot_Type,
 		 Rotation_Type,
 #endif
+		 Source_Type,
 #ifdef LEVELSET
                  LS_State_Type,
 #endif
