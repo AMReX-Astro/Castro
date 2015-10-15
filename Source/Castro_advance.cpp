@@ -389,7 +389,7 @@ Castro::advance_hydro (Real time,
     MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     ext_src_old.setVal(0.0);
 
-    MultiFab ext_src_new(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
     ext_src_new.setVal(0.0);
 
 #ifdef SGS
@@ -414,7 +414,7 @@ Castro::advance_hydro (Real time,
 
     BoxLib::fill_boundary(ext_src_old, geom);    
 
-    MultiFab::Add(hydro_sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
+    MultiFab::Add(sources_old,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
     // Define the gravity vector, which we will add to the hydro source terms.
     MultiFab grav_vector(grids,3,NUM_GROW);
@@ -1177,6 +1177,8 @@ Castro::advance_hydro (Real time,
     time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
     computeTemp(S_new);
 
+    MultiFab::Add(sources_new,ext_src_new,0,0,NUM_STATE,0);
+
 #ifdef GRAVITY
     if (do_grav)
       {
@@ -1294,10 +1296,12 @@ Castro::advance_hydro (Real time,
 #endif
         }	
 
+	MultiFab::Add(sources_new,grav_vec_new,0,Xmom,3,0);	
+	
 	computeTemp(S_new);
       }
 #endif
-    
+
 #ifdef SGS  // for non-SGS, diffusion has been time-centered.
 #ifdef DIFFUSION
 #ifdef TAU
@@ -1385,10 +1389,13 @@ Castro::advance_hydro (Real time,
         rot_vec_new.setVal(0.0);
 
     }
+
+    MultiFab::Add(sources_new,rot_vec_new,0,Xmom,3,0);    
+        
 #endif
 
     reset_internal_energy(S_new);
-    
+
 #ifdef REACTIONS
 #ifdef TAU
     react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
