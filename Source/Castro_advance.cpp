@@ -1396,6 +1396,15 @@ Castro::advance_hydro (Real time,
 
     reset_internal_energy(S_new);
 
+    // Calculate the time derivative of the source terms.
+
+    MultiFab& dSdt = get_new_data(Source_Type);
+    
+    MultiFab::Add(dSdt,sources_new,0,0,NUM_STATE,0);
+    MultiFab::Subtract(dSdt,sources_old,0,0,NUM_STATE,0);
+
+    dSdt.mult(1.0/dt);
+    
 #ifdef REACTIONS
 #ifdef TAU
     react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
