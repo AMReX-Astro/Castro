@@ -422,57 +422,7 @@ Castro::advance_hydro (Real time,
     
 #ifdef GRAVITY
     if (do_grav) {
-
-      // Default option here is to copy the old-time gravity vector (including NUM_GROW
-      // ghost cells) to UMDRV. However, optionally we can predict the gravitational 
-      // acceleration to t + dt/2, which is the time-level n+1/2 value, To do this we 
-      // use a lagged predictor estimate: dg/dt_n = (g_n - g_{n-1}) / dt, so 
-      // g_{n+1/2} = g_n + (dt / 2) * dg/dt_n = (3/2) * g_n - (1/2) * g_{n-1}.
-      // To get the old-time value of the gravity we use a small hack: 
-      // the 'new' state data has been swapped above so that its data pointer 
-      // actually currently points to the old-time data from the last advance. 
-      // This won't be overwritten until later in this advance.
-      // Note that we need to avoid doing this in cases where the old_data has not
-      // yet been initialized, which should only be in the case of the first timestep.
-      // We also want to avoid doing this in cases where the data is filled with
-      // data that isn't from the simulation. In particular, on a restart from a checkpoint
-      // that only has new-time data, the old data gets filled with zeros, so avoid that.
-
-      MultiFab& old_grav_mf = get_old_data(Gravity_Type); // Points to time-level n data
-      MultiFab& new_grav_mf = get_new_data(Gravity_Type); // Points to time-level n-1 data      
-      
-      if (source_term_predictor && prev_time != 0.0) {
-
-	if (!new_grav_mf.contains_nan() || abs(new_grav_mf.max(0)) > 0.0 || abs(new_grav_mf.max(1)) > 0.0 || abs(new_grav_mf.max(2)) > 0.0) {
-
-	  old_grav_mf.mult( 3.0 / 2.0 ); // Contribution from time-level n is 3/2
-	  new_grav_mf.mult(-1.0 / 2.0 ); // Contribution from time-level n-1 is -1/2
-
-	  new_grav_mf.plus(old_grav_mf, 0, 3, 0);
-
-	  // Use the same approach as in get_old_grav_vector for filling ghost cells.
-	  // Note that we want to FillPatch at cur_time (which is the new time) because
-	  // we are storing the relevant data in the new_data.
-
-	  AmrLevel* amrlev = &parent->getLevel(level);
-	  
-	  AmrLevel::FillPatch(*amrlev, grav_vector, NUM_GROW, cur_time, Gravity_Type, 0, 3);
-
-	  // Return the states to their original values.
-
-	  new_grav_mf.minus(old_grav_mf, 0, 3, 0);
-	
-	  new_grav_mf.mult(-2.0       );
-	  old_grav_mf.mult( 2.0 / 3.0 );
-
-	}
-
-      } else {
-
-	MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
-
-      }
-
+      MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
     }
 #endif
 
@@ -499,37 +449,10 @@ Castro::advance_hydro (Real time,
 
       fill_rotation_field(phirot_old, rot_vec_old, S_old, prev_time);
 
-      // See the discussion above for the filling of grav_vector for an explanation
-      // of the source term predictor; it works the same way for rotation.
-
-      if (source_term_predictor && prev_time != 0.0) {
-
-	if (!rot_vec_new.contains_nan() || abs(rot_vec_new.max(0)) > 0.0 || abs(rot_vec_new.max(1)) > 0.0 || abs(rot_vec_new.max(2)) > 0.0) {	
-	
-	  rot_vec_old.mult( 3.0 / 2.0 );
-	  rot_vec_new.mult(-1.0 / 2.0 );
-
-	  rot_vec_new.plus(rot_vec_old, 0, 3, 0);
-
-	  AmrLevel* amrlev = &parent->getLevel(level);
+      AmrLevel* amrlev = &parent->getLevel(level);
       
-	  AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,cur_time,Rotation_Type,0,3);       
-	
-	  rot_vec_new.minus(rot_vec_old, 0, 3, 0);
-	
-	  rot_vec_new.mult(-2.0       );
-	  rot_vec_old.mult( 2.0 / 3.0 );
+      AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,prev_time,Rotation_Type,0,3);       
 
-	}
-	
-      } else {
-
-	AmrLevel* amrlev = &parent->getLevel(level);
-      
-	AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,prev_time,Rotation_Type,0,3);       
-
-      }
-	
     } else {
       phirot_old.setVal(0.);
       rot_vec_old.setVal(0.);
@@ -550,7 +473,30 @@ Castro::advance_hydro (Real time,
     // Copy in the source data into the array going into Fortran.
 
     MultiFab::Copy(hydro_sources,sources_old,0,0,NUM_STATE,NUM_GROW);
-    
+
+    // Optionally we can predict the source terms to  t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so 
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
+      
+    if (source_term_predictor == 1) {
+
+      // We need to make a temporary MultiFab so
+      // that we can fill the ghost cells with the
+      // right values of the time derivative.
+
+      MultiFab dSdt(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+
+      AmrLevel* amrlev = &parent->getLevel(level);
+      
+      AmrLevel::FillPatch(*amrlev,dSdt,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
+      
+      dSdt.mult( dt / 2.0 );
+
+      MultiFab::Add(hydro_sources,dSdt,0,0,NUM_STATE,NUM_GROW);
+
+    }
+      
     {
 
       // Note that we do the react_half_dt on Sborder because of our Strang
@@ -1396,14 +1342,19 @@ Castro::advance_hydro (Real time,
 
     reset_internal_energy(S_new);
 
-    // Calculate the time derivative of the source terms.
-
-    MultiFab& dSdt = get_new_data(Source_Type);
+    MultiFab& dSdt = get_new_data(Source_Type);    
+    dSdt.setVal(0.0);      
     
-    MultiFab::Add(dSdt,sources_new,0,0,NUM_STATE,0);
-    MultiFab::Subtract(dSdt,sources_old,0,0,NUM_STATE,0);
+    if (source_term_predictor == 1) {
+    
+      // Calculate the time derivative of the source terms.
 
-    dSdt.mult(1.0/dt);
+      MultiFab::Add(dSdt,sources_new,0,0,NUM_STATE,0);
+      MultiFab::Subtract(dSdt,sources_old,0,0,NUM_STATE,0);
+      
+      dSdt.mult(1.0/dt);
+
+    } 
     
 #ifdef REACTIONS
 #ifdef TAU
