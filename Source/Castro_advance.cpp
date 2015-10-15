@@ -369,16 +369,26 @@ Castro::advance_hydro (Real time,
     MultiFab& Sborder = state_fpi.get_mf();    
 
 
+    // This array will hold the source terms that go into the hydro update through umdrv.
+    
+    MultiFab hydro_sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    hydro_sources.setVal(0.0);
+
+    // These arrays hold the sum of the sources at the old and new times.
+    // We need these separately from hydro_sources because if we're using
+    // the source term predictor, hydro_sources will not simply be the old data.
+    
+    MultiFab sources_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_old.setVal(0.0);
+    
+    MultiFab sources_new(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_new.setVal(0.0);
     
     // Set up external source terms
     
     MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     ext_src_old.setVal(0.0);
 
-    // Note that we're going to use ext_src_new to hold the
-    // hydro source terms going into UMDRV; it will then be
-    // overwritten later by the call to get the new external source terms.
-    
     MultiFab ext_src_new(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     ext_src_new.setVal(0.0);
 
@@ -404,7 +414,7 @@ Castro::advance_hydro (Real time,
 
     BoxLib::fill_boundary(ext_src_old, geom);    
 
-    MultiFab::Add(ext_src_new,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
+    MultiFab::Add(hydro_sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
     // Define the gravity vector, which we will add to the hydro source terms.
     MultiFab grav_vector(grids,3,NUM_GROW);
@@ -471,7 +481,7 @@ Castro::advance_hydro (Real time,
     for (int i = 0; i < 3; i++)
       MultiFab::Multiply(grav_vector,Sborder,Density,i,1,NUM_GROW);
     
-    MultiFab::Add(ext_src_new,grav_vector,0,Xmom,3,NUM_GROW);
+    MultiFab::Add(sources_old,grav_vector,0,Xmom,3,NUM_GROW);
     
     // Define the rotation vector so we can pass this to ca_umdrv.
     MultiFab rot_vector(grids,3,NUM_GROW);
@@ -531,12 +541,16 @@ Castro::advance_hydro (Real time,
     for (int i = 0; i < 3; i++)
       MultiFab::Multiply(rot_vector,Sborder,Density,i,1,NUM_GROW);
     
-    MultiFab::Add(ext_src_new,rot_vector,0,Xmom,3,NUM_GROW);    
+    MultiFab::Add(sources_old,rot_vector,0,Xmom,3,NUM_GROW);    
 
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
 
+    // Copy in the source data into the array going into Fortran.
+
+    MultiFab::Copy(hydro_sources,sources_old,0,0,NUM_STATE,NUM_GROW);
+    
     {
 
       // Note that we do the react_half_dt on Sborder because of our Strang
@@ -772,7 +786,7 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(ext_src_new[mfi]),
+			 BL_TO_FORTRAN(hydro_sources[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -989,11 +1003,6 @@ Castro::advance_hydro (Real time,
 #endif
     }
 
-    // Zero out the external source array that was temporarily holding the hydro sources.
-    // We will later fill it with the actual external source term data.
-
-    ext_src_new.setVal(0.0);
-    
 #ifdef PARTICLES
     if (do_dm_particles && particle_move_type == "Gravitational")
     {
