@@ -372,16 +372,20 @@ Castro::restart (Amr&     papa,
 
 void
 Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
-{
+{ 
+  for (int i=0; i<NUM_STATE_TYPE; ++i)
+    state_in_checkpoint[i] = 1;
+
   for (int i=0; i<NUM_STATE_TYPE; ++i) {
+#ifdef GRAVITY    
     if (version == 0 && i == PhiGrav_Type) {
       // We are reading an old checkpoint with no PhiGrav_Type
       state_in_checkpoint[i] = 0;
-    } else if (version < 3 && i == Source_Type) {
+    }
+#endif
+    if (version < 3 && i == Source_Type) {
       // We are reading an old checkpoint with no Source_Type
       state_in_checkpoint[i] = 0;
-    } else {
-      state_in_checkpoint[i] = 1;
     }
   }
 }
