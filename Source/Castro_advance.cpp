@@ -426,12 +426,20 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    // Multiply gravity by the density to put it in conservative form.
+    for (int i = 0; i < 3; i++) {
 
-    for (int i = 0; i < 3; i++)
+      // Multiply gravity by the density to put it in conservative form.      
+      
       MultiFab::Multiply(grav_vector,Sborder,Density,i,1,NUM_GROW);
-    
-    MultiFab::Add(sources_old,grav_vector,0,Xmom,3,NUM_GROW);
+      MultiFab::Add(sources_old,grav_vector,i,Xmom+i,1,NUM_GROW);
+      
+      // Add corresponding energy source term (v . src).
+      
+      MultiFab::Multiply(grav_vector,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(grav_vector,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources_old,grav_vector,i,Eden,1,NUM_GROW);
+      
+    }
     
     // Define the rotation vector so we can pass this to ca_umdrv.
     MultiFab rot_vector(grids,3,NUM_GROW);
@@ -459,13 +467,21 @@ Castro::advance_hydro (Real time,
     } 
 #endif
 
-    // Multiply rotation by the density to put it in conservative form.
+    for (int i = 0; i < 3; i++) {
 
-    for (int i = 0; i < 3; i++)
+      // Multiply rotation by the density to put it in conservative form.      
+      
       MultiFab::Multiply(rot_vector,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources_old,rot_vector,i,Xmom+i,1,NUM_GROW);
+      
+      // Add corresponding energy source term (v . src).
+      
+      MultiFab::Multiply(rot_vector,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(rot_vector,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources_old,rot_vector,i,Eden,1,NUM_GROW);
+      
+    }    
     
-    MultiFab::Add(sources_old,rot_vector,0,Xmom,3,NUM_GROW);    
-
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
