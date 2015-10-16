@@ -2320,10 +2320,16 @@ contains
           
           ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-          qpo(i,j,kc,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU) 
-          qpo(i,j,kc,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV) 
-          qpo(i,j,kc,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW) 
+          qpo(i,j,kc,QU    ) = runewr/rrnewr
+          qpo(i,j,kc,QV    ) = rvnewr/rrnewr
+          qpo(i,j,kc,QW    ) = rwnewr/rrnewr
 
+          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! source terms to the normal edge states.
+          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+          endif
+          
           ! note: we run the risk of (rho e) being negative here
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
@@ -2359,10 +2365,16 @@ contains
           !-------------------------------------------------------------------          
 
           qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
-          qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU)
-          qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV)
-          qmo(i,j,kc,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QW)
+          qmo(i,j,kc,QU    ) = runewl/rrnewl
+          qmo(i,j,kc,QV    ) = rvnewl/rrnewl
+          qmo(i,j,kc,QW    ) = rwnewl/rrnewl
 
+          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! source terms to the normal edge states.
+          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
+          endif          
+          
           ! note: we run the risk of (rho e) being negative here
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
 
@@ -2490,19 +2502,6 @@ contains
        end if
 
     enddo
-
-    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
-    ! source terms to the normal edge states. Note that the remaining terms in the
-    ! srcQ array (the passively advected ones) have already been handled.
-    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-       do j = jlo, jhi 
-          !DIR$ vector always
-          do i = ilo, ihi          
-             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d  ,QU:QW)
-             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
-          enddo
-       enddo
-    endif
 
   end subroutine transxy
 
@@ -2692,10 +2691,16 @@ contains
              end if
 
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-             qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
-             qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
-             qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
+             qpo(i,j,km,QU    ) = runewr/rrnewr
+             qpo(i,j,km,QV    ) = rvnewr/rrnewr
+             qpo(i,j,km,QW    ) = rwnewr/rrnewr
 
+             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+             endif
+             
              ! note: we run the risk of (rho e) being negative here
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
@@ -2764,10 +2769,16 @@ contains
              endif
              
              qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
-             qmo(i,j+1,km,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
-             qmo(i,j+1,km,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
-             qmo(i,j+1,km,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
+             qmo(i,j+1,km,QU    ) = runewl/rrnewl
+             qmo(i,j+1,km,QV    ) = rvnewl/rrnewl
+             qmo(i,j+1,km,QW    ) = rwnewl/rrnewl
 
+             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+             endif
+             
              ! note: we run the risk of (rho e) being negative here
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
@@ -2901,23 +2912,6 @@ contains
           end if
        end if
     enddo
-
-    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
-    ! source terms to the normal edge states
-    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-       do j = jlo+1, jhi 
-          !DIR$ vector always
-          do i = ilo, ihi 
-             qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
-          end do
-       end do
-       do j = jlo, jhi-1 
-          !DIR$ vector always
-          do i = ilo, ihi 
-             qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
-          enddo
-       enddo
-    endif
 
   end subroutine transxz
 
@@ -3110,10 +3104,16 @@ contains
              end if
                 
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-             qpo(i,j,km,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU)
-             qpo(i,j,km,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV)
-             qpo(i,j,km,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW)
-
+             qpo(i,j,km,QU    ) = runewr/rrnewr
+             qpo(i,j,km,QV    ) = rvnewr/rrnewr
+             qpo(i,j,km,QW    ) = rwnewr/rrnewr
+             
+             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+             endif
+             
              ! note: we run the risk of (rho e) being negative here
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
@@ -3184,10 +3184,16 @@ contains
              endif
 
              qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
-             qmo(i+1,j,km,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k3d,QU)
-             qmo(i+1,j,km,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d,QV)
-             qmo(i+1,j,km,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d,QW)
+             qmo(i+1,j,km,QU     ) = runewl/rrnewl
+             qmo(i+1,j,km,QV     ) = rvnewl/rrnewl
+             qmo(i+1,j,km,QW     ) = rwnewl/rrnewl
 
+             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+             endif
+             
              ! note: we run the risk of (rho e) being negative here
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
@@ -3319,22 +3325,6 @@ contains
        end if
 
     enddo
-
-
-    ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
-    ! source terms to the normal edge states
-    if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-       do j = jlo, jhi 
-          !DIR$ vector always
-          do i = ilo+1, ihi 
-             qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
-          end do
-          !DIR$ vector always
-          do i = ilo, ihi-1
-             qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt*srcQ(i,j,k3d,QU:QW)
-          enddo
-       enddo
-    endif
 
   end subroutine transyz
 

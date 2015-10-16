@@ -168,13 +168,20 @@ contains
              ! NOTE: should probably have a j >= jlo+1 here as in 3-d
              rhotmp = rrnewr
              qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
-             qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU)  
-             qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV)  
+             qpo(i,j,QU  ) = runewr/rhotmp 
+             qpo(i,j,QV  ) = rvnewr/rhotmp 
 
+             ! if ppm_trace_sources == 1, then we already added the
+             ! piecewise parabolic traced source terms to the normal edge
+             ! states
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
+             endif             
+             
              ! note: we run the risk of (rho e) being negative here
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
-             qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
-
+             qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)             
+             
              if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
                 ! If it is negative, reset the internal energy by
                 ! using the discretized expression for updating (rho e).
@@ -270,11 +277,19 @@ contains
              ! Convert back to primitive form
              rhotmp = rrnewl
              qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
-             qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
-             qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
+             qmo(i,j+1,QU  ) = runewl/rhotmp 
+             qmo(i,j+1,QV  ) = rvnewl/rhotmp
+
+             ! if ppm_trace_sources == 1, then we already added the
+             ! piecewise parabolic traced source terms to the normal edge
+             ! states
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qmo(i,j+1,QU:QV) = qmo(i,j+1,QU:QV) + hdt*srcQ(i,j,QU:QV)
+             endif             
+                          
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i,j+1,QW))**2)/rhotmp
              qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
-             
+
              if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,QREINT) <= ZERO) then
              ! If it is negative, reset the internal energy by using
              ! the discretized expression for updating (rho e).
@@ -335,18 +350,6 @@ contains
 
           end if
              
-          ! if ppm_trace_sources == 1, then we already added the
-          ! piecewise parabolic traced source terms to the normal edge
-          ! states
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-             if (j.ge.jlo+1) then
-                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
-             end if
-             if (j.le.jhi-1) then
-                qmo(i,j+1,QU:QV) = qmo(i,j+1,QU:QV) + hdt*srcQ(i,j,QU:QV)
-             endif
-          end if
-          
        enddo
     enddo
     
@@ -504,11 +507,19 @@ contains
              ! convert back to non-conservation form
              rhotmp =  rrnewr
              qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
-             qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) 
-             qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
+             qpo(i,j,QU    ) = runewr/rhotmp
+             qpo(i,j,QV    ) = rvnewr/rhotmp 
+
+             ! if ppm_trace_sources == 1, then we already added the
+             ! piecewise parabolic traced source terms to the normal edge
+             ! states
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
+             endif             
+                          
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
              qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
-             
+
              if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
                 qpo(i,j,QREINT) = qp(i,j,QREINT) - &
                      cdtdy*(fy(i,j+1,UEINT)- fy(i,j,UEINT) + pav*du) 
@@ -592,11 +603,19 @@ contains
              
              rhotmp =  rrnewl
              qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
-             qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) 
-             qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
+             qmo(i+1,j,QU    ) = runewl/rhotmp
+             qmo(i+1,j,QV    ) = rvnewl/rhotmp 
+
+             ! if ppm_trace_sources == 1, then we already added the
+             ! piecewise parabolic traced source terms to the normal edge
+             ! states
+             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+                qmo(i+1,j,QU:QV) = qmo(i+1,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
+             endif             
+                          
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i+1,j,QW))**2)/rhotmp
              qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
-             
+
              if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,QREINT) .le. ZERO) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
@@ -652,18 +671,6 @@ contains
 
           end if
              
-          ! if ppm_trace_sources == 1, then we already added the
-          ! piecewise parabolic traced source terms to the normal edge
-          ! states
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-             if (i.ge.ilo+1) then
-                qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
-             end if
-             if (i.le.ihi-1) then             
-                qmo(i+1,j,QU:QV) = qmo(i+1,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
-             endif
-          end if
-          
        enddo
     enddo
     
