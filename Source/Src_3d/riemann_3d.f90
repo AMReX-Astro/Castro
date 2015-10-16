@@ -1,5 +1,6 @@
 module riemann_module
 
+  use bl_types
   use bl_constants_module
 
   implicit none
@@ -7,6 +8,8 @@ module riemann_module
   private
 
   public cmpflx, shock
+
+  real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
 
 contains
 
@@ -697,6 +700,11 @@ contains
 
           ustar = HALF* ( ustarp + ustarm )
 
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
@@ -1093,7 +1101,13 @@ contains
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
           ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
           pstar = max(pstar,small_pres)
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           if (ustar .gt. ZERO) then
              ro = rl

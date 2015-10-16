@@ -33,6 +33,8 @@ endif
 
 Conductivity_dir := constant
 
+# This sets the network directory in $(MICROPHYSICS_DIR)/Networks
+Network_dir := powerlaw
 
 Bpack   := ./Make.package
 Blocs   := .

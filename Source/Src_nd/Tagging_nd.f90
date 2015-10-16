@@ -525,3 +525,79 @@
       endif
 
       end subroutine ca_raderror
+
+
+! ::: -----------------------------------------------------------
+! ::: This routine will tag high error cells based on the entropy
+! ::: 
+! ::: INPUTS/OUTPUTS:
+! ::: 
+! ::: tag      <=  integer tag array
+! ::: lo,hi     => index extent of work region
+! ::: set       => integer value to tag cell for refinement
+! ::: clear     => integer value to untag cell
+! ::: ent       => entropy array
+! ::: nr        => number of components in rad array (should be 1)
+! ::: domlo,hi  => index extent of problem domain
+! ::: delta     => cell spacing
+! ::: xlo       => physical location of lower left hand
+! :::              corner of work region
+! ::: problo    => phys loc of lower left corner of prob domain
+! ::: time      => problem evolution time
+! ::: level     => refinement level of this array
+! ::: -----------------------------------------------------------
+      subroutine ca_enterror(tag,taglo,taghi, &
+                             set,clear, &
+                             ent,entlo,enthi, &
+                             lo,hi,nr,domlo,domhi, &
+                             delta,xlo,problo,time,level)
+
+      use tagging_params_module
+      use prob_params_module, only: dg
+      
+      implicit none
+
+      integer          :: set, clear, nr, level
+      integer          :: taglo(3), taghi(3)
+      integer          :: entlo(3), enthi(3)
+      integer          :: lo(3), hi(3), domlo(3), domhi(3)
+      integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+      double precision :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nr)
+      double precision :: delta(3), xlo(3), problo(3), time
+
+      double precision :: ax, ay, az
+      integer          :: i, j, k
+
+!     Tag on regions of high radiation
+      if (level .lt. max_enterr_lev) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  if (ent(i,j,k,1) .ge. enterr) then
+                     tag(i,j,k) = set
+                  endif
+               enddo
+            enddo
+         enddo
+      endif
+
+!     Tag on regions of high radiation gradient
+      if (level .lt. max_entgrad_lev) then
+         do k = lo(3), hi(3)
+            do j = lo(2), hi(2)
+               do i = lo(1), hi(1)
+                  ax = ABS(ent(i+1*dg(1),j,k,1) - ent(i,j,k,1))
+                  ay = ABS(ent(i,j+1*dg(2),k,1) - ent(i,j,k,1))
+                  az = ABS(ent(i,j,k+1*dg(3),1) - ent(i,j,k,1))
+                  ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1*dg(1),j,k,1)))
+                  ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1*dg(2),k,1)))
+                  az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1*dg(3),1)))
+                  if ( MAX(ax,ay,az) .ge. entgrad) then
+                     tag(i,j,k) = set
+                  endif
+               enddo
+            enddo
+         enddo
+      endif
+
+    end subroutine ca_enterror

@@ -4,14 +4,15 @@
 
   boundary_type = 1
 
-  pert_factor = 8.1d-3
   dens_base = 1.65d-3
   cutoff_density = 1.e-8
 
   pres_base = 1.65d6
 
-  y_pert_center = 0.7d0
+  x_pert_loc = 1.0d0
   pert_width = 0.025d0
+  pert_factor = 1.d0
+
 /
 
 &tagging

@@ -379,7 +379,7 @@ Castro::advance_hydro (Real time,
 	  old_grav_mf.mult( 3.0 / 2.0 ); // Contribution from time-level n is 3/2
 	  new_grav_mf.mult(-1.0 / 2.0 ); // Contribution from time-level n-1 is -1/2
 
-	  new_grav_mf.plus(old_grav_mf, 0, 1, 0);
+	  new_grav_mf.plus(old_grav_mf, 0, 3, 0);
 
 	  // Use the same approach as in get_old_grav_vector for filling ghost cells.
 	  // Note that we want to FillPatch at cur_time (which is the new time) because
@@ -391,7 +391,7 @@ Castro::advance_hydro (Real time,
 
 	  // Return the states to their original values.
 
-	  new_grav_mf.minus(old_grav_mf, 0, 1, 0);
+	  new_grav_mf.minus(old_grav_mf, 0, 3, 0);
 	
 	  new_grav_mf.mult(-2.0       );
 	  old_grav_mf.mult( 2.0 / 3.0 );
@@ -433,13 +433,13 @@ Castro::advance_hydro (Real time,
 	  rot_vec_old.mult( 3.0 / 2.0 );
 	  rot_vec_new.mult(-1.0 / 2.0 );
 
-	  rot_vec_new.plus(rot_vec_old, 0, 1, 0);
+	  rot_vec_new.plus(rot_vec_old, 0, 3, 0);
 
 	  AmrLevel* amrlev = &parent->getLevel(level);
       
 	  AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,cur_time,Rotation_Type,0,3);       
 	
-	  rot_vec_new.minus(rot_vec_old, 0, 1, 0);
+	  rot_vec_new.minus(rot_vec_old, 0, 3, 0);
 	
 	  rot_vec_new.mult(-2.0       );
 	  rot_vec_old.mult( 2.0 / 3.0 );
