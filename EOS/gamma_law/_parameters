@@ -1,4 +1,2 @@
 eos_gamma            real     0.d0
-
-
-
+eos_assume_neutral   logical  .true.

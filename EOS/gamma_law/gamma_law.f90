@@ -17,11 +17,13 @@ module actual_eos_module
   
   double precision, save :: gamma_const
 
+  logical, save :: assume_neutral
+  
 contains
 
   subroutine actual_eos_init
 
-    use extern_probin_module, only: eos_gamma
+    use extern_probin_module, only: eos_gamma, eos_assume_neutral
 
     implicit none
  
@@ -31,7 +33,9 @@ contains
     else
        gamma_const = FIVE3RD
     end if
- 
+
+    assume_neutral = eos_assume_neutral
+
   end subroutine actual_eos_init
 
 
@@ -50,6 +54,18 @@ contains
     integer :: j
     double precision :: poverrho
 
+    ! Calculate mu.
+    
+    if (assume_neutral) then
+       do j = 1, state % N
+          state % mu(j) = state % abar(j)
+       enddo
+    else
+       do j = 1, state % N
+          state % mu(j) = ONE / sum( (ONE + zion(:)) * state % xn(j,:) / aion(:) )
+       enddo
+    endif    
+    
     select case (input)
 
     case (eos_input_rt)

@@ -19,7 +19,7 @@ contains
 
   subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module, only: eos_assume_neutral
+    use extern_probin_module
 
     implicit none
  
@@ -54,16 +54,6 @@ contains
        endif
     endif
 
-    assume_neutral = eos_assume_neutral
-
-    ! The assumption of neutrality only makes sense in a limited number of cases.
-    
-    if (assume_neutral) then
-       if ( (eos_name .ne. "gamma_law_general") .and. (eos_name .ne. "gamma_law") ) then
-          call bl_error("eos_assume_neutral = .true. is not configured to work with the chosen EOS.")
-       endif
-    endif
-    
     initialized = .true.
 
   end subroutine eos_init

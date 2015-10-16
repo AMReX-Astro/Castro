@@ -54,8 +54,6 @@ module eos_type_module
   double precision, parameter :: init_num  = -1.0d200
   double precision, parameter :: init_test = -1.0d199
 
-  logical :: assume_neutral
-
   type eos_type
 
      integer :: N, width(1), spec_width(2), aux_width(2)
@@ -553,16 +551,6 @@ contains
        
        state % abar(i) = ONE / (sum(state % xn(i,:) / aion(:)))
        state % zbar(i) = state % abar(i) / state % mu_e(i)
-
-       if (assume_neutral) then
-
-          state % mu(i) = state % abar(i)
-
-       else
-
-          state % mu(i) = ONE / sum( (ONE + zion(:)) * state % xn(i,:) / aion(:) )
-
-       endif
 
     enddo
 
