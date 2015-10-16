@@ -23,12 +23,12 @@ module actual_network
   integer, parameter :: nspec = @@NSPEC@@
   integer, parameter :: naux =  @@NAUX@@
 
-  character (len=16) :: spec_names(nspec) 
-  character (len= 5) :: short_spec_names(nspec)
-  character (len=16) :: aux_names(naux)
-  character (len= 5) :: short_aux_names(naux)
+  character (len=16), save :: spec_names(nspec) 
+  character (len= 5), save :: short_spec_names(nspec)
+  character (len=16), save :: aux_names(naux)
+  character (len= 5), save :: short_aux_names(naux)
 
-  double precision   :: aion(nspec), zion(nspec)
+  double precision, save   :: aion(nspec), zion(nspec)
 
 contains
   
