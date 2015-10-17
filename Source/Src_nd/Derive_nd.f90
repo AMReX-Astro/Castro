@@ -1,3 +1,6 @@
+! All subroutines in this file must be threadsafe because they are called
+! inside OpenMP paralle regions.
+
 !-----------------------------------------------------------------------
 
       subroutine ca_derstate(state,s_lo,s_hi,nv, &
