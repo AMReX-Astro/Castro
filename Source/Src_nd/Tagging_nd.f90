@@ -1,3 +1,8 @@
+! All subroutines in this file must be threadsafe because they are called
+! inside OpenMP paralle regions.
+
+
+
 ! ::: -----------------------------------------------------------
 ! ::: This routine will tag high error cells based on the Laplacian.
 ! :::
