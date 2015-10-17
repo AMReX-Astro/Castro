@@ -67,6 +67,7 @@ module meth_params_module
 
   double precision, save :: dual_energy_eta1
   double precision, save :: dual_energy_eta2
+  double precision, save :: dual_energy_eta3
   logical, save :: dual_energy_update_E_from_e
 
   double precision, save, allocatable :: outflow_data_old(:,:)

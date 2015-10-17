@@ -1,7 +1,8 @@
-This directory contains the different equations of state that are
-released with CASTRO:
+This directory contains a basic gamma law equation of state. 
+More advanced equation of state routines can be found in our 
+Microphysics repository.
 
-1) gamma_law_general:
+gamma_law_general:
 
    A general gamma-law EOS.  This computes the mean molecular
    weight from the mass fractions and the species properties defined
@@ -10,26 +11,3 @@ released with CASTRO:
    NOTE: the entropy is currently only correct for a monatomic gas
    (gamma = 5/3).  A more general expression (than the Sackur-Tetrode
    equation) is needed for an arbitrary constant-gamma gas.
-
-2) helmeos:
-   
-   Frank Timmes' general stellar EOS.  This is modified from the
-   publically available version (although the changes should not
-   affect the results).  The major changes are related to
-   thread-safety.  The common blocks no longer pass the state to/from
-   the EOS, instead we use the argument list.
-
-3) polytrope:
-
-   The EOS for a polytropic fluid. The proportionality constant and
-   gamma exponent can either be specified by the user in the extern
-   namelist, or select one of the predefined types.
-
-4) ztwd:
-
-  A zero-temperature white dwarf EOS from Chandrasekhar (1935).
-
-5) multigamma
-
-   The multigamma EOS allows each fluid to specify their own gamma.
-   Each species acts as an ideal gas.

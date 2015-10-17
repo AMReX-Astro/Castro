@@ -1,3 +1,6 @@
+! All subroutines in this file must be threadsafe because they are called
+! inside OpenMP paralle regions.
+
 !-----------------------------------------------------------------------
 
       subroutine ca_derstate(state,s_lo,s_hi,nv, &
@@ -105,31 +108,39 @@
  
       integer          :: i, j, k
       double precision :: rhoInv
-      type (eos_t) :: eos_state
+
+      type (eos_t_3D) :: eos_state
+
+      call eos_allocate(eos_state, lo, hi)
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-
-               vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1)
                rhoInv = ONE / dat(i,j,k,URHO)
-               eos_state % e = dat(i,j,k,UEINT) * rhoInv
+               
+               eos_state % e(i,j,k)     = dat(i,j,k,UEINT) * rhoInv
+               eos_state % T(i,j,k)     = dat(i,j,k,UTEMP)
+               eos_state % rho(i,j,k)   = dat(i,j,k,URHO)
+               eos_state % xn(i,j,k,:)  = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,:) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+            enddo
+         enddo
+      enddo               
 
-               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
-                  eos_state % T = dat(i,j,k,UTEMP)
-                  eos_state % rho = dat(i,j,k,URHO)
-                  eos_state % xn = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.
+      
+      call eos(eos_input_re, eos_state)
 
-                  call eos(eos_input_re, eos_state)
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+                  vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1) + eos_state % cs(i,j,k)
+            enddo
+         enddo
+      enddo
 
-                  vel(i,j,k,1) = vel(i,j,k,1) + eos_state % cs
-               end if
-
-            end do
-         end do
-      end do
- 
+      call eos_deallocate(eos_state)
+      
       end subroutine ca_deruplusc
 
 !-----------------------------------------------------------------------
@@ -158,31 +169,39 @@
  
       integer          :: i, j, k
       double precision :: rhoInv
-      type (eos_t) :: eos_state
 
+      type (eos_t_3D) :: eos_state
+
+      call eos_allocate(eos_state, lo, hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-
-               vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1)
                rhoInv = ONE / dat(i,j,k,URHO)
-               eos_state % e = dat(i,j,k,UEINT) * rhoInv
+               
+               eos_state % e(i,j,k)    = dat(i,j,k,UEINT) * rhoInv
+               eos_state % T(i,j,k)    = dat(i,j,k,UTEMP)
+               eos_state % rho(i,j,k)  = dat(i,j,k,URHO)
+               eos_state % xn(i,j,k,:) = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+            enddo
+         enddo
+      enddo
 
-               if (allow_negative_energy .eq. 1 .or. eos_state % e .gt. ZERO) then
-                  eos_state % T = dat(i,j,k,UTEMP)
-                  eos_state % rho = dat(i,j,k,URHO)
-                  eos_state % xn = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                  eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
+      
+      call eos(eos_input_re, eos_state)
 
-                  call eos(eos_input_re, eos_state)
-
-                  vel(i,j,k,1) = vel(i,j,k,1) - eos_state % cs
-               end if
-
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)      
+               vel(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1) - eos_state % cs(i,j,k)
             end do
          end do
       end do
- 
+
+      call eos_deallocate(eos_state)
+      
       end subroutine ca_deruminusc
 
 !-----------------------------------------------------------------------
@@ -337,7 +356,6 @@
 
       use network, only: nspec, naux
       use eos_module
-      use eos_type_module
       use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
                                     allow_negative_energy
       use bl_constants_module
@@ -356,27 +374,38 @@
       double precision :: rhoInv
       integer          :: i, j, k
 
-      type (eos_t) :: eos_state
+      type (eos_t_3D) :: eos_state
 
+      call eos_allocate(eos_state, lo, hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
                rhoInv = ONE / u(i,j,k,URHO)
                
-               eos_state % rho = u(i,j,k,URHO)
-               eos_state % T   = u(i,j,k,UTEMP)
-               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-
-               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-               call eos(eos_input_re, eos_state)
-
-               p(i,j,k,1) = eos_state % p
+               eos_state % rho(i,j,k)  = u(i,j,k,URHO)
+               eos_state % T(i,j,k)    = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)    = u(i,j,k,UEINT) * rhoInv
+               eos_state % xn(i,j,k,:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
 
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
+      
+      call eos(eos_input_re, eos_state)
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               p(i,j,k,1) = eos_state % p(i,j,k)
+            enddo
+         enddo
+      enddo
+
+      call eos_deallocate(eos_state)
+      
       end subroutine ca_derpres
 
 !-----------------------------------------------------------------------
@@ -459,7 +488,6 @@
 
       use network, only: nspec, naux
       use eos_module
-      use eos_type_module
       use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
                                     allow_negative_energy
       use bl_constants_module
@@ -478,27 +506,38 @@
       double precision :: rhoInv
       integer          :: i, j, k
 
-      type (eos_t) :: eos_state
+      type (eos_t_3D) :: eos_state
 
+      call eos_allocate(eos_state, lo, hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
                rhoInv = ONE / u(i,j,k,URHO)
                
-               eos_state % rho = u(i,j,k,URHO)
-               eos_state % T   = u(i,j,k,UTEMP)
-               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-
-               eos_state % xn = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-               call eos(eos_input_re, eos_state)
-
-               c(i,j,k,1) = eos_state % cs
+               eos_state % rho(i,j,k)  = u(i,j,k,URHO)
+               eos_state % T(i,j,k)    = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)    = u(i,j,k,UEINT) * rhoInv
+               eos_state % xn(i,j,k,:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
 
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
+      
+      call eos(eos_input_re, eos_state)
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               c(i,j,k,1) = eos_state % cs(i,j,k)
+            enddo
+         enddo
+      enddo
+
+      call eos_deallocate(eos_state)
+      
       end subroutine ca_dersoundspeed
 
 !-----------------------------------------------------------------------
@@ -509,8 +548,7 @@
 
       use network, only: nspec, naux
       use eos_module
-      use eos_type_module
-      use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+      use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX, &
                                     allow_negative_energy
       use bl_constants_module
 
@@ -528,28 +566,38 @@
       double precision :: rhoInv, ux, uy, uz
       integer          :: i, j, k
 
-      type (eos_t) :: eos_state
+      type (eos_t_3D) :: eos_state
 
+      call eos_allocate(eos_state, lo, hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
                rhoInv = ONE / u(i,j,k,URHO)
                
-               eos_state % rho = u(i,j,k,URHO)
-               eos_state % T   = u(i,j,k,UTEMP)
-               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-
-               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-               call eos(eos_input_re, eos_state)
-
-               mach(i,j,k,1) = (u(i,j,k,UMX)**2 + u(i,j,k,UMY)**2 + u(i,j,k,UMZ)**2)**0.5 / u(i,j,k,URHO) &
-                             / eos_state % cs
+               eos_state % rho(i,j,k)  = u(i,j,k,URHO)
+               eos_state % T(i,j,k)    = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)    = u(i,j,k,UEINT) * rhoInv
+               eos_state % xn(i,j,k,:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
 
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
+      
+      call eos(eos_input_re, eos_state)
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               mach(i,j,k,1) = sum(u(i,j,k,UMX:UMZ)**2)**0.5 / u(i,j,k,URHO) / eos_state % cs(i,j,k)
+            enddo
+         enddo
+      enddo
+
+      call eos_deallocate(eos_state)
+      
       end subroutine ca_dermachnumber
 
 !-----------------------------------------------------------------------
@@ -560,7 +608,6 @@
 
       use network, only: nspec, naux
       use eos_module
-      use eos_type_module
       use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
                                     allow_negative_energy
       use bl_constants_module
@@ -579,26 +626,37 @@
       double precision :: rhoInv
       integer          :: i, j, k
 
-      type (eos_t) :: eos_state
+      type (eos_t_3D) :: eos_state
 
+      call eos_allocate(eos_state, lo, hi)
+      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
                rhoInv = ONE / u(i,j,k,URHO)
                
-               eos_state % rho = u(i,j,k,URHO)
-               eos_state % T   = u(i,j,k,UTEMP)
-               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-
-               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-               call eos(eos_input_re, eos_state)
-
-               s(i,j,k,1) = eos_state % s
+               eos_state % rho(i,j,k)  = u(i,j,k,URHO)
+               eos_state % T(i,j,k)    = u(i,j,k,UTEMP)
+               eos_state % e(i,j,k)    = u(i,j,k,UEINT) * rhoInv
+               eos_state % xn(i,j,k,:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo
+
+      if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
+      
+      call eos(eos_input_re, eos_state)
+
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+               s(i,j,k,1) = eos_state % s(i,j,k)
+            enddo
+         enddo
+      enddo
+
+      call eos_deallocate(eos_state)
 
       end subroutine ca_derentropy
 

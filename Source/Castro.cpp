@@ -177,6 +177,7 @@ int          Castro::transverse_reset_rhoe = 0;
 int          Castro::dual_energy_update_E_from_e = 1;
 Real         Castro::dual_energy_eta1 = 1.0e0;
 Real         Castro::dual_energy_eta2 = 1.0e-4;
+Real         Castro::dual_energy_eta3 = 0.0e0;
 
 int          Castro::use_pslope  = 1;
 int          Castro::grav_source_type = 2;
@@ -435,6 +436,7 @@ Castro::read_params ()
     pp.query("dual_energy_update_E_from_e",dual_energy_update_E_from_e);
     pp.query("dual_energy_eta1",dual_energy_eta1);
     pp.query("dual_energy_eta2",dual_energy_eta2);
+    pp.query("dual_energy_eta3",dual_energy_eta3);
 
     pp.query("show_center_of_mass",show_center_of_mass);
     pp.query("print_energy_diagnostics",print_energy_diagnostics);

@@ -25,7 +25,6 @@ contains
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix, hybrid_riemann, &
@@ -68,12 +67,15 @@ contains
     double precision, pointer :: smallc(:,:),cavg(:,:)
     double precision, pointer :: gamcm(:,:),gamcp(:,:)
 
-    type (eos_t) :: eos_state
+    type (eos_t_3D) :: eos_state
+
     integer :: n
     integer :: is_shock
     double precision :: cl, cr
 
     double precision :: rhoInv
+    
+    call eos_allocate(eos_state, (/ ilo, jlo, 1 /), (/ ihi, jhi, 1 /) )
     
     call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
     call bl_allocate (   cavg, ilo,ihi,jlo,jhi)
@@ -125,19 +127,25 @@ contains
 
              ! this is an initial guess for iterations, since we
              ! can't be certain that temp is on interfaces
-             eos_state % T = 10000.0d0
+             eos_state % T(i,j,1) = 10000.0d0
 
              ! minus state
-             eos_state % rho    = qm(i,j,kc,QRHO)
-             eos_state % p      = qm(i,j,kc,QPRES)
-             eos_state % xn(:)  = qm(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux(:) = qm(i,j,kc,QFX:QFX+naux-1)
+             eos_state % rho(i,j,1)   = qm(i,j,kc,QRHO)
+             eos_state % p(i,j,1)     = qm(i,j,kc,QPRES)
+             eos_state % xn(i,j,1,:)  = qm(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux(i,j,1,:) = qm(i,j,kc,QFX:QFX+naux-1)
+             
+          enddo
+       enddo
 
-             call eos(eos_input_rp, eos_state)
+       call eos(eos_input_rp, eos_state)
 
-             qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qm(i,j,kc,QPRES)  = eos_state % p
-             gamcm(i,j)        = eos_state % gam1
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             qm(i,j,kc,QREINT) = eos_state % e(i,j,1) * eos_state % rho(i,j,1)
+             qm(i,j,kc,QPRES)  = eos_state % p(i,j,1)
+             gamcm(i,j)        = eos_state % gam1(i,j,1)
 
           enddo
        enddo
@@ -147,16 +155,22 @@ contains
           do i = ilo, ihi
              rhoInv = ONE / qp(i,j,kc,QRHO)
              
-             eos_state % rho    = qp(i,j,kc,QRHO)
-             eos_state % p      = qp(i,j,kc,QPRES)
-             eos_state % xn(:)  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
-             eos_state % aux(:) = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
+             eos_state % rho(i,j,1)   = qp(i,j,kc,QRHO)
+             eos_state % p(i,j,1)     = qp(i,j,kc,QPRES)
+             eos_state % xn(i,j,1,:)  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
+             eos_state % aux(i,j,1,:) = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
 
-             call eos(eos_input_rp, eos_state)
+          enddo
+       enddo
 
-             qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qp(i,j,kc,QPRES)  = eos_state % p
-             gamcp(i,j)        = eos_state % gam1
+       call eos(eos_input_rp, eos_state)
+
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             qp(i,j,kc,QREINT) = eos_state % e(i,j,1) * eos_state % rho(i,j,1)
+             qp(i,j,kc,QPRES)  = eos_state % p(i,j,1)
+             gamcp(i,j)        = eos_state % gam1(i,j,1)
 
           enddo
        enddo
@@ -223,6 +237,8 @@ contains
     call bl_deallocate(  cavg)
     call bl_deallocate( gamcm)
     call bl_deallocate( gamcp)
+
+    call eos_deallocate(eos_state)
 
   end subroutine cmpflx
 
@@ -348,7 +364,6 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use bl_error_module
     use network, only : nspec, naux
-    use eos_type_module
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -876,6 +891,8 @@ contains
 
     call bl_deallocate(pstar_hist)
     call bl_deallocate(us1d)
+
+    call eos_deallocate(eos_state)
 
   end subroutine riemanncg
 

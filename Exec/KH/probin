@@ -16,3 +16,9 @@
   velgrad = 1.0
 
 /
+
+&extern
+
+  eos_assume_neutral = T
+
+/
