@@ -1,12 +1,19 @@
+# our reaction rate has the form
+#
+#  r = r0 
+
+
 # the coefficient for the reaction rate
-r0      real     1.d0    
+r0            real    1.d0    
 
 # exponent for the temperature
-nu      real     4.d0
+nu            real    4.d0
 
 # reaction Q-value (in erg/g)
-Q_burn  real   10.d0
+Q_burn        real   10.d0
 
-
+# reaction thresholds (for the power law)
+T_burn_ref    real   1.0d0
+rho_burn_ref  real   1.0d0
 
 
