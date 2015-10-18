@@ -23,7 +23,7 @@ ifdef MICROPHYSICS_DIR
   EOS_dir     := gamma_law_general
 
   # This sets the network directory in $(MICROPHYSICS_DIR)/networks
-  Network_dir := kpp
+  Network_dir := powerlaw
 
 else
 
@@ -32,9 +32,6 @@ else
 endif
 
 Conductivity_dir := constant
-
-# This sets the network directory in $(MICROPHYSICS_DIR)/Networks
-Network_dir := powerlaw
 
 Bpack   := ./Make.package
 Blocs   := .
