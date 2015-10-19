@@ -107,9 +107,18 @@ all: $(executable)
 	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
-EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
 
-NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+ifdef MICROPHYSICS_DIR
+      EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
+      NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
+endif
+
+ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
+      EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
+endif
+ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(Network_dir)) )" ""
+      NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
@@ -137,13 +146,14 @@ EXTERN_CORE += $(EOS_PATH)
 
 # the helmholtz EOS has an include file -- also add a target to link the table
 # into the problem directory.
-ifeq ($(findstring helmeos, $(EOS_dir)), helmeos)
+ifeq ($(findstring helmholtz, $(EOS_dir)), helmholtz)
   all: table
 endif
 
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
+include $(NETWORK_HOME)/Make.package
 include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
@@ -158,15 +168,15 @@ ifeq ($(USE_RAD), TRUE)
   EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
 endif
 
-INCLUDE_LOCATIONS += $(EOS_PATH)
 INCLUDE_LOCATIONS += $(EOS_HOME)
-VPATH_LOCATIONS   += $(EOS_PATH)
+INCLUDE_LOCATIONS += $(EOS_PATH)
 VPATH_LOCATIONS   += $(EOS_HOME)
+VPATH_LOCATIONS   += $(EOS_PATH)
 
-INCLUDE_LOCATIONS += $(NETWORK_PATH)
 INCLUDE_LOCATIONS += $(NETWORK_HOME)
-VPATH_LOCATIONS   += $(NETWORK_PATH)
+INCLUDE_LOCATIONS += $(NETWORK_PATH)
 VPATH_LOCATIONS   += $(NETWORK_HOME)
+VPATH_LOCATIONS   += $(NETWORK_PATH)
 
 ifeq ($(USE_DIFFUSION), TRUE)
   INCLUDE_LOCATIONS += $(COND_PATH)
@@ -325,6 +335,17 @@ include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
 clean::
 	$(SILENT) $(RM) extern.f90
 	$(SILENT) $(RM) buildInfo.cpp
+
+# Older versions of CASTRO generated a
+# "network.f90" file when using the
+# general_null network, which conflicts
+# with our generalized network.f90 file.
+# So we should delete the local copy if
+# we are trying to rebuild from an old directory.
+
+clean::
+	$(RM) network.f90
+	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 
 #-----------------------------------------------------------------------------

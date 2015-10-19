@@ -16,6 +16,13 @@ USE_OMP    = FALSE
 # define the location of the CASTRO top directory
 CASTRO_DIR  := ../..
 
+ifdef MICROPHYSICS_DIR
+  # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
+  EOS_dir     := gamma_law_general
+else
+  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+endif
+
 # This sets the EOS directory in Castro/EOS
 EOS_dir     := gamma_law_general
 

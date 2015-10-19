@@ -12,16 +12,9 @@
 !
 ! aux_names        -- the name of the auxiliary variable
 ! short_aux_names  -- an abbreviated form of the auxiliary variable
-!
-!
-! This module contains two routines:
-!
-!  network_init()        -- initialize the isotope properties
-!
-!  network_species_index -- return the index of the species given its name
-!
 
-module network
+
+module actual_network
 
   use bl_types
 
@@ -35,13 +28,11 @@ module network
   character (len=16), save :: aux_names(naux)
   character (len= 5), save :: short_aux_names(naux)
 
-  real(kind=dp_t), save :: aion(nspec), zion(nspec)
-
-  logical, save :: network_initialized = .false.
+  double precision, save   :: aion(nspec), zion(nspec)
 
 contains
   
-  subroutine network_init()
+  subroutine actual_network_init
 
     @@SPEC_NAMES@@
 
@@ -53,35 +44,6 @@ contains
 
     @@AUX_NAMES@@
 
-    network_initialized = .true.
+  end subroutine actual_network_init
 
-  end subroutine network_init
-
-  
-  function network_species_index(name)
-
-    character(len=*) :: name
-    integer :: network_species_index, n
-
-    network_species_index = -1
-
-    do n = 1, nspec
-       if (name == spec_names(n)) then
-          network_species_index = n
-          exit
-       endif
-    enddo
-
-    if (naux > 0) then
-       do n = 1, naux
-          if (name == aux_names(n)) then
-             network_species_index = n
-	     exit
-	  endif
-       enddo
-    endif
-    
-    return
-  end function network_species_index
-
-end module network
+end module actual_network

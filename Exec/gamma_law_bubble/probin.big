@@ -25,3 +25,9 @@
   max_pressgrad_lev = 5
 
 /
+
+&extern
+
+  eos_assume_neutral = T
+
+/

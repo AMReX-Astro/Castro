@@ -65,6 +65,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const Real& burning_timestep_factor,
      const Real& dual_energy_eta1,
      const Real& dual_energy_eta2,
+     const Real& dual_energy_eta3,
      const int& dual_energy_update_E_from_e,
      const int& do_rotation, const int& rot_source_type, const int& rot_axis, 
      const Real& rotational_period, const Real& rotational_period_dot,

@@ -19,4 +19,5 @@
 
 &extern
   const_conductivity = 10.0
+  eos_assume_neutral = T
 /

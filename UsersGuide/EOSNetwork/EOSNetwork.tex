@@ -3,109 +3,57 @@
 \subsection{Standard \castro\ EOSes}
 
 \castro\ is written in a modular fashion so that the EOS and network
-burning routines can be supplied by the user.   However, for the
+burning routines can be supplied by the user. However, for the
 examples presented later we use several EOS and network routines
 that come with the \castro\ distribution.  
 
-EOS routines that come with \castro\ are (listed by directory name):
-\begin{itemize}
+\castro\ relies on routines to calculate the equation of state (EOS) 
+of a fluid, as well as a species network to define the components of 
+the fluid. The network optionally has the ability to do nuclear burning, 
+but for this section its main purpose is in defining the species so that 
+the EOS can calculate fluid properties that depend on composition, such 
+as electron fraction.
 
-\item {\tt gamma\_law\_general} represents a gamma law gas, with equation of state:
+By default, \castro\ comes with the {\tt gamma\_law}
+EOS. This represents a gamma law gas, with equation of state:
 \begin{equation}
   P = (\gamma - 1) \rho e.
 \end{equation}
-The gas is currently assumed to be monatomic and ideal. The entropy comes from the Sackur-Tetrode equation.
+The gas is currently assumed to be monatomic and ideal. 
+%The entropy comes from the Sackur-Tetrode equation. It lives in {\tt EOS/gamma\_law\_general}.
 
-\item {\tt polytrope} represents a polytropic fluid, with equation of state:
-\begin{equation}
-  P = K \rho^\gamma.
-\end{equation}
-The gas is also assumed to obey the above gamma law equation of state
-connecting the pressure and internal energy. Therefore $\rho$ is the
-only independent variable; there is no temperature dependence. The
-user either selects from a set of predefined options reflecting
-physical polytropes (e.g. a non-relativistic, fully degenerate
-electron gas) or inputs their own values for $K$ and $\gamma$.
-
-\item {\tt ztwd} is the zero-temperature degenerate electron equation of state 
-of Chandrasekhar (1935), which is designed to describe white dward material. The 
-pressure satisfies the equation:
-\begin{equation}
-  P(x) = A \left( x(2x^2-3)(x^2 + 1)^{1/2} + 3\, \text{sinh}^{-1}(x) \right),
-\end{equation}
-with $A = \pi m_e^4 c^5 / (3 h^3)$. Here $x$ is a dimensionless measure of density,
-with $\rho = B x^3$ and $B = 8\pi \mu_e m_p m_e^3 c^3 / (3h^3)$, 
-where $\mu_e$ is the electron fraction and $h$ is the Planck constant. The enthalpy 
-was worked out by Hachisu (1986):
-\begin{equation}
-  h(x) = \frac{8A}{B}\left(x^2 + 1\right)^{1/2}.
-\end{equation}
-The internal energy satisfies the standard relationship to the enthalpy:
-\begin{equation}
-  e = h + p / \rho.
-\end{equation}
-Since the pressure-density relationship does not admit a closed-form 
-solution for the density in terms of the pressure, if we call the EOS 
-with pressure as a primary input then we do Newton-Raphson iteration 
-to find the density that matches this pressure.
-
-\item {\tt multigamma} is an ideal gas equation of state where each
-  species can have a different value of $\gamma$.  This mainly affects
-  how the internal energy is constructed as each species, represented
-  with a mass fraction $X_k$ will have its contribution to the total
-  specific internal energy take the form of $e = p/\rho/(\gamma_k -
-  1)$.  The main thermodynamic quantities take the form:
-\begin{align}
-p &= \frac{\rho k T}{m_u} \sum_k \frac{X_k}{A_k} \\
-e &= \frac{k T}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
-h &= \frac{k T}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k}
-\end{align}
-We recognize that the usual astrophysical $\bar{A}^{-1} = \sum_k
-X_k/A_k$, but now we have two other sums that involve different
-$\gamma_k$ weightings.
-
-The specific heats are constructed as usual, 
-\begin{align}
-c_v &= \left . \frac{\partial e}{\partial T} \right |_\rho = 
-    \frac{k}{m_u} \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \\
-c_p &= \left . \frac{\partial h}{\partial T} \right |_p = 
-    \frac{k}{m_u} \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} 
-\end{align}
-and it can be seen that the specific gas constant, $R \equiv c_p - c_v$ is
-independent of the $\gamma_i$, and is simply $R = k/m_u\bar{A}$ giving the
-usual relation that $p = R\rho T$.  Furthermore, we can show
-\begin{equation}
-\Gamma_1 \equiv \left . \frac{\partial \log p}{\partial \log \rho} \right |_s =  
-   \left ( \sum_k \frac{\gamma_k}{\gamma_k - 1} \frac{X_k}{A_k} \right ) \bigg /
-   \left ( \sum_k \frac{1}{\gamma_k - 1} \frac{X_k}{A_k} \right ) =
-\frac{c_p}{c_v} \equiv \gamma_\mathrm{effective} 
-\end{equation}
-and $p = \rho e (\gamma_\mathrm{effective} - 1)$.
-
-This equation of state takes several runtime parameters that can set the
-$\gamma_i$ for a specific species.  These are set in the {\tt \&extern}
-namelist in the {\tt probin} file.  The parameters are:
-\begin{itemize}
-\item {\tt eos\_gamma\_default}: the default $\gamma$ to apply for
-  all species
-\item {\tt species\_X\_name} and {\tt species\_X\_gamma}: set the $\gamma_i$
-  for the species whose name is given as {\tt species\_X\_name} to the
-  value provided by {\tt species\_X\_gamma}.  Here, {\tt X} can be one
-  of the letters: {\tt a}, {\tt b}, or {\tt c}, allowing us to specify
-  custom $\gamma_i$ for up to three different species.
-\end{itemize}
-
-\item {\tt helmeos} contains a general, publicly available
-stellar equation of state based on the Helmholtz free energy,
-with contributions from ions, radiation, and electron degeneracy, as
-described in (Timmes and Arnett 1999, Times and Swesty 2000, and Fryxell et al. 2000).
-
-%% \item {\bf LattimerSwestyEOS} directory contains a modified version of the
-%% LS EOS available at http://www.astro.sunysb.edu/dswesty.  Full
-%% documentation is available through that web site.  We use this EOS
-%% in the 1D core collapse supernova example in a later section.
-\end{itemize}
-
+The equation of state interface is designed to accept a particular 
+type of Fortran derived data type (which for our purposes is analogous
+to a C++ struct), the {\tt eos\_t}. It stores a complete set of thermodynamic
+variables. When calling the EOS, you should first fill the variables
+that are the inputs, for example with
+\begin{align*}
+  &\texttt{type (eos\_t) :: eos\_state} \\
+  &\texttt{...} \\
+  &\texttt{eos\_state } \% \texttt{ rho = state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ T   = state(i,j,k,UTEMP)} \\
+  &\texttt{eos\_state } \% \texttt{ e   = state(i,j,k,UEINT) / state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)}.
+\end{align*}
+We also provide variants of this, {\tt eos\_t\_1D}, {\tt eos\_t\_2D}, and {\tt eos\_t\_3D}, 
+that are used within the \castro\ code and can be used in your own code too. For these,
+we hold (respectively) 1D, 2D, or 3D arrays of the data corresponding to the 3D state data. 
+A 3D example of how to use this inside a function that operates over array bounds {\tt lo} to 
+{\tt hi} is:
+\begin{align*}
+  &\texttt{type (eos\_t\_3D) :: eos\_state} \\
+  &\texttt{...} \\
+  &\texttt{eos\_state = eos\_t\_3D(lo,hi)} \\
+  &\texttt{...} \\
+  &\texttt{eos\_state } \% \texttt{ rho(i,j,k) = state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ T(i,j,k)   = state(i,j,k,UTEMP)} \\
+  &\texttt{eos\_state } \% \texttt{ e(i,j,k)   = state(i,j,k,UEINT) / state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ xn(i,j,k)  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)} \\
+  &\texttt{eos\_state } \% \texttt{ aux(i,j,k) = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)}.
+\end{align*}
+The \texttt{eos\_state = eos\_t\_3D(lo,hi)} line initializes the individual arrays (e.g. {\tt rho}, {\tt T})
+with the same array bounds as {\tt lo} and {\tt hi}.
 
 \subsection{EOS Interfaces and Parameters}
 
@@ -115,16 +63,20 @@ will perform any initialization steps and save EOS variables (mainly
 \texttt{smallt}, the temperature floor, and \texttt{smalld}, the
 density floor). Then, whenever you want to call the EOS, use
 \[
-{\bf \rm eos}(\texttt{eos\_input, eos\_state, do\_eos\_diag, pt\_index}).
+  {\tt call\ eos (eos\_input, eos\_state)}.
 \]
-The first argument specifies the inputs to the EOS, which will be held
-constant. The options that are currently available are stored in
+The first argument specifies the inputs to the EOS. The options 
+that are currently available are stored in
 {\tt EOS/eos\_data.F90}, and are always a combination of two
-thermodynamic quantities. For real (non-analytic) equations of state
+thermodynamic quantities. For example, {\tt eos\_input\_rt} means 
+that we call the EOS with {\tt rho} (density) and {\tt T} (temperature) 
+and we expect the EOS to return the associated thermodynamic 
+quantities such as internal energy {\tt e} and entropy {\tt s}.
+
+We note that for real (non-analytic) equations of state
 in which $\rho$, $T$ and species are the independent variables, such
 as the Helmholtz EOS, {\tt eos\_input\_rt} directly calls the EOS
-and obtains the other thermodynamic variables (internal energy,
-pressure, $\gamma$, sound speed, etc.). For other inputs,
+and obtains the other thermodynamic variables. But for other inputs,
 e.g. {\tt eos\_input\_re}, a Newton-Raphson iteration is performed
 to find the density or temperature that corresponds to the given
 input.
@@ -144,128 +96,97 @@ thermodynamic state variables are filled with unphysical numbers. If
 you do not input the correct arguments to match your input quantities,
 the EOS will call an error. However, this means that it is good
 practice to fill the quantities that will be iterated over with an
-initial guess. The values they are initialized with will likely not
+initial guess. Indeed, this initial guess is typically required for 
+equations of state that ierate over this variable, as the values 
+they are initialized with will likely not
 converge. Usually a prior value of the temperature or density suffices
 if it's available, but if not then use \texttt{small\_temp} or
-\texttt{small\_dens}. 
+\texttt{small\_dens}.
 
-The last two arguments are optional quantities: set \texttt{do\_eos\_diag} to \texttt{.true.} if you want diagnostic output as the iterations occur, and set \texttt{pt\_index} to be equal to the indices of the current zone if you want the zone information to be displayed on any error messages.
+There are a few parameters that exist for all equations of state.
+At present, the only one that hasn't been mentioned yet is
+\texttt{eos\_assume\_neutral}, which if set to true means that
+none of the atoms are ionized. Otherwise, by default we assume
+full ionization. For now, only the gamma law EOS is configured
+to permit this to be true.
 
-Please note that there is an important difference with how the
-Helmholtz EOS is treated now, compared to \castro's original behavior,
-when the temperature or density reaches their respective floors
-({\tt small\_temp} and {\tt small\_dens}) in a Newton-Raphson
-iteration (such as when you call it with
-{\tt eos\_input\_re}). Previously, we would have the outgoing state
-be thermodynamically inconsistent because the density or temperature
-would be floored but the internal energy would be the same as the
-input. Now, by default, the outgoing state is always thermodynamically
-consistent, which means that the argument that was previously held
-constant may substantially differ from its input. In our testing, we
-have found that retaining this thermodynamic consistency is necessary
-for accurately treating shocks. If you wish to disable this behavior,
-set \texttt{eos\_input\_is\_constant = F} in your \texttt{extern}
-namelist in your probin file.
+If you are interested in using more realistic and sophisticated equations of 
+state, you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics} 
+repository. This is a collection of microphysics routines that are compatible with the 
+\boxlib\ codes. We refer you to the documentation in that repository for how to set it up 
+and for information on the equations of state provided. That documentation 
+also goes into more detail about the details of the EOS code, in case you are interested in 
+how it works (and in case you want to develop your own EOS).
+
+\section{Nuclear Network}
+
+The nuclear network serves two purposes: it defines the fluid components used 
+in both the equation of state and the hydrodynamics, and it evolves those 
+components through a nuclear burning step. \castro\ comes with a {\tt general\_null} 
+network (which lives in the {\tt Networks/} directory). This is a bare interface for a
+nuclear reaction network. No reactions are enabled, and no auxiliary variables 
+are accepted. It contains several sets of isotopes; for example, 
+{\tt Networks/general\_null/triple\_alpha\_plus\_o.net} would describe the 
+isotopes needed to represent the triple-$\alpha$ reaction converting 
+helium into carbon, as well as oxygen and iron.
+
+The main interface file, {\tt network.f90}, is a wrapper function. The 
+actual network details are defined in {\tt Networks/general\_null/general\_null\_network.f90}.
+It supplies the number and names of species and auxiliary variables, as
+well as other initializing data, such as their mass numbers, proton numbers, and the binding
+energies.
+
+The burning front-end interface, {\tt Networks/burner.f90}, accepts a normal 
+\castro\ state MultiFab and converts it to a 
+{\tt eos\_t\_1D}, {\tt eos\_t\_2D}, or {\tt eos\_t\_3D} type (as defined 
+in the previous section), so that it can be sent to the back-end burning routine. 
+The network is designed to use the same EOS type that the EOS itself uses. It 
+accepts as input a given EOS state, and returns an updated EOS state. The 
+nuclear energy release can be computed by taking the difference of 
+{\tt eos\_state\_out \% e} and {\tt eos\_state\_in \% e}. The species 
+change can be computed analogously. The integration occurs over a 
+time interval of $\Delta t/2$, where $\Delta t$ is the hydrodynamics timestep.
+
+If you are interested in using more actual nuclear burning networks,
+you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics} 
+repository. This is a collection of microphysics routines that are compatible with the 
+\boxlib\ codes. We refer you to the documentation in that repository for how to set it up 
+and for information on the networks provided. That documentation 
+also goes into more detail about the details of the network code, in case you are interested in 
+how it works (and in case you want to develop your own network).
 
 \subsection{Required Thermodynamics Quantities}
 
+Three input models are required of any EOS:
+\begin{itemize}
+\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
+\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
+\item {\tt eos\_input\_rp}: $\rho$, $P$, and $X_k$ are input
+\end{itemize}
+
 The {\tt eos\_t} derived type holds a large number of thermodynamics
 quantities, but not all of these are needed for basic
-\castro\ operation.  The main quantties that any EOS needs to
-supply are:
+\castro\ operation.  The main quantties that any EOS in any mode needs to
+supply, if they are not input, are:
 \begin{itemize}
-  \item {\tt eos\_state \% cs}: the adiabatic sound speed
+  \item {\tt eos\_state \% T}: the temperature
+  \item {\tt eos\_state \% P}: total pressure
+  \item {\tt eos\_state \% e}: the specific energy
   \item {\tt eos\_state \% gam1}: the first adiabatic index, 
        $\Gamma_1 = d\log P / d\log \rho |_s$
-  \item {\tt eos\_state \% p}: total pressure
+\end{itemize}
+Additionally the {\tt eos\_input\_re} mode also needs to supply:
+\begin{itemize}
+  \item {\tt eos\_state \% cs}: the adiabatic sound speed
   \item {\tt eos\_state \% dpdr\_e}: the derivative, $\partial
     p/\partial \rho |_e$---note that the specific internal energy, $e$
     is held constant here.
   \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
     \partial e |_\rho$
 \end{itemize}
-
-A wider array of quantities (e.g., entropy) are needed for the derived
-variables that are optionally output into the plotfiles.
-
-Additionally, two input modes are required of any EOS:
+For radiation hydro, the {\tt eos\_input\_rt} model needs to supply:
 \begin{itemize}
-\item {\tt eos\_input\_re}: $\rho$, $e$, and $X_k$ are input
-\item {\tt eos\_input\_rt}: $\rho$, $T$, and $X_k$ are input
+  \item {\tt eos\_state \% cv}: the specific heat capacity.
 \end{itemize}
-
-
-
-\section{Burning Network}
-Burning network routines that come with \castro\ are (listed by directory name):
-\begin{itemize}
-\item {\tt Networks/general\_null} directory is a bare interface for a
-  nuclear reaction network, but no reactions are enabled, and no
-  auxiliary variables are accepted. It contains several sets of
-  isotopes; for example,
-  {\tt Networks/general\_null/triple\_alpha\_plus\_o.net} would describe the
-  triple-$\alpha$ reaction converting helium into carbon, as well as
-  oxygen and iron.
-\item {\tt Networks/ignition\_simple} directory contains a single-step
-  $^{12}\mathrm{C}(^{12}\mathrm{C},\gamma)^{24}\mathrm{Mg}$ reaction.
-  The carbon mass fraction equation appears as
-\begin{equation}
-\frac{D X(^{12}\mathrm{C})}{Dt} = - \frac{1}{12} \rho X(^{12}\mathrm{C})^2
-    f_\mathrm{Coul} \left [N_A \left <\sigma v \right > \right]\enskip,
-\end{equation}
-where $N_A \left <\sigma v\right>$ is evaluated using the reaction
-rate from (Caughlan and Fowler 1988).  The Coulomb screening factor,
-$f_\mathrm{Coul}$, is evaluated using the general routine from the
-Kepler stellar evolution code (Weaver 1978), which implements the work
-of (Graboske 1973) for weak screening and the work of (Alastuey 1978
-and Itoh 1979) for strong screening.
-\end{itemize}
-
-There are two primary files within each network directory. The first,
-{\tt castro\_burner.f90}, contains the burner routine, which takes
-$\rho^\inp, e^\inp, X_k^\inp$, and $\Delta t$ as inputs.  It is
-possible for the internal energy, $e$, which is computed from $\Ub$,
-to be negative due to roundoff error.  \castro\ has an option to protect
-against using a negative value of $e$ by recomputing $e =
-e(\rho,T_{\rm small},X_k)$ using the equation of state, where $T_{\rm
-  small}$ is a user-defined temperature floor.  In the event that $e$
-is still negative, we abort the program.  \castro\ also has an option to
-skip the reactions if the density is below a user-defined density
-floor.
-
-Next, the burner computes $T = T(\rho^\inp,e^\inp,X_k^\inp)$ using the
-equation of state.  The burner returns $X_k^\outp$ and $e^\outp$ by
-solving over a time interval of $\Delta t/2$,
-\begin{eqnarray}
-\frac{\partial X_k}{\partial t} &=& \omegadot_k.\\
-\end{eqnarray}
-In particular, to evolve the species, we solve the system:
-\begin{eqnarray}
-\frac{dX_k}{dt} &=& \omegadot_k(\rho,X_k,T)\enskip, \label{eq:VODE1C} \\
-\frac{dT}{dt} &=&\frac{1}{c_p} \left ( -\sum_k \xi_k  \omegadot_k  \right )\enskip. \label{eq:tempreactC}
-\end{eqnarray}
-\MarginPar{Need to include temperature evolution equation somewhere}
-using the stiff ordinary differential equation integration methods
-provided by the VODE package.  The absolute error tolerances are set
-to $10^{-12}$ for the species, and a relative tolerance of $10^{-5}$
-is used for the temperature.  The integration yields the new values of
-the mass fractions, $X_k^\outp$.  Equation (\ref{eq:tempreactC}) is
-derived from equation (???) by assuming that the pressure is constant
-during the burn state.  In evolving these equations, we need to
-evaluate $c_p$ and $\xi_k$.  In theory, this means evaluating the
-equation of state for each right-hand side evaluation that VODE
-requires.  In practice, we freeze $c_p$ and $\xi_k$ at the start of
-the integration time step and compute them using $\rho^\inp,
-X_k^\inp,$ and $T^\inp$ as inputs to the equation of state.  Note that
-the density remains unchanged during the burning.  At the end of the
-routine, we compute $T^\outp = T(\rho^\outp,e^{\outp},X_k^\outp)$.
-
-The second file, {\tt network.f90}, supply the number of species and
-auxiliary variables, names of each species and auxiliary variable, as
-well as other initializing data, such as aion, zion and the binding
-energy.
-
-It is straightforward to implement additional EOS and network
-routines; all that is required is to create an appropriate interface
-to the \castro\ calls, which is easily done given the prototypes
-supplied with the \castro\ distribution.
+Other quantities (e.g., entropy) might be needed for the derived
+variables that are optional output into the plotfiles.

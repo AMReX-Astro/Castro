@@ -73,7 +73,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0   ! we need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     e_s = eos_state%e
 
@@ -244,7 +244,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0   ! we need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     ! we need to find the range of W that brackets the root
     contained = .false.
@@ -360,7 +360,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0   ! we need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     ! compute the correction
     f = W_s**2 * (eos_state%e - e_s) - HALF*(pstar**2 - p_s**2)
@@ -432,7 +432,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0_dp_t   ! need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     Z_s = sqrt(eos_state%gam1*p/tau)
 
@@ -507,7 +507,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0_dp_t   ! need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     c = sqrt(eos_state%gam1*p*tau)
 
@@ -551,7 +551,7 @@ contains
        eos_state%T = 100000.0_dp_t   ! need an initial guess
 
        !print *, 'calling EOS:',  tau, p, xn
-       call eos(eos_input_rp, eos_state, .false.)
+       call eos(eos_input_rp, eos_state)
 
        c = sqrt(eos_state%gam1*p*tau)
 
@@ -609,7 +609,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0_dp_t   ! need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     C = sqrt(eos_state%gam1*p/tau)
 
@@ -643,7 +643,7 @@ contains
     eos_state%xn(:) = xn(:)
     eos_state%T = 100000.0_dp_t   ! need an initial guess
 
-    call eos(eos_input_rp, eos_state, .false.)
+    call eos(eos_input_rp, eos_state)
 
     C = sqrt(eos_state%gam1*p/tau)
 
