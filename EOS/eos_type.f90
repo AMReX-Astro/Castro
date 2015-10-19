@@ -592,6 +592,32 @@ contains
 
 
 
+  ! Normalize the mass fractions: they must be individually positive and less than one,
+  ! and they must all sum to unity.
+
+  subroutine normalize_abundances(state)
+
+    use bl_constants_module
+    use network
+
+    implicit none
+
+    type (eos_t_vector), intent(inout) :: state
+
+    integer :: i    
+
+    do i = 1, state % N
+
+       state % xn(i,:) = max(smallx, min(ONE, state % xn(i,:)))
+
+       state % xn(i,:) = state % xn(i,:) / sum(state % xn(i,:))
+
+    enddo
+  
+  end subroutine normalize_abundances
+
+
+
   ! Given an index i, return a scalar eos_t type corresponding to that index.
   
   subroutine get_eos_t(state_vector, state, i)

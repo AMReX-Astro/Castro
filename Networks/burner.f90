@@ -44,17 +44,10 @@ contains
     
     call actual_burner(state_vector_in, state_vector_out, dt, time)
 
-    ! Normalize the mass fractions: they must be individually positive and less than one,
-    ! and they must all sum to unity.
+    ! Normalize the mass fractions to unity.
+
+    call normalize_abundances(state_vector_out)
     
-    do i = 1, state_vector_out % N
-
-       state_vector_out % xn(i,:) = max(smallx, min(ONE, state_vector_out % xn(i,:)))
-
-       state_vector_out % xn(i,:) = state_vector_out % xn(i,:) / sum(state_vector_out % xn(i,:))
-
-    enddo
-       
     ! Now update the temperature to match the new internal energy.
 
     call eos(eos_input_re, state_vector_out)
