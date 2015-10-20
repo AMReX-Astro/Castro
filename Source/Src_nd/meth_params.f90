@@ -80,6 +80,7 @@ module meth_params_module
   integer, save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
+  double precision, save :: diffuse_cutoff_density
   integer, save :: rot_source_type
   integer, save :: rot_axis
 

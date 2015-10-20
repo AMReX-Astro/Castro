@@ -47,7 +47,7 @@ subroutine ca_estdt_diffusion(lo,hi,state,s_lo,s_hi,dx,dt)
 
            ! maybe we should check (and take action) on negative cv here?
            D = cond*rho_inv/eos_state%cv
-
+           
            dt1 = HALF*dx(1)**2/D
 
            if (dim >= 2) then

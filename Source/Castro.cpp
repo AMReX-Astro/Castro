@@ -122,6 +122,7 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 Diffusion*    Castro::diffusion  = 0;
 int           Castro::diffuse_temp = 0;
+Real          Castro::diffuse_cutoff_dens = -1.e200;
 #endif
 
 #ifdef RADIATION
@@ -392,6 +393,7 @@ Castro::read_params ()
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
+    pp.query("diffuse_temp",diffuse_cutoff_density);
 #endif
 
     pp.query("grown_factor",grown_factor);

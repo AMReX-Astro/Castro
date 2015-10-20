@@ -275,6 +275,7 @@
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
                                    do_rotation_in, rot_source_type_in, rot_axis_in, &
                                    rot_period_in, rot_period_dot_in, &
+                                   diffuse_cutoff_density_in, &
                                    const_grav_in, deterministic_in, do_acc_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -311,7 +312,7 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: burning_timestep_factor_in
-        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in
+        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in, diffuse_cutoff_density_in
         integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
         integer, intent(in) :: deterministic_in, do_acc_in
         integer :: iadv, ispec
@@ -527,6 +528,7 @@
         rot_period_dot               = rot_period_dot_in
         rot_source_type              = rot_source_type_in
         rot_axis                     = rot_axis_in
+        diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
         deterministic                = deterministic_in .ne. 0
         do_acc                       = do_acc_in

@@ -212,6 +212,10 @@ Castro::variableSetUp ()
     static int  rot_source_type = -1;
 #endif
 
+#ifndef DIFFUSION
+    static Real diffuse_cutoff_density = -1.e200;
+#endif
+
     // we want const_grav in F90, get it here from parmparse, since it
     // it not in the Castro namespace
     ParmParse pp("gravity");
@@ -237,6 +241,7 @@ Castro::variableSetUp ()
 	 burning_timestep_factor,
 	 dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e,
 	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_period_dot,
+	 diffuse_cutoff_density,
 	 const_grav, deterministic, do_acc);
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
