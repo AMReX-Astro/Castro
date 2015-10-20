@@ -122,7 +122,7 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 Diffusion*    Castro::diffusion  = 0;
 int           Castro::diffuse_temp = 0;
-Real          Castro::diffuse_cutoff_dens = -1.e200;
+Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
 #ifdef RADIATION
