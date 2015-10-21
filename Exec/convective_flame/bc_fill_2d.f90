@@ -83,6 +83,10 @@ end subroutine ca_denfill
 subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
      domlo,domhi,delta,xlo,time,bc)
 
+  ! note that this is used for both gravity and rotation.  For
+  ! our lower boundary, where we have inflow, we'll implement
+  ! our own zero-gradient (outflow) BC.
+
   use probdata_module
   implicit none
   include 'bc_types.fi'
