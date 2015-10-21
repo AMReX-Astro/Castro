@@ -97,7 +97,16 @@ subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
+  integer :: bc_temp(2,2)
+
+  bc_temp(:,:) = bc(:,:,1)
+
+  if ( bc(2,1,1).eq.EXT_DIR .and. grav_l2.lt.domlo(2)) then
+     bc_temp(2,1) = FOEXTRAP
+  endif
+
+  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
+             domlo,domhi,delta,xlo,bc_temp)
 
 end subroutine ca_gravxfill
 
@@ -118,29 +127,16 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-  integer :: i, j
+  integer :: bc_temp(2,2)
 
-  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
+  bc_temp(:,:) = bc(:,:,1)
 
-  !     YLO
   if ( bc(2,1,1).eq.EXT_DIR .and. grav_l2.lt.domlo(2)) then
-     do j=domlo(2)-1,grav_l2,-1
-        do i=grav_l1, grav_h1
-           grav(i,j) = const_grav
-        enddo
-     enddo
-     
-  end if
+     bc_temp(2,1) = FOEXTRAP
+  endif
 
-  !     YHI
-  if ( bc(2,2,1).eq.EXT_DIR .and. grav_h2.gt.domhi(2)) then
-     do j=domhi(2)+1,grav_h2
-        do i=grav_l1, grav_h1
-           grav(i,j) = const_grav
-        enddo
-     enddo
-     
-  end if
+  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
+             domlo,domhi,delta,xlo,bc_temp)
 
 end subroutine ca_gravyfill
 
@@ -159,7 +155,16 @@ subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   double precision delta(2), xlo(2), time
   double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
+  integer :: bc_temp(2,2)
+
+  bc_temp(:,:) = bc(:,:,1)
+
+  if ( bc(2,1,1).eq.EXT_DIR .and. grav_l2.lt.domlo(2)) then
+     bc_temp(2,1) = FOEXTRAP
+  endif
+
+  call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
+             domlo,domhi,delta,xlo,bc_temp)
 
 end subroutine ca_gravzfill
 
