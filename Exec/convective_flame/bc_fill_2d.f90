@@ -183,8 +183,16 @@ subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
   double precision :: delta(2), xlo(2), time
   double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
+  integer :: bc_temp(2,2)
+
+  bc_temp(:,:) = bc(:,:,1)
+
+  if ( bc(2,1,1).eq.EXT_DIR .and. phi_l2.lt.domlo(2)) then
+     bc_temp(2,1) = FOEXTRAP
+  endif
+
   call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
-             domlo,domhi,delta,xlo,bc)
+             domlo,domhi,delta,xlo,bc_temp)
 
 end subroutine ca_phigravfill
 
@@ -202,7 +210,15 @@ subroutine ca_reactfill(react,react_l1,react_l2, &
   double precision :: delta(2), xlo(2), time
   double precision :: react(react_l1:react_h1,react_l2:react_h2)
 
+  integer :: bc_temp(2,2)
+
+  bc_temp(:,:) = bc(:,:,1)
+
+  if ( bc(2,1,1).eq.EXT_DIR .and. react_l2.lt.domlo(2)) then
+     bc_temp(2,1) = FOEXTRAP
+  endif
+
   call filcc(react,react_l1,react_l2,react_h1,react_h2, &
-             domlo,domhi,delta,xlo,bc)
+             domlo,domhi,delta,xlo,bc_temp)
 
 end subroutine ca_reactfill
