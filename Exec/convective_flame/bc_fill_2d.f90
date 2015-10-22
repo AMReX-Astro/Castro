@@ -41,7 +41,6 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
 
   use probdata_module
   use interpolate_module
-  use eos_module, only: gamma_const
   use hse_bc_module
 
   implicit none
@@ -51,9 +50,6 @@ subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
   integer domlo(2), domhi(2)
   double precision delta(2), xlo(2), time
   double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
-
-  integer i,j
-  double precision y,H
 
   ! Note: this function should not be needed, technically, but is
   ! provided to filpatch because there are many times in the algorithm
@@ -116,7 +112,6 @@ subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
      domlo,domhi,delta,xlo,time,bc)
 
   use probdata_module
-  use meth_params_module, only: const_grav
 
   implicit none
   include 'bc_types.fi'

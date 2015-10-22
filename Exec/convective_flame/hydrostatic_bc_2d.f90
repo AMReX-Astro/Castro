@@ -24,7 +24,7 @@ contains
     double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
     logical, intent(in), optional :: density_only
 
-    integer :: i, j, q, n, iter
+    integer :: i, j, iter
     double precision :: y, y0, slope
     double precision :: pres_above, p_want, pres_zone, A
     double precision :: drho,dpdr, temp_zone, eint, X_zone(nspec), dens_zone
@@ -167,7 +167,7 @@ contains
                         domlo,domhi,delta,xlo,time,bc, density_only)
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP
     use interpolate_module
     use eos_module
     use network, only: nspec
@@ -180,8 +180,7 @@ contains
     double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
     logical, intent(in), optional :: density_only
 
-    integer i,j,n
-    double precision y
+    integer i,j
 
     logical :: just_density
 

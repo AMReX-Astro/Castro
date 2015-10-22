@@ -79,9 +79,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use model_parser_module
   use interpolate_module
-  use prob_params_module, only: center, problo
+  use prob_params_module, only: problo
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
-                                 UFS, UTEMP, const_grav
+                                 UFS, UTEMP
   use eos_module
   use eos_type_module
   use network, only: nspec, network_species_index
@@ -95,7 +95,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   integer :: i, j, n
-  double precision :: xn(nspec), x, y
+  double precision :: x, y
 
   double precision :: dens, temp, pres
 
