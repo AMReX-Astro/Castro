@@ -1185,8 +1185,13 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
     else
     {
         MultiFab CPhi;
-        Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
-        GetCrsePhi(level,CPhi,cur_time);
+        Real time;
+	if (is_new) {
+	    time = LevelData[level].get_state_data(PhiGrav_Type).curTime();
+	} else {
+	    time = LevelData[level].get_state_data(PhiGrav_Type).prevTime();
+	}
+        GetCrsePhi(level,CPhi,time);
         BoxArray crse_boxes = BoxArray(grids[level]).coarsen(crse_ratio);
         const int in_rad     = 0;
         const int out_rad    = 1;
