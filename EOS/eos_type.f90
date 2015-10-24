@@ -557,40 +557,6 @@ contains
   end subroutine composition
 
   
-  
-  ! Compute thermodynamic derivatives with respect to xn(:)
-
-  subroutine composition_derivatives(state)
-
-    use bl_constants_module
-    use network
-
-    implicit none
-
-    type (eos_t_vector), intent(inout) :: state
-
-    integer :: i
-
-    do i = 1, state % N
-
-       state % dpdX(i,:) = state % dpdA(i) * (state % abar(i)/aion(:)) &
-                         * (aion(:) - state % abar(i))             &
-                         + state % dpdZ(i) * (state % abar(i)/aion(:)) &
-                         * (zion(:) - state % zbar(i))
-
-       state % dEdX(i,:) = state % dedA(i) * (state % abar(i)/aion(:)) &
-                         * (aion(:) - state % abar(i))             &
-                         + state % dedZ(i) * (state % abar(i)/aion(:)) &
-                         * (zion(:) - state % zbar(i))
-
-       state % dhdX(i,:) = state % dedX(i,:) &
-                         + (state % p(i) / state % rho(i)**2 - state % dedr(i)) &
-                         *  state % dPdX(i,:) / state % dPdr(i)
-    enddo
-
-  end subroutine composition_derivatives
-
-
 
   ! Normalize the mass fractions: they must be individually positive and less than one,
   ! and they must all sum to unity.
