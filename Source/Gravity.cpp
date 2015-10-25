@@ -1337,180 +1337,61 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
 }
 
 void
-Gravity::test_composite_phi (int level)
+Gravity::test_composite_phi (int crse_level)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
-        std::cout << "... test_composite_phi at base level " << level << '\n';
+        std::cout << "... test_composite_phi at base level " << crse_level << '\n';
     }
 
     int finest_level = parent->finestLevel();
-    int nlevs = finest_level- level + 1;
+    int nlevels = finest_level - crse_level + 1;
 
-    std::vector<BoxArray> bav(nlevs);
-    std::vector<DistributionMapping> dmv(nlevs);
+    PArray<MultiFab> phi(nlevels, PArrayManage);
+    PArray<MultiFab> rhs(nlevels, PArrayManage);
+    PArray<MultiFab> res(nlevels, PArrayManage);
+    for (int ilev = 0; ilev < nlevels; ++ilev) 
+    {
+	int amr_lev = crse_level + ilev;
 
-    for (int lev = 0; lev < nlevs; lev++) {
-       bav[lev] = grids[level+lev];
-       MultiFab& S_new = LevelData[level+lev].get_new_data(State_Type);
-       dmv[lev] = S_new.DistributionMap();
+	phi.set(ilev, new MultiFab(grids[amr_lev],1,1));
+	MultiFab::Copy(phi[ilev], 
+		       LevelData[amr_lev].get_new_data(PhiGrav_Type),
+		       0,0,1,1);
+
+	rhs.set(ilev, new MultiFab(grids[amr_lev],1,1));
+	MultiFab::Copy(rhs[ilev], 
+		       LevelData[amr_lev].get_new_data(State_Type),
+		       Density,0,1,0);
+
+	res.set(ilev, new MultiFab(grids[amr_lev],1,0));
+	res[amr_lev].setVal(0.);
     }
-    std::vector<Geometry> fgeom(nlevs);
-    for (int i = 0; i < nlevs; i++) 
-      fgeom[i] = parent->Geom(level+i);
 
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
+    Array< PArray<MultiFab> > grad_phi_null;
+
+    Real time = LevelData[crse_level].get_state_data(PhiGrav_Type).curTime();
     
-    Array< Array<Real> > xa(nlevs);
-    Array< Array<Real> > xb(nlevs);
+    solve_phi_with_fmg(crse_level, finest_level,
+		       phi, rhs, grad_phi_null, res, time);
 
-    for (int lev = 0; lev < nlevs; lev++) 
+    // Average residual from fine to coarse level before printing the norm
+    for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
     {
-        xa[lev].resize(BL_SPACEDIM);
-        xb[lev].resize(BL_SPACEDIM);
-         if ( level+lev == 0 ) {
-           for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-             xa[lev][i] = 0.;
-             xb[lev][i] = 0.;
-           }
-         } else {
-           const Real* dx_crse   = parent->Geom(level+lev-1).CellSize();
-           for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-             xa[lev][i] = 0.5 * dx_crse[i];
-             xb[lev][i] = 0.5 * dx_crse[i];
-           } 
-         } 
+	const IntVect& ratio = parent->refRatio(amr_lev);
+	avgDown(res[amr_lev], res[amr_lev+1], ratio);
+    } 
+
+    for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
+	Real resnorm = res[amr_lev].norm0();
+	if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << "      ... norm of composite residual at level " 
+		      << amr_lev << "  " << resnorm << '\n';
+	}
     }
-
-    MultiFab** phi_p = new MultiFab*[nlevs];
-    MultiFab** Rhs_p = new MultiFab*[nlevs];
-    MultiFab** Res_p = new MultiFab*[nlevs];
-
-    Array< PArray<MultiFab> > coeffs(nlevs);
-
-    for (int lev = 0; lev < nlevs; lev++)
-    {
-       BoxArray boxes(grids[level+lev]);
-
-       phi_p[lev] = new MultiFab(boxes,1,1);
-       MultiFab::Copy(*(phi_p[lev]),LevelData[level+lev].get_new_data(PhiGrav_Type),0,0,1,1);
-
-       Rhs_p[lev] = new MultiFab(boxes,1,0);
-       Rhs_p[lev]->setVal(0.0);
-
-       MultiFab::Copy(*(Rhs_p[lev]),LevelData[level+lev].get_new_data(State_Type),Density,0,1,0);
-
-       // This is a correction for fully periodic domains only
-       if ( Geometry::isAllPeriodic() )
-       {
-          if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
-             std::cout << " ... subtracting average density from RHS in solve at level ... " 
-                       << level+lev << " " << mass_offset << std::endl;
-	  (*Rhs_p[lev]).plus(-mass_offset,0,1,0);
-       }
-
-       Rhs_p[lev]->mult(Ggravity,0,1);
-
-#if (BL_SPACEDIM < 3)
-       if (Geometry::IsRZ() || Geometry::IsSPHERICAL()) {
-	   coeffs[lev].resize(BL_SPACEDIM,PArrayManage);
-	   for (int i = 0; i < BL_SPACEDIM ; i++) {
-	       coeffs[lev].set(i, new MultiFab(grids[level+lev], 1, 0, Fab_allocate, 
-					       IntVect::TheDimensionVector(i)));
-	       coeffs[lev][i].setVal(1.0);
-	   }
-	   
-	   applyMetricTerms(level+lev,(*Rhs_p[lev]),coeffs[lev]);
-       }
-#endif
-
-       Res_p[lev] = new MultiFab(boxes,1,0);
-       Res_p[lev]->setVal(0.);
-    }
-
-    // Move filling of bndry to here so we can use Rhs and phi from above
-    IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
-                                   : IntVect::TheZeroVector();
-
-    //
-    // Store the Dirichlet boundary condition for phi in bndry.
-    //
-    const Geometry& geom = parent->Geom(level);
-    MacBndry bndry(grids[level],1,geom);
-    const int src_comp  = 0;
-    const int dest_comp = 0;
-    const int num_comp  = 1;
-
-    // Build the homogeneous boundary conditions.  One could setVal
-    // the bndry fabsets directly, but we instead do things as if
-    // we had a fill-patched mf with grows--in that case the bndry
-    // object knows how to grab grow data from the mf on physical
-    // boundarys.  Here we creat an mf, setVal, and pass that to
-    // the bndry object.
-    //
-    if (level == 0)
-    {
-//        bndry.setHomogValues(*phys_bc,crse_ratio);
-        bndry.setBndryValues(*(phi_p[0]),src_comp,dest_comp,num_comp,*phys_bc);
-    }
-    else
-    {
-        MultiFab CPhi;
-        Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
-        GetCrsePhi(level,CPhi,cur_time);
-        BoxArray crse_boxes = BoxArray(grids[level]).coarsen(crse_ratio);
-        const int in_rad     = 0;
-        const int out_rad    = 1;
-        const int extent_rad = 2;
-        BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
-        crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
-        bndry.setBndryValues(crse_br,src_comp,LevelData[level].get_new_data(PhiGrav_Type),src_comp,
-                             dest_comp,num_comp,crse_ratio,*phys_bc);
-    }
-
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
-    } else {
-	mgt_solver.set_const_gravity_coeffs(xa,xb);
-    }
- 
-    mgt_solver.compute_residual(phi_p, Rhs_p, Res_p, bndry);
-
-#if (BL_SPACEDIM < 3)
-    // Do this to unweight the residual before printing the norm
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-       for (int lev = 0; lev < nlevs; lev++)
-          unweight_cc(level+lev,(*Res_p[lev]));
-#endif
-
-    if (verbose) 
-    {
-        // Average residual from fine to coarse level before printing the norm
-        for (int lev = nlevs-2; lev >= 0; lev--)
-        {
-           const IntVect& ratio = parent->refRatio(lev);
-           avgDown(*Res_p[lev],*Res_p[lev+1],ratio);
-        } 
-
-        for (int lev = 0; lev < nlevs; lev++) {
-           Real resnorm = Res_p[lev]->norm0();
-           if (ParallelDescriptor::IOProcessor()) 
-             std::cout << "      ... norm of composite residual at level " << level+lev << 
-                          "  " << resnorm << '\n';
-        }
-        if (ParallelDescriptor::IOProcessor()) std::cout << " " << '\n';
-    }
-
-    for (int lev = 0; lev < nlevs; lev++) {
-       delete phi_p[lev];
-       delete Rhs_p[lev];
-       delete Res_p[lev];
-    }
-    delete [] phi_p;
-    delete [] Rhs_p;
-    delete [] Res_p;
+    if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
 }
 
 void
