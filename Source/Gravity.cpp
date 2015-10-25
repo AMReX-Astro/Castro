@@ -791,36 +791,9 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
 }
 
 void
-Gravity::multilevel_solve_for_old_phi (int level, int finest_level, int use_previous_phi_as_guess)
-{
-    if (finest_level > 0) 
-       BL_ASSERT(parent->subCycle()==0);
-
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "... multilevel solve for old phi at base level " << level << " to finest level " << finest_level << std::endl;
-
-    for (int lev = level; lev <= finest_level; lev++) {
-       BL_ASSERT(grad_phi_prev[lev].size()==BL_SPACEDIM);
-       for (int n=0; n<BL_SPACEDIM; ++n)
-       {
-           grad_phi_prev[lev].clear(n);
-           grad_phi_prev[lev].set(n,new MultiFab(getEdgeBoxArray(lev,n),1,1));
-       }
-    }
-
-    int is_new = 0;
-    actual_multilevel_solve(level,finest_level,grad_phi_prev,is_new,use_previous_phi_as_guess);
-}
-
-void
-Gravity::multilevel_solve_for_phi (int level, int finest_level, int use_previous_phi_as_guess)
-{
-    multilevel_solve_for_new_phi (level, finest_level,use_previous_phi_as_guess);
-}
-
-void
 Gravity::actual_multilevel_solve (int level, int finest_level, 
-                                  Array<PArray<MultiFab> >& grad_phi, int is_new, 
+                                  Array<PArray<MultiFab> >& grad_phi,
+				  int is_new, 
                                   int use_previous_phi_as_guess)
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");

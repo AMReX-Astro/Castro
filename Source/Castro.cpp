@@ -1667,7 +1667,7 @@ Castro::post_restart ()
                 {
                     // Do solve if we haven't already done it above
                     if (gravity->NoComposite() == 1)
-                       gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+                       gravity->multilevel_solve_for_new_phi(0,parent->finestLevel());
 
                     for (int k = 0; k <= parent->finestLevel(); k++)
                     {
@@ -1787,7 +1787,7 @@ Castro::post_init (Real stop_time)
           gravity->set_mass_offset(cur_time);
 
           if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_phi(level,finest_level);
+             gravity->multilevel_solve_for_new_phi(level,finest_level);
              if (gravity->test_results_of_solves() == 1)
                 gravity->test_composite_phi(level);
           }
@@ -1869,7 +1869,7 @@ Castro::post_grown_restart ()
           gravity->set_mass_offset(cur_time);
 
           if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_phi(level,finest_level);
+             gravity->multilevel_solve_for_new_phi(level,finest_level);
              if (gravity->test_results_of_solves() == 1)
                 gravity->test_composite_phi(level);
           }

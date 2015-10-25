@@ -56,14 +56,11 @@ public:
                      const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                      PArray<MultiFab>& grad_delta_phi_cc);
 
-  void multilevel_solve_for_old_phi (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
-  void multilevel_solve_for_phi     (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
   void actual_multilevel_solve      (int level, int finest_level, 
-                                     Array<PArray<MultiFab> >& grad_phi, int is_new,
+                                     Array<PArray<MultiFab> >& grad_phi,
+				     int is_new,
                                      int use_previous_phi_as_guess = 0);
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
