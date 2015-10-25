@@ -40,22 +40,11 @@ public:
 
   void swapTimeLevels (int level);
 
-  void solve_for_old_phi (int               level,
-			  MultiFab&         phi,
-                          PArray<MultiFab>& grad_phi,
-                          int               fill_interior);
-
-  void solve_for_new_phi (int               level,
-			  MultiFab&         phi,
-                          PArray<MultiFab>& grad_phi,
-                          int               fill_interior);
-
   void solve_for_phi (int               level,
-                      MultiFab&         Rhs,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
-                      Real              time,
-                      int               fill_interior);
+		      int               is_new);
+
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
@@ -205,7 +194,18 @@ protected:
     void AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles);
 #endif
 
+private:
 
+    Real solve_phi_with_fmg (int crse_level, int fine_level,
+			     PArray<MultiFab> & phi,
+			     PArray<MultiFab> & rhs,
+			     Array< PArray<MultiFab> >& grad_phi,
+			     PArray<MultiFab>& res,
+			     Real time);
+
+    void get_rhs (int crse_level, PArray<MultiFab> & rhs_p, int is_new);
+
+    void sanity_check (int level);
 };
 #endif
 

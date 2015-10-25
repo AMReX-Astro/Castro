@@ -11,10 +11,7 @@
 #include <Gravity_F.H>
 #include <Castro_F.H>
 
-#include <MacBndry.H>
-#include <MGT_Solver.H>
-#include <stencil_types.H>
-#include <mg_cpp_f.h>
+#include <FMultiGrid.H>
 
 #define MAX_LEV 15
 
@@ -333,226 +330,47 @@ Gravity::zeroPhiFluxReg (int level)
 }
 
 void
-Gravity::solve_for_old_phi (int               level,
-			    MultiFab&         phi,
-                            PArray<MultiFab>& grad_phi,
-                            int               fill_interior)
-{
-    BL_PROFILE("Gravity::solve_for_old_phi()");
-
-    Real time = LevelData[level].get_state_data(State_Type).prevTime();
-
-    MultiFab Rhs(grids[level],1,0);
-
-    // Put the gas density into the RHS
-    MultiFab& S_old = LevelData[level].get_old_data(State_Type);
-    MultiFab::Copy(Rhs,S_old,Density,0,1,0);
-
-#ifdef PARTICLES
-    // Add the particle density to the RHS
-    if( Castro::theDMPC() )
-        AddParticlesToRhs(level,Rhs,1);
-#endif
-
-    solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior);
-}
-
-
-void
-Gravity::solve_for_new_phi (int               level,
-			    MultiFab&         phi,
-                            PArray<MultiFab>& grad_phi,
-                            int               fill_interior)
-{
-    BL_PROFILE("Gravity::solve_for_new_phi()");
-
-    MultiFab& S_new = LevelData[level].get_new_data(State_Type);
-    MultiFab Rhs(grids[level],1,0);
-    MultiFab::Copy(Rhs,S_new,Density,0,1,0);
-
-#ifdef PARTICLES
-    if( Castro::theDMPC() )
-        AddParticlesToRhs(level,Rhs,1);
-#endif
-
-    Real time = LevelData[level].get_state_data(State_Type).curTime();
-
-    solve_for_phi(level,Rhs,phi,grad_phi,time,fill_interior);
-}
-
-void
 Gravity::solve_for_phi (int               level,
-                        MultiFab&         Rhs,
 			MultiFab&         phi,
                         PArray<MultiFab>& grad_phi,
-                        Real              time,
-                        int               fill_interior)
-
+			int               is_new)
 {
     BL_PROFILE("Gravity::solve_for_phi()");
 
     if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << " ... solve for phi at level " << level << std::endl;
+	std::cout << " ... solve for phi at level " << level << std::endl;
 
     const Real strt = ParallelDescriptor::second();
 
-    const Geometry& geom = parent->Geom(level);
+    if (is_new == 0) sanity_check(level);
 
-    // This is a sanity check on whether we are trying to fill multipole boundary conditiosn
-    //  for grids at this level > 0 -- this case is not currently supported. 
-    //  Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, 
-    //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
-    //  at this level touch the domain boundary and we must abort.
-    if (level > 0  && !Geometry::isAllPeriodic()) 
-    {
-      Box shrunk_domain(geom.Domain());
-      for (int dir = 0; dir < BL_SPACEDIM; dir++)
-      {
-          if (!Geometry::isPeriodic(dir)) 
-          {
-              if (phys_bc->lo(dir) != Symmetry) 
-                  shrunk_domain.growLo(dir,-1);
-              if (phys_bc->hi(dir) != Symmetry) 
-                  shrunk_domain.growHi(dir,-1);
-          }
-      }
-      BoxArray shrunk_domain_ba(shrunk_domain);
-      if (!shrunk_domain_ba.contains(phi.boxArray()))
-         BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
-    }
-      
-    if (level == 0  && !Geometry::isAllPeriodic()) {
-      if (verbose && ParallelDescriptor::IOProcessor()) 
-         std::cout << " ... Making bc's for phi at level 0 and time "  << time << std::endl;
+    PArray<MultiFab> phi_p(1);
+    phi_p.set(0, &phi);
 
-      // Fill the ghost cells using a multipole approximation. By default, lnum = 0
-      // and a monopole approximation is used. Do this only if we are in 3D; otherwise,
-      // default to the make_radial_phi approach, that integrates spherical shells of mass.
-      // We can also do a brute force sum that explicitly calculates the potential
-      // at each ghost zone by summing over all the cells in the domain.
-#if (BL_SPACEDIM == 3)
-      if ( direct_sum_bcs )
-        fill_direct_sum_BCs(level,Rhs,phi);
-      else
-        fill_multipole_BCs(level,Rhs,phi);
-#else
-      make_radial_phi(level,Rhs,phi,fill_interior);
-#endif
+    PArray<MultiFab> rhs_p(1, PArrayManage);
+    get_rhs(level, rhs_p, is_new);
 
+    Array< PArray<MultiFab> > grad_phi_p(1);
+    grad_phi_p[0].resize(BL_SPACEDIM);
+    for (int i = 0; i < BL_SPACEDIM ; i++) {
+	grad_phi_p[0].set(i, &grad_phi[i]);
     }
 
-#if (BL_SPACEDIM == 3)
-    if ( Geometry::isAllPeriodic() )
-    {
-	Rhs.plus(-mass_offset,0,1,0);
-	if (verbose && ParallelDescriptor::IOProcessor()) 
-	    std::cout << " ... subtracting " << mass_offset << " to ensure solvability " << std::endl;
-    }
-#endif
+    PArray<MultiFab> res_null;
 
-    Rhs.mult(Ggravity);
-
-    MacBndry bndry(grids[level],1,geom);
-
-    IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
-                                   : IntVect::TheZeroVector();
-
-    //
-    // Set Dirichlet boundary condition for phi in phi grow cells, use to 
-    // initialize bndry.
-    //
-    const int src_comp  = 0;
-    const int dest_comp = 0;
-    const int num_comp  = 1;
-    if (level == 0)
-    {
-        bndry.setBndryValues(phi,src_comp,dest_comp,num_comp,*phys_bc);
-    }
-    else
-    {
-        MultiFab CPhi;
-        GetCrsePhi(level,CPhi,time);
-        BoxArray crse_boxes = BoxArray(grids[level]).coarsen(crse_ratio);
-        const int in_rad     = 0;
-        const int out_rad    = 1;
-        const int extent_rad = 2;
-        BndryRegister crse_br(crse_boxes,in_rad,out_rad,extent_rad,num_comp);
-        crse_br.copyFrom(CPhi,CPhi.nGrow(),src_comp,dest_comp,num_comp);
-        bndry.setBndryValues(crse_br,src_comp,phi,src_comp,
-                             dest_comp,num_comp,crse_ratio,*phys_bc);
-    }
-
-    std::vector<BoxArray> bav(1);
-    bav[0] = phi.boxArray();
-    std::vector<DistributionMapping> dmv(1);
-    dmv[0] = Rhs.DistributionMap();
-    std::vector<Geometry> fgeom(1);
-    fgeom[0] = geom;
-
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
-
-    Array< Array<Real> > xa(1);
-    Array< Array<Real> > xb(1);
-
-    xa[0].resize(BL_SPACEDIM);
-    xb[0].resize(BL_SPACEDIM);
-
-    if (level == 0) {
-      for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-        xa[0][i] = 0.;
-        xb[0][i] = 0.;
-      }
+    Real time;
+    if (is_new == 1) {
+	time = LevelData[level].get_state_data(PhiGrav_Type).curTime();
     } else {
-      const Real* dx_crse   = parent->Geom(level-1).CellSize();
-      for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-        xa[0][i] = 0.5 * dx_crse[i];
-        xb[0][i] = 0.5 * dx_crse[i];
-      }
+	time = LevelData[level].get_state_data(PhiGrav_Type).prevTime();
     }
-
-    MultiFab* phi_p[1];
-    MultiFab* Rhs_p[1];
-
-    phi_p[0] = &phi;
-    Rhs_p[0] = &Rhs;
-
-#if (BL_SPACEDIM < 3)
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-	Array< PArray<MultiFab> > coeffs(1);
-	coeffs[0].resize(BL_SPACEDIM,PArrayManage);
-	for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    coeffs[0].set(i, new MultiFab(grids[level], 1, 0, Fab_allocate, 
-					  IntVect::TheDimensionVector(i)));
-	    coeffs[0][i].setVal(1.0);
-	}
-
-	applyMetricTerms(level,(*Rhs_p[0]),coeffs[0]);
-
-	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
-    } 
-    else 
-#endif
-    {
-	mgt_solver.set_const_gravity_coeffs(xa,xb);
-    }
-
-    Real     tol = sl_tol;
-    Real abs_tol = 0.0;
-    int need_grad_phi = 1;
-    int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    mgt_solver.solve(phi_p, Rhs_p, bndry, tol, abs_tol, always_use_bnorm,
-		     level_solver_resnorm[level], need_grad_phi);
     
-    int mglev = 0;
-    const Real* dx   = geom.CellSize();
-    mgt_solver.get_fluxes(mglev, grad_phi, dx);
-
-#if (BL_SPACEDIM < 3)
-//  Need to un-weight the fluxes
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-      unweight_edges(level, grad_phi);
-#endif
+    level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
+						     phi_p,
+						     rhs_p,
+						     grad_phi_p, 
+						     res_null,
+						     time);
 
     if (verbose)
     {
@@ -570,7 +388,6 @@ Gravity::solve_for_phi (int               level,
 #endif
     }
 }
-
 
 void
 Gravity::solve_for_delta_phi (int                        crse_level,
@@ -1627,11 +1444,11 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
 
-    int fill_interior = 0;
 #ifdef PARTICLES
     BoxLib::Error("Particles + Gravity + AMR: here be dragons... ( Gravity.cpp Gravity::create_comp_minus_level_grad_phi() )");
 #endif
-    solve_for_old_phi(level,SL_phi,SL_grad_phi,fill_interior);
+    int is_new = 0;
+    solve_for_phi(level, SL_phi, SL_grad_phi, is_new);
 
     if (verbose && ParallelDescriptor::IOProcessor())  
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
@@ -3284,3 +3101,188 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
 }
 #endif
 #endif
+
+Real
+Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
+			     PArray<MultiFab> & phi,
+			     PArray<MultiFab> & rhs,
+			     Array< PArray<MultiFab> >& grad_phi,
+			     PArray<MultiFab>& res,
+			     Real time)
+{
+    BL_PROFILE("Gravity::solve_phi_with_fmg()");
+
+    int nlevs = fine_level-crse_level+1;
+
+    if (crse_level == 0 && !Geometry::isAllPeriodic())
+    {
+        if (verbose && ParallelDescriptor::IOProcessor()) 
+	    std::cout << " ... Making bc's for phi at level 0 " << std::endl;
+
+#if (BL_SPACEDIM == 3)
+	if ( direct_sum_bcs ) {
+	    fill_direct_sum_BCs(crse_level, rhs[0], phi[0]);
+        } else {
+	    fill_multipole_BCs(crse_level, rhs[0], phi[0]);
+	}
+#else
+	int fill_interior = 0;
+	make_radial_phi(crse_level, rhs[0], phi[0], fill_interior);
+#endif
+    }
+
+#if (BL_SPACEDIM == 3)
+    if ( Geometry::isAllPeriodic() )
+    {
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << " ... subtracting average density " << mass_offset 
+		      << " from RHS in solve at levels " 
+		      << crse_level << " to " << fine_level << std::endl;
+	}
+	for (int ilev = 0; ilev < nlevs; ++ilev) {
+	    rhs[ilev].plus(-mass_offset,0,1,0);
+	}
+    }
+#endif
+
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        rhs[ilev].mult(Ggravity);
+    }
+
+    PArray<Geometry> geom(nlevs);
+    for (int ilev = 0; ilev < nlevs; ++ilev) {
+	int amr_lev = ilev + crse_level;
+	geom.set(ilev, &(parent->Geom(amr_lev)));
+    }
+    
+    IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
+                                        : IntVect::TheZeroVector();
+
+    FMultiGrid fmg(geom, crse_level, crse_ratio);
+
+    MultiFab CPhi;  // need to be here so that it is still alive when solve is called.
+    if (crse_level == 0) {
+	fmg.set_bc(mg_bc, phi[0]);
+    } else {
+        GetCrsePhi(crse_level, CPhi, time);
+	fmg.set_bc(mg_bc, CPhi, phi[0]);
+    }
+
+    Array<PArray<MultiFab> > coeffs(nlevs);
+#if (BL_SPACEDIM < 3)
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    {
+	for (int ilev = 0; ilev < nlevs; ++ilev) {
+	    int amr_lev = ilev + crse_level;	    
+	    coeffs[ilev].resize(BL_SPACEDIM, PArrayManage);
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		coeffs[ilev].set(i, new MultiFab(grids[amr_level], 1, 0, Fab_allocate, 
+						 IntVect::TheDimensionVector(i)));
+		coeffs[ilev][i].setVal(1.0);
+	    }
+
+	    applyMetricTerms(amr_lev, rhs[ilev], coeffs[ilev]);
+	}
+
+	fmg.set_gravity_coeffs(coeffs);
+    } 
+    else 
+#endif
+    {
+	fmg.set_const_gravity_coeffs();
+    }
+
+    Real final_resnorm = -1.0;
+
+    if (grad_phi.size() > 0)
+    {
+	Real     tol = (nlevs == 1) ? sl_tol : ml_tol;
+	Real abs_tol = 0.0;
+	int need_grad_phi = 1;
+	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
+	final_resnorm = fmg.solve(phi, rhs, tol, abs_tol, 
+				  always_use_bnorm, need_grad_phi);
+
+	fmg.get_grad_phi(grad_phi);
+	
+#if (BL_SPACEDIM < 3)
+	if (Geometry::IsSPHERICAL() || Geometry::IsRZ()) {
+	    for (int ilev = 0; ilev < nlevs; ++ilev) 
+	    {
+		int amr_lev = ilev + crse_level;
+		//    Need to un-weight the fluxes
+		unweight_edges(amr_lev, grad_phi[ilev]);
+	    }
+	}
+#endif
+    }
+
+    if (res.size() > 0)
+    {
+	fmg.compute_residual(phi, rhs, res);
+
+#if (BL_SPACEDIM < 3)
+	// unweight the residual
+	if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	    for (int ilev = 0; ilev < nlevs; ++ilev) 
+	    {
+		int amr_level = ilev + crse_level;
+		unweight_cc(amr_level, res[ilev]);
+	    }
+	}
+#endif
+    }
+
+    return final_resnorm;
+}
+
+void
+Gravity::get_rhs (int crse_level, PArray<MultiFab> & rhs, int is_new)
+{
+    int nlevs = rhs.size();
+
+    for (int ilev = 0; ilev < nlevs; ++ilev) 
+    {
+	int amr_lev = ilev + crse_level;	
+	rhs.set(ilev, new MultiFab(grids[amr_lev],1,0));
+	MultiFab& state = (is_new == 1) ?
+	    LevelData[amr_lev].get_new_data(State_Type) :
+	    LevelData[amr_lev].get_old_data(State_Type);
+	MultiFab::Copy(rhs[ilev], state, Density,0,1,0);
+    }
+
+#ifdef PARTICLES
+    if ( Castro::theDMPC() )
+	AddParticlesToRhs(crse_level,fine_level,rhs);
+#endif
+
+}
+
+void
+Gravity::sanity_check (int level)
+{
+    // This is a sanity check on whether we are trying to fill multipole boundary conditiosn
+    //  for grids at this level > 0 -- this case is not currently supported. 
+    //  Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, 
+    //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
+    //  at this level touch the domain boundary and we must abort.
+    if (level > 0  && !Geometry::isAllPeriodic()) 
+    {
+	const Geometry& geom = parent->Geom(level);
+	Box shrunk_domain(geom.Domain());
+	for (int dir = 0; dir < BL_SPACEDIM; dir++)
+	{
+	    if (!Geometry::isPeriodic(dir)) 
+	    {
+		if (phys_bc->lo(dir) != Symmetry) 
+		    shrunk_domain.growLo(dir,-1);
+		if (phys_bc->hi(dir) != Symmetry) 
+		    shrunk_domain.growHi(dir,-1);
+	    }
+	}
+	BoxArray shrunk_domain_ba(shrunk_domain);
+	if (!shrunk_domain_ba.contains(grids[level]))
+	    BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
+    }
+}
