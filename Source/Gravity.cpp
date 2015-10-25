@@ -3177,7 +3177,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	    int amr_lev = ilev + crse_level;	    
 	    coeffs[ilev].resize(BL_SPACEDIM, PArrayManage);
 	    for (int i = 0; i < BL_SPACEDIM ; i++) {
-		coeffs[ilev].set(i, new MultiFab(grids[amr_level], 1, 0, Fab_allocate, 
+		coeffs[ilev].set(i, new MultiFab(grids[amr_lev], 1, 0, Fab_allocate, 
 						 IntVect::TheDimensionVector(i)));
 		coeffs[ilev][i].setVal(1.0);
 	    }
