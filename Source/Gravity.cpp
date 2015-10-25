@@ -407,87 +407,65 @@ Gravity::solve_for_delta_phi (int                        crse_level,
       std::cout << "...                    up to fine_level = " << fine_level << std::endl;
     }
 
-    const Geometry& crse_geom = parent->Geom(crse_level);
-    MacBndry bndry(grids[crse_level],1,crse_geom);
+    PArray<MultiFab> rhs(nlevs);
+    PArray<MultiFab> RAII(nlevs, PArrayManage);
+
+    for (int ilev = 0; ilev < nlevs; ++ilev) {
+	int amr_lev = ilev + crse_level;
+	if (ilev == 0) {
+	    rhs.set(ilev, &CrseRhs);
+	} else {
+	    RAII.set(ilev, new MultiFab(grids[amr_lev], 1, 0));
+	    rhs.set(ilev, &RAII[ilev]);
+	    rhs[ilev].setVal(0.0);
+	}
+    }
+
+    PArray<Geometry> geom(nlevs);
+    for (int ilev = 0; ilev < nlevs; ++ilev) {
+	int amr_lev = ilev + crse_level;
+	geom.set(ilev, &(parent->Geom(amr_lev)));
+    }
 
     IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
                                         : IntVect::TheZeroVector();
 
-    // Set homogeneous Dirichlet values for the solve if we're not on the coarsest level;
-    // otherwise, read in the values we set using the physical BC construction.
-    if (crse_level > 0)
-      bndry.setHomogValues(*phys_bc,crse_ratio);
-    else if (crse_level == 0 && !Geometry::isAllPeriodic())
-      bndry.setBndryValues(delta_phi[crse_level],0,0,1,*phys_bc);
+    FMultiGrid fmg(geom, crse_level, crse_ratio);
 
-    std::vector<BoxArray> bav(nlevs);
-    std::vector<DistributionMapping> dmv(nlevs);
-
-    for (int lev = crse_level; lev <= fine_level; lev++) {
-       bav[lev-crse_level] = grids[lev];
-       MultiFab& S_new = LevelData[lev].get_new_data(State_Type);
-       dmv[lev-crse_level] = S_new.DistributionMap();
-    }
-    std::vector<Geometry> fgeom(nlevs);
-    for (int lev = crse_level; lev <= fine_level; lev++) 
-      fgeom[lev-crse_level] = parent->Geom(lev);
-
-    MGT_Solver mgt_solver(fgeom, mg_bc, bav, dmv, false, stencil_type);
-
-    Array< Array<Real> > xa(nlevs);
-    Array< Array<Real> > xb(nlevs);
-
-    for (int lev = crse_level; lev <= fine_level; lev++) {
-        xa[lev-crse_level].resize(BL_SPACEDIM);
-        xb[lev-crse_level].resize(BL_SPACEDIM);
-      if (lev == 0) { 
-        for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-          xa[lev-crse_level][i] = 0.;
-          xb[lev-crse_level][i] = 0.; 
-        }    
-      } else {
-        const Real* dx_crse   = parent->Geom(lev-1).CellSize();
-        for ( int i = 0; i < BL_SPACEDIM; ++i ) {
-          xa[lev-crse_level][i] = 0.5 * dx_crse[i];
-          xb[lev-crse_level][i] = 0.5 * dx_crse[i];
-        }
-      }
+    if (crse_level == 0 && !Geometry::isAllPeriodic()) {
+	fmg.set_bc(mg_bc, delta_phi[0]);
+    } else {
+	fmg.set_bc(mg_bc);
     }
 
-    MultiFab** phi_p = new MultiFab*[nlevs];
-    MultiFab** Rhs_p = new MultiFab*[nlevs];
-
-    Array< PArray<MultiFab> > coeffs(nlevs);
-
-    for (int lev = crse_level; lev <= fine_level; lev++)
-    {
-        phi_p[lev-crse_level] = delta_phi.remove(lev-crse_level); // Turn ctrl of ptr over for a moment
-        phi_p[lev-crse_level]->setVal(0.);
-
-        if (lev == crse_level) {
-            Rhs_p[0] = &CrseRhs;
-        } else {
-            Rhs_p[lev-crse_level] = new MultiFab(grids[lev],1,0);
-            Rhs_p[lev-crse_level]->setVal(0.0);
-        }
-
+    Array<PArray<MultiFab> > coeffs(nlevs);
 #if (BL_SPACEDIM < 3)
-	if (Geometry::IsRZ() || Geometry::IsSPHERICAL()) {
-	   coeffs[lev-crse_level].resize(BL_SPACEDIM,PArrayManage);
-	   for (int i = 0; i < BL_SPACEDIM ; i++) {
-	       coeffs[lev-crse_level].set(i, new MultiFab(grids[lev], 1, 0, Fab_allocate,
-							  IntVect::TheDimensionVector(i)));
-	       coeffs[lev-crse_level][i].setVal(1.0);
-	   }
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    {
+	for (int ilev = 0; ilev < nlevs; ++ilev) {
+	    int amr_lev = ilev + crse_level;	    
+	    coeffs[ilev].resize(BL_SPACEDIM, PArrayManage);
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		coeffs[ilev].set(i, new MultiFab(grids[amr_level], 1, 0, Fab_allocate, 
+						 IntVect::TheDimensionVector(i)));
+		coeffs[ilev][i].setVal(1.0);
+	    }
 
-	   applyMetricTerms(lev,(*Rhs_p[lev-crse_level]),coeffs[lev-crse_level]);
+	    applyMetricTerms(amr_lev, rhs[ilev], coeffs[ilev]);
 	}
-#endif
-    }
 
+	fmg.set_gravity_coeffs(coeffs);
+    } 
+    else 
+#endif
+    {
+	fmg.set_const_gravity_coeffs();
+    }
+    
     // Subtract off RHS average (on coarse level) from all levels to ensure solvability
 
-    if (Geometry::isAllPeriodic() && (grids[crse_level].numPts() == crse_geom.Domain().numPts())) {
+    const Box& crse_box = parent->Geom(crse_level).Domain();
+    if (Geometry::isAllPeriodic() && (grids[crse_level].numPts() == crse_box.numPts())) {
        Real local_correction = 0.0;
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:local_correction)
@@ -502,49 +480,29 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        if (verbose && ParallelDescriptor::IOProcessor())
           std::cout << "WARNING: Adjusting RHS in solve_for_delta_phi by " << local_correction << std::endl;
 
-       for (int lev = crse_level; lev <= fine_level; lev++) {
-	 Rhs_p[lev-crse_level]->plus(-local_correction,0,1,0);
-       }
-    }
-
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	mgt_solver.set_gravity_coefficients(coeffs,xa,xb);
-    } else {
-	mgt_solver.set_const_gravity_coeffs(xa,xb);
+       rhs[0].plus(-local_correction,0,1,0);
     }
 
     Real     tol = delta_tol;
     Real abs_tol = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev < fine_level; lev++)
         abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
-  
-    Real final_resnorm;
+      
     int need_grad_phi = 1;
     int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    mgt_solver.solve(phi_p, Rhs_p, bndry, tol, abs_tol, always_use_bnorm,
-		     final_resnorm, need_grad_phi);
+    fmg.solve(delta_phi, rhs, tol, abs_tol, always_use_bnorm, need_grad_phi);
 
-    for (int lev = crse_level; lev <= fine_level; lev++)
-    {
-        PArray<MultiFab>& gdphi = grad_delta_phi[lev-crse_level];
-        const Real* dx   = parent->Geom(lev).CellSize();
-        mgt_solver.get_fluxes(lev-crse_level, gdphi, dx);
+    fmg.get_grad_phi(grad_delta_phi);
 
 #if (BL_SPACEDIM < 3)
-        if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-          unweight_edges(lev, gdphi);
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	for (int ilev = 0; ilev < nlevs; ++ilev)
+	{
+	    int amr_lev = ilev + crse_level;
+	    unweight_edges(amr_lev, grad_delta_phi[ilev]);
+	}
+    }
 #endif
-
-    }
-
-    for (int lev = 0; lev < nlevs; lev++)
-    {
-        delta_phi.set(lev,phi_p[lev]); // Return ctrl of ptr
-        if (lev != 0)
-            delete Rhs_p[lev]; // Do not delete the [0] Rhs, it is passed in
-    }
-    delete [] phi_p;
-    delete [] Rhs_p;
 }
 
 void
