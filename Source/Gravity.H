@@ -200,7 +200,7 @@ private:
 			     PArray<MultiFab>& res,
 			     Real time);
 
-    void get_rhs (int crse_level, PArray<MultiFab> & rhs_p, int is_new);
+    void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
 
     void sanity_check (int level);
 };
