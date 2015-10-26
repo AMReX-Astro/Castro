@@ -347,11 +347,11 @@
                      
                   else
 
-                     SrEcorr = HALF * ( drho1(i  ,j,k) * gravx(i  ,j,k) * dx(1) - &
+                     SrEcorr = HALF * ( drho1(i  ,j,k) * gravx(i  ,j,k) * dx(1) + &
                                         drho1(i+1,j,k) * gravx(i+1,j,k) * dx(1) + &
-                                        drho2(i,j  ,k) * gravy(i,j  ,k) * dx(2) - &
+                                        drho2(i,j  ,k) * gravy(i,j  ,k) * dx(2) + &
                                         drho2(i,j+1,k) * gravy(i,j+1,k) * dx(2) + &
-                                        drho3(i,j,k  ) * gravz(i,j,k  ) * dx(3) - &
+                                        drho3(i,j,k  ) * gravz(i,j,k  ) * dx(3) + &
                                         drho3(i,j,k+1) * gravz(i,j,k+1) * dx(3) )
                   endif
                      
