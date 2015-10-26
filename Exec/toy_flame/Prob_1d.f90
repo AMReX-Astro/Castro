@@ -76,7 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use prob_params_module, only: problo, probhi
   use extern_probin_module, only : specific_q_burn
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
   use eos_type_module
   use eos_module
 
