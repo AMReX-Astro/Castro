@@ -223,8 +223,8 @@ Castro::variableSetUp ()
     pp.query("const_grav", const_grav);
 
     // Pass in the name of the gravity type we're using.
-    std::string gravity_type;    
-    pp.get("gravity_type", gravity_type);    
+    std::string gravity_type = "none";
+    pp.query("gravity_type", gravity_type);    
     int gravity_type_length = gravity_type.length();
     Array<int> gravity_type_name(gravity_type_length);
 
