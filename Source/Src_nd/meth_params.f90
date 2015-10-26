@@ -86,6 +86,8 @@ module meth_params_module
 
   double precision, save :: const_grav
 
+  character(len=:), allocatable :: gravity_type
+  
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 

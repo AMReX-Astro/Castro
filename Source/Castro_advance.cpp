@@ -272,8 +272,11 @@ Castro::advance_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior = 0;
-           gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
+	   int is_new = 0;
+           gravity->solve_for_phi(level, 
+				  phi_old,
+				  gravity->get_grad_phi_prev(level),
+				  is_new);
         }
     }
 #endif
@@ -1139,8 +1142,11 @@ Castro::advance_hydro (Real time,
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
 		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 	    }
-            int fill_interior = 0;
-            gravity->solve_for_new_phi(level,phi_new,gravity->get_grad_phi_curr(level),fill_interior);
+            int is_new = 1;
+            gravity->solve_for_phi(level,
+				   phi_new,
+				   gravity->get_grad_phi_curr(level),
+				   is_new);
 	    
             if (gravity->test_results_of_solves() == 1)
 	      {
@@ -1495,8 +1501,11 @@ Castro::advance_no_hydro (Real time,
               std::cout << " " << '\n';
               std::cout << "... old-time level solve at level " << level << '\n';
            }
-           int fill_interior = 0;
-           gravity->solve_for_old_phi(level,phi_old,gravity->get_grad_phi_prev(level),fill_interior);
+           int is_new = 0;
+           gravity->solve_for_phi(level,
+				  phi_old,
+				  gravity->get_grad_phi_prev(level),
+				  is_new);
         }
     }
 #endif
