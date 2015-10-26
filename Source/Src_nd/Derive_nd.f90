@@ -122,7 +122,7 @@
                eos_state % T(i,j,k)     = dat(i,j,k,UTEMP)
                eos_state % rho(i,j,k)   = dat(i,j,k,URHO)
                eos_state % xn(i,j,k,:)  = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux(i,j,k,:) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo               
