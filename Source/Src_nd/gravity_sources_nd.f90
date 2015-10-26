@@ -104,7 +104,7 @@
                              E_added,mom_added)
 
       use mempool_module, only : bl_allocate, bl_deallocate
-      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, gravity_type
       use prob_params_module, only : dg
       use bl_constants_module
       use multifab_module
@@ -165,7 +165,11 @@
       double precision, pointer :: drho1(:,:,:)
       double precision, pointer :: drho2(:,:,:)
       double precision, pointer :: drho3(:,:,:)
- 
+      double precision, pointer :: grav(:,:,:,:)
+      double precision, pointer :: gravx(:,:,:)
+      double precision, pointer :: gravy(:,:,:)
+      double precision, pointer :: gravz(:,:,:)
+      
       ! Gravitational source options for how to add the work to (rho E):
       ! grav_source_type = 
       ! 1: Original version ("does work")
@@ -178,7 +182,11 @@
          call bl_allocate(drho1, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
          call bl_allocate(drho2, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
          call bl_allocate(drho3, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
-
+         call bl_allocate(grav,  lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,3)
+         call bl_allocate(gravx, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
+         call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
+         call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
+         
          ! For our purposes, we want the time-level n+1/2 phi because we are 
          ! using fluxes evaluated at that time. To second order we can 
          ! average the new and old potentials.
@@ -192,7 +200,8 @@
          do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
             do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
                do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                  phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))               
+                  phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))
+                  grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
                enddo
             enddo
          end do
@@ -204,12 +213,16 @@
          ! case where the volume is the same in every cell, but may need to be 
          ! generalized when this assumption does not hold.
 
+         ! Also while we're doing this, construct the time-averaged
+         ! edge-centered gravity.
+         
          drho1 = ZERO
 
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)+1*dg(1)
                   drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
+                  gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
                enddo
             enddo
          enddo
@@ -220,6 +233,7 @@
             do j = lo(2), hi(2)+1*dg(2)
                do i = lo(1), hi(1)
                   drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
+                  gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
                enddo
             enddo
          enddo
@@ -230,6 +244,7 @@
             do j = lo(2), hi(2)
                do i = lo(1), hi(1)
                   drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
+                  gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
                enddo
             enddo
          enddo
@@ -316,12 +331,30 @@
                   ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                   ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                  SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                       drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                       drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                       drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                       drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                       drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                  if (gravity_type == "PoissonGrav") then
+                  
+                     SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                          drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                          drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                          drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                          drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                          drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+
+                  ! However, at present phi is only actually filled for Poisson gravity.
+                  ! Here's an alternate version that only requires the use of the
+                  ! gravitational acceleration. It relies on the concept that, to second order,
+                  ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
+                     
+                  else
+
+                     SrEcorr = HALF * ( drho1(i  ,j,k) * gravx(i  ,j,k) * dx(1) - &
+                                        drho1(i+1,j,k) * gravx(i+1,j,k) * dx(1) + &
+                                        drho2(i,j  ,k) * gravy(i,j  ,k) * dx(2) - &
+                                        drho2(i,j+1,k) * gravy(i,j+1,k) * dx(2) + &
+                                        drho3(i,j,k  ) * gravz(i,j,k  ) * dx(3) - &
+                                        drho3(i,j,k+1) * gravz(i,j,k+1) * dx(3) )
+                  endif
+                     
 
                else 
                   call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
