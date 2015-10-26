@@ -1,12 +1,9 @@
 &fortin
 
-  model_name = "convective_flame.hse.tanh.delta_0.040cm.dx_0.040cm"
+  rho_fuel = 1.0d0
+  T_fuel = 1.0d0
 
-  cutoff_density = 1.e-8
-
-  x_pert_loc = 1.0d0
-  pert_width = 0.025d0
-  pert_factor = 1.d0
+  pert_frac = 0.2d0
 
 /
 

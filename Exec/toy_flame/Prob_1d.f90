@@ -17,7 +17,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   type (eos_t) :: eos_state
 
-  namelist /fortin/ pert_frac
+  namelist /fortin/ pert_frac, rho_fuel, T_fuel
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -76,7 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use prob_params_module, only: problo, probhi
   use extern_probin_module, only : specific_q_burn
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
   use eos_type_module
   use eos_module
 
@@ -124,10 +124,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   xn_ash(:) = 0.0d0
   xn_ash(iash) = 1.0d0
 
+  eos_state%rho = rho_ash
+  eos_state%e = e_ash
+  eos_state%xn(:) = xn_ash(:)
+
   call eos(eos_input_re, eos_state)
 
-  T_fuel = eos_state%T
+  T_ash = eos_state%T
 
+  print *, 'fuel: ', rho_fuel, T_fuel, xn_fuel
+  print *, 'ash: ', rho_ash, T_ash, xn_ash
 
   do i = lo(1), hi(1)
      xx = problo(1) + delta(1)*(dble(i) + 0.5d0)
@@ -135,21 +141,21 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      if (xx <= x_int) then
 
         ! ash
-        state(i,URHO ) = rho_fuel
-        state(i,UMX  ) = 0.0d0
-        state(i,UEDEN) = rho_fuel*e_fuel
-        state(i,UEINT) = rho_fuel*e_fuel
-        state(i,UTEMP) = T_fuel
-        state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
-     else
-
-        ! fuel
         state(i,URHO ) = rho_ash
-        state(i,UMX  ) = 0.0d0
+        state(i,UMX:UMZ) = 0.0d0
         state(i,UEDEN) = rho_ash*e_ash
         state(i,UEINT) = rho_ash*e_ash
         state(i,UTEMP) = T_ash
         state(i,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
+     else
+
+        ! fuel
+        state(i,URHO ) = rho_fuel
+        state(i,UMX:UMZ) = 0.0d0
+        state(i,UEDEN) = rho_fuel*e_fuel
+        state(i,UEINT) = rho_fuel*e_fuel
+        state(i,UTEMP) = T_fuel
+        state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
      endif
      
   enddo
