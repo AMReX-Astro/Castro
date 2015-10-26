@@ -270,6 +270,7 @@
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
                                    do_grav_in, grav_source_type_in, &
+                                   gravity_type_in, gravity_type_len, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    burning_timestep_factor_in, &
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
@@ -302,7 +303,8 @@
         integer, intent(in) :: dual_energy_update_E_from_e_in
         double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in
         integer, intent(in) :: use_pslope_in
-        integer, intent(in) :: do_grav_in, grav_source_type_in
+        integer, intent(in) :: do_grav_in, grav_source_type_in, gravity_type_len
+        integer, intent(in) :: gravity_type_in(gravity_type_len)
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
@@ -319,6 +321,8 @@
 
         integer             :: QLAST
 
+        integer :: i
+        
         call parallel_initialize()
 
         iorder = 2 
@@ -533,6 +537,12 @@
         deterministic                = deterministic_in .ne. 0
         do_acc                       = do_acc_in
 
+        allocate(character(len=gravity_type_len) :: gravity_type)
+
+        do i = 1, gravity_type_len
+           gravity_type(i:i) = char(gravity_type_in(i))
+        enddo
+        
         dual_energy_eta1             = dual_energy_eta1_in
         dual_energy_eta2             = dual_energy_eta2_in
         dual_energy_eta3             = dual_energy_eta3_in

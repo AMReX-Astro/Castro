@@ -222,6 +222,15 @@ Castro::variableSetUp ()
     Real const_grav = 0;
     pp.query("const_grav", const_grav);
 
+    // Pass in the name of the gravity type we're using.
+    std::string gravity_type;    
+    pp.get("gravity_type", gravity_type);    
+    int gravity_type_length = gravity_type.length();
+    Array<int> gravity_type_name(gravity_type_length);
+
+    for (int i = 0; i < gravity_type_length; i++)
+      gravity_type_name[i] = gravity_type[i];    
+    
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
@@ -235,7 +244,8 @@ Castro::variableSetUp ()
          transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
          cg_maxiter, cg_tol,
          use_pslope, 
-	 do_grav, grav_source_type, 
+	 do_grav, grav_source_type,
+	 gravity_type_name.dataPtr(), &gravity_type_length,
 	 do_sponge,
          normalize_species,fix_mass_flux,use_sgs,
 	 burning_timestep_factor,
