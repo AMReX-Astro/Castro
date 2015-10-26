@@ -132,6 +132,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   T_ash = eos_state%T
 
+  print *, 'fuel: ', rho_fuel, T_fuel, xn_fuel
+  print *, 'ash: ', rho_ash, T_ash, xn_ash
+
   do i = lo(1), hi(1)
      xx = problo(1) + delta(1)*(dble(i) + 0.5d0)
      
@@ -139,7 +142,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! ash
         state(i,URHO ) = rho_ash
-        state(i,UMX  ) = 0.0d0
+        state(i,UMX:UMZ) = 0.0d0
         state(i,UEDEN) = rho_ash*e_ash
         state(i,UEINT) = rho_ash*e_ash
         state(i,UTEMP) = T_ash
@@ -148,7 +151,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! fuel
         state(i,URHO ) = rho_fuel
-        state(i,UMX  ) = 0.0d0
+        state(i,UMX:UMZ) = 0.0d0
         state(i,UEDEN) = rho_fuel*e_fuel
         state(i,UEINT) = rho_fuel*e_fuel
         state(i,UTEMP) = T_fuel
