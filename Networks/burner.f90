@@ -26,19 +26,19 @@ contains
        call bl_error("ERROR in burner: must initialize network first.")
     endif
 
-    ! Initialize the final state by assuming it does not change.
-
-    call eos_copy(state_in, state_out)
-
     ! Get an EOS vector for each case.
 
     call eos_vector_in(state_vector_in, state_in)
     call eos_vector_in(state_vector_out, state_out)
-
+    
     ! We assume that the valid quantities coming in are (rho, e); do an EOS call
     ! to make sure all other variables are consistent.
 
-    call eos(eos_input_re, state_vector_in)
+    call eos(eos_input_re, state_vector_in)    
+    
+    ! Initialize the final state by assuming it does not change.
+
+    call eos_copy(state_in, state_out)
 
     ! Do the burning.
     
