@@ -2509,7 +2509,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        geom.FillPeriodicBoundary(coeffs[d]);
 
    if (level == 0) {
-      diffusion->applyop(level,Temperature,TempDiffTerm,coeffs);
+      diffusion->applyop(Temperature,TempDiffTerm,coeffs);
    } else if (level > 0) {
       // Fill temperature at next coarser level, if it exists.
       const BoxArray& crse_grids = getLevel(level-1).boxArray();
