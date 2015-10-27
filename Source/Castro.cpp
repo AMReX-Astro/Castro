@@ -2508,15 +2508,14 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
      for (int d = 0; d < BL_SPACEDIM; d++)
        geom.FillPeriodicBoundary(coeffs[d]);
 
-   if (level == 0) {
-      diffusion->applyop(Temperature,TempDiffTerm,coeffs);
-   } else if (level > 0) {
-      // Fill temperature at next coarser level, if it exists.
-      const BoxArray& crse_grids = getLevel(level-1).boxArray();
-      MultiFab CrseTemp(crse_grids,1,1,Fab_allocate);
-      FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
-      diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
+   MultiFab CrseTemp;
+   if (level > 0) {
+       // Fill temperature at next coarser level, if it exists.
+       const BoxArray& crse_grids = getLevel(level-1).boxArray();
+       CrseTemp.define(crse_grids,1,1,Fab_allocate);
+       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
    }
+   diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
 
    // Extrapolate to ghost cells
    if (TempDiffTerm.nGrow() > 0) {
