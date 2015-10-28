@@ -20,7 +20,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   double precision :: lambda_f, v_f
 
-  namelist /fortin/ pert_frac, rho_fuel, T_fuel
+  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel
 
   ! Build "probin" filename -- the name of file containing 
   ! fortin namelist.
@@ -37,6 +37,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! set namelist defaults
   pert_frac = 0.2d0
+  pert_delta = 0.02d0
   rho_fuel = 1.0d0
   T_fuel = 1.0d0
 
@@ -106,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision time, delta(1)
   double precision xlo(1), xhi(1)
 
-  double precision xx, x_int, L
+  double precision xx, x_int, L, f, pert_width
   integer i
 
   double precision :: e_fuel
@@ -122,6 +123,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   L = probhi(1) - problo(1)
   x_int = problo(1) + pert_frac*L
+
+  pert_width = pert_delta*L
 
   ! fuel state
   xn_fuel(:) = 0.0d0
@@ -164,6 +167,24 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UEINT) = rho_ash*e_ash
         state(i,UTEMP) = T_ash
         state(i,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
+
+     elseif (xx > x_int .and. xx < x_int + pert_width) then
+
+        ! linearly interpolate
+        f = (xx - x_int)/pert_width
+        eos_state%e = (ONE-f)*e_ash + f*e_fuel
+        eos_state%rho = (ONE-f)*rho_ash + f*rho_fuel
+        eos_state%xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
+        
+        call eos(eos_input_re, eos_state)
+
+        state(i,URHO ) = eos_state%rho
+        state(i,UMX:UMZ) = 0.0d0
+        state(i,UEDEN) = eos_state%rho*eos_state%e
+        state(i,UEINT) = eos_state%rho*eos_state%e
+        state(i,UTEMP) = eos_state%T
+        state(i,UFS:UFS-1+nspec) = eos_state%rho*eos_state%xn(:)
+
      else
 
         ! fuel

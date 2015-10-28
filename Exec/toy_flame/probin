@@ -4,6 +4,7 @@
   T_fuel = 1.0d0
 
   pert_frac = 0.2d0
+  pert_delta = 0.05d0
 
 /
 
