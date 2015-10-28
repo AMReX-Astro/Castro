@@ -5,6 +5,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use bl_error_module
   use network
   use probdata_module
+  use extern_probin_module
 
   implicit none
 
@@ -12,16 +13,17 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer name(namlen)
   double precision problo(1), probhi(1)
   double precision xn(nspec)
-  
+
   integer untin,i
 
   type (eos_t) :: eos_state
 
+  double precision :: lambda_f, v_f
+
   namelist /fortin/ pert_frac, rho_fuel, T_fuel
 
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
+  ! Build "probin" filename -- the name of file containing 
+  ! fortin namelist.
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
@@ -32,7 +34,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-         
+
   ! set namelist defaults
   pert_frac = 0.2d0
   rho_fuel = 1.0d0
@@ -42,24 +44,39 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
   close(untin)
-  
-  ! compute the internal energy (erg/cc) for the left and right state
+
+  ! output flame speed and width estimates
+  eos_state%rho = rho_burn_ref
+  eos_state%T = T_burn_ref
+  eos_state%xn(:) = 0.0
+  eos_state%xn(1) = 1.0
+
+  call eos(eos_input_rt, eos_state)
+
+  lambda_f = sqrt(const_conductivity*T_burn_ref/ &
+       (rho_burn_ref*specific_q_burn*nu*rtilde))
+
+  v_f = sqrt(const_conductivity*specific_q_burn*nu*rtilde/ &
+       (rho_burn_ref*eos_state%cp**2*T_burn_ref))
+
+  print *, 'flame width = ', lambda_f
+  print *, 'flame speed = ', v_f
 
 end subroutine PROBINIT
 
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -88,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision state(state_l1:state_h1,NVAR)
   double precision time, delta(1)
   double precision xlo(1), xhi(1)
-  
+
   double precision xx, x_int, L
   integer i
 
@@ -109,7 +126,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ! fuel state
   xn_fuel(:) = 0.0d0
   xn_fuel(ifuel) = 1.0d0
-  
+
   eos_state%rho = rho_fuel
   eos_state%T = T_fuel
   eos_state%xn(:) = xn_fuel(:)
@@ -117,7 +134,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   call eos(eos_input_rt, eos_state)
 
   e_fuel = eos_state%e
-  
+
   ! compute the ash state
   rho_ash = rho_fuel / (1.0d0 + specific_q_burn/e_fuel)
   e_ash = e_fuel + specific_q_burn
@@ -137,7 +154,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   do i = lo(1), hi(1)
      xx = problo(1) + delta(1)*(dble(i) + 0.5d0)
-     
+
      if (xx <= x_int) then
 
         ! ash
@@ -157,8 +174,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UTEMP) = T_fuel
         state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
      endif
-     
+
   enddo
 
 end subroutine ca_initdata
-
