@@ -91,10 +91,6 @@ contains
 
     call actual_eos(input, state_vector)
 
-    ! Get dpdX, dedX, dhdX.
-
-    call composition_derivatives(state_vector)
-
     ! Convert the vectorized state back to the output form.
 
     call eos_vector_out(state_vector, state)

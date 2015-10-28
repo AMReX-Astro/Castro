@@ -17,11 +17,6 @@ public:
                       MultiFab&             volume,
                       MultiFab*             area);
 
-  // Level 0 version 
-  void applyop(int level,MultiFab& Temperature,
-               MultiFab& DiffTerm, PArray<MultiFab>& temp_cond_coef);
-
-  // Level > 0 version 
   void applyop(int level,MultiFab& Temperature,MultiFab& CrseTemp,
                MultiFab& DiffTerm, PArray<MultiFab>& temp_cond_coef);
 

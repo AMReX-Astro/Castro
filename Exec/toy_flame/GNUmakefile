@@ -1,21 +1,17 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = FALSE
+DEBUG      = TRUE
 
-DIM        = 2
+DIM        = 1
 
 COMP	   = gcc
 FCOMP	   = gfortran
 
 USE_MPI    = TRUE
 
-USE_GRAV   = TRUE
 USE_REACT = TRUE
 
-USE_MODELPARSER  = TRUE
-
-USE_ROTATION = TRUE
 USE_DIFFUSION = TRUE
 
 CASTRO_DIR = ../..

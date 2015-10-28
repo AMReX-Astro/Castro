@@ -26,35 +26,28 @@ contains
        call bl_error("ERROR in burner: must initialize network first.")
     endif
 
-    ! Initialize the final state by assuming it does not change.
-
-    call eos_copy(state_in, state_out)
-
     ! Get an EOS vector for each case.
 
     call eos_vector_in(state_vector_in, state_in)
     call eos_vector_in(state_vector_out, state_out)
-
+    
     ! We assume that the valid quantities coming in are (rho, e); do an EOS call
     ! to make sure all other variables are consistent.
 
-    call eos(eos_input_re, state_vector_in)
+    call eos(eos_input_re, state_vector_in)    
+    
+    ! Initialize the final state by assuming it does not change.
+
+    call eos_copy(state_in, state_out)
 
     ! Do the burning.
     
     call actual_burner(state_vector_in, state_vector_out, dt, time)
 
-    ! Normalize the mass fractions: they must be individually positive and less than one,
-    ! and they must all sum to unity.
+    ! Normalize the mass fractions to unity.
+
+    call normalize_abundances(state_vector_out)
     
-    do i = 1, state_vector_out % N
-
-       state_vector_out % xn(i,:) = max(smallx, min(ONE, state_vector_out % xn(i,:)))
-
-       state_vector_out % xn(i,:) = state_vector_out % xn(i,:) / sum(state_vector_out % xn(i,:))
-
-    enddo
-       
     ! Now update the temperature to match the new internal energy.
 
     call eos(eos_input_re, state_vector_out)

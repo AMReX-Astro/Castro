@@ -59,6 +59,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& cg_maxiter, const Real& cg_tol,
      const int& use_pslope, 
      const int& do_grav, const int& grav_source_type,
+     const int* gravity_type, const int* gravity_type_len,
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,
@@ -69,6 +70,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& dual_energy_update_E_from_e,
      const int& do_rotation, const int& rot_source_type, const int& rot_axis, 
      const Real& rotational_period, const Real& rotational_period_dot,
+     const Real& diffuse_cutoff_density, 
      const Real& const_grav, const int& deterministic, const int& do_acc);
 
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)

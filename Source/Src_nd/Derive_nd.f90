@@ -122,7 +122,7 @@
                eos_state % T(i,j,k)     = dat(i,j,k,UTEMP)
                eos_state % rho(i,j,k)   = dat(i,j,k,URHO)
                eos_state % xn(i,j,k,:)  = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux(i,j,k,:) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
+               eos_state % aux(i,j,k,1:naux) = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
             enddo
          enddo
       enddo               
@@ -608,7 +608,7 @@
 
       use network, only: nspec, naux
       use eos_module
-      use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+      use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
                                     allow_negative_energy
       use bl_constants_module
 

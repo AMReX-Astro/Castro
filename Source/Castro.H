@@ -609,6 +609,7 @@ protected:
 
 #ifdef DIFFUSION
     static int       diffuse_temp;
+    static Real      diffuse_cutoff_density;
 #endif
 
 #ifdef PARTICLES

@@ -122,6 +122,7 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 Diffusion*    Castro::diffusion  = 0;
 int           Castro::diffuse_temp = 0;
+Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
 #ifdef RADIATION
@@ -391,6 +392,7 @@ Castro::read_params ()
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
+    pp.query("diffuse_temp",diffuse_cutoff_density);
 #endif
 
     pp.query("grown_factor",grown_factor);
@@ -1677,7 +1679,7 @@ Castro::post_restart ()
                 {
                     // Do solve if we haven't already done it above
                     if (gravity->NoComposite() == 1)
-                       gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+                       gravity->multilevel_solve_for_new_phi(0,parent->finestLevel());
 
                     for (int k = 0; k <= parent->finestLevel(); k++)
                     {
@@ -1797,7 +1799,7 @@ Castro::post_init (Real stop_time)
           gravity->set_mass_offset(cur_time);
 
           if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_phi(level,finest_level);
+             gravity->multilevel_solve_for_new_phi(level,finest_level);
              if (gravity->test_results_of_solves() == 1)
                 gravity->test_composite_phi(level);
           }
@@ -1879,7 +1881,7 @@ Castro::post_grown_restart ()
           gravity->set_mass_offset(cur_time);
 
           if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_phi(level,finest_level);
+             gravity->multilevel_solve_for_new_phi(level,finest_level);
              if (gravity->test_results_of_solves() == 1)
                 gravity->test_composite_phi(level);
           }
@@ -2419,15 +2421,14 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
      for (int d = 0; d < BL_SPACEDIM; d++)
        geom.FillPeriodicBoundary(coeffs[d]);
 
-   if (level == 0) {
-      diffusion->applyop(level,Temperature,TempDiffTerm,coeffs);
-   } else if (level > 0) {
-      // Fill temperature at next coarser level, if it exists.
-      const BoxArray& crse_grids = getLevel(level-1).boxArray();
-      MultiFab CrseTemp(crse_grids,1,1,Fab_allocate);
-      FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
-      diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
+   MultiFab CrseTemp;
+   if (level > 0) {
+       // Fill temperature at next coarser level, if it exists.
+       const BoxArray& crse_grids = getLevel(level-1).boxArray();
+       CrseTemp.define(crse_grids,1,1,Fab_allocate);
+       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
    }
+   diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
 
    // Extrapolate to ghost cells
    if (TempDiffTerm.nGrow() > 0) {
