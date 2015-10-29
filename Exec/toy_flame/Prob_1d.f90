@@ -38,8 +38,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! set namelist defaults
   pert_frac = 0.2d0
   pert_delta = 0.02d0
-  rho_fuel = 1.0d0
-  T_fuel = 1.0d0
+  rho_fuel = ONE
+  T_fuel = ONE
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -49,8 +49,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! output flame speed and width estimates
   eos_state%rho = rho_burn_ref
   eos_state%T = T_burn_ref
-  eos_state%xn(:) = 0.0
-  eos_state%xn(1) = 1.0
+  eos_state%xn(:) = ZERO
+  eos_state%xn(1) = ONE
 
   call eos(eos_input_rt, eos_state)
 
@@ -110,7 +110,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision xx, x_int, L, f, pert_width
   integer i
 
-  double precision :: e_fuel
+  double precision :: e_fuel, p_fuel
   double precision :: rho_ash, T_ash, e_ash
   double precision :: xn_fuel(nspec), xn_ash(nspec)
 
@@ -127,8 +127,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   pert_width = pert_delta*L
 
   ! fuel state
-  xn_fuel(:) = 0.0d0
-  xn_fuel(ifuel) = 1.0d0
+  xn_fuel(:) = ZERO
+  xn_fuel(ifuel) = ONE
 
   eos_state%rho = rho_fuel
   eos_state%T = T_fuel
@@ -137,12 +137,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   call eos(eos_input_rt, eos_state)
 
   e_fuel = eos_state%e
+  p_fuel = eos_state%p
 
   ! compute the ash state
-  rho_ash = rho_fuel / (1.0d0 + specific_q_burn/e_fuel)
-  e_ash = e_fuel + specific_q_burn
-  xn_ash(:) = 0.0d0
-  xn_ash(iash) = 1.0d0
+  rho_ash = rho_fuel / (ONE + 0.6_dp_t*specific_q_burn/e_fuel)
+  e_ash = e_fuel - p_fuel*(ONE/rho_ash - ONE/rho_fuel) + specific_q_burn
+  xn_ash(:) = ZERO
+  xn_ash(iash) = ONE
 
   eos_state%rho = rho_ash
   eos_state%e = e_ash
@@ -162,7 +163,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! ash
         state(i,URHO ) = rho_ash
-        state(i,UMX:UMZ) = 0.0d0
+        state(i,UMX:UMZ) = ZERO
         state(i,UEDEN) = rho_ash*e_ash
         state(i,UEINT) = rho_ash*e_ash
         state(i,UTEMP) = T_ash
@@ -179,7 +180,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         call eos(eos_input_re, eos_state)
 
         state(i,URHO ) = eos_state%rho
-        state(i,UMX:UMZ) = 0.0d0
+        state(i,UMX:UMZ) = ZERO
         state(i,UEDEN) = eos_state%rho*eos_state%e
         state(i,UEINT) = eos_state%rho*eos_state%e
         state(i,UTEMP) = eos_state%T
@@ -189,7 +190,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! fuel
         state(i,URHO ) = rho_fuel
-        state(i,UMX:UMZ) = 0.0d0
+        state(i,UMX:UMZ) = ZERO
         state(i,UEDEN) = rho_fuel*e_fuel
         state(i,UEINT) = rho_fuel*e_fuel
         state(i,UTEMP) = T_fuel
