@@ -31,4 +31,20 @@ module eos_data_module
   integer, parameter :: ierr_out_of_bounds   = 11
   integer, parameter :: ierr_not_implemented = 12
 
+  ! Smallest possible temperature and density permitted by the user.
+
+  double precision, save :: smallt = 1.d-200
+  double precision, save :: smalld = 1.d-200
+
+  ! Minimum and maximum temperature, density, and ye permitted by the EOS.
+
+  double precision, save :: mintemp = 1.d-200
+  double precision, save :: maxtemp = 1.d200
+  double precision, save :: mindens = 1.d-200
+  double precision, save :: maxdens = 1.d200
+  double precision, save :: minye   = 1.d-200
+  double precision, save :: maxye   = 1.d0
+
+  logical, save :: initialized = .false.  
+  
 end module eos_data_module
