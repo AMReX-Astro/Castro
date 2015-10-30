@@ -18,7 +18,7 @@ module actual_eos_module
   double precision, save :: gamma_const
 
   logical, save :: assume_neutral
-  
+
 contains
 
   subroutine actual_eos_init
@@ -46,24 +46,19 @@ contains
 
     implicit none
 
-    integer,             intent(in   ) :: input
-    type (eos_t_vector), intent(inout) :: state
+    integer,      intent(in   ) :: input
+    type (eos_t), intent(inout) :: state
 
     double precision, parameter :: R = k_B*n_A
 
-    integer :: j
     double precision :: poverrho
 
     ! Calculate mu.
     
     if (assume_neutral) then
-       do j = 1, state % N
-          state % mu(j) = state % abar(j)
-       enddo
+       state % mu = state % abar
     else
-       do j = 1, state % N
-          state % mu(j) = ONE / sum( (ONE + zion(:)) * state % xn(j,:) / aion(:) )
-       enddo
+       state % mu = ONE / sum( (ONE + zion(:)) * state % xn(:) / aion(:) )
     endif    
     
     select case (input)
@@ -71,57 +66,51 @@ contains
     case (eos_input_rt)
 
        ! dens, temp and xmass are inputs
-       do j = 1, state % N
-          state % cv(j) = R / (state % mu(j) * (gamma_const-ONE)) 
-          state % e(j) = state % cv(j) * state % T(j)
-          state % p(j) = (gamma_const-ONE) * state % rho(j) * state % e(j)
-          state % gam1(j) = gamma_const
-       end do
+       state % cv = R / (state % mu * (gamma_const-ONE)) 
+       state % e = state % cv * state % T
+       state % p = (gamma_const-ONE) * state % rho * state % e
+       state % gam1 = gamma_const
 
     case (eos_input_rh)
 
        ! dens, enthalpy, and xmass are inputs
 
-       call bl_error('EOS: eos_input_rh is not supported in this EOS.')
+!       call bl_error('EOS: eos_input_rh is not supported in this EOS.')
 
     case (eos_input_tp)
 
        ! temp, pres, and xmass are inputs
 
-       call bl_error('EOS: eos_input_tp is not supported in this EOS.')
+!       call bl_error('EOS: eos_input_tp is not supported in this EOS.')
        
     case (eos_input_rp)
 
        ! dens, pres, and xmass are inputs
 
-       do j = 1, state % N
-          poverrho = state % p(j) / state % rho(j)
-          state % T(j) = poverrho * state % mu(j) * (ONE/R)
-          state % e(j) = poverrho * (ONE/(gamma_const-ONE))
-          state % gam1(j) = gamma_const
-       end do
+       poverrho = state % p / state % rho
+       state % T = poverrho * state % mu * (ONE/R)
+       state % e = poverrho * (ONE/(gamma_const-ONE))
+       state % gam1 = gamma_const
 
     case (eos_input_re)
 
        ! dens, energy, and xmass are inputs
 
-       do j = 1, state % N
-          poverrho = (gamma_const - ONE) * state % e(j)
+       poverrho = (gamma_const - ONE) * state % e
 
-          state % p(j) = poverrho * state % rho(j)
-          state % T(j) = poverrho * state % mu(j) * (ONE/R)
-          state % gam1(j) = gamma_const
-          
-          ! sound speed
-          state % cs(j) = sqrt(gamma_const * poverrho)
+       state % p = poverrho * state % rho
+       state % T = poverrho * state % mu * (ONE/R)
+       state % gam1 = gamma_const
+       
+       ! sound speed
+       state % cs = sqrt(gamma_const * poverrho)
 
-          state % dpdr_e(j) = poverrho
-          state % dpde(j) = (gamma_const-ONE) * state % rho(j)
+       state % dpdr_e = poverrho
+       state % dpde = (gamma_const-ONE) * state % rho
 
-          ! Try to avoid the expensive log function.  Since we don't need entropy 
-          ! in hydro solver, set it to an invalid but "nice" value for the plotfile.
-          state % s(j) = ONE  
-       end do
+       ! Try to avoid the expensive log function.  Since we don't need entropy 
+       ! in hydro solver, set it to an invalid but "nice" value for the plotfile.
+       state % s = ONE  
 
     case (eos_input_ps)
 
