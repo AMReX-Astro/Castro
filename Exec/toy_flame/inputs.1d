@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 200000
+max_step = 500000
 
 stop_time    = 10.0
 
@@ -37,6 +37,7 @@ castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
+amr.data_log          = "toy_flame"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
