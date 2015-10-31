@@ -97,3 +97,42 @@ subroutine flame_width_temp(temp, t_lo, t_hi, &
   enddo
 
 end subroutine flame_width_temp
+
+
+
+subroutine flame_speed_data(omegadot_old, oo_lo, oo_hi, &
+                            omegadot_new, on_lo, on_hi, &
+                            lo, hi, dx, &
+                            rho_X_dot_old, rho_X_dot_new)
+
+  use bl_constants_module
+
+  implicit none
+
+  integer         , intent(in   ) :: oo_lo(3), oo_hi(3)
+  integer         , intent(in   ) :: on_lo(3), on_hi(3)
+
+  double precision, intent(in   ) :: omegadot_old(oo_lo(1):oo_hi(1),oo_lo(2):oo_hi(2),oo_lo(3):oo_hi(3))
+  double precision, intent(in   ) :: omegadot_new(on_lo(1):on_hi(1),on_lo(2):on_hi(2),on_lo(3):on_hi(3))
+
+  integer         , intent(in   ) :: lo(3), hi(3)
+  double precision, intent(in   ) :: dx(3)
+
+  double precision, intent(inout) :: rho_X_dot_old, rho_X_dot_new
+
+  ! Local variables
+  
+  integer :: i, j, k
+  
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+
+           rho_X_dot_old = rho_X_dot_old + omegadot_old(i,j,k) * dx(1)
+           rho_X_dot_new = rho_X_dot_new + omegadot_new(i,j,k) * dx(1)
+           
+        enddo
+     enddo
+  enddo
+
+end subroutine flame_speed_data

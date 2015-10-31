@@ -9,3 +9,10 @@ BL_FORT_PROC_DECL(FLAME_WIDTH_TEMP,flame_width_temp)
      const int* lo, const int* hi,
      const Real* dx, const Real* time,
      Real* T_max, Real* T_min, Real* grad_T_max);
+
+BL_FORT_PROC_DECL(FLAME_SPEED_DATA,flame_speed_data)
+    (BL_FORT_FAB_ARG_3D(omegadot_old), 
+     BL_FORT_FAB_ARG_3D(omegadot_new),
+     const int* lo, const int* hi,
+     const Real* dx,
+     Real* rho_X_dot_old, Real* rho_X_dot_new);

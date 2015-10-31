@@ -14,6 +14,7 @@ Castro::sum_integrated_quantities ()
 
     int finest_level = parent->finestLevel();
     Real time        = state[State_Type].curTime();
+    Real prev_time   = state[State_Type].prevTime();
     Real mass        = 0.0;
     Real mom[3]      = { 0.0 };
     Real com[3]      = { 0.0 };
@@ -21,8 +22,8 @@ Castro::sum_integrated_quantities ()
     Real rho_e       = 0.0;
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
-#ifdef SGS
     Real dt_crse     = parent->dtLevel(0);
+#ifdef SGS
     Real Etot        = 0.0;
     Real delta_E     = 0.0;
     Real delta_K     = 0.0;
@@ -35,7 +36,12 @@ Castro::sum_integrated_quantities ()
     Real T_max = -1.0e200;
     Real T_min =  1.0e200;
     Real grad_T_max = -1.0e200;
-    Real C_burn = 0.0;
+    Real rho_fuel_dot_old = 0.0;
+    Real rho_fuel_dot_new = 0.0;
+    Real rho_fuel_initial = 1.0;
+
+    Real flame_width = 0.0;
+    Real flame_speed = 0.0;
     
     for (int lev = 0; lev <= finest_level; lev++)
     {
@@ -79,6 +85,12 @@ Castro::sum_integrated_quantities ()
 #endif
 
 	ca_lev.flame_width_properties(time, T_max, T_min, grad_T_max);
+
+	// For now we only do the flame speed calculation on the coarse grid since
+	// it doesn't share the same timestep as the fine grids.
+
+	if (lev == 0)
+	  ca_lev.flame_speed_properties(prev_time, time, rho_fuel_dot_old, rho_fuel_dot_new);
     }
  
     if (verbose > 0)
@@ -105,8 +117,16 @@ Castro::sum_integrated_quantities ()
 	ParallelDescriptor::ReduceRealMin(T_min);
 	ParallelDescriptor::ReduceRealMax(grad_T_max);
 
-	Real flame_width = (T_max - T_min) / grad_T_max;
-	
+	flame_width = (T_max - T_min) / grad_T_max;
+
+	ParallelDescriptor::ReduceRealSum(rho_fuel_dot_old);
+	ParallelDescriptor::ReduceRealSum(rho_fuel_dot_new);
+
+	// Note that rho_fuel_dot has already been multiplied by dx, so
+	// the dimensionality here checks out.
+
+	flame_speed = (rho_fuel_dot_new - rho_fuel_dot_old) / (dt_crse * rho_fuel_initial);
+
 	if (ParallelDescriptor::IOProcessor()) {
 
 	    int i = 0;
@@ -147,6 +167,7 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " DE+DK-TURB_SRC = "   << delta_E+delta_K-turb_src  << '\n';
 #endif
 	    std::cout << "TIME= " << time << " FLAME WIDTH = "   << flame_width << '\n';
+	    std::cout << "TIME= " << time << " FLAME SPEED = "   << flame_speed << '\n';
 	    
 	    if (parent->NumDataLogs() > 0 ) {
 
@@ -163,7 +184,8 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(14) <<  "        rho_K ";
 		      data_log1 << std::setw(14) <<  "        rho_e ";
 		      data_log1 << std::setw(14) <<  "        rho_E ";
-		      data_log1 << std::setw(14) <<  "  flame width " << std::endl;
+		      data_log1 << std::setw(14) <<  "  flame width ";
+		      data_log1 << std::setw(14) <<  "  flame speed " << std::endl;
 		  }
 
 		      // Write the quantities at this time
@@ -175,7 +197,8 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_K;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_e;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E;
-		  data_log1 << std::setw(14) << std::setprecision(6) << flame_width << std::endl;
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << flame_width;
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << flame_speed << std::endl;
 
 	       }
 
