@@ -74,8 +74,12 @@ subroutine flame_width_temp(temp, t_lo, t_hi, &
         do i = lo(1), hi(1)
 
            T = temp(i,j,k)
-           grad_T = (temp(i+1,j,k) - temp(i-1,j,k)) / (TWO * dx(1))
-           
+           grad_T = abs(temp(i+1,j,k) - temp(i-1,j,k)) / (TWO * dx(1))
+
+           ! Ignore problem zones where we have a negative temperature
+
+           if (T .lt. ZERO) continue
+
            if (T > T_max) then
               T_max = T
            endif
