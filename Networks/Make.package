@@ -1,0 +1,3 @@
+f90EXE_sources += network.f90
+f90EXE_sources += burner.f90
+

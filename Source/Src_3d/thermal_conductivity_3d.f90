@@ -8,8 +8,9 @@ subroutine ca_fill_temp_cond(lo,hi, &
                              coefy,cy_l1,cy_l2,cy_l3,cy_h1,cy_h2,cy_h3, &
                              coefz,cz_l1,cz_l2,cz_l3,cz_h1,cz_h2,cz_h3, dx)
 
+  use bl_constants_module
   use network, only: nspec, naux
-  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX
+  use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, diffuse_cutoff_density
   use conductivity_module
   use eos_type_module
 
@@ -43,7 +44,12 @@ subroutine ca_fill_temp_cond(lo,hi, &
            eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)
            eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
 
-           call thermal_conductivity(eos_state, cond)
+           if (eos_state%rho > diffuse_cutoff_density) then
+              call thermal_conductivity(eos_state, cond)
+           else
+              cond = ZERO
+           endif
+
            coef_cc(i,j,k) = cond
         enddo
      enddo

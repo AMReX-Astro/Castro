@@ -1,51 +1,52 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use bl_types
+  use bl_constants_module
   use bl_error_module
+  use model_parser_module
   use probdata_module
   use prob_params_module, only: center
 
   implicit none
 
-  integer init, namlen
-  integer name(namlen)
-  double precision problo(2), probhi(2)
+  integer :: init, namlen
+  integer :: name(namlen)
+  double precision :: problo(2), probhi(2)
 
-  integer untin,i
+  integer :: untin, i
 
-  namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
+  namelist /fortin/ model_name, &
+       pert_factor, x_pert_loc, pert_width, &
        cutoff_density, &
-       pert_width, do_isentropic, boundary_type, &
-       zero_vels, thermal_conductivity, &
-       frac
+       zero_vels
 
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
+  ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
-  character probin*(maxlen)
+  character (len=maxlen) :: probin
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen > maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
 
   ! set namelist defaults here
-  frac = 0.5
   zero_vels = .false.
-  do_isentropic = .false.
-  thermal_conductivity = 1.0_dp_t
+  x_pert_loc = ONE
+  pert_width = 0.1_dp_t
+  pert_factor = ONE
 
-  !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  ! Read namelists
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
+  close(untin)
+
+  ! read the initial model
+  call read_model_file(model_name)
 
   ! set center variable in prob_params_module
-  center(1) = frac*(problo(1)+probhi(1))
-  center(2) = frac*(problo(2)+probhi(2))
+  center(1) = HALF*(problo(1)+probhi(1))
+  center(2) = HALF*(problo(2)+probhi(2))
 
 end subroutine PROBINIT
 
@@ -74,130 +75,68 @@ end subroutine PROBINIT
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
+
   use probdata_module
-  use prob_params_module, only: center
-  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
+  use model_parser_module
+  use interpolate_module
+  use prob_params_module, only: problo
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
+                                 UFS, UTEMP
   use eos_module
   use eos_type_module
-  use network, only: nspec
+  use network, only: nspec, network_species_index
+
   implicit none
 
-  integer level, nscal
-  integer lo(2), hi(2)
-  integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  integer :: level, nscal
+  integer :: lo(2), hi(2)
+  integer :: state_l1, state_l2, state_h1, state_h2
+  double precision :: xlo(2), xhi(2), time, delta(2)
+  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  integer i,j,npts_1d, j_floor
-  double precision H,z,xn(nspec),x,y,x1,y1,r1,const
-  double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
+  integer :: i, j, n
+  double precision :: x, y
+
+  double precision :: dens, temp, pres
 
   type (eos_t) :: eos_state
   
-  ! first make a 1D initial model for the entire domain
-  npts_1d = (2.d0*center(2)+1.d-8) / delta(2)
+  integer :: ifuel
 
-  allocate(pressure(0:npts_1d-1))
-  allocate(density (0:npts_1d-1))
-  allocate(temp    (0:npts_1d-1))
-  allocate(eint    (0:npts_1d-1))
+  ifuel = network_species_index("fuel")
 
-  const = pres_base/dens_base**gamma_const
-
-  pressure(0) = pres_base
-  density(0)  = dens_base
-
-  ! only initialize the first species
-  xn(:) = 0.0d0
-  xn(1) = 1.d0
-
-  ! compute the pressure scale height (for an isothermal, ideal-gas
-  ! atmosphere)
-  H = pres_base / dens_base / abs(const_grav)
-
-  j_floor = -1
-
-  do j = 0, npts_1d-1
-
-     ! initial guess
-     temp(j) = 1000.d0
-
-     if (do_isentropic) then
-        z = dble(j) * delta(2)
-        density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
-     else
-        z = (dble(j)+HALF) * delta(2)
-        density(j) = dens_base * exp(-z/H)
-     end if
-
-     if (density(j) < cutoff_density) then
-        density(j) = cutoff_density
-        temp(j) = temp(j-1)
-        j_floor = j
-        exit
-     endif
-     
-     if (j .gt. 0) then
-        pressure(j) = pressure(j-1) - &
-             delta(2) * HALF * (density(j)+density(j-1)) * abs(const_grav)
-     end if
-
-     if (pressure(j) < ZERO) then
-        density(j) = cutoff_density
-        temp(j) = temp(j-1)
-        j_floor = j
-        exit
-     endif
-
-     eos_state%p = pressure(j)
-     eos_state%T = temp(j)
-     eos_state%rho = density(j)
-     eos_state%xn(:) = xn(:)
-
-     call eos(eos_input_rp, eos_state)
-
-     eint(j) = eos_state%e
-     temp(j) = eos_state%T
-
-  end do
-
-  if (j_floor > 0) then
-     eos_state%rho = density(j_floor)
-     eos_state%T = temp(j_floor)
-     eos_state%xn(:) = xn(:)
-
-     call eos(eos_input_rt, eos_state)
-
-     density(j_floor:) = eos_state%rho
-     temp(j_floor:) = eos_state%T
-     pressure(j_floor:) = eos_state%p
-     eint(j_floor:) = eos_state%e
-  endif
-
-  do j = 0, npts_1d-1
-     print *, j, density(j), temp(j), pressure(j)
-  enddo
-
-  
-  ! add an isobaric perturbation
-  x1 = center(1)
-  y1 = y_pert_center
-
+  ! initialize from the model file and add an isobaric perturbation
   do j=lo(2),hi(2)
-     y = (dble(j)+0.5d0)*delta(2)
+     y = problo(2) + (dble(j)+HALF)*delta(2)
+
      do i=lo(1),hi(1)
-        x = (dble(i)+0.5d0)*delta(1)
+        x = problo(1) + (dble(i)+HALF)*delta(1)
 
-        r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / pert_width
+        temp = interpolate(y,npts_model,model_r, &
+                           model_state(:,itemp_model))
 
-        state(i,j,UTEMP) = temp(j) * (1.d0 + (pert_factor * (1.d0 + tanh(2.d0-r1))))
-        state(i,j,UFS:UFS-1+nspec) = xn(:)
+        dens = interpolate(y,npts_model,model_r, &
+                           model_state(:,idens_model))
+
+        pres = interpolate(y,npts_model,model_r, &
+                           model_state(:,ipres_model))
+
+        do n = 1, nspec
+           state(i,j,UFS-1+n) = &
+                interpolate(y,npts_model,model_r, model_state(:,ispec_model-1+n))
+        enddo
+
+        if (dens > cutoff_density .and. state(i,j,UFS-1+ifuel) > 0.99d0) then
+           state(i,j,UTEMP) = temp * (ONE + (pert_factor * &
+                (ONE + tanh((x_pert_loc-x)/pert_width)) ) )
+        else
+           state(i,j,UTEMP) = temp
+        endif
 
         eos_state%T = state(i,j,UTEMP)
-        eos_state%rho = state(i,j,URHO)
-        eos_state%p = pressure(j)
-        eos_state%xn(:) = xn(:)
+        eos_state%rho = dens
+        eos_state%p = pres
+        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
 
         call eos(eos_input_tp, eos_state)
 
@@ -211,13 +150,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         ! assumes ke=0
         state(i,j,UEDEN) = state(i,j,UEINT)
 
-        state(i,j,UMX:UMZ) = 0.d0
+        state(i,j,UMX:UMZ) = ZERO
 
      end do
   end do
-
-
-  deallocate(pressure,density,temp,eint)
 
 end subroutine ca_initdata
 

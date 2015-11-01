@@ -164,7 +164,7 @@ end module rotation_module
 
   subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center
     use rotation_module, only: rotational_potential
     use bl_constants_module, only: HALF
@@ -201,7 +201,7 @@ end module rotation_module
 
   subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center
     use rotation_module, only: rotational_acceleration
     use bl_constants_module, only: HALF

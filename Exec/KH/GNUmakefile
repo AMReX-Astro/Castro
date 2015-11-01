@@ -22,7 +22,7 @@ USE_MPI    ?= FALSE
 USE_OMP    ?= FALSE
 
 # This sets the EOS directory in Castro/EOS
-EOS_dir     ?= gamma_law_general
+EOS_dir     ?= gamma_law
 
 # This sets the network directory in Castro/Networks
 Network_dir ?= general_null

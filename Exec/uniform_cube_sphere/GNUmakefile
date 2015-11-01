@@ -23,8 +23,8 @@ USE_OMP     ?= FALSE
 
 USE_GRAV    ?= TRUE
 
-# This sets the EOS directory in Castro/EOS
-EOS_dir     ?= gamma_law_general
+# This sets the EOS directory in $(CASTRO_DIR)/EOS
+EOS_dir     := gamma_law
 
 # This sets the network directory in Castro/Networks
 Network_dir ?= general_null

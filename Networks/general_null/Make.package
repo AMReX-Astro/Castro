@@ -1,18 +1,18 @@
-f90EXE_sources += network.f90
-f90EXE_sources += castro_burner.f90
+f90EXE_sources += general_null_network.f90
+f90EXE_sources += general_null_burner.f90
 
-# network.f90 is created at build time for this network
-network.f90:   $(GENERAL_NET_INPUTS) $(CASTRO_DIR)/Networks/general_null/network.template
+# general_null_network.f90 is created at build time for this network
+general_null_network.f90:   $(GENERAL_NET_INPUTS) $(CASTRO_DIR)/Networks/general_null/network.template
+	@echo " "
 	@echo "---------------------------------------------------------------------------"
-	@echo "WRITING network.f90:"
+	@echo "WRITING general_null_network.f90:"
 	$(CASTRO_DIR)/Networks/general_null/write_network.py \
             -t $(CASTRO_DIR)/Networks/general_null/network.template \
             -s $(GENERAL_NET_INPUTS) \
-            -o network.f90
+            -o general_null_network.f90
 	@echo "---------------------------------------------------------------------------"
 	@echo " "
 
-
-# remove network.f90 for 'make clean' and therefore 'make realclean'
+# remove general_null_network.f90 for 'make clean' and therefore 'make realclean'
 clean::
-	$(RM) network.f90
+	$(RM) general_null_network.f90

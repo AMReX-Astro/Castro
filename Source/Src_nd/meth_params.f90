@@ -67,6 +67,7 @@ module meth_params_module
 
   double precision, save :: dual_energy_eta1
   double precision, save :: dual_energy_eta2
+  double precision, save :: dual_energy_eta3
   logical, save :: dual_energy_update_E_from_e
 
   double precision, save, allocatable :: outflow_data_old(:,:)
@@ -79,11 +80,14 @@ module meth_params_module
   integer, save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
+  double precision, save :: diffuse_cutoff_density
   integer, save :: rot_source_type
   integer, save :: rot_axis
 
   double precision, save :: const_grav
 
+  character(len=:), allocatable :: gravity_type
+  
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 

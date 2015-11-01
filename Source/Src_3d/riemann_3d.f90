@@ -1,5 +1,6 @@
 module riemann_module
 
+  use bl_types
   use bl_constants_module
 
   implicit none
@@ -7,6 +8,8 @@ module riemann_module
   private
 
   public cmpflx, shock
+
+  real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
 
 contains
 
@@ -22,7 +25,6 @@ contains
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    use_colglaz, ppm_temp_fix, hybrid_riemann, &
@@ -66,6 +68,7 @@ contains
     double precision, pointer :: gamcm(:,:),gamcp(:,:)
 
     type (eos_t) :: eos_state
+
     integer :: n
     integer :: is_shock
     double precision :: cl, cr
@@ -125,11 +128,11 @@ contains
              eos_state % T = 10000.0d0
 
              ! minus state
-             eos_state % rho    = qm(i,j,kc,QRHO)
-             eos_state % p      = qm(i,j,kc,QPRES)
-             eos_state % xn(:)  = qm(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux(:) = qm(i,j,kc,QFX:QFX+naux-1)
-
+             eos_state % rho = qm(i,j,kc,QRHO)
+             eos_state % p   = qm(i,j,kc,QPRES)
+             eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
+             
              call eos(eos_input_rp, eos_state)
 
              qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
@@ -144,10 +147,10 @@ contains
           do i = ilo, ihi
              rhoInv = ONE / qp(i,j,kc,QRHO)
              
-             eos_state % rho    = qp(i,j,kc,QRHO)
-             eos_state % p      = qp(i,j,kc,QPRES)
-             eos_state % xn(:)  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
-             eos_state % aux(:) = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
+             eos_state % rho = qp(i,j,kc,QRHO)
+             eos_state % p   = qp(i,j,kc,QPRES)
+             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
+             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
 
              call eos(eos_input_rp, eos_state)
 
@@ -345,7 +348,6 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use bl_error_module
     use network, only : nspec, naux
-    use eos_type_module
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -682,6 +684,11 @@ contains
 
           ustar = HALF* ( ustarp + ustarm )
 
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
@@ -1076,7 +1083,13 @@ contains
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
           ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
           pstar = max(pstar,small_pres)
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           if (ustar .gt. ZERO) then
              ro = rl

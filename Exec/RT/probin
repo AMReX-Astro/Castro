@@ -16,3 +16,8 @@
 
 /
 
+&extern
+
+  eos_assume_neutral = T
+
+/

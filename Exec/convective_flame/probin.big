@@ -1,17 +1,13 @@
 &fortin
 
-  do_isentropic = .true.
+  model_name = "convective_flame.hse.tanh.delta_0.040cm.dx_0.040cm"
 
-  boundary_type = 1
-
-  pert_factor = 8.1d-3
-  dens_base = 1.65d-3
   cutoff_density = 1.e-8
 
-  pres_base = 1.65d6
-
-  y_pert_center = 0.7d0
+  x_pert_loc = 1.0d0
   pert_width = 0.025d0
+  pert_factor = 1.d0
+
 /
 
 &tagging
@@ -34,4 +30,17 @@
   sponge_lower_density = 1.0d-8
   sponge_timescale     = 1.0d-6
   
+/
+
+&extern
+
+  eos_assume_neutral = T
+  rtilde = 100.d0
+  nu = 4.d0
+  specific_q_burn = 1.24e8
+  T_burn_ref = 1.0d0
+  rho_burn_ref = 1.0d0
+  const_conductivity = 1.24d10
+  !const_conductivity = 1000000.0
+
 /

@@ -270,11 +270,13 @@
                                    cg_maxiter_in, cg_tol_in, &
                                    use_pslope_in, &
                                    do_grav_in, grav_source_type_in, &
+                                   gravity_type_in, gravity_type_len, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    burning_timestep_factor_in, &
-                                   dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_update_E_from_E_in, &
+                                   dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
                                    do_rotation_in, rot_source_type_in, rot_axis_in, &
                                    rot_period_in, rot_period_dot_in, &
+                                   diffuse_cutoff_density_in, &
                                    const_grav_in, deterministic_in, do_acc_in)
 !                                  phys_bc_lo,phys_bc_hi
 
@@ -299,9 +301,10 @@
         integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
         integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
         integer, intent(in) :: dual_energy_update_E_from_e_in
-        double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in
+        double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in
         integer, intent(in) :: use_pslope_in
-        integer, intent(in) :: do_grav_in, grav_source_type_in
+        integer, intent(in) :: do_grav_in, grav_source_type_in, gravity_type_len
+        integer, intent(in) :: gravity_type_in(gravity_type_len)
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
         integer, intent(in) :: do_sponge_in
@@ -311,13 +314,15 @@
         integer, intent(in) :: fix_mass_flux_in
         integer, intent(in) :: use_sgs
         double precision, intent(in) :: burning_timestep_factor_in
-        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in
+        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in, diffuse_cutoff_density_in
         integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
         integer, intent(in) :: deterministic_in, do_acc_in
         integer :: iadv, ispec
 
         integer             :: QLAST
 
+        integer :: i
+        
         call parallel_initialize()
 
         iorder = 2 
@@ -527,12 +532,20 @@
         rot_period_dot               = rot_period_dot_in
         rot_source_type              = rot_source_type_in
         rot_axis                     = rot_axis_in
+        diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
         deterministic                = deterministic_in .ne. 0
         do_acc                       = do_acc_in
 
+        allocate(character(len=gravity_type_len) :: gravity_type)
+
+        do i = 1, gravity_type_len
+           gravity_type(i:i) = char(gravity_type_in(i))
+        enddo
+        
         dual_energy_eta1             = dual_energy_eta1_in
         dual_energy_eta2             = dual_energy_eta2_in
+        dual_energy_eta3             = dual_energy_eta3_in
         dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
       end subroutine set_method_params
@@ -694,7 +707,13 @@
 
       subroutine get_sponge_params(name, namlen)
 
-        use sponge_params_module
+        use sponge_params_module, only : &
+             lower_radius => sponge_lower_radius, &
+             upper_radius => sponge_upper_radius, &
+             lower_density => sponge_lower_density, &
+             upper_density => sponge_upper_density, &
+             timescale => sponge_timescale
+
 
         ! Initialize the sponge parameters
 
@@ -706,6 +725,11 @@
         integer, parameter :: maxlen = 256
         character (len=maxlen) :: probin
 
+        double precision :: &
+             sponge_lower_radius, sponge_upper_radius, &
+             sponge_lower_density, sponge_upper_density, &
+             sponge_timescale
+        
         namelist /sponge/ &
              sponge_lower_radius, sponge_upper_radius, &
              sponge_lower_density, sponge_upper_density, &
@@ -748,4 +772,12 @@
 
         close (unit=un)
 
+        !$omp parallel
+        lower_radius = sponge_lower_radius
+        upper_radius = sponge_upper_radius
+        lower_density = sponge_lower_density
+        upper_density = sponge_upper_density
+        timescale = sponge_timescale
+        !$omp end parallel
+        
       end subroutine get_sponge_params

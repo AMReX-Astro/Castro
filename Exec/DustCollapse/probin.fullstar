@@ -18,5 +18,6 @@
 &extern
 
   eos_gamma = 1.66666
+  eos_assume_neutral = T
 
 /
