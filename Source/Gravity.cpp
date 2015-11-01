@@ -1730,35 +1730,8 @@ Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
 {
     BL_PROFILE("Gravity::avgDown()");
 
-    //
-    // Coarsen() the fine stuff on processors owning the fine data.
-    //
-    BoxArray crse_fine_BA(fine.boxArray().size());
-
-    for (int i = 0; i < fine.boxArray().size(); ++i)
-    {
-        crse_fine_BA.set(i,BoxLib::coarsen(fine.boxArray()[i],ratio));
-    }
-
-    MultiFab crse_fine(crse_fine_BA,1,0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(crse_fine,true); mfi.isValid(); ++mfi)
-    {
-        const Box&       ovlp     = mfi.tilebox();
-        FArrayBox&       crse_fab = crse_fine[mfi];
-        const FArrayBox& fine_fab = fine[mfi];
-
-	BL_FORT_PROC_CALL(CA_AVGDOWN_PHI,ca_avgdown_phi)
-            (BL_TO_FORTRAN(crse_fab), 
-             BL_TO_FORTRAN(fine_fab),
-             ovlp.loVect(),ovlp.hiVect(),
-             ratio.getVect());
-    }
-
-    crse.copy(crse_fine);
+    // Note that this is not volume-weighted
+    BoxLib::average_down(fine,crse,0,1,ratio);
 }
 
 void
