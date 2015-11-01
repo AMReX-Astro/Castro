@@ -85,7 +85,7 @@ public:
   void test_level_grad_phi_curr(int level);
   void test_composite_phi(int level);
 
-  static void avgDown(MultiFab& crse, const MultiFab& fine, const IntVect& ratio);
+  static void avgDown(MultiFab& crse, MultiFab& fine, const IntVect& ratio);
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 

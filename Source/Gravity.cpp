@@ -1301,7 +1301,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 }
 
 void
-Gravity::avgDown (MultiFab& crse, const MultiFab& fine, const IntVect& ratio)
+Gravity::avgDown (MultiFab& crse, MultiFab& fine, const IntVect& ratio)
 {
     BL_PROFILE("Gravity::avgDown()");
 
