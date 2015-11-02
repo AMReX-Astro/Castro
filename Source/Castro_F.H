@@ -84,6 +84,7 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
 
 BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
 BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);
+BL_FORT_PROC_DECL(UPDATE_SPONGE_PARAMS,update_sponge_params)(const Real* time);
 
 #ifdef DIMENSION_AGNOSTIC
 

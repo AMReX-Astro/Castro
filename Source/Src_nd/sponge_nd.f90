@@ -26,10 +26,6 @@
     
     integer          :: i, j, k
 
-    ! Permit the user to update the sponge parameters as a function of time.
-    
-    call update_sponge_params(time)
-    
     ! Radial distance between upper and lower boundaries.
     
     delta_r = sponge_upper_radius - sponge_lower_radius

@@ -489,6 +489,10 @@ Castro::advance_hydro (Real time,
     if (add_ext_src)
       getOldSource(prev_time,dt,ext_src_old);
 #endif
+
+    // Permit the user to update the sponge parameters as a function of time.
+    
+    BL_FORT_PROC_CALL(UPDATE_SPONGE_PARAMS,update_sponge_params)(&time);
     
 #ifdef DIFFUSION
     MultiFab OldTempDiffTerm(grids,1,1);
