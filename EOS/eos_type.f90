@@ -154,10 +154,14 @@ contains
                     + state % dedZ * (state % abar/aion(:))   &
                                    * (zion(:) - state % zbar)
 
-    state % dhdX(:) = state % dedX(:) &
-                    + (state % p / state % rho**2 - state % dedr) &
-                    *  state % dPdX(:) / state % dPdr
+    if (state % dPdr > ZERO) then
+    
+       state % dhdX(:) = state % dedX(:) &
+                       + (state % p / state % rho**2 - state % dedr) &
+                       *  state % dPdX(:) / state % dPdr
 
+    endif
+       
   end subroutine composition_derivatives
 
 
