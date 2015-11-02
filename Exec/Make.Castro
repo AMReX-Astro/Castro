@@ -306,12 +306,13 @@ extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            --pa "$(EXTERN_PARAMETERS)" 
 
 # job_info support
-CEXE_sources += buildInfo.cpp
+CEXE_sources += buildInfo
 CEXE_headers += $(BOXLIB_HOME)/Tools/C_scripts/buildInfo.H
 INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
 
+.PHONY: buildInfo
 
-buildInfo.cpp:
+buildInfo:
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
