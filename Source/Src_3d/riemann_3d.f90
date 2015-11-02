@@ -133,7 +133,7 @@ contains
              eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
              eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
              
-             call eos(eos_input_rp, eos_state)
+             call eos(eos_input_re, eos_state)
 
              qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qm(i,j,kc,QPRES)  = eos_state % p
@@ -152,7 +152,7 @@ contains
              eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
              eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
 
-             call eos(eos_input_rp, eos_state)
+             call eos(eos_input_re, eos_state)
 
              qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qp(i,j,kc,QPRES)  = eos_state % p
