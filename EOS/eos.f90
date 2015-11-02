@@ -105,6 +105,10 @@ contains
 
     call actual_eos(input, state)
 
+    ! Get dpdX, dedX, dhdX.
+   
+    call composition_derivatives(state)
+
   end subroutine eos
 
   
