@@ -879,7 +879,7 @@ contains
 
                 eos_state % rho = small_dens
                 eos_state % T   = small_temp
-                eos_state % xn  = uout(i,j,UFS:UFS+nspec-1) / uout(i,j,URHO)
+                eos_state % xn  = uout(i,j,UFS:UFS+nspec-1) / small_dens
 
                 call eos(eos_input_rt, eos_state)
 
