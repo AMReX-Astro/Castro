@@ -644,21 +644,21 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
 
 BL_FORT_PROC_DECL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(TempDiffTerm));
+     BL_FORT_FAB_ARG_3D(TempDiffTerm));
 
 BL_FORT_PROC_DECL(COMPUTE_TEMP,compute_temp)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state));
 
 BL_FORT_PROC_DECL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(state),
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
 #ifdef TAU
-     const BL_FORT_FAB_ARG(tau_diff),
+     const BL_FORT_FAB_ARG_3D(tau_diff),
 #endif
-     D_DECL(const BL_FORT_FAB_ARG(xcoeffs),
-            const BL_FORT_FAB_ARG(ycoeffs),
-            const BL_FORT_FAB_ARG(zcoeffs)),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs),
      const Real* dx);
 
 #ifdef TAU

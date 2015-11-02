@@ -46,3 +46,7 @@ f90EXE_sources += Prob_nd.f90
 f90EXE_sources += problem_tagging_nd.f90
 endif
 
+ifeq ($(USE_DIFFUSION), TRUE)
+f90EXE_sources += Diffusion_nd.f90
+f90EXE_sources += thermal_conductivity_nd.f90
+endif
