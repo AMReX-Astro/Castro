@@ -5,13 +5,13 @@
 \castro\ is written in a modular fashion so that the EOS and network
 burning routines can be supplied by the user. However, for the
 examples presented later we use several EOS and network routines
-that come with the \castro\ distribution.  
+that come with the \castro\ distribution.
 
-\castro\ relies on routines to calculate the equation of state (EOS) 
-of a fluid, as well as a species network to define the components of 
-the fluid. The network optionally has the ability to do nuclear burning, 
-but for this section its main purpose is in defining the species so that 
-the EOS can calculate fluid properties that depend on composition, such 
+\castro\ relies on routines to calculate the equation of state (EOS)
+of a fluid, as well as a species network to define the components of
+the fluid. The network optionally has the ability to do nuclear burning,
+but for this section its main purpose is in defining the species so that
+the EOS can calculate fluid properties that depend on composition, such
 as electron fraction.
 
 By default, \castro\ comes with the {\tt gamma\_law}
@@ -19,10 +19,10 @@ EOS. This represents a gamma law gas, with equation of state:
 \begin{equation}
   P = (\gamma - 1) \rho e.
 \end{equation}
-The gas is currently assumed to be monatomic and ideal. 
+The gas is currently assumed to be monatomic and ideal.
 %The entropy comes from the Sackur-Tetrode equation. It lives in {\tt EOS/gamma\_law\_general}.
 
-The equation of state interface is designed to accept a particular 
+The equation of state interface is designed to accept a particular
 type of Fortran derived data type (which for our purposes is analogous
 to a C++ struct), the {\tt eos\_t}. It stores a complete set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
@@ -36,10 +36,10 @@ that are the inputs, for example with
   &\texttt{eos\_state } \% \texttt{ xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)} \\
   &\texttt{eos\_state } \% \texttt{ aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)}.
 \end{align*}
-We also provide variants of this, {\tt eos\_t\_1D}, {\tt eos\_t\_2D}, and {\tt eos\_t\_3D}, 
+We also provide variants of this, {\tt eos\_t\_1D}, {\tt eos\_t\_2D}, and {\tt eos\_t\_3D},
 that are used within the \castro\ code and can be used in your own code too. For these,
-we hold (respectively) 1D, 2D, or 3D arrays of the data corresponding to the 3D state data. 
-A 3D example of how to use this inside a function that operates over array bounds {\tt lo} to 
+we hold (respectively) 1D, 2D, or 3D arrays of the data corresponding to the 3D state data.
+A 3D example of how to use this inside a function that operates over array bounds {\tt lo} to
 {\tt hi} is:
 \begin{align*}
   &\texttt{type (eos\_t\_3D) :: eos\_state} \\
@@ -65,12 +65,12 @@ density floor). Then, whenever you want to call the EOS, use
 \[
   {\tt call\ eos (eos\_input, eos\_state)}.
 \]
-The first argument specifies the inputs to the EOS. The options 
+The first argument specifies the inputs to the EOS. The options
 that are currently available are stored in
 {\tt EOS/eos\_data.F90}, and are always a combination of two
-thermodynamic quantities. For example, {\tt eos\_input\_rt} means 
-that we call the EOS with {\tt rho} (density) and {\tt T} (temperature) 
-and we expect the EOS to return the associated thermodynamic 
+thermodynamic quantities. For example, {\tt eos\_input\_rt} means
+that we call the EOS with {\tt rho} (density) and {\tt T} (temperature)
+and we expect the EOS to return the associated thermodynamic
 quantities such as internal energy {\tt e} and entropy {\tt s}.
 
 We note that for real (non-analytic) equations of state
@@ -96,8 +96,8 @@ thermodynamic state variables are filled with unphysical numbers. If
 you do not input the correct arguments to match your input quantities,
 the EOS will call an error. However, this means that it is good
 practice to fill the quantities that will be iterated over with an
-initial guess. Indeed, this initial guess is typically required for 
-equations of state that ierate over this variable, as the values 
+initial guess. Indeed, this initial guess is typically required for
+equations of state that ierate over this variable, as the values
 they are initialized with will likely not
 converge. Usually a prior value of the temperature or density suffices
 if it's available, but if not then use \texttt{small\_temp} or
@@ -110,49 +110,49 @@ none of the atoms are ionized. Otherwise, by default we assume
 full ionization. For now, only the gamma law EOS is configured
 to permit this to be true.
 
-If you are interested in using more realistic and sophisticated equations of 
-state, you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics} 
-repository. This is a collection of microphysics routines that are compatible with the 
-\boxlib\ codes. We refer you to the documentation in that repository for how to set it up 
-and for information on the equations of state provided. That documentation 
-also goes into more detail about the details of the EOS code, in case you are interested in 
+If you are interested in using more realistic and sophisticated equations of
+state, you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics}
+repository. This is a collection of microphysics routines that are compatible with the
+\boxlib\ codes. We refer you to the documentation in that repository for how to set it up
+and for information on the equations of state provided. That documentation
+also goes into more detail about the details of the EOS code, in case you are interested in
 how it works (and in case you want to develop your own EOS).
 
 \section{Nuclear Network}
 
-The nuclear network serves two purposes: it defines the fluid components used 
-in both the equation of state and the hydrodynamics, and it evolves those 
-components through a nuclear burning step. \castro\ comes with a {\tt general\_null} 
+The nuclear network serves two purposes: it defines the fluid components used
+in both the equation of state and the hydrodynamics, and it evolves those
+components through a nuclear burning step. \castro\ comes with a {\tt general\_null}
 network (which lives in the {\tt Networks/} directory). This is a bare interface for a
-nuclear reaction network. No reactions are enabled, and no auxiliary variables 
-are accepted. It contains several sets of isotopes; for example, 
-{\tt Networks/general\_null/triple\_alpha\_plus\_o.net} would describe the 
-isotopes needed to represent the triple-$\alpha$ reaction converting 
+nuclear reaction network. No reactions are enabled, and no auxiliary variables
+are accepted. It contains several sets of isotopes; for example,
+{\tt Networks/general\_null/triple\_alpha\_plus\_o.net} would describe the
+isotopes needed to represent the triple-$\alpha$ reaction converting
 helium into carbon, as well as oxygen and iron.
 
-The main interface file, {\tt network.f90}, is a wrapper function. The 
+The main interface file, {\tt network.f90}, is a wrapper function. The
 actual network details are defined in {\tt Networks/general\_null/general\_null\_network.f90}.
 It supplies the number and names of species and auxiliary variables, as
 well as other initializing data, such as their mass numbers, proton numbers, and the binding
 energies.
 
-The burning front-end interface, {\tt Networks/burner.f90}, accepts a normal 
-\castro\ state MultiFab and converts it to a 
-{\tt eos\_t\_1D}, {\tt eos\_t\_2D}, or {\tt eos\_t\_3D} type (as defined 
-in the previous section), so that it can be sent to the back-end burning routine. 
-The network is designed to use the same EOS type that the EOS itself uses. It 
-accepts as input a given EOS state, and returns an updated EOS state. The 
-nuclear energy release can be computed by taking the difference of 
-{\tt eos\_state\_out \% e} and {\tt eos\_state\_in \% e}. The species 
-change can be computed analogously. The integration occurs over a 
+The burning front-end interface, {\tt Networks/burner.f90}, accepts a normal
+\castro\ state MultiFab and converts it to a
+{\tt eos\_t\_1D}, {\tt eos\_t\_2D}, or {\tt eos\_t\_3D} type (as defined
+in the previous section), so that it can be sent to the back-end burning routine.
+The network is designed to use the same EOS type that the EOS itself uses. It
+accepts as input a given EOS state, and returns an updated EOS state. The
+nuclear energy release can be computed by taking the difference of
+{\tt eos\_state\_out \% e} and {\tt eos\_state\_in \% e}. The species
+change can be computed analogously. The integration occurs over a
 time interval of $\Delta t/2$, where $\Delta t$ is the hydrodynamics timestep.
 
 If you are interested in using more actual nuclear burning networks,
-you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics} 
-repository. This is a collection of microphysics routines that are compatible with the 
-\boxlib\ codes. We refer you to the documentation in that repository for how to set it up 
-and for information on the networks provided. That documentation 
-also goes into more detail about the details of the network code, in case you are interested in 
+you should download the \href{https://github.com/BoxLib-Codes/Microphysics}{\tt Microphysics}
+repository. This is a collection of microphysics routines that are compatible with the
+\boxlib\ codes. We refer you to the documentation in that repository for how to set it up
+and for information on the networks provided. That documentation
+also goes into more detail about the details of the network code, in case you are interested in
 how it works (and in case you want to develop your own network).
 
 \subsection{Required Thermodynamics Quantities}
@@ -172,9 +172,10 @@ supply, if they are not input, are:
   \item {\tt eos\_state \% T}: the temperature
   \item {\tt eos\_state \% P}: total pressure
   \item {\tt eos\_state \% e}: the specific energy
-  \item {\tt eos\_state \% gam1}: the first adiabatic index, 
+  \item {\tt eos\_state \% gam1}: the first adiabatic index,
        $\Gamma_1 = d\log P / d\log \rho |_s$
 \end{itemize}
+
 Additionally the {\tt eos\_input\_re} mode also needs to supply:
 \begin{itemize}
   \item {\tt eos\_state \% cs}: the adiabatic sound speed
@@ -184,9 +185,44 @@ Additionally the {\tt eos\_input\_re} mode also needs to supply:
   \item {\tt eos\_state \% dpde}: the derivative, $\partial p /
     \partial e |_\rho$
 \end{itemize}
+
 For radiation hydro, the {\tt eos\_input\_rt} model needs to supply:
 \begin{itemize}
   \item {\tt eos\_state \% cv}: the specific heat capacity.
 \end{itemize}
 Other quantities (e.g., entropy) might be needed for the derived
 variables that are optional output into the plotfiles.
+
+For burning, when the temperature equation is evolved, the EOS
+needs to supply:
+\begin{itemize}
+\item {\tt eos\_state \% dhdX(nspec)}: the derivative of the
+  specific enthalpy with respect to mass fraction at constant
+  $T$ and $p$.  This is commonly computed as:
+  \begin{equation}
+    \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
+  \end{equation}
+  with
+  \begin{eqnarray}
+p_{X_k} &=& \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+          \frac{\partial \bar{A}}{\partial X_k} +
+          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+          \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+        &=& -\frac{\bar{A}^2}{A_k}
+          \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+          \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
+          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,
+\end{eqnarray}
+\begin{eqnarray}
+e_{X_k} &=& \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+        \frac{\partial \bar{A}}{\partial X_k} +
+        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+        \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+        &=& -\frac{\bar{A}^2}{A_k}
+        \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+        \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
+        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.
+\end{eqnarray}
+\end{itemize}
+(see \cite{maestro:III}, Appendix A).
+

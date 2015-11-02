@@ -11,9 +11,9 @@ contains
 
     implicit none
 
-    type (eos_t_vector), intent(in)    :: state_in
-    type (eos_t_vector), intent(inout) :: state_out
-    double precision, intent(in)       :: dt, time
+    type (eos_t), intent(in)     :: state_in
+    type (eos_t), intent(inout)  :: state_out
+    double precision, intent(in) :: dt, time
 
     ! Do nothing in this burner.
     

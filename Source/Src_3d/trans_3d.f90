@@ -372,8 +372,6 @@ contains
        end if
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transx1
 
 
@@ -738,8 +736,6 @@ contains
        end if
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transx2
 
 
@@ -1098,8 +1094,6 @@ contains
        end if
 
     enddo
-
-    call eos_deallocate(eos_state)
 
   end subroutine transy1
 
@@ -1469,8 +1463,6 @@ contains
 
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transy2
 
 
@@ -2080,8 +2072,6 @@ contains
 
     enddo
 
-    call eos_deallocate(eos_state)
-
   end subroutine transz
 
 
@@ -2513,8 +2503,6 @@ contains
 
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transxy
 
   
@@ -2925,8 +2913,6 @@ contains
        end if
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transxz
 
 
@@ -3340,8 +3326,6 @@ contains
 
     enddo
 
-    call eos_deallocate(eos_state)
-    
   end subroutine transyz
 
 end module transverse_module

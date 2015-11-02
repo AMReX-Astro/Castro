@@ -489,6 +489,29 @@ Castro::advance_hydro (Real time,
     Real mass_change_at_center = 0.;
 #endif
 
+#ifdef SGS
+    if (add_ext_src) {
+      reset_old_sgs(dt);
+      getOldSource(prev_time,dt,ext_src_old,sgs_fluxes);
+    }
+#else
+    if (add_ext_src)
+      getOldSource(prev_time,dt,ext_src_old);
+#endif
+
+    // Permit the user to update the sponge parameters as a function of time.
+    
+    BL_FORT_PROC_CALL(UPDATE_SPONGE_PARAMS,update_sponge_params)(&time);
+    
+#ifdef DIFFUSION
+    MultiFab OldTempDiffTerm(grids,1,1);
+#ifdef TAU
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
+#else
+    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
+#endif
+#endif
+
     // Copy in the source data into the array going into Fortran.
 
     MultiFab::Copy(hydro_sources,sources_old,0,0,NUM_STATE,NUM_GROW);

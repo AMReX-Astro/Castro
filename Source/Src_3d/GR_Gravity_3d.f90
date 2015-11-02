@@ -101,6 +101,4 @@
          enddo
       enddo
 
-      call eos_deallocate(eos_state)
-
       end subroutine ca_compute_avgpres

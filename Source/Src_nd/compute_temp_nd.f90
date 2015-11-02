@@ -14,9 +14,7 @@
       integer          :: i,j,k
       double precision :: rhoInv
 
-      type (eos_t_3D) :: eos_state
-
-      call eos_allocate(eos_state, lo, hi)
+      type (eos_t) :: eos_state
 
       ! First check the inputs for validity.
       
@@ -50,33 +48,23 @@
                
                rhoInv = ONE / state(i,j,k,URHO)
                
-               eos_state % rho(i,j,k)  = state(i,j,k,URHO)
-               eos_state % T(i,j,k)    = state(i,j,k,UTEMP) ! Initial guess for the EOS
-               eos_state % e(i,j,k)    = state(i,j,k,UEINT) * rhoInv
-               eos_state % xn(i,j,k,:) = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               eos_state % aux(i,j,k,1:naux) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+               eos_state % rho = state(i,j,k,URHO)
+               eos_state % T   = state(i,j,k,UTEMP) ! Initial guess for the EOS
+               eos_state % e   = state(i,j,k,UEINT) * rhoInv
+               eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-            enddo
-         enddo
-      enddo
-               
-      call eos(eos_input_re, eos_state)
+               call eos(eos_input_re, eos_state)
 
-      do k = lo(3), hi(3)
-         do j = lo(2), hi(2)
-            do i = lo(1), hi(1)
-      
-               state(i,j,k,UTEMP) = eos_state % T(i,j,k)
+               state(i,j,k,UTEMP) = eos_state % T
 
                ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
 
-               state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e(i,j,k) - state(i,j,k,UEINT))
-               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e(i,j,k)
+               state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
+               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
 
             enddo
          enddo
       enddo
-
-      call eos_deallocate(eos_state)
       
       end subroutine compute_temp

@@ -2384,8 +2384,14 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   for (int dir = 0; dir < BL_SPACEDIM ; dir++) {
-       coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
    }
 
    const Geometry& fine_geom = parent->Geom(parent->finestLevel());
@@ -2405,18 +2411,24 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 	   const Box& bx = grids[mfi.index()];
 
 	   BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(state_old[mfi]),
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
 #ifdef TAU
-		BL_TO_FORTRAN((*tau)[mfi]),
+		BL_TO_FORTRAN_3D((*tau)[mfi]),
 #endif
-		D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
-		       BL_TO_FORTRAN(coeffs[1][mfi]),
-		       BL_TO_FORTRAN(coeffs[2][mfi])),
-		dx_fine);
+		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+  	        ZFILL(dx_fine));
        }
    }
 
+   // Now copy the temporary array results back to the
+   // correctly dimensioned coeffs array.
+
+   for (int dir = 0; dir < BL_SPACEDIM; dir++)
+     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+   
    if (Geometry::isAnyPeriodic())
      for (int d = 0; d < BL_SPACEDIM; d++)
        geom.FillPeriodicBoundary(coeffs[d]);
@@ -2436,8 +2448,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        {
 	   const Box& bx = mfi.validbox();
 	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-	       (bx.loVect(), bx.hiVect(),
-		BL_TO_FORTRAN(TempDiffTerm[mfi]));
+               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(TempDiffTerm[mfi]));
        }
    }
 }
