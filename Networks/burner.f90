@@ -28,11 +28,6 @@ contains
     ! to make sure all other variables are consistent.
 
     call eos(eos_input_re, state_in)
-
-    ! We need the derivatives of the thermodynamic variables with respect to
-    ! species abundance for many burners, so let's calculate that now.
-
-    call composition_derivatives(state_in)
     
     ! Initialize the final state by assuming it does not change.
 
