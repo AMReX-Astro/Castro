@@ -707,13 +707,7 @@
 
       subroutine get_sponge_params(name, namlen)
 
-        use sponge_params_module, only : &
-             lower_radius => sponge_lower_radius, &
-             upper_radius => sponge_upper_radius, &
-             lower_density => sponge_lower_density, &
-             upper_density => sponge_upper_density, &
-             timescale => sponge_timescale
-
+        use sponge_params_module
 
         ! Initialize the sponge parameters
 
@@ -725,11 +719,6 @@
         integer, parameter :: maxlen = 256
         character (len=maxlen) :: probin
 
-        double precision :: &
-             sponge_lower_radius, sponge_upper_radius, &
-             sponge_lower_density, sponge_upper_density, &
-             sponge_timescale
-        
         namelist /sponge/ &
              sponge_lower_radius, sponge_upper_radius, &
              sponge_lower_density, sponge_upper_density, &
@@ -772,12 +761,4 @@
 
         close (unit=un)
 
-        !$omp parallel
-        lower_radius = sponge_lower_radius
-        upper_radius = sponge_upper_radius
-        lower_density = sponge_lower_density
-        upper_density = sponge_upper_density
-        timescale = sponge_timescale
-        !$omp end parallel
-        
       end subroutine get_sponge_params

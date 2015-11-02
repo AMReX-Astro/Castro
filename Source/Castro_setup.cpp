@@ -431,6 +431,7 @@ Castro::variableSetUp ()
         name[cnt] = "rho_" + spec_string;
     }
 
+    // xxxxx wz. fix these!
     // Get the auxiliary names from the network model.
     char* aux_names[NumAux];
     for (int i = 0; i < NumAux; i++) {
