@@ -603,7 +603,34 @@
         endif
 
       end subroutine set_problem_params
+      
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
 
+      subroutine set_refinement_params(max_level_in, dx_level_in)
+
+        use prob_params_module
+
+        implicit none
+
+        integer,          intent(in) :: max_level_in
+        double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+
+        integer :: lev, dir
+        
+        max_level = max_level_in
+
+        allocate(dx_level(1:3, 0:max_level))
+
+        do lev = 0, max_level
+           do dir = 1, 3
+              dx_level(dir,lev) = dx_level_in(3*lev + dir)
+           enddo
+        enddo
+
+      end subroutine set_refinement_params      
+      
 ! ::: 
 ! ::: ----------------------------------------------------------------
 ! ::: 
@@ -707,13 +734,7 @@
 
       subroutine get_sponge_params(name, namlen)
 
-        use sponge_params_module, only : &
-             lower_radius => sponge_lower_radius, &
-             upper_radius => sponge_upper_radius, &
-             lower_density => sponge_lower_density, &
-             upper_density => sponge_upper_density, &
-             timescale => sponge_timescale
-
+        use sponge_params_module
 
         ! Initialize the sponge parameters
 
@@ -725,11 +746,6 @@
         integer, parameter :: maxlen = 256
         character (len=maxlen) :: probin
 
-        double precision :: &
-             sponge_lower_radius, sponge_upper_radius, &
-             sponge_lower_density, sponge_upper_density, &
-             sponge_timescale
-        
         namelist /sponge/ &
              sponge_lower_radius, sponge_upper_radius, &
              sponge_lower_density, sponge_upper_density, &
@@ -772,12 +788,4 @@
 
         close (unit=un)
 
-        !$omp parallel
-        lower_radius = sponge_lower_radius
-        upper_radius = sponge_upper_radius
-        lower_density = sponge_lower_density
-        upper_density = sponge_upper_density
-        timescale = sponge_timescale
-        !$omp end parallel
-        
       end subroutine get_sponge_params

@@ -492,7 +492,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
     int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
     fmg.solve(delta_phi, rhs, tol, abs_tol, always_use_bnorm, need_grad_phi);
 
-    fmg.get_grad_phi(grad_delta_phi);
+    fmg.get_fluxes(grad_delta_phi);
 
 #if (BL_SPACEDIM < 3)
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
@@ -2811,7 +2811,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	final_resnorm = fmg.solve(phi, rhs, tol, abs_tol, 
 				  always_use_bnorm, need_grad_phi);
 
-	fmg.get_grad_phi(grad_phi);
+	fmg.get_fluxes(grad_phi);
 	
 #if (BL_SPACEDIM < 3)
 	if (Geometry::IsSPHERICAL() || Geometry::IsRZ()) {
