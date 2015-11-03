@@ -597,13 +597,6 @@ BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
 BL_FORT_PROC_DECL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
     (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);
 
-BL_FORT_PROC_DECL(CA_AVGDOWN,ca_avgdown)
-    (BL_FORT_FAB_ARG(crse_fab), const int& nc,
-     const BL_FORT_FAB_ARG(crse_vol),
-     const BL_FORT_FAB_ARG(fine_fab),
-     const BL_FORT_FAB_ARG(fine_vol),
-     const int ovlo[], const int ovhi[], const int rat[]);
-
 #ifdef SGS
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,

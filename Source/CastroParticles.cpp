@@ -318,7 +318,8 @@ Castro::ParticleDerive(const std::string& name,
       for (int lev = parent->finestLevel()-1; lev >= 0; lev--)
       {
          const IntVect& ratio = parent->refRatio(lev);
-         Gravity::avgDown(partmf[lev],partmf[lev+1],ratio);
+	 BoxLib::average_down(partmf[lev+1], partmf[lev],
+			      0, 1, ratio);
       }
 
       MultiFab::Copy(*derive_dat,partmf[level],0,0,1,0);
