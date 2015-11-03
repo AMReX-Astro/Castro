@@ -2109,10 +2109,8 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
               // only happen when there is a change in the refinement
               // criteria.  What I'm going to do is construct a
               // MultiFab at level flev, reflux ff_sync into it, and
-              // then average the result down to level.  I have to
-              // duplicate some code here from Castro::avgDown to
-              // accomplish this, but at least I can call the same
-              // Fortran.  This is much simpler than it would be to
+              // then average the result down to level.  This is much 
+              // simpler than it would be to
               // re-implement reflux from the FluxRegister class for
               // this special circumstance.
 
@@ -2171,48 +2169,13 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
               // Coarsen to level resolution.
 
-              MultiFab crse_data(coarsened_grids, 1, 0);
-
-              // Construct volumes.  The data we are coarsening
-              // already has the metric factor built in, so the
-              // volumes we need reflect only the number of fine
-              // cells per coarse cell.
-
-              MultiFab flev_volume(refined_grids, 1, 0);
-              MultiFab crse_volume(coarsened_grids, 1, 0);
-
-              flev_volume.setVal(1.0);
-              crse_volume.setVal(D_TERM(ref_rat[0], *ref_rat[1], *ref_rat[2]));
-
-              // Call fortran here:  based on Castro::avgDown
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-              for (MFIter mfi(flev_data); mfi.isValid(); ++mfi) {
-                const int        i        = mfi.index();
-                const int        ncomp    = 1;
-                const Box&       ovlp     = coarsened_grids[i];
-                FArrayBox&       crse_fab = crse_data[mfi];
-                const FArrayBox& crse_vol = crse_volume[mfi];
-                const FArrayBox& fine_fab = flev_data[mfi];
-                const FArrayBox& fine_vol = flev_volume[mfi];
-
-                BL_FORT_PROC_CALL(CA_AVGDOWN,ca_avgdown)
-                  (BL_TO_FORTRAN(crse_fab), ncomp,
-                   BL_TO_FORTRAN(crse_vol),
-                   BL_TO_FORTRAN(fine_fab),
-                   BL_TO_FORTRAN(fine_vol),
-                   ovlp.loVect(),ovlp.hiVect(),
-                   ref_rat.getVect());
-              }
-
-              // Add coarsened result into rhs.
-
               MultiFab rhs_tmp(grids, 1, 0);
               rhs_tmp.setVal(0.0);     // clear garbage
-              rhs_tmp.copy(crse_data); // not defined on same BoxArray
 
+              // The data we are coarsening already has the metric factor built in.
+	      BoxLib::average_down(flev_data, rhs_tmp, 0, 1, ref_rat);
+
+              // Add coarsened result into rhs.
               rhs.plus(rhs_tmp, 0, 1, 0);
             }
           }
