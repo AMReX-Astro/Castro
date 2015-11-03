@@ -1775,15 +1775,23 @@ Castro::post_init (Real stop_time)
     int max_level = parent->maxLevel();
     int nlevs = max_level + 1;
     
-    Real dx_level[3*nlevs] = { 0.0 };
+    Real dx_level[3*nlevs];
 
-    for (int lev = 0; lev <= max_level; lev++) {
-      const Real* dx = getLevel(lev).Geom().CellSize();
+    const Real* dx_coarse = geom.CellSize();    
 
-      for (int dir = 0; dir < BL_SPACEDIM; dir++)
-	dx_level[3 * lev + dir] = dx[dir];
+    for (int dir = 0; dir < 3; dir++)
+      dx_level[dir] = (ZFILL(dx_coarse))[dir];
+    
+    for (int lev = 1; lev <= max_level; lev++) {
+      IntVect ref_ratio = parent->refRatio(lev-1);
+      
+      for (int dir = 0; dir < 3; dir++)
+	if (dir < BL_SPACEDIM)
+	  dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	else
+	  dx_level[3 * lev + dir] = 0.0;
     }
-	  
+
     BL_FORT_PROC_CALL(SET_REFINEMENT_PARAMS,set_refinement_params)
       (max_level, dx_level);
     
