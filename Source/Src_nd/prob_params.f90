@@ -21,5 +21,9 @@ module prob_params_module
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
   integer         , save :: dg(3)
+
+  ! refinement information
+  integer         , save              :: max_level
+  integer         , save, allocatable :: dx_level(:,:)
   
 end module prob_params_module

@@ -603,7 +603,34 @@
         endif
 
       end subroutine set_problem_params
+      
+! ::: 
+! ::: ----------------------------------------------------------------
+! ::: 
 
+      subroutine set_refinement_params(max_level_in, dx_level_in)
+
+        use prob_params_module
+
+        implicit none
+
+        integer,          intent(in) :: max_level_in
+        double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+
+        integer :: lev, dir
+        
+        max_level = max_level_in
+
+        allocate(dx_level(1:3, 0:max_level))
+
+        do lev = 0, max_level
+           do dir = 1, 3
+              dx_level(dir,lev) = dx_level_in(3*lev + dir)
+           enddo
+        enddo
+
+      end subroutine set_refinement_params      
+      
 ! ::: 
 ! ::: ----------------------------------------------------------------
 ! ::: 
