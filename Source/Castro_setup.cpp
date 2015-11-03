@@ -402,16 +402,17 @@ Castro::variableSetUp ()
     }
 
     // Get the species names from the network model.
-    char* spec_names[NumSpec];
+    std::vector<std::string> spec_names;
     for (int i = 0; i < NumSpec; i++) {
           int len = 20;
           Array<int> int_spec_names(len);
           // This call return the actual length of each string in "len" 
           BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)(int_spec_names.dataPtr(),&i,&len);
-          spec_names[i] = new char[len+1];
+          char char_spec_names[len+1];
           for (int j = 0; j < len; j++) 
-             spec_names[i][j] = int_spec_names[j];
-          spec_names[i][len] = '\0';
+             char_spec_names[j] = int_spec_names[j];
+          char_spec_names[len] = '\0';
+	  spec_names.push_back(char_spec_names);
     }
 
     if ( ParallelDescriptor::IOProcessor())
@@ -427,22 +428,21 @@ Castro::variableSetUp ()
         cnt++; 
         set_scalar_bc(bc,phys_bc); 
         bcs[cnt] = bc; 
-        string spec_string(spec_names[i]);
-        name[cnt] = "rho_" + spec_string;
+        name[cnt] = "rho_" + spec_names[i];
     }
 
-    // xxxxx wz. fix these!
     // Get the auxiliary names from the network model.
-    char* aux_names[NumAux];
+    std::vector<std::string> aux_names;
     for (int i = 0; i < NumAux; i++) {
           int len = 20;
           Array<int> int_aux_names(len);
           // This call return the actual length of each string in "len"
           BL_FORT_PROC_CALL(GET_AUX_NAMES, get_aux_names)(int_aux_names.dataPtr(),&i,&len);
-          aux_names[i] = new char[len+1];
+	  char char_aux_names[len+1];
           for (int j = 0; j < len; j++)
-             aux_names[i][j] = int_aux_names[j];
-          aux_names[i][len] = '\0';
+             char_aux_names[j] = int_aux_names[j];
+          char_aux_names[len] = '\0';
+	  aux_names.push_back(char_aux_names);
     }
 
     if ( ParallelDescriptor::IOProcessor())
@@ -458,8 +458,7 @@ Castro::variableSetUp ()
         cnt++;
         set_scalar_bc(bc,phys_bc);
         bcs[cnt] = bc;
-        string aux_string(aux_names[i]);
-        name[cnt] = "rho_" + aux_string;
+        name[cnt] = "rho_" + aux_names[i];
     }
 
     desc_lst.setComponent(State_Type,
@@ -512,8 +511,7 @@ Castro::variableSetUp ()
     for (int i=0; i<NumSpec; ++i)
     {
        set_scalar_bc(bc,phys_bc);
-       string aux_string(spec_names[i]);
-       name_react = "omegadot_" + aux_string;
+       name_react = "omegadot_" + spec_names[i];
        desc_lst.setComponent(Reactions_Type, i, name_react, bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_REACTFILL,ca_reactfill)));
     }
@@ -707,9 +705,7 @@ Castro::variableSetUp ()
     // X from rhoX
     //
     for (int i = 0; i < NumSpec; i++){
-      string spec_string(spec_names[i]);
-      spec_string = "X("+spec_string+")";
-
+      std::string spec_string = "X("+spec_names[i]+")";
       derive_lst.add(spec_string,IndexType::TheCellType(),1,
                    BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
       derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
@@ -866,19 +862,17 @@ Castro::variableSetUp ()
 #endif
 
     for (int i = 0; i < NumSpec; i++)  {
-      string spec_string(spec_names[i]);
-      derive_lst.add(spec_string,IndexType::TheCellType(),1,
+      derive_lst.add(spec_names[i],IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
-      derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
-      derive_lst.addComponent(spec_string,desc_lst,State_Type,FirstSpec+i,1);
+      derive_lst.addComponent(spec_names[i],desc_lst,State_Type,Density,1);
+      derive_lst.addComponent(spec_names[i],desc_lst,State_Type,FirstSpec+i,1);
     }
 
     for (int i = 0; i < NumAux; i++)  {
-      string aux_string(aux_names[i]);
-      derive_lst.add(aux_string,IndexType::TheCellType(),1,
+      derive_lst.add(aux_names[i],IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
-      derive_lst.addComponent(aux_string,desc_lst,State_Type,Density,1);
-      derive_lst.addComponent(aux_string,desc_lst,State_Type,FirstAux+i,1);
+      derive_lst.addComponent(aux_names[i],desc_lst,State_Type,Density,1);
+      derive_lst.addComponent(aux_names[i],desc_lst,State_Type,FirstAux+i,1);
     }
 
 #if 0
@@ -900,11 +894,4 @@ Castro::variableSetUp ()
     //
     ErrorSetUp();
 
-    for (int i = 0; i < NumSpec; i++) {
-      delete[] spec_names[i];
-    }
-
-    for (int i = 0; i < NumAux; i++) {
-      delete[] aux_names[i];
-    }
 }
