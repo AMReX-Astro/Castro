@@ -374,19 +374,9 @@ Castro::advance_hydro (Real time,
 
     // This array will hold the source terms that go into the hydro update through umdrv.
     
-    MultiFab hydro_sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    hydro_sources.setVal(0.0);
+    MultiFab sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources.setVal(0.0);
 
-    // These arrays hold the sum of the sources at the old and new times.
-    // We need these separately from hydro_sources because if we're using
-    // the source term predictor, hydro_sources will not simply be the old data.
-    
-    MultiFab sources_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_old.setVal(0.0);
-    
-    MultiFab sources_new(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_new.setVal(0.0);
-    
     // Set up external source terms
     
     MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
@@ -417,7 +407,7 @@ Castro::advance_hydro (Real time,
 
     BoxLib::fill_boundary(ext_src_old, geom);    
 
-    MultiFab::Add(sources_old,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
+    MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
     // Define the gravity vector, which we will add to the hydro source terms.
     MultiFab grav_vector(grids,3,NUM_GROW);
@@ -434,13 +424,13 @@ Castro::advance_hydro (Real time,
       // Multiply gravity by the density to put it in conservative form.      
       
       MultiFab::Multiply(grav_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources_old,grav_vector,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Add(sources,grav_vector,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
       MultiFab::Multiply(grav_vector,Sborder,Xmom+i,i,1,NUM_GROW);
       MultiFab::Divide(grav_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources_old,grav_vector,i,Eden,1,NUM_GROW);
+      MultiFab::Add(sources,grav_vector,i,Eden,1,NUM_GROW);
       
     }
     
@@ -475,13 +465,13 @@ Castro::advance_hydro (Real time,
       // Multiply rotation by the density to put it in conservative form.      
       
       MultiFab::Multiply(rot_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources_old,rot_vector,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Add(sources,rot_vector,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
       MultiFab::Multiply(rot_vector,Sborder,Xmom+i,i,1,NUM_GROW);
       MultiFab::Divide(rot_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources_old,rot_vector,i,Eden,1,NUM_GROW);
+      MultiFab::Add(sources,rot_vector,i,Eden,1,NUM_GROW);
       
     }    
     
@@ -492,34 +482,28 @@ Castro::advance_hydro (Real time,
     // Permit the user to update the sponge parameters as a function of time.
     
     BL_FORT_PROC_CALL(UPDATE_SPONGE_PARAMS,update_sponge_params)(&time);
+
+    // Set up the time-rate of change of the source terms.
     
-    // Copy in the source data into the array going into Fortran.
-
-    MultiFab::Copy(hydro_sources,sources_old,0,0,NUM_STATE,NUM_GROW);
-
-    // Optionally we can predict the source terms to  t + dt/2,
+    MultiFab& dSdt_new = get_new_data(Source_Type);    
+    
+    // Optionally we can predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
     // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so 
     // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
       
     if (source_term_predictor == 1) {
 
-      // We need to make a temporary MultiFab so
-      // that we can fill the ghost cells with the
-      // right values of the time derivative.
-
-      MultiFab dSdt(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-
       AmrLevel* amrlev = &parent->getLevel(level);
       
-      AmrLevel::FillPatch(*amrlev,dSdt,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
+      AmrLevel::FillPatch(*amrlev,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
       
-      dSdt.mult( dt / 2.0 );
+      dSdt_new.mult( dt / 2.0 );
 
-      MultiFab::Add(hydro_sources,dSdt,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Add(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
     }
-      
+
     {
 
       // Note that we do the react_half_dt on Sborder because of our Strang
@@ -755,7 +739,7 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(hydro_sources[mfi]),
+			 BL_TO_FORTRAN(sources[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -1038,6 +1022,19 @@ Castro::advance_hydro (Real time,
         }
     }
 
+    // Now we'll start updating the dSdt MultiFab. First,
+    // get rid of the dt/2 * dS/dt that we added from the last
+    // timestep, then subtract the old sources data to get the
+    // first half of the update for the next calculation of dS/dt.
+    
+    if (source_term_predictor == 1) {
+      MultiFab::Subtract(sources,dSdt_new,0,0,NUM_STATE,0);
+      dSdt_new.setVal(0.0);
+      MultiFab::Subtract(dSdt_new,sources,0,0,NUM_STATE,0);
+    }
+    
+    sources.setVal(0.0);       
+    
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
     if (moving_center == 1)
@@ -1146,7 +1143,7 @@ Castro::advance_hydro (Real time,
     time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
     computeTemp(S_new);
 
-    MultiFab::Add(sources_new,ext_src_new,0,0,NUM_STATE,0);
+    MultiFab::Add(sources,ext_src_new,0,0,NUM_STATE,0);
 
 #ifdef GRAVITY
     if (do_grav)
@@ -1268,7 +1265,7 @@ Castro::advance_hydro (Real time,
 #endif
         }	
 
-	MultiFab::Add(sources_new,grav_vec_new,0,Xmom,3,0);	
+	MultiFab::Add(sources,grav_vec_new,0,Xmom,3,0);	
 	
 	computeTemp(S_new);
       }
@@ -1362,23 +1359,19 @@ Castro::advance_hydro (Real time,
 
     }
 
-    MultiFab::Add(sources_new,rot_vec_new,0,Xmom,3,0);    
+    MultiFab::Add(sources,rot_vec_new,0,Xmom,3,0);    
         
 #endif
 
     reset_internal_energy(S_new);
 
-    MultiFab& dSdt = get_new_data(Source_Type);    
-    dSdt.setVal(0.0);      
-    
     if (source_term_predictor == 1) {
     
       // Calculate the time derivative of the source terms.
 
-      MultiFab::Add(dSdt,sources_new,0,0,NUM_STATE,0);
-      MultiFab::Subtract(dSdt,sources_old,0,0,NUM_STATE,0);
+      MultiFab::Add(dSdt_new,sources,0,0,NUM_STATE,0);
       
-      dSdt.mult(1.0/dt);
+      dSdt_new.mult(1.0/dt);
 
     } 
     
