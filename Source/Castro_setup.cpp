@@ -509,8 +509,13 @@ Castro::variableSetUp ()
 #endif
 
     // Source term array will use standard hyperbolic fill.
+
+    Array<std::string> sources_name(NUM_STATE);    
     
-    desc_lst.setComponent(Source_Type,Density,name,bcs,
+    for (int i = 0; i < NUM_STATE; i++)
+      sources_name[i] = name[i] + "_source";
+    
+    desc_lst.setComponent(Source_Type,Density,sources_name,bcs,
 			  BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_denfill),
 				    BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));       
     
