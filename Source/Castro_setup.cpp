@@ -333,7 +333,7 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,0,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -353,7 +353,7 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,ngrow_state,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif    
 

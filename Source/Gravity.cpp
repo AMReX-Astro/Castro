@@ -907,12 +907,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
       else
 	grav_vector.setVal(0.,dir,1,ng);
     
-    // Fill G_old from grav_vector.
-	
-    MultiFab& G_old = LevelData[level].get_old_data(Gravity_Type);
- 
-    MultiFab::Copy(G_old,grav_vector,0,0,3,0);
-
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
  
@@ -1006,12 +1000,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
       else
 	grav_vector.setVal(0.,dir,1,ng);
-
-    // Fill G_new from grav_vector.
-	
-    MultiFab& G_new = LevelData[level].get_new_data(Gravity_Type);
-
-    MultiFab::Copy(G_new,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {

@@ -205,13 +205,14 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    MultiFab grav_vec_old;
-
 #ifdef GRAVITY
     // Old and new gravitational potential.
        
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
+
+    MultiFab& grav_old = get_old_data(Gravity_Type);
+    MultiFab& grav_new = get_new_data(Gravity_Type);
     
     if (do_grav) {
 
@@ -228,12 +229,10 @@ Castro::advance_hydro (Real time,
                gravity->swapTimeLevels(lev);
        }
 
-       grav_vec_old.define(grids,3,NUM_GROW,Fab_allocate); 
-       
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
 
-       gravity->get_old_grav_vector(level,grav_vec_old,time);
+       gravity->get_old_grav_vector(level,grav_old,time);
        
        if (gravity->get_gravity_type() == "PoissonGrav" &&
            gravity->test_results_of_solves() == 1)
@@ -241,8 +240,7 @@ Castro::advance_hydro (Real time,
     }
     else
     {
-       MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-       new_grav_mf.setVal(0.0);
+       grav_new.setVal(0.0);
        phi_new.setVal(0.0);
     }
 #endif
@@ -260,7 +258,7 @@ Castro::advance_hydro (Real time,
 #ifdef TAU
     MultiFab tau_diff(grids,1,NUM_GROW);
     tau_diff.setVal(0.);
-    define_tau(tau_diff,grav_vec_old,time);
+    define_tau(tau_diff,grav_old,time);
 #endif
 #endif
 
@@ -409,54 +407,44 @@ Castro::advance_hydro (Real time,
 
     MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
-    // Define the gravity vector, which we will add to the hydro source terms.
-    MultiFab grav_vector(grids,3,NUM_GROW);
-    grav_vector.setVal(0.);
-    
-#ifdef GRAVITY
-    if (do_grav) {
-      MultiFab::Copy(grav_vector,grav_vec_old,0,0,3,NUM_GROW);
-    }
-#endif
-
     for (int i = 0; i < 3; i++) {
 
       // Multiply gravity by the density to put it in conservative form.      
       
-      MultiFab::Multiply(grav_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_vector,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Multiply(grav_old,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,grav_old,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(grav_vector,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(grav_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_vector,i,Eden,1,NUM_GROW);
+      MultiFab::Multiply(grav_old,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(grav_old,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,grav_old,i,Eden,1,NUM_GROW);
+
+      // Now return the gravity data to its original state.
+
+      MultiFab::Divide(grav_old,Sborder,Xmom+i,i,1,NUM_GROW);      
       
     }
     
-    // Define the rotation vector so we can pass this to ca_umdrv.
-    MultiFab rot_vector(grids,3,NUM_GROW);
-    rot_vector.setVal(0.);
-
 #ifdef ROTATION
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
-    MultiFab& rot_vec_old = get_old_data(Rotation_Type);
+    MultiFab& rot_old = get_old_data(Rotation_Type);
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_vec_new = get_new_data(Rotation_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
 
     if (do_rotation) {
 
       // This fills the old state data.
 
-      fill_rotation_field(phirot_old, rot_vec_old, S_old, prev_time);
+      fill_rotation_field(phirot_old, rot_old, S_old, prev_time);
 
       AmrLevel* amrlev = &parent->getLevel(level);
       
-      AmrLevel::FillPatch(*amrlev,rot_vector,NUM_GROW,prev_time,Rotation_Type,0,3);       
+      AmrLevel::FillPatch(*amrlev,rot_old,NUM_GROW,prev_time,Rotation_Type,0,3);       
 
     } else {
       phirot_old.setVal(0.);
-      rot_vec_old.setVal(0.);
+      rot_old.setVal(0.);
     } 
 #endif
 
@@ -464,14 +452,18 @@ Castro::advance_hydro (Real time,
 
       // Multiply rotation by the density to put it in conservative form.      
       
-      MultiFab::Multiply(rot_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_vector,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Multiply(rot_old,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,rot_old,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(rot_vector,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(rot_vector,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_vector,i,Eden,1,NUM_GROW);
+      MultiFab::Multiply(rot_old,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(rot_old,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,rot_old,i,Eden,1,NUM_GROW);
+
+      // Return the rotation data to its original state.
+
+      MultiFab::Divide(rot_old,Sborder,Xmom+i,i,1,NUM_GROW);      
       
     }    
     
@@ -588,7 +580,7 @@ Castro::advance_hydro (Real time,
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
 			 BL_TO_FORTRAN(ext_src_old[mfi]),
-			 BL_TO_FORTRAN(grav_vector[mfi]), 
+			 BL_TO_FORTRAN(grav_old[mfi]), 
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -788,7 +780,7 @@ Castro::advance_hydro (Real time,
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
 			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
-			 BL_TO_FORTRAN_3D(grav_vec_old[mfi]),
+			 BL_TO_FORTRAN_3D(grav_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_new[mfi]),
 			 ZFILL(dx),dt,&time,
@@ -809,7 +801,7 @@ Castro::advance_hydro (Real time,
 		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
 			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			 BL_TO_FORTRAN_3D(rot_vec_old[mfi]),
+			 BL_TO_FORTRAN_3D(rot_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_old[mfi]),
 			 BL_TO_FORTRAN_3D(S_new[mfi]),
 			 ZFILL(dx),dt,&time,
@@ -961,7 +953,7 @@ Castro::advance_hydro (Real time,
     if (do_dm_particles && particle_move_type == "Gravitational")
     {
 	BL_ASSERT(level == 0);
-	Castro::theDMPC()->movePredict(grav_vector, level, dt);
+	Castro::theDMPC()->movePredict(grav_old, level, dt);
     }
 #endif
     
@@ -1199,8 +1191,7 @@ Castro::advance_hydro (Real time,
 	}
 
 	// Now do corrector part of source term update
-	MultiFab grav_vec_new(grids,3,1,Fab_allocate);
-	gravity->get_new_grav_vector(level,grav_vec_new,cur_time);
+	gravity->get_new_grav_vector(level,grav_new,cur_time);
 
         Real E_added    = 0.;
 	Real xmom_added = 0.;
@@ -1221,8 +1212,8 @@ Castro::advance_hydro (Real time,
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		     BL_TO_FORTRAN_3D(phi_old[mfi]),
 		     BL_TO_FORTRAN_3D(phi_new[mfi]),
-		     BL_TO_FORTRAN_3D(grav_vec_old[mfi]),
-		     BL_TO_FORTRAN_3D(grav_vec_new[mfi]),
+		     BL_TO_FORTRAN_3D(grav_old[mfi]),
+		     BL_TO_FORTRAN_3D(grav_new[mfi]),
 		     BL_TO_FORTRAN_3D(S_old[mfi]),
 		     BL_TO_FORTRAN_3D(S_new[mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
@@ -1266,7 +1257,7 @@ Castro::advance_hydro (Real time,
 #endif
         }	
 
-	MultiFab::Add(sources,grav_vec_new,0,Xmom,3,0);	
+	MultiFab::Add(sources,grav_new,0,Xmom,3,0);	
 	
 	computeTemp(S_new);
       }
@@ -1287,7 +1278,7 @@ Castro::advance_hydro (Real time,
 
         // Fill the new state data.
       
-      fill_rotation_field(phirot_new, rot_vec_new, S_new, cur_time);
+      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
 
 	// Now do corrector part of rotation source term update
 
@@ -1310,8 +1301,8 @@ Castro::advance_hydro (Real time,
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		     BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		     BL_TO_FORTRAN_3D(phirot_new[mfi]),
-		     BL_TO_FORTRAN_3D(rot_vec_old[mfi]),
-		     BL_TO_FORTRAN_3D(rot_vec_new[mfi]),
+		     BL_TO_FORTRAN_3D(rot_old[mfi]),
+		     BL_TO_FORTRAN_3D(rot_new[mfi]),
 		     BL_TO_FORTRAN_3D(S_old[mfi]),
 		     BL_TO_FORTRAN_3D(S_new[mfi]),
 		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
@@ -1356,11 +1347,11 @@ Castro::advance_hydro (Real time,
     } else {
 
         phirot_new.setVal(0.0);
-        rot_vec_new.setVal(0.0);
+        rot_new.setVal(0.0);
 
     }
 
-    MultiFab::Add(sources,rot_vec_new,0,Xmom,3,0);    
+    MultiFab::Add(sources,rot_new,0,Xmom,3,0);    
         
 #endif
 
@@ -1455,13 +1446,14 @@ Castro::advance_no_hydro (Real time,
     }
 #endif
 
-    MultiFab grav_vec_old;
-
 #ifdef GRAVITY
     // Old and new gravitational potential.
        
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
+
+    MultiFab& grav_old = get_old_data(Gravity_Type);
+    MultiFab& grav_new = get_new_data(Gravity_Type);
     
     if (do_grav) {
        if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav")
@@ -1469,12 +1461,10 @@ Castro::advance_no_hydro (Real time,
 
        gravity->swapTimeLevels(level);
 
-       grav_vec_old.define(grids,BL_SPACEDIM,NUM_GROW,Fab_allocate); 
-
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
 
-       gravity->get_old_grav_vector(level,grav_vec_old,time);
+       gravity->get_old_grav_vector(level,grav_old,time);
 
        if (gravity->get_gravity_type() == "PoissonGrav" &&
            gravity->test_results_of_solves() == 1)
@@ -1482,8 +1472,7 @@ Castro::advance_no_hydro (Real time,
     }
     else
     {
-       MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-       new_grav_mf.setVal(0.0);
+       grav_new.setVal(0.0);
        phi_new.setVal(0.0);
     }
 #endif 
@@ -1497,7 +1486,7 @@ Castro::advance_no_hydro (Real time,
 #ifdef TAU
     MultiFab tau_diff(grids,1,1);
     tau_diff.setVal(0.);
-    define_tau(tau_diff,grav_vec_old,time);
+    define_tau(tau_diff,grav_old,time);
 #endif
 #endif
 
