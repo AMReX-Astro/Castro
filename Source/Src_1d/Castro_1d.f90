@@ -173,67 +173,6 @@
 
       end subroutine ca_check_initial_species
 
-! :: ----------------------------------------------------------
-! :: Volume-weight average the fine grid data onto the coarse
-! :: grid.  Overlap is given in coarse grid coordinates.
-! ::
-! :: INPUTS / OUTPUTS:
-! ::  crse      <=  coarse grid data
-! ::  nvar	 => number of components in arrays
-! ::  fine       => fine grid data
-! ::  lo,hi      => index limits of overlap (crse grid)
-! ::  lrat       => refinement ratio
-! ::
-! :: NOTE:
-! ::  Assumes all data cell centered
-! :: ----------------------------------------------------------
-! ::
-      subroutine ca_avgdown (crse,c_l1,c_h1,nvar, &
-           cv,cv_l1,cv_h1, &
-           fine,f_l1,f_h1, &
-           fv,fv_l1,fv_h1,lo,hi,lrat)
-
-      use bl_constants_module
-
-      implicit none
-
-      integer c_l1,c_h1
-      integer cv_l1,cv_h1
-      integer f_l1,f_h1
-      integer fv_l1,fv_h1
-      integer lo(1), hi(1)
-      integer nvar, lrat(1)
-      double precision crse(c_l1:c_h1,nvar)
-      double precision cv(cv_l1:cv_h1)
-      double precision fine(f_l1:f_h1,nvar)
-      double precision fv(fv_l1:fv_h1)
-
-      integer i, n, ic, ioff
- 
-      do n = 1, nvar
- 
-!        Set coarse grid to zero on overlap
-         do ic = lo(1), hi(1)
-            crse(ic,n) = ZERO
-         enddo
-  
-!        Sum fine data
-         do ioff = 0, lrat(1)-1
-            do ic = lo(1), hi(1)
-               i = ic*lrat(1) + ioff
-               crse(ic,n) = crse(ic,n) + fv(i) * fine(i,n)
-            enddo
-         enddo
-             
-!        Divide out by volume weight
-         do ic = lo(1), hi(1)
-            crse(ic,n) = crse(ic,n) / cv(ic)
-         enddo
-            
-      enddo
-
-      end subroutine ca_avgdown
-
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::

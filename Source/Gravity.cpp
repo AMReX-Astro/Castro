@@ -623,8 +623,9 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
     for (int lev = fine_level-1; lev >= crse_level; lev--)
     {
        const IntVect& ratio = parent->refRatio(lev);
-       avgDown(LevelData[lev  ].get_new_data(PhiGrav_Type),
-	       LevelData[lev+1].get_new_data(PhiGrav_Type),ratio);
+       BoxLib::average_down(LevelData[lev+1].get_new_data(PhiGrav_Type),
+			    LevelData[lev  ].get_new_data(PhiGrav_Type),
+			    0, 1, ratio);
     } 
 
     // Average the edge-based grad_phi from finer to coarser level
@@ -810,13 +811,15 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
        const IntVect& ratio = parent->refRatio(amr_lev-1);
        if (is_new == 1)
        {
-	   avgDown(LevelData[amr_lev-1].get_new_data(PhiGrav_Type),
-		   LevelData[amr_lev  ].get_new_data(PhiGrav_Type),ratio);
+	   BoxLib::average_down(LevelData[amr_lev  ].get_new_data(PhiGrav_Type),
+				LevelData[amr_lev-1].get_new_data(PhiGrav_Type),
+				0, 1, ratio);
        }
        else if (is_new == 0)
        {
-	   avgDown(LevelData[amr_lev-1].get_old_data(PhiGrav_Type),
-		   LevelData[amr_lev  ].get_old_data(PhiGrav_Type),ratio);
+	   BoxLib::average_down(LevelData[amr_lev  ].get_old_data(PhiGrav_Type),
+				LevelData[amr_lev-1].get_old_data(PhiGrav_Type),
+				0, 1, ratio);
        }
 
     }
@@ -1301,15 +1304,6 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 }
 
 void
-Gravity::avgDown (MultiFab& crse, MultiFab& fine, const IntVect& ratio)
-{
-    BL_PROFILE("Gravity::avgDown()");
-
-    // Note that this is not volume-weighted
-    BoxLib::average_down(fine,crse,0,1,ratio);
-}
-
-void
 Gravity::test_composite_phi (int crse_level)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
@@ -1354,7 +1348,8 @@ Gravity::test_composite_phi (int crse_level)
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
     {
 	const IntVect& ratio = parent->refRatio(amr_lev);
-	avgDown(res[amr_lev], res[amr_lev+1], ratio);
+	BoxLib::average_down(res[amr_lev+1], res[amr_lev],
+			     0, 1, ratio);
     } 
 
     for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
@@ -2697,7 +2692,8 @@ Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& R
         for (int lev = finest_level - 1 - base_level; lev >= 0; lev--)
         {
             const IntVect& ratio = parent->refRatio(lev+base_level);
-            avgDown(PartMF[lev], PartMF[lev+1], ratio);
+	    BoxLib::average_down(PartMF[lev+1], PartMF[lev],
+				 0, 1, ratio);
         }
 
         for (int lev = 0; lev < num_levels; lev++)

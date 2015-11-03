@@ -1787,15 +1787,23 @@ Castro::post_init (Real stop_time)
     int max_level = parent->maxLevel();
     int nlevs = max_level + 1;
     
-    Real dx_level[3*nlevs] = { 0.0 };
+    Real dx_level[3*nlevs];
 
-    for (int lev = 0; lev <= max_level; lev++) {
-      const Real* dx = getLevel(lev).Geom().CellSize();
+    const Real* dx_coarse = geom.CellSize();    
 
-      for (int dir = 0; dir < BL_SPACEDIM; dir++)
-	dx_level[3 * lev + dir] = dx[dir];
+    for (int dir = 0; dir < 3; dir++)
+      dx_level[dir] = (ZFILL(dx_coarse))[dir];
+    
+    for (int lev = 1; lev <= max_level; lev++) {
+      IntVect ref_ratio = parent->refRatio(lev-1);
+      
+      for (int dir = 0; dir < 3; dir++)
+	if (dir < BL_SPACEDIM)
+	  dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	else
+	  dx_level[3 * lev + dir] = 0.0;
     }
-	  
+
     BL_FORT_PROC_CALL(SET_REFINEMENT_PARAMS,set_refinement_params)
       (max_level, dx_level);
     
@@ -2586,48 +2594,16 @@ Castro::avgDown (int state_indx)
     if (level == parent->finestLevel()) return;
 
     Castro& fine_lev = getLevel(level+1);
+
+    const Geometry& fgeom = fine_lev.geom;
+    const Geometry& cgeom =          geom;
+
     MultiFab&  S_crse   = get_new_data(state_indx);
     MultiFab&  S_fine   = fine_lev.get_new_data(state_indx);
-    MultiFab&  fvolume  = fine_lev.volume;
-    const int  ncomp    = S_fine.nComp();
 
-    BL_ASSERT(S_crse.boxArray() == volume.boxArray());
-    BL_ASSERT(fvolume.boxArray() == S_fine.boxArray());
-    //
-    // Coarsen() the fine stuff on processors owning the fine data.
-    //
-    BoxArray crse_S_fine_BA(S_fine.boxArray().size());
-
-    for (int i = 0; i < S_fine.boxArray().size(); ++i)
-    {
-        crse_S_fine_BA.set(i,BoxLib::coarsen(S_fine.boxArray()[i],fine_ratio));
-    }
-
-    MultiFab crse_S_fine(crse_S_fine_BA,ncomp,0);
-    MultiFab crse_fvolume(crse_S_fine_BA,1,0);
-
-    crse_fvolume.copy(volume);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(crse_S_fine,true); mfi.isValid(); ++mfi)
-    {
-        const Box&       ovlp     = mfi.tilebox();
-        FArrayBox&       crse_fab = crse_S_fine[mfi];
-        const FArrayBox& crse_vol = crse_fvolume[mfi];
-        const FArrayBox& fine_fab = S_fine[mfi];
-        const FArrayBox& fine_vol = fvolume[mfi];
-
-	BL_FORT_PROC_CALL(CA_AVGDOWN,ca_avgdown)
-            (BL_TO_FORTRAN(crse_fab), ncomp,
-             BL_TO_FORTRAN(crse_vol),
-             BL_TO_FORTRAN(fine_fab),
-             BL_TO_FORTRAN(fine_vol),
-             ovlp.loVect(),ovlp.hiVect(),fine_ratio.getVect());
-    }
-
-    S_crse.copy(crse_S_fine);
+    BoxLib::average_down(S_fine, S_crse,
+			 fgeom, cgeom,
+			 0, S_fine.nComp(), fine_ratio);
 }
 
 void

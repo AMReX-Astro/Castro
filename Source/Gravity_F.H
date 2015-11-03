@@ -4,11 +4,6 @@
 
 BL_FORT_PROC_DECL(GET_GRAV_CONST,get_grav_const)(Real* Gconst);
 
-BL_FORT_PROC_DECL(CA_AVGDOWN_PHI,ca_avgdown_phi)
-    (BL_FORT_FAB_ARG(crse_fab), 
-     const BL_FORT_FAB_ARG(fine_fab),
-     const int ovlo[], const int ovhi[], const int rat[]);
-
 BL_FORT_PROC_DECL(CA_EDGE_INTERP,ca_edge_interp)
     (const int* flo, const int* fhi,
      const int* nc, const int* refRatio, const int* dir,
