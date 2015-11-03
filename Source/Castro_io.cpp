@@ -511,6 +511,12 @@ Castro::setPlotVariables ()
   }
 #endif
 
+  // Don't add the Source_Type data to the plotfile, we only
+  // want to store it in the checkpoints.
+
+  for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
+    parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+			       
   ParmParse pp("castro");
 
   bool plot_X;
