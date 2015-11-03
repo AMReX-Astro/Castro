@@ -363,13 +363,15 @@ Castro::advance_hydro (Real time,
 
     
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
-    // but the state data does not carry ghost zones. So we use a FillPatchIterator
-    // on S_new (which currently is equal to the old time data) to give us Sborder,
-    // which does have ghost zones. 
-    FillPatchIterator state_fpi(*this, S_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
-    MultiFab& Sborder = state_fpi.get_mf();    
+    // but the state data does not carry ghost zones. So we use a FillPatch
+    // using the state data to give us Sborder, which does have ghost zones. 
 
+    AmrLevel* amrlev = &parent->getLevel(level);    
+    
+    MultiFab Sborder(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
+    AmrLevel::FillPatch(*amrlev,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);    
+    
     // This array will hold the source terms that go into the hydro update through umdrv.
     
     MultiFab sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
@@ -438,8 +440,6 @@ Castro::advance_hydro (Real time,
 
       fill_rotation_field(phirot_old, rot_old, S_old, prev_time);
 
-      AmrLevel* amrlev = &parent->getLevel(level);
-      
       AmrLevel::FillPatch(*amrlev,rot_old,NUM_GROW,prev_time,Rotation_Type,0,3);       
 
     } else {
@@ -487,8 +487,6 @@ Castro::advance_hydro (Real time,
       
     if (source_term_predictor == 1) {
 
-      AmrLevel* amrlev = &parent->getLevel(level);
-      
       AmrLevel::FillPatch(*amrlev,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
       
       dSdt_new.mult( dt / 2.0 );
