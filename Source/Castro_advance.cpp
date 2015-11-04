@@ -492,7 +492,7 @@ Castro::advance_hydro (Real time,
 
       AmrLevel::FillPatch(*amrlev,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
       
-      dSdt_new.mult( dt / 2.0 );
+      dSdt_new.mult( dt / 2.0, NUM_GROW );
 
       MultiFab::Add(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
