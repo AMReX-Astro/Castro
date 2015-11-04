@@ -409,6 +409,7 @@ Castro::advance_hydro (Real time,
 
     MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
+#ifdef GRAVITY    
     for (int i = 0; i < 3; i++) {
 
       // Multiply gravity by the density to put it in conservative form.      
@@ -427,6 +428,7 @@ Castro::advance_hydro (Real time,
       MultiFab::Divide(grav_old,Sborder,Xmom+i,i,1,NUM_GROW);      
       
     }
+#endif
     
 #ifdef ROTATION
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
@@ -446,7 +448,6 @@ Castro::advance_hydro (Real time,
       rot_old.setVal(0.);
       
     } 
-#endif
 
     for (int i = 0; i < 3; i++) {
 
@@ -465,7 +466,9 @@ Castro::advance_hydro (Real time,
 
       MultiFab::Divide(rot_old,Sborder,Xmom+i,i,1,NUM_GROW);      
       
-    }    
+    }
+#endif
+    
     
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
