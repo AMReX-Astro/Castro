@@ -36,7 +36,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(rot, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 
       const Box& bx = mfi.growntilebox(ng);
