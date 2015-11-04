@@ -95,7 +95,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(   div, lo(1),hi(1)+1,lo(2),hi(2)+1,lo(3),hi(3)+1)  
   call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
 
-  call bl_allocate(  srcQ, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,QVAR)
+  call bl_allocate(  srcQ, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,QVAR)
   
   dx = delta(1)
   dy = delta(2)
@@ -109,12 +109,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+               srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+               srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &

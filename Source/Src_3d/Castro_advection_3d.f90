@@ -899,9 +899,9 @@ contains
     enddo
 
     ! compute srcQ terms
-    do k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+    do k = loq(3), hiq(3)
+       do j = loq(2), hiq(2)
+          do i = loq(1), hiq(1)
              rhoinv = ONE/q(i,j,k,QRHO)
              srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
              srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
