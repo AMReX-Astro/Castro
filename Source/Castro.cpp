@@ -1483,7 +1483,7 @@ Castro::post_timestep (int iteration)
 
 #ifdef GRAVITY
     // Check the whole hierarchy before the syncs
-    if (level == 0 && gravity->test_results_of_solves() == 1 &&
+    if (do_grav && level == 0 && gravity->test_results_of_solves() == 1 &&
         gravity->get_gravity_type() == "PoissonGrav")
     {
        if (verbose && ParallelDescriptor::IOProcessor())
@@ -1739,7 +1739,8 @@ Castro::postCoarseTimeStep (Real cumtime)
     // postCoarseTimeStep() is only called by level 0.
     //
 #ifdef GRAVITY
-    gravity->set_mass_offset(cumtime, 0);
+    if (do_grav)
+        gravity->set_mass_offset(cumtime, 0);
 #endif
 
 #ifdef PARTICLES
