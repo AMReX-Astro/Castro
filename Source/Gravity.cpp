@@ -2857,7 +2857,7 @@ Gravity::get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs, int is_new)
 
 #ifdef PARTICLES
     if ( Castro::theDMPC() )
-	AddParticlesToRhs(crse_level,fine_level,rhs);
+	AddParticlesToRhs(crse_level,crse_level+nlevs-1,rhs);
 #endif
 
 }

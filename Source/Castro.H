@@ -12,8 +12,8 @@
 #endif
 
 #ifdef PARTICLES
-#include "Particles.H"
-typedef ParticleContainer<1+BL_SPACEDIM> DarkMatterParticleContainer;  // mass + velocities
+#include "AmrParticles.H"
+typedef AmrParticleContainer<1+BL_SPACEDIM> DarkMatterParticleContainer;  // mass + velocities
 #endif
 
 #include <iostream>
