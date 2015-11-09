@@ -393,7 +393,7 @@ Castro::read_params ()
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
-    pp.query("diffuse_temp",diffuse_cutoff_density);
+    pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
 #endif
 
     pp.query("grown_factor",grown_factor);
