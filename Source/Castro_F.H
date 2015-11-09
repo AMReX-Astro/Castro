@@ -233,7 +233,7 @@ BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
      const Real* time, const int* bc);
 #endif
 
-#ifdef GRAVITY
+#if defined(GRAVITY) || defined(ROTATION)
 BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
@@ -335,7 +335,7 @@ BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
      const Real* time, const int bc[]);
 #endif
 
-#ifdef GRAVITY
+#if defined(GRAVITY) || defined(ROTATION)
 BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
