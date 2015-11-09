@@ -930,9 +930,9 @@ contains
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do k = loq(3), hiq(3)
+          do j = loq(2), hiq(2)
+             do i = loq(1), hiq(1)
                 srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
                      q(i,j,k,QRHO)
              enddo
