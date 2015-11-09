@@ -412,8 +412,8 @@ contains
     enddo
     
     ! Compute sources in terms of Q
-    do j = lo(2)-1, hi(2)+1
-       do i = lo(1)-1, hi(1)+1
+    do j = loq(2), hiq(2)
+       do i = loq(1), hiq(1)
           
           srcQ(i,j,QRHO  ) = src(i,j,URHO)
           srcQ(i,j,QU:QV ) = (src(i,j,UMX:UMY) - q(i,j,QU:QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
@@ -435,8 +435,8 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+       do j = loq(2), hiq(2)
+          do i = loq(1), hiq(1)
              srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
        enddo

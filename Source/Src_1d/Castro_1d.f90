@@ -74,7 +74,7 @@
       allocate( flatn(q_l1:q_h1))
       allocate(  csml(q_l1:q_h1))
 
-      allocate(  srcQ(lo(1)-1:hi(1)+1,QVAR))
+      allocate(  srcQ(q_l1:q_h1,QVAR))
 
       allocate(   div(lo(1):hi(1)+1))
       allocate( pdivu(lo(1):hi(1)  ))
@@ -89,12 +89,12 @@
       call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
                    q,c,gamc,csml,flatn,q_l1,q_h1, &
                    src,src_l1,src_h1, &
-                   srcQ,lo(1)-1,hi(1)+1, &
+                   srcQ,q_l1,q_h1, &
                    courno,dx,dt,ngq,ngf)
 
       call umeth1d(lo,hi,domlo,domhi, &
                    q,c,gamc,csml,flatn,q_l1,q_h1, &
-                   srcQ, lo(1)-1,hi(1)+1, &
+                   srcQ, q_l1,q_h1, &
                    lo(1),hi(1),dx,dt, &
                    flux,flux_l1,flux_h1, &
                    pgdnv,lo(1),hi(1)+1, &

@@ -251,7 +251,7 @@ contains
     enddo
     
     ! compute srcQ terms
-    do i = lo(1)-1, hi(1)+1
+    do i = loq(1), hiq(1)
        srcQ(i,QRHO   ) = src(i,URHO)
        srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
        srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + HALF * q(i,QU)**2 * srcQ(i,QRHO)
