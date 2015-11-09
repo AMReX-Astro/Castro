@@ -35,12 +35,15 @@
 &extern
 
   eos_assume_neutral = T
-  rtilde = 100.d0
+
+  rtilde = 40.d0
   nu = 4.d0
   specific_q_burn = 1.24e8
   T_burn_ref = 1.0d0
+
   rho_burn_ref = 1.0d0
-  const_conductivity = 1.24d10
-  !const_conductivity = 1000000.0
+  f_act = 1.2d0
+  
+  const_conductivity = 5.e9
 
 /
