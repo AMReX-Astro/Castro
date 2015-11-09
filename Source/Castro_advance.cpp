@@ -366,21 +366,19 @@ Castro::advance_hydro (Real time,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones. 
 
-    AmrLevel* amrlev = &parent->getLevel(level);    
-    
     MultiFab Sborder(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
-    AmrLevel::FillPatch(*amrlev,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);    
-    
+    AmrLevel::FillPatch(*this,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);
+
     // This array will hold the source terms that go into the hydro update through umdrv.
     
     MultiFab sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources.setVal(0.0);
+    sources.setVal(0.0,NUM_GROW);
 
     // Set up external source terms
     
     MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    ext_src_old.setVal(0.0);
+    ext_src_old.setVal(0.0,NUM_GROW);
 
     MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
     ext_src_new.setVal(0.0);
@@ -490,7 +488,7 @@ Castro::advance_hydro (Real time,
       
     if (source_term_predictor == 1) {
 
-      AmrLevel::FillPatch(*amrlev,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
+      AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
       
       dSdt_new.mult( dt / 2.0, NUM_GROW );
 
@@ -555,7 +553,7 @@ Castro::advance_hydro (Real time,
 		{
 		    const Box &bx    = mfi.tilebox();
 
-		    FArrayBox &state = Sborder[mfi];
+		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
 		
 		    FArrayBox &Er = Erborder[mfi];
@@ -574,7 +572,7 @@ Castro::advance_hydro (Real time,
 			(&is_finest_level,&time,
 			 bx.loVect(), bx.hiVect(),
 			 domain_lo, domain_hi,
-			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			 BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 			 BL_TO_FORTRAN(Erout),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
@@ -623,7 +621,7 @@ Castro::advance_hydro (Real time,
 			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
 			    (&mass_change_at_center,
 			     bx.loVect(), bx.hiVect(),
-			     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif	
@@ -713,13 +711,13 @@ Castro::advance_hydro (Real time,
 		
 		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
-		    const Box& bx  = mfi.tilebox();
+		    const Box& bx = mfi.tilebox();
 		    
-		    FArrayBox &state = Sborder[mfi];
+		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
 		    
 		    // Allocate fabs for fluxes and Godunov velocities.
-		    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		    for (int i = 0; i < BL_SPACEDIM; i++) {
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 			flux[i].resize(bxtmp,NUM_STATE);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
@@ -729,7 +727,7 @@ Castro::advance_hydro (Real time,
 			(&is_finest_level,&time,
 			 bx.loVect(), bx.hiVect(),
 			 domain_lo, domain_hi,
-			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
@@ -758,7 +756,7 @@ Castro::advance_hydro (Real time,
 
 		    // Add dt * old-time external source terms
 
-		    stateout.saxpy(dt,ext_src_old[mfi]);
+		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);
 
 		    // Copy the normal velocities from the Riemann solver
 		    
@@ -833,7 +831,7 @@ Castro::advance_hydro (Real time,
 			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
 			    (&mass_change_at_center, 
 			     bx.loVect(), bx.hiVect(),
-			     BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
+			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif
