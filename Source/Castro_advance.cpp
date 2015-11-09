@@ -410,20 +410,19 @@ Castro::advance_hydro (Real time,
 #ifdef GRAVITY    
     for (int i = 0; i < 3; i++) {
 
+      MultiFab grav_temp(grids,3,NUM_GROW,Fab_allocate);
+      MultiFab::Copy(grav_temp,grav_old,0,0,3,NUM_GROW);
+      
       // Multiply gravity by the density to put it in conservative form.      
       
-      MultiFab::Multiply(grav_old,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_old,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Multiply(grav_temp,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,grav_temp,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(grav_old,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(grav_old,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_old,i,Eden,1,NUM_GROW);
-
-      // Now return the gravity data to its original state.
-
-      MultiFab::Divide(grav_old,Sborder,Xmom+i,i,1,NUM_GROW);      
+      MultiFab::Multiply(grav_temp,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(grav_temp,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,grav_temp,i,Eden,1,NUM_GROW);
       
     }
 #endif
@@ -449,21 +448,20 @@ Castro::advance_hydro (Real time,
 
     for (int i = 0; i < 3; i++) {
 
+      MultiFab rot_temp(grids,3,NUM_GROW,Fab_allocate);
+      MultiFab::Copy(rot_temp,rot_old,0,0,3,NUM_GROW);      
+      
       // Multiply rotation by the density to put it in conservative form.      
       
-      MultiFab::Multiply(rot_old,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_old,i,Xmom+i,1,NUM_GROW);
+      MultiFab::Multiply(rot_temp,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,rot_temp,i,Xmom+i,1,NUM_GROW);
       
       // Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(rot_old,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(rot_old,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_old,i,Eden,1,NUM_GROW);
+      MultiFab::Multiply(rot_temp,Sborder,Xmom+i,i,1,NUM_GROW);
+      MultiFab::Divide(rot_temp,Sborder,Density,i,1,NUM_GROW);
+      MultiFab::Add(sources,rot_temp,i,Eden,1,NUM_GROW);
 
-      // Return the rotation data to its original state.
-
-      MultiFab::Divide(rot_old,Sborder,Xmom+i,i,1,NUM_GROW);      
-      
     }
 #endif
     
