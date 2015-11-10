@@ -407,26 +407,31 @@ Castro::advance_hydro (Real time,
 
     MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
-#ifdef GRAVITY    
-    for (int i = 0; i < 3; i++) {
+#ifdef GRAVITY
+    if (do_grav) {
 
       MultiFab grav_temp(grids,3,NUM_GROW,Fab_allocate);
-      MultiFab::Copy(grav_temp,grav_old,0,0,3,NUM_GROW);
+
+      for (int i = 0; i < 3; i++) {
+
+	MultiFab::Copy(grav_temp,grav_old,0,0,3,NUM_GROW);
       
-      // Multiply gravity by the density to put it in conservative form.      
+	// Multiply gravity by the density to put it in conservative form.      
+	
+	MultiFab::Multiply(grav_temp,Sborder,Density,i,1,NUM_GROW);
+	MultiFab::Add(sources,grav_temp,i,Xmom+i,1,NUM_GROW);
+	
+	// Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(grav_temp,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_temp,i,Xmom+i,1,NUM_GROW);
+	MultiFab::Multiply(grav_temp,Sborder,Xmom+i,i,1,NUM_GROW);
+	MultiFab::Divide(grav_temp,Sborder,Density,i,1,NUM_GROW);
+	MultiFab::Add(sources,grav_temp,i,Eden,1,NUM_GROW);
       
-      // Add corresponding energy source term (v . src).
-      
-      MultiFab::Multiply(grav_temp,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(grav_temp,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,grav_temp,i,Eden,1,NUM_GROW);
-      
+      }
+
     }
 #endif
-    
+
 #ifdef ROTATION
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
@@ -446,21 +451,26 @@ Castro::advance_hydro (Real time,
       
     } 
 
-    for (int i = 0; i < 3; i++) {
+    if (do_rotation) {
 
-      MultiFab rot_temp(grids,3,NUM_GROW,Fab_allocate);
-      MultiFab::Copy(rot_temp,rot_old,0,0,3,NUM_GROW);      
+      MultiFab rot_temp(grids,3,NUM_GROW,Fab_allocate);      
       
-      // Multiply rotation by the density to put it in conservative form.      
+      for (int i = 0; i < 3; i++) {
+
+	MultiFab::Copy(rot_temp,rot_old,0,0,3,NUM_GROW);      
       
-      MultiFab::Multiply(rot_temp,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_temp,i,Xmom+i,1,NUM_GROW);
+	// Multiply rotation by the density to put it in conservative form.      
+	
+	MultiFab::Multiply(rot_temp,Sborder,Density,i,1,NUM_GROW);
+	MultiFab::Add(sources,rot_temp,i,Xmom+i,1,NUM_GROW);
       
-      // Add corresponding energy source term (v . src).
+	// Add corresponding energy source term (v . src).
       
-      MultiFab::Multiply(rot_temp,Sborder,Xmom+i,i,1,NUM_GROW);
-      MultiFab::Divide(rot_temp,Sborder,Density,i,1,NUM_GROW);
-      MultiFab::Add(sources,rot_temp,i,Eden,1,NUM_GROW);
+	MultiFab::Multiply(rot_temp,Sborder,Xmom+i,i,1,NUM_GROW);
+	MultiFab::Divide(rot_temp,Sborder,Density,i,1,NUM_GROW);
+	MultiFab::Add(sources,rot_temp,i,Eden,1,NUM_GROW);
+
+      }
 
     }
 #endif
@@ -704,16 +714,20 @@ Castro::advance_hydro (Real time,
 		
 		Real cflLoc = -1.0e+200;
 		int is_finest_level = (level == finest_level) ? 1 : 0;
-		const int*  domain_lo = geom.Domain().loVect();
-		const int*  domain_hi = geom.Domain().hiVect();
+		const int* domain_lo = geom.Domain().loVect();
+		const int* domain_hi = geom.Domain().hiVect();
 		
 		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
 		    const Box& bx = mfi.tilebox();
+
+		    const int* lo = bx.loVect();
+		    const int* hi = bx.hiVect();		    		    
 		    
+		    FArrayBox &stateold = S_old[mfi];
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
-		    
+
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM; i++) {
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
@@ -723,8 +737,7 @@ Castro::advance_hydro (Real time,
 	  
 		    BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
 			(&is_finest_level,&time,
-			 bx.loVect(), bx.hiVect(),
-			 domain_lo, domain_hi,
+			 lo, hi, domain_lo, domain_hi,
 			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
@@ -775,11 +788,11 @@ Castro::advance_hydro (Real time,
 #ifdef GRAVITY
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
-			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			(ARLIM_3D(lo), ARLIM_3D(hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
-			 BL_TO_FORTRAN_3D(S_old[mfi]),
-			 BL_TO_FORTRAN_3D(S_new[mfi]),
+			 BL_TO_FORTRAN_3D(stateold),
+			 BL_TO_FORTRAN_3D(stateout),
 			 ZFILL(dx),dt,&time,
 			 E_added_grav,mom_added);
 #endif
@@ -796,11 +809,11 @@ Castro::advance_hydro (Real time,
 #ifdef ROTATION
 		    if (do_rotation)
 		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
-			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			(ARLIM_3D(lo), ARLIM_3D(hi),
 			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
 			 BL_TO_FORTRAN_3D(rot_old[mfi]),
-			 BL_TO_FORTRAN_3D(S_old[mfi]),
-			 BL_TO_FORTRAN_3D(S_new[mfi]),
+			 BL_TO_FORTRAN_3D(stateold),
+			 BL_TO_FORTRAN_3D(stateout),
 			 ZFILL(dx),dt,&time,
 			 E_added_rot,mom_added);
 
@@ -815,8 +828,8 @@ Castro::advance_hydro (Real time,
 
 		    if (do_sponge)
 		      BL_FORT_PROC_CALL(CA_SPONGE,ca_sponge)
-			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx), dt, &time,
+			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
 			 E_added_sponge,mom_added);
 
 		    xmom_added_sponge += mom_added[0];
@@ -828,7 +841,7 @@ Castro::advance_hydro (Real time,
 		    if (level == finest_level)
 			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
 			    (&mass_change_at_center, 
-			     bx.loVect(), bx.hiVect(),
+			     lo, hi,
 			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
