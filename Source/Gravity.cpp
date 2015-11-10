@@ -843,14 +843,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
     MultiFab grav(grids[level], BL_SPACEDIM, ng);
-    grav.setVal(0.);
+    grav.setVal(0.0,ng);
     
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction and zero in all others.
       
-       grav.setVal(0.0       ,0            ,BL_SPACEDIM,ng);
-       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
@@ -938,13 +937,12 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
     MultiFab grav(grids[level],BL_SPACEDIM,ng);
-    grav.setVal(0.);
+    grav.setVal(0.0,ng);
     
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav.setVal(0.0       ,            0,BL_SPACEDIM,ng);
-       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
