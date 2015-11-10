@@ -5,14 +5,19 @@ module hse_bc_module
   use prob_params_module
 
   implicit none
+
+  integer, parameter :: MAX_ITER = 100
+  double precision, parameter :: TOL = 1.e-8_dp_t
   
 contains
-  
+
+  ! this expects a 2-d problem
   subroutine hse_bc_ylo(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc, density_only)
+                        domlo,domhi,delta,xlo,time,bc,density_only)
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   UFS, UTEMP, const_grav
     use eos_module
     use network, only: nspec
 
@@ -28,9 +33,6 @@ contains
     double precision :: y, y0, slope
     double precision :: pres_above, p_want, pres_zone, A
     double precision :: drho,dpdr, temp_zone, eint, X_zone(nspec), dens_zone
-
-    integer, parameter :: MAX_ITER = 100
-    double precision, parameter :: TOL = 1.e-8_dp_t
 
     logical :: just_density
 
@@ -163,6 +165,7 @@ contains
 
   end subroutine hse_bc_ylo
 
+
   subroutine hse_bc_yhi(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                         domlo,domhi,delta,xlo,time,bc, density_only)
 
@@ -218,3 +221,4 @@ contains
   end subroutine hse_bc_yhi
 
 end module hse_bc_module
+
