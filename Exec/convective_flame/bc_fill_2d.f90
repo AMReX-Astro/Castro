@@ -7,11 +7,12 @@ subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time
 
   implicit none
   include 'bc_types.fi'
-  integer adv_l1,adv_l2,adv_h1,adv_h2
-  integer bc(2,2,*)
-  integer domlo(2), domhi(2)
-  double precision delta(2), xlo(2), time
-  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+
+  integer          :: adv_l1,adv_l2,adv_h1,adv_h2
+  integer          :: bc(2,2,*)
+  integer          :: domlo(2), domhi(2)
+  double precision :: delta(2), xlo(2), time
+  double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
   integer :: n
 
@@ -37,19 +38,19 @@ end subroutine ca_hypfill
 ! ::: -----------------------------------------------------------
 
 subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-     domlo,domhi,delta,xlo,time,bc)
+                      domlo,domhi,delta,xlo,time,bc)
 
   use probdata_module
-  use interpolate_module
   use hse_bc_module
 
   implicit none
   include 'bc_types.fi'
-  integer adv_l1,adv_l2,adv_h1,adv_h2
-  integer bc(2,2,*)
-  integer domlo(2), domhi(2)
-  double precision delta(2), xlo(2), time
-  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+
+  integer          :: adv_l1,adv_l2,adv_h1,adv_h2
+  integer          :: bc(2,2,*)
+  integer          :: domlo(2), domhi(2)
+  double precision :: delta(2), xlo(2), time
+  double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
   ! Note: this function should not be needed, technically, but is
   ! provided to filpatch because there are many times in the algorithm
