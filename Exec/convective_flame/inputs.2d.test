@@ -7,8 +7,8 @@ stop_time    = 10.0
 geometry.is_periodic = 0   0
 geometry.coord_sys   = 1        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0   0
-geometry.prob_hi     = 51.2  9.6
-amr.n_cell           = 512   96
+geometry.prob_hi     = 51.2  19.2
+amr.n_cell           = 512   192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -54,7 +54,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 0 #1       # maximum level number allowed
+amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 32      # block factor in grid generation
@@ -62,13 +62,13 @@ amr.max_grid_size   = 96
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 1
 amr.check_file      = chk        # root name of checkpoint file
 amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_int        = 10
+amr.plot_int        = 100
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
