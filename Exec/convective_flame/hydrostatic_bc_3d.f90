@@ -131,14 +131,14 @@ contains
                 adv(i,j,k,UMZ) = ZERO
 
                 ! zero transverse momentum
-                adv(i,j,UMX) = ZERO
-                adv(i,j,UMY) = ZERO
+                adv(i,j,k,UMX) = ZERO
+                adv(i,j,k,UMY) = ZERO
              else
 
                 ! zero gradient velocity
-                adv(i,j,UMX) = dens_zone*(adv(i,j,domlo(3),UMX)/adv(i,j,domlo(3),URHO))
-                adv(i,j,UMY) = dens_zone*(adv(i,j,domlo(3),UMY)/adv(i,j,domlo(3),URHO))
-                adv(i,j,UMZ) = dens_zone*(adv(i,j,domlo(3),UMZ)/adv(i,j,domlo(3),URHO))
+                adv(i,j,k,UMX) = dens_zone*(adv(i,j,domlo(3),UMX)/adv(i,j,domlo(3),URHO))
+                adv(i,j,k,UMY) = dens_zone*(adv(i,j,domlo(3),UMY)/adv(i,j,domlo(3),URHO))
+                adv(i,j,k,UMZ) = dens_zone*(adv(i,j,domlo(3),UMZ)/adv(i,j,domlo(3),URHO))
              endif
           
              adv(i,j,k,URHO) = dens_zone
@@ -217,7 +217,7 @@ contains
 
              adv(i,j,k,UMZ) = max(ZERO, adv(i,j,k,UMZ))
 
-             adv(i,j,UEDEN) = adv(i,j,k,UEINT) + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/adv(i,j,k,URHO)
+             adv(i,j,k,UEDEN) = adv(i,j,k,UEINT) + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/adv(i,j,k,URHO)
           enddo
        enddo
     enddo

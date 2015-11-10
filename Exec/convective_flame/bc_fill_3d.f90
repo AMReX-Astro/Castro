@@ -175,7 +175,7 @@ subroutine ca_reactfill(react,react_l1,react_l2,react_l3, &
 
   bc_temp(:,:) = bc(:,:,1)
 
-  if ( bc(3,1,1).eq.EXT_DIR .and. grav_l3.lt.domlo(3)) then
+  if ( bc(3,1,1).eq.EXT_DIR .and. react_l3.lt.domlo(3)) then
      bc_temp(3,1) = FOEXTRAP
   endif
 
@@ -203,7 +203,7 @@ subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_l3, &
 
   bc_temp(:,:) = bc(:,:,1)
 
-  if ( bc(3,1,1).eq.EXT_DIR .and. grav_l3.lt.domlo(3)) then
+  if ( bc(3,1,1).eq.EXT_DIR .and. phi_l3.lt.domlo(3)) then
      bc_temp(3,1) = FOEXTRAP
   endif
 
@@ -231,7 +231,7 @@ subroutine ca_radfill(rad,rad_l1,rad_l2,rad_l3, &
 
   bc_temp(:,:) = bc(:,:,1)
 
-  if ( bc(3,1,1).eq.EXT_DIR .and. grav_l3.lt.domlo(3)) then
+  if ( bc(3,1,1).eq.EXT_DIR .and. rad_l3.lt.domlo(3)) then
      bc_temp(3,1) = FOEXTRAP
   endif
 
