@@ -184,8 +184,13 @@ int          Castro::grav_source_type = 2;
 int          Castro::spherical_star = 0;
 int          Castro::do_sponge  = 0;
 
+#ifdef DEBUG
+int          Castro::print_fortran_warnings  = 1;
+int          Castro::print_energy_diagnostics  = 1;
+#else
 int          Castro::print_fortran_warnings  = 0;
 int          Castro::print_energy_diagnostics  = 0;
+#endif
 
 int          Castro::sum_interval = -1;
 int          Castro::show_center_of_mass = 0;
@@ -290,6 +295,7 @@ Castro::read_params ()
     pp.get("point_mass",point_mass);
 #endif
 
+
     // Get boundary conditions
     Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
     pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
@@ -392,7 +398,7 @@ Castro::read_params ()
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
-    pp.query("diffuse_temp",diffuse_cutoff_density);
+    pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
 #endif
 
     pp.query("grown_factor",grown_factor);

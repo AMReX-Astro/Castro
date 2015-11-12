@@ -230,7 +230,7 @@ Castro::variableSetUp ()
 
     for (int i = 0; i < gravity_type_length; i++)
       gravity_type_name[i] = gravity_type[i];    
-    
+
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
