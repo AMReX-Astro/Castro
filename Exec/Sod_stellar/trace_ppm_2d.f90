@@ -11,8 +11,7 @@ contains
   subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                       grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                       rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
+                       src,src_l1,src_l2,src_h1,src_h2, &
                        gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
@@ -23,7 +22,7 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QTEMP, QFS, &
          small_dens, small_pres, small_temp,  &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
+         ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, &
          npassive, qpass_map, do_grav, do_rotation
@@ -35,8 +34,7 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
+    integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -49,8 +47,7 @@ contains
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
+    double precision src(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
     double precision dx, dy, dt
@@ -83,17 +80,14 @@ contains
     double precision :: xi, xi1
     double precision :: halfdt
 
-    integer, parameter :: igx = 1
-    integer, parameter :: igy = 2
+    integer, parameter :: isx = 1
+    integer, parameter :: isy = 2
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_g(:,:,:,:,:)
-    double precision, allocatable :: Im_g(:,:,:,:,:)
-
-    double precision, allocatable :: Ip_r(:,:,:,:,:)
-    double precision, allocatable :: Im_r(:,:,:,:,:)
+    double precision, allocatable :: Ip_src(:,:,:,:,:)
+    double precision, allocatable :: Im_src(:,:,:,:,:)
 
     ! gamma_c/1 on the interfaces
     double precision, allocatable :: Ip_gc(:,:,:,:,:)
@@ -119,14 +113,9 @@ contains
     allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
     allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
 
-    if (ppm_trace_grav == 1) then
-       allocate(Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
-       allocate(Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
-    endif
-
-    if (ppm_trace_rot == 1) then
-       allocate(Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
-       allocate(Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,2))
+    if (ppm_trace_sources == 1) then
+       allocate(Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
+       allocate(Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
     endif
 
     ! tau = 1/rho
@@ -242,29 +231,18 @@ contains
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     endif
 
-    ! if desired, do parabolic reconstruction of the gravitational
-    ! acceleration -- we'll use this for the force on the velocity
-    if (do_grav == 1 .and. ppm_trace_grav == 1) then
-       do n = 1,2
-          call ppm(grav(:,:,k,n),gv_l1,gv_l2,gv_h1,gv_h2, &
+    ! if desired, do parabolic reconstruction of the momentum sources
+    ! -- we'll use this for the force on the velocity
+    if (ppm_trace_sources == 1) then
+       do n = 1, QVAR
+          call ppm(src(:,:,n),src_l1,src_l2,src_h1,src_h2, &
                    q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
-                   Ip_g(:,:,:,:,n),Im_g(:,:,:,:,n), &
+                   Ip_src(:,:,:,:,n),Im_src(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
        enddo
-    endif
+    endif    
 
-    ! if desired, do parabolic reconstruction of the rotational
-    ! source -- we'll use this for the force on the velocity
-    if (do_rotation == 1 .and. ppm_trace_rot == 1) then
-       do n = 1,2
-          call ppm(rot(:,:,k,n),rt_l1,rt_l2,rt_h1,rt_h2, &
-                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   flatn, &
-                   Ip_r(:,:,:,:,n),Im_r(:,:,:,:,n), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
-       enddo
-    endif
 
 
     !-------------------------------------------------------------------------
@@ -368,22 +346,13 @@ contains
              dtaup  = tau_ref  - Im_tau(i,j,1,3,1)
           endif
 
-          ! if we are doing gravity tracing, then we add the force to
+          ! if we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav == 1 .and. ppm_trace_grav == 1) then
-             dum = dum - halfdt*Im_g(i,j,1,1,igx)
-             du  = du  - halfdt*Im_g(i,j,1,2,igx)
-             dup = dup - halfdt*Im_g(i,j,1,3,igx)
-          endif
-
-          ! if we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation == 1 .and. ppm_trace_rot == 1) then
-             dum = dum - halfdt*Im_r(i,j,1,1,igx)
-             du  = du  - halfdt*Im_r(i,j,1,2,igx)
-             dup = dup - halfdt*Im_r(i,j,1,3,igx)
+          if (ppm_trace_sources == 1) then
+             dum = dum - halfdt*Im_src(i,j,1,1,isx)
+             du  = du  - halfdt*Im_src(i,j,1,2,isx)
+             dup = dup - halfdt*Im_src(i,j,1,3,isx)
           endif
 
 
@@ -597,12 +566,8 @@ contains
           ! the state traced under the middle wave
           dv    = Im(i,j,1,2,QV)
 
-          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-             dv  = dv  + halfdt*Im_g(i,j,1,2,igy)
-          endif
-
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dv  = dv  + halfdt*Im_r(i,j,1,2,igy)
+          if (ppm_trace_sources == 1) then
+             dv  = dv  + halfdt*Im_src(i,j,1,2,isy)
           endif
 
           ! Recall that I already takes the limit of the parabola
@@ -712,24 +677,15 @@ contains
              dtaup  = tau_ref  - Ip_tau(i,j,1,3,1)
           endif
 
-          ! if we are doing gravity tracing, then we add the force to
+          ! if we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav == 1 .and. ppm_trace_grav == 1) then
-             dum = dum - halfdt*Ip_g(i,j,1,1,igx)
-             du  = du  - halfdt*Ip_g(i,j,1,2,igx)
-             dup = dup - halfdt*Ip_g(i,j,1,3,igx)
-          endif
-
-          ! if we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation == 1 .and. ppm_trace_rot == 1) then
-             dum = dum - halfdt*Ip_r(i,j,1,1,igx)
-             du  = du  - halfdt*Ip_r(i,j,1,2,igx)
-             dup = dup - halfdt*Ip_r(i,j,1,3,igx)
-          endif
-
+          if (ppm_trace_sources == 1) then
+             dum = dum - halfdt*Im_src(i,j,1,1,isx)
+             du  = du  - halfdt*Im_src(i,j,1,2,isx)
+             dup = dup - halfdt*Im_src(i,j,1,3,isx)
+          endif          
+          
 
           ! optionally use the reference state in evaluating the
           ! eigenvectors
@@ -936,12 +892,8 @@ contains
           ! transverse velocity
           dv    = Ip(i,j,1,2,QV)
 
-          if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-             dv  = dv  + halfdt*Ip_g(i,j,1,2,igy)
-          endif
-
-          if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-             dv  = dv  + halfdt*Ip_r(i,j,1,2,igy)
+          if (ppm_trace_sources == 1) then
+             dv  = dv  + halfdt*Ip_src(i,j,1,2,isy)
           endif
 
           if (i .le. ihi1) then
@@ -1194,21 +1146,14 @@ contains
           ! note: we do not implement temp_fix = 3 in the y-direction
 
 
-          ! if we are doing gravity tracing, then we add the force to
+          ! if we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav == 1 .and. ppm_trace_grav == 1) then
-             dvm = dvm - halfdt*Im_g(i,j,2,1,igy)
-             dvp = dvp - halfdt*Im_g(i,j,2,3,igy)
+          if (ppm_trace_sources == 1) then
+             dvm = dvm - halfdt*Im_src(i,j,2,1,isy)
+             dvp = dvp - halfdt*Im_src(i,j,2,3,isy)
           endif
 
-          ! if we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation == 1 .and. ppm_trace_rot == 1) then
-             dvm = dvm - halfdt*Im_r(i,j,2,1,igy)
-             dvp = dvp - halfdt*Im_r(i,j,2,3,igy)
-          endif
 
           ! optionally use the reference state in evaluating the
           ! eigenvectors
@@ -1313,12 +1258,8 @@ contains
              ! transverse velocity
              du    = Im(i,j,2,2,QU)
 
-             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                du  = du  + halfdt*Im_g(i,j,2,2,igx)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Im_r(i,j,2,2,igx)
+             if (ppm_trace_sources == 1) then
+                du  = du  + halfdt*Im_src(i,j,2,2,isx)
              endif
 
              if (v > ZERO) then
@@ -1402,20 +1343,12 @@ contains
           ! we are not implementing ppm_temp_fix = 3 in the y-direction
 
 
-          ! if we are doing gravity tracing, then we add the force to
+          ! if we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav == 1 .and. ppm_trace_grav == 1) then
-             dvm = dvm - halfdt*Ip_g(i,j,2,1,igy)
-             dvp = dvp - halfdt*Ip_g(i,j,2,3,igy)
-          endif
-
-          ! if we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation == 1 .and. ppm_trace_rot == 1) then
-             dvm = dvm - halfdt*Ip_r(i,j,2,1,igy)
-             dvp = dvp - halfdt*Ip_r(i,j,2,3,igy)
+          if (ppm_trace_sources == 1) then
+             dvm = dvm - halfdt*Ip_src(i,j,2,1,isy)
+             dvp = dvp - halfdt*Ip_src(i,j,2,3,isy)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -1519,14 +1452,10 @@ contains
              ! transverse velocity
              du    = Ip(i,j,2,2,QU)
 
-             if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-                du  = du  + halfdt*Ip_g(i,j,2,2,igx)
+             if (ppm_trace_sources == 1) then
+                du  = du  + halfdt*Ip_src(i,j,2,2,isx)
              endif
 
-             if (do_rotation .eq. 1 .and. ppm_trace_rot == 1) then
-                du  = du  + halfdt*Ip_r(i,j,2,2,igx)
-             endif
-             
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qym(i,j+1,QU) = Ip(i,j,2,2,QU)
@@ -1607,14 +1536,10 @@ contains
     enddo
 
     deallocate(Ip,Im)
-    if (ppm_trace_grav == 1) then
-       deallocate(Ip_g,Im_g)
+    if (ppm_trace_sources == 1) then
+       deallocate(Ip_src,Im_src)
     endif
 
-    if (ppm_trace_rot == 1) then
-       deallocate(Ip_r,Im_r)
-    endif
-    
   end subroutine trace_ppm
 
 end module trace_ppm_module
