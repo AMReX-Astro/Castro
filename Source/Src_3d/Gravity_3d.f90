@@ -738,6 +738,8 @@
 
         ! Compute pre-factors now to save computation time, for qC and qS
 
+        factArray(:,:) = ZERO
+        
         do l = 0, lnum
 
           ! The odd l Legendre polynomials are odd in their argument, so
