@@ -54,7 +54,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& ppm_flatten_before_integrals,
      const int& ppm_reference_eigenvectors,
      const int& hybrid_riemann, 
-     const int& use_colglaz, const int& use_flattening,
+     const int& use_colglaz, const int& riemann_solver, const int& use_flattening,
      const int& transverse_use_eos, const int& transverse_reset_density, const int& transverse_reset_rhoe,
      const int& cg_maxiter, const Real& cg_tol,
      const int& use_pslope, 

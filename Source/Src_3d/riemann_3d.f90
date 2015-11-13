@@ -27,7 +27,7 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
-                                   use_colglaz, ppm_temp_fix, hybrid_riemann, &
+                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    small_temp, allow_negative_energy
     use bl_constants_module
 
@@ -164,15 +164,16 @@ contains
     endif
 
     ! Solve Riemann problem
-    if (use_colglaz == 1) then
-       call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+    if (riemann_solver == 0) then
+       ! Colella, Glaz, & Ferguson
+       call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
-
     else
-       call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+       ! Colella & Glaz
+       call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &

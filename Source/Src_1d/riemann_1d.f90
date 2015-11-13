@@ -25,7 +25,7 @@ contains
                     gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
     
     use meth_params_module, only : QVAR, NVAR, &
-                                   use_colglaz
+                                   riemann_solver
     
     implicit none
     integer lo(1),hi(1)
@@ -62,12 +62,14 @@ contains
     enddo
     
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
-    if (use_colglaz == 0) then
+    if (riemann_solver == 0) then
+       ! Colella, Glaz, & Ferguson
        call riemannus(qm, qp,qpd_l1,qpd_h1, smallc, cavg, &
                       gamcm, gamcp, flx, flx_l1, flx_h1, &
                       pgdnv, pg_l1, pg_h1, &
                       ugdnv, ug_l1, ug_h1, ilo, ihi, domlo, domhi )
     else
+       ! Colella & Glaz
        call riemanncg(qm, qp,qpd_l1,qpd_h1, smallc, cavg, &
                       gamcm, gamcp, flx, flx_l1, flx_h1, &
                       pgdnv, pg_l1, pg_h1, &

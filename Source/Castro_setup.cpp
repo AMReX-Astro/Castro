@@ -240,7 +240,7 @@ Castro::variableSetUp ()
 	 ppm_reference_edge_limit,
 	 ppm_flatten_before_integrals,
 	 ppm_reference_eigenvectors,
-	 hybrid_riemann, use_colglaz, use_flattening, 
+	 hybrid_riemann, use_colglaz, riemann_solver, use_flattening, 
          transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
          cg_maxiter, cg_tol,
          use_pslope, 

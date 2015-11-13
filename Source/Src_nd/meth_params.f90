@@ -47,6 +47,7 @@ module meth_params_module
   integer         , save :: ppm_reference_eigenvectors
   integer         , save :: hybrid_riemann
   integer         , save :: use_colglaz
+  integer         , save :: riemann_solver
   integer         , save :: use_flattening
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density

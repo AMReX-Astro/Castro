@@ -163,6 +163,7 @@ int          Castro::source_term_predictor = 0;
 
 int          Castro::hybrid_riemann = 0;
 int          Castro::use_colglaz = 0;
+int          Castro::riemann_solver = 0;
 int          Castro::cg_maxiter  = 12;
 Real         Castro::cg_tol      = 1.0e-5;
 
@@ -428,6 +429,7 @@ Castro::read_params ()
     pp.query("source_term_predictor", source_term_predictor);
     pp.query("hybrid_riemann",hybrid_riemann);
     pp.query("use_colglaz",use_colglaz);
+    pp.query("riemann_solver",riemann_solver);
     pp.query("use_flattening",use_flattening);
     pp.query("transverse_use_eos",transverse_use_eos);
     pp.query("transverse_reset_density",transverse_reset_density);
