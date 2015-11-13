@@ -32,9 +32,6 @@ contains
                                    riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    small_temp, allow_negative_energy
 
-
-    implicit none
-
     integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
     integer, intent(in) :: pgd_l1,pgd_l2,pgd_h1,pgd_h2
@@ -177,7 +174,7 @@ contains
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
                       gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
-    else
+    elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
        call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
                       gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
@@ -186,6 +183,17 @@ contains
                       ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
                       gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
+    elseif (riemann_solver == 2) then
+       ! HLLC
+       call HLLC(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                 gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                 flx, flx_l1, flx_l2, flx_h1, flx_h2, &
+                 pgd, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
+                 ugd, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                 gegd, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
+                 idir, ilo, ihi, jlo, jhi, domlo, domhi)
+    else
+       call bl_error("ERROR: invalid value of riemann_solver")
     endif
 
     if (hybrid_riemann == 1) then
@@ -410,8 +418,6 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
-
-    !************************************************************
     !  set min/max based on normal direction
     if(idir.eq.1) then
        ilo = ilo1
@@ -809,8 +815,6 @@ contains
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
-    implicit none
-
     double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
 
     double precision, parameter :: smlp1 = 1.d-10
@@ -875,8 +879,6 @@ contains
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map
 
-    implicit none
-
     double precision, parameter:: small = 1.d-8
 
     integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
@@ -926,10 +928,6 @@ contains
        jhi = ihi2+1
     endif
 
-    !     Solve Riemann Problem
-    !     NOTE: The calling routine will order velocity unknowns so that
-    !     for the purposes of this routine, the normal component is always
-    !     loaded in the QU slot.
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -1108,6 +1106,294 @@ contains
        enddo
     enddo
   end subroutine riemannus
+
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+  subroutine HLLC(ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                  gamcl, gamcr, cav, smallc, gd_l1, gd_l2, gd_h1, gd_h2, &
+                  uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
+                  pgdnv, pgd_l1, pgd_l2, pgd_h1, pgd_h2, &
+                  ugdnv, ugd_l1, ugd_l2, ugd_h1, ugd_h2, &
+                  gegdnv, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
+                  idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+
+    ! this is an implementation of the HLLC solver described in Toro's
+    ! book.  it uses the simplest estimate of the wave speeds, since
+    ! those should work for a general EOS.  We also initially do the
+    ! CGF Riemann construction to get pstar and ustar, since we'll need
+    ! to know the pressure and velocity on the interface for the grad p
+    ! term in momentum and for an internal energy update
+
+    use network, only : nspec, naux
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UEDEN, UEINT, &
+                                   small_dens, small_pres, &
+                                   npassive, upass_map, qpass_map
+
+    double precision, parameter:: small = 1.d-8
+
+    integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
+    integer :: gd_l1, gd_l2, gd_h1, gd_h2
+    integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
+    integer :: pgd_l1, pgd_l2, pgd_h1, pgd_h2
+    integer :: ugd_l1, ugd_l2, ugd_h1, ugd_h2
+    integer :: ggd_l1, ggd_l2, ggd_h1, ggd_h2
+    integer :: idir, ilo1, ihi1, ilo2, ihi2
+    integer :: domlo(2),domhi(2)
+
+    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision :: gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
+    double precision :: pgdnv(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
+    double precision :: ugdnv(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+    double precision :: gegdnv(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
+
+    integer :: ilo,ihi,jlo,jhi
+    integer :: n, nq
+    integer :: i, j, ipassive
+
+    double precision :: rgd, vgd, regd, ustar
+    double precision :: rl, ul, vl, pl, rel
+    double precision :: rr, ur, vr, pr, rer
+    double precision :: wl, wr, rhoetot, scr
+    double precision :: rstar, cstar, pstar
+    double precision :: ro, uo, po, co, gamco
+    double precision :: sgnm, spin, spout, ushock, frac
+    double precision :: wsmall, csmall, qavg
+
+    double precision :: U_state(nvar), F_state(nvar)
+
+    !  set min/max based on normal direction
+    if (idir == 1) then
+       ilo = ilo1
+       ihi = ihi1 + 1
+       jlo = ilo2
+       jhi = ihi2
+    else
+       ilo = ilo1
+       ihi = ihi1
+       jlo = ilo2
+       jhi = ihi2+1
+    endif
+
+    do j = jlo, jhi
+       do i = ilo, ihi
+
+          rl = ql(i,j,QRHO)
+
+          !  pick left velocities based on direction
+          if (idir == 1) then
+             ul = ql(i,j,QU)
+             vl = ql(i,j,QV)
+          else
+             ul = ql(i,j,QV)
+             vl = ql(i,j,QU)
+          endif
+
+          pl = ql(i,j,QPRES)
+          rel = ql(i,j,QREINT)
+
+          rr = qr(i,j,QRHO)
+
+          !  pick right velocities based on direction
+          if (idir == 1) then
+             ur = qr(i,j,QU)
+             vr = qr(i,j,QV)
+          else
+             ur = qr(i,j,QV)
+             vr = qr(i,j,QU)
+          endif
+
+          pr = qr(i,j,QPRES)
+          rer = qr(i,j,QREINT)
+
+          ! now we essentially do the CGF solver to get p and u on the
+          ! interface, but we won't use these in any flux construction.
+          csmall = smallc(i,j)
+          wsmall = small_dens*csmall
+          wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
+          wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
+
+          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+          ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
+
+          pstar = max(pstar,small_pres)
+
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
+
+          if (ustar > ZERO) then
+             ro = rl
+             uo = ul
+             po = pl
+             gamco = gamcl(i,j)
+
+          else if (ustar < ZERO) then
+             ro = rr
+             uo = ur
+             po = pr
+             gamco = gamcr(i,j)
+
+          else
+             ro = HALF*(rl+rr)
+             uo = HALF*(ul+ur)
+             po = HALF*(pl+pr)
+             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
+          endif
+
+          ro = max(small_dens,ro)
+
+          co = sqrt(abs(gamco*po/ro))
+          co = max(csmall,co)
+
+          rstar = ro + (pstar - po)/co**2
+          rstar = max(small_dens,rstar)
+
+          cstar = sqrt(abs(gamco*pstar/rstar))
+          cstar = max(cstar,csmall)
+
+          sgnm = sign(ONE,ustar)
+          spout = co - sgnm*uo
+          spin = cstar - sgnm*ustar
+
+          ushock = HALF*(spin + spout)
+
+          if (pstar-po > ZERO) then
+             spin = ushock
+             spout = ushock
+          endif
+
+          if (spout-spin == ZERO) then
+             scr = small*cav(i,j)
+          else
+             scr = spout-spin
+          endif
+          frac = (ONE + (spout + spin)/scr)*HALF
+          frac = max(ZERO,min(ONE,frac))
+
+          ugdnv(i,j) = frac*ustar + (ONE - frac)*uo
+          pgdnv(i,j) = frac*pstar + (ONE - frac)*po
+
+
+          ! now we do the HLLC construction
+
+          ! use the simplest estimates of the wave speeds
+          S_l = ul - sqrt(gamcl(i,j)*pl/rl)
+          S_r = ur + sqrt(gamcr(i,j)*pr/rr)
+
+          ! estimate of the contact speed -- this is Toro Eq. 10.8
+          S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
+             (rl*(S_l - ul) - rr*(S_r - ur))
+
+          if (S_r <= ZERO) then
+             ! R region
+             U_state(URHO) = rr
+             if (idir == 1) then
+                U_state(UMX) = rr*ur
+                U_state(UMY) = rr*vr
+             else
+                U_state(UMX) = rr*ur
+                U_state(UMY) = rr*vr
+             endif
+             U_state(UEDEN) = rr*rer + HALF*rer*(
+
+          else if (S_r > ZERO .and. S_c <= ZERO) then
+             ! R* region
+
+          else if (S_c > ZERO .and. S_l < ZERO) then
+             ! L* region
+
+          else
+             ! L region
+
+          endif
+
+          regd = frac*estar + (ONE - frac)*reo
+          if (spout .lt. ZERO) then
+             rgd = ro
+             ugdnv(i,j) = uo
+             pgdnv(i,j) = po
+             regd = reo
+          endif
+          if (spin .ge. ZERO) then
+             rgd = rstar
+             ugdnv(i,j) = ustar
+             pgdnv(i,j) = pstar
+             regd = estar
+          endif
+
+          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
+
+
+          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+          if (idir .eq. 1) then
+             if (i.eq.domlo(1) .and. &
+                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
+                  physbc_lo(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j) = ZERO
+             if (i.eq.domhi(1)+1 .and. &
+                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
+                  physbc_hi(1) .eq. NoSlipWall) ) &
+                  ugdnv(i,j) = ZERO
+          end if
+          if (idir .eq. 2) then
+             if (j.eq.domlo(2) .and. &
+                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
+                  physbc_lo(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j) = ZERO
+             if (j.eq.domhi(2)+1 .and. &
+                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
+                  physbc_hi(2) .eq. NoSlipWall) ) &
+                  ugdnv(i,j) = ZERO
+          end if
+
+          ! Compute fluxes, order as conserved state (not q)
+          uflx(i,j,URHO) = rgd*ugdnv(i,j)
+
+          ! note: here we do not include the pressure, since in 2-d,
+          ! for some geometries, div{F} + grad{p} cannot be written
+          ! in a flux difference form
+          if(idir.eq.1) then
+             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
+             uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
+          else
+             uflx(i,j,UMX) = uflx(i,j,URHO)*vgd
+             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
+          endif
+
+          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2)
+          uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
+          uflx(i,j,UEINT) = ugdnv(i,j)*regd
+
+          do ipassive = 1, npassive
+             n  = upass_map(ipassive)
+             nq = qpass_map(ipassive)
+
+             if (ustar .gt. ZERO) then
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+             else if (ustar .lt. ZERO) then
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+             else
+                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                uflx(i,j,n) = uflx(i,j,URHO)*qavg
+             endif
+          enddo
+
+       enddo
+    enddo
+  end subroutine riemannus
+
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
 
