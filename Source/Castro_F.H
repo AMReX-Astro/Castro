@@ -450,7 +450,6 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      BL_FORT_FAB_ARG(ugdnvz),
 #endif
      const BL_FORT_FAB_ARG(src),
-     const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),

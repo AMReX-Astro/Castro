@@ -561,6 +561,7 @@ Castro::advance_hydro (Real time,
 		{
 		    const Box &bx    = mfi.tilebox();
 
+		    FArrayBox &stateold = S_old[mfi];		    
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
 		
@@ -586,8 +587,7 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(ext_src_old[mfi]),
-			 BL_TO_FORTRAN(grav_old[mfi]), 
+			 BL_TO_FORTRAN(sources[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -604,6 +604,27 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN(volume[mfi]), 
 			 &cflLoc, verbose, &priv_nstep_fsp);
 
+		    // Add dt * old-time external source terms
+
+		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);		    
+
+		    // Gravitational source term for the time-level n data.
+
+		    Real E_added_grav = 0.0;
+		    Real mom_added[3] = { 0.0 };
+
+#ifdef GRAVITY
+		    if (do_grav)
+		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
+			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 BL_TO_FORTRAN_3D(phi_old[mfi]),
+			 BL_TO_FORTRAN_3D(grav_old[mfi]),
+			 BL_TO_FORTRAN_3D(stateold),
+			 BL_TO_FORTRAN_3D(stateout),
+			 ZFILL(dx),dt,&time,
+			 E_added_grav,mom_added);
+#endif		    
+		    
 		    if (radiation->do_inelastic_scattering) {
 			BL_FORT_PROC_CALL(CA_INELASTIC_SCT, ca_inelastic_sct)
 			    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
