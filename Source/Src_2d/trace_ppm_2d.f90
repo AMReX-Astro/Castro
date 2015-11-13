@@ -79,8 +79,8 @@ contains
     double precision :: xi, xi1
     double precision :: halfdt
 
-    integer, parameter :: isx = 1
-    integer, parameter :: isy = 2
+    integer, parameter :: isx = QU
+    integer, parameter :: isy = QV
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)

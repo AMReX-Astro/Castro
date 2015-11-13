@@ -80,9 +80,9 @@ contains
     double precision xi, xi1
     double precision halfdt
 
-    integer, parameter :: isx = 1
-    integer, parameter :: isy = 2
-    integer, parameter :: isz = 3
+    integer, parameter :: isx = QU
+    integer, parameter :: isy = QV
+    integer, parameter :: isz = QW
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -1247,9 +1247,9 @@ contains
     double precision xi, xi1
     double precision halfdt
 
-    integer, parameter :: isx = 1
-    integer, parameter :: isy = 2
-    integer, parameter :: isz = 3
+    integer, parameter :: isx = QU
+    integer, parameter :: isy = QV
+    integer, parameter :: isz = QW
 
     halfdt = HALF * dt
 
