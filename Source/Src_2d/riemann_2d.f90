@@ -435,9 +435,11 @@ contains
           if(idir.eq.1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
+             v2l = ql(i,j,QW)
           else
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
+             v2l = ql(i,j,QW)
           endif
 
           pl  = ql(i,j,QPRES )
@@ -468,9 +470,11 @@ contains
           if(idir.eq.1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
+             v2r = qr(i,j,QW)
           else
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
+             v2r = qr(i,j,QW)
           endif
 
           pr  = qr(i,j,QPRES)
@@ -937,9 +941,11 @@ contains
           if(idir.eq.1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
+             v2l = ql(i,j,QW)
           else
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
+             v2l = ql(i,j,QW)
           endif
 
           pl = ql(i,j,QPRES)
@@ -951,9 +957,11 @@ contains
           if(idir.eq.1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
+             v2r = qr(i,j,QW)
           else
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
+             v2r = qr(i,j,QW)
           endif
 
           pr = qr(i,j,QPRES)
