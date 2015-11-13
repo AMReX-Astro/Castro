@@ -501,6 +501,18 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
+    if (use_colglaz > 0)
+      {
+	std::cerr << "WARNING: the use_colglaz parameter is deprecated.  Use riemann_solver instead\n";
+	riemann_solver = 1;
+      }
+
+    if (hybrid_riemann == 1 && riemann_solver == 2)
+      {
+	std::cerr << "cannot use hybrid_riemann with riemann_solver = 2 (HLLC)\n";
+	BoxLib::Error();
+      }
+
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
