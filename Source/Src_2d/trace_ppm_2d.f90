@@ -79,9 +79,6 @@ contains
     double precision :: xi, xi1
     double precision :: halfdt
 
-    integer, parameter :: isx = QU
-    integer, parameter :: isy = QV
-
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
 
@@ -299,8 +296,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,isx)
-             dup = dup - halfdt*Im_src(i,j,1,3,isx)
+             dum = dum - halfdt*Im_src(i,j,1,1,QU)
+             dup = dup - halfdt*Im_src(i,j,1,3,QU)
           endif
 
 
@@ -440,7 +437,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_src(i,j,1,2,isy)
+                qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_src(i,j,1,2,QV)
              endif
 
              ! we may have done the flattening already in the parabola
@@ -519,8 +516,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Ip_src(i,j,1,1,isx)
-             dup = dup - halfdt*Ip_src(i,j,1,3,isx)
+             dum = dum - halfdt*Ip_src(i,j,1,1,QU)
+             dup = dup - halfdt*Ip_src(i,j,1,3,QU)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -653,7 +650,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_src(i,j,1,2,isy)
+                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_src(i,j,1,2,QV)
              endif
 
              ! we may have already done the flattening in the parabola
@@ -860,8 +857,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Im_src(i,j,2,1,isy)
-             dvp = dvp - halfdt*Im_src(i,j,2,3,isy)
+             dvm = dvm - halfdt*Im_src(i,j,2,1,QV)
+             dvp = dvp - halfdt*Im_src(i,j,2,3,QV)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -992,7 +989,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_src(i,j,2,2,isx)
+                qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_src(i,j,2,2,QU)
              endif
 
              ! we may have already done the flattening in the parabola
@@ -1069,8 +1066,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Ip_src(i,j,2,1,isy)
-             dvp = dvp - halfdt*Ip_src(i,j,2,3,isy)
+             dvm = dvm - halfdt*Ip_src(i,j,2,1,QV)
+             dvp = dvp - halfdt*Ip_src(i,j,2,3,QV)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -1197,7 +1194,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_src(i,j,2,2,isx)
+                qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_src(i,j,2,2,QU)
              endif
 
              ! we may have already applied flattening in the parabola

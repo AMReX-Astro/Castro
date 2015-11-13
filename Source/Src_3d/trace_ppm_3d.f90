@@ -80,10 +80,6 @@ contains
     double precision xi, xi1
     double precision halfdt
 
-    integer, parameter :: isx = QU
-    integer, parameter :: isy = QV
-    integer, parameter :: isz = QW
-
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
@@ -218,8 +214,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Im_src(i,j,kc,1,1,isx)
-                dup = dup - halfdt*Im_src(i,j,kc,1,3,isx)
+                dum = dum - halfdt*Im_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Im_src(i,j,kc,1,3,QU)
              endif
    
              ! Optionally use the reference state in evaluating the
@@ -354,8 +350,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,isy)
-                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,isz)
+                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,QV)
+                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,QW)
              endif
 
 
@@ -436,8 +432,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Ip_src(i,j,kc,1,1,isx)
-                dup = dup - halfdt*Ip_src(i,j,kc,1,3,isx)
+                dum = dum - halfdt*Ip_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Ip_src(i,j,kc,1,3,QU)
              endif
 
 
@@ -567,8 +563,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,isy)
-                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,isz)
+                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,QV)
+                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,QW)
              endif
 
 
@@ -755,8 +751,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,isy)
-                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,isy)
+                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,QV)
              endif
 
              ! Optionally use the reference state in evaluating the
@@ -885,8 +881,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,isx)
-                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,isz)
+                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,QU)
+                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,QW)
              endif
 
 
@@ -968,8 +964,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,isy)
-                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,isy)
+                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,QV)
              endif
 
 
@@ -1098,8 +1094,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,isx)
-                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,isz)
+                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,QU)
+                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,QW)
              endif
 
 
@@ -1247,10 +1243,6 @@ contains
     double precision xi, xi1
     double precision halfdt
 
-    integer, parameter :: isx = QU
-    integer, parameter :: isy = QV
-    integer, parameter :: isz = QW
-
     halfdt = HALF * dt
 
     if (ppm_type .eq. 0) then
@@ -1353,8 +1345,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,isz)
-             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,isz)
+             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,QW)
+             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1479,8 +1471,8 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,isx)
-             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,isy)
+             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,QU)
+             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,QV)
           endif
 
 
@@ -1581,8 +1573,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,isz)
-             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,isz)
+             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,QW)
+             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1708,8 +1700,8 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,isx)
-             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,isy)
+             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,QU)
+             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,QV)
           endif
 
 
