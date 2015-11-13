@@ -222,9 +222,9 @@ subroutine ctoprim_rad(lo,hi, &
   end do
 
   ! compute srcQ terms
-  do k = lo(3)-1, hi(3)+1
-     do j = lo(2)-1, hi(2)+1
-        do i = lo(1)-1, hi(1)+1
+  do k = loq(3), hiq(3)
+     do j = loq(2), hiq(2)
+        do i = loq(1), hiq(1)
            
            srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
            srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) / q(i,j,k,QRHO)
@@ -373,7 +373,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
      qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3, &
      lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      srcQ, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3, &
-     grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
      ilo1, ilo2, ilo3, ihi1, ihi2, ihi3, dx, dy, dz, dt, &
      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
@@ -405,7 +404,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
 
   integer qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
   integer src_l1, src_l2, src_l3, src_h1, src_h2, src_h3
-  integer gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
   integer ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
   integer fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3
   integer fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3
@@ -422,7 +420,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
   double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
   double precision  srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-  double precision  grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
   double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
   double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
   double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
@@ -790,7 +787,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
              gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
              srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-             grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
              hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
         ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
@@ -876,7 +872,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
                 ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                 gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                 srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
                 hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
 
                ! Compute U''_y at km (k3d-1)
@@ -892,7 +887,6 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
                 ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                 gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                 srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3,&
                 hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
            ! Compute F^x at km (k3d-1)
@@ -2094,7 +2088,6 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
   use network, only : nspec, naux
@@ -2117,7 +2110,6 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
   integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
   integer ilo,ihi,jlo,jhi,km,kc,k3d
   
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
@@ -2137,7 +2129,6 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   double precision ergdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3,0:ngroups-1)
   double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
   double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-  double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
   double precision hdt,cdtdx,cdtdy
   
   ! Local variables
@@ -2421,9 +2412,9 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         ! Convert back to non-conservation form
         rhotmp = rrnewr
         qpo(i,j,kc,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d,QRHO)
-        qpo(i,j,kc,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-        qpo(i,j,kc,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-        qpo(i,j,kc,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+        qpo(i,j,kc,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
+        qpo(i,j,kc,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
+        qpo(i,j,kc,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
         rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
         qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
         qpo(i,j,kc,QPRES ) = pnewr             + hdt*srcQ(i,j,k3d,QPRES)
@@ -2433,9 +2424,9 @@ subroutine transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
     
         rhotmp = rrnewl
         qmo(i,j,kc,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d-1,QRHO)
-        qmo(i,j,kc,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d-1,QU) + hdt*grav(i,j,k3d-1,1)
-        qmo(i,j,kc,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QV) + hdt*grav(i,j,k3d-1,2)
-        qmo(i,j,kc,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QW) + hdt*grav(i,j,k3d-1,3)
+        qmo(i,j,kc,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d-1,QU)
+        qmo(i,j,kc,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QV)
+        qmo(i,j,kc,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QW)
         rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
         qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
         qmo(i,j,kc,QPRES ) = pnewl             + hdt*srcQ(i,j,k3d-1,QPRES)
@@ -2812,7 +2803,6 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
-     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
   use network, only : nspec, naux
@@ -2835,7 +2825,6 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
   integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
   integer ilo,ihi,jlo,jhi,km,kc,k3d
   
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
@@ -2855,7 +2844,6 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   double precision ergdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3,0:ngroups-1)
   double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
   double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-  double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
   double precision hdt,cdtdy,cdtdz
 
   ! Local variables
@@ -3084,9 +3072,9 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         ! Convert back to non-conservation form
         rhotmp = rrnewr
         qpo(i,j,km,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d,QRHO)
-        qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-        qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-        qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+        qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
+        qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
+        qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
         rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
         qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
         qpo(i,j,km,QPRES ) = pnewr            + hdt*srcQ(i,j,k3d,QPRES)
@@ -3096,9 +3084,9 @@ subroutine transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
         rhotmp = rrnewl
         qmo(i+1,j,km,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d,QRHO)
-        qmo(i+1,j,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-        qmo(i+1,j,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-        qmo(i+1,j,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+        qmo(i+1,j,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU)
+        qmo(i+1,j,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV)
+        qmo(i+1,j,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW)
         rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
         qmo(i+1,j,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
         qmo(i+1,j,km,QPRES ) = pnewl            + hdt*srcQ(i,j,k3d,QPRES)
@@ -3126,7 +3114,6 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
      pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
-     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
   
   use network, only : nspec, naux
@@ -3149,7 +3136,6 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
   integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
   integer ilo,ihi,jlo,jhi,km,kc,k3d
   
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
@@ -3169,7 +3155,6 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
   double precision ergdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3,0:ngroups-1)
   double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
   double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-  double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
   double precision hdt,cdtdx,cdtdz
 
   ! Local variables
@@ -3396,9 +3381,9 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
         ! Convert back to non-conservation form
         rhotmp = rrnewr
         qpo(i,j,km,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d,QRHO)
-        qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)  + hdt*grav(i,j,k3d,1)
-        qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)  + hdt*grav(i,j,k3d,2)
-        qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)  + hdt*grav(i,j,k3d,3)
+        qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
+        qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
+        qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
         rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
         qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
         qpo(i,j,km,QPRES ) = pnewr            + hdt*srcQ(i,j,k3d,QPRES)
@@ -3408,9 +3393,9 @@ subroutine transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
 
         rhotmp = rrnewl
         qmo(i,j+1,km,QRHO  ) = rhotmp        + hdt*srcQ(i,j,k3d,QRHO)
-        qmo(i,j+1,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU) + hdt*grav(i,j,k3d,1)
-        qmo(i,j+1,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV) + hdt*grav(i,j,k3d,2)
-        qmo(i,j+1,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW) + hdt*grav(i,j,k3d,3)
+        qmo(i,j+1,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU)
+        qmo(i,j+1,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV)
+        qmo(i,j+1,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW)
         rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
         qmo(i,j+1,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
         qmo(i,j+1,km,QPRES ) = pnewl            + hdt*srcQ(i,j,k3d,QPRES)
@@ -3438,7 +3423,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      ugdz, ergdz, lmgdz, &
      ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3, &
      src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-     grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
      flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
      flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
      flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
@@ -3472,7 +3456,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
   integer ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3
   integer ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3
   integer ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3
-  integer  gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3 
   integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
   integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
   integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
@@ -3498,7 +3481,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
   double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
   double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
   double precision   src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-  double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2, gv_l3: gv_h3,            3   )
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
   double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
   double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
@@ -3682,39 +3664,6 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
         enddo
      enddo
   enddo
-  enddo
-
-  ! Add gravitational source terms
-  do k = lo(3),hi(3)
-     do j = lo(2),hi(2)
-        do i = lo(1),hi(1)
-           
-           rho = uin(i,j,k,URHO)
-           Up  = uin(i,j,k,UMX) / rho
-           Vp  = uin(i,j,k,UMY) / rho
-           Wp  = uin(i,j,k,UMZ) / rho
-           
-           SrU = rho * grav(i,j,k,1)
-           SrV = rho * grav(i,j,k,2)
-           SrW = rho * grav(i,j,k,3)
-           
-           ! This doesn't work (in 1-d)
-           ! SrE = SrU*(Up + SrU*dt/(2*rho)) &
-           !      +SrV*(Vp + SrV*dt/(2*rho)) &
-           !      +SrW*(Wp + SrW*dt/(2*rho))
-           
-           ! This does work (in 1-d)
-           SrE = uin(i,j,k,UMX) * grav(i,j,k,1) + &
-                uin(i,j,k,UMY) * grav(i,j,k,2) + &
-                uin(i,j,k,UMZ) * grav(i,j,k,3)
-           
-           uout(i,j,k,UMX)   = uout(i,j,k,UMX)   + dt * SrU
-           uout(i,j,k,UMY)   = uout(i,j,k,UMY)   + dt * SrV
-           uout(i,j,k,UMZ)   = uout(i,j,k,UMZ)   + dt * SrW
-           uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + dt * SrE
-
-        enddo
-     enddo
   enddo
 
   ! add radiation force terms

@@ -7,7 +7,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         Erout,Erout_l1,Erout_h1,&
                         ugdnv,ugdnv_l1,ugdnv_h1,&
                         src,src_l1,src_h1, &
-                        grav,gv_l1,gv_h1, &
                         delta,dt,&
                         flux,flux_l1,flux_h1,&
                         radflux,radflux_l1,radflux_h1,&
@@ -36,7 +35,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer dloga_l1,dloga_h1
   integer vol_l1,vol_h1
   integer src_l1,src_h1
-  integer gv_l1,gv_h1
   double precision   uin(  uin_l1:  uin_h1,NVAR)
   double precision  uout( uout_l1: uout_h1,NVAR)
   double precision  Erin( Erin_l1: Erin_h1, 0:ngroups-1)
@@ -44,7 +42,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision Erout(Erout_l1:Erout_h1, 0:ngroups-1)
   double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision   src(  src_l1:  src_h1,NVAR)
-  double precision  grav(   gv_l1:   gv_h1     )
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision radflux(radflux_l1: radflux_h1, 0:ngroups-1)
   double precision  area( area_l1: area_h1     )
@@ -88,7 +85,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   allocate( flatn(q_l1:q_h1))
   allocate(  csml(q_l1:q_h1))
   
-  allocate(  srcQ(lo(1)-1:hi(1)+1,QVAR))
+  allocate(  srcQ(q_l1:q_h1,QVAR))
   
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
@@ -106,14 +103,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        lam, lam_l1, lam_h1, &
        q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
        src,src_l1,src_h1, &
-       srcQ,lo(1)-1,hi(1)+1, &
+       srcQ,q_l1,q_h1, &
        courno,dx,dt,NHYP,ngf,iflaten)
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
        lam, lam_l1, lam_h1, &       
        q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
-       srcQ,lo(1)-1,hi(1)+1, &
-       grav, gv_l1, gv_h1, &
+       srcQ,q_l1,q_h1, &
        lo(1),hi(1),dx,dt, &
        flux,flux_l1,flux_h1, &
        radflux,radflux_l1,radflux_h1, &
@@ -144,7 +140,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        lamgdnv,lo(1),hi(1)+1, &
        ugdnv,ugdnv_l1,ugdnv_h1, &
        src , src_l1, src_h1, &
-       grav,  gv_l1,  gv_h1, &
        flux,flux_l1,flux_h1, &
        radflux,radflux_l1,radflux_h1, &
        flatn,uin_l1,uin_h1, &

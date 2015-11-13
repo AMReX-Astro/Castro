@@ -184,8 +184,8 @@ subroutine ctoprim_rad(lo,hi, &
   enddo
 
 !     Compute sources in terms of Q
-  do j = lo(2)-1, hi(2)+1
-     do i = lo(1)-1, hi(1)+1
+  do j = loq(2), hiq(2)
+     do i = loq(1), hiq(1)
 
         srcQ(i,j,QRHO  ) = src(i,j,URHO)
         srcQ(i,j,QU    ) = (src(i,j,UMX) - q(i,j,QU) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
@@ -298,7 +298,6 @@ end subroutine ctoprim_rad
 subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
      lam, lam_l1, lam_l2, lam_h1, lam_h2, &
      srcQ, src_l1, src_l2, src_h1, src_h2, &
-     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
@@ -337,7 +336,6 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   integer qd_l1, qd_l2, qd_h1, qd_h2
   integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
   integer src_l1, src_l2, src_h1, src_h2
-  integer gv_l1, gv_l2, gv_h1, gv_h2
   integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
   integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
   integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
@@ -358,7 +356,6 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
-  double precision  grav( gv_l1: gv_h1, gv_l2: gv_h2)
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision  pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
   double precision  ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
@@ -429,7 +426,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
           q,c,cg,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
           qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-          grav, gv_l1, gv_l2, gv_h1, gv_h2, &
+          srcQ,src_l1,src_l2,src_h1,src_h2, &
           ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
   end if
 
@@ -466,7 +463,6 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
         ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
        gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
        srcQ, src_l1, src_l2, src_h1, src_h2, &
-       grav, gv_l1, gv_l2, gv_h1, gv_h2, &
        hdt, hdtdy, &
        ilo1-1, ihi1+1, ilo2, ihi2)
 
@@ -491,7 +487,6 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
         ugdxtmp,  ugdx_l1,  ugdx_l2,  ugdx_h1,  ugdx_h2, &
        gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
        srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
-       grav, gv_l1, gv_l2, gv_h1, gv_h2, &
        hdt, hdtdx, &
        area1, area1_l1, area1_l2, area1_h1, area1_h2, &
        vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -538,13 +533,12 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
       ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
      gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
      srcQ, src_l1, src_l2, src_h1, src_h2, &
-     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
      hdt, cdtdy, ilo, ihi, jlo, jhi)
 
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav, &
+                                 npassive, upass_map, qpass_map, ppm_trace_sources, &
                                  ppm_type
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
@@ -562,7 +556,6 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   integer ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2
   integer ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2
   integer src_l1, src_l2, src_h1, src_h2
-  integer gv_l1, gv_l2, gv_h1, gv_h2
   integer ilo, ihi, jlo, jhi
 
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
@@ -577,7 +570,6 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   double precision  ugdy( ugdy_l1: ugdy_h1, ugdy_l2: ugdy_h2)
   double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
   double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-  double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
   double precision hdt, cdtdy
 
   integer i, j, g
@@ -702,8 +694,9 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
 !           convert back to non-conservation form
         rhotmp =  rrnewr
         qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
-        qpo(i,j,QU    ) = runewr/rhotmp    + hdt*srcQ(i,j,QU) 
-        qpo(i,j,QV    ) = rvnewr/rhotmp    + hdt*srcQ(i,j,QV) 
+        qpo(i,j,QU    ) = runewr/rhotmp
+        qpo(i,j,QV    ) = rvnewr/rhotmp
+
         rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
         qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
         qpo(i,j,QPRES ) =  pnewr            + hdt*srcQ(i,j,QPRES)
@@ -713,8 +706,8 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         
         rhotmp =  rrnewl
         qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
-        qmo(i+1,j,QU    ) = runewl/rhotmp     + hdt*srcQ(i,j,QU) 
-        qmo(i+1,j,QV    ) = rvnewl/rhotmp     + hdt*srcQ(i,j,QV) 
+        qmo(i+1,j,QU    ) = runewl/rhotmp
+        qmo(i+1,j,QV    ) = rvnewl/rhotmp
         rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
         qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
         qmo(i+1,j,QPRES ) = pnewl             + hdt*srcQ(i,j,QPRES)
@@ -722,16 +715,17 @@ subroutine transy_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i+1,j,qptot  ) = sum(lambda*ernewl) + qmo(i+1,j,QPRES)
         qmo(i+1,j,qreitot) = sum(qmo(i+1,j,qrad:qradhi)) + qmo(i+1,j,QREINT)
 
-        ! if ppm_trace_grav == 1, then we already added the
-        ! piecewise parabolic traced gravity to the normal edge
-        ! states
-        if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-           qpo(i,j,QU    ) = qpo(i,j,QU    ) + hdt*grav(i,j,1)
-           qpo(i,j,QV    ) = qpo(i,j,QV    ) + hdt*grav(i,j,2)
+        ! if ppm_trace_sources == 1, then we already added the
+        ! piecewise parabolic traced sources to the normal edge
+        ! states        
+        
+        if (ppm_trace_sources .eq. 0 .or. ppm_type == 0) then
+           qpo(i,j,QU    ) = qpo(i,j,QU) + hdt*srcQ(i,j,QU)
+           qpo(i,j,QV    ) = qpo(i,j,QV) + hdt*srcQ(i,j,QV)
 
-           qmo(i+1,j,QU    ) = qmo(i+1,j,QU    ) + hdt*grav(i,j,1)
-           qmo(i+1,j,QV    ) = qmo(i+1,j,QV    ) + hdt*grav(i,j,2)
-        endif
+           qmo(i+1,j,QU    ) = qmo(i+1,j,QU) + hdt*srcQ(i,j,QU)
+           qmo(i+1,j,QV    ) = qmo(i+1,j,QV) + hdt*srcQ(i,j,QV)
+        endif                   
         
      enddo
   enddo
@@ -751,7 +745,6 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
       ugdx,  ugdx_l1,  ugdx_l2,  ugdx_h1,  ugdx_h2, &
      gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
      srcQ, src_l1, src_l2, src_h1, src_h2, &
-     grav, gv_l1, gv_l2, gv_h1, gv_h2, &
      hdt, cdtdx,  &
      area1, area1_l1, area1_l2, area1_h1, area1_h2, &
      vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -760,7 +753,7 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
-                                 npassive, upass_map, qpass_map, ppm_trace_grav, do_grav, &
+                                 npassive, upass_map, qpass_map, ppm_trace_sources, &
                                  ppm_type
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
@@ -778,7 +771,6 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   integer ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2
   integer ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2
   integer src_l1, src_l2, src_h1, src_h2
-  integer gv_l1, gv_l2, gv_h1, gv_h2
   integer area1_l1, area1_l2, area1_h1, area1_h2
   integer vol_l1, vol_l2, vol_h1, vol_h2
   integer ilo, ihi, jlo, jhi
@@ -795,7 +787,6 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
   double precision  ugdx( ugdx_l1: ugdx_h1, ugdx_l2: ugdx_h2)
   double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
   double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-  double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,2)
   double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
   double precision hdt, cdtdx
@@ -936,8 +927,8 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         !           Convert back to non-conservation form
         rhotmp = rrnewr
         qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
-        qpo(i,j,QU  ) = runewr/rhotmp + hdt*srcQ(i,j,QU) 
-        qpo(i,j,QV  ) = rvnewr/rhotmp + hdt*srcQ(i,j,QV) 
+        qpo(i,j,QU  ) = runewr/rhotmp
+        qpo(i,j,QV  ) = rvnewr/rhotmp
         rhoekinr = 0.5d0*(runewr**2+rvnewr**2)/rhotmp
         qpo(i,j,QREINT)= renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
         qpo(i,j,QPRES) =  pnewr            + hdt*srcQ(i,j,QPRES)
@@ -948,8 +939,8 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         !           Convert back to non-conservation form
         rhotmp = rrnewl
         qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
-        qmo(i,j+1,QU  ) = runewl/rhotmp  + hdt*srcQ(i,j,QU) 
-        qmo(i,j+1,QV  ) = rvnewl/rhotmp  + hdt*srcQ(i,j,QV) 
+        qmo(i,j+1,QU  ) = runewl/rhotmp
+        qmo(i,j+1,QV  ) = rvnewl/rhotmp
         rhoekinl = 0.5d0*(runewl**2+rvnewl**2)/rhotmp
         qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
         qmo(i,j+1,QPRES) = pnewl +hdt*srcQ(i,j,QPRES)
@@ -957,15 +948,15 @@ subroutine transx_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
         qmo(i,j+1,qptot)   = sum(lambda*ernewl) + qmo(i,j+1,QPRES)
         qmo(i,j+1,qreitot) = sum(qmo(i,j+1,qrad:qradhi)) + qmo(i,j+1,QREINT)
 
-        ! if ppm_trace_grav == 1, then we already added the
-        ! piecewise parabolic traced gravity to the normal edge
+        ! if ppm_trace_sources == 1, then we already added the
+        ! piecewise parabolic traced sources the normal edge
         ! states
-        if (do_grav .eq. 1 .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-           qpo(i,j,QU  ) = qpo(i,j,QU  ) + hdt*grav(i,j,1)
-           qpo(i,j,QV  ) = qpo(i,j,QV  ) + hdt*grav(i,j,2)
+        if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+           qpo(i,j,QU  ) = qpo(i,j,QU) + hdt*srcQ(i,j,QU)
+           qpo(i,j,QV  ) = qpo(i,j,QV) + hdt*srcQ(i,j,QV)
 
-           qmo(i,j+1,QU  ) = qmo(i,j+1,QU  ) + hdt*grav(i,j,1)
-           qmo(i,j+1,QV  ) = qmo(i,j+1,QV  ) + hdt*grav(i,j,2)
+           qmo(i,j+1,QU  ) = qmo(i,j+1,QU) + hdt*srcQ(i,j,QU)
+           qmo(i,j+1,QV  ) = qmo(i,j+1,QV) + hdt*srcQ(i,j,QV)
         endif
         
      enddo
@@ -990,7 +981,6 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
      ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
      src , src_l1, src_l2, src_h1, src_h2, &
-     grav,  gv_l1,  gv_l2,  gv_h1,  gv_h2, &
      flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
      flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
      rflux1,rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2, &
@@ -1026,7 +1016,6 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
   integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
   integer   src_l1,  src_l2,  src_h1,  src_h2
-  integer    gv_l1,   gv_l2,   gv_h1,   gv_h2
   integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
   integer rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2
@@ -1048,7 +1037,6 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   double precision  ugdx( ugdx_l1: ugdx_h1, ugdx_l2: ugdx_h2)
   double precision  ugdy( ugdy_l1: ugdy_h1, ugdy_l2: ugdy_h2)
   double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
-  double precision  grav(   gv_l1:   gv_h1,   gv_l2:   gv_h2,2)
   double precision  flux1( flux1_l1: flux1_h1, flux1_l2: flux1_h2,NVAR)
   double precision  flux2( flux2_l1: flux2_h1, flux2_l2: flux2_h2,NVAR)
   double precision rflux1(rflux1_l1:rflux1_h1,rflux1_l2:rflux1_h2,0:ngroups-1)
@@ -1171,31 +1159,6 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   do j = lo(2),hi(2)
      do i = lo(1),hi(1)
         uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
-     enddo
-  enddo
-
-  ! Add gravitational source terms to momentum and energy equations
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
-
-        rho = uin(i,j,URHO)
-        Up  = uin(i,j,UMX) / rho
-        Vp  = uin(i,j,UMY) / rho
-
-        SrU = rho * grav(i,j,1)
-        SrV = rho * grav(i,j,2)
-
-        ! This doesn't work (in 1-d)
-        ! SrE = SrU*(Up + SrU*dt/(2*rho)) &
-        !      +SrV*(Vp + SrV*dt/(2*rho))
-
-        ! This does work (in 1-d)
-        SrE = uin(i,j,UMX) * grav(i,j,1) + uin(i,j,UMY) * grav(i,j,2)
-
-        uout(i,j,UMX)   = uout(i,j,UMX)   + dt * SrU
-        uout(i,j,UMY)   = uout(i,j,UMY)   + dt * SrV
-        uout(i,j,UEDEN) = uout(i,j,UEDEN) + dt * SrE
-
      enddo
   enddo
 

@@ -8,7 +8,6 @@ contains
        q,dq,c,cg,flatn,qd_l1,qd_h1, &
        dloga,dloga_l1,dloga_h1, &
        srcQ,src_l1,src_h1,&
-       grav,gv_l1,gv_h1, &
        qxm,qxp,qpd_l1,qpd_h1, &
        ilo,ihi,domlo,domhi,dx,dt)
 
@@ -16,10 +15,10 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
          small_dens, ppm_type, fix_mass_flux, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
+         ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, ppm_predict_gammae, &
-         npassive, qpass_map, do_grav
+         npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
@@ -34,7 +33,6 @@ contains
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    integer    gv_l1,   gv_h1
     double precision dx, dt
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision     q( qd_l1: qd_h1,QRADVAR)
@@ -47,7 +45,6 @@ contains
     double precision   dq( qpd_l1: qpd_h1,QRADVAR)
     double precision  qxm( qpd_l1: qpd_h1,QRADVAR)
     double precision  qxp( qpd_l1: qpd_h1,QRADVAR)
-    double precision grav(  gv_l1:  gv_h1)
 
     !     Local variables
     integer i, g
@@ -77,8 +74,8 @@ contains
     double precision, allocatable :: Ip(:,:,:)
     double precision, allocatable :: Im(:,:,:)
 
-    double precision, allocatable :: Ip_g(:,:,:)
-    double precision, allocatable :: Im_g(:,:,:)    
+    double precision, allocatable :: Ip_src(:,:,:)
+    double precision, allocatable :: Im_src(:,:,:)    
 
     double precision :: er_foo
 
@@ -108,19 +105,15 @@ contains
        call bl_error("ERROR: ppm_reference_eigenvectors not implemented with radiation")
     endif
 
-    if (ppm_trace_rot == 1) then
-       call bl_error("ERROR: ppm_trace_rot not implemented with radiation")
-    endif
-    
     hdt = 0.5d0 * dt
     dtdx = dt/dx
 
     allocate(Ip(ilo-1:ihi+1,3,QRADVAR))
     allocate(Im(ilo-1:ihi+1,3,QRADVAR))
 
-    if (ppm_trace_grav == 1) then
-       allocate(Ip_g(ilo-1:ihi+1,3,1))
-       allocate(Im_g(ilo-1:ihi+1,3,1))
+    if (ppm_trace_sources == 1) then
+       allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
+       allocate(Im_src(ilo-1:ihi+1,3,QVAR))
     endif
 
     !=========================================================================
@@ -163,12 +156,14 @@ contains
                 ilo,ihi,dx,dt)
     end do
 
-    if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-       call ppm(grav(:),gv_l1,gv_h1, &
-                q(:,QU:),c, &
-                flatn, &
-                Ip_g(:,:,1),Im_g(:,:,1), &
-                ilo,ilo,dx,dt)
+    if (ppm_trace_sources == 1) then
+       do n=1,QVAR
+          call ppm(srcQ(:,n),src_l1,src_h1, &
+                   q(:,QU:),c, &
+                   flatn, &
+                   Ip_src(:,:,n),Im_src(:,:,n), &
+                   ilo,ilo,dx,dt)
+       enddo
     endif
 
     !-------------------------------------------------------------------------
@@ -253,11 +248,11 @@ contains
        dup    = u_ref    - Im(i,3,QU)
        dptotp = ptot_ref - Im(i,3,qptot)
 
-       ! if we are doing gravity tracing, then we add the force to
+       ! if we are doing source term tracing, then we add the force to
        ! the velocity here, otherwise we will deal with this later
-       if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-          dum = dum - hdt*Im_g(i,1,1)
-          dup = dup - hdt*Im_g(i,3,1)
+       if (ppm_trace_sources == 1) then
+          dum = dum - hdt*Im_src(i,1,QU)
+          dup = dup - hdt*Im_src(i,3,QU)
        endif
 
        ! these are analogous to the beta's from the original
@@ -319,18 +314,18 @@ contains
           ! enforce small_*
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
           
-          ! add non-gravitational source term
+          ! add source terms
           qxp(i  ,QRHO  )  = qxp(i,QRHO   ) + hdt*srcQ(i,QRHO)
           qxp(i  ,QRHO  )  = max(small_dens,qxp(i,QRHO))
-          qxp(i  ,QU    )  = qxp(i,QU     ) + hdt*srcQ(i,QU)
+          qxp(i  ,QU    )  = qxp(i,QU     )
           qxp(i  ,QREINT)  = qxp(i,QREINT ) + hdt*srcQ(i,QREINT)
           qxp(i  ,QPRES )  = qxp(i,QPRES  ) + hdt*srcQ(i,QPRES)
           qxp(i  ,qptot )  = qxp(i,qptot  ) + hdt*srcQ(i,QPRES)
           qxp(i  ,qreitot) = qxp(i,qreitot) + hdt*srcQ(i,QREINT)
 
-          ! add gravitational source term
-          if (ppm_trace_grav == 0) then
-             qxp(i  ,QU) = qxp(i,QU) + hdt*grav(i)
+          ! add traced source terms as needed
+          if (ppm_trace_sources == 0) then
+             qxp(i  ,QU) = qxp(i,QU) + hdt*srcQ(i,QU)
           endif
 
           do g=0, ngroups-1
@@ -414,12 +409,12 @@ contains
        dup    = u_ref    - Ip(i,3,QU)
        dptotp = ptot_ref - Ip(i,3,qptot)
 
-       ! if we are doing gravity tracing, then we add the force to
+       ! if we are doing source term tracing, then we add the force to
        ! the velocity here, otherwise we will deal with this in the
        ! trans_X routines
-       if (do_grav .eq. 1 .and. ppm_trace_grav == 1) then
-          dum = dum - hdt*Ip_g(i,1,1)
-          dup = dup - hdt*Ip_g(i,3,1)
+       if (ppm_trace_sources == 1) then
+          dum = dum - hdt*Ip_src(i,1,QU)
+          dup = dup - hdt*Ip_src(i,3,QU)
        endif
 
        ! these are analogous to the beta's from the original
@@ -480,18 +475,18 @@ contains
           ! enforce small_*
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
           
-          ! add non-gravitational source term
+          ! add source terms
           qxm(i+1,QRHO   ) = qxm(i+1,QRHO   ) + hdt*srcQ(i,QRHO)
           qxm(i+1,QRHO   ) = max(small_dens, qxm(i+1,QRHO))
-          qxm(i+1,QU     ) = qxm(i+1,QU     ) + hdt*srcQ(i,QU)
+          qxm(i+1,QU     ) = qxm(i+1,QU     )
           qxm(i+1,QREINT ) = qxm(i+1,QREINT ) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES  ) = qxm(i+1,QPRES  ) + hdt*srcQ(i,QPRES)
           qxm(i+1,qptot  ) = qxm(i+1,qptot  ) + hdt*srcQ(i,QPRES)
           qxm(i+1,qreitot) = qxm(i+1,qreitot) + hdt*srcQ(i,QREINT)
 
-          ! add gravitational source term
-          if (ppm_trace_grav == 0) then
-             qxm(i+1,QU) = qxm(i+1,QU) + hdt*grav(i)
+          ! add traced source terms as needed
+          if (ppm_trace_sources == 0) then
+             qxm(i+1,QU) = qxm(i+1,QU) + hdt*srcQ(i,QU)
           endif
 
           do g=0, ngroups-1
@@ -659,8 +654,8 @@ contains
     enddo
 
     deallocate(Ip,Im)
-    if (ppm_trace_grav == 1) then
-       deallocate(Ip_g,Im_g)
+    if (ppm_trace_sources == 1) then
+       deallocate(Ip_src,Im_src)
     endif
 
   end subroutine trace_ppm_rad

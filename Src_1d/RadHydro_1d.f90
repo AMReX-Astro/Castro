@@ -187,7 +187,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   enddo
 
   ! compute srcQ terms
-  do i = lo(1)-1, hi(1)+1
+  do i = loq(1), hiq(1)
      srcQ(i,QRHO   ) = src(i,URHO)
      srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
      srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + 0.5d0 * q(i,QU)**2 * srcQ(i,QRHO)
@@ -284,7 +284,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      lam, lam_l1, lam_h1, &       
      q,c,cg,gamc,gamcg,csml,flatn,qd_l1,qd_h1, &
      srcQ,src_l1,src_h1, &
-     grav, gv_l1, gv_h1, &
      ilo,ihi,dx,dt, &
      flux ,   fd_l1,   fd_h1, &
      rflux,  rfd_l1,  rfd_h1, &
@@ -314,7 +313,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   integer ergdnv_l1,ergdnv_h1
   integer lamgdnv_l1,lamgdnv_h1
   integer ugdnv_l1,ugdnv_h1
-  integer gv_l1,gv_h1
   integer ilo,ihi
   double precision dx, dt
   double precision lam(lam_l1:lam_h1, 0:ngroups-1)
@@ -328,7 +326,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision  flux(fd_l1   :fd_h1,NVAR)
   double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
   double precision  srcQ(src_l1  :src_h1,NVAR)
-  double precision  grav(gv_l1   :gv_h1)
   double precision  pgdnv(pgdnv_l1:pgdnv_h1)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
@@ -349,7 +346,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
           q,dq,c,cg,flatn,qd_l1,qd_h1, &
           dloga,dloga_l1,dloga_h1, &
           srcQ,src_l1,src_h1, &
-          grav,gv_l1,gv_h1, &
           qm,qp,ilo-1,ihi+1, &
           ilo,ihi,domlo,domhi,dx,dt)
   else
@@ -357,7 +353,6 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      ! call trace(q,dq,c,flatn,qd_l1,qd_h1, &
      !      dloga,dloga_l1,dloga_h1, &
      !      srcQ,src_l1,src_h1, &
-     !      grav,gv_l1,gv_h1, &
      !      qm,qp,ilo-1,ihi+1, &
      !      ilo,ihi,domlo,domhi,dx,dt)
   end if
@@ -392,7 +387,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
      ugdnv,ugdnv_l1,ugdnv_h1, &
      src,  src_l1,  src_h1, &
-     grav, grav_l1, grav_h1, &
      flux, flux_l1, flux_h1, &
      rflux,rflux_l1,rflux_h1, &
      flat, flat_l1, flat_h1, &
@@ -421,7 +415,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   integer ergdnv_l1,ergdnv_h1
   integer lamgdnv_l1,lamgdnv_h1
   integer   src_l1,  src_h1
-  integer  grav_l1, grav_h1
   integer  flux_l1, flux_h1
   integer rflux_l1,rflux_h1
   integer  flat_l1, flat_h1
@@ -436,7 +429,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision   src(  src_l1:  src_h1,NVAR)
-  double precision  grav( grav_l1: grav_h1)
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision rflux(rflux_l1:rflux_h1, 0:ngroups-1)
   double precision  flat( flat_l1: flat_h1)
@@ -515,25 +507,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      uout(i,UEINT) = uout(i,UEINT)  - dt * pdivu(i)
   enddo
 
-  ! Add gravitational source terms to momentum and energy equations 
-  do i = lo(1),hi(1)
-
-     Up  = uin(i,UMX) / uin(i,URHO)
-     SrU = uin(i,URHO) * grav(i)
-
-     ! This doesn't work
-     ! SrE = SrU*(Up + SrU*dt/(2.d0*rho))
-
-     ! This works 
-     ! SrE = SrU*Up 
-
-     SrE = uin(i,UMX ) * grav(i)
-
-     uout(i,UMX  ) = uout(i,UMX  ) + dt * SrU
-     uout(i,UEDEN) = uout(i,UEDEN) + dt * SrE
-     
-  enddo
-  
   ! Add gradp term to momentum equation
   do i = lo(1),hi(1)
      dpdx  = (  pgdnv(i+1)- pgdnv(i) ) / dx

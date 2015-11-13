@@ -8,7 +8,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         ugdx    ,    ugdx_l1,    ugdx_l2,    ugdx_h1,    ugdx_h2, &
                         ugdy    ,    ugdy_l1,    ugdy_l2,    ugdy_h1,    ugdy_h2, &
                         src     ,     src_l1,     src_l2,     src_h1,     src_h2, &
-                        grav    ,      gv_l1,      gv_l2,      gv_h1,      gv_h2, &
                         delta,dt,&
                         flux1   ,   flux1_l1,   flux1_l2,   flux1_h1,   flux1_h2, &
                         flux2   ,   flux2_l1,   flux2_l2,   flux2_h1,   flux2_h2, &
@@ -48,7 +47,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer    dloga_l1,   dloga_l2,   dloga_h1,   dloga_h2
   integer      vol_l1,     vol_l2,     vol_h1,     vol_h2
   integer      src_l1,     src_l2,     src_h1,     src_h2
-  integer       gv_l1,      gv_l2,      gv_h1,      gv_h2
 
   double precision uin     (     uin_l1:     uin_h1,     uin_l2:     uin_h2,NVAR)
   double precision uout    (    uout_l1:    uout_h1,    uout_l2:    uout_h2,NVAR)
@@ -58,7 +56,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision ugdx    (    ugdx_l1:    ugdx_h1,    ugdx_l2:    ugdx_h2)
   double precision ugdy    (    ugdy_l1:    ugdy_h1,    ugdy_l2:    ugdy_h2)
   double precision src     (     src_l1:     src_h1,     src_l2:     src_h2,NVAR)
-  double precision grav    (      gv_l1:      gv_h1,      gv_l2:      gv_h2,2)
   double precision flux1   (   flux1_l1:   flux1_h1,   flux1_l2:   flux1_h2,NVAR)
   double precision flux2   (   flux2_l1:   flux2_h1,   flux2_l2:   flux2_h2,NVAR)
   double precision radflux1(radflux1_l1:radflux1_h1,radflux1_l2:radflux1_h2,0:ngroups-1)
@@ -110,7 +107,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   allocate(    cg(q_l1:q_h1,q_l2:q_h2))
   allocate(  csml(q_l1:q_h1,q_l2:q_h2))
 
-  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,QVAR))
+  allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,QVAR))
 
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
@@ -135,14 +132,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        lam,lam_l1,lam_l2,lam_h1,lam_h2, &
        q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
        src,src_l1,src_l2,src_h1,src_h2, &
-       srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
+       srcQ,q_l1,q_l2,q_h1,q_h2, &
        courno,dx,dy,dt,ngq,ngf,iflaten)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
        lam, lam_l1,lam_l2,lam_h1,lam_h2, &
-       srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
-       grav,gv_l1,gv_l2,gv_h1,gv_h2, &
+       srcQ,q_l1,q_l2,q_h1,q_h2, &
        lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
        flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
        flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -180,7 +176,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
        ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
        src,    src_l1,  src_l2,  src_h1,  src_h2, &
-       grav,    gv_l1,   gv_l2,   gv_h1,   gv_h2, &
        flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
        flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
        radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
