@@ -13,9 +13,9 @@ module riemann_module
 
 contains
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine cmpflx(qm,qp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                     flx,flx_l1,flx_l2,flx_h1,flx_h2, &
@@ -44,7 +44,7 @@ contains
     integer, intent(in) :: s_l1,s_l2,s_h1,s_h2
     integer, intent(in) :: idir,ilo,ihi,jlo,jhi
     integer, intent(in) :: domlo(2),domhi(2)
-    
+
     double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
@@ -56,13 +56,13 @@ contains
     double precision, intent(in) ::    c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision, intent(in) :: csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision, intent(in) ::  shk( s_l1: s_h1, s_l2: s_h2)
-    
+
     ! Local variables
     integer i, j
-    
+
     double precision, allocatable :: smallc(:,:), cavg(:,:)
     double precision, allocatable :: gamcm(:,:), gamcp(:,:)
-    
+
     integer :: imin, imax, jmin, jmax
     integer :: is_shock
     double precision :: cl, cr
@@ -97,11 +97,11 @@ contains
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
-       
+
        ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are 
+       ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
-       
+
        if (idir == 1) then
           imin = ilo
           imax = ihi+1
@@ -113,14 +113,14 @@ contains
           jmin = jlo
           jmax = jhi+1
        endif
-       
+
        do j = jmin, jmax
           do i = imin, imax
-             
+
              ! this is an initial guess for iterations, since we
              ! can't be certain that temp is on interfaces
-             eos_state%T = 10000.0d0   
-             
+             eos_state%T = 10000.0d0
+
              ! minus state
              eos_state % rho = qm(i,j,QRHO)
              eos_state % p   = qm(i,j,QPRES)
@@ -132,7 +132,7 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
                 eos_state % T = small_temp
-                call eos(eos_input_rt, eos_state)                
+                call eos(eos_input_rt, eos_state)
              else
                 call eos(eos_input_re, eos_state)
              endif
@@ -153,18 +153,18 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
                 eos_state % T = small_temp
-                call eos(eos_input_rt, eos_state)                
+                call eos(eos_input_rt, eos_state)
              else
                 call eos(eos_input_re, eos_state)
              endif
 
              qp(i,j,QREINT) = qp(i,j,QRHO)*eos_state%e
-             qp(i,j,QPRES) = eos_state%p  
+             qp(i,j,QPRES) = eos_state%p
              gamcp(i,j) = eos_state%gam1
 
           enddo
        enddo
-         
+
     endif
 
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
@@ -200,10 +200,10 @@ contains
           jmin = jlo
           jmax = jhi+1
        endif
-       
+
        do j = jmin, jmax
           do i = imin, imax
-         
+
              if (idir == 1) then
                 is_shock = shk(i-1,j) + shk(i,j)
              else
@@ -222,22 +222,22 @@ contains
 
                 call HLL(qm(i,j,:), qp(i,j,:), cl, cr, &
                          idir, flx(i,j,:))
-                
+
              endif
-    
+
           enddo
        enddo
-    
+
     endif
 
     deallocate(smallc,cavg,gamcm,gamcp)
-    
+
   end subroutine cmpflx
 
 
   subroutine shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
                    shk,s_l1,s_l2,s_h1,s_h2, &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy)  
+                   ilo1,ilo2,ihi1,ihi2,dx,dy)
 
     use prob_params_module, only : coord_type
     use meth_params_module, only : QU, QV, QPRES, QVAR
@@ -276,7 +276,7 @@ contains
           ! construct div{U}
           divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
                  HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
-          
+
           ! find the pre- and post-shock pressures in each direction
           if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
              px_pre  = q(i+1,j,QPRES)
@@ -300,9 +300,9 @@ contains
           d = ONE/(e_x + e_y + small)
 
           e_x = e_x*d
-          e_y = e_y*d 
+          e_y = e_y*d
 
-          ! project the pressures onto the shock direction 
+          ! project the pressures onto the shock direction
           p_pre  = e_x*px_pre + e_y*py_pre
           p_post = e_x*px_post + e_y*py_post
 
@@ -321,9 +321,9 @@ contains
   end subroutine shock
 
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine riemanncg(ql,qr,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
@@ -337,16 +337,16 @@ contains
 
     use bl_error_module
     use network, only : nspec, naux
-    use eos_type_module 
+    use eos_type_module
     use eos_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
                                    QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, &
                                    npassive, upass_map, qpass_map
-    
+
 
     double precision, parameter:: small = 1.d-8
 
@@ -372,8 +372,8 @@ contains
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nq
-    
-    double precision :: rgdnv,vgdnv,ustar,gamgdnv
+
+    double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, pl, rel
     double precision :: rr, ur, vr, pr, rer
     double precision :: wl, wr, rhoetot
@@ -430,7 +430,7 @@ contains
 
           ! left state
           rl = max(ql(i,j,QRHO),small_dens)
-          
+
           ! pick left velocities based on direction
           if(idir.eq.1) then
              ul = ql(i,j,QU)
@@ -439,7 +439,7 @@ contains
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
           endif
-          
+
           pl  = ql(i,j,QPRES )
           rel = ql(i,j,QREINT)
           gcl = gamcl(i,j)
@@ -463,7 +463,7 @@ contains
 
           ! right state
           rr = max(qr(i,j,QRHO),small_dens)
-          
+
           ! pick right velocities based on direction
           if(idir.eq.1) then
              ur = qr(i,j,QU)
@@ -472,7 +472,7 @@ contains
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
           endif
-          
+
           pr  = qr(i,j,QPRES)
           rer = qr(i,j,QREINT)
           gcr = gamcr(i,j)
@@ -490,15 +490,15 @@ contains
              pr  = eos_state%p
              gcr = eos_state%gam1
           endif
-            
+
           ! common quantities
           taul = ONE/rl
           taur = ONE/rr
-          
+
           ! lagrangian sound speeds
           clsql = gcl*pl*rl
           clsqr = gcr*pr*rr
-          
+
 
           ! Note: in the original Colella & Glaz paper, they predicted
           ! gamma_e to the interfaces using a special (non-hyperbolic)
@@ -507,23 +507,23 @@ contains
           ! what we have on the interfaces.
           gamel = pl/rel + ONE
           gamer = pr/rer + ONE
-          
+
           ! these should consider a wider average of the cell-centered
           ! gammas
           gmin = min(gamel, gamer, ONE, FOUR3RD)
           gmax = max(gamel, gamer, TWO, FIVE3RD)
-          
+
           game_bar = HALF*(gamel + gamer)
           gamc_bar = HALF*(gcl + gcr)
-          
+
           gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
-          
+
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
           wl = max(wsmall,sqrt(abs(clsql)))
           wr = max(wsmall,sqrt(abs(clsqr)))
-          
-          ! make an initial guess for pstar -- this is a two-shock 
+
+          ! make an initial guess for pstar -- this is a two-shock
           ! approximation
           !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
@@ -555,7 +555,7 @@ contains
           converged = .false.
           iter = 1
           do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
-               
+
              call wsqge(pl,taul,gamel,gdot,  &
                         gamstar,pstar,wlsq,clsql,gmin,gmax)
 
@@ -564,25 +564,25 @@ contains
 
              wl = ONE / sqrt(wlsq)
              wr = ONE / sqrt(wrsq)
-             
+
              ustnm1 = ustarm
              ustnp1 = ustarp
-             
+
              ustarm = ur-(pr-pstar)*wr
              ustarp = ul+(pl-pstar)*wl
-             
+
              dpditer=abs(pstnm1-pstar)
-             
+
              zp=abs(ustarp-ustnp1)
              if(zp-weakwv*cav(i,j) <= ZERO)then
                 zp = dpditer*wl
              endif
-             
+
              zm=abs(ustarm-ustnm1)
              if(zm-weakwv*cav(i,j) <= ZERO)then
                 zm = dpditer*wr
              endif
-             
+
              ! the new pstar is found via CG Eq. 18
              denom=dpditer/max(zp+zm,small*(cav(i,j)))
              pstnm1 = pstar
@@ -595,7 +595,7 @@ contains
              pstar_hist(iter) = pstar
 
              iter = iter + 1
-             
+
           enddo
 
           if (.not. converged) then
@@ -609,8 +609,8 @@ contains
              print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
              call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
-          
-          
+
+
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves, using the updated wave speeds
           ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
@@ -623,10 +623,10 @@ contains
           if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
              ustar = ZERO
           endif
-          
+
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
-          ! worry about the L/L* states or the R*/R states.  
+          ! worry about the L/L* states or the R*/R states.
           if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
@@ -635,7 +635,7 @@ contains
              !reo = rel
              gamco = gcl
              gameo = gamel
-             
+
           else if (ustar .lt. ZERO) then
              ro = rr
              uo = ur
@@ -669,7 +669,7 @@ contains
                      gamstar,pstar,wosq,clsq,gmin,gmax)
 
           sgnm = sign(ONE,ustar)
-          
+
           wo = sqrt(wosq)
           dpjmp = pstar - po
 
@@ -681,14 +681,14 @@ contains
 
           !entho = (reo/ro + po/ro)/co**2
           !estar = reo + (pstar - po)*entho
-          
+
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
-          
-          
+
+
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
-          
+
           !ushock = HALF*(spin + spout)
           ushock = wo/ro - sgnm*uo
 
@@ -710,18 +710,21 @@ contains
           ! direction that the contact moves
           if (ustar .gt. ZERO) then
              vgdnv = vl
+             wgdnv = wl
           else if (ustar .lt. ZERO) then
              vgdnv = vr
+             wgdnv = wr
           else
              vgdnv = HALF*(vl+vr)
+             wgdnv = HALF*(wl+wr)
           endif
 
           ! linearly interpolate between the star and normal state -- this covers the
           ! case where we are inside the rarefaction fan.
-          rgdnv = frac*rstar + (ONE - frac)*ro          
+          rgdnv = frac*rstar + (ONE - frac)*ro
           ugdnv(i,j) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j) = frac*pstar + (ONE - frac)*po
-          gamgdnv =  frac*gamstar + (ONE-frac)*gameo          
+          gamgdnv =  frac*gamstar + (ONE-frac)*gameo
 
           ! now handle the cases where instead we are fully in the
           ! star or fully in the original (l/r) state
@@ -729,7 +732,7 @@ contains
              rgdnv = ro
              ugdnv(i,j) = uo
              pgdnv(i,j) = po
-             gamgdnv = gameo 
+             gamgdnv = gameo
           endif
           if (spin .ge. ZERO) then
              rgdnv = rstar
@@ -766,26 +769,27 @@ contains
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgdnv*ugdnv(i,j)
-          
+
           ! note: here we do not include the pressure, since in 2-d,
           ! for some geometries, div{F} + grad{p} cannot be written
           ! in a flux difference form
           if(idir.eq.1) then
-             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j) 
+             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
           else
              uflx(i,j,UMX) = uflx(i,j,URHO)*vgdnv
-             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j) 
+             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
           endif
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
           rhoetot = pgdnv(i,j)/(gamgdnv - ONE) + &
-               HALF*rgdnv*(ugdnv(i,j)**2 + vgdnv**2)
+               HALF*rgdnv*(ugdnv(i,j)**2 + vgdnv**2 + wgdnv**2)
 
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*pgdnv(i,j)/(gamgdnv - ONE)
 
           ! advected quantities -- only the contact matters
+          ! note: this includes the z-velocity flux
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
              nq = qpass_map(ipassive)
@@ -799,7 +803,7 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-                   
+
        enddo
     enddo
 
@@ -834,7 +838,7 @@ contains
     ! else
     !    divide=pstar-p
     ! endif
-    
+
     ! temp=temp/divide
     ! wsq = wsq/(v - temp*p*v)
 
@@ -849,13 +853,13 @@ contains
        wsq = csq
     endif
     wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
-    
+
     return
   end subroutine wsqge
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
 
   subroutine riemannus(ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
@@ -867,11 +871,11 @@ contains
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
     use network, only : nspec, naux
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall 
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
-                                   npassive, upass_map, qpass_map    
+                                   npassive, upass_map, qpass_map
 
     implicit none
 
@@ -896,12 +900,12 @@ contains
     double precision :: pgdnv(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
     double precision :: ugdnv(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
     double precision :: gegdnv(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
-    
+
     integer :: ilo,ihi,jlo,jhi
     integer :: n, nq
     integer :: i, j, ipassive
 
-    double precision :: rgd, vgd, regd, ustar
+    double precision :: rgd, vgd, wgd, regd, ustar
     double precision :: rl, ul, vl, pl, rel
     double precision :: rr, ur, vr, pr, rer
     double precision :: wl, wr, rhoetot, scr
@@ -924,10 +928,6 @@ contains
        jhi = ihi2+1
     endif
 
-    !     Solve Riemann Problem
-    !     NOTE: The calling routine will order velocity unknowns so that
-    !     for the purposes of this routine, the normal component is always
-    !     loaded in the QU slot.
     do j = jlo, jhi
        do i = ilo, ihi
 
@@ -941,10 +941,10 @@ contains
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
           endif
-          
+
           pl = ql(i,j,QPRES)
           rel = ql(i,j,QREINT)
-          
+
           rr = qr(i,j,QRHO)
 
           !  pick right velocities based on direction
@@ -955,7 +955,7 @@ contains
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
           endif
-          
+
           pr = qr(i,j,QPRES)
           rer = qr(i,j,QREINT)
 
@@ -963,7 +963,7 @@ contains
           wsmall = small_dens*csmall
           wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
           wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
-          
+
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
           ustar = ((wl*ul + wr*ur) + (pl - pr))/(wl + wr)
 
@@ -973,7 +973,7 @@ contains
           if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
              ustar = ZERO
           endif
-          
+
           if (ustar .gt. ZERO) then
              ro = rl
              uo = ul
@@ -991,10 +991,10 @@ contains
              uo = HALF*(ul+ur)
              po = HALF*(pl+pr)
              reo = HALF*(rel+rer)
-             gamco = HALF*(gamcl(i,j)+gamcr(i,j))               
+             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
           endif
           ro = max(small_dens,ro)
-          
+
           co = sqrt(abs(gamco*po/ro))
           co = max(csmall,co)
           entho = (reo/ro + po/ro)/co**2
@@ -1003,7 +1003,7 @@ contains
           estar = reo + (pstar - po)*entho
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
-          
+
           sgnm = sign(ONE,ustar)
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
@@ -1019,16 +1019,19 @@ contains
           endif
           frac = (ONE + (spout + spin)/scr)*HALF
           frac = max(ZERO,min(ONE,frac))
-          
+
           if (ustar .gt. ZERO) then
              vgd = vl
+             wgd = wl
           else if (ustar .lt. ZERO) then
              vgd = vr
+             wgd = wr
           else
              vgd = HALF*(vl+vr)
+             wgd = HALF*(wl+wr)
           endif
           rgd = frac*rstar + (ONE - frac)*ro
-          
+
           ugdnv(i,j) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j) = frac*pstar + (ONE - frac)*po
 
@@ -1070,7 +1073,7 @@ contains
                   physbc_hi(2) .eq. NoSlipWall) ) &
                   ugdnv(i,j) = ZERO
           end if
-          
+
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgd*ugdnv(i,j)
 
@@ -1084,11 +1087,11 @@ contains
              uflx(i,j,UMX) = uflx(i,j,URHO)*vgd
              uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
           endif
-          
-          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2)
+
+          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2 + wgd**2)
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*regd
-          
+
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
              nq = qpass_map(ipassive)
@@ -1097,18 +1100,18 @@ contains
                 uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
              else if (ustar .lt. ZERO) then
                 uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else 
+             else
                 qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
-                    
+
        enddo
     enddo
   end subroutine riemannus
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
- 
+
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
@@ -1149,7 +1152,7 @@ contains
 
     rhod = ONE/(rhol_sqrt + rhor_sqrt)
 
-    
+
 
     ! compute the average sound speed. This uses an approximation from
     ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
@@ -1163,7 +1166,7 @@ contains
 
     a1 = uavg - cavg
     a4 = uavg + cavg
-    
+
 
     ! signal speeds (E91, eq. 4.5)
     bl = min(a1, ql(ivel) - cl)
@@ -1177,7 +1180,7 @@ contains
     if (abs(bd) < small*max(abs(bm),abs(bp))) return
 
     bd = ONE/bd
-    
+
 
     ! compute the fluxes according to E91, eq. 4.4b -- note that the
     ! min/max above picks the correct flux if we are not in the star
