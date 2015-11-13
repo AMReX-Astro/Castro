@@ -8,8 +8,6 @@
                           ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
                           ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
                           src,src_l1,src_l2,src_h1,src_h2, &
-                          grav,gv_lo,gv_hi, &
-                          rot,rt_lo,rt_hi, &
                           delta,dt, &
                           flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                           flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -41,16 +39,12 @@
       integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
       integer vol_l1,vol_l2,vol_h1,vol_h2
       integer src_l1,src_l2,src_h1,src_h2
-      integer gv_lo(3),gv_hi(3)
-      integer rt_lo(3),rt_hi(3)
 
       double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
       double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
       double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
       double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
       double precision src(src_l1:src_h1,src_l2:src_h2,NVAR)
-      double precision grav(gv_lo(1):gv_hi(1),gv_lo(2):gv_hi(2),gv_lo(3):gv_hi(3),3)
-      double precision  rot(rt_lo(1):rt_hi(1),rt_lo(2):rt_hi(2),rt_lo(3):rt_hi(3),3)
       double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
       double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
       double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -95,7 +89,7 @@
       allocate(     c(q_l1:q_h1,q_l2:q_h2))
       allocate(  csml(q_l1:q_h1,q_l2:q_h2))
 
-      allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,QVAR))
+      allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,QVAR))
 
       allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
       allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
@@ -111,14 +105,12 @@
       call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                    q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                    src,src_l1,src_l2,src_h1,src_h2, &
-                   srcQ,lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
+                   srcQ,q_l1,q_l2,q_h1,q_h2, &
                    courno,dx,dy,dt,ngq,ngf)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
       call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-                   srcQ, lo(1)-1,lo(2)-1,hi(1)+1,hi(2)+1, &
-                   grav,gv_lo(1),gv_lo(2),gv_lo(3),gv_hi(1),gv_hi(2),gv_hi(3), &
-                   rot, rt_lo(1),rt_lo(2),rt_lo(3),rt_hi(1),rt_hi(2),rt_hi(3), &
+                   srcQ, q_l1,q_l2,q_h1,q_h2, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &

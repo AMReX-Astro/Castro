@@ -350,7 +350,7 @@ contains
     use eos_type_module
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, small_temp, &
@@ -383,9 +383,9 @@ contains
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nq
 
-    double precision :: rgdnv,vgdnv,ustar,gamgdnv
-    double precision :: rl, ul, vl, pl, rel
-    double precision :: rr, ur, vr, pr, rer
+    double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
+    double precision :: rl, ul, vl, v2l, pl, rel
+    double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
@@ -443,9 +443,11 @@ contains
           if(idir.eq.1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
+             v2l = ql(i,j,QW)
           else
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
+             v2l = ql(i,j,QW)
           endif
 
           pl  = ql(i,j,QPRES )
@@ -476,9 +478,11 @@ contains
           if(idir.eq.1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
+             v2r = qr(i,j,QW)
           else
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
+             v2r = qr(i,j,QW)
           endif
 
           pr  = qr(i,j,QPRES)
@@ -718,10 +722,13 @@ contains
           ! direction that the contact moves
           if (ustar .gt. ZERO) then
              vgdnv = vl
+             wgdnv = v2l
           else if (ustar .lt. ZERO) then
              vgdnv = vr
+             wgdnv = v2r
           else
              vgdnv = HALF*(vl+vr)
+             wgdnv = HALF*(v2l+v2r)
           endif
 
           ! linearly interpolate between the star and normal state -- this covers the
@@ -788,12 +795,13 @@ contains
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
           rhoetot = pgdnv(i,j)/(gamgdnv - ONE) + &
-               HALF*rgdnv*(ugdnv(i,j)**2 + vgdnv**2)
+               HALF*rgdnv*(ugdnv(i,j)**2 + vgdnv**2 + wgdnv**2)
 
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*pgdnv(i,j)/(gamgdnv - ONE)
 
           ! advected quantities -- only the contact matters
+          ! note: this includes the z-velocity flux
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
              nq = qpass_map(ipassive)
@@ -874,10 +882,12 @@ contains
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map
+
+    implicit none
 
     double precision, parameter:: small = 1.d-8
 
@@ -905,9 +915,9 @@ contains
     integer :: n, nq
     integer :: i, j, ipassive
 
-    double precision :: rgd, vgd, regd, ustar
-    double precision :: rl, ul, vl, pl, rel
-    double precision :: rr, ur, vr, pr, rer
+    double precision :: rgd, vgd, wgd, regd, ustar
+    double precision :: rl, ul, vl, v2l, pl, rel
+    double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, estar, pstar
     double precision :: ro, uo, po, reo, co, gamco, entho
@@ -937,9 +947,11 @@ contains
           if(idir.eq.1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
+             v2l = ql(i,j,QW)
           else
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
+             v2l = ql(i,j,QW)
           endif
 
           pl = ql(i,j,QPRES)
@@ -951,9 +963,11 @@ contains
           if(idir.eq.1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
+             v2r = qr(i,j,QW)
           else
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
+             v2r = qr(i,j,QW)
           endif
 
           pr = qr(i,j,QPRES)
@@ -1022,10 +1036,13 @@ contains
 
           if (ustar .gt. ZERO) then
              vgd = vl
+             wgd = v2l
           else if (ustar .lt. ZERO) then
              vgd = vr
+             wgd = v2r
           else
              vgd = HALF*(vl+vr)
+             wgd = HALF*(v2l+v2r)
           endif
           rgd = frac*rstar + (ONE - frac)*ro
 
@@ -1372,7 +1389,7 @@ contains
              uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
           endif
 
-          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2)
+          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2 + wgd**2)
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*regd
 

@@ -235,7 +235,7 @@ Castro::variableSetUp ()
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
          allow_negative_energy,ppm_type,ppm_reference,
-	 ppm_trace_grav,ppm_trace_rot,ppm_temp_fix,
+	 ppm_trace_sources,ppm_temp_fix,
 	 ppm_tau_in_tracing,ppm_predict_gammae,
 	 ppm_reference_edge_limit,
 	 ppm_flatten_before_integrals,
@@ -333,10 +333,17 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,0,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+    // Source terms. Currently this holds dS/dt for each of the NVAR state variables.
+
+    store_in_checkpoint = true;
+    desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
+			   StateDescriptor::Point,NUM_GROW,NUM_STATE,
+			   &cell_cons_interp, state_data_extrap,store_in_checkpoint);
+    
 #ifdef ROTATION
     store_in_checkpoint = false;
     desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
@@ -346,7 +353,7 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,ngrow_state,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif    
 
@@ -469,38 +476,49 @@ Castro::variableSetUp ()
                                     BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));
 
 #ifdef GRAVITY
-       set_scalar_bc(bc,phys_bc);
-       desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
-       set_x_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
-       set_y_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
-       set_z_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    set_scalar_bc(bc,phys_bc);
+    desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    set_x_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    set_y_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    set_z_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
 
-// For rotation we'll use the same boundary condition routines as for gravity, 
-// since we use the rotation in the same manner as in the gravity.
+    // For rotation we'll use the same boundary condition routines as for gravity, 
+    // since we use the rotation in the same manner as in the gravity.
 
 #ifdef ROTATION
-       set_scalar_bc(bc,phys_bc);
-       desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
-       set_x_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
-       set_y_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
-       set_z_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    set_scalar_bc(bc,phys_bc);
+    desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    set_x_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    set_y_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    set_z_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
 
+    // Source term array will use standard hyperbolic fill.
+
+    Array<std::string> sources_name(NUM_STATE);    
+    
+    for (int i = 0; i < NUM_STATE; i++)
+      sources_name[i] = name[i] + "_source";
+    
+    desc_lst.setComponent(Source_Type,Density,sources_name,bcs,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_denfill),
+				    BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));       
+    
 #ifdef LEVELSET
     desc_lst.setComponent(LS_State_Type,0,"LSphi",bc,
                           BndryFunc(BL_FORT_PROC_CALL(CA_PHIFILL,ca_phifill)));

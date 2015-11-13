@@ -37,8 +37,7 @@ module meth_params_module
 
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
-  integer         , save :: ppm_trace_grav
-  integer         , save :: ppm_trace_rot
+  integer         , save :: ppm_trace_sources
   integer         , save :: ppm_temp_fix
   integer         , save :: ppm_tau_in_tracing
   integer         , save :: ppm_predict_gammae

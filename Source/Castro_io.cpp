@@ -83,10 +83,14 @@ Castro::restart (Amr&     papa,
 
     AmrLevel::restart(papa,is,bReadSpecial);
 
-    if (version == 0) { // old chcekpoint w/o PhiGrav_Type
+    if (version == 0) { // old checkpoint without PhiGrav_Type
 #ifdef GRAVITY
-	state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
+      state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
 #endif      
+    }
+
+    if (version < 3) { // old checkpoint without Source_Type
+      state[Source_Type].restart(desc_lst[Source_Type], state[State_Type]);
     }
 
     // For versions < 2, we didn't store all three components
@@ -368,23 +372,22 @@ Castro::restart (Amr&     papa,
 
 void
 Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
-{
-#ifdef GRAVITY
-    if (version == 0) {
-	// We are reading an old checkpoint with no PhiGrav_Type
-	for (int i=0; i<NUM_STATE_TYPE; ++i) {
-	    if (i == PhiGrav_Type) {
-		state_in_checkpoint[i] = 0;
-	    } else {
-		state_in_checkpoint[i] = 1;
-	    }
-	}
-    } else {
-	BoxLib::Error("Castro::set_state_in_checkpoint: should not get here?");
+{ 
+  for (int i=0; i<NUM_STATE_TYPE; ++i)
+    state_in_checkpoint[i] = 1;
+
+  for (int i=0; i<NUM_STATE_TYPE; ++i) {
+#ifdef GRAVITY    
+    if (version == 0 && i == PhiGrav_Type) {
+      // We are reading an old checkpoint with no PhiGrav_Type
+      state_in_checkpoint[i] = 0;
     }
-#else
-    BoxLib::Error("Castro::set_state_in_checkpoint: how did we get here?");
-#endif 
+#endif
+    if (version < 3 && i == Source_Type) {
+      // We are reading an old checkpoint with no Source_Type
+      state_in_checkpoint[i] = 0;
+    }
+  }
 }
 
 void
@@ -413,7 +416,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCastroHeaderFile += "/CastroHeader";
 	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
-	    CastroHeaderFile << "Checkpoint version: 2" << std::endl;
+	    CastroHeaderFile << "Checkpoint version: 3" << std::endl;
 	    CastroHeaderFile.close();
 	}
 
@@ -508,6 +511,12 @@ Castro::setPlotVariables ()
   }
 #endif
 
+  // Don't add the Source_Type data to the plotfile, we only
+  // want to store it in the checkpoints.
+
+  for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
+    parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+			       
   ParmParse pp("castro");
 
   bool plot_X;

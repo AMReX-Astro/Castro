@@ -843,14 +843,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
     MultiFab grav(grids[level], BL_SPACEDIM, ng);
-    grav.setVal(0.);
+    grav.setVal(0.0,ng);
     
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction and zero in all others.
       
-       grav.setVal(0.0       ,0            ,BL_SPACEDIM,ng);
-       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
@@ -907,12 +906,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
       else
 	grav_vector.setVal(0.,dir,1,ng);
     
-    // Fill G_old from grav_vector.
-	
-    MultiFab& G_old = LevelData[level].get_old_data(Gravity_Type);
- 
-    MultiFab::Copy(G_old,grav_vector,0,0,3,0);
-
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
  
@@ -944,13 +937,12 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
     MultiFab grav(grids[level],BL_SPACEDIM,ng);
-    grav.setVal(0.);
+    grav.setVal(0.0,ng);
     
     if (gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav.setVal(0.0       ,            0,BL_SPACEDIM,ng);
-       grav.setVal(const_grav,BL_SPACEDIM-1,1          ,ng);
+       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
@@ -1006,12 +998,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
       else
 	grav_vector.setVal(0.,dir,1,ng);
-
-    // Fill G_new from grav_vector.
-	
-    MultiFab& G_new = LevelData[level].get_new_data(Gravity_Type);
-
-    MultiFab::Copy(G_new,grav_vector,0,0,3,0);
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {

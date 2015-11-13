@@ -1,4 +1,7 @@
 module probdata_module
+
+  use network, only : nspec
+
   implicit none
 
   character(len=80), save :: model_name
@@ -9,5 +12,7 @@ module probdata_module
   double precision, save :: thermal_conductivity
 
   logical         , save :: zero_vels
+
+  double precision, save :: rho_ambient, T_ambient, e_ambient, xn_ambient(nspec)
 
 end module probdata_module

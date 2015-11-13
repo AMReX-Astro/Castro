@@ -6,12 +6,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use model_parser_module
   use probdata_module
   use prob_params_module, only: center
+  use eos_type_module
+  use eos_module
 
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
   double precision :: problo(2), probhi(2)
+
+  type (eos_t) :: eos_state
 
   integer :: untin, i
 
@@ -43,6 +47,20 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! read the initial model
   call read_model_file(model_name)
+
+
+  ! set the ambient conditions -- these are used for the upper boundary
+  rho_ambient = model_state(npts_model,idens_model)
+  T_ambient = model_state(npts_model,itemp_model)
+  xn_ambient(:) = model_state(npts_model,ispec_model:ispec_model-1+nspec)
+
+  eos_state%rho = rho_ambient
+  eos_state%T = T_ambient
+  eos_state%xn(:) = xn_ambient(:)
+
+  call eos(eos_input_rt, eos_state)
+
+  e_ambient = eos_state%e
 
   ! set center variable in prob_params_module
   center(1) = HALF*(problo(1)+probhi(1))

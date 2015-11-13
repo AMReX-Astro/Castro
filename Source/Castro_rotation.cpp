@@ -28,12 +28,15 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
     rot.setVal(0.0);
 
-    ng = 0;
+    ng = state.nGrow();
 
+    if (ng > rot.nGrow())
+      BoxLib::Error("State MF has more ghost cells than rotation MF.");
+    
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(rot, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 
       const Box& bx = mfi.growntilebox(ng);

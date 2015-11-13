@@ -9,8 +9,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                     ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                     src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                    grav,gv_lo,gv_hi, &
-                    rot,rt_lo,rt_hi, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                     flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -47,16 +45,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
   integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  integer gv_lo(3),gv_hi(3)
-  integer rt_lo(3),rt_hi(3)
   double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
   double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
   double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
   double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
   double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
   double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
-  double precision grav(gv_lo(1):gv_hi(1),gv_lo(2):gv_hi(2),gv_lo(3):gv_hi(3),3)
-  double precision  rot(rt_lo(1):rt_hi(1),rt_lo(2):rt_hi(2),rt_lo(3):rt_hi(3),3)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
   double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
   double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
@@ -101,7 +95,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(   div, lo(1),hi(1)+1,lo(2),hi(2)+1,lo(3),hi(3)+1)  
   call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
 
-  call bl_allocate(  srcQ, lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,QVAR)
+  call bl_allocate(  srcQ, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,QVAR)
   
   dx = delta(1)
   dy = delta(2)
@@ -115,14 +109,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+               srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
-               grav,gv_lo(1),gv_lo(2),gv_lo(3),gv_hi(1),gv_hi(2),gv_hi(3), &
-               rot,rt_lo(1),rt_lo(2),rt_lo(3),rt_hi(1),rt_hi(2),rt_hi(3), &
+               srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
