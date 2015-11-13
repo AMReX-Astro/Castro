@@ -374,8 +374,8 @@ contains
     integer :: n, nq
 
     double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
-    double precision :: rl, ul, vl, pl, rel
-    double precision :: rr, ur, vr, pr, rer
+    double precision :: rl, ul, vl, v2l, pl, rel
+    double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
@@ -710,13 +710,13 @@ contains
           ! direction that the contact moves
           if (ustar .gt. ZERO) then
              vgdnv = vl
-             wgdnv = wl
+             wgdnv = v2l
           else if (ustar .lt. ZERO) then
              vgdnv = vr
-             wgdnv = wr
+             wgdnv = v2r
           else
              vgdnv = HALF*(vl+vr)
-             wgdnv = HALF*(wl+wr)
+             wgdnv = HALF*(v2l+v2r)
           endif
 
           ! linearly interpolate between the star and normal state -- this covers the
@@ -906,8 +906,8 @@ contains
     integer :: i, j, ipassive
 
     double precision :: rgd, vgd, wgd, regd, ustar
-    double precision :: rl, ul, vl, pl, rel
-    double precision :: rr, ur, vr, pr, rer
+    double precision :: rl, ul, vl, v2l, pl, rel
+    double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, estar, pstar
     double precision :: ro, uo, po, reo, co, gamco, entho
@@ -1022,13 +1022,13 @@ contains
 
           if (ustar .gt. ZERO) then
              vgd = vl
-             wgd = wl
+             wgd = v2l
           else if (ustar .lt. ZERO) then
              vgd = vr
-             wgd = wr
+             wgd = v2r
           else
              vgd = HALF*(vl+vr)
-             wgd = HALF*(wl+wr)
+             wgd = HALF*(v2l+v2r)
           endif
           rgd = frac*rstar + (ONE - frac)*ro
 
