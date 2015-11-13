@@ -18,7 +18,7 @@ contains
     use network, only : nspec
     use bl_constants_module
     use meth_params_module, only : QRHO, QU, QV, &
-         QREINT, QPRES, &
+         QREINT, QPRES, QVAR, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
@@ -35,7 +35,7 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer rt_l1,rt_l2,rt_h1,rt_h2
+    integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
@@ -81,14 +81,11 @@ contains
     double precision :: xi, xi1
     double precision :: halfdt
 
-    integer, parameter :: isx = QU
-    integer, parameter :: isy = QV
-
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_g(:,:,:,:,:)
-    double precision, allocatable :: Im_g(:,:,:,:,:)
+    double precision, allocatable :: Ip_src(:,:,:,:,:)
+    double precision, allocatable :: Im_src(:,:,:,:,:)
 
     double precision, allocatable :: Ip_r(:,:,:,:,:)
     double precision, allocatable :: Im_r(:,:,:,:,:)
@@ -281,8 +278,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,isx)
-             dup = dup - halfdt*Im_src(i,j,1,3,isx)
+             dum = dum - halfdt*Im_src(i,j,1,1,QU)
+             dup = dup - halfdt*Im_src(i,j,1,3,QU)
           endif
 
           ! these are analogous to the beta's from the original
@@ -364,7 +361,7 @@ contains
              dv    = Im(i,j,1,2,QV)
 
              if (ppm_trace_sources == 1) then
-                dv  = dv  + halfdt*Im_src(i,j,1,2,isy)
+                dv  = dv  + halfdt*Im_src(i,j,1,2,QV)
              endif
 
              ! Recall that I already takes the limit of the parabola
@@ -454,8 +451,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Ip_src(i,j,1,1,isx)
-             dup = dup - halfdt*Ip_src(i,j,1,3,isx)
+             dum = dum - halfdt*Ip_src(i,j,1,1,QU)
+             dup = dup - halfdt*Ip_src(i,j,1,3,QU)
           endif
 
           ! these are analogous to the beta's from the original
@@ -534,7 +531,7 @@ contains
              dv    = Ip(i,j,1,2,QV)
 
              if (ppm_trace_sources == 1) then
-                dv  = dv  + halfdt*Ip_src(i,j,1,2,isy)
+                dv  = dv  + halfdt*Ip_src(i,j,1,2,QV)
              endif
 
              if (u < ZERO) then
@@ -764,8 +761,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Im_src(i,j,2,1,isy)
-             dvp = dvp - halfdt*Im_src(i,j,2,3,isy)
+             dvm = dvm - halfdt*Im_src(i,j,2,1,QV)
+             dvp = dvp - halfdt*Im_src(i,j,2,3,QV)
           endif
 
           ! these are analogous to the beta's from the original PPM
@@ -843,7 +840,7 @@ contains
              du    = Im(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
-                du  = du  + halfdt*Im_src(i,j,2,2,isx)
+                du  = du  + halfdt*Im_src(i,j,2,2,QU)
              endif
 
              if (v > ZERO) then
@@ -929,8 +926,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Ip_src(i,j,2,1,isy)
-             dvp = dvp - halfdt*Ip_src(i,j,2,3,isy)
+             dvm = dvm - halfdt*Ip_src(i,j,2,1,QV)
+             dvp = dvp - halfdt*Ip_src(i,j,2,3,QV)
           endif
 
           ! these are analogous to the beta's from the original PPM
@@ -1007,7 +1004,7 @@ contains
              du    =  Ip(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
-                du  = du  + halfdt*Ip_src(i,j,2,2,isx)
+                du  = du  + halfdt*Ip_src(i,j,2,2,QU)
              endif
 
              if (v < ZERO) then
