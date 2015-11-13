@@ -340,7 +340,7 @@ contains
     use eos_type_module
     use eos_module
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, small_temp, &
@@ -876,7 +876,7 @@ contains
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map
