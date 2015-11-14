@@ -245,6 +245,51 @@ contains
   end subroutine cmpflx
 
 
+  pure function bc_test(idir, i, j, domlo, domhi) result (f)
+    
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
+
+    integer, intent(in) :: idir, i, j, domlo(*), domhi(*)
+    integer :: f
+    
+    ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+    f = 1
+
+    if (idir == 1) then
+       if (i == domlo(1) .and. &
+            (physbc_lo(1) == Symmetry .or. &
+             physbc_lo(1) == SlipWall .or. &
+             physbc_lo(1) == NoSlipWall) ) then
+          f = 0
+       endif
+
+       if (i == domhi(1)+1 .and. &
+            (physbc_hi(1) == Symmetry .or. &
+             physbc_hi(1) == SlipWall .or. &
+             physbc_hi(1) == NoSlipWall) ) then
+          f = 0
+       endif
+    end if
+
+    if (idir == 2) then
+       if (j == domlo(2) .and. &
+            (physbc_lo(2) == Symmetry .or. &
+             physbc_lo(2) == SlipWall .or. &
+             physbc_lo(2) == NoSlipWall) ) then
+          f = 0
+       endif
+
+       if (j == domhi(2)+1 .and. &
+            (physbc_hi(2) == Symmetry .or. &
+             physbc_hi(2) == SlipWall .or. &
+             physbc_hi(2) == NoSlipWall) ) then
+          f = 0
+       end if
+    endif
+
+  end function bc_test
+
+
   subroutine shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
                    shk,s_l1,s_l2,s_h1,s_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy)
@@ -349,7 +394,6 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UMY, UEDEN, UEINT, &
@@ -758,26 +802,7 @@ contains
           pgdnv(i,j) = max(pgdnv(i,j),small_pres)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if (idir .eq. 1) then
-             if (i.eq.domlo(1) .and. &
-                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
-                  physbc_lo(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-             if (i.eq.domhi(1)+1 .and. &
-                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
-                  physbc_hi(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-          end if
-          if (idir .eq. 2) then
-             if (j.eq.domlo(2) .and. &
-                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
-                  physbc_lo(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-             if (j.eq.domhi(2)+1 .and. &
-                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
-                  physbc_hi(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-          end if
+          ugdnv(i,j) = bc_test(idir, i, j, domlo, domhi) * ugdnv(i,j)
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgdnv*ugdnv(i,j)
@@ -880,7 +905,6 @@ contains
                        gegdnv, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
@@ -1064,28 +1088,8 @@ contains
 
           gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
 
-
-          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if (idir .eq. 1) then
-             if (i.eq.domlo(1) .and. &
-                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
-                  physbc_lo(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-             if (i.eq.domhi(1)+1 .and. &
-                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
-                  physbc_hi(1) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-          end if
-          if (idir .eq. 2) then
-             if (j.eq.domlo(2) .and. &
-                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
-                  physbc_lo(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-             if (j.eq.domhi(2)+1 .and. &
-                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
-                  physbc_hi(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-          end if
+          ! enforce that the fluxes through a symmetry plane or wall are zero
+          ugdnv(i,j) = bc_test(idir, i, j, domlo, domhi) * ugdnv(i,j)
 
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgd*ugdnv(i,j)
@@ -1143,7 +1147,6 @@ contains
     ! to know the pressure and velocity on the interface for the grad p
     ! term in momentum and for an internal energy update
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres
@@ -1345,33 +1348,8 @@ contains
 
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if (idir == 1) then
-             if (i == domlo(1) .and. &
-                 (physbc_lo(1) == Symmetry .or. &
-                  physbc_lo(1) == SlipWall .or. &
-                  physbc_lo(1) == NoSlipWall) ) &
-                  F_state(:) = ZERO
-             if (i == domhi(1)+1 .and. &
-                 (physbc_hi(1) == Symmetry .or. &
-                  physbc_hi(1) == SlipWall .or. &
-                  physbc_hi(1) == NoSlipWall) ) &
-                  F_state(:) = ZERO
-          end if
-          if (idir == 2) then
-             if (j == domlo(2) .and. &
-                 (physbc_lo(2) == Symmetry .or. &
-                  physbc_lo(2) == SlipWall .or. &
-                  physbc_lo(2) == NoSlipWall) ) &
-                  F_state(:) = ZERO
-             if (j == domhi(2)+1 .and. &
-                 (physbc_hi(2) == Symmetry .or. &
-                  physbc_hi(2) == SlipWall .or. &
-                  physbc_hi(2) == NoSlipWall) ) &
-                  F_state(:) = ZERO
-          end if
-
-          ! store the fluxes
-          uflx(i,j,:) = F_state(:)
+          ! and store the fluxes
+          uflx(i,j,:) =  bc_test(idir, i, j, domlo, domhi) * F_state(:)
 
        enddo
     enddo
