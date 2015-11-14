@@ -1175,8 +1175,8 @@ contains
     integer :: i, j
 
     double precision :: rgd, vgd, regd, ustar
-    double precision :: rl, ul, vl, v2l, pl, rel
-    double precision :: rr, ur, vr, v2r, pr, rer
+    double precision :: rl, ul, pl, rel
+    double precision :: rr, ur, pr, rer
     double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
@@ -1207,13 +1207,9 @@ contains
           ! pick left velocities based on direction
           ! ul is always normal to the interface
           if (idir == 1) then
-             ul = ql(i,j,QU)
-             vl = ql(i,j,QV)
-             v2l = ql(i,j,QW)
+             ul  = ql(i,j,QU)
           else
-             ul = ql(i,j,QV)
-             vl = ql(i,j,QU)
-             v2l = ql(i,j,QW)
+             ul  = ql(i,j,QV)
           endif
 
           pl = ql(i,j,QPRES)
@@ -1224,13 +1220,9 @@ contains
           ! pick right velocities based on direction
           ! ur is always normal to the interface
           if (idir == 1) then
-             ur = qr(i,j,QU)
-             vr = qr(i,j,QV)
-             v2r = qr(i,j,QW)
+             ur  = qr(i,j,QU)
           else
-             ur = qr(i,j,QV)
-             vr = qr(i,j,QU)
-             v2r = qr(i,j,QW)
+             ur  = qr(i,j,QV)
           endif
 
           pr = qr(i,j,QPRES)
@@ -1312,8 +1304,8 @@ contains
           ! now we do the HLLC construction
 
           ! use the simplest estimates of the wave speeds
-          S_l = ul - sqrt(gamcl(i,j)*pl/rl)
-          S_r = ur + sqrt(gamcr(i,j)*pr/rr)
+          S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
+          S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
 
           ! estimate of the contact speed -- this is Toro Eq. 10.8
           S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
@@ -1528,7 +1520,7 @@ contains
     U(UMX)  = q(QRHO)*q(QU)
     U(UMY)  = q(QRHO)*q(QV)
 
-    U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)*2 + q(QV)**2 + q(QW)**2)
+    U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)**2 + q(QV)**2 + q(QW)**2)
     U(UEINT) = q(QREINT)
 
     do ipassive = 1, npassive
@@ -1570,7 +1562,7 @@ contains
        U(UMY)  = hllc_factor*S_c
     endif
 
-    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + HALF*(q(QU)*2 + q(QV)**2 + q(QW)**2) + &
+    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + HALF*(q(QU)**2 + q(QV)**2 + q(QW)**2) + &
                             (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
     U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
 
