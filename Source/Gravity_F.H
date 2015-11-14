@@ -39,6 +39,11 @@ BL_FORT_PROC_DECL(CA_APPLY_METRIC,ca_apply_metric)
             const BL_FORT_FAB_ARG(zedge)), 
             const Real* dx, const int* coord_type);
 
+BL_FORT_PROC_DECL(CA_WEIGHT_CC,ca_weight_cc)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     const Real* dx, const int* coord_type);
+
 BL_FORT_PROC_DECL(CA_UNWEIGHT_CC,ca_unweight_cc)
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(cc),

@@ -161,4 +161,39 @@ Castro::full_spec_diffusion_update (MultiFab& S_new, Real prev_time, Real cur_ti
            computeTemp(S_new);
         }
 }
+
+#if (BL_SPACEDIM == 1)
+// **********************************************************************************************
+
+void
+Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTerm, Real t)
+{
+    // Define an explicit viscous term
+    ViscousTerm.setVal(0.);
+    if (diffuse_vel == 1) {
+       getViscousTerm(t,ViscousTerm);
+       int ng = std::min(ext_src.nGrow(),ViscousTerm.nGrow());
+       MultiFab::Add(ext_src,ViscousTerm,0,Xmom,1,ng);
+    }
+}
+
+// **********************************************************************************************
+
+void
+Castro::time_center_viscous_term(MultiFab& S_new, MultiFab& OldViscousTerm, Real cur_time, Real dt)
+{
+        // Correct the species update so that it will be time-centered.
+        MultiFab NewViscousTerm(grids,BL_SPACEDIM,1);
+        NewViscousTerm.setVal(0.);
+        if (diffuse_vel == 1) {
+           getViscousTerm(cur_time,NewViscousTerm);
+           NewViscousTerm.mult( 0.5*dt);
+           OldViscousTerm.mult(-0.5*dt);
+           // Subtract off half of the old source term, and add half of the new.
+           MultiFab::Add(S_new,OldViscousTerm,0,Xmom,BL_SPACEDIM,0);
+           MultiFab::Add(S_new,NewViscousTerm,0,Xmom,BL_SPACEDIM,0);
+           computeTemp(S_new);
+        }
+}
+#endif
 #endif

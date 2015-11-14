@@ -657,7 +657,23 @@ BL_FORT_PROC_DECL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
      const BL_FORT_FAB_ARG_3D(zcoeffs),
      const Real* dx);
 
-BL_FORT_PROC_DECL(CA_FILL_SPEC_COND,ca_fill_spec_cond)
+BL_FORT_PROC_DECL(CA_FILL_SPEC_COEFF,ca_fill_spec_coeff)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs),
+     const Real* dx);
+
+BL_FORT_PROC_DECL(CA_FILL_FIRST_VISC_COEFF,ca_fill_first_visc_coeff)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs),
+     const Real* dx);
+
+BL_FORT_PROC_DECL(CA_FILL_SECND_VISC_COEFF,ca_fill_secnd_visc_coeff)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),

@@ -1,4 +1,5 @@
 const_conductivity   real     1.0d0
+const_viscosity      real     1.0d-4
 
 
 

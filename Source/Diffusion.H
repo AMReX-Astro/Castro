@@ -20,6 +20,9 @@ public:
   void applyop(int level,MultiFab& Temperature,MultiFab& CrseTemp,
                MultiFab& DiffTerm, PArray<MultiFab>& temp_cond_coef);
 
+  void applyViscOp(int level,MultiFab& Vel, MultiFab& CrseVel,
+                   MultiFab& ViscTerm, PArray<MultiFab>& visc_coeff);
+
   void make_mg_bc();
 
   void GetCrsePhi(int level, 
@@ -52,11 +55,11 @@ protected:
   BCRec*       phys_bc;
 
   static int   verbose;
-  static Real  conductivity;
   static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
+  void   weight_cc(int level,MultiFab& cc);
   void unweight_cc(int level,MultiFab& cc);
 #endif
 };
