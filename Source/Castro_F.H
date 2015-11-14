@@ -654,6 +654,14 @@ BL_FORT_PROC_DECL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
      const BL_FORT_FAB_ARG_3D(zcoeffs),
      const Real* dx);
 
+BL_FORT_PROC_DECL(CA_FILL_SPEC_COND,ca_fill_spec_cond)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs),
+     const Real* dx);
+
 #ifdef TAU
 BL_FORT_PROC_DECL(CA_DEFINE_TAU,ca_define_tau)
     (const int lo[], const int hi[],

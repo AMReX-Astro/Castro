@@ -122,6 +122,7 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 Diffusion*    Castro::diffusion  = 0;
 int           Castro::diffuse_temp = 0;
+int           Castro::diffuse_spec = 0;
 Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
@@ -398,6 +399,7 @@ Castro::read_params ()
 
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
+    pp.query("diffuse_spec",diffuse_spec);
     pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
 #endif
 
@@ -818,13 +820,14 @@ Castro::initData ()
     S_new.setVal(0.);
 
     // make sure dx = dy = dz -- that's all we guarantee to support
-    const Real SMALL = 1.e-13;
 #if (BL_SPACEDIM == 2)
+    const Real SMALL = 1.e-13;
     if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
       {
 	BoxLib::Abort("We don't support dx != dy");
       }
 #elif (BL_SPACEDIM == 3)
+    const Real SMALL = 1.e-13;
     if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
       {
 	BoxLib::Abort("We don't support dx != dy != dz");
@@ -2484,6 +2487,95 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
                (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		BL_TO_FORTRAN_3D(TempDiffTerm[mfi]));
        }
+   }
+}
+
+void
+Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
+{
+    BL_PROFILE("Castro::getSpecDiffusionTerm()");
+
+   MultiFab& S_old = get_old_data(State_Type);
+   if (verbose && ParallelDescriptor::IOProcessor()) 
+      std::cout << "Calculating species diffusion term at time " << time << std::endl;
+
+   // Fill coefficients at this level.
+   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
+   }
+
+   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
+   const Real*       dx_fine = fine_geom.CellSize();
+
+   FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+   MultiFab& state_old = fpi.get_mf();
+
+   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   {
+       const Box& bx = grids[mfi.index()];
+
+       BL_FORT_PROC_CALL(CA_FILL_SPEC_COND,ca_fill_spec_cond)
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+  	        ZFILL(dx_fine));
+   }
+
+   // Now copy the temporary array results back to the
+   // correctly dimensioned coeffs array.
+   for (int dir = 0; dir < BL_SPACEDIM; dir++)
+     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+   
+   if (Geometry::isAnyPeriodic())
+     for (int d = 0; d < BL_SPACEDIM; d++)
+       geom.FillPeriodicBoundary(coeffs[d]);
+
+   // Create MultiFabs that only hold the data for one species at a time.
+   MultiFab Species(grids,1,1,Fab_allocate);
+   MultiFab     SDT(grids,SpecDiffTerm.nComp(),SpecDiffTerm.nGrow(),Fab_allocate);
+   MultiFab CrseSpec, CrseDen;
+   if (level > 0) {
+       const BoxArray& crse_grids = getLevel(level-1).boxArray();
+       CrseSpec.define(crse_grids,1,1,Fab_allocate);
+   }
+
+   // Fill one species at a time at this level.
+   for (int ispec = 0; ispec < NumSpec; ispec++)
+   {
+       MultiFab::Copy  (Species, state_old, FirstSpec+ispec, 0, 1, 1);
+       MultiFab::Divide(Species, state_old, Density        , 0, 1, 1);
+
+       // Fill temperature at next coarser level, if it exists.
+       if (level > 0) 
+       {
+           FillPatch(getLevel(level-1),CrseSpec,1,time,State_Type,FirstSpec+ispec,1);
+           FillPatch(getLevel(level-1),CrseDen ,1,time,State_Type,Density        ,1);
+           MultiFab::Divide(CrseSpec, CrseDen, 0, 0, 1, 1);
+       }
+
+       diffusion->applyop(level,Species,CrseSpec,SDT,coeffs);
+
+       // Extrapolate to ghost cells
+       if (SDT.nGrow() > 0) {
+           for (MFIter mfi(SDT); mfi.isValid(); ++mfi)
+           {
+    	       const Box& bx = mfi.validbox();
+    	       BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+                   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		    BL_TO_FORTRAN_3D(SDT[mfi]));
+           }
+       }
+       // Copy back into SpecDiffTerm from the temporary SDT
+       MultiFab::Copy(SpecDiffTerm, SDT, 0, FirstSpec+ispec, 1, 1);
    }
 }
 #endif
