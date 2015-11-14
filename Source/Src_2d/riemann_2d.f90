@@ -880,7 +880,6 @@ contains
                        gegdnv, ggd_l1, ggd_l2, ggd_h1, ggd_h2, &
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-    use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
@@ -1144,12 +1143,10 @@ contains
     ! to know the pressure and velocity on the interface for the grad p
     ! term in momentum and for an internal energy update
 
-    use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
-                                   small_dens, small_pres, &
-                                   npassive, upass_map, qpass_map
+                                   small_dens, small_pres
 
     double precision, parameter:: small = 1.d-8
 
@@ -1175,7 +1172,7 @@ contains
 
     integer :: ilo,ihi,jlo,jhi
     integer :: n, nq
-    integer :: i, j, ipassive
+    integer :: i, j
 
     double precision :: rgd, vgd, regd, ustar
     double precision :: rl, ul, vl, v2l, pl, rel
@@ -1207,7 +1204,8 @@ contains
 
           rl = ql(i,j,QRHO)
 
-          !  pick left velocities based on direction
+          ! pick left velocities based on direction
+          ! ul is always normal to the interface
           if (idir == 1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
@@ -1223,7 +1221,8 @@ contains
 
           rr = qr(i,j,QRHO)
 
-          !  pick right velocities based on direction
+          ! pick right velocities based on direction
+          ! ur is always normal to the interface
           if (idir == 1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
@@ -1308,8 +1307,7 @@ contains
           pgdnv(i,j) = frac*pstar + (ONE - frac)*po
 
           ! TODO
-          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
-
+          !gegdnv(i,j) = pgdnv(i,j)/regd + ONE
 
           ! now we do the HLLC construction
 
@@ -1393,8 +1391,6 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
-
-    use network, only : nspec, naux
 
     double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
     double precision, intent(inout) :: f(NVAR)
