@@ -497,11 +497,13 @@ Castro::advance_hydro (Real time,
     
 #ifdef DIFFUSION
     MultiFab OldTempDiffTerm(grids,1,1);
+    MultiFab OldSpecDiffTerm(grids,NumSpec,1);
 #ifdef TAU
-    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
+    add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
 #else
-    add_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
+    add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
 #endif
+    add_spec_diffusion_to_source(ext_src_old,OldSpecDiffTerm,prev_time);
 #endif
 
     BoxLib::fill_boundary(ext_src_old, geom);
@@ -1118,11 +1120,13 @@ Castro::advance_hydro (Real time,
 // New way for non-SGS: time-centering for ext_src, diffusion are merged.
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;
+    MultiFab& NewSpecDiffTerm = OldSpecDiffTerm;
 #ifdef TAU
-    add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
+    add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
 #else
-    add_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
+    add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
 #endif
+    add_spec_diffusion_to_source(ext_src_new,NewSpecDiffTerm,cur_time);
 #endif
 
 #endif
@@ -1259,10 +1263,11 @@ Castro::advance_hydro (Real time,
 #ifdef SGS  // for non-SGS, diffusion has been time-centered.
 #ifdef DIFFUSION
 #ifdef TAU
-    time_center_diffusion(S_new, OldTempDiffTerm, cur_time, dt, tau_diff);
+    time_center_temp_diffusion(S_new, OldTempDiffTerm, cur_time, dt, tau_diff);
 #else
-    time_center_diffusion(S_new, OldTempDiffTerm, cur_time, dt);
+    time_center_temp_diffusion(S_new, OldTempDiffTerm, cur_time, dt);
 #endif
+    time_center_spec_diffusion(S_new, OldSpecDiffTerm, cur_time, dt);
 #endif
 #endif
 
@@ -1555,10 +1560,11 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef DIFFUSION
 #ifdef TAU
-        full_diffusion_update(S_new,prev_time,cur_time,dt,tau_diff);
+        full_temp_diffusion_update(S_new,prev_time,cur_time,dt,tau_diff);
 #else
-        full_diffusion_update(S_new,prev_time,cur_time,dt);
+        full_temp_diffusion_update(S_new,prev_time,cur_time,dt);
 #endif
+        full_spec_diffusion_update(S_new,prev_time,cur_time,dt);
 #endif
         
 #ifdef REACTIONS
