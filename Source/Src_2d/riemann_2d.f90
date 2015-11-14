@@ -1102,7 +1102,7 @@ contains
              uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
           endif
 
-          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2)
+          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2 + wgd**2)
           uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
           uflx(i,j,UEINT) = ugdnv(i,j)*regd
 
