@@ -1306,6 +1306,10 @@ contains
           ugdnv(i,j) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j) = frac*pstar + (ONE - frac)*po
 
+          ! TODO
+          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
+
+
 
           ! now we do the HLLC construction
 
@@ -1319,97 +1323,53 @@ contains
 
           if (S_r <= ZERO) then
              ! R region
-             U_state(URHO) = rr
-             if (idir == 1) then
-                U_state(UMX) = rr*ur
-                U_state(UMY) = rr*vr
-             else
-                U_state(UMX) = rr*ur
-                U_state(UMY) = rr*vr
-             endif
-             U_state(UEDEN) = rr*rer + HALF*rer*(ur**2 + vr**2 + v2r**2)
+             call cons_state(qr(i,j,:), U_state)
+             call compute_flux(idir, U_state, F_state)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
+             hllc_factor = rr*(S_r - ur)/(S_r - S_C)
+             call HLLC_state(qr(i,j,:), U_state)
+             call compute_flux(idir, U_state, F_state)
 
+             ! correct the flux
           else if (S_c > ZERO .and. S_l < ZERO) then
              ! L* region
+             call HLLC_state(ql(i,j,:), U_state)
+             call compute_flux(idir, U_state, F_state)
 
           else
              ! L region
+             call cons_state(ql(i,j,:), U_state)
+             call compute_flux(idir, U_state, F_state)
 
           endif
-
-          regd = frac*estar + (ONE - frac)*reo
-          if (spout .lt. ZERO) then
-             rgd = ro
-             ugdnv(i,j) = uo
-             pgdnv(i,j) = po
-             regd = reo
-          endif
-          if (spin .ge. ZERO) then
-             rgd = rstar
-             ugdnv(i,j) = ustar
-             pgdnv(i,j) = pstar
-             regd = estar
-          endif
-
-          gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
 
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if (idir .eq. 1) then
-             if (i.eq.domlo(1) .and. &
-                 (physbc_lo(1) .eq. Symmetry .or.  physbc_lo(1) .eq. SlipWall .or. &
-                  physbc_lo(1) .eq. NoSlipWall) ) &
+          if (idir == 1) then
+             if (i == domlo(1) .and. &
+                 (physbc_lo(1) == Symmetry .or.  physbc_lo(1) == SlipWall .or. &
+                  physbc_lo(1) == NoSlipWall) ) &
+                  F_state(:) = ZERO
+             if (i == domhi(1)+1 .and. &
+                 (physbc_hi(1) == Symmetry .or.  physbc_hi(1) == SlipWall .or. &
+                  physbc_hi(1) == NoSlipWall) ) &
+                  F_state(:) = ZERO
+          end if
+          if (idir == 2) then
+             if (j == domlo(2) .and. &
+                 (physbc_lo(2) == Symmetry .or.  physbc_lo(2) == SlipWall .or. &
+                  physbc_lo(2) == NoSlipWall) ) &
                   ugdnv(i,j) = ZERO
-             if (i.eq.domhi(1)+1 .and. &
-                 (physbc_hi(1) .eq. Symmetry .or.  physbc_hi(1) .eq. SlipWall .or. &
-                  physbc_hi(1) .eq. NoSlipWall) ) &
+             if (j == domhi(2)+1 .and. &
+                 (physbc_hi(2) == Symmetry .or.  physbc_hi(2) == SlipWall .or. &
+                  physbc_hi(2) == NoSlipWall) ) &
                   ugdnv(i,j) = ZERO
           end if
-          if (idir .eq. 2) then
-             if (j.eq.domlo(2) .and. &
-                 (physbc_lo(2) .eq. Symmetry .or.  physbc_lo(2) .eq. SlipWall .or. &
-                  physbc_lo(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-             if (j.eq.domhi(2)+1 .and. &
-                 (physbc_hi(2) .eq. Symmetry .or.  physbc_hi(2) .eq. SlipWall .or. &
-                  physbc_hi(2) .eq. NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
-          end if
 
-          ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,URHO) = rgd*ugdnv(i,j)
-
-          ! note: here we do not include the pressure, since in 2-d,
-          ! for some geometries, div{F} + grad{p} cannot be written
-          ! in a flux difference form
-          if(idir.eq.1) then
-             uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
-             uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
-          else
-             uflx(i,j,UMX) = uflx(i,j,URHO)*vgd
-             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
-          endif
-
-          rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2 + wgd**2)
-          uflx(i,j,UEDEN) = ugdnv(i,j)*(rhoetot + pgdnv(i,j))
-          uflx(i,j,UEINT) = ugdnv(i,j)*regd
-
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
-
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
-             else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
+          ! store the fluxes
+          uflx(i,j,:) = F_state(:)
 
        enddo
     enddo
@@ -1543,5 +1503,72 @@ contains
     enddo
 
   end subroutine HLL
+
+  
+  pure subroutine cons_state(q, U)
+
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QREINT, &
+         NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+         npassive, upass_map, qpass_map
+
+    real (kind=dp_t), intent(in)  :: q(QVAR)
+    real (kind=dp_t), intent(out) :: U(QVAR)
+
+    U(URHO) = q(QRHO)
+    U(UMX)  = q(QRHO)*q(QU)
+    U(UMY)  = q(QRHO)*q(QV)
+
+    U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)*2 + q(QV)**2 + q(QW)**2)
+    U(UEINT) = q(QREINT)
+
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+       U(n) = q(QRHO)*q(nq)
+    enddo
+
+  end subroutine cons_state
+
+
+  pure subroutine HLLC_state(idir, S_k, S_c, q, U)
+
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QREINT, &
+         NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+         npassive, upass_map, qpass_map
+
+    integer, intent(in) :: idir
+    real (kind=dp_t), intent(in)  :: S_k, S_c
+    real (kind=dp_t), intent(in)  :: q(QVAR)
+    real (kind=dp_t), intent(out) :: U(QVAR)
+
+    real (kind=dp_t) :: hllc_factor
+
+    if (idir == 1) then
+       u_k = q(QU)
+    else
+       u_k = q(QV)
+    endif
+
+    hllc_factor = q(QRHO)*(S_k - u_k)/(S_k - S_c)
+    U(URHO) = hllc_factor
+    if (idir == 1) then
+       U(UMX)  = hllc_factor*S_c
+       U(UMY)  = hllc_factor*q(QV)
+    else
+       U(UMX)  = hllc_factor*q(QU)
+       U(UMY)  = hllc_factor*S_c
+    endif
+
+    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + HALF*(q(QU)*2 + q(QV)**2 + q(QW)**2) + &
+                            (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
+    U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
+
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nq = qpass_map(ipassive)
+       U(n) = hllc_factor*q(nq)
+    enddo
+
+  end subroutine HLLC_state
 
 end module riemann_module
