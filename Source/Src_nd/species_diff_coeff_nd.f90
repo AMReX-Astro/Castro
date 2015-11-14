@@ -1,8 +1,8 @@
-! This routine fills the thermal conductivity on the edges of a zone
+! This routine fills the species conductivity on the edges of a zone
 ! by calling the cell-centered conductivity routine and averaging to
 ! the interfaces
 
-subroutine ca_fill_temp_cond(lo,hi, &
+subroutine ca_fill_spec_cond(lo,hi, &
                              state,s_lo,s_hi, &
                              coefx,cx_lo,cx_hi, &
                              coefy,cy_lo,cy_hi, &
@@ -45,6 +45,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
 
            if (eos_state%rho > diffuse_cutoff_density) then
               call thermal_conductivity(eos_state, cond)
+              cond = cond / eos_state%cp
            else
               cond = ZERO
            endif
@@ -79,4 +80,4 @@ subroutine ca_fill_temp_cond(lo,hi, &
      end do
   enddo
 
-end subroutine ca_fill_temp_cond
+end subroutine ca_fill_spec_cond
