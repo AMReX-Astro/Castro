@@ -16,7 +16,8 @@ USE_DIFFUSION = TRUE
 CASTRO_DIR = ../..
 
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
-EOS_dir     := gamma_law_general
+EOS_HOME    := $(CASTRO_DIR)/EOS
+EOS_dir     := gamma_law
 
 Conductivity_dir = constant
 
