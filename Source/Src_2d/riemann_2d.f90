@@ -1146,7 +1146,7 @@ contains
 
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map
@@ -1186,7 +1186,8 @@ contains
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall, qavg
 
-    double precision :: U_state(nvar), F_state(nvar)
+    double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
+    double precision :: S_l, S_r, S_c
 
     !  set min/max based on normal direction
     if (idir == 1) then
@@ -1310,7 +1311,6 @@ contains
           gegdnv(i,j) = pgdnv(i,j)/regd + 1.0d0
 
 
-
           ! now we do the HLLC construction
 
           ! use the simplest estimates of the wave speeds
@@ -1324,24 +1324,32 @@ contains
           if (S_r <= ZERO) then
              ! R region
              call cons_state(qr(i,j,:), U_state)
-             call compute_flux(idir, U_state, F_state)
+             call compute_flux(idir, U_state, pr, F_state)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
-             hllc_factor = rr*(S_r - ur)/(S_r - S_C)
-             call HLLC_state(qr(i,j,:), U_state)
-             call compute_flux(idir, U_state, F_state)
+             call cons_state(qr(i,j,:), U_state)
+             call compute_flux(idir, U_state, pr, F_state)
+
+             call HLLC_state(idir, S_r, S_c, qr(i,j,:), U_hllc_state)
 
              ! correct the flux
+             F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
+
           else if (S_c > ZERO .and. S_l < ZERO) then
              ! L* region
-             call HLLC_state(ql(i,j,:), U_state)
-             call compute_flux(idir, U_state, F_state)
+             call cons_state(ql(i,j,:), U_state)
+             call compute_flux(idir, U_state, pl, F_state)
+
+             call HLLC_state(idir, S_l, S_c, ql(i,j,:), U_hllc_state)
+
+             ! correct the flux
+             F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
 
           else
              ! L region
              call cons_state(ql(i,j,:), U_state)
-             call compute_flux(idir, U_state, F_state)
+             call compute_flux(idir, U_state, pl, F_state)
 
           endif
 
@@ -1349,23 +1357,27 @@ contains
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if (idir == 1) then
              if (i == domlo(1) .and. &
-                 (physbc_lo(1) == Symmetry .or.  physbc_lo(1) == SlipWall .or. &
+                 (physbc_lo(1) == Symmetry .or. &
+                  physbc_lo(1) == SlipWall .or. &
                   physbc_lo(1) == NoSlipWall) ) &
                   F_state(:) = ZERO
              if (i == domhi(1)+1 .and. &
-                 (physbc_hi(1) == Symmetry .or.  physbc_hi(1) == SlipWall .or. &
+                 (physbc_hi(1) == Symmetry .or. &
+                  physbc_hi(1) == SlipWall .or. &
                   physbc_hi(1) == NoSlipWall) ) &
                   F_state(:) = ZERO
           end if
           if (idir == 2) then
              if (j == domlo(2) .and. &
-                 (physbc_lo(2) == Symmetry .or.  physbc_lo(2) == SlipWall .or. &
+                 (physbc_lo(2) == Symmetry .or. &
+                  physbc_lo(2) == SlipWall .or. &
                   physbc_lo(2) == NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
+                  F_state(:) = ZERO
              if (j == domhi(2)+1 .and. &
-                 (physbc_hi(2) == Symmetry .or.  physbc_hi(2) == SlipWall .or. &
+                 (physbc_hi(2) == Symmetry .or. &
+                  physbc_hi(2) == SlipWall .or. &
                   physbc_hi(2) == NoSlipWall) ) &
-                  ugdnv(i,j) = ZERO
+                  F_state(:) = ZERO
           end if
 
           ! store the fluxes
@@ -1507,12 +1519,14 @@ contains
   
   pure subroutine cons_state(q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QREINT, &
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
          npassive, upass_map, qpass_map
 
     real (kind=dp_t), intent(in)  :: q(QVAR)
-    real (kind=dp_t), intent(out) :: U(QVAR)
+    real (kind=dp_t), intent(out) :: U(NVAR)
+
+    integer :: ipassive, n, nq
 
     U(URHO) = q(QRHO)
     U(UMX)  = q(QRHO)*q(QU)
@@ -1532,16 +1546,17 @@ contains
 
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QREINT, &
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
     real (kind=dp_t), intent(in)  :: S_k, S_c
     real (kind=dp_t), intent(in)  :: q(QVAR)
-    real (kind=dp_t), intent(out) :: U(QVAR)
+    real (kind=dp_t), intent(out) :: U(NVAR)
 
-    real (kind=dp_t) :: hllc_factor
+    real (kind=dp_t) :: hllc_factor, u_k
+    integer :: ipassive, n, nq
 
     if (idir == 1) then
        u_k = q(QU)
@@ -1570,5 +1585,40 @@ contains
     enddo
 
   end subroutine HLLC_state
+
+  
+  pure subroutine compute_flux(idir, U, p, F)
+
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+         npassive, upass_map
+
+    integer, intent(in) :: idir
+    real (kind=dp_t), intent(in) :: U(NVAR)
+    real (kind=dp_t), intent(in) :: p
+    real (kind=dp_t), intent(out) :: F(NVAR)
+
+    integer :: ipassive, n
+    real (kind=dp_t) :: u_flx
+
+    if (idir == 1) then
+       u_flx = U(UMX)/U(URHO)
+    else
+       u_flx = U(UMY)/U(URHO)
+    endif
+
+    F(URHO) = U(URHO)*u_flx
+
+    F(UMX) = U(UMX)*u_flx
+    F(UMY) = U(UMY)*u_flx
+
+    F(UEINT) = U(UEINT)*u_flx
+    F(UEDEN) = (U(UEDEN) + p)*u_flx
+
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       F(n) = U(n)*u_flx
+    enddo
+
+  end subroutine compute_flux
 
 end module riemann_module
