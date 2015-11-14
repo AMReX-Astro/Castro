@@ -1178,8 +1178,8 @@ contains
     integer :: i, j, ipassive
 
     double precision :: rgd, vgd, regd, ustar
-    double precision :: rl, ul, vl, pl, rel
-    double precision :: rr, ur, vr, pr, rer
+    double precision :: rl, ul, vl, v2l, pl, rel
+    double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
@@ -1210,9 +1210,11 @@ contains
           if (idir == 1) then
              ul = ql(i,j,QU)
              vl = ql(i,j,QV)
+             v2l = ql(i,j,QW)
           else
              ul = ql(i,j,QV)
              vl = ql(i,j,QU)
+             v2l = ql(i,j,QW)
           endif
 
           pl = ql(i,j,QPRES)
@@ -1224,9 +1226,11 @@ contains
           if (idir == 1) then
              ur = qr(i,j,QU)
              vr = qr(i,j,QV)
+             v2r = qr(i,j,QW)
           else
              ur = qr(i,j,QV)
              vr = qr(i,j,QU)
+             v2r = qr(i,j,QW)
           endif
 
           pr = qr(i,j,QPRES)
@@ -1323,7 +1327,7 @@ contains
                 U_state(UMX) = rr*ur
                 U_state(UMY) = rr*vr
              endif
-             U_state(UEDEN) = rr*rer + HALF*rer*(
+             U_state(UEDEN) = rr*rer + HALF*rer*(ur**2 + vr**2 + v2r**2)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
@@ -1409,7 +1413,7 @@ contains
 
        enddo
     enddo
-  end subroutine riemannus
+  end subroutine HLLC
 
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
