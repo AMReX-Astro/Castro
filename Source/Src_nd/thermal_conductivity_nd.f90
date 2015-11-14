@@ -74,7 +74,7 @@ subroutine ca_fill_temp_cond(lo,hi, &
   do k = lo(3),hi(3)+1*dg(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
-           coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+           coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
         end do
      end do
   enddo
@@ -158,7 +158,7 @@ subroutine ca_fill_spec_cond(lo,hi, &
   do k = lo(3),hi(3)+1*dg(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
-           coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+           coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
         end do
      end do
   enddo
