@@ -685,7 +685,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_DIV_TAU_U,ca_compute_div_tau_u)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(div_tau_u),
      const BL_FORT_FAB_ARG_3D(state),
-     const Real* dx);
+     const Real* dx, const int* coord_type);
 
 #ifdef TAU
 BL_FORT_PROC_DECL(CA_DEFINE_TAU,ca_define_tau)

@@ -2864,6 +2864,7 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
    MultiFab& state_old = fpi.get_mf();
 
    // Remember this is just 1-d 
+   int coord_type = Geometry::Coord();
    for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
    {
        const Box& bx = grids[mfi.index()];
@@ -2872,7 +2873,7 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
   	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		BL_TO_FORTRAN_3D(ViscousTerm[mfi]),
 		BL_TO_FORTRAN_3D(state_old[mfi]),
-  	        ZFILL(dx_fine));
+  	        ZFILL(dx_fine),&coord_type);
    }
 
    // Extrapolate to ghost cells

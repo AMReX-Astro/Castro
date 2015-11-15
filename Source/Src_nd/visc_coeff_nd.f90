@@ -166,7 +166,7 @@ end subroutine ca_fill_secnd_visc_coeff
 
 subroutine ca_compute_div_tau_u(lo,hi,&
                                 div_tau_u,d_lo,d_hi, &
-                                state,s_lo,s_hi, dx)
+                                state,s_lo,s_hi,dx,coord_type)
 
   use bl_constants_module
   use network, only: nspec, naux
@@ -183,6 +183,7 @@ subroutine ca_compute_div_tau_u(lo,hi,&
   real (kind=dp_t), intent(  out) :: div_tau_u(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
   real (kind=dp_t), intent(in   ) :: state    (s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
   real (kind=dp_t), intent(in   ) :: dx(3)
+  integer         , intent(in   ) :: coord_type
 
   ! local variables
   real (kind=dp_t) :: twothirds
@@ -224,7 +225,9 @@ subroutine ca_compute_div_tau_u(lo,hi,&
 
   imin = max(lo(1)-1,0)
 
-  do i = imin,hi(1)+1
+  if (coord_type .eq. 2) then
+
+     do i = imin,hi(1)+1
 
        ! These are cell-centered
        rm = (dble(i)-0.5d0) * dx(1)
@@ -263,10 +266,16 @@ subroutine ca_compute_div_tau_u(lo,hi,&
        div_tau_u(i,j,k) = ( (x_ep**2*tau1p*v_ep) - (x_em**2*tau1m*v_em) &
                            +(tau2p*v_ep)-(tau2m*v_em) ) / (rc**2 * dx(1))
 
-  enddo
+     enddo
 
-  if (lo(1) .eq. 0) &
+     if (lo(1) .eq. 0) &
        div_tau_u(lo(1)-1,j,k) = div_tau_u(lo(1),j,k)
+
+  else
+
+    call bl_abort("compute_div_tau_u currently hard-wired for 1-d spherical")
+
+  end if
 
   deallocate(mu,kappa)
 
