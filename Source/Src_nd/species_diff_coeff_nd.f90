@@ -1,12 +1,12 @@
-! This routine fills the species conductivity on the edges of a zone
+! This routine fills the species diffusion coefficients on the edges of a zone
 ! by calling the cell-centered conductivity routine and averaging to
 ! the interfaces
 
-subroutine ca_fill_spec_cond(lo,hi, &
-                             state,s_lo,s_hi, &
-                             coefx,cx_lo,cx_hi, &
-                             coefy,cy_lo,cy_hi, &
-                             coefz,cz_lo,cz_hi, dx)
+subroutine ca_fill_spec_coeff(lo,hi, &
+                              state,s_lo,s_hi, &
+                              coefx,cx_lo,cx_hi, &
+                              coefy,cy_lo,cy_hi, &
+                              coefz,cz_lo,cz_hi, dx)
 
   use bl_constants_module
   use network, only: nspec, naux
@@ -31,9 +31,9 @@ subroutine ca_fill_spec_cond(lo,hi, &
   double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
   type (eos_t) :: eos_state
-  double precision :: cond
+  double precision :: coeff
 
-  ! fill the cell-centered conductivity
+  ! fill the cell-centered diffusion coefficient
 
   do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
      do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
@@ -44,13 +44,13 @@ subroutine ca_fill_spec_cond(lo,hi, &
            eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
 
            if (eos_state%rho > diffuse_cutoff_density) then
-              call thermal_conductivity(eos_state, cond)
-              cond = cond / eos_state%cp
+              call thermal_conductivity(eos_state, coeff)
+              coeff = coeff / eos_state%cp
            else
-              cond = ZERO
+              coeff = ZERO
            endif
 
-           coef_cc(i,j,k) = cond
+           coef_cc(i,j,k) = coeff
         enddo
      enddo
   enddo
@@ -80,4 +80,4 @@ subroutine ca_fill_spec_cond(lo,hi, &
      end do
   enddo
 
-end subroutine ca_fill_spec_cond
+end subroutine ca_fill_spec_coeff

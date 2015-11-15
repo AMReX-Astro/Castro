@@ -8,7 +8,6 @@
 #define MAX_LEV 15
 
 int  Diffusion::verbose      = 0;
-Real Diffusion::conductivity   = 1.0;
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
@@ -37,7 +36,6 @@ Diffusion::read_params ()
         ParmParse pp("diffusion");
 
         pp.query("v", verbose);
-        pp.query("conductivity", conductivity);
 
         done = true;
     }
@@ -126,6 +124,48 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 #endif
 }
 
+#if (BL_SPACEDIM == 1)
+void
+Diffusion::applyViscOp (int level, MultiFab& Vel, 
+                        MultiFab& CrseVel, MultiFab& ViscTerm, 
+                        PArray<MultiFab>& visc_coeff)
+{
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+        std::cout << "   " << '\n';
+        std::cout << "... compute second part of viscous term at level " << level << '\n';
+    }
+
+    IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
+                                   : IntVect::TheZeroVector();
+
+    FMultiGrid fmg(parent->Geom(level), level, crse_ratio);
+
+    if (level == 0) {
+	fmg.set_bc(mg_bc, Vel);
+    } else {
+	fmg.set_bc(mg_bc, CrseVel, Vel);
+    }
+
+    // Here we DO NOT multiply the coefficients by (1/r^2) for spherical coefficients
+    // because we are computing (1/r^2) d/dr (const * d/dr(r^2 u))
+    fmg.set_diffusion_coeffs(visc_coeff);
+
+#if (BL_SPACEDIM < 3)
+    // Here we weight the Vel going into the FMG applyop
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+	weight_cc(level, Vel);
+#endif
+
+    fmg.applyop(Vel, ViscTerm);
+
+#if (BL_SPACEDIM < 3)
+    // Do this to unweight Res
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+	unweight_cc(level, ViscTerm);
+#endif
+}
+#endif
+
 #if (BL_SPACEDIM < 3)
 void
 Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
@@ -160,6 +200,23 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 #endif
 
 #if (BL_SPACEDIM < 3)
+void
+Diffusion::weight_cc(int level, MultiFab& cc)
+{
+    const Real* dx = parent->Geom(level).CellSize();
+    int coord_type = Geometry::Coord();
+#ifdef _OPENMP
+#pragma omp parallel	  
+#endif
+    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
+        BL_FORT_PROC_CALL(CA_WEIGHT_CC,ca_weight_cc)
+            (bx.loVect(), bx.hiVect(),
+             BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+    }
+}
+
 void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
