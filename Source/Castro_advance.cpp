@@ -505,8 +505,10 @@ Castro::advance_hydro (Real time,
 #else
     add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
 #endif
+#if (BL_SPACEDIM == 1) 
     add_spec_diffusion_to_source(ext_src_old,OldSpecDiffTerm,prev_time);
     add_viscous_term_to_source(ext_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
+#endif
 #endif
 
     BoxLib::fill_boundary(ext_src_old, geom);
@@ -1131,8 +1133,10 @@ Castro::advance_hydro (Real time,
 #else
     add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
 #endif
+#if (BL_SPACEDIM == 1) 
     add_spec_diffusion_to_source(ext_src_new,NewSpecDiffTerm,cur_time);
     add_viscous_term_to_source(ext_src_new,NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
+#endif
 #endif
 
 #endif
