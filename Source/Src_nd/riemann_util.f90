@@ -210,7 +210,7 @@ contains
   pure subroutine cons_state(q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
-         NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map, qpass_map
 
     real (kind=dp_t), intent(in)  :: q(QVAR)
@@ -219,8 +219,12 @@ contains
     integer :: ipassive, n, nq
 
     U(URHO) = q(QRHO)
+
+    ! since we advect all 3 velocity components regardless of dimension, this 
+    ! will be general
     U(UMX)  = q(QRHO)*q(QU)
     U(UMY)  = q(QRHO)*q(QV)
+    U(UMZ)  = q(QRHO)*q(QW)
 
     U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)**2 + q(QV)**2 + q(QW)**2)
     U(UEINT) = q(QREINT)
@@ -237,7 +241,7 @@ contains
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
-         NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
@@ -250,8 +254,10 @@ contains
 
     if (idir == 1) then
        u_k = q(QU)
-    else
+    elseif (idir == 2) then
        u_k = q(QV)
+    elseif (idir == 3) then
+       u_k = q(QW)
     endif
 
     hllc_factor = q(QRHO)*(S_k - u_k)/(S_k - S_c)
@@ -259,9 +265,15 @@ contains
     if (idir == 1) then
        U(UMX)  = hllc_factor*S_c
        U(UMY)  = hllc_factor*q(QV)
-    else
+       U(UMZ)  = hllc_factor*q(QW)
+    elseif (idir == 2) then
        U(UMX)  = hllc_factor*q(QU)
        U(UMY)  = hllc_factor*S_c
+       U(UMZ)  = hllc_factor*q(QW)
+    elseif (idir == 3) then
+       U(UMX)  = hllc_factor*q(QU)
+       U(UMY)  = hllc_factor*q(QV)
+       U(UMZ)  = hllc_factor*S_c
     endif
 
     U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + HALF*(q(QU)**2 + q(QV)**2 + q(QW)**2) + &
@@ -277,12 +289,12 @@ contains
   end subroutine HLLC_state
 
   
-  pure subroutine compute_flux(idir, U, p, F)
+  pure subroutine compute_flux(idir, ndim, U, p, F)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map
 
-    integer, intent(in) :: idir
+    integer, intent(in) :: idir, ndim
     real (kind=dp_t), intent(in) :: U(NVAR)
     real (kind=dp_t), intent(in) :: p
     real (kind=dp_t), intent(out) :: F(NVAR)
@@ -292,14 +304,23 @@ contains
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)
-    else
+    elseif (idir == 2) then
        u_flx = U(UMY)/U(URHO)
+    elseif (idir == 3) then
+       u_flx = U(UMZ)/U(URHO)
     endif
 
     F(URHO) = U(URHO)*u_flx
 
     F(UMX) = U(UMX)*u_flx
     F(UMY) = U(UMY)*u_flx
+    F(UMZ) = U(UMZ)*u_flx
+
+    if (ndim == 3) then
+       ! we only include the pressure in 3-d, because we know we are
+       ! Cartesian
+       F(UMX-1+idir) = F(UMX-1+idir) + p
+    endif
 
     F(UEINT) = U(UEINT)*u_flx
     F(UEDEN) = (U(UEDEN) + p)*u_flx
