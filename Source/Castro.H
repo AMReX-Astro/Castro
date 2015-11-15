@@ -388,9 +388,10 @@ public:
     void getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau = 0);
     void getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm);
 #if (BL_SPACEDIM == 1)
-    void getViscousTerm (Real time, MultiFab& ViscousTerm);
+    void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
     void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
     void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
+    void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
 #ifdef TAU
     void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
@@ -406,8 +407,10 @@ public:
     void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt);
     void full_spec_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
 #if (BL_SPACEDIM == 1)
-    void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTerm, Real t);
-    void time_center_viscous_term     (MultiFab& S_new, MultiFab& OldViscousTerm, Real  cur_time, Real dt);
+    void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
+                                       MultiFab& ViscousTermforEnergy, Real t);
+    void time_center_viscous_term     (MultiFab& S_new, MultiFab& OldViscousTermforMomentum, 
+                                       MultiFab& ViscousTermforEnergy, Real  cur_time, Real dt);
 #endif
 #endif
 

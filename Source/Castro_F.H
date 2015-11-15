@@ -681,6 +681,12 @@ BL_FORT_PROC_DECL(CA_FILL_SECND_VISC_COEFF,ca_fill_secnd_visc_coeff)
      const BL_FORT_FAB_ARG_3D(zcoeffs),
      const Real* dx);
 
+BL_FORT_PROC_DECL(CA_COMPUTE_DIV_TAU_U,ca_compute_div_tau_u)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(div_tau_u),
+     const BL_FORT_FAB_ARG_3D(state),
+     const Real* dx);
+
 #ifdef TAU
 BL_FORT_PROC_DECL(CA_DEFINE_TAU,ca_define_tau)
     (const int lo[], const int hi[],

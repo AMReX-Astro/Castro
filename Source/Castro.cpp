@@ -2564,6 +2564,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        CrseTemp.define(crse_grids,1,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
    }
+
    diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
 
    // Extrapolate to ghost cells
@@ -2663,7 +2664,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
            }
        }
        // Copy back into SpecDiffTerm from the temporary SDT
-       MultiFab::Copy(SpecDiffTerm, SDT, 0, FirstSpec+ispec, 1, 1);
+       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, 1);
    }
 }
 
@@ -2673,18 +2674,20 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
 //       only part of the viscous term.  We assume that the coefficient that is filled is "2 mu"
 // **********************************************
 void
-Castro::getViscousTerm (Real time, MultiFab& ViscousTerm)
+Castro::getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy)
 {
     BL_PROFILE("Castro::getViscousTerm()");
 
    if (verbose && ParallelDescriptor::IOProcessor()) 
       std::cout << "Calculating viscous term at time " << time << std::endl;
 
-   getFirstViscousTerm(time,ViscousTerm);
+   getFirstViscousTerm(time,ViscousTermforMomentum);
 
-   MultiFab SecndTerm(grids,ViscousTerm.nComp(),ViscousTerm.nGrow(),Fab_allocate);
+   MultiFab SecndTerm(grids,ViscousTermforMomentum.nComp(),ViscousTermforMomentum.nGrow(),Fab_allocate);
    getSecndViscousTerm(time,SecndTerm);
-   MultiFab::Add(ViscousTerm, SecndTerm, 0, 0, ViscousTerm.nComp(), 0);
+   MultiFab::Add(ViscousTermforMomentum, SecndTerm, 0, 0, ViscousTermforMomentum.nComp(), 0);
+
+   getViscousTermForEnergy(time,ViscousTermforEnergy);
 }
 
 void
@@ -2824,6 +2827,53 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
        MultiFab::Divide(CrseVel, CrseDen, 0, 0, 1, 1);
    }
    diffusion->applyViscOp(level,Vel,CrseVel,ViscousTerm,coeffs);
+
+   // Extrapolate to ghost cells
+   if (ViscousTerm.nGrow() > 0) {
+       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+       }
+   }
+}
+
+void
+Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
+{
+   MultiFab& S_old = get_old_data(State_Type);
+
+   // Fill coefficients at this level.
+   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
+   }
+
+   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
+   const Real*       dx_fine = fine_geom.CellSize();
+
+   FillPatchIterator fpi(*this,S_old,2,time,State_Type,0,NUM_STATE);
+   MultiFab& state_old = fpi.get_mf();
+
+   // Remember this is just 1-d 
+   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   {
+       const Box& bx = grids[mfi.index()];
+
+       BL_FORT_PROC_CALL(CA_COMPUTE_DIV_TAU_U,ca_compute_div_tau_u)
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
+  	        ZFILL(dx_fine));
+   }
 
    // Extrapolate to ghost cells
    if (ViscousTerm.nGrow() > 0) {

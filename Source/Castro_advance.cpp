@@ -498,12 +498,15 @@ Castro::advance_hydro (Real time,
 #ifdef DIFFUSION
     MultiFab OldTempDiffTerm(grids,1,1);
     MultiFab OldSpecDiffTerm(grids,NumSpec,1);
+    MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
+    MultiFab OldViscousTermforEnergy(grids,1,1);
 #ifdef TAU
     add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
 #else
     add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
 #endif
     add_spec_diffusion_to_source(ext_src_old,OldSpecDiffTerm,prev_time);
+    add_viscous_term_to_source(ext_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
 #endif
 
     BoxLib::fill_boundary(ext_src_old, geom);
@@ -1121,12 +1124,15 @@ Castro::advance_hydro (Real time,
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;
     MultiFab& NewSpecDiffTerm = OldSpecDiffTerm;
+    MultiFab& NewViscousTermforMomentum = OldViscousTermforMomentum;
+    MultiFab& NewViscousTermforEnergy   = OldViscousTermforEnergy;
 #ifdef TAU
     add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
 #else
     add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
 #endif
     add_spec_diffusion_to_source(ext_src_new,NewSpecDiffTerm,cur_time);
+    add_viscous_term_to_source(ext_src_new,NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
 #endif
 
 #endif
@@ -1268,6 +1274,7 @@ Castro::advance_hydro (Real time,
     time_center_temp_diffusion(S_new, OldTempDiffTerm, cur_time, dt);
 #endif
     time_center_spec_diffusion(S_new, OldSpecDiffTerm, cur_time, dt);
+    time_center_viscous_terms(S_new, OldViscousTermforMomentum, OldViscousTermforEnergy, cur_time, dt);
 #endif
 #endif
 
