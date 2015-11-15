@@ -2,6 +2,7 @@ module riemann_module
 
   use bl_types
   use bl_constants_module
+  use riemann_util_module
 
   implicit none
 
