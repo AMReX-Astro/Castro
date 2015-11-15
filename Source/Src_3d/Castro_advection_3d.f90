@@ -1001,7 +1001,7 @@ contains
                     q(q_l1,q_l2,q_l3,QU), &
                     q(q_l1,q_l2,q_l3,QV), &
                     q(q_l1,q_l2,q_l3,QW), &
-                    flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+                    flatn,(/ q_l1,q_l2,q_l3 /), (/ q_h1,q_h2,q_h3 /))
     else
        flatn = ONE
     endif
