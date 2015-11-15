@@ -501,7 +501,7 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
-    if (use_colglaz > 0)
+    if (use_colglaz > 0 && riemann_solver == 0)
       {
 	std::cerr << "WARNING: the use_colglaz parameter is deprecated.  Use riemann_solver instead\n";
 	riemann_solver = 1;
