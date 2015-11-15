@@ -1528,6 +1528,7 @@ contains
 
           F_state(:) = F_state(:) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
+          uflx(i,j,kflux,:) = F_state(:)
        enddo
     enddo
 
