@@ -378,6 +378,10 @@
          call bl_deallocate(drho1)
          call bl_deallocate(drho2)
          call bl_deallocate(drho3)
+         call bl_deallocate(grav)
+         call bl_deallocate(gravx)
+         call bl_deallocate(gravy)
+         call bl_deallocate(gravz)
       endif
 
       end subroutine ca_corrgsrc
