@@ -481,11 +481,12 @@ contains
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf
        enddo
-       call uflaten(loq,hiq, &
+       call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
             q(q_l1,q_l2,QPRES), &
             q(q_l1,q_l2,QU), &
             q(q_l1,q_l2,QV), &
-            flatn,q_l1,q_l2,q_h1,q_h2)
+            q(q_l1,q_l2,QW), &
+            flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
     else
        flatn = ONE
     endif

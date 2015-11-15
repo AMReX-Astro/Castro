@@ -289,10 +289,12 @@ contains
     if (use_flattening == 1) then
        loq(1)=lo(1)-ngf
        hiq(1)=hi(1)+ngf
-       call uflaten(loq,hiq, &
+       call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
                     q(q_l1,QPRES), &
                     q(q_l1,QU), &
-                    flatn,q_l1,q_h1)
+                    q(q_l1,QV), &
+                    q(q_l1,QW), &
+                    flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
     else
        flatn = ONE
     endif
