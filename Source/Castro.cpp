@@ -123,6 +123,7 @@ Gravity*     Castro::gravity  = 0;
 Diffusion*    Castro::diffusion  = 0;
 int           Castro::diffuse_temp = 0;
 int           Castro::diffuse_spec = 0;
+int           Castro::diffuse_vel = 0;
 Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
@@ -400,6 +401,7 @@ Castro::read_params ()
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
     pp.query("diffuse_spec",diffuse_spec);
+    pp.query("diffuse_vel",diffuse_vel);
     pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
 #endif
 
@@ -2476,6 +2478,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        CrseTemp.define(crse_grids,1,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
    }
+
    diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
 
    // Extrapolate to ghost cells
@@ -2521,7 +2524,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    {
        const Box& bx = grids[mfi.index()];
 
-       BL_FORT_PROC_CALL(CA_FILL_SPEC_COND,ca_fill_spec_cond)
+       BL_FORT_PROC_CALL(CA_FILL_SPEC_COEFF,ca_fill_spec_coeff)
   	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		BL_TO_FORTRAN_3D(state_old[mfi]),
 		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
@@ -2575,9 +2578,230 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
            }
        }
        // Copy back into SpecDiffTerm from the temporary SDT
-       MultiFab::Copy(SpecDiffTerm, SDT, 0, FirstSpec+ispec, 1, 1);
+       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, 1);
    }
 }
+
+#if (BL_SPACEDIM == 1)
+// **********************************************
+// Note: this currently just gets the term that looks like div(2 mu grad(u)) which is 
+//       only part of the viscous term.  We assume that the coefficient that is filled is "2 mu"
+// **********************************************
+void
+Castro::getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy)
+{
+    BL_PROFILE("Castro::getViscousTerm()");
+
+   if (verbose && ParallelDescriptor::IOProcessor()) 
+      std::cout << "Calculating viscous term at time " << time << std::endl;
+
+   getFirstViscousTerm(time,ViscousTermforMomentum);
+
+   MultiFab SecndTerm(grids,ViscousTermforMomentum.nComp(),ViscousTermforMomentum.nGrow(),Fab_allocate);
+   getSecndViscousTerm(time,SecndTerm);
+   MultiFab::Add(ViscousTermforMomentum, SecndTerm, 0, 0, ViscousTermforMomentum.nComp(), 0);
+
+   getViscousTermForEnergy(time,ViscousTermforEnergy);
+}
+
+void
+Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
+{
+   MultiFab& S_old = get_old_data(State_Type);
+
+   // Fill coefficients at this level.
+   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
+   }
+
+   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
+   const Real*       dx_fine = fine_geom.CellSize();
+
+   // Fill velocity at this level.
+   MultiFab Vel(grids,1,1,Fab_allocate);
+
+   FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+   MultiFab& state_old = fpi.get_mf();
+
+   // Remember this is just 1-d 
+   MultiFab::Copy  (Vel, state_old, Xmom   , 0, 1, 1);
+   MultiFab::Divide(Vel, state_old, Density, 0, 1, 1);
+
+   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   {
+       const Box& bx = grids[mfi.index()];
+
+       BL_FORT_PROC_CALL(CA_FILL_FIRST_VISC_COEFF,ca_fill_first_visc_coeff)
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+  	        ZFILL(dx_fine));
+   }
+
+   // Now copy the temporary array results back to the
+   // correctly dimensioned coeffs array.
+   for (int dir = 0; dir < BL_SPACEDIM; dir++)
+     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+   
+   if (Geometry::isAnyPeriodic())
+     for (int d = 0; d < BL_SPACEDIM; d++)
+       geom.FillPeriodicBoundary(coeffs[d]);
+
+   MultiFab CrseVel, CrseDen;
+   if (level > 0) {
+       // Fill temperature at next coarser level, if it exists.
+       const BoxArray& crse_grids = getLevel(level-1).boxArray();
+       CrseVel.define(crse_grids,1,1,Fab_allocate);
+       FillPatch(getLevel(level-1),CrseVel ,1,time,State_Type,Xmom   ,1);
+       FillPatch(getLevel(level-1),CrseDen ,1,time,State_Type,Density,1);
+       MultiFab::Divide(CrseVel, CrseDen, 0, 0, 1, 1);
+   }
+   diffusion->applyop(level,Vel,CrseVel,ViscousTerm,coeffs);
+
+   // Extrapolate to ghost cells
+   if (ViscousTerm.nGrow() > 0) {
+       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+       }
+   }
+}
+
+void
+Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
+{
+   MultiFab& S_old = get_old_data(State_Type);
+
+   // Fill coefficients at this level.
+   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
+   }
+
+   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
+   const Real*       dx_fine = fine_geom.CellSize();
+
+   // Fill velocity at this level.
+   MultiFab Vel(grids,1,1,Fab_allocate);
+
+   FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+   MultiFab& state_old = fpi.get_mf();
+
+   // Remember this is just 1-d 
+   MultiFab::Copy  (Vel, state_old, Xmom   , 0, 1, 1);
+   MultiFab::Divide(Vel, state_old, Density, 0, 1, 1);
+
+   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   {
+       const Box& bx = grids[mfi.index()];
+
+       BL_FORT_PROC_CALL(CA_FILL_SECND_VISC_COEFF,ca_fill_secnd_visc_coeff)
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+  	        ZFILL(dx_fine));
+   }
+
+   // Now copy the temporary array results back to the
+   // correctly dimensioned coeffs array.
+   for (int dir = 0; dir < BL_SPACEDIM; dir++)
+     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+   
+   if (Geometry::isAnyPeriodic())
+     for (int d = 0; d < BL_SPACEDIM; d++)
+       geom.FillPeriodicBoundary(coeffs[d]);
+
+   MultiFab CrseVel, CrseDen;
+   if (level > 0) {
+       // Fill temperature at next coarser level, if it exists.
+       const BoxArray& crse_grids = getLevel(level-1).boxArray();
+       CrseVel.define(crse_grids,1,1,Fab_allocate);
+       FillPatch(getLevel(level-1),CrseVel ,1,time,State_Type,Xmom   ,1);
+       FillPatch(getLevel(level-1),CrseDen ,1,time,State_Type,Density,1);
+       MultiFab::Divide(CrseVel, CrseDen, 0, 0, 1, 1);
+   }
+   diffusion->applyViscOp(level,Vel,CrseVel,ViscousTerm,coeffs);
+
+   // Extrapolate to ghost cells
+   if (ViscousTerm.nGrow() > 0) {
+       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+       }
+   }
+}
+
+void
+Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
+{
+   MultiFab& S_old = get_old_data(State_Type);
+
+   // Fill coefficients at this level.
+   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   for (int dir = 0; dir < 3; dir++) {
+       if (dir < BL_SPACEDIM) {
+	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+       } else {
+	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+       }
+   }
+
+   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
+   const Real*       dx_fine = fine_geom.CellSize();
+
+   FillPatchIterator fpi(*this,S_old,2,time,State_Type,0,NUM_STATE);
+   MultiFab& state_old = fpi.get_mf();
+
+   // Remember this is just 1-d 
+   int coord_type = Geometry::Coord();
+   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   {
+       const Box& bx = grids[mfi.index()];
+
+       BL_FORT_PROC_CALL(CA_COMPUTE_DIV_TAU_U,ca_compute_div_tau_u)
+  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]),
+		BL_TO_FORTRAN_3D(state_old[mfi]),
+  	        ZFILL(dx_fine),&coord_type);
+   }
+
+   // Extrapolate to ghost cells
+   if (ViscousTerm.nGrow() > 0) {
+       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.validbox();
+	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
+               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+       }
+   }
+}
+#endif
 #endif
 
 void

@@ -56,6 +56,40 @@
 
 !-----------------------------------------------------------------------
 
+      subroutine ca_weight_cc(lo, hi, &
+                              cc, cl1, cl2, ch1, ch2,  &
+                              dx, coord_type)
+
+      implicit none
+      integer lo(2),hi(2)
+      integer cl1, cl2, ch1, ch2
+      integer coord_type
+      double precision cc(cl1:ch1,cl2:ch2)
+      double precision dx(2)
+
+      double precision r
+      integer i,j
+
+      ! r-z
+      if (coord_type .eq. 1) then
+
+         ! At centers
+         do i=lo(1),hi(1)
+            r = (dble(i)+0.5d0) * dx(1)
+            do j=lo(2),hi(2)
+               cc(i,j) = cc(i,j) * r
+            enddo
+         enddo
+
+      else 
+         print *,'Bogus coord_type in weight_cc ' ,coord_type
+         call bl_error("Error:: MGutils_2d.f90 :: ca_weight_cc")
+      end if
+
+      end subroutine ca_weight_cc
+
+!-----------------------------------------------------------------------
+
       subroutine ca_unweight_cc(lo, hi, &
                                 cc, cl1, cl2, ch1, ch2,  &
                                 dx, coord_type)
