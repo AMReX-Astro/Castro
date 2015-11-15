@@ -17,6 +17,7 @@ f90EXE_sources += EstDt_nd.f90
 f90EXE_sources += Derive_nd.f90
 f90EXE_sources += problem_derive_nd.f90
 f90EXE_sources += sponge_nd.f90
+f90EXE_sources += riemann_util.f90
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav_nd.f90
