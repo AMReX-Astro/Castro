@@ -52,17 +52,17 @@ contains
   end function bc_test
 
 
-  subroutine HLL(ql, qr, cl, cr, idir, f)
+  subroutine HLL(ql, qr, cl, cr, idir, ndim, f)
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
-                                   URHO, UMX, UMY, UEDEN, UEINT, &
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
 
     double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
     double precision, intent(inout) :: f(NVAR)
-    integer, intent(in) :: idir
+    integer, intent(in) :: idir, ndim
 
-    integer :: ivel, ivelt, imom, imomt
+    integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
     double precision :: a1, a4, bd, bl, bm, bp, br
     double precision :: cavg, uavg
     double precision :: fl_tmp, fr_tmp
@@ -73,19 +73,35 @@ contains
 
     double precision, parameter :: small = 1.d-10
 
-    if (idir == 1) then
+    select case (idir)
+    case (1)
        ivel = QU
        ivelt = QV
+       iveltt = QW
 
        imom = UMX
        imomt = UMY
-    else
+       imomtt = UMZ
+
+    case (2)
        ivel = QV
        ivelt = QU
+       iveltt = QW
 
        imom = UMY
        imomt = UMX
-    endif
+       imomtt = UMZ
+
+    case (3)
+       ivel = QW
+       ivelt = QU
+       iveltt = QV
+
+       imom = UMZ
+       imomt = UMX
+       imomtt = UMY
+
+    end select
 
     rhol_sqrt = sqrt(ql(QRHO))
     rhor_sqrt = sqrt(qr(QRHO))
@@ -133,10 +149,16 @@ contains
     f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
 
 
-    ! normal momentum flux -- leave out the pressure term -- we handle
-    ! that separately
-    fl_tmp = ql(QRHO)*ql(ivel)**2
-    fr_tmp = qr(QRHO)*qr(ivel)**2
+    ! normal momentum flux.  Note for 1- and 2-d, we leave off the pressure
+    ! term and handle that separately in the update, to accommodate different
+    ! geometries
+    if (ndim < 3) then
+       fl_tmp = ql(QRHO)*ql(ivel)**2 
+       fr_tmp = qr(QRHO)*qr(ivel)**2 
+    else
+       fl_tmp = ql(QRHO)*ql(ivel)**2 + ql(QPRES)
+       fr_tmp = qr(QRHO)*qr(ivel)**2 + qr(QPRES)
+    endif
 
     f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
 
@@ -148,11 +170,17 @@ contains
     f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivelt) - ql(QRHO)*ql(ivelt))
 
 
+    fl_tmp = ql(QRHO)*ql(ivel)*ql(iveltt)
+    fr_tmp = qr(QRHO)*qr(ivel)*qr(iveltt)
+
+    f(imomtt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(iveltt) - ql(QRHO)*ql(iveltt))
+
+
     ! total energy flux
-    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2)
+    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2 + ql(iveltt)**2)
     fl_tmp = ql(ivel)*(rhoEl + ql(QPRES))
 
-    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2)
+    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2 + qr(iveltt)**2)
     fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
 
     f(UEDEN) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)

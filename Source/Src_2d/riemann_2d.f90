@@ -232,7 +232,7 @@ contains
                 endif
 
                 call HLL(qm(i,j,:), qp(i,j,:), cl, cr, &
-                         idir, flx(i,j,:))
+                         idir, 2, flx(i,j,:))
 
              endif
 
