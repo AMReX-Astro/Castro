@@ -15,5 +15,4 @@ module probdata_module
 
       double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
 
-      !$omp threadprivate(r_old_s)
 end module probdata_module
