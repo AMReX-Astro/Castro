@@ -55,8 +55,8 @@ BL_FORT_PROC_DECL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
      const Real* dx, const int* coord_type, const int* idir);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
-    (const BL_FORT_FAB_ARG(den),
-     const Real* grav, const Real* dx, const Real* problo);
+    (const BL_FORT_FAB_ARG(den), const int& lo, const int& hi,
+     const Real* grav, const Real* phi, const Real* dx, const Real* problo);
 
 #ifdef GR_GRAV
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GR_GRAV,ca_compute_1d_gr_grav)

@@ -231,6 +231,9 @@ Castro::variableSetUp ()
     for (int i = 0; i < gravity_type_length; i++)
       gravity_type_name[i] = gravity_type[i];    
 
+    int get_g_from_phi = 0;
+    pp.query("get_g_from_phi", get_g_from_phi);
+    
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
@@ -246,6 +249,7 @@ Castro::variableSetUp ()
          use_pslope, 
 	 do_grav, grav_source_type,
 	 gravity_type_name.dataPtr(), &gravity_type_length,
+	 get_g_from_phi,
 	 do_sponge,
          normalize_species,fix_mass_flux,use_sgs,
 	 burning_timestep_factor,

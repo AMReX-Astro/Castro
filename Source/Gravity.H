@@ -92,7 +92,7 @@ public:
   void reflux_phi(int level, MultiFab& dphi);
 
 #if (BL_SPACEDIM == 1)
-  void make_one_d_grav(int level, Real time, MultiFab& grav_vector);
+  void make_one_d_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi);
 #else
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, 
@@ -155,6 +155,7 @@ protected:
   static int   drdxfac;
   static int   lnum;
   static int   direct_sum_bcs;
+  static int   get_g_from_phi;
   static Real  const_grav;
   static Real  mass_offset;
   static Real  sl_tol;

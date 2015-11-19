@@ -32,6 +32,7 @@ int  Gravity::no_composite   = 0;
 int  Gravity::drdxfac        = 1;
 int  Gravity::lnum           = 0;
 int  Gravity::direct_sum_bcs = 0;
+int  Gravity::get_g_from_phi = 0;
 Real Gravity::sl_tol         = 1.e100;
 Real Gravity::ml_tol         = 1.e100;
 Real Gravity::delta_tol      = 1.e100;
@@ -142,6 +143,14 @@ Gravity::read_params ()
 
         pp.query("direct_sum_bcs", direct_sum_bcs);
 
+	// For non-Poisson gravity, do we want to construct the gravitational acceleration by taking
+	// the gradient of the potential, rather than constructing it directly?
+
+	pp.query("get_g_from_phi", get_g_from_phi);
+
+	if (!get_g_from_phi && gravity_type == "PoissonGrav")
+	  std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
+	
         // Allow run-time input of solver tolerances
 	if (Geometry::IsCartesian()) {
 	  ml_tol = 1.e-11;
@@ -852,9 +861,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
- 
+
+      // We also want to fill phi for MonopoleGrav, even though we don't return it.
+      
+      MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
+      
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav);
+       make_one_d_grav(level,time,grav,phi);
 #else
 
        if (gravity_type == "MonopoleGrav") 
@@ -871,9 +884,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
 #endif 
     } else if (gravity_type == "PoissonGrav") {
-
-       // Set to zero to fill ghost cells.
-       grav.setVal(0.);
 
        // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
        const Geometry& geom = parent->Geom(level);
@@ -946,27 +956,28 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
+      // We may want to fill phi for MonopoleGrav, even though we don't return it.      
+      
+      MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
+
 #if (BL_SPACEDIM == 1)
-       make_one_d_grav(level,time,grav);
+	make_one_d_grav(level,time,grav,phi);
 #else
 
-       // We always fill radial_grav_new (at every level)
-       if (gravity_type == "MonopoleGrav")
-       {
+	// We always fill radial_grav_new (at every level)
+	if (gravity_type == "MonopoleGrav")
+	{
           const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
           make_radial_gravity(level,cur_time,radial_grav_new[level]);
           interpolate_monopole_grav(level,radial_grav_new[level],grav);
-       }
-       else if (gravity_type == "PrescribedGrav") 
-       {
-          make_prescribed_grav(level,time,grav);
-       }
+	}
+	else if (gravity_type == "PrescribedGrav") 
+	{
+	  make_prescribed_grav(level,time,grav);
+	}
+
 #endif
-
     } else if (gravity_type == "PoissonGrav") {
-
-       // Set to zero to fill ghost cells
-       grav.setVal(0.);
 
       // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
       const Geometry& geom = parent->Geom(level);
@@ -1492,7 +1503,7 @@ Gravity::fill_ec_grow (int level,
 
 #if (BL_SPACEDIM == 1)
 void
-Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
+Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& phi)
 {
     BL_PROFILE("Gravity::make_one_d_grav()");
 
@@ -1503,11 +1514,15 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
    Box domain(parent->Geom(level).Domain());
 
    Box bx(grids[level].minimalBox());
-   bx.setSmall(0,-ng);
-   bx.setBig(0,bx.hiVect()[0]+ng);
+   int lo = bx.loVect()[0];
+   int hi = bx.hiVect()[0];
+   bx.setSmall(0,lo-ng);
+   bx.setBig(0,hi+ng);
    BoxArray ba(bx);
 
    FArrayBox grav_fab(bx,1);
+
+   FArrayBox phi_fab(bx,1);
 
    // We only use mf for its BoxArray in the FillPatchIterator --
    //    it doesn't need to have enough components
@@ -1537,7 +1552,7 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
         fpi.isValid(); ++fpi) 
    {
       BL_FORT_PROC_CALL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
-          (BL_TO_FORTRAN(fpi()),grav_fab.dataPtr(),dx,problo);
+	(BL_TO_FORTRAN(fpi()),lo,hi,grav_fab.dataPtr(),phi_fab.dataPtr(),dx,problo);
    }
 #endif
 
@@ -1545,6 +1560,7 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
    int whichProc(mf.DistributionMap()[0]);
 
    ParallelDescriptor::Bcast(grav_fab.dataPtr(),grav_fab.box().numPts(),whichProc);
+   ParallelDescriptor::Bcast(phi_fab.dataPtr(),phi_fab.box().numPts(),whichProc);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1552,6 +1568,14 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector)
    for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi) 
    {
         grav_vector[mfi].copy(grav_fab);
+   }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+   for (MFIter mfi(phi); mfi.isValid(); ++mfi)
+   {
+       phi[mfi].copy(phi_fab);
    }
       
 }

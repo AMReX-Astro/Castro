@@ -271,6 +271,7 @@
                                    use_pslope_in, &
                                    do_grav_in, grav_source_type_in, &
                                    gravity_type_in, gravity_type_len, &
+                                   get_g_from_phi_in, &
                                    do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
                                    burning_timestep_factor_in, &
                                    dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
@@ -304,6 +305,7 @@
         double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in
         integer, intent(in) :: use_pslope_in
         integer, intent(in) :: do_grav_in, grav_source_type_in, gravity_type_len
+        integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
         integer, intent(in) :: cg_maxiter_in
         double precision, intent(in) :: cg_tol_in
@@ -550,6 +552,8 @@
         dual_energy_eta3             = dual_energy_eta3_in
         dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
+        get_g_from_phi               = get_g_from_phi_in .ne. 0
+        
       end subroutine set_method_params
 
 ! ::: 
