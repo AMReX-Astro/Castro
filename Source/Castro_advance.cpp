@@ -417,22 +417,23 @@ Castro::advance_hydro (Real time,
 #ifdef GRAVITY
     if (do_grav) {
 
-      MultiFab grav_temp(grids,3,NUM_GROW,Fab_allocate);
+      MultiFab grav_temp(grids,1,NUM_GROW,Fab_allocate);
 
       for (int i = 0; i < 3; i++) {
 
-	MultiFab::Copy(grav_temp,grav_old,0,0,3,NUM_GROW);
+	MultiFab::Copy(grav_temp,grav_old,i,0,1,NUM_GROW);
       
 	// Multiply gravity by the density to put it in conservative form.      
 	
-	MultiFab::Multiply(grav_temp,Sborder,Density,i,1,NUM_GROW);
-	MultiFab::Add(sources,grav_temp,i,Xmom+i,1,NUM_GROW);
-	
+	MultiFab::Multiply(grav_temp,Sborder,Density,0,1,NUM_GROW);
+	MultiFab::Add(sources,grav_temp,0,Xmom+i,1,NUM_GROW);
+
+	MultiFab::Copy(grav_temp,grav_old,i,0,1,NUM_GROW);
+      	
 	// Add corresponding energy source term (v . src).
-      
-	MultiFab::Multiply(grav_temp,Sborder,Xmom+i,i,1,NUM_GROW);
-	MultiFab::Divide(grav_temp,Sborder,Density,i,1,NUM_GROW);
-	MultiFab::Add(sources,grav_temp,i,Eden,1,NUM_GROW);
+
+	MultiFab::Multiply(grav_temp,Sborder,Xmom+i,0,1,NUM_GROW);
+	MultiFab::Add(sources,grav_temp,0,Eden,1,NUM_GROW);
       
       }
 
@@ -460,22 +461,23 @@ Castro::advance_hydro (Real time,
 
     if (do_rotation) {
 
-      MultiFab rot_temp(grids,3,NUM_GROW,Fab_allocate);      
+      MultiFab rot_temp(grids,1,NUM_GROW,Fab_allocate);      
       
       for (int i = 0; i < 3; i++) {
 
-	MultiFab::Copy(rot_temp,rot_old,0,0,3,NUM_GROW);      
+	MultiFab::Copy(rot_temp,rot_old,i,0,1,NUM_GROW);      
       
 	// Multiply rotation by the density to put it in conservative form.      
 	
-	MultiFab::Multiply(rot_temp,Sborder,Density,i,1,NUM_GROW);
-	MultiFab::Add(sources,rot_temp,i,Xmom+i,1,NUM_GROW);
-      
+	MultiFab::Multiply(rot_temp,Sborder,Density,0,1,NUM_GROW);
+	MultiFab::Add(sources,rot_temp,0,Xmom+i,1,NUM_GROW);
+
+	MultiFab::Copy(rot_temp,rot_old,i,0,1,NUM_GROW);      
+            
 	// Add corresponding energy source term (v . src).
-      
-	MultiFab::Multiply(rot_temp,Sborder,Xmom+i,i,1,NUM_GROW);
-	MultiFab::Divide(rot_temp,Sborder,Density,i,1,NUM_GROW);
-	MultiFab::Add(sources,rot_temp,i,Eden,1,NUM_GROW);
+
+	MultiFab::Multiply(rot_temp,Sborder,Xmom+i,0,1,NUM_GROW);
+	MultiFab::Add(sources,rot_temp,0,Eden,1,NUM_GROW);
 
       }
 
