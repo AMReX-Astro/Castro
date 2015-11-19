@@ -181,11 +181,13 @@
                   phi_temp(i) = phi_temp(i) + Gconst * dm / rc
 
                ! If the mass shell is exterior, the potential is G * M / R where
-               ! R is the radius of the shell.
+               ! R is the radius of the shell for a point mass. More generally for
+               ! a thick spherical shell of inner radius a and outer radius b, the
+               ! potential inside is given by G * M * 3 * (a + b) / (2 * (a^2 + a* b + b^2)).
                      
                else
 
-                  phi_temp(i) = phi_temp(i) + Gconst * dm / rcj
+                  phi_temp(i) = phi_temp(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
 
                endif
 
