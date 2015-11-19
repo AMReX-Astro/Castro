@@ -138,7 +138,7 @@
       double precision, intent(  out) ::  phi(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
-      double precision :: phi_temp(r_l1-1:r_h1+1)
+      double precision :: phi_temp(r_l1-1:r_h1+2)
       
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision :: rc,rlo,mass_encl,halfdx,dm,rloj,rcj,rhij
@@ -155,10 +155,9 @@
          ! upper ghost cells, using the standard approach of integrating
          ! the Green's function for the potential.
          
-         do i = lo, r_h1+1
+         do i = lo, r_h1+2
 
-            rlo = problo(1) + dble(i) * dx
-            rc = rlo + halfdx
+            rc = problo(1) + dble(i) * dx
 
             mass_encl = ZERO                  
             
@@ -184,7 +183,7 @@
                ! If the mass shell is exterior, the potential is G * M / R where
                ! R is the radius of the shell.
                      
-               else if (j .gt. i) then
+               else
 
                   phi_temp(i) = phi_temp(i) + Gconst * dm / rcj
 
@@ -193,6 +192,16 @@
             enddo
 
          enddo
+
+         ! Average from cell edges to cell centers.
+
+         do i = lo, hi+1
+
+            phi(i) = HALF * (phi_temp(i) + phi_temp(i+1))
+
+         enddo
+         
+         phi_temp(lo:hi+1) = phi(lo:hi+1)
 
          ! We want to do even reflection of phi for the lower ghost cells on a
          ! symmetry axis, to ensure that the gradient at r == 0 vanishes.
