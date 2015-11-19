@@ -1104,8 +1104,6 @@ Castro::advance_hydro (Real time,
 	// Must compute new temperature in case it is needed in the source term evaluation
 	computeTemp(S_new);
 
-	std::cout << "test2\n";
-	
 	// Compute source at new time (no ghost cells needed)
 	
 #if (BL_SPACEDIM > 1)
