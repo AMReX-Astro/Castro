@@ -46,7 +46,7 @@ contains
           !dir$ ivdep
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              dp(i,j,k) = p(i+1*dg(1),j,k) - p(i-1*dg(1),j,k)
-             denom = max(small_pres,abs(p(i+2*dg(2),j,k)-p(i-2*dg(2),j,k)))
+             denom = max(small_pres,abs(p(i+2*dg(1),j,k)-p(i-2*dg(1),j,k)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
              if (u(i-1*dg(1),j,k)-u(i+1*dg(1),j,k) .ge. ZERO) then

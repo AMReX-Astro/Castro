@@ -1152,13 +1152,16 @@ Castro::advance_hydro (Real time,
       }
 
 #ifdef SGS
+    
 // old way: time-centering for ext_src, diffusion are separated.
     if (add_ext_src) {
 	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
 	reset_new_sgs(dt);
 	computeTemp(S_new);
     }
- #else
+    
+#else
+    
 // New way for non-SGS: time-centering for ext_src, diffusion are merged.
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;
@@ -1176,13 +1179,15 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
+    if (add_ext_src) {
+      time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
+      computeTemp(S_new);
+    }
+    
 #endif
 
-    time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
-    computeTemp(S_new);
-
-    MultiFab::Add(sources,ext_src_new,0,0,NUM_STATE,0);
-
+    MultiFab::Add(sources,ext_src_new,0,0,NUM_STATE,0);    
+    
 #ifdef GRAVITY
     if (do_grav)
       {
