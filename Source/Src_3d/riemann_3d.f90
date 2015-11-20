@@ -1311,7 +1311,7 @@ contains
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+    integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
     double precision :: wwinv, roinv, co2inv
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
@@ -1361,21 +1361,21 @@ contains
        special_bnd_hi_x = .false.
     end if
 
-    bnd_fac_z = ONE
+    bnd_fac_z = 1
     if (idir.eq.3) then
        if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
             k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
-          bnd_fac_z = ZERO
+          bnd_fac_z = 0
        end if
     end if
 
     do j = jlo, jhi
 
-       bnd_fac_y = ONE
+       bnd_fac_y = 1
        if (idir .eq. 2) then
           if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
                j .eq. domhi(2)+1 .and. special_bnd_hi ) then
-             bnd_fac_y = ZERO
+             bnd_fac_y = 0
           end if
        end if
 
@@ -1478,6 +1478,17 @@ contains
 
           ! now we do the HLLC construction
 
+
+          ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
+          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
+               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
+             bnd_fac_x = 0
+          else
+             bnd_fac_x = 1
+          end if
+
+          bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+          
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
@@ -1489,12 +1500,12 @@ contains
           if (S_r <= ZERO) then
              ! R region
              call cons_state(qr(i,j,kc,:), U_state)
-             call compute_flux(idir, 3, U_state, pr, F_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
              call cons_state(qr(i,j,kc,:), U_state)
-             call compute_flux(idir, 3, U_state, pr, F_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
              
              call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
 
@@ -1504,7 +1515,7 @@ contains
           else if (S_c > ZERO .and. S_l < ZERO) then
              ! L* region
              call cons_state(ql(i,j,kc,:), U_state)
-             call compute_flux(idir, 3, U_state, pl, F_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pl, F_state)
 
              call HLLC_state(idir, S_l, S_c, ql(i,j,kc,:), U_hllc_state)
 
@@ -1514,19 +1525,9 @@ contains
           else
              ! L region
              call cons_state(ql(i,j,kc,:), U_state)
-             call compute_flux(idir, 3, U_state, pl, F_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pl, F_state)
 
           endif
-
-          ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
-          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
-               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
-             bnd_fac_x = ZERO
-          else
-             bnd_fac_x = ONE
-          end if
-
-          F_state(:) = F_state(:) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           uflx(i,j,kflux,:) = F_state(:)
        enddo

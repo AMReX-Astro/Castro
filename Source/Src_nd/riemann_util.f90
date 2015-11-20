@@ -276,8 +276,9 @@ contains
        U(UMZ)  = hllc_factor*S_c
     endif
 
-    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + HALF*(q(QU)**2 + q(QV)**2 + q(QW)**2) + &
-                            (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
+    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + &
+         HALF*(q(QU)**2 + q(QV)**2 + q(QW)**2) + &
+         (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
     U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
 
     do ipassive = 1, npassive
@@ -289,19 +290,19 @@ contains
   end subroutine HLLC_state
 
   
-  pure subroutine compute_flux(idir, ndim, U, p, F)
+  subroutine compute_flux(idir, ndim, bnd_fac, U, p, F)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map
 
-    integer, intent(in) :: idir, ndim
+    integer, intent(in) :: idir, ndim, bnd_fac
     real (kind=dp_t), intent(in) :: U(NVAR)
     real (kind=dp_t), intent(in) :: p
     real (kind=dp_t), intent(out) :: F(NVAR)
 
     integer :: ipassive, n
     real (kind=dp_t) :: u_flx
-
+    
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)
     elseif (idir == 2) then
@@ -310,6 +311,10 @@ contains
        u_flx = U(UMZ)/U(URHO)
     endif
 
+    if (bnd_fac == 0) then
+       u_flx = ZERO
+    endif
+    
     F(URHO) = U(URHO)*u_flx
 
     F(UMX) = U(UMX)*u_flx

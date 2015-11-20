@@ -1132,7 +1132,8 @@ contains
     integer :: ilo,ihi,jlo,jhi
     integer :: n, nq
     integer :: i, j
-
+    integer :: bnd_fac
+    
     double precision :: rgd, vgd, regd, ustar
     double precision :: rl, ul, pl, rel
     double precision :: rr, ur, pr, rer
@@ -1262,6 +1263,8 @@ contains
 
           ! now we do the HLLC construction
 
+          bnd_fac = bc_test(idir, i, j, domlo, domhi)
+          
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
@@ -1273,12 +1276,12 @@ contains
           if (S_r <= ZERO) then
              ! R region
              call cons_state(qr(i,j,:), U_state)
-             call compute_flux(idir, 2, U_state, pr, F_state)
+             call compute_flux(idir, 2, bnd_fac, U_state, pr, F_state)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
              call cons_state(qr(i,j,:), U_state)
-             call compute_flux(idir, 2, U_state, pr, F_state)
+             call compute_flux(idir, 2, bnd_fac, U_state, pr, F_state)
 
              call HLLC_state(idir, S_r, S_c, qr(i,j,:), U_hllc_state)
 
@@ -1288,7 +1291,7 @@ contains
           else if (S_c > ZERO .and. S_l < ZERO) then
              ! L* region
              call cons_state(ql(i,j,:), U_state)
-             call compute_flux(idir, 2, U_state, pl, F_state)
+             call compute_flux(idir, 2, bnd_fac, U_state, pl, F_state)
 
              call HLLC_state(idir, S_l, S_c, ql(i,j,:), U_hllc_state)
 
@@ -1298,14 +1301,14 @@ contains
           else
              ! L region
              call cons_state(ql(i,j,:), U_state)
-             call compute_flux(idir, 2, U_state, pl, F_state)
+             call compute_flux(idir, 2, bnd_fac, U_state, pl, F_state)
 
           endif
 
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           ! and store the fluxes
-          uflx(i,j,:) =  bc_test(idir, i, j, domlo, domhi) * F_state(:)
+          uflx(i,j,:) = F_state(:)
 
        enddo
     enddo
