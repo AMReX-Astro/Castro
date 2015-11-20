@@ -146,10 +146,11 @@ Gravity::read_params ()
 	// For non-Poisson gravity, do we want to construct the gravitational acceleration by taking
 	// the gradient of the potential, rather than constructing it directly?
 
-	pp.query("get_g_from_phi", get_g_from_phi);
+	int got_get_g_from_phi = pp.query("get_g_from_phi", get_g_from_phi);
 
-	if (!get_g_from_phi && gravity_type == "PoissonGrav")
-	  std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
+	if (got_get_g_from_phi && !get_g_from_phi && gravity_type == "PoissonGrav")
+	  if (ParallelDescriptor::IOProcessor())
+	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 	
         // Allow run-time input of solver tolerances
 	if (Geometry::IsCartesian()) {
