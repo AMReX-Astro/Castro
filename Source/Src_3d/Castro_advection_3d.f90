@@ -1419,7 +1419,7 @@ contains
 
                    do ipassive = 1, npassive
                       n = upass_map(ipassive)
-                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
+                      uout(i,j,k,n) = uout(i,j,k,n) * (small_dens / uout(i,j,k,URHO))
                    end do
 
                    eos_state % rho = small_dens
