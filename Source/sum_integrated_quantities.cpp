@@ -21,6 +21,7 @@ Castro::sum_integrated_quantities ()
     Real rho_e       = 0.0;
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
+    Real rho_phi     = 0.0;
 #ifdef SGS
     Real dt_crse     = parent->dtLevel(0);
     Real Etot        = 0.0;
@@ -50,6 +51,9 @@ Castro::sum_integrated_quantities ()
        rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
        rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
+#ifdef GRAVITY
+       rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
+#endif
 
 #ifdef SGS
         Real  cur_time = state[SGS_Type].curTime();
@@ -77,12 +81,12 @@ Castro::sum_integrated_quantities ()
     if (verbose > 0)
     {
 #ifdef SGS
-	const int nfoo = 14;
-	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, Etot, delta_E, delta_K, 
+	const int nfoo = 15;
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, rho_phi, Etot, delta_E, delta_K, 
 			  prod_sgs, diss_sgs, turb_src, rms_mach};
 #else
-	const int nfoo = 7;
-	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E};
+	const int nfoo = 8;
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, rho_phi};
 #endif
 
 #ifdef BL_LAZY
@@ -104,6 +108,7 @@ Castro::sum_integrated_quantities ()
 	    rho_e    = foo[i++];
 	    rho_K    = foo[i++];
             rho_E    = foo[i++];
+	    rho_phi  = foo[i++];
 #ifdef SGS
 	    Etot     = foo[i++];
 	    delta_E  = foo[i++];
@@ -122,6 +127,9 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " RHO*e       = "   << rho_e     << '\n';
 	    std::cout << "TIME= " << time << " RHO*K       = "   << rho_K     << '\n';
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
+#ifdef GRAVITY
+	    std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
+#endif
 #ifdef SGS
 	    Etot     = rho_E + rho_K;
 	    std::cout << "TIME= " << time << " TOTAL E     = "   << Etot      << '\n';
@@ -147,7 +155,11 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(14) <<  "         zmom ";
 		      data_log1 << std::setw(14) <<  "        rho_K ";
 		      data_log1 << std::setw(14) <<  "        rho_e ";
-		      data_log1 << std::setw(14) <<  "        rho_E " << std::endl;
+		      data_log1 << std::setw(14) <<  "        rho_E ";
+#ifdef GRAVITY		      
+		      data_log1 << std::setw(14) <<  "      rho_phi ";
+#endif
+		      data_log1 << std::endl;
 		  }
 
 		      // Write the quantities at this time
@@ -158,7 +170,11 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[2];
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_K;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_e;
-		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E << std::endl;
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E;
+#ifdef GRAVITY		  
+		  data_log1 << std::setw(14) <<  std::setprecision(5) << rho_phi;
+#endif
+		  data_log1 << std::endl;
 
 	       }
 

@@ -86,6 +86,8 @@ module meth_params_module
 
   double precision, save :: const_grav
 
+  logical, save :: get_g_from_phi
+  
   character(len=:), allocatable :: gravity_type
   
   integer, save :: npassive

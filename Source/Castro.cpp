@@ -1569,7 +1569,7 @@ Castro::post_timestep (int iteration)
               Real cur_time = state[State_Type].curTime();
 
               const BoxArray& ba = getLevel(lev).boxArray();
-              MultiFab grad_phi_cc(ba,3,0,Fab_allocate);
+              MultiFab grad_phi_cc(ba,3,NUM_GROW,Fab_allocate);
               gravity->get_new_grav_vector(lev,grad_phi_cc,cur_time);
 
 #ifdef _OPENMP
@@ -1709,7 +1709,7 @@ Castro::post_restart ()
                     for (int k = 0; k <= parent->finestLevel(); k++)
                     {
                         const BoxArray& ba = getLevel(k).boxArray();
-                        MultiFab grav_vec_new(ba,3,0,Fab_allocate);
+                        MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
                         gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
                     }
                 }
@@ -1861,7 +1861,7 @@ Castro::post_init (Real stop_time)
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
           BoxArray ba = getLevel(k).boxArray();
-          MultiFab grav_vec_new(ba,3,0,Fab_allocate);
+          MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
           gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
        }
     }
@@ -1943,7 +1943,7 @@ Castro::post_grown_restart ()
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
           BoxArray ba = getLevel(k).boxArray();
-          MultiFab grav_vec_new(ba,3,0,Fab_allocate);
+          MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
           gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
        }
     }

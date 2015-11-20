@@ -60,6 +60,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const int& use_pslope, 
      const int& do_grav, const int& grav_source_type,
      const int* gravity_type, const int* gravity_type_len,
+     const int& get_g_from_phi,
      const int& do_sponge, 
      const int& normalize_species,
      const int& fix_mass_flux, const int& use_sgs,

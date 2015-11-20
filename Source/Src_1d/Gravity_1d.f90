@@ -120,40 +120,142 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_compute_1d_grav(rho, r_l1, r_h1, grav, dx, problo)
+      ! Note that we come into this routine with the full 1D density
+      ! array, so we can compute the gravity in one pass.
+
+      subroutine ca_compute_1d_grav(rho, r_l1, r_h1, lo, hi, grav, phi, dx, problo)
 
       use fundamental_constants_module, only : Gconst
       use bl_constants_module
+      use meth_params_module, only : get_g_from_phi
 
       implicit none
 
       integer         , intent(in   ) :: r_l1, r_h1
+      integer         , intent(in   ) :: lo,   hi
       double precision, intent(in   ) ::  rho(r_l1:r_h1)
       double precision, intent(  out) :: grav(r_l1:r_h1)
+      double precision, intent(  out) ::  phi(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
+      double precision :: phi_temp(r_l1-1:r_h1+2)
+      
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
-      double precision :: rc,rlo,mass_encl,halfdx
-      integer          :: i
+      double precision :: rc,rlo,mass_encl,halfdx,dm,rloj,rcj,rhij
+      integer          :: i,j
 
       halfdx = HALF * dx
 
-      do i = 0,r_h1
-         rlo = problo(1) + dble(i) * dx
-         rc  = rlo + halfdx
-         if (i.gt.0) then
-            mass_encl = mass_encl + fourthirdspi * halfdx * (rlo**2 + rlo*(rlo-halfdx) + (rlo-halfdx)**2) * rho(i-1) + &
-                                    fourthirdspi * halfdx * ( rc**2 +  rc* rlo         +  rlo**2        ) * rho(i  )
-         else
-            mass_encl = fourthirdspi * halfdx * (rc**2 + rc*rlo +  rlo**2) * rho(i)
-         end if
-         grav(i) = -Gconst * mass_encl / rc**2
-      enddo
+      if (get_g_from_phi) then
 
-      if (problo(1) .eq. ZERO) then
-         do i = r_l1,-1
-             grav(i) = -grav(-i-1)
-         end do
-      end if
+         phi_temp = ZERO
+         grav = ZERO
 
+         ! First do all the zones in the physical domain and in the
+         ! upper ghost cells, using the standard approach of integrating
+         ! the Green's function for the potential.
+         
+         do i = lo, r_h1+2
+
+            rc = problo(1) + dble(i) * dx
+
+            mass_encl = ZERO                  
+            
+            do j = lo, hi
+
+               rloj = problo(1) + dble(j) * dx
+               rcj = rloj + halfdx
+               rhij = rcj + halfdx
+
+               dm = fourthirdspi * (rhij**3 - rloj**3) * rho(j)
+
+               mass_encl = mass_encl + dm
+               
+               ! If the mass shell is interior to us, the shell theorem
+               ! (or an expansion in in the potential) tells us
+               ! that its contribution to the potential is given by
+               ! a point mass located at the origin.
+                  
+               if (j .lt. i) then
+
+                  phi_temp(i) = phi_temp(i) + Gconst * dm / rc
+
+               ! If the mass shell is exterior, the potential is G * M / R where
+               ! R is the radius of the shell for a point mass. More generally for
+               ! a thick spherical shell of inner radius a and outer radius b, the
+               ! potential inside is given by G * M * 3 * (a + b) / (2 * (a^2 + a* b + b^2)).
+                     
+               else
+
+                  phi_temp(i) = phi_temp(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
+
+               endif
+
+            enddo
+
+         enddo
+
+         ! Average from cell edges to cell centers.
+
+         do i = lo, hi+1
+
+            phi(i) = HALF * (phi_temp(i) + phi_temp(i+1))
+
+         enddo
+         
+         phi_temp(lo:hi+1) = phi(lo:hi+1)
+
+         ! We want to do even reflection of phi for the lower ghost cells on a
+         ! symmetry axis, to ensure that the gradient at r == 0 vanishes.
+         
+         if (problo(1) .eq. ZERO) then
+            do i = r_l1-1, lo-1
+               phi_temp(i) = phi_temp(-i-1)
+            enddo
+         endif
+
+         ! For the outermost zones, use phi = G * M / r again.
+
+         do i = hi+1, r_h1
+            rc = problo(1) + dble(i) * dx + halfdx
+            phi_temp(i) = Gconst * mass_encl / rc
+         enddo
+
+         ! Now that we have phi, construct g by taking the gradient.
+         ! We use simple second-order centered differencing.
+
+         do i = r_l1, r_h1
+
+            grav(i) = (phi_temp(i+1) - phi_temp(i-1)) / (TWO * dx)
+
+         enddo
+
+         phi = phi_temp(r_l1:r_h1)         
+         
+      else
+
+         mass_encl = ZERO      
+         
+         do i = 0, r_h1
+            rlo = problo(1) + dble(i) * dx
+            rc  = rlo + halfdx
+            if (i .gt. 0) then
+               dm = fourthirdspi * halfdx * (rlo**2 + rlo*(rlo-halfdx) + (rlo-halfdx)**2) * rho(i-1) + &
+                    fourthirdspi * halfdx * ( rc**2 +  rc* rlo         +  rlo**2        ) * rho(i  )
+            else
+               dm = fourthirdspi * halfdx * (rc**2 + rc*rlo +  rlo**2) * rho(i)
+            endif
+            mass_encl = mass_encl + dm
+            grav(i) = -Gconst * mass_encl / rc**2
+
+         enddo
+
+         if (problo(1) .eq. ZERO) then
+            do i = r_l1,-1
+               grav(i) = -grav(-i-1)
+            enddo
+         endif
+
+      endif
+         
       end subroutine ca_compute_1d_grav

@@ -104,7 +104,7 @@
                              E_added,mom_added)
 
       use mempool_module, only : bl_allocate, bl_deallocate
-      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, gravity_type
+      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, gravity_type, get_g_from_phi
       use prob_params_module, only : dg
       use bl_constants_module
       use multifab_module
@@ -204,8 +204,68 @@
                   grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
                enddo
             enddo
-         end do
+         enddo
 
+         ! We need to perform the following hack to deal with the fact that
+         ! the potential is defined on cell edges, not cell centers, for ghost
+         ! zones. We redefine the boundary zone values as equal to the adjacent
+         ! cell minus the original value. Then later when we do the adjacent zone
+         ! minus the boundary zone, we'll get the boundary value, which is what we want.
+         
+         if (dg(3) > 0) then
+            
+            k = lo(3) - 1 * dg(3)         
+            do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                  phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
+               enddo
+            enddo
+
+            k = hi(3) + 1 * dg(3)         
+            do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                  phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
+               enddo
+            enddo            
+
+         endif
+
+         if (dg(2) > 0) then
+
+            j = lo(2) - 1 * dg(2)
+            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                  phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
+               enddo
+            enddo
+
+            j = hi(2) + 1 * dg(2)
+            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                  phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
+               enddo
+            enddo            
+
+         endif
+
+         if (dg(1) > 0) then
+
+            i = lo(1) - 1 * dg(1)
+            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+               do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+                  phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+               enddo
+            enddo
+
+            i = hi(1) + 1 * dg(1)
+            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+               do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+                  phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
+               enddo
+            enddo
+
+         endif
+            
          ! Construct the mass changes using the density flux from the hydro step. 
          ! Note that in the hydrodynamics step, these fluxes were already 
          ! multiplied by dA and dt, so dividing by the cell volume is enough to 
@@ -331,7 +391,8 @@
                   ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                   ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                  if (gravity_type == "PoissonGrav") then
+                  if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
+                      .and. get_g_from_phi) ) then
                   
                      SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                           drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
