@@ -1524,6 +1524,9 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
 
    FArrayBox phi_fab(bx,1);
 
+   grav_fab.setVal(0.0);
+   phi_fab.setVal(0.0);
+   
    // We only use mf for its BoxArray in the FillPatchIterator --
    //    it doesn't need to have enough components
    MultiFab mf(ba,1,0,Fab_allocate);
