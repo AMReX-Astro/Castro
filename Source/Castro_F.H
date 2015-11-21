@@ -70,7 +70,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
      const Real& dual_energy_eta3,
      const int& dual_energy_update_E_from_e,
      const int& do_rotation, const int& rot_source_type, const int& rot_axis, 
-     const Real& rotational_period, const Real& rotational_period_dot,
+     const Real& rotational_period, const Real& rotational_dPdt,
      const Real& diffuse_cutoff_density, 
      const Real& const_grav, const int& deterministic, const int& do_acc);
 
