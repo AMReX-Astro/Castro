@@ -16,7 +16,7 @@ amr.n_cell           = 512 512
 
 castro.ppm_type = 1
 
-castro.use_colglaz = 1
+castro.riemann_solver = 1
 
 castro.use_flattening = 1
 
