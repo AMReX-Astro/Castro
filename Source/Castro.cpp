@@ -503,6 +503,12 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
+    if (hybrid_riemann == 1 && (Geometry::IsSPHERICAL() || Geometry::IsRZ() ))
+      {
+        std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
+        BoxLib::Error();
+      }
+
     if (use_colglaz > 0 && riemann_solver == 0)
       {
 	std::cerr << "WARNING: the use_colglaz parameter is deprecated.  Use riemann_solver instead\n";
