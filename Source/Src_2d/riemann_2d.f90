@@ -356,7 +356,7 @@ contains
                                    small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, &
                                    npassive, upass_map, qpass_map
-
+    use prob_params_module, only : coord_type
 
     double precision, parameter:: small = 1.d-8
 
@@ -763,15 +763,18 @@ contains
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgdnv*ugdnv(i,j)
 
-          ! note: here we do not include the pressure, since in 2-d,
-          ! for some geometries, div{F} + grad{p} cannot be written
-          ! in a flux difference form
-          if(idir.eq.1) then
+          ! note: for axisymmetric geometries, we do not include the
+          ! pressure, since in 2-d, for axisymmetric, div{F} +
+          ! grad{p} cannot be written in a flux difference form
+          if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
+             if (coord_type == 0) then
+                uflx(i,j,UMX) = uflx(i,j,UMX) + pgdnv(i,j)
+             endif
           else
              uflx(i,j,UMX) = uflx(i,j,URHO)*vgdnv
-             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
+             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j) + pgdnv(i,j)
           endif
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
@@ -865,6 +868,7 @@ contains
                                    URHO, UMX, UMY, UEDEN, UEINT, &
                                    small_dens, small_pres, &
                                    npassive, upass_map, qpass_map
+    use prob_params_module, only : coord_type
 
     implicit none
 
@@ -1050,15 +1054,18 @@ contains
           ! Compute fluxes, order as conserved state (not q)
           uflx(i,j,URHO) = rgd*ugdnv(i,j)
 
-          ! note: here we do not include the pressure, since in 2-d,
-          ! for some geometries, div{F} + grad{p} cannot be written
-          ! in a flux difference form
-          if(idir.eq.1) then
+          ! note: for axisymmetric geometries, we do not include the
+          ! pressure, since in 2-d, for axisymmetric, div{F} +
+          ! grad{p} cannot be written in a flux difference form
+          if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
+             if (coord_type == 0) then
+                uflx(i,j,UMX) = uflx(i,j,UMX) + pgdnv(i,j)
+             endif
           else
              uflx(i,j,UMX) = uflx(i,j,URHO)*vgd
-             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j)
+             uflx(i,j,UMY) = uflx(i,j,URHO)*ugdnv(i,j) + pgdnv(i,j)
           endif
 
           rhoetot = regd + HALF*rgd*(ugdnv(i,j)**2 + vgd**2 + wgd**2)

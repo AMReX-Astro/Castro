@@ -81,8 +81,8 @@ contains
        do j = jlo, jhi 
           do i = ilo, ihi 
 
-             compn = hdt*(area1(i+1,j)*fx(i+1,j,n) &
-                  -       area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
+             compn = hdt*(area1(i+1,j)*fx(i+1,j,n) - &
+                          area1(i  ,j)*fx(i  ,j,n))/vol(i,j) 
 
              if (j.ge.jlo+1) then
                 rr = qp(i,j,  QRHO)

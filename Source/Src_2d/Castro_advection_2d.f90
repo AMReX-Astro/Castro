@@ -517,6 +517,7 @@ contains
     use meth_params_module, only : difmag, NVAR, UMX, UMY, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
+    use prob_params_module, only : coord_type
     use bl_constants_module
 
     implicit none
@@ -555,7 +556,7 @@ contains
     !double precision rho, Up, Vp, SrE
 
     ! Normalize the species fluxes
-    if (normalize_species .eq. 1) &
+    if (normalize_species == 1) &
          call normalize_species_fluxes( &
                 flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                 flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -563,95 +564,102 @@ contains
 
     ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
-       if ( n .eq. UTEMP ) then
+       if (n == UTEMP) then
           flux1(:,:,n) = ZERO
           flux2(:,:,n) = ZERO
        else 
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)+1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)+1
                 div1 = HALF*(div(i,j) + div(i,j+1))
                 div1 = difmag*min(ZERO,div1)
-                flux1(i,j,n) = flux1(i,j,n) &
-                     + dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+
+                flux1(i,j,n) = flux1(i,j,n) + &
+                     dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+
                 flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
              enddo
           enddo
           
-          do j = lo(2),hi(2)+1
-             do i = lo(1),hi(1)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
                 div1 = HALF*(div(i,j) + div(i+1,j))
                 div1 = difmag*min(ZERO,div1)
-                flux2(i,j,n) = flux2(i,j,n) &
-                     + dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+
+                flux2(i,j,n) = flux2(i,j,n) + &
+                     dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+
                 flux2(i,j,n) = area2(i,j)*flux2(i,j,n)
              enddo
           enddo
+
        endif
     enddo
     
     ! do the conservative updates
     do n = 1, NVAR
-       if (n .eq. UTEMP) then
+       if (n == UTEMP) then
           uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
        else 
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 uout(i,j,n) = uin(i,j,n) + dt * &
-                     ( flux1(i,j,n) - flux1(i+1,j,n) &
-                     +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
+                     ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                       flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
                 
-                if (n .eq. UEINT) then
+                if (n == UEINT) then
                    ! Add p div(u) source term to (rho e)
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
                 endif
                    
                 ! Add up some diagnostic quantities
                    
-                if (n .eq. UEDEN) then
+                if (n == UEDEN) then
                    E_added_flux = E_added_flux + dt * & 
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                else if (n .eq. UMX) then
+                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+
+                else if (n == UMX) then
                    xmom_added_flux = xmom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                else if (n .eq. UMY) then
+                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+
+                else if (n == UMY) then
                    ymom_added_flux = ymom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
                 end if
              enddo
           enddo
        end if
     enddo
 
-    ! Add gradp term to momentum equation
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-!         uout(i,j,UMX) = uout(i,j,UMX)+ HALF*(area1(i,j)+area1(i+1,j))* &
-!            dt * ( pgdx(i,j)-pgdx(i+1,j) )/vol(i,j)
-!         uout(i,j,UMY) = uout(i,j,UMY)+ HALF*(area2(i,j)+area2(i,j+1))* &
-!            dt * ( pgdy(i,j)-pgdy(i,j+1) )/vol(i,j)
-
-          uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
-          uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
+    ! Add gradp term to momentum equation -- only for axisymmetric
+    ! coords (and only for the radial flux)
+    if (coord_type == 1) then
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
+             !uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
+          enddo
        enddo
-    enddo
+    endif
 
     ! scale the fluxes (and correct the momentum flux with the grad p part)
     ! so we can use them in the flux correction at coarse-fine interfaces
     ! later.
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)+1
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)+1
           flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
-          flux1(i,j,   UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+          if (coord_type == 1) then
+             flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+          endif
        enddo
     enddo
     
-    do j = lo(2),hi(2)+1 
-       do i = lo(1),hi(1)
+    do j = lo(2), hi(2)+1 
+       do i = lo(1), hi(1)
           flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
-          flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
+          !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
        enddo
     enddo
     

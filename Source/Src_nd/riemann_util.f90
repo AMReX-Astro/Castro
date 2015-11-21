@@ -57,6 +57,7 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
+    use prob_params_module, only : coord_type
 
     double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
     double precision, intent(inout) :: f(NVAR)
@@ -149,10 +150,10 @@ contains
     f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
 
 
-    ! normal momentum flux.  Note for 1- and 2-d, we leave off the pressure
-    ! term and handle that separately in the update, to accommodate different
-    ! geometries
-    if (ndim < 3) then
+    ! normal momentum flux.  Note for 1-d and 2-d non cartesian, we
+    ! leave off the pressure term and handle that separately in the
+    ! update, to accommodate different geometries
+    if (ndim == 1 .or. (ndim == 2 .and. coord_type == 1)) then
        fl_tmp = ql(QRHO)*ql(ivel)**2 
        fr_tmp = qr(QRHO)*qr(ivel)**2 
     else
@@ -294,6 +295,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map
+    use prob_params_module, only : coord_type
 
     integer, intent(in) :: idir, ndim, bnd_fac
     real (kind=dp_t), intent(in) :: U(NVAR)
@@ -321,9 +323,9 @@ contains
     F(UMY) = U(UMY)*u_flx
     F(UMZ) = U(UMZ)*u_flx
 
-    if (ndim == 3) then
-       ! we only include the pressure in 3-d, because we know we are
-       ! Cartesian
+    if (ndim == 3 .or. (ndim == 2 .and. coord_type == 0)) then
+       ! we only include the pressure in 3-d and 2-d Cartesian,
+       ! because we know we are Cartesian
        F(UMX-1+idir) = F(UMX-1+idir) + p
     endif
 
