@@ -207,7 +207,7 @@ Castro::variableSetUp ()
 
 #ifndef ROTATION
     static Real rotational_period = -1.e200;
-    static Real rotational_period_dot = 0.0;
+    static Real rotational_dPdt = 0.0;
     static int  rot_axis = 3;
     static int  rot_source_type = -1;
 #endif
@@ -254,7 +254,7 @@ Castro::variableSetUp ()
          normalize_species,fix_mass_flux,use_sgs,
 	 burning_timestep_factor,
 	 dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e,
-	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_period_dot,
+	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_dPdt,
 	 diffuse_cutoff_density,
 	 const_grav, deterministic, do_acc);
 

@@ -134,7 +134,7 @@ Radiation*   Castro::radiation = 0;
 
 #ifdef ROTATION
 Real         Castro::rotational_period = -1.e200;
-Real         Castro::rotational_period_dot = 0.0;
+Real         Castro::rotational_dPdt = 0.0;
 int          Castro::rot_source_type = 1;
 int          Castro::rot_axis = 3;
 #endif
@@ -509,12 +509,6 @@ Castro::read_params ()
 	riemann_solver = 1;
       }
 
-    if (hybrid_riemann == 1 && riemann_solver == 2)
-      {
-	std::cerr << "cannot use hybrid_riemann with riemann_solver = 2 (HLLC)\n";
-	BoxLib::Error();
-      }
-
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
@@ -562,7 +556,7 @@ Castro::read_params ()
       }
     }
     else pp.query("rotational_period",rotational_period);
-    pp.query("rotational_period_dot",rotational_period_dot);
+    pp.query("rotational_dPdt",rotational_dPdt);
     pp.query("rot_source_type",rot_source_type);
     if (Geometry::IsRZ())
       rot_axis = 2;
