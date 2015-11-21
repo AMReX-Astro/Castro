@@ -864,6 +864,9 @@ contains
 
              if (max_dens < small_dens) then
 
+                i_set = i
+                j_set = j
+                
                 do ipassive = 1, npassive
                    n = upass_map(ipassive)
                    uout(i,j,n) = uout(i,j,n) * (small_dens / uout(i,j,URHO))
