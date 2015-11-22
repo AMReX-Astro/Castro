@@ -102,7 +102,7 @@ contains
                                    UFS, UFX, &
                                    npassive, upass_map, qpass_map, small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol
-
+    use riemann_util_module
 
     double precision, parameter :: small = 1.d-8
 
@@ -498,52 +498,6 @@ contains
 
     enddo
   end subroutine riemanncg
-
-  subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
-
-    double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-
-    double precision, parameter :: smlp1 = 1.d-10
-    double precision, parameter :: small = 1.d-7
-
-    double precision :: alpha, beta
-
-    ! First predict a value of game across the shock
-
-    ! CG Eq. 31
-    gstar=(pstar-p)*gdot/(pstar+p) + gam
-    gstar=max(gmin,min(gmax,gstar))
-
-    ! Now use that predicted value of game with the R-H jump conditions
-    ! to compute the wave speed.
-
-    ! CG Eq. 34
-    ! wsq = (HALF*(gstar-1.0d0)*(pstar+p)+pstar)
-    ! temp = ((gstar-gam)/(gam-1.))
-
-    !if (pstar-p.eq.ZERO) then
-    !   divide=small
-    !else
-    !   divide=pstar-p
-    !endif
-
-    !temp=temp/divide
-    !wsq = wsq/(v - temp*p*v)
-
-    alpha = pstar-(gstar-1.0d0)*p/(gam-1.0d0)
-    if (alpha == ZERO) alpha = smlp1*(pstar + p)
-
-    beta = pstar + HALF*(gstar-1.0d0)*(pstar+p)
-
-    wsq = (pstar-p)*beta/(v*alpha)
-
-    if (abs(pstar  - p) < smlp1*(pstar + p)) then
-       wsq = csq
-    endif
-    wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
-
-    return
-  end subroutine wsqge
 
 ! :::
 ! ::: ------------------------------------------------------------------
