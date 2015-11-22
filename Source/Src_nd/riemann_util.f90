@@ -150,10 +150,10 @@ contains
     f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
 
 
-    ! normal momentum flux.  Note for 1-d and 2-d non cartesian, we
-    ! leave off the pressure term and handle that separately in the
-    ! update, to accommodate different geometries
-    if (ndim == 1 .or. (ndim == 2 .and. coord_type == 1)) then
+    ! normal momentum flux.  Note for 1-d and 2-d non cartesian
+    ! r-coordinate, we leave off the pressure term and handle that
+    ! separately in the update, to accommodate different geometries
+    if (ndim == 1 .or. (ndim == 2 .and. coord_type == 1 .and. idir == 1)) then
        fl_tmp = ql(QRHO)*ql(ivel)**2 
        fr_tmp = qr(QRHO)*qr(ivel)**2 
     else
@@ -323,9 +323,10 @@ contains
     F(UMY) = U(UMY)*u_flx
     F(UMZ) = U(UMZ)*u_flx
 
-    if (ndim == 3 .or. (ndim == 2 .and. coord_type == 0)) then
-       ! we only include the pressure in 3-d and 2-d Cartesian,
-       ! because we know we are Cartesian
+    if (ndim == 3 .or. (ndim == 2 .and. coord_type == 0) .or. &
+         (ndim == 2 .and. coord_type == 1 .and. idir == 2)) then
+       ! we do not include the pressure term in any non-Cartesian
+       ! coordinate directions
        F(UMX-1+idir) = F(UMX-1+idir) + p
     endif
 

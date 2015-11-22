@@ -764,8 +764,8 @@ contains
           uflx(i,j,URHO) = rgdnv*ugdnv(i,j)
 
           ! note: for axisymmetric geometries, we do not include the
-          ! pressure, since in 2-d, for axisymmetric, div{F} +
-          ! grad{p} cannot be written in a flux difference form
+          ! pressure in the r-direction, since div{F} + grad{p} cannot
+          ! be written in a flux difference form
           if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
@@ -1055,8 +1055,8 @@ contains
           uflx(i,j,URHO) = rgd*ugdnv(i,j)
 
           ! note: for axisymmetric geometries, we do not include the
-          ! pressure, since in 2-d, for axisymmetric, div{F} +
-          ! grad{p} cannot be written in a flux difference form
+          ! pressure in the r-direction, since div{F} + grad{p} cannot
+          ! be written in a flux difference form
           if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*ugdnv(i,j)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
