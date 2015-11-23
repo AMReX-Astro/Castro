@@ -43,7 +43,7 @@ module eos_data_module
   double precision, save :: mindens = 1.d-200
   double precision, save :: maxdens = 1.d200
   double precision, save :: minye   = 1.d-200
-  double precision, save :: maxye   = 1.d0
+  double precision, save :: maxye   = 1.d0 + 1.d-12
 
   logical, save :: initialized = .false.  
   
