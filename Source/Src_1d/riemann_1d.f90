@@ -238,13 +238,13 @@ contains
 
        ! these should consider a wider average of the cell-centered
        ! gammas
-       gmin = min(gamel, gamer, 1.0, 4.d0/3.d0)
-       gmax = max(gamel, gamer, 2.0, 5.d0/3.d0)
+       gmin = min(gamel, gamer, ONE, 4.d0/3.d0)
+       gmax = max(gamel, gamer, TWO, 5.d0/3.d0)
 
        game_bar = HALF*(gamel + gamer)
        gamc_bar = HALF*(gcl + gcr)
 
-       gdot = 2.d0*(ONE - game_bar/gamc_bar)*(game_bar - 1.0d0)
+       gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
 
        csmall = smallc(k)
        wsmall = small_dens*csmall
@@ -352,7 +352,7 @@ contains
        ! sample the solution -- here we look first at the direction
        ! that the contact is moving.  This tells us if we need to
        ! worry about the L/L* states or the R*/R states.
-       if (ustar .gt. ZERO) then
+       if (ustar > ZERO) then
           ro = rl
           uo = ul
           po = pl
@@ -361,7 +361,7 @@ contains
           gamco = gcl
           gameo = gamel
 
-       else if (ustar .lt. ZERO) then
+       else if (ustar < ZERO) then
           ro = rr
           uo = ur
           po = pr
@@ -381,8 +381,8 @@ contains
        endif
 
        ! use tau = 1/rho as the independent variable here
-       ro = max(small_dens,1.0d0/tauo)
-       tauo = 1.0d0/ro
+       ro = max(small_dens, ONE/tauo)
+       tauo = ONE/ro
 
        co = sqrt(abs(gamco*po/ro))
        co = max(csmall,co)
@@ -417,10 +417,11 @@ contains
        !ushock = HALF*(spin + spout)
        ushock = wo/ro - sgnm*uo
 
-       if (pstar-po .ge. ZERO) then
+       if (pstar-po >= ZERO) then
           spin = ushock
           spout = ushock
        endif
+
        ! if (spout-spin .eq. ZERO) then
        !   scr = small*cav(k)
        !  else
@@ -429,7 +430,7 @@ contains
        !  frac = (ONE + (spout + spin)/scr)*HALF
        !  frac = max(ZERO,min(ONE,frac))
 
-       frac = HALF*(1.0d0 + (spin + spout)/max(spout-spin,spin+spout, small*cav(k)))
+       frac = HALF*(ONE + (spin + spout)/max(spout-spin,spin+spout, small*cav(k)))
 
        if (ustar > ZERO) then
           v1gdnv = v1l
@@ -451,13 +452,14 @@ contains
 
        ! now handle the cases where instead we are fully in the
        ! star or fully in the original (l/r) state
-       if (spout .lt. ZERO) then
+       if (spout < ZERO) then
           rgdnv = ro
           ugdnv(k) = uo
           pgdnv(k) = po
           gamgdnv = gameo
        endif
-       if (spin .ge. ZERO) then
+
+       if (spin >= ZERO) then
           rgdnv = rstar
           ugdnv(k) = ustar
           pgdnv(k) = pstar
@@ -475,7 +477,7 @@ contains
        uflx(k,UMX) = uflx(k,URHO)*ugdnv(k)
 
        ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-       rhoetot = pgdnv(k)/(gamgdnv - 1.0d0) + &
+       rhoetot = pgdnv(k)/(gamgdnv - ONE) + &
             HALF*rgdnv*(ugdnv(k)**2 + v1gdnv**2 + v2gdnv**2)
 
        uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv(k))
@@ -486,14 +488,16 @@ contains
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
           nq = qpass_map(ipassive)
-          if (ustar .gt. ZERO) then
+
+          if (ustar > ZERO) then
              uflx(k,n) = uflx(k,URHO)*ql(k,nq)
-          else if (ustar .lt. ZERO) then
+          else if (ustar < ZERO) then
              uflx(k,n) = uflx(k,URHO)*qr(k,nq)
           else
              qavg = HALF * (ql(k,nq) + qr(k,nq))
              uflx(k,n) = uflx(k,URHO)*qavg
           endif
+
        enddo
 
     enddo
@@ -548,8 +552,8 @@ contains
 
     ! Solve Riemann Problem
 
-    fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) .and. (ilo .eq. domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux .eq. 1) .and. (physbc_hi(1) .eq. Outflow) .and. (ihi .eq. domhi(1))
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) .and. (ilo == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) .and. (ihi == domhi(1))
 
     do k = ilo, ihi+1
        rl  = ql(k,QRHO)
@@ -581,18 +585,20 @@ contains
           ustar = ZERO
        endif
 
-       if (ustar .gt. ZERO) then
+       if (ustar > ZERO) then
           ro = rl
           uo = ul
           po = pl
           reo = rel
           gamco = gamcl(k)
-       else if (ustar .lt. ZERO) then
+
+       else if (ustar < ZERO) then
           ro = rr
           uo = ur
           po = pr
           reo = rer
           gamco = gamcr(k)
+
        else
           ro = HALF*(rl+rr)
           uo = HALF*(ul+ur)
@@ -604,26 +610,33 @@ contains
 
        co = sqrt(abs(gamco*po/ro))
        co = max(csmall,co)
+
        entho = (reo/ro + po/ro)/co**2
+
        rstar = ro + (pstar - po)/co**2
        rstar = max(small_dens,rstar)
+
        estar = reo + (pstar - po)*entho
+
        cstar = sqrt(abs(gamco*pstar/rstar))
        cstar = max(cstar,csmall)
 
-       sgnm = sign(ONE,ustar)
+       sgnm = sign(ONE, ustar)
        spout = co - sgnm*uo
        spin = cstar - sgnm*ustar
        ushock = HALF*(spin + spout)
-       if (pstar-po .ge. ZERO) then
+
+       if (pstar-po >= ZERO) then
           spin = ushock
           spout = ushock
        endif
-       if (spout-spin .eq. ZERO) then
+
+       if (spout-spin == ZERO) then
           scr = small*cav(k)
        else
           scr = spout-spin
        endif
+
        frac = (ONE + (spout + spin)/scr)*HALF
        frac = max(ZERO,min(ONE,frac))
 
@@ -643,27 +656,29 @@ contains
        pgdnv(k) = frac*pstar + (ONE - frac)*po
        regdnv = frac*estar + (ONE - frac)*reo
 
-       if (spout .lt. ZERO) then
+       if (spout < ZERO) then
           rgdnv = ro
           ugdnv(k) = uo
           pgdnv(k) = po
           regdnv = reo
        endif
-       if (spin .ge. ZERO) then
+
+       if (spin >= ZERO) then
           rgdnv = rstar
           ugdnv(k) = ustar
           pgdnv(k) = pstar
           regdnv = estar
        endif
 
-       if (k.eq.0 .and. physbc_lo(1) .eq. Symmetry) ugdnv(k) = ZERO
+       if (k == 0 .and. physbc_lo(1) == Symmetry) ugdnv(k) = ZERO
 
-       if (fix_mass_flux_lo .and. k.eq.domlo(1) .and. ugdnv(k) .ge. ZERO) then
+       if (fix_mass_flux_lo .and. k == domlo(1) .and. ugdnv(k) >= ZERO) then
           rgdnv    = ql(k,QRHO)
           ugdnv(k) = ql(k,QU)
           regdnv   = ql(k,QREINT)
        end if
-       if (fix_mass_flux_hi .and. k.eq.domhi(1)+1 .and. ugdnv(k) .le. ZERO) then
+
+       if (fix_mass_flux_hi .and. k == domhi(1)+1 .and. ugdnv(k) <= ZERO) then
           rgdnv    = qr(k,QRHO)
           ugdnv(k) = qr(k,QU)
           regdnv   = qr(k,QREINT)
@@ -680,11 +695,13 @@ contains
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
           nq = qpass_map(ipassive)
-          if (ustar .ge. ZERO) then
+
+          if (ustar >= ZERO) then
              uflx(k,n) = uflx(k,URHO)*ql(k,nq)
           else
              uflx(k,n) = uflx(k,URHO)*qr(k,nq)
           endif
+
        enddo
 
     enddo
