@@ -9,7 +9,7 @@ class Diffusion {
 public:
 
   Diffusion(Amr* Parent, BCRec* _phys_bc);
-  virtual ~Diffusion ();
+  ~Diffusion ();
   void read_params ();
 
   void install_level (int                   level,
