@@ -202,10 +202,6 @@ public:
     //
     MultiFab& Volume ();
     //
-    // Get Edge BoxArrays
-    //
-    const BoxArray& getEdgeBoxArray (int dir) const;
-    //
     //Set time levels of state data.
     //
     virtual void setTimeLevel (Real time,
@@ -765,13 +761,6 @@ MultiFab&
 Castro::Volume ()
 {
     return volume;
-}
-
-inline
-const BoxArray&
-Castro::getEdgeBoxArray (int dir) const
-{
-    return area[dir].boxArray();
 }
 
 inline

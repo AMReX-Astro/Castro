@@ -788,25 +788,19 @@ Castro::buildMetrics ()
             }
         }
     }
-    //
-    // Build volume, face area and dLogArea arrays.
-    // volume is not PArrayManaged, must manually delete.
-    //
+
     volume.clear();
-    //
-    // area is not PArrayManaged, must manually delete.
-    //
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-        area[dir].clear();
-    }
-    dLogArea[0].clear();
-    geom.GetVolume(volume,grids,NUM_GROW);
+    volume.define(grids,1,NUM_GROW,Fab_allocate);
+    geom.GetVolume(volume);
 
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
-        geom.GetFaceArea(area[dir],grids,dir,NUM_GROW);
+        area[dir].clear();
+	area[dir].define(getEdgeBoxArray(dir),1,NUM_GROW,Fab_allocate);
+        geom.GetFaceArea(area[dir],dir);
     }
+
+    dLogArea[0].clear();
 #if (BL_SPACEDIM <= 2)
     geom.GetDLogA(dLogArea[0],grids,0,NUM_GROW);
 #endif
