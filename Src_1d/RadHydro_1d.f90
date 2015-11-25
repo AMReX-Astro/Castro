@@ -23,7 +23,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   use network, only : nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
-       QVAR, QRHO, QU, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
+       QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
        npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
@@ -240,14 +240,18 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   else if (iflaten.eq.1) then
      loq(1)=lo(1)-ngf
      hiq(1)=hi(1)+ngf
-     call uflaten(loq,hiq, &
+     call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
           q(:,qptot), &
           q(:,QU), &
-          flatn,q_l1,q_h1)
-     call uflaten(loq,hiq, &
+          q(:,QV), &
+          q(:,QW), &
+          flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
+     call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
           q(:,qpres), &
           q(:,QU), &
-          flatg,q_l1,q_h1)
+          q(:,QV), &
+          q(:,QW), &
+          flatg,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
      flatn = flatn * flatg
 
      if (flatten_pp_threshold > 0.d0) then

@@ -29,7 +29,7 @@ subroutine ctoprim_rad(lo,hi, &
   use network, only : nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
-                                 QVAR, QRHO, QU, QV, QGAME, QREINT, QPRES, &
+                                 QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, &
                                  QTEMP, QFS, QFX, &
                                  nadv, allow_negative_energy, small_temp, &
                                  npassive, upass_map, qpass_map
@@ -248,16 +248,18 @@ subroutine ctoprim_rad(lo,hi, &
         loq(n)=lo(n)-ngf
         hiq(n)=hi(n)+ngf
      enddo
-     call uflaten(loq,hiq, &
+     call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
           q(:,:,qptot), &
           q(:,:,QU), &
           q(:,:,QV), &
-          flatn,q_l1,q_l2,q_h1,q_h2)
-     call uflaten(loq,hiq, &
+          q(:,:,QW), &
+          flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
+     call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
           q(:,:,qpres), &
           q(:,:,QU), &
           q(:,:,QV), &
-          flatg,q_l1,q_l2,q_h1,q_h2)
+          q(:,:,QW), &
+          flatg,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
      flatn = flatn * flatg
 
      if (flatten_pp_threshold > 0.d0) then
