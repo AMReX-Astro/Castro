@@ -14,7 +14,7 @@
                           dloga,dloga_l1,dloga_h1,&
                           vol,vol_l1,vol_h1,courno,verbose,&
                           mass_added,eint_added,eden_added,&
-                          xmom_added_flux, &
+                          xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                           E_added_flux)
 
 
@@ -57,7 +57,7 @@
       double precision, allocatable:: pdivu(:)
 
       double precision :: dx,E_added_flux
-      double precision :: xmom_added_flux
+      double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
       double precision :: mass_added, eint_added, eden_added
       integer i,ngf,ngq
       integer q_l1, q_h1
@@ -120,7 +120,8 @@
            flux,flux_l1,flux_h1, &
            area,area_l1,area_h1, &
            vol , vol_l1, vol_h1, &
-           div ,pdivu,lo,hi,dx,dt)
+           div ,pdivu,lo,hi,dx,dt,E_added_flux, &
+           xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
       ! Enforce the density >= small_dens.
       call enforce_minimum_density(uin,uin_l1,uin_h1,uout,uout_l1,uout_h1,lo,hi,&

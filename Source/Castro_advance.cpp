@@ -788,12 +788,8 @@ Castro::advance_hydro (Real time,
 			 &cflLoc, verbose, 
 			 mass_added, eint_added, eden_added, 
 			 xmom_added_flux, 
-#if (BL_SPACEDIM >= 2)
                   	 ymom_added_flux, 
-#endif
-#if (BL_SPACEDIM == 3)
 	                 zmom_added_flux,
-#endif
                          E_added_flux);
 
 		    // Add dt * old-time external source terms

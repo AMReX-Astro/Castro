@@ -315,7 +315,8 @@ contains
                     flux, flux_l1, flux_h1, &
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
-                    div,pdivu,lo,hi,dx,dt)
+                    div,pdivu,lo,hi,dx,dt,E_added_flux, &
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
@@ -342,6 +343,8 @@ contains
     double precision    div(lo(1):hi(1)+1)
     double precision  pdivu(lo(1):hi(1)  )
     double precision dx, dt
+    double precision E_added_flux
+    double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     
     integer          :: i, n
     double precision :: div1, dpdx
@@ -372,6 +375,22 @@ contains
           do i = lo(1),hi(1)
              uout(i,n) = uin(i,n) &
                   + ( flux(i,n) - flux(i+1,n) ) / vol(i)
+
+             ! Add up some diagnostic quantities.
+                      
+             if (n .eq. UMX) then
+                xmom_added_flux = xmom_added_flux + &
+                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
+             else if (n .eq. UMY) then
+                ymom_added_flux = ymom_added_flux + &
+                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
+             else if (n .eq. UMZ) then
+                zmom_added_flux = zmom_added_flux + &
+                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
+             else if (n .eq. UEDEN) then
+                E_added_flux = E_added_flux + &
+                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
+             endif
           enddo
        end if
     enddo

@@ -424,12 +424,8 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      Real& eint_added,
      Real& eden_added,
      Real& xmom_added_flux,
-#if (BL_SPACEDIM >= 2)
      Real& ymom_added_flux,
-#endif
-#if (BL_SPACEDIM == 3)
      Real& zmom_added_flux,
-#endif
      Real& E_added_flux);
 
 #ifdef RADIATION
