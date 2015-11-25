@@ -323,13 +323,13 @@ subroutine ctoprim_rad(lo,hi, &
           q(:,:,:,QU), &
           q(:,:,:,QV), &
           q(:,:,:,QW), &
-          flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+          flatn,(/q_l1,q_l2,q_l3/),(/q_h1,q_h2,q_h3/))
      call uflaten(loq,hiq, &
           q(:,:,:,qpres), &
           q(:,:,:,QU), &
           q(:,:,:,QV), &
           q(:,:,:,QW), &
-          flatg,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+          flatg,(/q_l1,q_l2,q_l3/),(/q_h1,q_h2,q_h3/))
      flatn = flatn * flatg
 
      if (flatten_pp_threshold > 0.d0) then
