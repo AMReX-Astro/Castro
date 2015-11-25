@@ -1060,12 +1060,12 @@ Castro::advance_hydro (Real time,
     // first half of the update for the next calculation of dS/dt.
     
     if (source_term_predictor == 1) {
-      MultiFab::Subtract(sources,dSdt_new,0,0,NUM_STATE,0);
-      dSdt_new.setVal(0.0);
-      MultiFab::Subtract(dSdt_new,sources,0,0,NUM_STATE,0);
+      MultiFab::Subtract(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      dSdt_new.setVal(0.0, NUM_GROW);
+      MultiFab::Subtract(dSdt_new,sources,0,0,NUM_STATE,NUM_GROW);
     }
     
-    sources.setVal(0.0);       
+    sources.setVal(0.0,NUM_GROW);       
     
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
