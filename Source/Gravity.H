@@ -13,7 +13,7 @@ class Gravity {
 public:
 
   Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density);
-  virtual ~Gravity ();
+  ~Gravity ();
   void read_params ();
 
   void set_numpts_in_gravity(int numpts);
