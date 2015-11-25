@@ -1,4 +1,4 @@
-    subroutine ca_gsrc(lo,hi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
+    subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
                        uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
       use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
@@ -7,6 +7,7 @@
       implicit none
 
       integer          :: lo(3), hi(3)
+      integer          :: domlo(3), domhi(3)
       integer          :: phi_lo(3), phi_hi(3)
       integer          :: grav_lo(3), grav_hi(3)
       integer          :: uold_lo(3), uold_hi(3)
@@ -90,6 +91,7 @@
 ! :::
 
       subroutine ca_corrgsrc(lo,hi, &
+                             domlo,domhi, &
                              pold,po_lo,po_hi, &
                              pnew,pn_lo,pn_hi, &
                              gold,go_lo,go_hi, &
@@ -113,6 +115,7 @@
       implicit none
 
       integer          :: lo(3), hi(3)
+      integer          :: domlo(3), domhi(3)
 
       integer          :: po_lo(3), po_hi(3)
       integer          :: pn_lo(3), pn_hi(3)
@@ -211,61 +214,39 @@
          ! zones. We redefine the boundary zone values as equal to the adjacent
          ! cell minus the original value. Then later when we do the adjacent zone
          ! minus the boundary zone, we'll get the boundary value, which is what we want.
+         ! We don't need to reset this at the end because phi is a temporary array.
+         ! Note that this is needed for Poisson gravity only; the other gravity methods
+         ! generally define phi on cell centers even outside the domain.
+
+         if (gravity_type == "PoissonGrav") then
          
-         if (dg(3) > 0) then
-            
-            k = lo(3) - 1 * dg(3)         
-            do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                  phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
-               enddo
-            enddo
-
-            k = hi(3) + 1 * dg(3)         
-            do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                  phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
-               enddo
-            enddo            
-
-         endif
-
-         if (dg(2) > 0) then
-
-            j = lo(2) - 1 * dg(2)
-            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                  phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
-               enddo
-            enddo
-
-            j = hi(2) + 1 * dg(2)
-            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-               do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                  phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
-               enddo
-            enddo            
-
-         endif
-
-         if (dg(1) > 0) then
-
-            i = lo(1) - 1 * dg(1)
             do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
                do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-                  phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+                  do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                     if (i .lt. domlo(1)) then
+                        phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+                     endif
+                     if (i .gt. domhi(1)) then
+                        phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
+                     endif
+                     if (j .lt. domlo(2)) then
+                        phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
+                     endif
+                     if (j .gt. domhi(2)) then
+                        phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
+                     endif
+                     if (k .lt. domlo(3)) then
+                        phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
+                     endif
+                     if (k .gt. domhi(3)) then
+                        phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
+                     endif
+                  enddo
                enddo
             enddo
 
-            i = hi(1) + 1 * dg(1)
-            do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-               do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-                  phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
-               enddo
-            enddo
+         endif            
 
-         endif
-            
          ! Construct the mass changes using the density flux from the hydro step. 
          ! Note that in the hydrodynamics step, these fluxes were already 
          ! multiplied by dA and dt, so dividing by the cell volume is enough to 
@@ -393,7 +374,7 @@
 
                   if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
                       .and. get_g_from_phi) ) then
-                  
+
                      SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                           drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
                                           drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &

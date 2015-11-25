@@ -626,6 +626,7 @@ Castro::advance_hydro (Real time,
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
 			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -819,6 +820,7 @@ Castro::advance_hydro (Real time,
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
 			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -840,6 +842,7 @@ Castro::advance_hydro (Real time,
 		    if (do_rotation)
 		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
 			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
 			 BL_TO_FORTRAN_3D(rot_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -1250,6 +1253,9 @@ Castro::advance_hydro (Real time,
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const int* domlo = geom.Domain().loVect();
+	const int* domhi = geom.Domain().hiVect();
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
@@ -1257,11 +1263,12 @@ Castro::advance_hydro (Real time,
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-
+		
 		Real mom_added[3] = { 0.0 };
 
 		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     ARLIM_3D(domlo), ARLIM_3D(domhi),
 		     BL_TO_FORTRAN_3D(phi_old[mfi]),
 		     BL_TO_FORTRAN_3D(phi_new[mfi]),
 		     BL_TO_FORTRAN_3D(grav_old[mfi]),
@@ -1341,6 +1348,9 @@ Castro::advance_hydro (Real time,
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const int* domlo = geom.Domain().loVect();
+	const int* domhi = geom.Domain().hiVect();
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
@@ -1353,6 +1363,7 @@ Castro::advance_hydro (Real time,
 
 		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     ARLIM_3D(domlo), ARLIM_3D(domhi),
 		     BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		     BL_TO_FORTRAN_3D(phirot_new[mfi]),
 		     BL_TO_FORTRAN_3D(rot_old[mfi]),

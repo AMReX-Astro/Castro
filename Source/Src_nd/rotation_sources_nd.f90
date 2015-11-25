@@ -1,4 +1,4 @@
-  subroutine ca_rsrc(lo,hi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
+  subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
@@ -8,6 +8,7 @@
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
+    integer         , intent(in   ) :: domlo(3), domhi(3)
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
     integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
     integer         , intent(in   ) :: uold_lo(3), uold_hi(3)
@@ -85,6 +86,7 @@
 
 
   subroutine ca_corrrsrc(lo,hi, &
+                         domlo,domhi, &
                          pold,po_lo,po_hi, &
                          pnew,pn_lo,pn_hi, &
                          rold,ro_lo,ro_hi, &
@@ -112,6 +114,7 @@
     implicit none
 
     integer          :: lo(3), hi(3)
+    integer          :: domlo(3), domhi(3)
 
     integer          :: po_lo(3),po_hi(3)
     integer          :: pn_lo(3),pn_hi(3)
