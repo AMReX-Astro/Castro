@@ -163,7 +163,6 @@
     double precision :: old_mom(3)
 
     double precision, pointer :: phi(:,:,:)
-    double precision, pointer :: drho1(:,:,:), drho2(:,:,:), drho3(:,:,:)
 
     double precision :: mom1, mom2
 
@@ -181,9 +180,6 @@
     if (rot_source_type == 4) then
 
        call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-       call bl_allocate(drho1, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
-       call bl_allocate(drho2, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
-       call bl_allocate(drho3, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
        phi = ZERO
 
@@ -191,43 +187,6 @@
           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
                 phi(i,j,k) = HALF * (pold(i,j,k) + pnew(i,j,k))
-             enddo
-          enddo
-       enddo
-
-       ! Construct the mass changes using the density flux from the hydro step. 
-       ! Note that in the hydrodynamics step, these fluxes were already 
-       ! multiplied by dA and dt, so dividing by the cell volume is enough to 
-       ! get the density change (flux * dt / dx). This will be fine in the usual 
-       ! case where the volume is the same in every cell, but may need to be 
-       ! generalized when this assumption does not hold.
-       
-       drho1 = ZERO
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)+1*dg(1)
-                drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
-             enddo
-          enddo
-       enddo
-
-       drho2 = ZERO
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1*dg(2)
-             do i = lo(1), hi(1)
-                drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
-             enddo
-          enddo
-       enddo
-
-       drho3 = ZERO
-
-       do k = lo(3), hi(3)+1*dg(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
              enddo
           enddo
        enddo
@@ -352,13 +311,21 @@
                 ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                     drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                     drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                     drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                     drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                     drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                ! Note that in the hydrodynamics step, the fluxes used here were already 
+                ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                ! get the density change (flux * dt * dA / dV).
+                
+                SrEcorr = - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
 
+                ! Now normalize by the volume of this cell to get the specific energy change.                
+                
+                SrEcorr = SrEcorr / vol(i,j,k)
+                
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
@@ -392,9 +359,6 @@
 
     if (rot_source_type .eq. 4) then
        call bl_deallocate(phi)
-       call bl_deallocate(drho1)
-       call bl_deallocate(drho2)
-       call bl_deallocate(drho3)
     endif
 
     end subroutine ca_corrrsrc
