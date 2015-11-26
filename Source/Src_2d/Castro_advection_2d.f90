@@ -626,12 +626,13 @@ contains
                 else if (n == UMY) then
                    ymom_added_flux = ymom_added_flux + dt * &
                         ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
+                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
 
-                else if (n .eq. UMZ) then
+                else if (n == UMZ) then
                    zmom_added_flux = zmom_added_flux + dt * &
                         ( flux1(i,j,n) - flux1(i+1,j,n) + &
                           flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)                    
+
                 end if
              enddo
           enddo
