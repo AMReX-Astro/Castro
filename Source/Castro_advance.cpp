@@ -415,29 +415,8 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
 
 #ifdef GRAVITY
-    if (do_grav) {
-
-      MultiFab grav_temp(grids,1,NUM_GROW,Fab_allocate);
-
-      for (int i = 0; i < 3; i++) {
-
-	MultiFab::Copy(grav_temp,grav_old,i,0,1,NUM_GROW);
-      
-	// Multiply gravity by the density to put it in conservative form.      
-	
-	MultiFab::Multiply(grav_temp,Sborder,Density,0,1,NUM_GROW);
-	MultiFab::Add(sources,grav_temp,0,Xmom+i,1,NUM_GROW);
-
-	MultiFab::Copy(grav_temp,grav_old,i,0,1,NUM_GROW);
-      	
-	// Add corresponding energy source term (v . src).
-
-	MultiFab::Multiply(grav_temp,Sborder,Xmom+i,0,1,NUM_GROW);
-	MultiFab::Add(sources,grav_temp,0,Eden,1,NUM_GROW);
-      
-      }
-
-    }
+    if (do_grav)
+      add_force_to_sources(grav_old, sources, Sborder);
 #endif
 
 #ifdef ROTATION
@@ -459,29 +438,8 @@ Castro::advance_hydro (Real time,
       
     } 
 
-    if (do_rotation) {
-
-      MultiFab rot_temp(grids,1,NUM_GROW,Fab_allocate);      
-      
-      for (int i = 0; i < 3; i++) {
-
-	MultiFab::Copy(rot_temp,rot_old,i,0,1,NUM_GROW);      
-      
-	// Multiply rotation by the density to put it in conservative form.      
-	
-	MultiFab::Multiply(rot_temp,Sborder,Density,0,1,NUM_GROW);
-	MultiFab::Add(sources,rot_temp,0,Xmom+i,1,NUM_GROW);
-
-	MultiFab::Copy(rot_temp,rot_old,i,0,1,NUM_GROW);      
-            
-	// Add corresponding energy source term (v . src).
-
-	MultiFab::Multiply(rot_temp,Sborder,Xmom+i,0,1,NUM_GROW);
-	MultiFab::Add(sources,rot_temp,0,Eden,1,NUM_GROW);
-
-      }
-
-    }
+    if (do_rotation)
+      add_force_to_sources(rot_old, sources, Sborder);
 #endif
     
     
@@ -1315,29 +1273,8 @@ Castro::advance_hydro (Real time,
 	// Add this to the source term array if we're using the source term predictor.
 	// If not, don't bother because sources isn't actually used in the update after this point.
 
-	if (source_term_predictor == 1) {
-	
-	  MultiFab grav_temp(grids,1,0,Fab_allocate);
-
-	  for (int i = 0; i < 3; i++) {
-
-	    MultiFab::Copy(grav_temp,grav_new,i,0,1,0);
-      
-	    // Multiply gravity by the density to put it in conservative form.      
-	
-	    MultiFab::Multiply(grav_temp,S_new,Density,0,1,0);
-	    MultiFab::Add(sources,grav_temp,0,Xmom+i,1,0);
-	    
-	    MultiFab::Copy(grav_temp,grav_new,i,0,1,0);
-      	
-	    // Add corresponding energy source term (v . src).
-	  
-	    MultiFab::Multiply(grav_temp,S_new,Xmom+i,0,1,0);
-	    MultiFab::Add(sources,grav_temp,0,Eden,1,0);
-	    
-	  }
-
-	}
+	if (source_term_predictor == 1)
+	  add_force_to_sources(grav_new, sources, S_new);
 
 	computeTemp(S_new);
       }
@@ -1440,30 +1377,9 @@ Castro::advance_hydro (Real time,
     // Add this to the source term array if we're using the source term predictor.
     // If not, don't bother because sources isn't actually used in the update after this point.
 
-    if (source_term_predictor == 1) {
-	
-      MultiFab rot_temp(grids,1,0,Fab_allocate);
+    if (source_term_predictor == 1)
+      add_force_to_sources(rot_new, sources, S_new);
 
-      for (int i = 0; i < 3; i++) {
-
-	MultiFab::Copy(rot_temp,rot_new,i,0,1,0);
-      
-	// Multiply rotation by the density to put it in conservative form.      
-	
-	MultiFab::Multiply(rot_temp,S_new,Density,0,1,0);
-	MultiFab::Add(sources,rot_temp,0,Xmom+i,1,0);
-	    
-	MultiFab::Copy(rot_temp,rot_new,i,0,1,0);
-      	
-	// Add corresponding energy source term (v . src).
-	  
-	MultiFab::Multiply(rot_temp,S_new,Xmom+i,0,1,0);
-	MultiFab::Add(sources,rot_temp,0,Eden,1,0);
-	    
-      }
-
-    }
-    
 #endif
 
     reset_internal_energy(S_new);

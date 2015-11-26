@@ -3315,6 +3315,32 @@ Castro::get_numpts ()
 }
 
 void
+Castro::add_force_to_sources(MultiFab& force, MultiFab& sources, MultiFab& state)
+{
+   int ng = state.nGrow();
+
+   MultiFab temp_MF(grids,1,ng,Fab_allocate);
+
+   for (int i = 0; i < 3; i++) {
+
+     MultiFab::Copy(temp_MF,force,i,0,1,ng);
+      
+     // Multiply the force by the density to put it in conservative form.      
+	
+     MultiFab::Multiply(temp_MF,state,Density,0,1,ng);
+     MultiFab::Add(sources,temp_MF,0,Xmom+i,1,ng);
+
+     MultiFab::Copy(temp_MF,force,i,0,1,ng);
+      	
+     // Add corresponding energy source term (v . src).
+
+     MultiFab::Multiply(temp_MF,state,Xmom+i,0,1,ng);
+     MultiFab::Add(sources,temp_MF,0,Eden,1,ng);
+      
+   }
+}
+
+void
 Castro::make_radial_data(int is_new)
 {
 #if (BL_SPACEDIM > 1)
