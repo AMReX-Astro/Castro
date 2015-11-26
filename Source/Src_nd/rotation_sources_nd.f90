@@ -1,4 +1,4 @@
-  subroutine ca_rsrc(lo,hi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
+  subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
@@ -8,6 +8,7 @@
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
+    integer         , intent(in   ) :: domlo(3), domhi(3)
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
     integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
     integer         , intent(in   ) :: uold_lo(3), uold_hi(3)
@@ -85,6 +86,7 @@
 
 
   subroutine ca_corrrsrc(lo,hi, &
+                         domlo,domhi, &
                          pold,po_lo,po_hi, &
                          pnew,pn_lo,pn_hi, &
                          rold,ro_lo,ro_hi, &
@@ -112,6 +114,7 @@
     implicit none
 
     integer          :: lo(3), hi(3)
+    integer          :: domlo(3), domhi(3)
 
     integer          :: po_lo(3),po_hi(3)
     integer          :: pn_lo(3),pn_hi(3)
@@ -160,7 +163,6 @@
     double precision :: old_mom(3)
 
     double precision, pointer :: phi(:,:,:)
-    double precision, pointer :: drho1(:,:,:), drho2(:,:,:), drho3(:,:,:)
 
     double precision :: mom1, mom2
 
@@ -178,9 +180,6 @@
     if (rot_source_type == 4) then
 
        call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-       call bl_allocate(drho1, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
-       call bl_allocate(drho2, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
-       call bl_allocate(drho3, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
        phi = ZERO
 
@@ -188,43 +187,6 @@
           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
                 phi(i,j,k) = HALF * (pold(i,j,k) + pnew(i,j,k))
-             enddo
-          enddo
-       enddo
-
-       ! Construct the mass changes using the density flux from the hydro step. 
-       ! Note that in the hydrodynamics step, these fluxes were already 
-       ! multiplied by dA and dt, so dividing by the cell volume is enough to 
-       ! get the density change (flux * dt / dx). This will be fine in the usual 
-       ! case where the volume is the same in every cell, but may need to be 
-       ! generalized when this assumption does not hold.
-       
-       drho1 = ZERO
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)+1*dg(1)
-                drho1(i,j,k) = flux1(i,j,k,URHO) / vol(i,j,k)
-             enddo
-          enddo
-       enddo
-
-       drho2 = ZERO
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1*dg(2)
-             do i = lo(1), hi(1)
-                drho2(i,j,k) = flux2(i,j,k,URHO) / vol(i,j,k)
-             enddo
-          enddo
-       enddo
-
-       drho3 = ZERO
-
-       do k = lo(3), hi(3)+1*dg(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                drho3(i,j,k) = flux3(i,j,k,URHO) / vol(i,j,k)
              enddo
           enddo
        enddo
@@ -349,13 +311,21 @@
                 ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                SrEcorr = - HALF * ( drho1(i  ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                     drho1(i+1,j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                     drho2(i,j  ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                     drho2(i,j+1,k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                     drho3(i,j,k  ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                     drho3(i,j,k+1) * (phi(i,j,k) - phi(i,j,k+1)) )
+                ! Note that in the hydrodynamics step, the fluxes used here were already 
+                ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                ! get the density change (flux * dt * dA / dV).
+                
+                SrEcorr = - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
 
+                ! Now normalize by the volume of this cell to get the specific energy change.                
+                
+                SrEcorr = SrEcorr / vol(i,j,k)
+                
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
@@ -389,9 +359,6 @@
 
     if (rot_source_type .eq. 4) then
        call bl_deallocate(phi)
-       call bl_deallocate(drho1)
-       call bl_deallocate(drho2)
-       call bl_deallocate(drho3)
     endif
 
     end subroutine ca_corrrsrc

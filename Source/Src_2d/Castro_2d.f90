@@ -16,7 +16,7 @@
                           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                           vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                           courno,verbose,mass_added,eint_added,eden_added,&
-                          xmom_added_flux, ymom_added_flux, &
+                          xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                           E_added_flux)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
@@ -53,7 +53,7 @@
       double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
       double precision delta(2),dt,time,courno
       double precision E_added_flux
-      double precision xmom_added_flux, ymom_added_flux
+      double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
       double precision mass_added,eint_added,eden_added
 
 !     Automatic arrays for workspace
@@ -141,7 +141,7 @@
                   area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                   vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
                   div,pdivu,lo,hi,dx,dy,dt,E_added_flux,&
-                  xmom_added_flux,ymom_added_flux)
+                  xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
       ! Enforce the density >= small_dens.
       call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &

@@ -138,7 +138,10 @@
       double precision, intent(  out) ::  phi(r_l1:r_h1)
       double precision, intent(in   ) :: dx, problo(1)
 
-      double precision :: phi_temp(r_l1-1:r_h1+2)
+      ! We need a temporary arrays to do edge-based indexing for phi.
+      
+      double precision :: phi_temp(r_l1-1:r_h1+1) ! Cell-centered
+      double precision :: phi_edge(r_l1-2:r_h1+2) ! Edge-centered
       
       double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
       double precision :: rc,rlo,mass_encl,halfdx,dm,rloj,rcj,rhij
@@ -148,6 +151,7 @@
 
       if (get_g_from_phi) then
 
+         phi_edge = ZERO
          phi_temp = ZERO
          grav = ZERO
 
@@ -178,7 +182,7 @@
                   
                if (j .lt. i) then
 
-                  phi_temp(i) = phi_temp(i) + Gconst * dm / rc
+                  phi_edge(i) = phi_edge(i) + Gconst * dm / rc
 
                ! If the mass shell is exterior, the potential is G * M / R where
                ! R is the radius of the shell for a point mass. More generally for
@@ -187,7 +191,7 @@
                      
                else
 
-                  phi_temp(i) = phi_temp(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
+                  phi_edge(i) = phi_edge(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
 
                endif
 
@@ -197,13 +201,11 @@
 
          ! Average from cell edges to cell centers.
 
-         do i = lo, hi+1
+         do i = lo, r_h1+1
 
-            phi(i) = HALF * (phi_temp(i) + phi_temp(i+1))
+            phi_temp(i) = HALF * (phi_edge(i) + phi_edge(i+1))
 
          enddo
-         
-         phi_temp(lo:hi+1) = phi(lo:hi+1)
 
          ! We want to do even reflection of phi for the lower ghost cells on a
          ! symmetry axis, to ensure that the gradient at r == 0 vanishes.
@@ -214,13 +216,6 @@
             enddo
          endif
 
-         ! For the outermost zones, use phi = G * M / r again.
-
-         do i = hi+1, r_h1
-            rc = problo(1) + dble(i) * dx + halfdx
-            phi_temp(i) = Gconst * mass_encl / rc
-         enddo
-
          ! Now that we have phi, construct g by taking the gradient.
          ! We use simple second-order centered differencing.
 
@@ -230,8 +225,8 @@
 
          enddo
 
-         phi = phi_temp(r_l1:r_h1)         
-         
+         phi = phi_temp(r_l1:r_h1)
+
       else
 
          mass_encl = ZERO      

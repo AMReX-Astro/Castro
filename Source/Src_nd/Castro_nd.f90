@@ -324,6 +324,7 @@
         integer             :: QLAST
 
         integer :: i
+        integer :: ioproc
         
         call parallel_initialize()
 
@@ -469,17 +470,23 @@
         ! other initializations
         !---------------------------------------------------------------------
 
+        call bl_pd_is_ioproc(ioproc)        
+        
         if (small_dens_in > 0.d0) then
            small_dens = small_dens_in
         else
-           call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")           
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
+           endif
            small_dens = 1.d-200
         endif
 
         if (small_temp_in > 0.d0) then
            small_temp = small_temp_in
         else
-           call bl_warning("Warning:: small_temp has not been set, defaulting to 1.d-200.")
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_temp has not been set, defaulting to 1.d-200.")
+           endif
            small_temp = 1.d-200
         endif
 

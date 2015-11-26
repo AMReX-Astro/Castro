@@ -424,12 +424,8 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      Real& eint_added,
      Real& eden_added,
      Real& xmom_added_flux,
-#if (BL_SPACEDIM >= 2)
      Real& ymom_added_flux,
-#endif
-#if (BL_SPACEDIM == 3)
      Real& zmom_added_flux,
-#endif
      Real& E_added_flux);
 
 #ifdef RADIATION
@@ -487,6 +483,7 @@ BL_FORT_PROC_DECL(CA_SPONGE,ca_sponge)
 
 BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
     (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(s_old),
@@ -496,6 +493,7 @@ BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
 
 BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
     (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi_old),
      const BL_FORT_FAB_ARG_3D(phi_new),
      const BL_FORT_FAB_ARG_3D(grav_old),
@@ -526,6 +524,7 @@ BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_ACCELERATION,ca_fill_rotational_acceleratio
 
 BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
     (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(s_old),
@@ -535,6 +534,7 @@ BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
 
 BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
     (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi_old),
      const BL_FORT_FAB_ARG_3D(phi_new),
      const BL_FORT_FAB_ARG_3D(rot_old),
