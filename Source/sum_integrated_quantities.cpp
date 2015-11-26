@@ -22,6 +22,7 @@ Castro::sum_integrated_quantities ()
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
     Real rho_phi     = 0.0;
+    Real total_energy = 0.0;
 #ifdef SGS
     Real dt_crse     = parent->dtLevel(0);
     Real Etot        = 0.0;
@@ -119,6 +120,11 @@ Castro::sum_integrated_quantities ()
 	    rms_mach = foo[i++];
 #endif
 
+#ifdef GRAVITY
+	    // Total energy is -1/2 * rho * phi + rho * E
+	    total_energy = -0.5 * rho_phi + rho_E;
+#endif
+	    
 	    std::cout << '\n';
 	    std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
 	    std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
@@ -129,6 +135,7 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
 #ifdef GRAVITY
 	    std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
+	    std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';	    
 #endif
 #ifdef SGS
 	    Etot     = rho_E + rho_K;
@@ -158,6 +165,7 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(14) <<  "        rho_E ";
 #ifdef GRAVITY		      
 		      data_log1 << std::setw(14) <<  "      rho_phi ";
+		      data_log1 << std::setw(14) <<  " total energy ";
 #endif
 		      data_log1 << std::endl;
 		  }
@@ -173,6 +181,7 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E;
 #ifdef GRAVITY		  
 		  data_log1 << std::setw(14) <<  std::setprecision(5) << rho_phi;
+		  data_log1 << std::setw(14) <<  std::setprecision(5) << total_energy;
 #endif
 		  data_log1 << std::endl;
 

@@ -507,7 +507,7 @@ Castro::advance_hydro (Real time,
 
       AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
       
-      dSdt_new.mult( dt / 2.0, NUM_GROW );
+      dSdt_new.mult(dt / 2.0, NUM_GROW);
 
       MultiFab::Add(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
@@ -626,6 +626,7 @@ Castro::advance_hydro (Real time,
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
 			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -787,12 +788,8 @@ Castro::advance_hydro (Real time,
 			 &cflLoc, verbose, 
 			 mass_added, eint_added, eden_added, 
 			 xmom_added_flux, 
-#if (BL_SPACEDIM >= 2)
                   	 ymom_added_flux, 
-#endif
-#if (BL_SPACEDIM == 3)
 	                 zmom_added_flux,
-#endif
                          E_added_flux);
 
 		    // Add dt * old-time external source terms
@@ -819,6 +816,7 @@ Castro::advance_hydro (Real time,
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
 			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -840,6 +838,7 @@ Castro::advance_hydro (Real time,
 		    if (do_rotation)
 		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
 			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
 			 BL_TO_FORTRAN_3D(rot_old[mfi]),
 			 BL_TO_FORTRAN_3D(stateold),
@@ -1061,12 +1060,12 @@ Castro::advance_hydro (Real time,
     // first half of the update for the next calculation of dS/dt.
     
     if (source_term_predictor == 1) {
-      MultiFab::Subtract(sources,dSdt_new,0,0,NUM_STATE,0);
-      dSdt_new.setVal(0.0);
+      MultiFab::Subtract(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      dSdt_new.setVal(0.0, NUM_GROW);
       MultiFab::Subtract(dSdt_new,sources,0,0,NUM_STATE,0);
     }
     
-    sources.setVal(0.0);       
+    sources.setVal(0.0,NUM_GROW);       
     
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
@@ -1250,6 +1249,9 @@ Castro::advance_hydro (Real time,
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const int* domlo = geom.Domain().loVect();
+	const int* domhi = geom.Domain().hiVect();
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
@@ -1257,11 +1259,12 @@ Castro::advance_hydro (Real time,
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-
+		
 		Real mom_added[3] = { 0.0 };
 
 		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     ARLIM_3D(domlo), ARLIM_3D(domhi),
 		     BL_TO_FORTRAN_3D(phi_old[mfi]),
 		     BL_TO_FORTRAN_3D(phi_new[mfi]),
 		     BL_TO_FORTRAN_3D(grav_old[mfi]),
@@ -1309,8 +1312,33 @@ Castro::advance_hydro (Real time,
 #endif
         }	
 
-	MultiFab::Add(sources,grav_new,0,Xmom,3,0);	
+	// Add this to the source term array if we're using the source term predictor.
+	// If not, don't bother because sources isn't actually used in the update after this point.
+
+	if (source_term_predictor == 1) {
 	
+	  MultiFab grav_temp(grids,1,0,Fab_allocate);
+
+	  for (int i = 0; i < 3; i++) {
+
+	    MultiFab::Copy(grav_temp,grav_new,i,0,1,0);
+      
+	    // Multiply gravity by the density to put it in conservative form.      
+	
+	    MultiFab::Multiply(grav_temp,S_new,Density,0,1,0);
+	    MultiFab::Add(sources,grav_temp,0,Xmom+i,1,0);
+	    
+	    MultiFab::Copy(grav_temp,grav_new,i,0,1,0);
+      	
+	    // Add corresponding energy source term (v . src).
+	  
+	    MultiFab::Multiply(grav_temp,S_new,Xmom+i,0,1,0);
+	    MultiFab::Add(sources,grav_temp,0,Eden,1,0);
+	    
+	  }
+
+	}
+
 	computeTemp(S_new);
       }
 #endif
@@ -1341,6 +1369,9 @@ Castro::advance_hydro (Real time,
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const int* domlo = geom.Domain().loVect();
+	const int* domhi = geom.Domain().hiVect();
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
@@ -1353,6 +1384,7 @@ Castro::advance_hydro (Real time,
 
 		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
 		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		     ARLIM_3D(domlo), ARLIM_3D(domhi),
 		     BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		     BL_TO_FORTRAN_3D(phirot_new[mfi]),
 		     BL_TO_FORTRAN_3D(rot_old[mfi]),
@@ -1405,8 +1437,33 @@ Castro::advance_hydro (Real time,
 
     }
 
-    MultiFab::Add(sources,rot_new,0,Xmom,3,0);    
-        
+    // Add this to the source term array if we're using the source term predictor.
+    // If not, don't bother because sources isn't actually used in the update after this point.
+
+    if (source_term_predictor == 1) {
+	
+      MultiFab rot_temp(grids,1,0,Fab_allocate);
+
+      for (int i = 0; i < 3; i++) {
+
+	MultiFab::Copy(rot_temp,rot_new,i,0,1,0);
+      
+	// Multiply rotation by the density to put it in conservative form.      
+	
+	MultiFab::Multiply(rot_temp,S_new,Density,0,1,0);
+	MultiFab::Add(sources,rot_temp,0,Xmom+i,1,0);
+	    
+	MultiFab::Copy(rot_temp,rot_new,i,0,1,0);
+      	
+	// Add corresponding energy source term (v . src).
+	  
+	MultiFab::Multiply(rot_temp,S_new,Xmom+i,0,1,0);
+	MultiFab::Add(sources,rot_temp,0,Eden,1,0);
+	    
+      }
+
+    }
+    
 #endif
 
     reset_internal_energy(S_new);

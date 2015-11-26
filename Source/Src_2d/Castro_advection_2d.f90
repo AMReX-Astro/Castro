@@ -510,11 +510,11 @@ contains
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                      div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
-                     xmom_added_flux,ymom_added_flux)
+                     xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
                                    normalize_species
     use prob_params_module, only : coord_type
@@ -547,7 +547,7 @@ contains
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
     double precision dx, dy, dt, E_added_flux
-    double precision xmom_added_flux, ymom_added_flux
+    double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     
     integer i, j, n
 
@@ -627,6 +627,12 @@ contains
                    ymom_added_flux = ymom_added_flux + dt * &
                         ( flux1(i,j,n) - flux1(i+1,j,n) + &
                           flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
+
+                else if (n == UMZ) then
+                   zmom_added_flux = zmom_added_flux + dt * &
+                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)                    
+
                 end if
              enddo
           enddo
