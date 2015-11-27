@@ -1,0 +1,67 @@
+# name                   type          default     need in Fortran?    ifdef
+rotational_period            Real         -1.e200             y        ROTATION
+rotational_dPdt              Real          0.0                y        ROTATION
+rot_source_type              int           1                  y        ROTATION
+rot_axis                     int           3                  y        ROTATION
+
+deterministic                int           0
+
+bndry_func_thread_safe       int           1
+
+grown_factor                 int           1
+star_at_center               int          -1
+moving_center                int           0
+normalize_species            int           0
+fix_mass_flux                int           0
+allow_negative_energy        int           1
+do_special_tagging           int           0
+
+ppm_type                     int           1
+ppm_reference                int           1
+ppm_trace_sources            int           0
+ppm_temp_fix                 int           0
+ppm_tau_in_tracing           int           0
+ppm_predict_gammae           int           0
+ppm_reference_edge_limit     int           1
+ppm_reference_eigenvectors   int           0
+
+source_term_predictor        int           0
+
+hybrid_riemann               int           0
+use_colglaz                  int           0
+riemann_solver               int           0
+cg_maxiter                   int          12
+cg_tol                       Real          1.0e-5
+
+hard_cfl_limit               int           1
+
+use_flattening               int           1
+ppm_flatten_before_integrals int           0
+
+transverse_use_eos           int           0
+transvers_reset_density      int           0
+transverse_reset_rhoe        int           0
+
+dual_energy_update_E_from_e  int           1
+dual_energy_eta1             Real          1.0e0
+dual_energy_eta2             Real          1.0e-4
+dual_energy_eta3             Real          0.0e0
+
+use_pslope                   int           1
+grav_source_type             int           2
+spherical_star               int           0
+do_sponge                    int           0
+
+print_fortran_warnings       int           (0, 1)
+print_energy_diagnostics     int           (0, 1)
+
+sum_interval                 int          -1
+show_center_of_mass          int           0
+
+sum_turb_src                 Real          0.0                         SGS
+
+job_name                     string        ""
+
+probin_file                  string        "probin"
+
+
