@@ -26,3 +26,12 @@ plan:
  -- meth_params.f90 will be written by the script -- it will include
     all of the castro runtime paramters and the set routine.  It will
     use a template that already has the hardcoded parameters defined.
+
+
+see this for a parsing strategy:
+
+https://stackoverflow.com/questions/17134225/python-splitting-unknown-string-by-spaces-and-parentheses
+
+
+extra_meth_params will do the hardcoded ones
+
