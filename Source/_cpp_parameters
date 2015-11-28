@@ -1,8 +1,10 @@
-# name                      type          default     need in Fortran?    ifdef
+# name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
 burning_timestep_factor      Real          1.e200
 
+# the coefficient of the artifical viscosity
 difmag                       Real          0.1                y
+
 small_dens                   Real         -1.e200             y
 small_temp                   Real         -1.e200             y
 small_pres                   Real         -1.e200             y
@@ -31,6 +33,7 @@ rotational_dPdt              Real          0.0                y        ROTATION 
 rot_source_type              int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
+# set this true for regression testing
 deterministic                int           0                  y
 
 bndry_func_thread_safe       int           1
@@ -69,7 +72,7 @@ transverse_use_eos           int           0                  y
 transvers_reset_density      int           0                  y
 transverse_reset_rhoe        int           0                  y
 
-dual_energy_update_E_from_e  int           1                  y
+dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
 dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 dual_energy_eta3             Real          0.0e0              y

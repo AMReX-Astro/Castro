@@ -3,13 +3,19 @@ import sys
 
 class Param(object):
     def __init__(self, name, dtype, default,
-                 debug_default=None, in_fortran=0, ifdef=None):
+                 debug_default=None, in_fortran=0, f90_name=None,
+                 ifdef=None):
         self.name = name
         self.dtype = dtype
         self.default = default
         self.debug_default=debug_default
         self.in_fortran = in_fortran
         self.ifdef = ifdef
+
+        if f90_name is None:
+            self.f90_name = name
+        else:
+            self.f90_name = f90_name
 
     def get_default_string(self):
         # this is the line that goes into castro_defaults.H included
@@ -73,6 +79,22 @@ class Param(object):
             ostr += "#endif\n"
 
         return ostr
+
+    def get_f90_decl_string(self):
+        # this is the line that goes into meth_params.f90
+
+        if not self.in_fortran:
+            return None
+
+        if self.dtype == "int":
+            tstr = "integer         , save :: {}\n".format(self.f90_name)
+        elif self.dtype == "Real":
+            tstr = "double precision, save :: {}\n".format(self.f90_name)
+        else:
+            sys.exit("unsupported datatype for Fortran: {}".format(self.name))
+
+        return tstr
+
 
     def get_prototype_decl(self):
         # this give the line in the set_castro_method_params prototype
@@ -143,6 +165,18 @@ def write_cpp_call(plist):
     return call
 
 
+def write_fortran_decl(plist):
+
+    params = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
+
+    decls = ""
+    
+    for p in params:
+        decls += p
+
+    return decls
+
+
 def parser(infile):
 
     params = []
@@ -190,7 +224,7 @@ def parser(infile):
 
     print write_prototype(params)
     print write_cpp_call(params)
-
+    print write_fortran_decl(params)
 
 if __name__ == "__main__":
 

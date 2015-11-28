@@ -1,0 +1,55 @@
+
+! This module stores the runtime parameters and integer names for 
+! indexing arrays.
+!
+! These parameter are initialized in set_method_params() 
+
+module meth_params_module
+
+  implicit none
+
+  integer         , save :: iorder        ! used only in uslope 
+
+  ! number of ghost cells for the hyperbolic solver
+  integer, parameter     :: NHYP    = 4
+
+  ! NTHERM: number of thermodynamic variables
+  integer         , save :: NTHERM, NVAR
+  integer         , save :: URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+
+  ! QTHERM: number of primitive variables
+  integer         , save :: QTHERM, QVAR
+  integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP
+  integer         , save :: QGAMC, QGAME
+  integer         , save :: QFA, QFS, QFX
+
+  ! These are only used when we use the SGS model.
+  integer         , save :: UESGS,QESGS
+
+  integer         , save :: nadv
+
+  integer, save :: npassive
+  integer, save, allocatable :: qpass_map(:), upass_map(:)
+
+
+  integer         , save :: numpts_1d
+
+  double precision, save, allocatable :: outflow_data_old(:,:)
+  double precision, save, allocatable :: outflow_data_new(:,:)
+  double precision, save :: outflow_data_old_time
+  double precision, save :: outflow_data_new_time
+  logical         , save :: outflow_data_allocated
+  double precision, save :: max_dist
+
+  double precision, save :: diffuse_cutoff_density
+
+  double precision, save :: const_grav
+
+  logical, save :: get_g_from_phi
+  
+  character(len=:), allocatable :: gravity_type
+  
+
+  @@f90_declaractions@@
+
+end module meth_params_module
