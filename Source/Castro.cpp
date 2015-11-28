@@ -116,11 +116,14 @@ Real         Castro::point_mass    = 0.0;
 #endif
 
 #ifdef GRAVITY
+// the gravity object
 Gravity*     Castro::gravity  = 0;
 #endif
 
 #ifdef DIFFUSION
+// the diffusion object
 Diffusion*    Castro::diffusion  = 0;
+
 int           Castro::diffuse_temp = 0;
 int           Castro::diffuse_spec = 0;
 int           Castro::diffuse_vel = 0;
@@ -129,6 +132,8 @@ Real          Castro::diffuse_cutoff_density = -1.e200;
 
 #ifdef RADIATION
 int          Castro::do_radiation = -1;
+
+// the radiation object
 Radiation*   Castro::radiation = 0;
 #endif
 

@@ -1,4 +1,20 @@
-# name                   type          default     need in Fortran?    ifdef
+# name                      type          default     need in Fortran?    ifdef
+
+
+difmag                       Real          0.1
+small_dens                   Real         -1.e200
+small_temp                   Real         -1.e200
+small_pres                   Real         -1.e200
+small_ener                   Real         -1.e200
+
+do_hydro                     int          -1
+do_react                     int          -1
+do_grav                      int          -1
+do_rotation                  int          -1
+add_ext_src                  int           0
+
+do_acc                       int          -1
+
 rotational_period            Real         -1.e200             y        ROTATION
 rotational_dPdt              Real          0.0                y        ROTATION
 rot_source_type              int           1                  y        ROTATION
@@ -63,5 +79,3 @@ sum_turb_src                 Real          0.0                         SGS
 job_name                     string        ""
 
 probin_file                  string        "probin"
-
-
