@@ -3,19 +3,29 @@ import sys
 
 class Param(object):
     def __init__(self, name, dtype, default,
-                 debug_default=None, in_fortran=0, f90_name=None,
+                 debug_default=None, 
+                 in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
         self.name = name
         self.dtype = dtype
         self.default = default
         self.debug_default=debug_default
         self.in_fortran = in_fortran
-        self.ifdef = ifdef
+        
+        if ifdef == "None":
+            self.ifdef = None
+        else:
+            self.ifdef = ifdef
 
         if f90_name is None:
             self.f90_name = name
         else:
             self.f90_name = f90_name
+
+        if f90_dtype is None:
+            self.f90_dtype = dtype
+        else:
+            self.f90_dtype = f90_dtype
 
     def get_default_string(self):
         # this is the line that goes into castro_defaults.H included
@@ -86,10 +96,12 @@ class Param(object):
         if not self.in_fortran:
             return None
 
-        if self.dtype == "int":
+        if self.f90_dtype == "int":
             tstr = "integer         , save :: {}\n".format(self.f90_name)
-        elif self.dtype == "Real":
+        elif self.f90_dtype == "Real":
             tstr = "double precision, save :: {}\n".format(self.f90_name)
+        elif self.f90_dtype == "logical":
+            tstr = "logical         , save :: {}\n".format(self.f90_name)
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
 
@@ -215,8 +227,15 @@ def parser(infile):
         try: ifdef = fields[4]
         except: ifdef = None
 
+        try: f90_name = fields[5]
+        except: f90_name = None
+
+        try: f90_dtype = fields[6]
+        except: f90_dtype = None
+
         params.append(Param(name, dtype, default, debug_default=debug_default,
-                            in_fortran=in_fortran, ifdef=ifdef))
+                            in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
+                            ifdef=ifdef))
 
 
     for p in params:
