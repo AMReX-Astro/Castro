@@ -1,6 +1,6 @@
 # name                      type          default     need in Fortran?    ifdef
 
-burning_timestep_factor      Real          1.e200;
+burning_timestep_factor      Real          1.e200
 
 difmag                       Real          0.1                y
 small_dens                   Real         -1.e200             y
@@ -8,12 +8,22 @@ small_temp                   Real         -1.e200             y
 small_pres                   Real         -1.e200             y
 small_ener                   Real         -1.e200             y
 
+# permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1
+
+# permits reactions to be turned on and off -- mostly for efficiency's sake 
 do_react                     int          -1
+
+# permits gravity calculation to be turned on and off   
 do_grav                      int          -1                  y
+
+# permits rotation calculation to be turned on and off 
 do_rotation                  int          -1                  y
+
+# if true, define an additional source term   
 add_ext_src                  int           0
 
+# determines whether we use accelerators for specific loops
 do_acc                       int          -1                  y
 
 rotational_period            Real         -1.e200             y        ROTATION        rot_period
@@ -67,16 +77,22 @@ dual_energy_eta3             Real          0.0e0              y
 use_pslope                   int           1                  y
 grav_source_type             int           2                  y
 spherical_star               int           0  
+
+# permits sponge to be turned on and off 
 do_sponge                    int           0                  y
 
+# display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
+
+# display breakdown of energy sources 
 print_energy_diagnostics     int           (0, 1)
 
+# how often to compute integral sums (for runtime diagnostics)
 sum_interval                 int          -1
+
+# display center of mass diagnostics
 show_center_of_mass          int           0
 
 sum_turb_src                 Real          0.0                n        SGS
 
 job_name                     string        ""
-
-probin_file                  string        "probin"

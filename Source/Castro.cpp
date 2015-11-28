@@ -67,7 +67,6 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 Real         Castro::cfl           = 0.8;
-Real         Castro::burning_timestep_factor = 1.e200;
 Real         Castro::init_shrink   = 1.0;
 Real         Castro::change_max    = 1.1;
 ErrorList    Castro::err_list;
@@ -97,19 +96,8 @@ int          Castro::FirstAux      = -1;
 int          Castro::NumAdv        = 0;
 int          Castro::FirstAdv      = -1;
 
-Real         Castro::difmag        = 0.1;
-Real         Castro::small_dens    = -1.e200;
-Real         Castro::small_temp    = -1.e200;
-Real         Castro::small_pres    = -1.e200;
-Real         Castro::small_ener    = -1.e200;
 
-int          Castro::do_hydro    = -1;
-int          Castro::do_react    = -1;
-int          Castro::do_grav     = -1;
-int          Castro::do_rotation = -1;
-int          Castro::add_ext_src = 0;
-
-int          Castro::do_acc = -1;
+#include <castro_defaults.H>
 
 #ifdef POINTMASS
 Real         Castro::point_mass    = 0.0;
@@ -137,79 +125,9 @@ int          Castro::do_radiation = -1;
 Radiation*   Castro::radiation = 0;
 #endif
 
-#ifdef ROTATION
-Real         Castro::rotational_period = -1.e200;
-Real         Castro::rotational_dPdt = 0.0;
-int          Castro::rot_source_type = 1;
-int          Castro::rot_axis = 3;
-#endif
 
-int          Castro::deterministic = 0;
+std::string  Castro::probin_file = "probin";                                    
 
-int          Castro::bndry_func_thread_safe = 1;
-
-int          Castro::grown_factor = 1;
-int          Castro::star_at_center = -1;
-int          Castro::moving_center = 0;
-int          Castro::normalize_species = 0;
-int          Castro::fix_mass_flux = 0;
-int          Castro::allow_negative_energy = 1;
-int          Castro::do_special_tagging = 0;
-
-int          Castro::ppm_type = 1;
-int          Castro::ppm_reference = 1;
-int          Castro::ppm_trace_sources = 0;
-int          Castro::ppm_temp_fix = 0;
-int          Castro::ppm_tau_in_tracing = 0;
-int          Castro::ppm_predict_gammae = 0;
-int          Castro::ppm_reference_edge_limit = 1;
-int          Castro::ppm_reference_eigenvectors = 0;
-
-int          Castro::source_term_predictor = 0;
-
-int          Castro::hybrid_riemann = 0;
-int          Castro::use_colglaz = 0;
-int          Castro::riemann_solver = 0;
-int          Castro::cg_maxiter  = 12;
-Real         Castro::cg_tol      = 1.0e-5;
-
-int          Castro::hard_cfl_limit = 1;
-
-int          Castro::use_flattening = 1;
-int          Castro::ppm_flatten_before_integrals = 0;
-
-int          Castro::transverse_use_eos = 0;
-int          Castro::transverse_reset_density = 0;
-int          Castro::transverse_reset_rhoe = 0;
-
-int          Castro::dual_energy_update_E_from_e = 1;
-Real         Castro::dual_energy_eta1 = 1.0e0;
-Real         Castro::dual_energy_eta2 = 1.0e-4;
-Real         Castro::dual_energy_eta3 = 0.0e0;
-
-int          Castro::use_pslope  = 1;
-int          Castro::grav_source_type = 2;
-int          Castro::spherical_star = 0;
-int          Castro::do_sponge  = 0;
-
-#ifdef DEBUG
-int          Castro::print_fortran_warnings  = 1;
-int          Castro::print_energy_diagnostics  = 1;
-#else
-int          Castro::print_fortran_warnings  = 0;
-int          Castro::print_energy_diagnostics  = 0;
-#endif
-
-int          Castro::sum_interval = -1;
-int          Castro::show_center_of_mass = 0;
-
-#ifdef SGS
-Real         Castro::sum_turb_src = 0.0;
-#endif
-
-std::string  Castro::job_name = "";
-
-std::string  Castro::probin_file = "probin";
 
 #if BL_SPACEDIM == 1
 IntVect      Castro::hydro_tile_size(1024);
@@ -278,11 +196,12 @@ Castro::read_params ()
 
     ParmParse pp("castro");   
 
+#include <castro_queries.H>
+
     pp.query("v",verbose);
 //  verbose = (verbose ? 1 : 0);
     pp.query("init_shrink",init_shrink);
     pp.query("cfl",cfl);
-    pp.query("burning_timestep_factor",burning_timestep_factor);
     pp.query("change_max",change_max);
     pp.query("fixed_dt",fixed_dt);
     pp.query("initial_dt",initial_dt);
@@ -292,12 +211,6 @@ Castro::read_params ()
     pp.query("dt_cutoff",dt_cutoff);
 
     pp.query("dump_old",dump_old);
-
-    pp.query("difmag",difmag);
-    pp.query("small_dens",small_dens);
-    pp.query("small_temp",small_temp);
-    pp.query("small_pres",small_pres);
-    pp.query("small_ener",small_ener);
 
 #ifdef POINTMASS
     pp.get("point_mass",point_mass);
@@ -399,11 +312,6 @@ Castro::read_params ()
 #endif
 
 
-    pp.get("do_hydro",do_hydro);
-    pp.query("add_ext_src",add_ext_src);
-
-    pp.query("do_acc",do_acc);
-
 #ifdef DIFFUSION
     pp.query("diffuse_temp",diffuse_temp);
     pp.query("diffuse_spec",diffuse_spec);
@@ -411,54 +319,10 @@ Castro::read_params ()
     pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
 #endif
 
-    pp.query("grown_factor",grown_factor);
+    // sanity checks
+
     if (grown_factor < 1) 
        BoxLib::Error("grown_factor must be integer >= 1");
-
-    pp.query("star_at_center",star_at_center);
-
-    pp.query("moving_center",moving_center);
-
-    pp.query("normalize_species",normalize_species);
-    pp.query("fix_mass_flux",fix_mass_flux);
-    pp.query("allow_negative_energy",allow_negative_energy);
-    pp.query("do_special_tagging",do_special_tagging);
-
-    pp.query("ppm_type", ppm_type);
-    pp.query("ppm_reference", ppm_reference);
-    pp.query("ppm_trace_sources", ppm_trace_sources);
-    pp.query("ppm_temp_fix", ppm_temp_fix);
-    pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
-    pp.query("ppm_predict_gammae", ppm_predict_gammae);
-    pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
-    pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
-    pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
-    pp.query("source_term_predictor", source_term_predictor);
-    pp.query("hybrid_riemann",hybrid_riemann);
-    pp.query("use_colglaz",use_colglaz);
-    pp.query("riemann_solver",riemann_solver);
-    pp.query("use_flattening",use_flattening);
-    pp.query("transverse_use_eos",transverse_use_eos);
-    pp.query("transverse_reset_density",transverse_reset_density);
-    pp.query("transverse_reset_rhoe",transverse_reset_rhoe);
-
-    pp.query("cg_maxiter",cg_maxiter);
-    pp.query("cg_tol",cg_tol);
-    pp.query("use_pslope",use_pslope);
-    pp.query("grav_source_type",grav_source_type);
-    pp.query("spherical_star",spherical_star);
-    pp.query("do_sponge",do_sponge);
-    pp.query("hard_cfl_limit",hard_cfl_limit);
-
-    pp.query("dual_energy_update_E_from_e",dual_energy_update_E_from_e);
-    pp.query("dual_energy_eta1",dual_energy_eta1);
-    pp.query("dual_energy_eta2",dual_energy_eta2);
-    pp.query("dual_energy_eta3",dual_energy_eta3);
-
-    pp.query("show_center_of_mass",show_center_of_mass);
-    pp.query("print_energy_diagnostics",print_energy_diagnostics);
-    pp.query("print_fortran_warnings",print_fortran_warnings);
-
 
     if (ppm_reference > 1 || ppm_reference < 0)
       {
@@ -525,8 +389,6 @@ Castro::read_params ()
     if (do_hydro == 0) do_reflux = 0;
 
 #ifdef GRAVITY
-    pp.get("do_grav",do_grav);
-
 #if (BL_SPACEDIM == 1)
     if (do_grav && !Geometry::IsSPHERICAL()) {
         std::cerr << "ERROR:Castro::Gravity in 1D assumes that the coordinate system is spherical\n";
@@ -535,11 +397,6 @@ Castro::read_params ()
 #endif
 #endif
 
-#ifdef REACTIONS
-    pp.get("do_react",do_react);
-#else
-    pp.query("do_react",do_react);
-#endif
 
 #ifdef PARTICLES
     read_particle_params();
@@ -558,20 +415,14 @@ Castro::read_params ()
 #endif
 
 #ifdef ROTATION
-    pp.get("do_rotation",do_rotation);
     if (do_rotation) {
-      pp.get("rotational_period",rotational_period);
       if (rotational_period <= 0.0) {
 	std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
 	BoxLib::Error();
       }
     }
-    else pp.query("rotational_period",rotational_period);
-    pp.query("rotational_dPdt",rotational_dPdt);
-    pp.query("rot_source_type",rot_source_type);
     if (Geometry::IsRZ())
       rot_axis = 2;
-    pp.query("rot_axis",rot_axis);
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
@@ -580,12 +431,7 @@ Castro::read_params ()
 #endif
 #endif
 
-   pp.query("deterministic", deterministic);
-
-   pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
-
-   pp.query("job_name",job_name);  
 
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
