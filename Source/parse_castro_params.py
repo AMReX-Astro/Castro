@@ -1,5 +1,29 @@
 #!/usr/bin/env python
 
+
+# This script parses the list of C++ runtime parameters and writes the
+# necessary header files and Fortran routines to make them available
+# in Castro's C++ routines and (optionally) the Fortran routines
+# through meth_params_module.
+#
+# specifically, we write out:
+#
+#   -- castro_set_meth.H  (included in Castro_F.H):
+#      defines the prototype for set_castro_method_params
+#
+#   -- castro_call_set_meth.H  (included in Castro_setup.cpp):
+#      implements the actual call to set_castro_method_params
+#
+#   -- castro_params.H  (included in Castro.H):
+#      declares the static variables of the Castro class
+#
+#   -- castro_defaults.H  (included in Castro.cpp):
+#      sets the defaults of the runtime parameters
+#
+#   -- castro_queries.H  (included in Castro.cpp):
+#      does the parmparse query to override the default
+#
+
 import argparse
 import re
 import sys
@@ -9,6 +33,7 @@ class Param(object):
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
+
         self.name = name
         self.dtype = dtype
         self.default = default
@@ -66,7 +91,16 @@ class Param(object):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
         # This goes into castro_queries.H included into Castro.cpp
-        return "pp.query(\"{}\", {});\n".format(self.name, self.name)
+        ostr = ""
+        if not self.ifdef is None:
+            ostr += "#ifdef {}\n".format(self.ifdef)
+
+        ostr += "pp.query(\"{}\", {});\n".format(self.name, self.name)
+
+        if not self.ifdef is None:
+            ostr += "#endif\n".format(self.ifdef)
+        
+        return ostr
 
     def get_decl_string(self):
         # this is the line that goes into castro_params.H included
@@ -110,7 +144,6 @@ class Param(object):
 
         return tstr
 
-
     def get_prototype_decl(self):
         # this give the line in the set_castro_method_params prototype
         # for this runtime parameter that will be written into
@@ -129,13 +162,13 @@ class Param(object):
         return tstr
 
 
-def write_prototype(plist):
+def get_prototype(plist):
 
     decls = [p.get_prototype_decl() for p in plist if not p.get_prototype_decl() is None]
 
     indent = 4
 
-    prototype = "BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_methd_params)\n"
+    prototype = "BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
     prototype += (indent-1)*" " + "("
 
     for n, d in enumerate(decls):
@@ -154,7 +187,7 @@ def write_prototype(plist):
     return prototype
 
 
-def write_cpp_call(plist):
+def get_cpp_call(plist):
 
     args = [p.name for p in plist if p.in_fortran == 1]
 
@@ -226,7 +259,6 @@ def write_set_meth_sub(plist, set_template):
 
     params = [p for p in plist if p.in_fortran == 1]
 
-
     for line in st:
         if line.find("@@start_sub@@") >= 0:
             so.write("subroutine set_castro_method_params( &\n  ")
@@ -266,15 +298,13 @@ def write_set_meth_sub(plist, set_template):
 
 
         elif line.find("@@end_sub@@") >= 0:
-            continue
+            so.write("end subroutine set_castro_method_params\n")
+
         else:
             so.write(line)
 
     so.close()
     st.close()
-
-
-
 
 
 def parse_params(infile, meth_template, set_template):
@@ -326,11 +356,59 @@ def parse_params(infile, meth_template, set_template):
                             ifdef=ifdef))
 
 
-    for p in params:
-        print p.get_default_string()
 
-    print write_prototype(params)
-    print write_cpp_call(params)
+    # output
+
+    # write castro_defaults.H
+    try: cd = open("castro_defaults.H", "w")
+    except:
+        sys.exit("unable to open castro_defaults.H for writing")
+
+    for p in params:
+        cd.write(p.get_default_string())
+
+    cd.close()
+
+    # write castro_set_meth.H
+    prototype = get_prototype(params)
+    try: csm = open("castro_set_meth.H", "w")
+    except:
+        sys.exit("unable to open castro_set_meth.H for writing")
+        
+    csm.write(prototype)
+    csm.close()
+
+    # write castro_call_set_meth.H
+    call = get_cpp_call(params)
+    try: ccsm = open("castro_call_set_meth.H", "w")
+    except:
+        sys.exit("unable to open castro_call_set_meth.H for writing")
+        
+    ccsm.write(call)
+    ccsm.close()
+
+    # write castro_params.H
+    try: cp = open("castro_params.H", "w")
+    except:
+        sys.exit("unable to open castro_params.H for writing")
+
+    for p in params:
+        cp.write(p.get_decl_string())
+
+    cp.close()
+
+    # write castro_queries.H
+    try: cq = open("castro_queries.H", "w")
+    except:
+        sys.exit("unable to open castro_queries.H for writing")
+
+    for p in params:
+        cq.write(p.get_query_string())
+
+    cq.close()
+
+
+    # write the Fortran routines
     write_meth_module(params, meth_template)
     write_set_meth_sub(params, set_template)
 

@@ -69,7 +69,7 @@ use_flattening               int           1                  y
 ppm_flatten_before_integrals int           0                  y
 
 transverse_use_eos           int           0                  y
-transvers_reset_density      int           0                  y
+transverse_reset_density     int           0                  y
 transverse_reset_rhoe        int           0                  y
 
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical

@@ -565,8 +565,6 @@ protected:
     static BCRec     phys_bc;
     static int       NUM_GROW;
 
-    static std::string      job_name;
-
     // for keeping track of the amount of CPU time used -- this will persist
     // after restarts
     static Real      previousCPUTimeUsed;

@@ -267,7 +267,6 @@
 
         use meth_params_module
         use network, only : nspec, naux
-        use eos_module
         use parallel
 
         implicit none
@@ -280,7 +279,6 @@
         integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
         integer, intent(in) :: use_sgs
-        double precision, intent(in) :: burning_timestep_factor_in
         double precision, intent(in) :: const_grav_in, diffuse_cutoff_density_in
         integer :: iadv, ispec
 
@@ -292,8 +290,6 @@
         call parallel_initialize()
 
         iorder = 2
-
-        difmag = difmag_in
 
         !---------------------------------------------------------------------
         ! conserved state components
