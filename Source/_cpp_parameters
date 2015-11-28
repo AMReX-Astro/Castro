@@ -34,7 +34,7 @@ rot_source_type              int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # set this true for regression testing
-deterministic                int           0                  y
+deterministic                int           0                  y        None            deterministic                  logical
 
 bndry_func_thread_safe       int           1
 
