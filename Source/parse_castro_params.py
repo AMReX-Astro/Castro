@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+import argparse
 import re
 import sys
 
@@ -189,7 +192,7 @@ def write_fortran_decl(plist):
     return decls
 
 
-def parser(infile):
+def parse_params(infile, meth_template, set_template):
 
     params = []
 
@@ -247,8 +250,14 @@ def parser(infile):
 
 if __name__ == "__main__":
 
-    try: infile = sys.argv[1]
-    except:
-        sys.exit("need to specify an input file")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", type=str, default=None,
+                        help="template for the meth_params module")
+    parser.add_argument("-s", type=str, default=None,
+                        help="template for the castro_set_meth_params subroutine")
+    parser.add_argument("input_file", type=str, nargs=1,
+                        help="input file containing the list of parameters we will define")
 
-    parser(infile)
+    args = parser.parse_args()
+
+    parse_params(args.input_file[0], args.m, args.s)
