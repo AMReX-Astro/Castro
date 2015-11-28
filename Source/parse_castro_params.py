@@ -127,6 +127,21 @@ class Param(object):
 
         return ostr
 
+    def get_static_default_string(self):
+        # this is used before the call to set_castro_meth_param to 
+        # give defaults when the ifdef is not defined
+
+        if self.dtype == "int":
+            tstr = "static int {} = {};\n".format(self.name, self.default)
+        elif self.dtype == "Real":
+            tstr = "static Real {} = {};\n".format(self.name, self.default)
+        elif self.dtype == "string":
+            tstr = "static std::string {} = {};\n".format(self.name, self.default)
+        else:
+            sys.exit("invalid data type for parameter {}".format(self.name))
+
+        return tstr
+
     def get_f90_decl_string(self):
         # this is the line that goes into meth_params.f90
 
@@ -193,7 +208,18 @@ def get_cpp_call(plist):
 
     indent = 4
 
-    call = "BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
+    call = ""
+
+    # any special ifdefs to deal with?
+    for p in plist:
+        if p.ifdef is None or not p.in_fortran: continue
+        
+        call += "#ifndef {}\n".format(p.ifdef)
+        call += p.get_static_default_string()
+        call += "#endif\n"
+        
+
+    call += "BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
 
     call += (indent-1)*" " + "("
 
@@ -223,7 +249,7 @@ def write_meth_module(plist, meth_template):
     except:
         sys.exit("invalid template file")
 
-    try: mo = open("meth_params.f90", "w")
+    try: mo = open("Src_nd/meth_params.f90", "w")
     except:
         sys.exit("unable to open meth_params.f90 for writing")
 
@@ -253,7 +279,7 @@ def write_set_meth_sub(plist, set_template):
     except:
         sys.exit("invalid template file")
 
-    try: so = open("set_castro_params.f90", "w")
+    try: so = open("Src_nd/set_castro_params.f90", "w")
     except:
         sys.exit("unable to open set_castro_params.f90 for writing")
 

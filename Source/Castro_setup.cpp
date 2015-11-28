@@ -205,13 +205,6 @@ Castro::variableSetUp ()
 
     const Real run_strt = ParallelDescriptor::second() ; 
 
-#ifndef ROTATION
-    static Real rotational_period = -1.e200;
-    static Real rotational_dPdt = 0.0;
-    static int  rot_axis = 3;
-    static int  rot_source_type = -1;
-#endif
-
 #ifndef DIFFUSION
     static Real diffuse_cutoff_density = -1.e200;
 #endif

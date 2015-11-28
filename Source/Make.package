@@ -7,11 +7,9 @@ CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
-f90EXE_sources += set_castro_params.f90
 CEXE_headers += castro_call_set_meth.H
 CEXE_headers += castro_params.H
 CEXE_headers += castro_queries.H
-f90EXE_sources += meth_params.f90
 CEXE_headers += castro_defaults.H
 CEXE_headers += castro_set_meth.H
 

@@ -1,7 +1,8 @@
 f90EXE_sources += Castro_nd.f90
 f90EXE_sources += Tagging_nd.f90
 f90EXE_sources += Problem.f90
-#f90EXE_sources += meth_params.f90
+f90EXE_sources += set_castro_params.f90
+f90EXE_sources += meth_params.f90
 f90EXE_sources += prob_params.f90
 f90EXE_sources += tagging_params.f90
 f90EXE_sources += sponge_params.f90
