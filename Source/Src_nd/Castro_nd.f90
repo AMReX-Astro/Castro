@@ -27,15 +27,15 @@
 
       end subroutine ca_extern_init
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine get_num_spec(nspec_out)
 
         use network, only : nspec
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: nspec_out
 
@@ -43,15 +43,15 @@
 
       end subroutine get_num_spec
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine get_num_aux(naux_out)
 
         use network, only : naux
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: naux_out
 
@@ -67,7 +67,7 @@
 
         use network, only : nspec, short_spec_names
 
-        implicit none 
+        implicit none
 
         integer, intent(in   ) :: ispec
         integer, intent(inout) :: len
@@ -92,7 +92,7 @@
 
         use network, only : nspec, aion, zion
 
-        implicit none 
+        implicit none
 
         integer         , intent(in   ) :: ispec
         double precision, intent(inout) :: A, Z
@@ -111,7 +111,7 @@
 
         use network, only : naux, short_aux_names
 
-        implicit none 
+        implicit none
 
         integer, intent(in   ) :: iaux
         integer, intent(inout) :: len
@@ -128,9 +128,9 @@
 
       end subroutine get_aux_names
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine get_method_params(nGrowHyp)
 
@@ -138,7 +138,7 @@
 
         use meth_params_module
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: ngrowHyp
 
@@ -182,7 +182,7 @@
         double precision, intent(in) :: time
         integer         , intent(in) :: np,nc
 
-        ! Do this so the routine has the right size 
+        ! Do this so the routine has the right size
         deallocate(outflow_data_old)
           allocate(outflow_data_old(nc,np))
 
@@ -207,7 +207,7 @@
         double precision, intent(in) :: time
         integer         , intent(in) :: np,nc
 
-        ! Do this so the routine has the right size 
+        ! Do this so the routine has the right size
         deallocate(outflow_data_new)
           allocate(outflow_data_new(nc,np))
 
@@ -251,9 +251,9 @@
 
       end subroutine swap_outflow_data
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
@@ -270,8 +270,8 @@
         use eos_module
         use parallel
 
-        implicit none 
- 
+        implicit none
+
         integer, intent(in) :: dm
         integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
                                FirstAdv, FirstSpec, FirstAux
@@ -288,13 +288,13 @@
 
         integer :: i
         integer :: ioproc
-        
+
         call parallel_initialize()
 
-        iorder = 2 
+        iorder = 2
 
         difmag = difmag_in
-        
+
         !---------------------------------------------------------------------
         ! conserved state components
         !---------------------------------------------------------------------
@@ -323,7 +323,7 @@
 
         if (numadv .ge. 1) then
           UFA   = FirstAdv  + 1
-        else 
+        else
           UFA = 1
         end if
 
@@ -331,7 +331,7 @@
 
         if (naux .ge. 1) then
           UFX = FirstAux  + 1
-        else 
+        else
           UFX = 1
         end if
 
@@ -343,7 +343,7 @@
         ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
         !         + 3 velocity components + 1 SGS components (if defined)
         ! QVAR  : number of total variables in primitive form
-      
+
         QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
                              ! the SGS component is accounted for already in NTHERM
 
@@ -369,13 +369,13 @@
            QESGS = -1
         endif
 
-        QTEMP   = QTHERM 
+        QTEMP   = QTHERM
 
         if (numadv >= 1) then
           QFA = QTHERM + 1
           QFS = QFA + numadv
 
-        else 
+        else
           QFA = 1   ! density
           QFS = QTHERM + 1
 
@@ -384,7 +384,7 @@
         if (naux >= 1) then
           QFX = QFS + nspec
 
-        else 
+        else
           QFX = 1
 
         end if
@@ -434,14 +434,14 @@
            enddo
            npassive = npassive + nspec + naux
         endif
-        
-         
+
+
         !---------------------------------------------------------------------
         ! other initializations
         !---------------------------------------------------------------------
 
-        call bl_pd_is_ioproc(ioproc)        
-        
+        call bl_pd_is_ioproc(ioproc)
+
         allocate(character(len=gravity_type_len) :: gravity_type)
 
         do i = 1, gravity_type_len
@@ -452,12 +452,12 @@
 
         diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
-        
+
       end subroutine set_method_params
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
                                     Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
@@ -469,8 +469,8 @@
         use bl_constants_module, only: ZERO
         use prob_params_module
 
-        implicit none 
- 
+        implicit none
+
         integer, intent(in) :: dm
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
         integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
@@ -495,7 +495,7 @@
 
         problo(1:dm) = problo_in(1:dm)
         probhi(1:dm) = probhi_in(1:dm)
-        center(1:dm) = center_in(1:dm)        
+        center(1:dm) = center_in(1:dm)
 
         dg(:) = 1
 
@@ -508,10 +508,10 @@
         endif
 
       end subroutine set_problem_params
-      
-! ::: 
+
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine set_refinement_params(max_level_in, dx_level_in)
 
@@ -523,7 +523,7 @@
         double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
 
         integer :: lev, dir
-        
+
         max_level = max_level_in
 
         allocate(dx_level(1:3, 0:max_level))
@@ -534,20 +534,20 @@
            enddo
         enddo
 
-      end subroutine set_refinement_params      
-      
-! ::: 
-! ::: ----------------------------------------------------------------
-! ::: 
+      end subroutine set_refinement_params
 
-      subroutine ca_set_special_tagging_flag(dummy,flag) 
-      double precision :: dummy 
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine ca_set_special_tagging_flag(dummy,flag)
+      double precision :: dummy
       integer          :: flag
       end subroutine ca_set_special_tagging_flag
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine get_tagging_params(name, namlen)
 
@@ -557,7 +557,7 @@
 
         integer :: namlen
         integer :: name(namlen)
-        
+
         integer :: un, i, status
 
         integer, parameter :: maxlen = 256
@@ -633,9 +633,9 @@
 
 
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine get_sponge_params(name, namlen)
 
@@ -645,7 +645,7 @@
 
         integer :: namlen
         integer :: name(namlen)
-        
+
         integer :: un, i, status
 
         integer, parameter :: maxlen = 256
@@ -660,10 +660,10 @@
 
         sponge_lower_radius = -1.d0
         sponge_upper_radius = -1.d0
-        
+
         sponge_lower_density = -1.d0
         sponge_upper_density = -1.d0
-        
+
         sponge_timescale    = -1.d0
 
         ! create the filename

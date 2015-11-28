@@ -6,7 +6,7 @@ import sys
 
 class Param(object):
     def __init__(self, name, dtype, default,
-                 debug_default=None, 
+                 debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
         self.name = name
@@ -14,7 +14,7 @@ class Param(object):
         self.default = default
         self.debug_default=debug_default
         self.in_fortran = in_fortran
-        
+
         if ifdef == "None":
             self.ifdef = None
         else:
@@ -180,16 +180,101 @@ def write_cpp_call(plist):
     return call
 
 
-def write_fortran_decl(plist):
+def write_meth_module(plist, meth_template):
+    """this writes the meth_params_module, starting with the meth_template
+       and inserting the runtime parameter declaration in the correct
+       place
+    """
 
-    params = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
+    try: mt = open(meth_template, "r")
+    except:
+        sys.exit("invalid template file")
+
+    try: mo = open("meth_params.f90", "w")
+    except:
+        sys.exit("unable to open meth_params.f90 for writing")
+
+    param_decls = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
 
     decls = ""
-    
-    for p in params:
-        decls += p
 
-    return decls
+    for p in param_decls:
+        decls += "  {}".format(p)
+
+    for line in mt:
+        if line.find("@@f90_declaractions@@") > 0:
+            mo.write(decls)
+        else:
+            mo.write(line)
+
+    mo.close()
+    mt.close()
+
+
+def write_set_meth_sub(plist, set_template):
+    """this writes the set_castro_meth_params routine, starting with the
+       set_template and inserting the runtime parameter info where needed
+    """
+
+    try: st = open(set_template, "r")
+    except:
+        sys.exit("invalid template file")
+
+    try: so = open("set_castro_params.f90", "w")
+    except:
+        sys.exit("unable to open set_castro_params.f90 for writing")
+
+    params = [p for p in plist if p.in_fortran == 1]
+
+
+    for line in st:
+        if line.find("@@start_sub@@") >= 0:
+            so.write("subroutine set_castro_method_params( &\n  ")
+            for n, p in enumerate(params):
+                so.write("{}_in".format(p.f90_name))
+
+                if n == len(params)-1:
+                    so.write(")\n")
+                else:
+                    so.write(", ")
+
+                if n % 3 == 2:
+                    so.write(" &\n  ")
+
+        elif line.find("@@set_params@@") >= 0:
+
+            # first the declarations
+            for p in params:
+                if p.dtype == "int":
+                    so.write("  integer,          intent(in) :: {}_in\n".format(p.f90_name))
+                elif p.dtype == "Real":
+                    so.write("  double precision, intent(in) :: {}_in\n".format(p.f90_name))
+                else:
+                    sys.exit("unsupported datatype for Fortran: {}".format(p.name))
+
+            so.write("\n")
+
+            # now store it in the module -- be aware of changing data types
+            for p in params:
+                if p.dtype == p.f90_dtype:
+                    so.write("  {} = {}_in\n".format(p.f90_name, p.f90_name))
+                else:
+                    if p.dtype == "int" and p.f90_dtype == "logical":
+                        so.write("  {} = {}_in .ne. 0\n".format(p.f90_name, p.f90_name))
+                    else:
+                        sys.exit("unsupported combination of data types")
+
+
+        elif line.find("@@end_sub@@") >= 0:
+            continue
+        else:
+            so.write(line)
+
+    so.close()
+    st.close()
+
+
+
 
 
 def parse_params(infile, meth_template, set_template):
@@ -246,7 +331,9 @@ def parse_params(infile, meth_template, set_template):
 
     print write_prototype(params)
     print write_cpp_call(params)
-    print write_fortran_decl(params)
+    write_meth_module(params, meth_template)
+    write_set_meth_sub(params, set_template)
+
 
 if __name__ == "__main__":
 
