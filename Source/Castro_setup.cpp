@@ -236,27 +236,14 @@ Castro::variableSetUp ()
     
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-         NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
-         allow_negative_energy,ppm_type,ppm_reference,
-	 ppm_trace_sources,ppm_temp_fix,
-	 ppm_tau_in_tracing,ppm_predict_gammae,
-	 ppm_reference_edge_limit,
-	 ppm_flatten_before_integrals,
-	 ppm_reference_eigenvectors,
-	 hybrid_riemann, use_colglaz, riemann_solver, use_flattening, 
-         transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
-         cg_maxiter, cg_tol,
-         use_pslope, 
-	 do_grav, grav_source_type,
+         NumAdv, 
 	 gravity_type_name.dataPtr(), &gravity_type_length,
 	 get_g_from_phi,
-	 do_sponge,
-         normalize_species,fix_mass_flux,use_sgs,
-	 burning_timestep_factor,
-	 dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e,
-	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_dPdt,
+	 use_sgs,
 	 diffuse_cutoff_density,
-	 const_grav, deterministic, do_acc);
+	 const_grav);
+
+#include <castro_call_set_meth.H>
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
