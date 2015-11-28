@@ -88,9 +88,8 @@ class Param(object):
             tstr = "const Real& {}".format(self.name)
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
-        
-        return tstr
 
+        return tstr
 
 
 def write_prototype(plist):
@@ -99,7 +98,7 @@ def write_prototype(plist):
 
     indent = 4
 
-    prototype = "BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)\n"
+    prototype = "BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_methd_params)\n"
     prototype += (indent-1)*" " + "("
 
     for n, d in enumerate(decls):
@@ -114,8 +113,34 @@ def write_prototype(plist):
         if n % 2 == 1:
             prototype += "\n"
             prototype += indent*" "
-            
+
     return prototype
+
+
+def write_cpp_call(plist):
+
+    args = [p.name for p in plist if p.in_fortran == 1]
+
+    indent = 4
+
+    call = "BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
+
+    call += (indent-1)*" " + "("
+
+    for n, a in enumerate(args):
+        call += "{}".format(a)
+        if n == len(args)-1:
+            call += ");\n"
+            break
+
+        else:
+            call += ", "
+
+        if n % 2 == 1:
+            call += "\n"
+            call += indent*" "
+
+    return call
 
 
 def parser(infile):
@@ -145,13 +170,18 @@ def parser(infile):
         else:
             debug_default = None
 
-        try: in_fortran = fields[3]
+        try: in_fortran_string = fields[3]
         except: in_fortran = 0
+        else:
+            if in_fortran_string.lower().strip() == "y":
+                in_fortran = 1
+            else:
+                in_fortran = 0
 
         try: ifdef = fields[4]
         except: ifdef = None
 
-        params.append(Param(name, dtype, default, debug_default=debug_default, 
+        params.append(Param(name, dtype, default, debug_default=debug_default,
                             in_fortran=in_fortran, ifdef=ifdef))
 
 
@@ -159,6 +189,7 @@ def parser(infile):
         print p.get_default_string()
 
     print write_prototype(params)
+    print write_cpp_call(params)
 
 
 if __name__ == "__main__":
