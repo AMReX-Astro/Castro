@@ -1,72 +1,72 @@
 # name                      type          default     need in Fortran?    ifdef
 
 
-difmag                       Real          0.1
-small_dens                   Real         -1.e200
-small_temp                   Real         -1.e200
-small_pres                   Real         -1.e200
-small_ener                   Real         -1.e200
+difmag                       Real          0.1                y
+small_dens                   Real         -1.e200             y
+small_temp                   Real         -1.e200             y
+small_pres                   Real         -1.e200             y
+small_ener                   Real         -1.e200             y
 
 do_hydro                     int          -1
 do_react                     int          -1
-do_grav                      int          -1
-do_rotation                  int          -1
+do_grav                      int          -1                  y
+do_rotation                  int          -1                  y
 add_ext_src                  int           0
 
-do_acc                       int          -1
+do_acc                       int          -1                  y
 
 rotational_period            Real         -1.e200             y        ROTATION
 rotational_dPdt              Real          0.0                y        ROTATION
 rot_source_type              int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
-deterministic                int           0
+deterministic                int           0                  y
 
 bndry_func_thread_safe       int           1
 
 grown_factor                 int           1
 star_at_center               int          -1
 moving_center                int           0
-normalize_species            int           0
-fix_mass_flux                int           0
-allow_negative_energy        int           1
+normalize_species            int           0                  y
+fix_mass_flux                int           0                  y
+allow_negative_energy        int           1                  y
 do_special_tagging           int           0
 
-ppm_type                     int           1
-ppm_reference                int           1
-ppm_trace_sources            int           0
-ppm_temp_fix                 int           0
-ppm_tau_in_tracing           int           0
-ppm_predict_gammae           int           0
-ppm_reference_edge_limit     int           1
-ppm_reference_eigenvectors   int           0
+ppm_type                     int           1                  y
+ppm_reference                int           1                  y
+ppm_trace_sources            int           0                  y
+ppm_temp_fix                 int           0                  y
+ppm_tau_in_tracing           int           0                  y
+ppm_predict_gammae           int           0                  y
+ppm_reference_edge_limit     int           1                  y
+ppm_reference_eigenvectors   int           0                  y
 
 source_term_predictor        int           0
 
-hybrid_riemann               int           0
-use_colglaz                  int           0
-riemann_solver               int           0
-cg_maxiter                   int          12
-cg_tol                       Real          1.0e-5
+hybrid_riemann               int           0                  y
+use_colglaz                  int           0                  y
+riemann_solver               int           0                  y
+cg_maxiter                   int          12                  y
+cg_tol                       Real          1.0e-5             y
 
 hard_cfl_limit               int           1
 
-use_flattening               int           1
-ppm_flatten_before_integrals int           0
+use_flattening               int           1                  y
+ppm_flatten_before_integrals int           0                  y
 
-transverse_use_eos           int           0
-transvers_reset_density      int           0
-transverse_reset_rhoe        int           0
+transverse_use_eos           int           0                  y
+transvers_reset_density      int           0                  y
+transverse_reset_rhoe        int           0                  y
 
-dual_energy_update_E_from_e  int           1
-dual_energy_eta1             Real          1.0e0
-dual_energy_eta2             Real          1.0e-4
-dual_energy_eta3             Real          0.0e0
+dual_energy_update_E_from_e  int           1                  y
+dual_energy_eta1             Real          1.0e0              y
+dual_energy_eta2             Real          1.0e-4             y
+dual_energy_eta3             Real          0.0e0              y
 
-use_pslope                   int           1
-grav_source_type             int           2
-spherical_star               int           0
-do_sponge                    int           0
+use_pslope                   int           1                  y
+grav_source_type             int           2                  y
+spherical_star               int           0  
+do_sponge                    int           0                  y
 
 print_fortran_warnings       int           (0, 1)
 print_energy_diagnostics     int           (0, 1)
@@ -74,7 +74,7 @@ print_energy_diagnostics     int           (0, 1)
 sum_interval                 int          -1
 show_center_of_mass          int           0
 
-sum_turb_src                 Real          0.0                         SGS
+sum_turb_src                 Real          0.0                n        SGS
 
 job_name                     string        ""
 

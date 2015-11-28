@@ -12,6 +12,8 @@ class Param(object):
         self.ifdef = ifdef
 
     def get_default_string(self):
+        # this is the line that goes into Castro.cpp
+
         if self.dtype == "int":
             tstr = "int         Castro::{}".format(self.name)
         elif self.dtype == "Real":
@@ -28,18 +30,42 @@ class Param(object):
 
         if not self.debug_default is None:
             ostr += "#ifdef DEBUG\n"
-            ostr += "{} = {}\n".format(tstr, self.debug_default)
+            ostr += "{} = {};\n".format(tstr, self.debug_default)
             ostr += "#else\n"
-            ostr += "{} = {}\n".format(tstr, self.default)
+            ostr += "{} = {};\n".format(tstr, self.default)
             ostr += "#endif\n"
         else:
-            ostr += "{} = {}\n".format(tstr, self.default)
+            ostr += "{} = {};\n".format(tstr, self.default)
             
         if not self.ifdef is None:
             ostr += "#endif\n"
 
         return ostr
 
+    def get_decl_string(self):
+        # this is the line that goes into Castro.H
+        if self.dtype == "int":
+            tstr = "static int {};\n".format(self.name)
+        elif self.dtype == "Real":
+            tstr = "static Real {};\n".format(self.name)            
+        elif self.dtype == "string":
+            tstr = "static std::string {};\n".format(self.name)
+        else:
+            sys.exit("invalid data type for parameter {}".format(self.name))
+
+        ostr = ""
+
+        if not self.ifdef is None:
+            ostr = "#ifdef {}\n".format(self.ifdef)
+
+        ostr += tstr
+            
+        if not self.ifdef is None:
+            ostr += "#endif\n"
+
+        return ostr
+
+        
 
 def parser(infile):
 
