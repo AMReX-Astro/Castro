@@ -1,6 +1,6 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
-burning_timestep_factor      Real          1.e200
+burning_timestep_factor      Real          1.e200             y
 
 # the coefficient of the artifical viscosity
 difmag                       Real          0.1                y
