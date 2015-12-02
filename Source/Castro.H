@@ -551,64 +551,19 @@ protected:
     //
     // Static data members.
     //
+#include <castro_params.H>
+
     static int       checkpoint_version;
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
     static Real      cfl;
-    static Real      burning_timestep_factor;  
     static Real      init_shrink;
     static Real      change_max;
     static int       do_reflux;
     static ErrorList err_list;
     static BCRec     phys_bc;
     static int       NUM_GROW;
-
-    static int       grown_factor;
-    static int       star_at_center;
-    static int       moving_center;
-    static int       normalize_species;
-    static int       fix_mass_flux;
-    static int       allow_negative_energy;
-    static int       do_special_tagging;
-
-    static int       ppm_type;
-    static int       ppm_reference;
-    static int       ppm_trace_sources;
-    static int       ppm_temp_fix;
-    static int       ppm_tau_in_tracing;
-    static int       ppm_predict_gammae;
-    static int       ppm_reference_edge_limit;
-    static int       ppm_flatten_before_integrals;
-    static int       ppm_reference_eigenvectors;
-    static int       hybrid_riemann;
-    static int       use_colglaz;
-    static int       riemann_solver;
-    static int       use_flattening;
-    static int       transverse_use_eos;
-    static int       transverse_reset_density;
-    static int       transverse_reset_rhoe;
-    static int       source_term_predictor;
-
-    static int       dual_energy_update_E_from_e;
-    static Real      dual_energy_eta1;
-    static Real      dual_energy_eta2;
-    static Real      dual_energy_eta3;
-
-    static int       cg_maxiter;
-    static Real      cg_tol;
-    static int       use_pslope;
-    static int       grav_source_type;
-    static int       spherical_star;
-    static int       hard_cfl_limit;
-
-    static Real      difmag;
-    static Real      small_dens;
-    static Real      small_temp;
-    static Real      small_pres;
-    static Real      small_ener;
-
-    static std::string      job_name;
 
     // for keeping track of the amount of CPU time used -- this will persist
     // after restarts
@@ -651,41 +606,8 @@ protected:
 
     bool             FillPatchedOldState_ok;
 
-    // permits hydro to be turned on and off for running pure rad problems:
-    static int do_hydro;
-
-    // permits reactions to be turned on and off -- mostly for efficiency's sake
-    static int do_react;
-
-    // permits gravity calculation to be turned on and off
-    static int do_grav;
-
-    // permits sponge to be turned on and off
-    static int do_sponge;
-
-    // determines whether we use accelerators for specific loops
-    static int do_acc;
-
-    // permits rotation calculation to be turned on and off
-    static int do_rotation;
-
-    // How often to compute integral sums
-    static int sum_interval;
-
-    // Display center of mass diagnostics
-    static int show_center_of_mass;
-
-    // Display breakdown of energy sources
-    static int print_energy_diagnostics;
-
-    // Display warnings in Fortran90 routines 
-    static int print_fortran_warnings;
-
     std::map<std::string,MultiFab*> auxDiag;
     static std::map<std::string,Array<std::string> > auxDiag_names;
-
-    // if true, define an additional source term 
-    static int add_ext_src;
 
     // There can be only one Gravity object, it covers all levels:
     static class Gravity *gravity;
@@ -709,19 +631,6 @@ protected:
   IntMultiFab LSmine;
 #endif
 
-#ifdef ROTATION
-  static Real rotational_period;
-  static Real rotational_dPdt;
-  static int rot_source_type;
-  static int rot_axis;
-#endif
-
-    // set it to true to make OMP deterministic
-    static int deterministic;  
-
-    // Is boundary function for inflow (i.e., ext_dir) thread safe?
-    // Note that other boundary functions must be thread safe too.
-    static int bndry_func_thread_safe;
 
     // Name of the probin file and its length.
     static std::string probin_file;
