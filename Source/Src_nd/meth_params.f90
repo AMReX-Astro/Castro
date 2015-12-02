@@ -49,6 +49,7 @@ module meth_params_module
   character(len=:), allocatable :: gravity_type
   
 
+  double precision, save :: burning_timestep_factor
   double precision, save :: difmag
   double precision, save :: small_dens
   double precision, save :: small_temp
