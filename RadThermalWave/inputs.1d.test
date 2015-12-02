@@ -26,16 +26,6 @@ amr.plot_file       = plt
 amr.plot_int        = 100      # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# Dump clear text files (1D only)
-xgraph.format = gnu
-xgraph.graph = dens       density        100 -1
-xgraph.graph = Temp       Temp           100 -1
-xgraph.graph = vx         x_velocity     100 -1
-xgraph.graph = pres       pressure       100 -1
-xgraph.graph = Er         rad            100 -1
-xgraph.graph = Texact     test0          100 -1
-xgraph.graph = Terror     test1          100 -1
-
 amr.grid_log        = grdlog  # name of grid logging file
 amr.v = 1
 
