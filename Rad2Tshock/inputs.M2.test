@@ -26,8 +26,8 @@ amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_files_output       = 0 # suppress plot files
-amr.plot_file       = plt_
+amr.plot_files_output       = 1 # suppress plot files
+amr.plot_file       = plt
 amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
