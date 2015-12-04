@@ -76,7 +76,7 @@ sum_turb_src                 Real          0.0                n        SGS
 
 # limit the timestep based on how much the burning can change the internal
 # energy of a zone.  The goal is to have the timestep equal to
-# {\tt burning\_timestep\_factor}  (e / \Delta(e))
+# {\tt burning\_timestep\_factor}  $(e / \Delta e)$
 burning_timestep_factor      Real          1.e200             y
 
 
@@ -120,9 +120,6 @@ rot_axis                     int           3                  y        ROTATION
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------
-
-# set this true for regression testing (still used?)
-deterministic                int           0                  y        None            deterministic                  logical
 
 # determines whether we use accelerators for specific loops
 do_acc                       int          -1                  y
