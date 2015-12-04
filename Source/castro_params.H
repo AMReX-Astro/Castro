@@ -13,13 +13,11 @@ static int ppm_tau_in_tracing;
 static int ppm_predict_gammae;
 static int ppm_reference_edge_limit;
 static int ppm_reference_eigenvectors;
-static int source_term_predictor;
 static int hybrid_riemann;
 static int use_colglaz;
 static int riemann_solver;
 static int cg_maxiter;
 static Real cg_tol;
-static int hard_cfl_limit;
 static int use_flattening;
 static int ppm_flatten_before_integrals;
 static int transverse_use_eos;
@@ -37,11 +35,18 @@ static int do_sponge;
 #ifdef SGS
 static Real sum_turb_src;
 #endif
+static Real fixed_dt;
+static Real initial_dt;
+static Real dt_cutoff;
+static Real cfl;
+static Real init_shrink;
+static Real change_max;
 static Real burning_timestep_factor;
 static int do_react;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
+static int source_term_predictor;
 static int do_rotation;
 #ifdef ROTATION
 static Real rotational_period;
@@ -65,4 +70,5 @@ static int print_fortran_warnings;
 static int print_energy_diagnostics;
 static int sum_interval;
 static int show_center_of_mass;
+static int hard_cfl_limit;
 static std::string job_name;

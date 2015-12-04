@@ -13,13 +13,11 @@ int         Castro::ppm_tau_in_tracing = 0;
 int         Castro::ppm_predict_gammae = 0;
 int         Castro::ppm_reference_edge_limit = 1;
 int         Castro::ppm_reference_eigenvectors = 0;
-int         Castro::source_term_predictor = 0;
 int         Castro::hybrid_riemann = 0;
 int         Castro::use_colglaz = 0;
 int         Castro::riemann_solver = 0;
 int         Castro::cg_maxiter = 12;
 Real        Castro::cg_tol = 1.0e-5;
-int         Castro::hard_cfl_limit = 1;
 int         Castro::use_flattening = 1;
 int         Castro::ppm_flatten_before_integrals = 0;
 int         Castro::transverse_use_eos = 0;
@@ -37,11 +35,18 @@ int         Castro::do_sponge = 0;
 #ifdef SGS
 Real        Castro::sum_turb_src = 0.0;
 #endif
+Real        Castro::fixed_dt = -1.0;
+Real        Castro::initial_dt = -1.0;
+Real        Castro::dt_cutoff = 0.0;
+Real        Castro::cfl = 0.8;
+Real        Castro::init_shrink = 1.0;
+Real        Castro::change_max = 1.1;
 Real        Castro::burning_timestep_factor = 1.e200;
 int         Castro::do_react = -1;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 2;
+int         Castro::source_term_predictor = 0;
 int         Castro::do_rotation = -1;
 #ifdef ROTATION
 Real        Castro::rotational_period = -1.e200;
@@ -73,4 +78,5 @@ int         Castro::print_energy_diagnostics = 0;
 #endif
 int         Castro::sum_interval = -1;
 int         Castro::show_center_of_mass = 0;
+int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";

@@ -557,9 +557,6 @@ protected:
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
-    static Real      cfl;
-    static Real      init_shrink;
-    static Real      change_max;
     static int       do_reflux;
     static ErrorList err_list;
     static BCRec     phys_bc;

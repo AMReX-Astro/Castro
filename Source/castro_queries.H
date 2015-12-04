@@ -13,13 +13,11 @@ pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
-pp.query("source_term_predictor", source_term_predictor);
 pp.query("hybrid_riemann", hybrid_riemann);
 pp.query("use_colglaz", use_colglaz);
 pp.query("riemann_solver", riemann_solver);
 pp.query("cg_maxiter", cg_maxiter);
 pp.query("cg_tol", cg_tol);
-pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("use_flattening", use_flattening);
 pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
 pp.query("transverse_use_eos", transverse_use_eos);
@@ -37,11 +35,18 @@ pp.query("do_sponge", do_sponge);
 #ifdef SGS
 pp.query("sum_turb_src", sum_turb_src);
 #endif
+pp.query("fixed_dt", fixed_dt);
+pp.query("initial_dt", initial_dt);
+pp.query("dt_cutoff", dt_cutoff);
+pp.query("cfl", cfl);
+pp.query("init_shrink", init_shrink);
+pp.query("change_max", change_max);
 pp.query("burning_timestep_factor", burning_timestep_factor);
 pp.query("do_react", do_react);
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);
+pp.query("source_term_predictor", source_term_predictor);
 pp.query("do_rotation", do_rotation);
 #ifdef ROTATION
 pp.query("rotational_period", rotational_period);
@@ -65,4 +70,5 @@ pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_energy_diagnostics", print_energy_diagnostics);
 pp.query("sum_interval", sum_interval);
 pp.query("show_center_of_mass", show_center_of_mass);
+pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("job_name", job_name);

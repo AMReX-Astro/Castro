@@ -56,19 +56,11 @@ using std::string;
 #endif
 
 
-
-static Real fixed_dt     = -1.0;
-static Real initial_dt   = -1.0;
-static Real dt_cutoff    = 0.0;
-
 int          Castro::checkpoint_version = 1;
 
 bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
-Real         Castro::cfl           = 0.8;
-Real         Castro::init_shrink   = 1.0;
-Real         Castro::change_max    = 1.1;
 ErrorList    Castro::err_list;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
@@ -199,16 +191,9 @@ Castro::read_params ()
 #include <castro_queries.H>
 
     pp.query("v",verbose);
-//  verbose = (verbose ? 1 : 0);
-    pp.query("init_shrink",init_shrink);
-    pp.query("cfl",cfl);
-    pp.query("change_max",change_max);
-    pp.query("fixed_dt",fixed_dt);
-    pp.query("initial_dt",initial_dt);
     pp.query("sum_interval",sum_interval);
     pp.query("do_reflux",do_reflux);
     do_reflux = (do_reflux ? 1 : 0);
-    pp.query("dt_cutoff",dt_cutoff);
 
     pp.query("dump_old",dump_old);
 
