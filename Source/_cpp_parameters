@@ -63,8 +63,6 @@ ppm_reference_edge_limit     int           1                  y
 # do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
 
-source_term_predictor        int           0
-
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
@@ -127,7 +125,7 @@ do_react                     int          -1
 
 
 #-----------------------------------------------------------------------------
-# category: gravity
+# category: gravity and rotation
 #-----------------------------------------------------------------------------
 
 # permits gravity calculation to be turned on and off   
@@ -138,10 +136,9 @@ moving_center                int           0
 
 grav_source_type             int           2                  y
 
-
-#-----------------------------------------------------------------------------
-# category: rotation
-#-----------------------------------------------------------------------------
+# extrapolate the source terms (gravity and rotation) to $n+1/2$
+# timelevel for use in the interface state prediction
+source_term_predictor        int           0
 
 # permits rotation calculation to be turned on and off 
 do_rotation                  int          -1                  y
