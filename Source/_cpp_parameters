@@ -1,50 +1,31 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
-burning_timestep_factor      Real          1.e200             y
+#-----------------------------------------------------------------------------
+# category: hydrodynamics
+#-----------------------------------------------------------------------------
 
 # the coefficient of the artifical viscosity
 difmag                       Real          0.1                y
 
+# the small density cutoff.  Densities below this value will be reset
 small_dens                   Real         -1.e200             y
+
+# the small temperature cutoff.  Temperatures below this value will 
+# be reset
 small_temp                   Real         -1.e200             y
+
+# the small pressure cutoff.  Pressures below this value will be reset
 small_pres                   Real         -1.e200             y
+
+# the small specific internal energy cutoff.  Pressures below this
+# value will be reset
 small_ener                   Real         -1.e200             y
 
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1
 
-# permits reactions to be turned on and off -- mostly for efficiency's sake 
-do_react                     int          -1
-
-# permits gravity calculation to be turned on and off   
-do_grav                      int          -1                  y
-
-# permits rotation calculation to be turned on and off 
-do_rotation                  int          -1                  y
-
 # if true, define an additional source term   
 add_ext_src                  int           0
-
-# determines whether we use accelerators for specific loops
-do_acc                       int          -1                  y
-
-rotational_period            Real         -1.e200             y        ROTATION        rot_period
-rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
-rot_source_type              int           1                  y        ROTATION
-rot_axis                     int           3                  y        ROTATION
-
-# set this true for regression testing
-deterministic                int           0                  y        None            deterministic                  logical
-
-bndry_func_thread_safe       int           1
-
-grown_factor                 int           1
-star_at_center               int          -1
-moving_center                int           0
-normalize_species            int           0                  y
-fix_mass_flux                int           0                  y
-allow_negative_energy        int           1                  y
-do_special_tagging           int           0
 
 ppm_type                     int           1                  y
 ppm_reference                int           1                  y
@@ -78,11 +59,100 @@ dual_energy_eta2             Real          1.0e-4             y
 dual_energy_eta3             Real          0.0e0              y
 
 use_pslope                   int           1                  y
-grav_source_type             int           2                  y
-spherical_star               int           0  
+
+normalize_species            int           0                  y
+fix_mass_flux                int           0                  y
+allow_negative_energy        int           1                  y
 
 # permits sponge to be turned on and off 
 do_sponge                    int           0                  y
+
+sum_turb_src                 Real          0.0                n        SGS
+
+
+#-----------------------------------------------------------------------------
+# category: reactions
+#-----------------------------------------------------------------------------
+
+# limit the timestep based on how much the burning can change the internal
+# energy of a zone.  The goal is to have the timestep equal to
+# {\tt burning\_timestep\_factor}  (e / \Delta(e))
+burning_timestep_factor      Real          1.e200             y
+
+
+# permits reactions to be turned on and off -- mostly for efficiency's sake 
+do_react                     int          -1
+
+
+#-----------------------------------------------------------------------------
+# category: gravity
+#-----------------------------------------------------------------------------
+
+# permits gravity calculation to be turned on and off   
+do_grav                      int          -1                  y
+
+# to we recompute the center used for the multipole gravity solve each step?
+moving_center                int           0
+
+grav_source_type             int           2                  y
+
+
+#-----------------------------------------------------------------------------
+# category: rotation
+#-----------------------------------------------------------------------------
+
+# permits rotation calculation to be turned on and off 
+do_rotation                  int          -1                  y
+
+# the rotation period for the corotating frame
+rotational_period            Real         -1.e200             y        ROTATION        rot_period
+
+# the rotation periods time evolution---this allows the rotation rate to
+# change durning the simulation time
+rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
+
+rot_source_type              int           1                  y        ROTATION
+
+# the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
+rot_axis                     int           3                  y        ROTATION
+
+
+#-----------------------------------------------------------------------------
+# category: parallelization
+#-----------------------------------------------------------------------------
+
+# set this true for regression testing (still used?)
+deterministic                int           0                  y        None            deterministic                  logical
+
+# determines whether we use accelerators for specific loops
+do_acc                       int          -1                  y
+
+bndry_func_thread_safe       int           1
+
+
+#-----------------------------------------------------------------------------
+# category: embiggening
+#-----------------------------------------------------------------------------
+
+# the factor by which to extend the domain upon restart for embiggening
+grown_factor                 int           1
+
+# used with the embiggening routines to determine how to extend the domain
+star_at_center               int          -1
+
+
+#-----------------------------------------------------------------------------
+# category: refinement
+#-----------------------------------------------------------------------------
+
+do_special_tagging           int           0
+
+spherical_star               int           0  
+
+
+#-----------------------------------------------------------------------------
+# category: diagnostics
+#-----------------------------------------------------------------------------
 
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
@@ -95,7 +165,5 @@ sum_interval                 int          -1
 
 # display center of mass diagnostics
 show_center_of_mass          int           0
-
-sum_turb_src                 Real          0.0                n        SGS
 
 job_name                     string        ""
