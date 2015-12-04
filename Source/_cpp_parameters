@@ -27,21 +27,63 @@ do_hydro                     int          -1
 # if true, define an additional source term   
 add_ext_src                  int           0
 
+# reconstruction type: 
+# 0: piecewise linear; 
+# 1: classic Colella \& Woodward ppm;
+# 2: extrema-preserving ppm
 ppm_type                     int           1                  y
+
+# do we take the reference state for the characteristic projection
+# to be the cell centers (0) or the integral under the parabola
+# for the fastest moving wave toward the interface (1)
 ppm_reference                int           1                  y
+
+# to we reconstruct and trace under the parabolas of the source
+# terms to the velocity (gravity and rotation)
 ppm_trace_sources            int           0                  y
+
+# various methods of giving temperature a larger role in the 
+# reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
+
+# to we use $\tau = 1/rho$ or $\rho$ in the eigensystem?
 ppm_tau_in_tracing           int           0                  y
+
+# do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
+# to the interfaces for additional thermodynamic information
+# (this is the Colella \& Glaz technique) or do we use $(\rho e)$
+# (the classic \castro\ behavior).
 ppm_predict_gammae           int           0                  y
+
+# do we take the reference state when no waves are moving toward
+# the interface to be the cell center (0) or the limit of the
+# reconstructed parabola at the interface (1)
 ppm_reference_edge_limit     int           1                  y
+
+# do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
 
 source_term_predictor        int           0
 
+# do we drop from our regular Riemann solver to HLL when we
+# are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
+
+# this is deprecated---use {\tt riemann\_solver} instead
 use_colglaz                  int           0                  y
+
+# which Riemann solver do we use:
+# 0: Colella, Glaz, \& Ferguson (a two-shock solver);
+# 1: Colella \& Glaz (a two-shock solver)
+# 2: HLLC
 riemann_solver               int           0                  y
+
+# for the Colella \& Glaz Riemann solver, the maximum number
+# of iterations to take when solving for the star state
 cg_maxiter                   int          12                  y
+
+# for the Colella \& Glaz Riemann solver, the tolerance to 
+# demand in finding the star state
 cg_tol                       Real          1.0e-5             y
 
 hard_cfl_limit               int           1
