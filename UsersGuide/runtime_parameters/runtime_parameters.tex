@@ -363,6 +363,53 @@
 } % ends \small
 
 
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ timestep control
+ parameters.]{ timestep control
+ parameters.} \label{table:  timestep control
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  cfl  = &    &  0.8 \\
+\verb=  change_max  = &    &  1.1 \\
+\rowcolor{tableShade}
+\verb=  dt_cutoff  = &    &  0.0 \\
+\verb=  fixed_dt  = &    &  -1.0 \\
+\rowcolor{tableShade}
+\verb=  init_shrink  = &    &  1.0 \\
+\verb=  initial_dt  = &    &  -1.0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
 \end{landscape}
 
 %
