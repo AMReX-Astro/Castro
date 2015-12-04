@@ -153,6 +153,8 @@ rotational_period            Real         -1.e200             y        ROTATION 
 # change durning the simulation time
 rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
 
+# determines how the rotation source terms are added to the momentum and
+# energy equations
 rot_source_type              int           1                  y        ROTATION
 
 # the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector

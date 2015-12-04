@@ -169,6 +169,13 @@
 
     integer :: idir1, idir2, midx1, midx2
 
+    ! Rotation source options for how to add the work to (rho E):
+    ! rot_source_type = 
+    ! 1: Standard version ("does work")
+    ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
+    ! 3: Puts all work into KE, not (rho e)
+    ! 4: Conservative rotation approach (discussed in first white dwarf merger paper)
+    
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
     
