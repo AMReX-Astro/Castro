@@ -1,13 +1,7 @@
 BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
-   (const Real& burning_timestep_factor, const Real& difmag, 
-    const Real& small_dens, const Real& small_temp, 
-    const Real& small_pres, const Real& small_ener, 
-    const int& do_grav, const int& do_rotation, 
-    const int& do_acc, const Real& rotational_period, 
-    const Real& rotational_dPdt, const int& rot_source_type, 
-    const int& rot_axis, const int& deterministic, 
-    const int& normalize_species, const int& fix_mass_flux, 
-    const int& allow_negative_energy, const int& ppm_type, 
+   (const Real& difmag, const Real& small_dens, 
+    const Real& small_temp, const Real& small_pres, 
+    const Real& small_ener, const int& ppm_type, 
     const int& ppm_reference, const int& ppm_trace_sources, 
     const int& ppm_temp_fix, const int& ppm_tau_in_tracing, 
     const int& ppm_predict_gammae, const int& ppm_reference_edge_limit, 
@@ -19,4 +13,10 @@ BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
     const int& transverse_reset_rhoe, const int& dual_energy_update_E_from_e, 
     const Real& dual_energy_eta1, const Real& dual_energy_eta2, 
     const Real& dual_energy_eta3, const int& use_pslope, 
-    const int& grav_source_type, const int& do_sponge);
+    const int& normalize_species, const int& fix_mass_flux, 
+    const int& allow_negative_energy, const int& do_sponge, 
+    const Real& burning_timestep_factor, const int& do_grav, 
+    const int& grav_source_type, const int& do_rotation, 
+    const Real& rotational_period, const Real& rotational_dPdt, 
+    const int& rot_source_type, const int& rot_axis, 
+    const int& do_acc);

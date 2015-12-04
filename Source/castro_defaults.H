@@ -1,36 +1,10 @@
-Real        Castro::burning_timestep_factor = 1.e200;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;
 Real        Castro::small_pres = -1.e200;
 Real        Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
-int         Castro::do_react = -1;
-int         Castro::do_grav = -1;
-int         Castro::do_rotation = -1;
 int         Castro::add_ext_src = 0;
-int         Castro::do_acc = -1;
-#ifdef ROTATION
-Real        Castro::rotational_period = -1.e200;
-#endif
-#ifdef ROTATION
-Real        Castro::rotational_dPdt = 0.0;
-#endif
-#ifdef ROTATION
-int         Castro::rot_source_type = 1;
-#endif
-#ifdef ROTATION
-int         Castro::rot_axis = 3;
-#endif
-int         Castro::deterministic = 0;
-int         Castro::bndry_func_thread_safe = 1;
-int         Castro::grown_factor = 1;
-int         Castro::star_at_center = -1;
-int         Castro::moving_center = 0;
-int         Castro::normalize_species = 0;
-int         Castro::fix_mass_flux = 0;
-int         Castro::allow_negative_energy = 1;
-int         Castro::do_special_tagging = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_reference = 1;
 int         Castro::ppm_trace_sources = 0;
@@ -56,9 +30,37 @@ Real        Castro::dual_energy_eta1 = 1.0e0;
 Real        Castro::dual_energy_eta2 = 1.0e-4;
 Real        Castro::dual_energy_eta3 = 0.0e0;
 int         Castro::use_pslope = 1;
-int         Castro::grav_source_type = 2;
-int         Castro::spherical_star = 0;
+int         Castro::normalize_species = 0;
+int         Castro::fix_mass_flux = 0;
+int         Castro::allow_negative_energy = 1;
 int         Castro::do_sponge = 0;
+#ifdef SGS
+Real        Castro::sum_turb_src = 0.0;
+#endif
+Real        Castro::burning_timestep_factor = 1.e200;
+int         Castro::do_react = -1;
+int         Castro::do_grav = -1;
+int         Castro::moving_center = 0;
+int         Castro::grav_source_type = 2;
+int         Castro::do_rotation = -1;
+#ifdef ROTATION
+Real        Castro::rotational_period = -1.e200;
+#endif
+#ifdef ROTATION
+Real        Castro::rotational_dPdt = 0.0;
+#endif
+#ifdef ROTATION
+int         Castro::rot_source_type = 1;
+#endif
+#ifdef ROTATION
+int         Castro::rot_axis = 3;
+#endif
+int         Castro::do_acc = -1;
+int         Castro::bndry_func_thread_safe = 1;
+int         Castro::grown_factor = 1;
+int         Castro::star_at_center = -1;
+int         Castro::do_special_tagging = 0;
+int         Castro::spherical_star = 0;
 #ifdef DEBUG
 int         Castro::print_fortran_warnings = 1;
 #else
@@ -71,7 +73,4 @@ int         Castro::print_energy_diagnostics = 0;
 #endif
 int         Castro::sum_interval = -1;
 int         Castro::show_center_of_mass = 0;
-#ifdef SGS
-Real        Castro::sum_turb_src = 0.0;
-#endif
 std::string Castro::job_name = "";

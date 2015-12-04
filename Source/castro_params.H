@@ -1,36 +1,10 @@
-static Real burning_timestep_factor;
 static Real difmag;
 static Real small_dens;
 static Real small_temp;
 static Real small_pres;
 static Real small_ener;
 static int do_hydro;
-static int do_react;
-static int do_grav;
-static int do_rotation;
 static int add_ext_src;
-static int do_acc;
-#ifdef ROTATION
-static Real rotational_period;
-#endif
-#ifdef ROTATION
-static Real rotational_dPdt;
-#endif
-#ifdef ROTATION
-static int rot_source_type;
-#endif
-#ifdef ROTATION
-static int rot_axis;
-#endif
-static int deterministic;
-static int bndry_func_thread_safe;
-static int grown_factor;
-static int star_at_center;
-static int moving_center;
-static int normalize_species;
-static int fix_mass_flux;
-static int allow_negative_energy;
-static int do_special_tagging;
 static int ppm_type;
 static int ppm_reference;
 static int ppm_trace_sources;
@@ -56,14 +30,39 @@ static Real dual_energy_eta1;
 static Real dual_energy_eta2;
 static Real dual_energy_eta3;
 static int use_pslope;
-static int grav_source_type;
-static int spherical_star;
+static int normalize_species;
+static int fix_mass_flux;
+static int allow_negative_energy;
 static int do_sponge;
+#ifdef SGS
+static Real sum_turb_src;
+#endif
+static Real burning_timestep_factor;
+static int do_react;
+static int do_grav;
+static int moving_center;
+static int grav_source_type;
+static int do_rotation;
+#ifdef ROTATION
+static Real rotational_period;
+#endif
+#ifdef ROTATION
+static Real rotational_dPdt;
+#endif
+#ifdef ROTATION
+static int rot_source_type;
+#endif
+#ifdef ROTATION
+static int rot_axis;
+#endif
+static int do_acc;
+static int bndry_func_thread_safe;
+static int grown_factor;
+static int star_at_center;
+static int do_special_tagging;
+static int spherical_star;
 static int print_fortran_warnings;
 static int print_energy_diagnostics;
 static int sum_interval;
 static int show_center_of_mass;
-#ifdef SGS
-static Real sum_turb_src;
-#endif
 static std::string job_name;

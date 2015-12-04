@@ -1,36 +1,10 @@
-pp.query("burning_timestep_factor", burning_timestep_factor);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);
 pp.query("small_temp", small_temp);
 pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
-pp.query("do_react", do_react);
-pp.query("do_grav", do_grav);
-pp.query("do_rotation", do_rotation);
 pp.query("add_ext_src", add_ext_src);
-pp.query("do_acc", do_acc);
-#ifdef ROTATION
-pp.query("rotational_period", rotational_period);
-#endif
-#ifdef ROTATION
-pp.query("rotational_dPdt", rotational_dPdt);
-#endif
-#ifdef ROTATION
-pp.query("rot_source_type", rot_source_type);
-#endif
-#ifdef ROTATION
-pp.query("rot_axis", rot_axis);
-#endif
-pp.query("deterministic", deterministic);
-pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
-pp.query("grown_factor", grown_factor);
-pp.query("star_at_center", star_at_center);
-pp.query("moving_center", moving_center);
-pp.query("normalize_species", normalize_species);
-pp.query("fix_mass_flux", fix_mass_flux);
-pp.query("allow_negative_energy", allow_negative_energy);
-pp.query("do_special_tagging", do_special_tagging);
 pp.query("ppm_type", ppm_type);
 pp.query("ppm_reference", ppm_reference);
 pp.query("ppm_trace_sources", ppm_trace_sources);
@@ -56,14 +30,39 @@ pp.query("dual_energy_eta1", dual_energy_eta1);
 pp.query("dual_energy_eta2", dual_energy_eta2);
 pp.query("dual_energy_eta3", dual_energy_eta3);
 pp.query("use_pslope", use_pslope);
-pp.query("grav_source_type", grav_source_type);
-pp.query("spherical_star", spherical_star);
+pp.query("normalize_species", normalize_species);
+pp.query("fix_mass_flux", fix_mass_flux);
+pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("do_sponge", do_sponge);
+#ifdef SGS
+pp.query("sum_turb_src", sum_turb_src);
+#endif
+pp.query("burning_timestep_factor", burning_timestep_factor);
+pp.query("do_react", do_react);
+pp.query("do_grav", do_grav);
+pp.query("moving_center", moving_center);
+pp.query("grav_source_type", grav_source_type);
+pp.query("do_rotation", do_rotation);
+#ifdef ROTATION
+pp.query("rotational_period", rotational_period);
+#endif
+#ifdef ROTATION
+pp.query("rotational_dPdt", rotational_dPdt);
+#endif
+#ifdef ROTATION
+pp.query("rot_source_type", rot_source_type);
+#endif
+#ifdef ROTATION
+pp.query("rot_axis", rot_axis);
+#endif
+pp.query("do_acc", do_acc);
+pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
+pp.query("grown_factor", grown_factor);
+pp.query("star_at_center", star_at_center);
+pp.query("do_special_tagging", do_special_tagging);
+pp.query("spherical_star", spherical_star);
 pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_energy_diagnostics", print_energy_diagnostics);
 pp.query("sum_interval", sum_interval);
 pp.query("show_center_of_mass", show_center_of_mass);
-#ifdef SGS
-pp.query("sum_turb_src", sum_turb_src);
-#endif
 pp.query("job_name", job_name);

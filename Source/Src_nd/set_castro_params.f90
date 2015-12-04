@@ -1,10 +1,6 @@
 subroutine set_castro_method_params( &
-  burning_timestep_factor_in, difmag_in, small_dens_in,  &
-  small_temp_in, small_pres_in, small_ener_in,  &
-  do_grav_in, do_rotation_in, do_acc_in,  &
-  rot_period_in, rot_period_dot_in, rot_source_type_in,  &
-  rot_axis_in, deterministic_in, normalize_species_in,  &
-  fix_mass_flux_in, allow_negative_energy_in, ppm_type_in,  &
+  difmag_in, small_dens_in, small_temp_in,  &
+  small_pres_in, small_ener_in, ppm_type_in,  &
   ppm_reference_in, ppm_trace_sources_in, ppm_temp_fix_in,  &
   ppm_tau_in_tracing_in, ppm_predict_gammae_in, ppm_reference_edge_limit_in,  &
   ppm_reference_eigenvectors_in, hybrid_riemann_in, use_colglaz_in,  &
@@ -12,9 +8,12 @@ subroutine set_castro_method_params( &
   use_flattening_in, ppm_flatten_before_integrals_in, transverse_use_eos_in,  &
   transverse_reset_density_in, transverse_reset_rhoe_in, dual_energy_update_E_from_e_in,  &
   dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in,  &
-  use_pslope_in, grav_source_type_in, do_sponge_in)
- &
-  
+  use_pslope_in, normalize_species_in, fix_mass_flux_in,  &
+  allow_negative_energy_in, do_sponge_in, burning_timestep_factor_in,  &
+  do_grav_in, grav_source_type_in, do_rotation_in,  &
+  rot_period_in, rot_period_dot_in, rot_source_type_in,  &
+  rot_axis_in, do_acc_in)
+
   use meth_params_module
   use network, only : nspec, naux
   use eos_module
@@ -25,23 +24,11 @@ subroutine set_castro_method_params( &
 
   integer :: ioproc
 
-  double precision, intent(in) :: burning_timestep_factor_in
   double precision, intent(in) :: difmag_in
   double precision, intent(in) :: small_dens_in
   double precision, intent(in) :: small_temp_in
   double precision, intent(in) :: small_pres_in
   double precision, intent(in) :: small_ener_in
-  integer,          intent(in) :: do_grav_in
-  integer,          intent(in) :: do_rotation_in
-  integer,          intent(in) :: do_acc_in
-  double precision, intent(in) :: rot_period_in
-  double precision, intent(in) :: rot_period_dot_in
-  integer,          intent(in) :: rot_source_type_in
-  integer,          intent(in) :: rot_axis_in
-  integer,          intent(in) :: deterministic_in
-  integer,          intent(in) :: normalize_species_in
-  integer,          intent(in) :: fix_mass_flux_in
-  integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: ppm_type_in
   integer,          intent(in) :: ppm_reference_in
   integer,          intent(in) :: ppm_trace_sources_in
@@ -65,26 +52,25 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: dual_energy_eta2_in
   double precision, intent(in) :: dual_energy_eta3_in
   integer,          intent(in) :: use_pslope_in
-  integer,          intent(in) :: grav_source_type_in
+  integer,          intent(in) :: normalize_species_in
+  integer,          intent(in) :: fix_mass_flux_in
+  integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: do_sponge_in
+  double precision, intent(in) :: burning_timestep_factor_in
+  integer,          intent(in) :: do_grav_in
+  integer,          intent(in) :: grav_source_type_in
+  integer,          intent(in) :: do_rotation_in
+  double precision, intent(in) :: rot_period_in
+  double precision, intent(in) :: rot_period_dot_in
+  integer,          intent(in) :: rot_source_type_in
+  integer,          intent(in) :: rot_axis_in
+  integer,          intent(in) :: do_acc_in
 
-  burning_timestep_factor = burning_timestep_factor_in
   difmag = difmag_in
   small_dens = small_dens_in
   small_temp = small_temp_in
   small_pres = small_pres_in
   small_ener = small_ener_in
-  do_grav = do_grav_in
-  do_rotation = do_rotation_in
-  do_acc = do_acc_in
-  rot_period = rot_period_in
-  rot_period_dot = rot_period_dot_in
-  rot_source_type = rot_source_type_in
-  rot_axis = rot_axis_in
-  deterministic = deterministic_in .ne. 0
-  normalize_species = normalize_species_in
-  fix_mass_flux = fix_mass_flux_in
-  allow_negative_energy = allow_negative_energy_in
   ppm_type = ppm_type_in
   ppm_reference = ppm_reference_in
   ppm_trace_sources = ppm_trace_sources_in
@@ -108,8 +94,19 @@ subroutine set_castro_method_params( &
   dual_energy_eta2 = dual_energy_eta2_in
   dual_energy_eta3 = dual_energy_eta3_in
   use_pslope = use_pslope_in
-  grav_source_type = grav_source_type_in
+  normalize_species = normalize_species_in
+  fix_mass_flux = fix_mass_flux_in
+  allow_negative_energy = allow_negative_energy_in
   do_sponge = do_sponge_in
+  burning_timestep_factor = burning_timestep_factor_in
+  do_grav = do_grav_in
+  grav_source_type = grav_source_type_in
+  do_rotation = do_rotation_in
+  rot_period = rot_period_in
+  rot_period_dot = rot_period_dot_in
+  rot_source_type = rot_source_type_in
+  rot_axis = rot_axis_in
+  do_acc = do_acc_in
 
   ! some checks
   call bl_pd_is_ioproc(ioproc)

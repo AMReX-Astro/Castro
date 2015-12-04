@@ -49,23 +49,11 @@ module meth_params_module
   character(len=:), allocatable :: gravity_type
   
 
-  double precision, save :: burning_timestep_factor
   double precision, save :: difmag
   double precision, save :: small_dens
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
-  integer         , save :: do_grav
-  integer         , save :: do_rotation
-  integer         , save :: do_acc
-  double precision, save :: rot_period
-  double precision, save :: rot_period_dot
-  integer         , save :: rot_source_type
-  integer         , save :: rot_axis
-  logical         , save :: deterministic
-  integer         , save :: normalize_species
-  integer         , save :: fix_mass_flux
-  integer         , save :: allow_negative_energy
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
   integer         , save :: ppm_trace_sources
@@ -89,7 +77,18 @@ module meth_params_module
   double precision, save :: dual_energy_eta2
   double precision, save :: dual_energy_eta3
   integer         , save :: use_pslope
-  integer         , save :: grav_source_type
+  integer         , save :: normalize_species
+  integer         , save :: fix_mass_flux
+  integer         , save :: allow_negative_energy
   integer         , save :: do_sponge
+  double precision, save :: burning_timestep_factor
+  integer         , save :: do_grav
+  integer         , save :: grav_source_type
+  integer         , save :: do_rotation
+  double precision, save :: rot_period
+  double precision, save :: rot_period_dot
+  integer         , save :: rot_source_type
+  integer         , save :: rot_axis
+  integer         , save :: do_acc
 
 end module meth_params_module

@@ -11,15 +11,9 @@ static int rot_source_type = 1;
 static int rot_axis = 3;
 #endif
 BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
-   (burning_timestep_factor, difmag, 
-    small_dens, small_temp, 
-    small_pres, small_ener, 
-    do_grav, do_rotation, 
-    do_acc, rotational_period, 
-    rotational_dPdt, rot_source_type, 
-    rot_axis, deterministic, 
-    normalize_species, fix_mass_flux, 
-    allow_negative_energy, ppm_type, 
+   (difmag, small_dens, 
+    small_temp, small_pres, 
+    small_ener, ppm_type, 
     ppm_reference, ppm_trace_sources, 
     ppm_temp_fix, ppm_tau_in_tracing, 
     ppm_predict_gammae, ppm_reference_edge_limit, 
@@ -31,4 +25,10 @@ BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
     transverse_reset_rhoe, dual_energy_update_E_from_e, 
     dual_energy_eta1, dual_energy_eta2, 
     dual_energy_eta3, use_pslope, 
-    grav_source_type, do_sponge);
+    normalize_species, fix_mass_flux, 
+    allow_negative_energy, do_sponge, 
+    burning_timestep_factor, do_grav, 
+    grav_source_type, do_rotation, 
+    rotational_period, rotational_dPdt, 
+    rot_source_type, rot_axis, 
+    do_acc);
