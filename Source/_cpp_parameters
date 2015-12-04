@@ -84,13 +84,27 @@ cg_maxiter                   int          12                  y
 # demand in finding the star state
 cg_tol                       Real          1.0e-5             y
 
-hard_cfl_limit               int           1
-
+# flatten the reconstructed profiles around shocks to prevent them
+# from becoming too thin
 use_flattening               int           1                  y
+
+# where do we apply the flattening?  after we've done the tracing of 
+# the states (0); or on the parabolic profiles before we've integrated
+# under them (1)
 ppm_flatten_before_integrals int           0                  y
 
+# after we add the transverse correction to the interface states, replace
+# the predicted pressure with an EOS call (using $e$ and $\rho$).
 transverse_use_eos           int           0                  y
+
+# if the transverse interface state correction, if the new density is
+# negative, then replace all of the interface quantities with their
+# values without the transverse correction.
 transverse_reset_density     int           0                  y
+
+# if the interface state for $(\rho e)$ is negative after we add the
+# transverse terms, then replace the interface value of $(\rho e)$
+# with a value constructed from the $(\rho e)$ evolution equation
 transverse_reset_rhoe        int           0                  y
 
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
@@ -203,5 +217,9 @@ sum_interval                 int          -1
 
 # display center of mass diagnostics
 show_center_of_mass          int           0
+
+# abort if we exceed CFL = 1 over the cource of a timestep
+hard_cfl_limit               int           1
+
 
 job_name                     string        ""
