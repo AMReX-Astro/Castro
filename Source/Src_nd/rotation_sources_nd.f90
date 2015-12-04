@@ -100,10 +100,11 @@
                          vol,vol_lo,vol_hi, &
                          E_added,mom_added)
 
-    ! Corrector step for the rotation source terms. This is applied after the hydrodynamics 
-    ! update to fix the time-level n prediction and add the time-level n+1 data.
-    ! This subroutine exists outside of the Fortran module above because it needs to be called 
-    ! directly from C++.
+    ! Corrector step for the rotation source terms. This is applied
+    ! after the hydrodynamics update to fix the time-level n
+    ! prediction and add the time-level n+1 data.  This subroutine
+    ! exists outside of the Fortran module above because it needs to
+    ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type

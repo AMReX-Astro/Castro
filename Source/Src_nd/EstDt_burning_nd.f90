@@ -19,16 +19,23 @@
       double precision :: e, delta_e
       integer          :: i, j, k
 
-      ! The reactions MultiFab contains the net changes in X (the first nspec values),
-      ! e (the nspec+1 value), and rho*e (the nspec+2) value. What we want to do is limit
-      ! so that the timestep is equal to burning_timestep_factor * (e / delta(e)).
-      ! If the timestep factor is equal to 1, this says that we don't want the internal
-      ! energy to change by any more than its current magnitude in the next timestep. Note
-      ! that since the MultiFan will only have been reacted for dt / 2 this is actually off by
-      ! a factor of 2 from that estimate, so we correct for that. If the timestep factor is
-      ! less than one, it functionally controls the fraction we will allow the internal energy
-      ! to change in this timestep due to nuclear burning, provide that the last timestep's
-      ! burning is a good estimate for the current timestep's burning.
+      ! The reactions MultiFab contains the net changes in X (the
+      ! first nspec values), e (the nspec+1 value), and rho*e (the
+      ! nspec+2) value. 
+      !
+      ! What we want to do is limit so that the timestep is equal to
+      ! burning_timestep_factor * (e / delta(e)).  If the timestep
+      ! factor is equal to 1, this says that we don't want the
+      ! internal energy to change by any more than its current
+      ! magnitude in the next timestep. 
+      !
+      ! Note that since the MultiFab will only have been reacted for
+      ! dt / 2 this is actually off by a factor of 2 from that
+      ! estimate, so we correct for that. If the timestep factor is
+      ! less than one, it functionally controls the fraction we will
+      ! allow the internal energy to change in this timestep due to
+      ! nuclear burning, provide that the last timestep's burning is a
+      ! good estimate for the current timestep's burning.
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
