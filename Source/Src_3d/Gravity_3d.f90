@@ -657,7 +657,6 @@
 
         use prob_params_module, only: problo, center, probhi
         use bl_constants_module
-        use meth_params_module, only: deterministic
 
         implicit none
 
