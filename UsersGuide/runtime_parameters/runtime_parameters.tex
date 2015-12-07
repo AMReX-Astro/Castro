@@ -41,7 +41,7 @@
 
 \rowcolor{tableShade}
 \verb=  hard_cfl_limit  = &   abort if we exceed CFL = 1 over the cource of a timestep  &  1 \\
-\verb=  job_name  = &    &  "" \\
+\verb=  job_name  = &   a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file  &  "" \\
 \rowcolor{tableShade}
 \verb=  print_energy_diagnostics  = &   display breakdown of energy sources  &  (0, \\
 \verb=  print_fortran_warnings  = &   display warnings in Fortran90 routines  &  (0, \\
@@ -231,7 +231,7 @@
 \verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
 \verb=  use_flattening  = &   flatten the reconstructed profiles around shocks to prevent them from becoming too thin  &  1 \\
 \rowcolor{tableShade}
-\verb=  use_pslope  = &    &  1 \\
+\verb=  use_pslope  = &   for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting?  &  1 \\
 
 
 \end{longtable}
@@ -394,14 +394,14 @@
 
 
 \rowcolor{tableShade}
-\verb=  cfl  = &    &  0.8 \\
-\verb=  change_max  = &    &  1.1 \\
+\verb=  cfl  = &   the effective Courant number to use---we will not allow the hydrodynamic waves to cross more than this fraction of a zone over a single timestep  &  0.8 \\
+\verb=  change_max  = &   the maximum factor by which the timestep can increase from one step to the next.  &  1.1 \\
 \rowcolor{tableShade}
-\verb=  dt_cutoff  = &    &  0.0 \\
-\verb=  fixed_dt  = &    &  -1.0 \\
+\verb=  dt_cutoff  = &   the smallest valid timestep---if we go below this, we abort  &  0.0 \\
+\verb=  fixed_dt  = &   a fixed timestep to use for all steps (negative turns it off)  &  -1.0 \\
 \rowcolor{tableShade}
-\verb=  init_shrink  = &    &  1.0 \\
-\verb=  initial_dt  = &    &  -1.0 \\
+\verb=  init_shrink  = &   a factor by which to reduce the first timestep from that requested by the timestep estimators  &  1.0 \\
+\verb=  initial_dt  = &   the initial timestep (negative uses the step returned from the timestep constraints)  &  -1.0 \\
 
 
 \end{longtable}
