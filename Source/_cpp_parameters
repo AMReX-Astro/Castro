@@ -112,6 +112,8 @@ dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 dual_energy_eta3             Real          0.0e0              y
 
+# for the piecewise linear reconstruction, do we subtract off $(\rho g)$
+# from the pressure before limiting?
 use_pslope                   int           1                  y
 
 normalize_species            int           0                  y
@@ -121,6 +123,7 @@ allow_negative_energy        int           1                  y
 # permits sponge to be turned on and off 
 do_sponge                    int           0                  y
 
+
 sum_turb_src                 Real          0.0                n        SGS
 
 
@@ -128,12 +131,26 @@ sum_turb_src                 Real          0.0                n        SGS
 # category: timestep control
 #-----------------------------------------------------------------------------
 
+# a fixed timestep to use for all steps (negative turns it off)
 fixed_dt                     Real         -1.0
+
+# the initial timestep (negative uses the step returned from the timestep
+# constraints)
 initial_dt                   Real         -1.0
+
+# the smallest valid timestep---if we go below this, we abort
 dt_cutoff                    Real          0.0
 
+# the effective Courant number to use---we will not allow the hydrodynamic
+# waves to cross more than this fraction of a zone over a single timestep
 cfl                          Real          0.8
+
+# a factor by which to reduce the first timestep from that requested by
+# the timestep estimators
 init_shrink                   Real          1.0
+
+# the maximum factor by which the timestep can increase from one step to
+# the next.
 change_max                   Real          1.1
 
 
@@ -210,6 +227,7 @@ star_at_center               int          -1
 # category: refinement
 #-----------------------------------------------------------------------------
 
+
 do_special_tagging           int           0
 
 spherical_star               int           0  
@@ -234,5 +252,6 @@ show_center_of_mass          int           0
 # abort if we exceed CFL = 1 over the cource of a timestep
 hard_cfl_limit               int           1
 
-
+# a string describing the simulation that will be copied into the
+# plotfile's {\tt job\_info} file
 job_name                     string        ""
