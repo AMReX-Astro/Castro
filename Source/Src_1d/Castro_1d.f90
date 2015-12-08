@@ -19,7 +19,8 @@
 
 
       use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
-      use advection_module  , only : umeth1d, ctoprim, consup, enforce_minimum_density, normalize_new_species
+      use advection_module  , only : umeth1d, ctoprim, consup
+      use advection_util_module, only : enforce_minimum_density, normalize_new_species
       use bl_constants_module
 
       implicit none

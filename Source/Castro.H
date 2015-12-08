@@ -107,6 +107,10 @@ public:
     virtual void writePlotFile (const std::string& dir,
                                 ostream&       os,
                                 VisMF::How     how) BL_OVERRIDE;
+    virtual void writeSmallPlotFile (const std::string& dir,
+				     ostream&       os,
+				     VisMF::How     how) BL_OVERRIDE;
+
     //
     //Define data descriptors.
     //
