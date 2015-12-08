@@ -18,11 +18,28 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine cmpflx(qm,qp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
+  subroutine cmpflx(&
+#ifdef RADIATION
+                    lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+#endif
+                    qm,qp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                     flx,flx_l1,flx_l2,flx_h1,flx_h2, &
+#ifdef RADIATION
+                    rflx,rflx_l1,rflx_l2,rflx_h1,rflx_h2, &
+#endif
                     pgd,pgd_l1,pgd_l2,pgd_h1,pgd_h2, &
+#ifdef RADIATION
+                    ergd,ergd_l1,ergd_l2,ergd_h1,ergd_h2, &
+                    lmgd,lmgd_l1,lmgd_l2,lmgd_h1,lmgd_h2, &
+#endif
                     ugd,ugd_l1,ugd_l2,ugd_h1,ugd_h2, &
+#ifdef RADIATION
+                    vgd, &
+#endif
                     gegd,ggd_l1,ggd_l2,ggd_h1,ggd_h2, &
+#ifdef RADIATION
+                    gamcg
+#endif
                     gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
                     shk,s_l1,s_l2,s_h1,s_h2, &
                     idir,ilo,ihi,jlo,jhi,domlo,domhi)
@@ -32,25 +49,56 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    small_temp, allow_negative_energy
+#ifdef RADIATION
+    use radhydro_params_module, only : QRADVAR
+    use rad_params_module, only : ngroups
+#endif
 
+#ifdef RADIATION
+    integer, intent(in) :: lam_l1,lam_l2,lam_h1,lam_h2
+#endif
     integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
+#ifdef RADIATION
+    integer, intent(in) :: rflx_l1,rflx_l2,rflx_h1,rflx_h2
+#endif
     integer, intent(in) :: pgd_l1,pgd_l2,pgd_h1,pgd_h2
+#ifdef RADIATION
+    integer, intent(in) :: ergd_l1,ergd_l2,ergd_h1,ergd_h2    
+    integer, intent(in) :: lmgd_l1,lmgd_l2,lmgd_h1,lmgd_h2
+#endif
     integer, intent(in) :: ugd_l1,ugd_l2,ugd_h1,ugd_h2
     integer, intent(in) :: ggd_l1,ggd_l2,ggd_h1,ggd_h2
     integer, intent(in) :: qd_l1,qd_l2,qd_h1,qd_h2
+
     integer, intent(in) :: s_l1,s_l2,s_h1,s_h2
     integer, intent(in) :: idir,ilo,ihi,jlo,jhi
     integer, intent(in) :: domlo(2),domhi(2)
 
+#ifdef RADIATION
+    double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+#endif
     double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
+#ifdef RADIATION
+    double precision, intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
+#endif
     double precision, intent(inout) :: pgd(pgd_l1:pgd_h1,pgd_l2:pgd_h2)
+#ifdef RADIATION
+    double precision, intent(inout) :: ergd(ergd_l1:ergd_h1,ergd_l2:ergd_h2,0:ngroups-1)
+    double precision, intent(inout) :: lmgd(lmgd_l1:lmgd_h1,lmgd_l2:lmgd_h2,0:ngroups-1)
+#endif
     double precision, intent(inout) :: ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
+#ifdef RADIATION
+    double precision, intent(inout) :: vgd(ugd_l1 ugd_h1,ugd_l2:ugd_h2)
+#endif
     double precision, intent(inout) ::gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
 
     double precision, intent(in) :: gamc(qd_l1:qd_h1,qd_l2:qd_h2)
+#ifdef RADIATION
+    double precision, intent(in) :: gamcg(qd_l1:qd_h1,qd_l2:qd_h2)
+#endif
     double precision, intent(in) ::    c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision, intent(in) :: csml(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision, intent(in) ::  shk( s_l1: s_h1, s_l2: s_h2)
