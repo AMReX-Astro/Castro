@@ -323,7 +323,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   use meth_params_module, only : NVAR, ppm_type
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
-  use riemann_rad_module, only : cmpflx_rad
+  use riemann_module, only : cmpflx
   use trace_ppm_rad_module, only : trace_ppm_rad
 
   implicit none
@@ -390,6 +390,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
   double precision, allocatable::  rfx(:,:,:), rfy(:,:,:)
   double precision, allocatable::   pgdxtmp(:,:) ,  ugdxtmp(:,:),  ergdxtmp(:,:,:)
+  double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+  double precision, allocatable :: shk(:,:)
 
 !     Local scalar variables
   double precision :: dtdx
@@ -400,6 +402,10 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   allocate ( pgdxtmp( pgdx_l1: pgdx_h1, pgdx_l2: pgdx_h2))
   allocate (ergdxtmp(ergdx_l1:ergdx_h1,ergdx_l2:ergdx_h2,0:ngroups-1))
   allocate ( ugdxtmp( ugdx_l1: ugdx_h1, ugdx_l2: ugdx_h2))
+  allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+  allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
+  allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+
   allocate (  dq(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QRADVAR) )
   allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QRADVAR) )
   allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QRADVAR) )
@@ -412,11 +418,24 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   allocate (rfx(ilo1  :ihi1+1,ilo2-1:ihi2+1,0:ngroups-1))
   allocate (rfy(ilo1-1:ihi1+1,ilo2  :ihi2+1,0:ngroups-1))
 
+  allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+
 !     Local constants
   dtdx = dt/dx
   hdtdx = 0.5d0*dtdx
   hdtdy = 0.5d0*dt/dy
   hdt = 0.5d0*dt
+
+  ! multidimensional shock detection -- this will be used to do the
+  ! hybrid Riemann solver
+  !if (hybrid_riemann == 1) then
+  !   call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+  !              shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
+  !              ilo1,ilo2,ihi1,ihi2,dx,dy)
+  !else
+     shk(:,:) = ZERO
+  !endif
+
 
 !     NOTE: Geometry terms need to be punched through
 
@@ -432,30 +451,34 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
           ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
   end if
 
-  call cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-       qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-        fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-       rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-        pgdxtmp,  pgdx_l1,  pgdx_l2,  pgdx_h1,  pgdx_h2, &
-       ergdxtmp, ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2, &
-          lmgdx, lmgdx_l1, lmgdx_l2, lmgdx_h1, lmgdx_h2, &
-        ugdxtmp,  ugdx_l1,  ugdx_l2,  ugdx_h1,  ugdx_h2, &
-        uy_xfc, &
-       gamc,gamcg, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-       1, ilo1, ihi1, ilo2-1, ihi2+1)
+  call cmpflx(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+              qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+              rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+              pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
+              ergdxtmp, ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2, &
+              lmgdx, lmgdx_l1, lmgdx_l2, lmgdx_h1, lmgdx_h2, &
+              ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+              uy_xfc, &
+              gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
+              gamcg, gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+              1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
-  call cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-       qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-        fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-       rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-        pgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
-       ergdy, ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2, &
-       lmgdy, lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2, &
-        ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
-        ux_yfc, &
-       gamc,gamcg, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-       2, ilo1-1, ihi1+1, ilo2, ihi2)
-
+  call cmpflx(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+              qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+              rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+              pgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
+              ergdy, ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2, &
+              lmgdy, lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2, &
+              ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
+              ux_yfc, &
+              gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+              2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
+  
   call transy_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
        qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
         fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
@@ -468,17 +491,19 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
        hdt, hdtdy, &
        ilo1-1, ihi1+1, ilo2, ihi2)
 
-  call cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-       qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-        flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
-       rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
-        pgdx,  pgdx_l1,  pgdx_l2,  pgdx_h1,  pgdx_h2, &
-       ergdx, ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2, &
-       lmgdx, lmgdx_l1, lmgdx_l2, lmgdx_h1, lmgdx_h2, &
-        ugdx,  ugdx_l1,  ugdx_l2,  ugdx_h1,  ugdx_h2, &
-        uy_xfc, &
-       gamc,gamcg, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-       1, ilo1, ihi1, ilo2, ihi2)
+  call cmpflx(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+              qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
+              rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
+              pgdx,  pgdx_l1,  pgdx_l2,  pgdx_h1,  pgdx_h2, &
+              ergdx, ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2, &
+              lmgdx, lmgdx_l1, lmgdx_l2, lmgdx_h1, lmgdx_h2, &
+              ugdx,  ugdx_l1,  ugdx_l2,  ugdx_h1,  ugdx_h2, &
+              uy_xfc, &
+              gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+              1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
   call transx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
        qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
@@ -494,17 +519,19 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
        vol, vol_l1, vol_l2, vol_h1, vol_h2, &
        ilo1, ihi1, ilo2-1, ihi2+1)
 
-  call cmpflx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-       qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-        flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
-       rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
-        pgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
-       ergdy, ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2, &
-       lmgdy, lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2, &
-        ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
-        ux_yfc, &
-       gamc,gamcg, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
-       2, ilo1, ihi1, ilo2, ihi2)
+  call cmpflx(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+              qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
+              rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+              pgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
+              ergdy, ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2, &
+              lmgdy, lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2, &
+              ugdy,  ugdy_l1,  ugdy_l2,  ugdy_h1,  ugdy_h2, &
+              ux_yfc, &
+              gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+              2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
   do j = ilo2,ihi2
      do i = ilo1,ihi1
