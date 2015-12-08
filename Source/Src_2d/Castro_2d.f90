@@ -1,7 +1,3 @@
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
       subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                           uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                           uout,uout_l1,uout_l2,uout_h1,uout_h2, &
@@ -20,8 +16,8 @@
                           E_added_flux)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
-      use advection_module, only : umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
-           normalize_new_species
+      use advection_module, only : umeth2d, ctoprim, divu, consup
+      use advection_util_module, only : enforce_minimum_density, normalize_new_species
 
       implicit none
 
