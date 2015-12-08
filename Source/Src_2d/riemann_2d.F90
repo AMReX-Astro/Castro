@@ -38,7 +38,7 @@ contains
 #endif
                     gegd,ggd_l1,ggd_l2,ggd_h1,ggd_h2, &
 #ifdef RADIATION
-                    gamcg
+                    gamcg, &
 #endif
                     gamc,csml,c,qd_l1,qd_l2,qd_h1,qd_h2, &
                     shk,s_l1,s_l2,s_h1,s_h2, &
@@ -48,7 +48,7 @@ contains
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
                                    riemann_solver, ppm_temp_fix, hybrid_riemann, &
-                                   small_temp, allow_negative_energy
+                                   small_temp, allow_negative_energy, use_colglaz
 #ifdef RADIATION
     use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
@@ -91,7 +91,7 @@ contains
 #endif
     double precision, intent(inout) :: ugd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
 #ifdef RADIATION
-    double precision, intent(inout) :: vgd(ugd_l1 ugd_h1,ugd_l2:ugd_h2)
+    double precision, intent(inout) :: vgd(ugd_l1:ugd_h1,ugd_l2:ugd_h2)
 #endif
     double precision, intent(inout) ::gegd(ggd_l1:ggd_h1,ggd_l2:ggd_h2)
 
@@ -108,7 +108,10 @@ contains
 
     double precision, allocatable :: smallc(:,:), cavg(:,:)
     double precision, allocatable :: gamcm(:,:), gamcp(:,:)
-
+#ifdef RADIATION    
+    double precision, allocatable :: gamcgm(:,:), gamcgp(:,:)
+#endif
+    
     integer :: imin, imax, jmin, jmax
     integer :: is_shock
     double precision :: cl, cr
@@ -912,7 +915,7 @@ contains
 #endif
                        ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
 #ifdef RADIATION
-                       gamcgm,gamcgp, &
+                       gamcgl,gamcgr, &
 #endif
                        gamcl, gamcr, cav, smallc, gd_l1, gd_l2, gd_h1, gd_h2, &
                        uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
@@ -1012,7 +1015,7 @@ contains
 #endif
     double precision :: rl, ul, vl, v2l, pl, rel
     double precision :: rr, ur, vr, v2r, pr, rer
-    double precision :: wl, wr, rhoetot, scr, drho
+    double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, estar, pstar
     double precision :: ro, uo, po, reo, co, gamco, entho
     double precision :: sgnm, spin, spout, ushock, frac
@@ -1023,6 +1026,7 @@ contains
     double precision :: drho, estar_g, pstar_g
     double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
     double precision :: eddf, f1
+    double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
 #endif
 
     !************************************************************
@@ -1299,7 +1303,7 @@ contains
 
           ! not sure what this should be for radiation?
 #ifdef RADIATION
-          gegdnv(i,j) = pdgnv_g/regdnv_g + ONE
+          gegdnv(i,j) = pgdnv_g/regdnv_g + ONE
 #else
           gegdnv(i,j) = pgdnv(i,j)/regd + ONE
 #endif
