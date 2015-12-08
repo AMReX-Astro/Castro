@@ -9,11 +9,11 @@ DEBUG	  = FALSE
 DIM       = 2
 DIM       = 3
 
-USE_MPI     =TRUE
-USE_MPI     =FALSE
+USE_MPI     = TRUE
+USE_MPI     = FALSE
 
-COMP      = Intel
-FCOMP     = Intel
+COMP      = g++
+FCOMP     = gfortran
 
 EBASE = Embiggen
 
