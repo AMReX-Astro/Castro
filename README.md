@@ -1,9 +1,14 @@
 # Castro
 *an adaptive mesh, astrophysical radiation hydrodynamics simulation code*
 
+`Castro` is an adaptive-mesh compressible radiation hydrodynnamics
+code for astrophysical flows.  `Castro` supports a general equation of
+state, full Poisson gravity, reactive flows.
+
+
 ## Getting Started
 
-To build Castro, you need a copy of the BoxLib library:
+To build `Castro`, you need a copy of the BoxLib library:
 
 https://ccse.lbl.gov/BoxLib/index.html
 
@@ -17,7 +22,15 @@ problem.  A PDF of the User's Guide can be found at
 http://bender.astro.sunysb.edu/Castro/staging/Castro/UsersGuide/CastroUserGuide.pdf
 
 
+## Call Graph
+
+A doxygen-generated call graph for `Castro` is available here:
+
+http://bender.astro.sunysb.edu/Castro/staging/Castro/html/
+
+
 ## Mailing list
 
 You can subscribe to the castro-help mailing list at google groups:
+
 https://groups.google.com/forum/#!forum/castro-help
