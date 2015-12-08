@@ -1452,6 +1452,12 @@ Castro::post_timestep (int iteration)
     if (level < finest_level)
         avgDown();
 
+#ifdef do_problem_post_timestep
+
+    problem_post_timestep();
+
+#endif    
+    
     if (level == 0)
     {
         int nstep = parent->levelSteps(0);
@@ -1482,6 +1488,7 @@ Castro::post_timestep (int iteration)
     // Re-compute temperature after all the other updates.
     MultiFab& S_new = getLevel(level).get_new_data(State_Type);
     computeTemp(S_new);
+
 }
 
 void
