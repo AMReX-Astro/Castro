@@ -1181,7 +1181,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
            do i = lo(1), hi(1)
               uout(i,j,n) = uin(i,j,n) + dt * &
                    ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                     flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
+                     flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
            enddo
         enddo
      end if
@@ -1201,7 +1201,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   ! Add source term to (rho e)
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
-        uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
+        uout(i,j,UEINT) = uout(i,j,UEINT) - dt * pdivu(i,j)
      enddo
   enddo
   
@@ -1215,16 +1215,21 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         ! not the radiation contribution.  Note that we've already included
         ! the gas pressure in the momentum flux for all Cartesian coordinate
         ! directions
-        dpdx  = ( pgdx(i+1,j)- pgdx(i,j))/ dx
-        dpdy  = ( pgdy(i,j+1)- pgdy(i,j))/ dy
+        if (coord_type == 1) then
+           dpdx = ( pgdx(i+1,j) - pgdx(i,j))/ dx
+        else
+           dpdx = ZERO
+        endif
+        
+        dpdy = ZERO
 
         ! radiation pressure contribution
         dprdx = 0.d0
         dprdy = 0.d0
-        do g=0,ngroups-1
-           lamc = 0.25d0*(lmgdx(i,j,g)+lmgdx(i+1,j,g)+lmgdy(i,j,g)+lmgdy(i,j+1,g))
-           dprdx = dprdx + lamc*(ergdx(i+1,j,g)-ergdx(i,j,g))/dx
-           dprdy = dprdy + lamc*(ergdy(i,j+1,g)-ergdy(i,j,g))/dy
+        do g= 0, ngroups-1
+           lamc = 0.25d0*(lmgdx(i,j,g) + lmgdx(i+1,j,g) + lmgdy(i,j,g) + lmgdy(i,j+1,g))
+           dprdx = dprdx + lamc*(ergdx(i+1,j,g) - ergdx(i,j,g))/dx
+           dprdy = dprdy + lamc*(ergdy(i,j+1,g) - ergdy(i,j,g))/dy
         end do
 
         uout(i,j,UMX) = uout(i,j,UMX) - dt * dpdx
@@ -1245,8 +1250,8 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
 
   ! Add radiation source term to rho*u, rhoE, and Er
   if (comoving) then
-     do j = lo(2),hi(2)
-        do i = lo(1),hi(1)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
 
            ux = 0.5d0*(ugdx(i,j) + ugdx(i+1,j))
            uy = 0.5d0*(ugdy(i,j) + ugdy(i,j+1))
@@ -1310,31 +1315,37 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   end if
 
 
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)+1
+  ! scale the fluxes (and correct the momentum flux with the grad p part)
+  ! so we can use them in the flux correction at coarse-fine interfaces
+  ! later.
+
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)+1
         flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
-        flux1(i,j,   UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+        if (coord_type == 1) then
+           flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+        endif
      enddo
   enddo
 
   do g = 0, ngroups-1
-     do j = lo(2),hi(2)
+     do j = lo(2), hi(2)
         do i = lo(1),hi(1)+1
            rflux1(i,j,g) = dt * rflux1(i,j,g)
         enddo
      enddo
   end do
 
-  do j = lo(2),hi(2)+1
-     do i = lo(1),hi(1)
+  do j = lo(2), hi(2)+1
+     do i = lo(1), hi(1)
         flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
-        flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
+        !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
      enddo
   enddo
 
   do g = 0, ngroups-1
-     do j = lo(2),hi(2)+1
-        do i = lo(1),hi(1)
+     do j = lo(2), hi(2)+1
+        do i = lo(1), hi(1)
            rflux2(i,j,g) = dt * rflux2(i,j,g)
         enddo
      enddo
