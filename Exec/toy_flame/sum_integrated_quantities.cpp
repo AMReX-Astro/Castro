@@ -36,8 +36,7 @@ Castro::sum_integrated_quantities ()
     Real T_max = -1.0e200;
     Real T_min =  1.0e200;
     Real grad_T_max = -1.0e200;
-    Real rho_fuel_dot_old = 0.0;
-    Real rho_fuel_dot_new = 0.0;
+    Real rho_fuel_dot = 0.0;
     Real rho_fuel_initial = 1.0;
 
     Real flame_width = 0.0;
@@ -90,7 +89,7 @@ Castro::sum_integrated_quantities ()
 	// it doesn't share the same timestep as the fine grids.
 
 	if (lev == 0)
-	  ca_lev.flame_speed_properties(prev_time, time, rho_fuel_dot_old, rho_fuel_dot_new);
+	  ca_lev.flame_speed_properties(time, rho_fuel_dot);
     }
  
     if (verbose > 0)
@@ -119,13 +118,12 @@ Castro::sum_integrated_quantities ()
 
 	flame_width = (T_max - T_min) / grad_T_max;
 
-	ParallelDescriptor::ReduceRealSum(rho_fuel_dot_old);
-	ParallelDescriptor::ReduceRealSum(rho_fuel_dot_new);
+	ParallelDescriptor::ReduceRealSum(rho_fuel_dot);
 
 	// Note that rho_fuel_dot has already been multiplied by dx, so
 	// the dimensionality here checks out.
 
-	flame_speed = (rho_fuel_dot_new - rho_fuel_dot_old) / (dt_crse * rho_fuel_initial);
+	flame_speed = -rho_fuel_dot / rho_fuel_initial;
 
 	if (ParallelDescriptor::IOProcessor()) {
 

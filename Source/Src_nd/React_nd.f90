@@ -76,9 +76,9 @@
                     j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
                     k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
                   
-                  reactions(i,j,k,1:nspec) = delta_x
-                  reactions(i,j,k,nspec+1) = delta_e
-                  reactions(i,j,k,nspec+2) = delta_rho_e
+                  reactions(i,j,k,1:nspec) = delta_x / dt_react
+                  reactions(i,j,k,nspec+1) = delta_e / dt_react
+                  reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
 
                endif               
                

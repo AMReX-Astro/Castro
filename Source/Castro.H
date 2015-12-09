@@ -574,7 +574,7 @@ protected:
     static Real getCPUTime();
 
     // for keeping track of energy change from burning
-    static Real      max_delta_e;
+    static Real      max_dedt;
 
 #ifdef POINTMASS
     static Real      point_mass;

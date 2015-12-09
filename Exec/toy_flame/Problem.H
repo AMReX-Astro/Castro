@@ -1,4 +1,4 @@
 void flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_T_max);
 
-void flame_speed_properties (Real old_time, Real new_time, Real& rho_fuel_dot_old, Real& rho_fuel_dot_new);
+void flame_speed_properties (Real time, Real& rho_fuel_dot);
 
