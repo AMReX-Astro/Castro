@@ -1140,8 +1140,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
            do i = lo(1),hi(1)
               uout(i,j,n) = uin(i,j,n) + dt * &
                    ( flux1(i,j,n) - flux1(i+1,j,n) &
-                   +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
-                   +   dt * src(i,j,n)
+                   +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
            enddo
         enddo
      end if
