@@ -528,6 +528,9 @@ Castro::advance_hydro (Real time,
 		{
 		    const Box &bx    = mfi.tilebox();
 
+		    const int* lo = bx.loVect();
+		    const int* hi = bx.hiVect();
+		    
 		    FArrayBox &stateold = S_old[mfi];		    
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
@@ -583,7 +586,7 @@ Castro::advance_hydro (Real time,
 #ifdef GRAVITY
 		    if (do_grav)
 		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
-			(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			(ARLIM_3D(lo), ARLIM_3D(hi),
 			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 			 BL_TO_FORTRAN_3D(phi_old[mfi]),
 			 BL_TO_FORTRAN_3D(grav_old[mfi]),
@@ -592,7 +595,38 @@ Castro::advance_hydro (Real time,
 			 ZFILL(dx),dt,&time,
 			 E_added_grav,mom_added);
 #endif		    
+
+		    for (int dir = 0; dir < 3; dir++)
+			 mom_added[dir] = 0.0;
+
+		    // Rotational source term for the time-level n data.
+
+		    Real E_added_rot = 0.0;
 		    
+#ifdef ROTATION		    
+		    if (do_rotation)
+		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
+			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
+			 BL_TO_FORTRAN_3D(rot_old[mfi]),
+			 BL_TO_FORTRAN_3D(stateold),
+			 BL_TO_FORTRAN_3D(stateout),
+			 ZFILL(dx),dt,&time,
+			 E_added_rot,mom_added);		    
+#endif
+
+		    for (int dir = 0; dir < 3; dir++)
+			 mom_added[dir] = 0.0;
+
+		    Real E_added_sponge = 0.0;
+		    
+		    if (do_sponge)
+		      BL_FORT_PROC_CALL(CA_SPONGE,ca_sponge)
+			(ARLIM_3D(lo), ARLIM_3D(hi),
+			 BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
+			 E_added_sponge,mom_added);
+
 		    if (radiation->do_inelastic_scattering) {
 			BL_FORT_PROC_CALL(CA_INELASTIC_SCT, ca_inelastic_sct)
 			    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
