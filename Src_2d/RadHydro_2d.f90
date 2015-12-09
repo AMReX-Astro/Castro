@@ -1112,27 +1112,32 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
        flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
        lo,hi)
 
+  ! correct the fluxes to include the effects of the artificial viscosity
   do n = 1, NVAR
-     if ( n.eq.UTEMP) then
-        flux1(:,:,n) = 0.d0
-        flux2(:,:,n) = 0.d0
+     if (n ==  UTEMP) then
+        flux1(:,:,n) = ZERO
+        flux2(:,:,n) = ZERO
      else
-        do j = lo(2),hi(2)
-           do i = lo(1),hi(1)+1
-              div1 = .5d0*(div(i,j) + div(i,j+1))
-              div1 = difmag*min(0.d0,div1)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)+1
+              div1 = HALF*(div(i,j) + div(i,j+1))
+              div1 = difmag*min(ZERO,div1)
+
               flux1(i,j,n) = flux1(i,j,n) &
                    + dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+
               flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
            enddo
         enddo
 
-        do j = lo(2),hi(2)+1
-           do i = lo(1),hi(1)
-              div1 = .5d0*(div(i,j) + div(i+1,j))
-              div1 = difmag*min(0.d0,div1)
+        do j = lo(2), hi(2)+1
+           do i = lo(1), hi(1)
+              div1 = HALF*(div(i,j) + div(i+1,j))
+              div1 = difmag*min(ZERO,div1)
+
               flux2(i,j,n) = flux2(i,j,n) &
                    + dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+
               flux2(i,j,n) = area2(i,j)*flux2(i,j,n)
            enddo
         enddo
@@ -1140,67 +1145,81 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   enddo
 
   do g = 0, ngroups-1
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)+1
-        div1 = .5d0*(div(i,j) + div(i,j+1))
-        div1 = difmag*min(0.d0,div1)
-        rflux1(i,j,g) = rflux1(i,j,g) &
-             + dx*div1*(Erin(i,j,g) - Erin(i-1,j,g))
-        rflux1(i,j,g) = area1(i,j)*rflux1(i,j,g)
+     do j = lo(2),hi(2)
+        do i = lo(1), hi(1)+1
+           div1 = HALF*(div(i,j) + div(i,j+1))
+           div1 = difmag*min(ZERO,div1)
+
+           rflux1(i,j,g) = rflux1(i,j,g) &
+                + dx*div1*(Erin(i,j,g) - Erin(i-1,j,g))
+
+           rflux1(i,j,g) = area1(i,j)*rflux1(i,j,g)
+        enddo
      enddo
-  enddo
   enddo
 
   do g = 0, ngroups-1
-  do j = lo(2),hi(2)+1
-     do i = lo(1),hi(1)
-        div1 = .5d0*(div(i,j) + div(i+1,j))
-        div1 = difmag*min(0.d0,div1)
-        rflux2(i,j,g) = rflux2(i,j,g) &
-             + dy*div1*(Erin(i,j,g) - Erin(i,j-1,g))
-        rflux2(i,j,g) = area2(i,j)*rflux2(i,j,g)
+     do j = lo(2), hi(2)+1
+        do i = lo(1), hi(1)
+           div1 = HALF*(div(i,j) + div(i+1,j))
+           div1 = difmag*min(ZERO,div1)
+
+           rflux2(i,j,g) = rflux2(i,j,g) &
+                + dy*div1*(Erin(i,j,g) - Erin(i,j-1,g))
+
+           rflux2(i,j,g) = area2(i,j)*rflux2(i,j,g)
+        enddo
      enddo
   enddo
-  enddo
 
+  ! do the conservative update
   do n = 1, NVAR
-     if (n .eq. UTEMP) then
+     if (n == UTEMP) then
         uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
      else
-        do j = lo(2),hi(2)
-           do i = lo(1),hi(1)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
               uout(i,j,n) = uin(i,j,n) + dt * &
-                   ( flux1(i,j,n) - flux1(i+1,j,n) &
-                   +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
+                   ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                     flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) &
                    +   dt * src(i,j,n)
            enddo
         enddo
      end if
   enddo
-
+  
   do g = 0, ngroups-1
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
-        Erout(i,j,g) = Erin(i,j,g) + dt * &
-             ( rflux1(i,j,g) - rflux1(i+1,j,g) &
-             +   rflux2(i,j,g) - rflux2(i,j+1,g) ) / vol(i,j)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           Erout(i,j,g) = Erin(i,j,g) + dt * &
+                ( rflux1(i,j,g) - rflux1(i+1,j,g) + &
+                  rflux2(i,j,g) - rflux2(i,j+1,g) ) / vol(i,j)
+        enddo
      enddo
-  enddo
   end do
 
+  
   ! Add source term to (rho e)
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
         uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
      enddo
   enddo
+  
 
-  ! Add gradp term to momentum equation
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
+  ! Add gradp term to momentum equation -- only for axisymmetry coords
+  ! (and only for the radial flux)
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
+
+        ! pgdnv from the Riemann solver is only the gas contribution,
+        ! not the radiation contribution.  Note that we've already included
+        ! the gas pressure in the momentum flux for all Cartesian coordinate
+        ! directions
         dpdx  = ( pgdx(i+1,j)- pgdx(i,j))/ dx
         dpdy  = ( pgdy(i,j+1)- pgdy(i,j))/ dy
 
+        ! radiation pressure contribution
         dprdx = 0.d0
         dprdy = 0.d0
         do g=0,ngroups-1
@@ -1217,7 +1236,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         uout(i,j,UMY) = uout(i,j,UMY) - dt * dprdy
         ek2 = (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / (2.d0*uout(i,j,URHO))
         dek = ek2 - ek1
-
+        
         uout(i,j,UEDEN) = uout(i,j,UEDEN) + dek
         if (.not. comoving) then ! mixed-frame (single group only)
            Erout(i,j,0) = Erout(i,j,0) - dek
