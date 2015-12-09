@@ -406,7 +406,7 @@ contains
                    ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                   1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
 
        ! Compute \tilde{F}^y at kc (k3d)
        call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -414,7 +414,7 @@ contains
                    ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                   2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
        
        ! Compute U'^y_x at kc (k3d)
        call transy1(qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -436,7 +436,7 @@ contains
                    ugdnvtmpx,pgdnvtmpx,gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                   1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
+                   1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
 
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -444,7 +444,7 @@ contains
                    ugdnvtmpy,pgdnvtmpy,gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                   2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
 
        if (k3d.ge.ilo3) then
           
@@ -468,7 +468,7 @@ contains
                       ugdnvz,pgdnvz,gegdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                      3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                      3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
 
           ! Compute U'^y_z at kc (k3d)
           call transy2(qzm,qmzy,qzp,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -490,7 +490,7 @@ contains
                       ugdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                      3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                      3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
 
           ! Compute F^{z|y} at kc (k3d)
           call cmpflx(qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -498,7 +498,7 @@ contains
                       ugdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &                       
-                      3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
+                      3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi,(/ dx, dy, dz /))
           
           ! Compute U''_z at kc (k3d)
           call transxy(qzm,qzl,qzp,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -516,7 +516,7 @@ contains
                       ugdnvzf,pgdnvzf,gegdnvzf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                      3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
+                      3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi,(/ dx, dy, dz /))
 
           do j=ilo2-1,ihi2+1
              do i=ilo1-1,ihi1+1
@@ -550,7 +550,7 @@ contains
                          ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                         1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
+                         1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi,(/ dx, dy, dz /))
 
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -558,7 +558,7 @@ contains
                          ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                         2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
+                         2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi,(/ dx, dy, dz /))
 
              ! Compute U''_x at km (k3d-1)
              call transyz(qxm,qxl,qxp,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -586,7 +586,7 @@ contains
                          ugdnvxf,pgdnvxf,gegdnvxf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                         1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
+                         1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi,(/ dx, dy, dz /))
              
              do j=ilo2-1,ihi2+1
                 do i=ilo1-1,ihi1+2
@@ -600,7 +600,7 @@ contains
                          ugdnvyf,pgdnvyf,gegdnvyf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-                         2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
+                         2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi,(/ dx, dy, dz /))
 
              do j=ilo2-1,ihi2+2
                 do i=ilo1-1,ihi1+1
@@ -754,7 +754,7 @@ contains
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy
+                                   allow_negative_energy, hybrid_hydro
     
     use flatten_module
     use bl_constants_module
@@ -811,6 +811,7 @@ contains
     !
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
+          y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = loq(1),hiq(1)             
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
@@ -820,12 +821,20 @@ contains
              end if
           end do
 
-          do i = loq(1),hiq(1)             
+          do i = loq(1),hiq(1)
+             x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
+             r = sqrt( x**2 + y**2 )
+             
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
-             q(i,j,k,QU) = uin(i,j,k,UMX)*rhoinv
-             q(i,j,k,QV) = uin(i,j,k,UMY)*rhoinv
+             if (hybrid_hydro .eq. 1) then
+                q(i,j,k,QU) = (uin(i,j,k,UMX) * x - uin(i,j,k,UMY) * y / r) / (uin(i,j,k,URHO) * r)
+                q(i,j,k,QV) = (uin(i,j,k,UMY) * x / r + uin(i,j,k,UMX) * y) / (uin(i,j,k,URHO) * r)
+             else
+                q(i,j,k,QU) = uin(i,j,k,UMX)*rhoinv
+                q(i,j,k,QV) = uin(i,j,k,UMY)*rhoinv
+             endif
              q(i,j,k,QW) = uin(i,j,k,UMZ)*rhoinv
 
              ! Get the internal energy, which we'll use for determining the pressure.
