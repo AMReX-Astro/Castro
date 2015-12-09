@@ -1,5 +1,7 @@
 module rad_advection_module
 
+  use bl_constants_module
+  
   implicit none
 
   private
@@ -317,7 +319,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      area2, area2_l1, area2_l2, area2_h1, area2_h2, &
      pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
      uy_xfc, ux_yfc, &
-     dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2)
+     dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
+     domlo, domhi)
 
   use network, only : nspec
   use meth_params_module, only : NVAR, ppm_type
@@ -348,7 +351,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   integer area2_l1, area2_l2, area2_h1, area2_h2
   integer vol_l1, vol_l2, vol_h1, vol_h2
   integer ilo1, ilo2, ihi1, ihi2
-
+  integer domlo(2), domhi(2)
+  
   double precision dx, dy, dt
   double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
   double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
@@ -1026,7 +1030,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
   use fluxlimiter_module, only : Edd_factor
-  use advection_module, only : normalize_species_fluxes
+  use advection_util_module, only : normalize_species_fluxes
 
   implicit none
 
