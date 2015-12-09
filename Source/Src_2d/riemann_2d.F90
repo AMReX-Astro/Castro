@@ -1017,13 +1017,13 @@ contains
     double precision :: rr, ur, vr, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
     double precision :: rstar, cstar, estar, pstar
-    double precision :: ro, uo, po, reo, co, gamco, entho
+    double precision :: ro, uo, po, reo, co, gamco, entho, drho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
 
 #ifdef RADIATION
     double precision :: regdnv_g, pgdnv_g, pgdnv_t
-    double precision :: drho, estar_g, pstar_g
+    double precision :: estar_g, pstar_g
     double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
     double precision :: eddf, f1
     double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
