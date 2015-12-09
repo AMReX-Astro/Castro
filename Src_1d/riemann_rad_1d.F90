@@ -126,6 +126,7 @@ contains
     integer   ug_l1,   ug_h1
     integer uflx_l1, uflx_h1
     integer rflx_l1, rflx_h1
+
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision ql(qpd_l1:qpd_h1, QRADVAR)
     double precision qr(qpd_l1:qpd_h1, QRADVAR)
@@ -203,6 +204,7 @@ contains
           reo_g = rel_g
           gamco = gamcl(k)
           gamco_g = gamcgl(k)
+
        else if (ustar .lt. 0.d0) then
           lambda(:) = lam(k,:)
           ro = rr
@@ -236,15 +238,21 @@ contains
        
        co = sqrt(abs(gamco*po/ro))
        co = max(csmall,co)
+       
        drho = (pstar - po)/co**2
        rstar = ro + drho
        rstar = max(small_dens,rstar)
+
        estar_g = reo_g + drho*(reo_g + po_g)/ro
+
        co_g = sqrt(abs(gamco_g*po_g/ro))
        co_g = max(csmall,co_g)
+
        pstar_g = po_g + drho*co_g**2
        pstar_g = max(pstar_g,small_pres)
+
        estar_r(:) = reo_r(:) + drho*(reo_r(:) + po_r(:))/ro
+
        cstar = sqrt(abs(gamco*pstar/rstar))
        cstar = max(cstar,csmall)
        
@@ -252,15 +260,18 @@ contains
        spout = co - sgnm*uo
        spin = cstar - sgnm*ustar
        ushock = 0.5d0*(spin + spout)
+
        if (pstar-po .ge. 0.d0) then
           spin = ushock
           spout = ushock
        endif
+
        if (spout-spin .eq. 0.d0) then
           scr = small*cav(k)  
        else
           scr = spout-spin
        endif
+
        frac = (1.d0 + (spout + spin)/scr)*0.5d0
        frac = max(0.d0,min(1.d0,frac))
        
