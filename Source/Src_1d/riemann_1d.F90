@@ -53,9 +53,14 @@ contains
     integer erg_l1,erg_h1
     integer  lg_l1, lg_h1
 #endif
-    
+
+#ifdef RADIATION    
+    double precision    qm(qpd_l1:qpd_h1, QRADVAR)
+    double precision    qp(qpd_l1:qpd_h1, QRADVAR)
+#else
     double precision    qm(qpd_l1:qpd_h1, QVAR)
     double precision    qp(qpd_l1:qpd_h1, QVAR)
+#endif
     double precision   flx(flx_l1:flx_h1, NVAR)
     double precision pgdnv( pg_l1: pg_h1)
     double precision ugdnv( ug_l1: ug_h1)
@@ -578,7 +583,11 @@ contains
                                    npassive, upass_map, qpass_map, &
                                    fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
-
+#ifdef RADIATION
+    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
 
     double precision, parameter:: small = 1.d-8
 
@@ -595,9 +604,14 @@ contains
     integer  erg_l1,  erg_h1
     integer   lg_l1,   lg_h1    
 #endif
-    
+
+#ifdef RADIATION    
+    double precision ql(qpd_l1:qpd_h1, QRADVAR)
+    double precision qr(qpd_l1:qpd_h1, QRADVAR)
+#else
     double precision ql(qpd_l1:qpd_h1, QVAR)
     double precision qr(qpd_l1:qpd_h1, QVAR)
+#endif
     double precision   cav(ilo:ihi+1), smallc(ilo:ihi+1)
     double precision gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
     double precision  uflx(uflx_l1:uflx_h1, NVAR)
@@ -612,13 +626,20 @@ contains
     double precision lamgdnv( lg_l1: lg_h1, 0:ngroups-1)    
 
     double precision, dimension(0:ngroups-1) :: erl, err
+    double precision :: regdnv_g, pgdnv_g, pgdnv_t
+    double precision :: estar_g, pstar_g
+    double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r    
+    double precision :: eddf, f1
+    double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g    
+
+    integer :: g
 #endif
     
     double precision rgdnv, regdnv, ustar, v1gdnv, v2gdnv
     double precision rl, ul, v1l, v2l, pl, rel
     double precision rr, ur, v1r, v2r, pr, rer
     double precision wl, wr, rhoetot, scr
-    double precision rstar, cstar, estar, pstar
+    double precision rstar, cstar, estar, pstar, drho
     double precision ro, uo, po, reo, co, gamco, entho
     double precision sgnm, spin, spout, ushock, frac
 
