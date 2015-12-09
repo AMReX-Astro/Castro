@@ -300,7 +300,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   use meth_params_module, only : NVAR, ppm_type
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
-  use riemann_rad_module, only : cmpflx_rad
+  use riemann_module, only : cmpflx
   use trace_ppm_rad_module, only : trace_ppm_rad
   
   implicit none
@@ -362,16 +362,16 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   end if
   
   !     Solve Riemann problem, compute xflux from improved predicted states 
-  call cmpflx_rad(lo, hi, domlo, domhi, &
-       lam, lam_l1, lam_h1, & 
-       qm, qp, ilo-1,ihi+1, &
-       flux ,  fd_l1, fd_h1, &
-       rflux, rfd_l1,rfd_h1, &
-       pgdnv,pgdnv_l1,pgdnv_h1, &
-       ergdnv,ergdnv_l1,ergdnv_h1, &
-       lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-       ugdnv,ugdnv_l1,ugdnv_h1, &
-       gamc,gamcg,csml,c,qd_l1,qd_h1,ilo,ihi)
+  call cmpflx(lo, hi, domlo, domhi, &
+              qm, qp, ilo-1,ihi+1, &
+              flux ,  fd_l1, fd_h1, &
+              pgdnv,pgdnv_l1,pgdnv_h1, &
+              ugdnv,ugdnv_l1,ugdnv_h1, &
+              lam, lam_l1, lam_h1, & 
+              rflux, rfd_l1,rfd_h1, &
+              ergdnv,ergdnv_l1,ergdnv_h1, &
+              lamgdnv,lamgdnv_l1,lamgdnv_h1, &
+              gamcg,gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
 
   deallocate (dq,qm,qp)
 
