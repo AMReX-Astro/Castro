@@ -3637,8 +3637,7 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                  uout(i,j,k,n) = uin(i,j,k,n) &
                       + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
                       +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                      +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k) &
-                      +   dt * src(i,j,k,n)
+                      +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
                  !
                  ! Add the source term to (rho e)
                  !
