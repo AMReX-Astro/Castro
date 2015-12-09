@@ -1031,7 +1031,8 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   use radhydro_nd_module, only : advect_in_fspace
   use fluxlimiter_module, only : Edd_factor
   use advection_util_module, only : normalize_species_fluxes
-
+  use prob_params_module, only : coord_type
+  
   implicit none
 
   integer nstep_fsp
