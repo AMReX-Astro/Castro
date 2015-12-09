@@ -205,11 +205,8 @@ Castro::variableSetUp ()
 
     const Real run_strt = ParallelDescriptor::second() ; 
 
-#ifndef ROTATION
-    static Real rotational_period = -1.e200;
-    static Real rotational_period_dot = 0.0;
-    static int  rot_axis = 3;
-    static int  rot_source_type = -1;
+#ifndef DIFFUSION
+    static Real diffuse_cutoff_density = -1.e200;
 #endif
 
     // we want const_grav in F90, get it here from parmparse, since it
@@ -218,27 +215,28 @@ Castro::variableSetUp ()
     Real const_grav = 0;
     pp.query("const_grav", const_grav);
 
+    // Pass in the name of the gravity type we're using.
+    std::string gravity_type = "none";
+    pp.query("gravity_type", gravity_type);    
+    int gravity_type_length = gravity_type.length();
+    Array<int> gravity_type_name(gravity_type_length);
+
+    for (int i = 0; i < gravity_type_length; i++)
+      gravity_type_name[i] = gravity_type[i];    
+
+    int get_g_from_phi = 0;
+    pp.query("get_g_from_phi", get_g_from_phi);
+    
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-         NumAdv, difmag, small_dens, small_temp, small_pres, small_ener,
-         allow_negative_energy,ppm_type,ppm_reference,
-	 ppm_trace_grav,ppm_trace_rot,ppm_temp_fix,
-	 ppm_tau_in_tracing,ppm_predict_gammae,
-	 ppm_reference_edge_limit,
-	 ppm_flatten_before_integrals,
-	 ppm_reference_eigenvectors,
-	 hybrid_riemann, use_colglaz, use_flattening, 
-         transverse_use_eos, transverse_reset_density, transverse_reset_rhoe,
-         cg_maxiter, cg_tol,
-	 hybrid_hydro,
-         use_pslope,
-	 do_grav, grav_source_type, 
-	 do_sponge,
-         normalize_species,fix_mass_flux,use_sgs,
-	 burning_timestep_factor,
-	 dual_energy_eta1, dual_energy_eta2, dual_energy_update_E_from_e,
-	 do_rotation, rot_source_type, rot_axis, rotational_period, rotational_period_dot,
-	 const_grav, deterministic, do_acc);
+         NumAdv, 
+	 gravity_type_name.dataPtr(), &gravity_type_length,
+	 get_g_from_phi,
+	 use_sgs,
+	 diffuse_cutoff_density,
+	 const_grav);
+
+#include <castro_call_set_meth.H>
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
@@ -319,10 +317,17 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,0,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+    // Source terms. Currently this holds dS/dt for each of the NVAR state variables.
+
+    store_in_checkpoint = true;
+    desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
+			   StateDescriptor::Point,NUM_GROW,NUM_STATE,
+			   &cell_cons_interp, state_data_extrap,store_in_checkpoint);
+    
 #ifdef ROTATION
     store_in_checkpoint = false;
     desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
@@ -332,7 +337,7 @@ Castro::variableSetUp ()
 
     store_in_checkpoint = false;
     desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                           StateDescriptor::Point,ngrow_state,3,
+                           StateDescriptor::Point,NUM_GROW,3,
                            &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif    
 
@@ -388,16 +393,17 @@ Castro::variableSetUp ()
     }
 
     // Get the species names from the network model.
-    char* spec_names[NumSpec];
+    std::vector<std::string> spec_names;
     for (int i = 0; i < NumSpec; i++) {
           int len = 20;
           Array<int> int_spec_names(len);
           // This call return the actual length of each string in "len" 
           BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)(int_spec_names.dataPtr(),&i,&len);
-          spec_names[i] = new char[len+1];
+          char char_spec_names[len+1];
           for (int j = 0; j < len; j++) 
-             spec_names[i][j] = int_spec_names[j];
-          spec_names[i][len] = '\0';
+             char_spec_names[j] = int_spec_names[j];
+          char_spec_names[len] = '\0';
+	  spec_names.push_back(char_spec_names);
     }
 
     if ( ParallelDescriptor::IOProcessor())
@@ -413,21 +419,21 @@ Castro::variableSetUp ()
         cnt++; 
         set_scalar_bc(bc,phys_bc); 
         bcs[cnt] = bc; 
-        string spec_string(spec_names[i]);
-        name[cnt] = "rho_" + spec_string;
+        name[cnt] = "rho_" + spec_names[i];
     }
 
     // Get the auxiliary names from the network model.
-    char* aux_names[NumAux];
+    std::vector<std::string> aux_names;
     for (int i = 0; i < NumAux; i++) {
           int len = 20;
           Array<int> int_aux_names(len);
           // This call return the actual length of each string in "len"
           BL_FORT_PROC_CALL(GET_AUX_NAMES, get_aux_names)(int_aux_names.dataPtr(),&i,&len);
-          aux_names[i] = new char[len+1];
+	  char char_aux_names[len+1];
           for (int j = 0; j < len; j++)
-             aux_names[i][j] = int_aux_names[j];
-          aux_names[i][len] = '\0';
+             char_aux_names[j] = int_aux_names[j];
+          char_aux_names[len] = '\0';
+	  aux_names.push_back(char_aux_names);
     }
 
     if ( ParallelDescriptor::IOProcessor())
@@ -443,8 +449,7 @@ Castro::variableSetUp ()
         cnt++;
         set_scalar_bc(bc,phys_bc);
         bcs[cnt] = bc;
-        string aux_string(aux_names[i]);
-        name[cnt] = "rho_" + aux_string;
+        name[cnt] = "rho_" + aux_names[i];
     }
 
     desc_lst.setComponent(State_Type,
@@ -455,38 +460,49 @@ Castro::variableSetUp ()
                                     BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));
 
 #ifdef GRAVITY
-       set_scalar_bc(bc,phys_bc);
-       desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
-       set_x_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
-       set_y_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
-       set_z_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    set_scalar_bc(bc,phys_bc);
+    desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    set_x_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    set_y_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    set_z_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
 
-// For rotation we'll use the same boundary condition routines as for gravity, 
-// since we use the rotation in the same manner as in the gravity.
+    // For rotation we'll use the same boundary condition routines as for gravity, 
+    // since we use the rotation in the same manner as in the gravity.
 
 #ifdef ROTATION
-       set_scalar_bc(bc,phys_bc);
-       desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
-       set_x_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
-       set_y_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
-       set_z_vel_bc(bc,phys_bc);
-       desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    set_scalar_bc(bc,phys_bc);
+    desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    set_x_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    set_y_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    set_z_vel_bc(bc,phys_bc);
+    desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
 #endif
 
+    // Source term array will use standard hyperbolic fill.
+
+    Array<std::string> sources_name(NUM_STATE);    
+    
+    for (int i = 0; i < NUM_STATE; i++)
+      sources_name[i] = name[i] + "_source";
+    
+    desc_lst.setComponent(Source_Type,Density,sources_name,bcs,
+			  BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_denfill),
+				    BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));       
+    
 #ifdef LEVELSET
     desc_lst.setComponent(LS_State_Type,0,"LSphi",bc,
                           BndryFunc(BL_FORT_PROC_CALL(CA_PHIFILL,ca_phifill)));
@@ -497,8 +513,7 @@ Castro::variableSetUp ()
     for (int i=0; i<NumSpec; ++i)
     {
        set_scalar_bc(bc,phys_bc);
-       string aux_string(spec_names[i]);
-       name_react = "omegadot_" + aux_string;
+       name_react = "omegadot_" + spec_names[i];
        desc_lst.setComponent(Reactions_Type, i, name_react, bc,
                              BndryFunc(BL_FORT_PROC_CALL(CA_REACTFILL,ca_reactfill)));
     }
@@ -692,9 +707,7 @@ Castro::variableSetUp ()
     // X from rhoX
     //
     for (int i = 0; i < NumSpec; i++){
-      string spec_string(spec_names[i]);
-      spec_string = "X("+spec_string+")";
-
+      std::string spec_string = "X("+spec_names[i]+")";
       derive_lst.add(spec_string,IndexType::TheCellType(),1,
                    BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
       derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
@@ -851,19 +864,17 @@ Castro::variableSetUp ()
 #endif
 
     for (int i = 0; i < NumSpec; i++)  {
-      string spec_string(spec_names[i]);
-      derive_lst.add(spec_string,IndexType::TheCellType(),1,
+      derive_lst.add(spec_names[i],IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
-      derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
-      derive_lst.addComponent(spec_string,desc_lst,State_Type,FirstSpec+i,1);
+      derive_lst.addComponent(spec_names[i],desc_lst,State_Type,Density,1);
+      derive_lst.addComponent(spec_names[i],desc_lst,State_Type,FirstSpec+i,1);
     }
 
     for (int i = 0; i < NumAux; i++)  {
-      string aux_string(aux_names[i]);
-      derive_lst.add(aux_string,IndexType::TheCellType(),1,
+      derive_lst.add(aux_names[i],IndexType::TheCellType(),1,
           BL_FORT_PROC_CALL(CA_DERSPEC,ca_derspec),the_same_box);
-      derive_lst.addComponent(aux_string,desc_lst,State_Type,Density,1);
-      derive_lst.addComponent(aux_string,desc_lst,State_Type,FirstAux+i,1);
+      derive_lst.addComponent(aux_names[i],desc_lst,State_Type,Density,1);
+      derive_lst.addComponent(aux_names[i],desc_lst,State_Type,FirstAux+i,1);
     }
 
 #if 0
@@ -885,11 +896,4 @@ Castro::variableSetUp ()
     //
     ErrorSetUp();
 
-    for (int i = 0; i < NumSpec; i++) {
-      delete[] spec_names[i];
-    }
-
-    for (int i = 0; i < NumAux; i++) {
-      delete[] aux_names[i];
-    }
 }

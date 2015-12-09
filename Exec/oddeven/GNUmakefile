@@ -14,7 +14,7 @@ USE_OMP    = FALSE
 CASTRO_DIR = ../..
 
 # This sets the EOS directory in $(CASTRO_DIR)/EOS
-EOS_dir     := gamma_law_general
+EOS_dir     := gamma_law
 
 # This sets the network directory in $(CASTRO_DIR)/Networks
 Network_dir := general_null

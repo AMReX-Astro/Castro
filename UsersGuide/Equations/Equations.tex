@@ -10,21 +10,21 @@ $\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):$
 \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}
 \end{eqnarray}
 Here $\rho, \ub, T, p$, and $\kappa$ are the density, velocity,
-temperature, pressure, and thermal conductivity, respectively, and 
-$E = e + \ub \cdot \ub / 2$ is the total energy with $e$ representing the internal
-energy.  In addition, $X_k$ is the abundance of the $k^{\rm th}$ isotope,
-with associated production rate, $\dot\omega_k$, and
-energy release, $q_k$.  Here $\gb$ is the gravitational vector,
-and $S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}$, etc.,
-are user-specified source terms.  $A_k$ is an advected quantity, i.e., 
-a tracer.  We also carry around auxiliary variables, $Y_k$, which have a 
-user-defined evolution equation, but by default are treated as advected
-quantities.
+temperature, pressure, and thermal conductivity, respectively, and $E
+= e + \ub \cdot \ub / 2$ is the total energy with $e$ representing the
+internal energy.  In addition, $X_k$ is the abundance of the $k^{\rm
+  th}$ isotope, with associated production rate, $\dot\omega_k$, and
+energy release, $q_k$.  Here $\gb$ is the gravitational vector, and
+$S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}$, etc., are user-specified
+source terms.  $A_k$ is an advected quantity, i.e., a tracer.  We also
+carry around auxiliary variables, $Y_k$, which have a user-defined
+evolution equation, but by default are treated as advected quantities.
 
-In the code we also carry around $T$ and $\rho e$ in the conservative state vector
-even though they are derived from the other conserved quantities.
-The ordering of the elements within $\Ub$ is defined (in 3D) by integer
-variables into the array---see Table~\ref{table:consints}
+In the code we also carry around $T$ and $\rho e$ in the conservative
+state vector even though they are derived from the other conserved
+quantities.  The ordering of the elements within $\Ub$ is defined
+by integer variables into the array---see
+Table~\ref{table:consints}
 \begin{table}[t]
   \centering
 \begin{tabular}{llp{3.5in}}
@@ -49,9 +49,17 @@ variables into the array---see Table~\ref{table:consints}
 
 Some notes:
 \begin{itemize}
-\item There are {\tt nadv} advected quantities, which range from {\tt UFA: UFA+nadv-1}.
-The advected quantities have no effect at all on the rest of the solution
-but can be useful as tracer quantities.
+\item Regardless of the dimensionality of the problem, we always carry
+  all 3 components of the velocity.  This allows for, e.g., 2.5-d
+  rotation (advecting the component of velocity out of the plane in
+  axisymmetric coordinates).  
+
+  You should always initialize all velocity components to zero, and
+  always construct the kinetic energy with all three velocity components.
+
+\item There are {\tt nadv} advected quantities, which range from {\tt
+  UFA: UFA+nadv-1}.  The advected quantities have no effect at all on
+  the rest of the solution but can be useful as tracer quantities.
 
 \item There are {\tt nspec} species (defined in the {\tt network}
   directory), which range from {\tt UFS: UFS+nspec-1}.
@@ -618,12 +626,13 @@ the state ill-posed.  There are several parameters that help fix this:
 
 \subsection{Riemann Problem}
 
-\castro\ has two main options for the Riemann solver---the
+\castro\ has three main options for the Riemann solver---the
 Colella \& Glaz solver~\cite{colglaz} (the same solver used
-by Flash) and a simpler solver described in an unpublished
-manuscript by Colella, Glaz, \& Ferguson.  These are both
+by Flash), a simpler solver described in an unpublished
+manuscript by Colella, Glaz, \& Ferguson, and an HLLC
+solver.  The first two are both
 two-shock approximate solvers, but differ in how they approximate
-the thermodynamics in the ``star'' region.
+the thermodynamics in the ``star'' region.  
 
 Inputs from the edge state prediction are $\rho_{L/R}, u_{L/R},
 v_{L/R}, p_{L/R}$, and $(\rho e)_{L/R}$ ($v$ represents all of the
@@ -711,8 +720,15 @@ described in the original paper.
 For the construction of the fluxes in the Riemann solver, the following
 parameters apply:
 \begin{itemize}
-\item {\tt castro.use\_colglaz} uses the Colella \& Glaz Riemann solver~\cite{colglaz} to
-  solve for the `star' state (0 or 1; default 0)
+\item {\tt riemann\_solver}: this can be one of the following values:
+  \begin{itemize}
+    \item {\tt 0}: the Colella, Glaz, \& Ferguson solver.  
+
+    \item {\tt 1}: the Colella \& Glaz solver
+
+    \item {\tt 2}: the HLLC solver.  Note: this should only be used in 3-d
+      at the moment.
+  \end{itemize}
 
   The default is to use the solver based on an unpublished Colella,
   Glaz, \& Ferguson manuscript (it also appears in \cite{pember:1996}),
@@ -732,7 +748,7 @@ parameters apply:
   in a zone with a shock (0 or 1; default 0)
 
   This eliminates an odd-even decoupling issue (see the {\tt oddeven}
-  problem.
+  problem.  Note, this cannot be used with the HLLC solver.
   
 \end{itemize}
 

@@ -1,12 +1,16 @@
 module riemann_module
 
+  use bl_types
   use bl_constants_module
+  use riemann_util_module
 
   implicit none
 
   private
 
   public cmpflx, shock
+
+  real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
 
 contains
 
@@ -22,62 +26,58 @@ contains
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use eos_type_module
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
-                                   use_colglaz, ppm_temp_fix, hybrid_riemann, &
+                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    small_temp, allow_negative_energy
-    use bl_constants_module
 
-    implicit none
-
-    integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
-    integer pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer s_l1,s_l2,s_l3,s_h1,s_h2,s_h3
-    integer idir,ilo,ihi,jlo,jhi
-    integer i,j,kc,kflux,k3d
-    integer domlo(3),domhi(3)
+    integer, intent(in) :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer, intent(in) :: flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
+    integer, intent(in) :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
+    integer, intent(in) :: qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
+    integer, intent(in) :: s_l1,s_l2,s_l3,s_h1,s_h2,s_h3
+    integer, intent(in) :: idir,ilo,ihi,jlo,jhi,kc,kflux,k3d
+    integer, intent(in) :: domlo(3),domhi(3)
 
     ! note: qm, qp, ugdnv, pgdnv, gegdnv come in as planes (all
     ! of x,y zones but only 2 elements in the z dir) instead of being
     ! dimensioned the same as the full box.  We index these with kc
-    double precision qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    double precision pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    double precision gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-
     ! flux either comes in as planes (like qm, qp, ... above), or
     ! comes in dimensioned as the full box.  We index the flux
     ! with kflux -- this will be set correctly for the different
     ! cases.
-    double precision flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
-    
+    double precision, intent(inout) ::     qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision, intent(inout) ::     qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision, intent(inout) ::    flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
+    double precision, intent(inout) ::  ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision, intent(inout) ::  pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision, intent(inout) :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+
+
     ! gamc, csml, c, shk come in dimensioned as the full box, so we
     ! use k3d here to index it in z
-    double precision gamc(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
-    
-    double precision, pointer :: smallc(:,:),cavg(:,:)
-    double precision, pointer :: gamcm(:,:),gamcp(:,:)
+    double precision, intent(inout) :: gamc(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision, intent(inout) ::    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision, intent(inout) :: csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision, intent(inout) ::  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
 
-    type (eos_t) :: eos_state
-    integer :: n
+    ! local variables
+    integer i, j
+    double precision, pointer :: smallc(:,:), cavg(:,:)
+    double precision, pointer :: gamcm(:,:), gamcp(:,:)
+
     integer :: is_shock
     double precision :: cl, cr
+    type (eos_t) :: eos_state
 
     double precision :: rhoInv
-    
+
     call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
     call bl_allocate (   cavg, ilo,ihi,jlo,jhi)
     call bl_allocate (  gamcm, ilo,ihi,jlo,jhi)
     call bl_allocate (  gamcp, ilo,ihi,jlo,jhi)
 
-    if(idir.eq.1) then
+    if (idir == 1) then
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -87,7 +87,7 @@ contains
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
        enddo
-    elseif(idir.eq.2) then
+    elseif (idir == 2) then
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -125,12 +125,13 @@ contains
              eos_state % T = 10000.0d0
 
              ! minus state
-             eos_state % rho    = qm(i,j,kc,QRHO)
-             eos_state % p      = qm(i,j,kc,QPRES)
-             eos_state % xn(:)  = qm(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux(:) = qm(i,j,kc,QFX:QFX+naux-1)
+             eos_state % rho = qm(i,j,kc,QRHO)
+             eos_state % p   = qm(i,j,kc,QPRES)
+             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO) 
+             eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
 
-             call eos(eos_input_rp, eos_state)
+             call eos(eos_input_re, eos_state)
 
              qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qm(i,j,kc,QPRES)  = eos_state % p
@@ -143,13 +144,14 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              rhoInv = ONE / qp(i,j,kc,QRHO)
-             
-             eos_state % rho    = qp(i,j,kc,QRHO)
-             eos_state % p      = qp(i,j,kc,QPRES)
-             eos_state % xn(:)  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
-             eos_state % aux(:) = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
 
-             call eos(eos_input_rp, eos_state)
+             eos_state % rho = qp(i,j,kc,QRHO)
+             eos_state % p   = qp(i,j,kc,QPRES)
+             eos_state % e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
+             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
+             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
+
+             call eos(eos_input_re, eos_state)
 
              qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qp(i,j,kc,QPRES)  = eos_state % p
@@ -161,19 +163,29 @@ contains
     endif
 
     ! Solve Riemann problem
-    if (use_colglaz == 1) then
-       call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
-                      flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                      ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
-
-    else
+    if (riemann_solver == 0) then
+       ! Colella, Glaz, & Ferguson solver
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+    elseif (riemann_solver == 1) then
+       ! Colella & Glaz solver
+       call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
+                      flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
+                      ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+    elseif (riemann_solver == 2) then
+       ! HLLC
+       call HLLC(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                 gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
+                 flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
+                 ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                 idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+    else
+       call bl_error("ERROR: invalid value of riemann_solver")
     endif
 
 
@@ -207,7 +219,7 @@ contains
                 end select
 
                 call HLL(qm(i,j,kc,:), qp(i,j,kc,:), cl, cr, &
-                         idir, flx(i,j,kflux,:))
+                         idir, 3, flx(i,j,kflux,:))
 
              endif
 
@@ -343,11 +355,11 @@ contains
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
     use mempool_module, only : bl_allocate, bl_deallocate
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use bl_error_module
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QESGS, QFS, &
                                    QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
@@ -355,7 +367,6 @@ contains
                                    small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, &
                                    npassive, upass_map, qpass_map
-    use bl_constants_module
 
     double precision, parameter:: small = 1.d-8
 
@@ -610,7 +621,7 @@ contains
           pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
           pstar = max(pstar,small_pres)
 
-          ! sectant iteration
+          ! secant iteration
           converged = .false.
           iter = 1
           do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
@@ -682,6 +693,11 @@ contains
 
           ustar = HALF* ( ustarp + ustarm )
 
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           ! sample the solution -- here we look first at the direction
           ! that the contact is moving.  This tells us if we need to
@@ -871,56 +887,6 @@ contains
 
   end subroutine riemanncg
 
-  subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
-
-    use bl_constants_module
-
-    implicit none
-
-    double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-
-    double precision, parameter :: smlp1 = 1.d-10
-    double precision, parameter :: small = 1.d-7
-
-    double precision :: alpha, beta
-
-    ! First predict a value of game across the shock
-
-    ! CG Eq. 31
-    gstar=(pstar-p)*gdot/(pstar+p) + gam
-    gstar=max(gmin,min(gmax,gstar))
-
-    ! Now use that predicted value of game with the R-H jump conditions
-    ! to compute the wave speed.
-
-    ! CG Eq. 34
-    ! wsq = (HALF*(gstar-ONE)*(pstar+p)+pstar)
-    ! temp = ((gstar-gam)/(gam-ONE))
-
-    ! if (pstar-p == ZERO) then
-    !    divide=small
-    ! else
-    !    divide=pstar-p
-    ! endif
-
-    ! temp=temp/divide
-    ! wsq = wsq/(v - temp*p*v)
-
-    alpha = pstar-(gstar-ONE)*p/(gam-ONE)
-    if (alpha == ZERO) alpha = smlp1*(pstar + p)
-
-    beta = pstar + HALF*(gstar-ONE)*(pstar+p)
-
-    wsq = (pstar-p)*beta/(v*alpha)
-
-    if (abs(pstar - p) < smlp1*(pstar + p)) then
-       wsq = csq
-    endif
-    wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
-
-    return
-  end subroutine wsqge
-
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::
@@ -932,14 +898,11 @@ contains
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, &
                                      URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
                                      small_dens, small_pres, npassive, upass_map, qpass_map
-    use bl_constants_module
 
-    implicit none
     double precision, parameter:: small = 1.d-8
 
     integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
@@ -1076,7 +1039,13 @@ contains
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
           ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
           pstar = max(pstar,small_pres)
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
 
           if (ustar .gt. ZERO) then
              ro = rl
@@ -1228,153 +1197,298 @@ contains
   end subroutine riemannus
 
 
-  subroutine HLL(ql, qr, cl, cr, idir, f)
+! :::
+! ::: ------------------------------------------------------------------
+! :::
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   npassive, upass_map, qpass_map
-
-    use network, only : nspec, naux
-
-    double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
-    double precision, intent(inout) :: f(NVAR)
-    integer, intent(in) :: idir
-
-    integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
-    double precision :: a1, a4, bd, bl, bm, bp, br
-    double precision :: cavg, uavg
-    double precision :: fl_tmp, fr_tmp
-    double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
-    integer :: n, nq
-
-    integer :: ipassive
-
-    double precision, parameter :: small = 1.d-10
-
-    select case (idir)
-    case (1)
-       ivel = QU
-       ivelt = QV
-       iveltt = QW
-
-       imom = UMX
-       imomt = UMY
-       imomtt = UMZ
-
-    case (2)
-       ivel = QV
-       ivelt = QU
-       iveltt = QW
-
-       imom = UMY
-       imomt = UMX
-       imomtt = UMZ
-
-    case (3)
-       ivel = QW
-       ivelt = QU
-       iveltt = QV
-
-       imom = UMZ
-       imomt = UMX
-       imomtt = UMY
-
-    end select
-
-    rhol_sqrt = sqrt(ql(QRHO))
-    rhor_sqrt = sqrt(qr(QRHO))
-
-    rhod = ONE/(rhol_sqrt + rhor_sqrt)
+  subroutine HLLC(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+                  gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
+                  uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
+                  ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                  idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
 
+    ! this is an implementation of the HLLC solver described in Toro's
+    ! book.  it uses the simplest estimate of the wave speeds, since
+    ! those should work for a general EOS.  We also initially do the
+    ! CGF Riemann construction to get pstar and ustar, since we'll
+    ! need to know the pressure and velocity on the interface for the
+    ! pdV term in the internal energy update.
 
-    ! compute the average sound speed. This uses an approximation from
-    ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
-    ! and 5/3
-    cavg = sqrt( (rhol_sqrt*cl**2 + rhor_sqrt*cr**2)*rhod + &
-         HALF*rhol_sqrt*rhor_sqrt*rhod**2*(qr(ivel) - ql(ivel))**2 )
+    use mempool_module, only : bl_allocate, bl_deallocate
+    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
+    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, &
+                                     URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
+                                     small_dens, small_pres, npassive, upass_map, qpass_map
+
+    double precision, parameter:: small = 1.d-8
+
+    integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer :: gd_l1,gd_l2,gd_h1,gd_h2
+    integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
+    integer :: pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3
+    integer :: idir,ilo,ihi,jlo,jhi
+    integer :: domlo(3),domhi(3)
+
+    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
+    double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
+    double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+
+    ! Note:  Here k3d is the k corresponding to the full 3d array --
+    !         it should be used for print statements or tests against domlo, domhi, etc
+    !         kc  is the k corresponding to the 2-wide slab of k-planes, so takes values
+    !             only of 1 or 2
+    !         kflux is used for indexing into the uflx array -- in the initial calls to
+    !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
+    !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
+    integer :: i,j,kc,kflux,k3d
+    integer :: n, nq, ipassive
+
+    double precision :: rgdnv,v1gdnv,v2gdnv,regdnv
+    double precision :: rl, ul, v1l, v2l, pl, rel
+    double precision :: rr, ur, v1r, v2r, pr, rer
+    double precision :: wl, wr, rhoetot, scr
+    double precision :: rstar, cstar, estar, pstar, ustar
+    double precision :: ro, uo, po, reo, co, gamco, entho
+    double precision :: sgnm, spin, spout, ushock, frac
+    double precision :: wsmall, csmall,qavg
+    double precision :: rho_K_contrib
+
+    double precision, pointer :: us1d(:)
+
+    integer :: iu, iv1, iv2, im1, im2, im3
+    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
+    integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
+    double precision :: wwinv, roinv, co2inv
+
+    double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
+    double precision :: S_l, S_r, S_c
+
+    call bl_allocate(us1d,ilo,ihi)
+
+    if (UESGS > 0) then
+       call bl_error("ERROR: HLLC doesn't support SGS")
+    endif
+
+    if (idir .eq. 1) then
+       iu = QU
+       iv1 = QV
+       iv2 = QW
+       im1 = UMX
+       im2 = UMY
+       im3 = UMZ
+    else if (idir .eq. 2) then
+       iu = QV
+       iv1 = QU
+       iv2 = QW
+       im1 = UMY
+       im2 = UMX
+       im3 = UMZ
+    else
+       iu = QW
+       iv1 = QU
+       iv2 = QV
+       im1 = UMZ
+       im2 = UMX
+       im3 = UMY
+    end if
+
+    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
+         .or.         physbc_lo(idir) .eq. SlipWall &
+         .or.         physbc_lo(idir) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
+         .or.         physbc_hi(idir) .eq. SlipWall &
+         .or.         physbc_hi(idir) .eq. NoSlipWall)
+
+    if (idir .eq. 1) then
+       special_bnd_lo_x = special_bnd_lo
+       special_bnd_hi_x = special_bnd_hi
+    else
+       special_bnd_lo_x = .false.
+       special_bnd_hi_x = .false.
+    end if
+
+    bnd_fac_z = 1
+    if (idir.eq.3) then
+       if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
+            k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
+          bnd_fac_z = 0
+       end if
+    end if
+
+    do j = jlo, jhi
+
+       bnd_fac_y = 1
+       if (idir .eq. 2) then
+          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
+               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
+             bnd_fac_y = 0
+          end if
+       end if
+
+       !dir$ ivdep
+       do i = ilo, ihi
+
+          rl = max(ql(i,j,kc,QRHO),small_dens)
+
+          ! pick left velocities based on direction
+          ul  = ql(i,j,kc,iu)
+          v1l = ql(i,j,kc,iv1)
+          v2l = ql(i,j,kc,iv2)
+
+          pl  = max(ql(i,j,kc,QPRES ),small_pres)
+          rel =     ql(i,j,kc,QREINT)
+
+          rr = max(qr(i,j,kc,QRHO),small_dens)
+
+          ! pick right velocities based on direction
+          ur  = qr(i,j,kc,iu)
+          v1r = qr(i,j,kc,iv1)
+          v2r = qr(i,j,kc,iv2)
+
+          pr  = max(qr(i,j,kc,QPRES),small_pres)
+          rer =     qr(i,j,kc,QREINT)
+
+          ! now we essentially do the CGF solver to get p and u on the
+          ! interface, but we won't use these in any flux construction.
+          csmall = smallc(i,j)
+          wsmall = small_dens*csmall
+          wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
+          wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
+
+          wwinv = ONE/(wl + wr)
+          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
+          ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
+          pstar = max(pstar,small_pres)
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
+
+          if (ustar > ZERO) then
+             ro = rl
+             uo = ul
+             po = pl
+             gamco = gamcl(i,j)
+
+          else if (ustar < ZERO) then
+             ro = rr
+             uo = ur
+             po = pr
+             gamco = gamcr(i,j)
+          else
+             ro = HALF*(rl+rr)
+             uo = HALF*(ul+ur)
+             po = HALF*(pl+pr)
+             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
+          endif
+          ro = max(small_dens,ro)
+
+          roinv = ONE/ro
+          co = sqrt(abs(gamco*po*roinv))
+          co = max(csmall,co)
+          co2inv = ONE/(co*co)
+
+          rstar = ro + (pstar - po)*co2inv
+          rstar = max(small_dens,rstar)
+
+          cstar = sqrt(abs(gamco*pstar/rstar))
+          cstar = max(cstar,csmall)
+
+          sgnm = sign(ONE,ustar)
+          spout = co - sgnm*uo
+          spin = cstar - sgnm*ustar
+          ushock = HALF*(spin + spout)
+
+          if (pstar-po > ZERO) then
+             spin = ushock
+             spout = ushock
+          endif
+          if (spout-spin == ZERO) then
+             scr = small*cav(i,j)
+          else
+             scr = spout-spin
+          endif
+          frac = (ONE + (spout + spin)/scr)*HALF
+          frac = max(ZERO,min(ONE,frac))
+
+          rgdnv = frac*rstar + (ONE - frac)*ro
+
+          ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
+          pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
+
+          ! TODO
+          !gegdnv(i,j,kc) = pgdnv(i,j,kc)/regdnv + ONE
 
 
-    ! Roe eigenvalues (E91, eq. 5.3b)
-    uavg = (rhol_sqrt*ql(ivel) + rhor_sqrt*qr(ivel))*rhod
-
-    a1 = uavg - cavg
-    a4 = uavg + cavg
+          ! now we do the HLLC construction
 
 
-    ! signal speeds (E91, eq. 4.5)
-    bl = min(a1, ql(ivel) - cl)
-    br = max(a4, qr(ivel) + cr)
+          ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
+          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
+               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
+             bnd_fac_x = 0
+          else
+             bnd_fac_x = 1
+          end if
 
-    bm = min(ZERO, bl)
-    bp = max(ZERO, br)
+          bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+          
+          ! use the simplest estimates of the wave speeds
+          S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
+          S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
 
-    bd = bp - bm
+          ! estimate of the contact speed -- this is Toro Eq. 10.8
+          S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
+               (rl*(S_l - ul) - rr*(S_r - ur))
 
-    if (abs(bd) < small*max(abs(bm),abs(bp))) return
+          if (S_r <= ZERO) then
+             ! R region
+             call cons_state(qr(i,j,kc,:), U_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
 
-    bd = ONE/bd
+          else if (S_r > ZERO .and. S_c <= ZERO) then
+             ! R* region
+             call cons_state(qr(i,j,kc,:), U_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
+             
+             call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
 
+             ! correct the flux
+             F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
 
-    ! compute the fluxes according to E91, eq. 4.4b -- note that the
-    ! min/max above picks the correct flux if we are not in the star
-    ! region
+          else if (S_c > ZERO .and. S_l < ZERO) then
+             ! L* region
+             call cons_state(ql(i,j,kc,:), U_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pl, F_state)
 
-    ! density flux
-    fl_tmp = ql(QRHO)*ql(ivel)
-    fr_tmp = qr(QRHO)*qr(ivel)
+             call HLLC_state(idir, S_l, S_c, ql(i,j,kc,:), U_hllc_state)
 
-    f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
+             ! correct the flux
+             F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
 
+          else
+             ! L region
+             call cons_state(ql(i,j,kc,:), U_state)
+             call compute_flux(idir, 3, bnd_fac, U_state, pl, F_state)
 
-    ! normal momentum flux -- we handle that separately
-    fl_tmp = ql(QRHO)*ql(ivel)**2 + ql(QPRES)
-    fr_tmp = qr(QRHO)*qr(ivel)**2 + qr(QPRES)
+          endif
 
-    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
-
-
-    ! transverse momentum flux
-    fl_tmp = ql(QRHO)*ql(ivel)*ql(ivelt)
-    fr_tmp = qr(QRHO)*qr(ivel)*qr(ivelt)
-
-    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivelt) - ql(QRHO)*ql(ivelt))
-
-
-    fl_tmp = ql(QRHO)*ql(ivel)*ql(iveltt)
-    fr_tmp = qr(QRHO)*qr(ivel)*qr(iveltt)
-
-    f(imomtt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(iveltt) - ql(QRHO)*ql(iveltt))
-
-
-    ! total energy flux
-    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2 + ql(iveltt)**2)
-    fl_tmp = ql(ivel)*(rhoEl + ql(QPRES))
-
-    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2 + qr(iveltt)**2)
-    fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
-
-    f(UEDEN) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
-
-
-    ! eint flux
-    fl_tmp = ql(QREINT)*ql(ivel)
-    fr_tmp = qr(QREINT)*qr(ivel)
-
-    f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
-
-
-    ! passively-advected scalar fluxes
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-
-       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
-
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
+          uflx(i,j,kflux,:) = F_state(:)
+       enddo
     enddo
 
-  end subroutine HLL
+    call bl_deallocate(us1d)
+
+  end subroutine HLLC
 
 end module riemann_module

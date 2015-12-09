@@ -2,7 +2,6 @@
 
      use network, only: nspec, naux
      use eos_module
-     use eos_type_module
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
                                    allow_negative_energy
      use prob_params_module, only: dim
@@ -17,12 +16,14 @@
 
      double precision :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
      double precision :: sqrtK, grid_scl, dt4
-     integer          :: i, j, k, n
+     integer          :: i, j, k
 
      type (eos_t) :: eos_state
 
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
+     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
+     
      ! Call EOS for the purpose of computing sound speed
 
      do k = lo(3), hi(3)
@@ -33,62 +34,56 @@
               eos_state % rho = u(i,j,k,URHO )
               eos_state % T   = u(i,j,k,UTEMP)
               eos_state % e   = u(i,j,k,UEINT) * rhoInv
-
               eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
               eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
               call eos(eos_input_re, eos_state)
 
-              ! Compute velocity and then calculate CFL timestep.
+              ! Compute velocity and then calculate CFL timestep.     
+     
+              ux = u(i,j,k,UMX) * rhoInv
+              uy = u(i,j,k,UMY) * rhoInv
+              uz = u(i,j,k,UMZ) * rhoInv
 
-               ux = u(i,j,k,UMX) * rhoInv
-               uy = u(i,j,k,UMY) * rhoInv
-               uz = u(i,j,k,UMZ) * rhoInv
+              if (UESGS .gt. -1) &
+                 sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 
-               if (UESGS .gt. -1) &
-                  sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
+              c = eos_state % cs
+              
+              dt1 = dx(1)/(c + abs(ux))
+              if (dim .ge. 2) then
+                 dt2 = dx(2)/(c + abs(uy))
+              else
+                 dt2 = dt1
+              endif
+              if (dim .eq. 3) then
+                 dt3 = dx(3)/(c + abs(uz))
+              else
+                 dt3 = dt1
+              endif
+              
+              dt  = min(dt,dt1,dt2,dt3)
 
-               ! Protect against negative e
-               if (eos_state % e .gt. ZERO .or. allow_negative_energy .eq. 1) then
-                  c = eos_state % cs
-               else
-                  c = ZERO
-               end if
+              ! Now let's check the diffusion terms for the SGS equations
+              if (UESGS .gt. -1 .and. dim .eq. 3) then
 
-               dt1 = dx(1)/(c + abs(ux))
-               if (dim .ge. 2) then
-                  dt2 = dx(2)/(c + abs(uy))
-               else
-                  dt2 = dt1
-               endif
-               if (dim .eq. 3) then
-                  dt3 = dx(3)/(c + abs(uz))
-               else
-                  dt3 = dt1
-               endif
+                 ! First for the term in the momentum equation
+                 ! This is actually dx^2 / ( 6 nu_sgs )
+                 ! Actually redundant as it takes the same form as below with different coeff
+                 ! dt4 = grid_scl / ( 0.42d0 * sqrtK )
 
-               dt  = min(dt,dt1,dt2,dt3)
+                 ! Now for the term in the K equation itself
+                 ! nu_sgs is 0.65
+                 ! That gives us 0.65*6 = 3.9
+                 ! Using 4.2 to be conservative (Mach1-256 broke during testing with 3.9)
+                 !               dt4 = grid_scl / ( 3.9d0 * sqrtK )
+                 dt4 = grid_scl / ( 4.2d0 * sqrtK )
+                 dt = min(dt,dt4)
 
-               ! Now let's check the diffusion terms for the SGS equations
-               if (UESGS .gt. -1 .and. dim .eq. 3) then
+              end if
 
-                  ! First for the term in the momentum equation
-                  ! This is actually dx^2 / ( 6 nu_sgs )
-                  ! Actually redundant as it takes the same form as below with different coeff
-                  ! dt4 = grid_scl / ( 0.42d0 * sqrtK )
-
-                  ! Now for the term in the K equation itself
-                  ! nu_sgs is 0.65
-                  ! That gives us 0.65*6 = 3.9
-                  ! Using 4.2 to be conservative (Mach1-256 broke during testing with 3.9)
-                  !               dt4 = grid_scl / ( 3.9d0 * sqrtK )
-                  dt4 = grid_scl / ( 4.2d0 * sqrtK )
-                  dt = min(dt,dt4)
-
-               end if
-
-            enddo
-         enddo
+           enddo
+        enddo
      enddo
 
      end subroutine ca_estdt

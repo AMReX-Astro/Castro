@@ -9,6 +9,7 @@ Parameter & Definition & Acceptable Values & Default\\
 \hline
 {\bf castro.do\_rotation} & Include rotation as a forcing term & 0 if false, 1 if true & 0 \\
 {\bf castro.rotational\_period} & Period (s) of rotation & Real & 0.0 \\
+{\bf castro.rotational\_dPdt} & d(Period) / dt for rotation & Real & 0.0 \\
 \hline
 \end{tabular}
 \end{center}
@@ -191,12 +192,43 @@ reference:
     \frac{\partial\left(\rho E\right)}{\partial t} &=& -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
   \end{eqnarray}
 
-Comparing the above equations with the fully compressible equations
-in \ref{eq:compressible-equations} we see that the
-Coriolis \(\left(-2\rho\ob\times\vb\right)\) and
-centrifugal \(\left(-\rho\ob\times\left[\ob\times\rb\right]=-\rho\left(\ob\cdot\rb\right)\ob
-+ \rho\omega^2\rb\right)\) terms can be swept into the ``external
-source term'' \(\Sb_{{\rm ext},\rho\ub}\).  The corresponding terms in
-the energy evolution equation above can be swept into the external
-source term \(S_{{\rm ext},\rho E}\) of the compressible equations.
+\section{Adding the forcing to the hydrodynamics}
 
+There are several ways to incorporate the effect of the rotation forcing
+on the hydrodynamical evolution. We control this through the use of the
+runtime parameter {\tt castro.rot\_source\_type}. This is an integer
+with values currently ranging from 1 through 4, and these values are all
+analogous to the way that gravity is used to update the momentum and
+energy. For the most part, the differences are in how the energy update is done.
+
+When {\tt castro.rot\_source\_type == 1}, we use a standard predictor-corrector
+formalism for updating the momentum and energy. Specifically, our first update
+is equal to $\Delta t \times \mathbf{S}^n$ , where $\mathbf{S}^n$ is the value
+of the source terms at the old-time (which is usually called time-level $n$).
+At the end of the timestep, we do a corrector step where we subtract off
+$\Delta t / 2 \times \mathbf{S}^n$ and add on $\Delta t / 2 \times \mathbf{S}^{n+1}$,
+so that at the end of the timestep the source term is properly time centered.
+
+When {\tt castro.rot\_source\_type == 2}, we do something very similar. The
+major difference is that when evaluating the energy source term at the
+new time (which is equal to $\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}$,
+where the latter is the momentum source term evaluated at the new time), we first update
+the momentum, rather than using the value of $\mathbf{u}$ before entering the
+rotation source terms. This permits a tighter coupling between the momentum and
+energy update and we have seen that it usually results in a more accurate evolution.
+
+When {\tt castro.rot\_source\_type == 3}, we do the same momentum update as the
+previous two, but for the energy update, we put all of the work into updating
+the kinetic energy alone. In particular, we explicitly ensure that $(rho e)$ maintains
+the same, and update $(rho K)$ with the work due to rotation, adding the new
+kinetic energy to the old internal energy to determine the final total gas energy.
+The physical motivation is that work should be done on the velocity, and should not
+directly update the temperature -- only indirectly through things like shocks.
+
+When {\tt castro.rot\_source\_type == 4}, the energy update is done in a ``conservative'' fashion.
+The previous methods all evaluate the value of the source term at the cell center,
+but this method evaluates the change in energy at cell edges, using the hydrodynamical mass
+fluxes, permitting total energy to be conserved (excluding possible losses at open domain
+boundaries). Additionally, the velocity update is slightly different -- for the corrector step,
+we note that there is an implicit coupling between the velocity components, and we directly solve
+this coupled equation, which results in a slightly better coupling and a more accurate evolution.

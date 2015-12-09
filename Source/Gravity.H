@@ -13,7 +13,7 @@ class Gravity {
 public:
 
   Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density);
-  virtual ~Gravity ();
+  ~Gravity ();
   void read_params ();
 
   void set_numpts_in_gravity(int numpts);
@@ -40,22 +40,11 @@ public:
 
   void swapTimeLevels (int level);
 
-  void solve_for_old_phi (int               level,
-			  MultiFab&         phi,
-                          PArray<MultiFab>& grad_phi,
-                          int               fill_interior);
-
-  void solve_for_new_phi (int               level,
-			  MultiFab&         phi,
-                          PArray<MultiFab>& grad_phi,
-                          int               fill_interior);
-
   void solve_for_phi (int               level,
-                      MultiFab&         Rhs,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
-                      Real              time,
-                      int               fill_interior);
+		      int               is_new);
+
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
@@ -67,14 +56,11 @@ public:
                      const MultiFab& drho_and_drhoU, const MultiFab& dphi,
                      PArray<MultiFab>& grad_delta_phi_cc);
 
-  void multilevel_solve_for_old_phi (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
-  void multilevel_solve_for_phi     (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
   void actual_multilevel_solve      (int level, int finest_level, 
-                                     Array<PArray<MultiFab> >& grad_phi, int is_new,
+                                     Array<PArray<MultiFab> >& grad_phi,
+				     int is_new,
                                      int use_previous_phi_as_guess = 0);
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
@@ -99,8 +85,6 @@ public:
   void test_level_grad_phi_curr(int level);
   void test_composite_phi(int level);
 
-  static void avgDown(MultiFab& crse, const MultiFab& fine, const IntVect& ratio);
-
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
   void add_to_fluxes(int level, int iteration, int ncycle);
@@ -108,7 +92,7 @@ public:
   void reflux_phi(int level, MultiFab& dphi);
 
 #if (BL_SPACEDIM == 1)
-  void make_one_d_grav(int level, Real time, MultiFab& grav_vector);
+  void make_one_d_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi);
 #else
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, 
@@ -152,8 +136,6 @@ protected:
   PArray<MultiFab> volume;
   Array<MultiFab*> area;
 
-  const BoxArray& getEdgeBoxArray (int lev, int dir) const { return area[lev][dir].boxArray(); }
-
   int Density;
   int finest_level;
   int finest_level_allocated;
@@ -171,6 +153,7 @@ protected:
   static int   drdxfac;
   static int   lnum;
   static int   direct_sum_bcs;
+  static int   get_g_from_phi;
   static Real  const_grav;
   static Real  mass_offset;
   static Real  sl_tol;
@@ -205,7 +188,18 @@ protected:
     void AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles);
 #endif
 
+private:
 
+    Real solve_phi_with_fmg (int crse_level, int fine_level,
+			     PArray<MultiFab> & phi,
+			     PArray<MultiFab> & rhs,
+			     Array< PArray<MultiFab> >& grad_phi,
+			     PArray<MultiFab>& res,
+			     Real time);
+
+    void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
+
+    void sanity_check (int level);
 };
 #endif
 

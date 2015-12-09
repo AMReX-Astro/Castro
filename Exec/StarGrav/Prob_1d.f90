@@ -87,7 +87,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision state(state_l1:state_h1,NVAR)
 
   double precision xcen,dist,pres
-  double precision,parameter::smallx=1e-16
   integer i,n
 
   type(eos_t) :: eos_state

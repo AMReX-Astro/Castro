@@ -28,6 +28,7 @@ chk*
 *chk?????
 *plt?????.old*
 *chk?????.old*
+*.xmgr
 
 
 # These files are created at build time
@@ -40,3 +41,9 @@ d/
 f/
 t/
 buildInfo.cpp
+
+
+Exec/*/helm_table.dat
+
+*.hack
+*.bak

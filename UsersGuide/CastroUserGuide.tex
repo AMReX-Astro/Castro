@@ -1,4 +1,4 @@
-\documentclass[11pt]{book} 
+\documentclass[11pt]{book}
 
 \tolerance=600
 
@@ -28,11 +28,24 @@
    {\hrule}
 
 
+
 % hyperlinks -- load after fncychap
 \usepackage{hyperref}
 
 % color package
 \usepackage[usenames]{color}
+
+% longtable package used to split tables across pages
+\usepackage{longtable}
+
+% PDF-aware landscape package, used for rotating tables (including the
+% longtable)
+\usepackage{pdflscape}
+
+% table coloring
+\usepackage{colortbl}
+\definecolor{tableShade}{rgb}{0.945,0.961,0.980}
+
 
 % make the MarginPars look pretty
 \setlength{\marginparwidth}{0.75in}
@@ -222,7 +235,7 @@
 \begin{titlepage}
 \begin{center}
 \ \\[3in]
-{\sf \Huge CASTRO} 
+{\sf \Huge CASTRO}
 
 \begin{minipage}{5.5in}
 \HRule\\[2mm]
@@ -286,6 +299,9 @@
 
 \chapter{Single-Level Flow Chart}
 \input FlowChart/FlowChart.tex
+
+\chapter{Runtime Parameters}
+\input runtime_parameters/runtime_parameters.tex
 
 \chapter{Hydrodynamics}
 \input Equations/Equations.tex

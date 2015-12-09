@@ -9,7 +9,7 @@ module trace_ppm_module
 contains
 
   subroutine tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
+                         Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
                          qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                          gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                          ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
@@ -18,12 +18,11 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QPRES, QGAME, &
          small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, &
+         ppm_type, ppm_reference, ppm_trace_sources, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_reference_edge_limit, ppm_flatten_before_integrals, &
          ppm_predict_gammae, &
-         npassive, qpass_map, &
-         do_grav, do_rotation
+         npassive, qpass_map
     use bl_constants_module
 
     implicit none
@@ -41,11 +40,8 @@ contains
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
 
-    double precision   Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-
-    double precision   Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision   Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
+    double precision   Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
 
     double precision   Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
     double precision   Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
@@ -83,10 +79,6 @@ contains
 
     double precision xi, xi1
     double precision halfdt
-
-    integer, parameter :: igx = 1
-    integer, parameter :: igy = 2
-    integer, parameter :: igz = 3
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -218,20 +210,12 @@ contains
              dpp   = p_ref    - Im(i,j,kc,1,3,QPRES)
 
 
-             ! If we are doing gravity tracing, then we add the force
+             ! If we are doing source term tracing, then add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dum = dum - halfdt*Im_g(i,j,kc,1,1,igx)
-                dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
-             endif
-
-             ! If we are doing rotation tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dum = dum - halfdt*Im_r(i,j,kc,1,1,igx)
-                dup = dup - halfdt*Im_r(i,j,kc,1,3,igx)
+             if (ppm_trace_sources .eq. 1) then
+                dum = dum - halfdt*Im_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Im_src(i,j,kc,1,3,QU)
              endif
    
              ! Optionally use the reference state in evaluating the
@@ -348,18 +332,6 @@ contains
              ! Transverse velocities -- there's no projection here, so
              ! we don't need a reference state.  We only care about
              ! the state traced under the middle wave
-             dv = Im(i,j,kc,1,2,QV)
-             dw = Im(i,j,kc,1,2,QW)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dv  = dv  + halfdt*Im_g(i,j,kc,1,2,igy)
-                dw  = dw  + halfdt*Im_g(i,j,kc,1,2,igz)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dv  = dv  + halfdt*Im_r(i,j,kc,1,2,igy)
-                dw  = dw  + halfdt*Im_r(i,j,kc,1,2,igz)
-             endif
 
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
@@ -373,9 +345,15 @@ contains
                    qxp(i,j,kc,QW    ) = w
                 endif
              else ! wave moving toward the interface 
-                qxp(i,j,kc,QV    ) = dv
-                qxp(i,j,kc,QW    ) = dw
+                qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
+                qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
              endif
+
+             if (ppm_trace_sources .eq. 1) then
+                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,QV)
+                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,QW)
+             endif
+
 
              ! We may have already dealt with the flattening in the construction
              ! of the parabola
@@ -450,21 +428,14 @@ contains
              dup   = u_ref    - Ip(i,j,kc,1,3,QU)
              dpp   = p_ref    - Ip(i,j,kc,1,3,QPRES)
 
-             ! If we are doing gravity tracing, then we add the force
+             ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dum = dum - halfdt*Ip_g(i,j,kc,1,1,igx)
-                dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
+             if (ppm_trace_sources .eq. 1) then
+                dum = dum - halfdt*Ip_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Ip_src(i,j,kc,1,3,QU)
              endif
 
-             ! If we are doing rotation tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dum = dum - halfdt*Ip_r(i,j,kc,1,1,igx)
-                dup = dup - halfdt*Ip_r(i,j,kc,1,3,igx)
-             endif
 
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
@@ -578,19 +549,6 @@ contains
              qxm(i+1,j,kc,QPRES)  = max(qxm(i+1,j,kc,QPRES),small_pres)
 
              ! transverse velocities
-             dv    = Ip(i,j,kc,1,2,QV)
-             dw    = Ip(i,j,kc,1,2,QW)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dv  = dv  + halfdt*Ip_g(i,j,kc,1,2,igy)
-                dw  = dw  + halfdt*Ip_g(i,j,kc,1,2,igz)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dv  = dv  + halfdt*Ip_r(i,j,kc,1,2,igy)
-                dw  = dw  + halfdt*Ip_r(i,j,kc,1,2,igz)
-             endif
-
              if (u < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
@@ -600,9 +558,15 @@ contains
                    qxm(i+1,j,kc,QW    ) = w
                 endif
              else ! wave moving toward interface
-                qxm(i+1,j,kc,QV    ) = dv
-                qxm(i+1,j,kc,QW    ) = dw
+                qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
+                qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
              endif
+
+             if (ppm_trace_sources .eq. 1) then
+                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,QV)
+                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,QW)
+             endif
+
 
              ! We may have already dealt with flattening in the parabolas
              if (ppm_flatten_before_integrals == 0) then
@@ -783,20 +747,12 @@ contains
              dvp   = v_ref    - Im(i,j,kc,2,3,QV)
              dpp   = p_ref    - Im(i,j,kc,2,3,QPRES)
 
-             ! If we are doing gravity tracing, then we add the force
+             ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dvm = dvm - halfdt*Im_g(i,j,kc,2,1,igy)
-                dvp = dvp - halfdt*Im_g(i,j,kc,2,3,igy)
-             endif
-
-             ! If we are doing rotation tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dvm = dvm - halfdt*Im_r(i,j,kc,2,1,igy)
-                dvp = dvp - halfdt*Im_r(i,j,kc,2,3,igy)
+             if (ppm_trace_sources .eq. 1) then
+                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,QV)
              endif
 
              ! Optionally use the reference state in evaluating the
@@ -911,19 +867,6 @@ contains
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
 
              ! transverse velocities
-             du    = Im(i,j,kc,2,2,QU)
-             dw    = Im(i,j,kc,2,2,QW)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                du  = du  + halfdt*Im_g(i,j,kc,2,2,igx)
-                dw  = dw  + halfdt*Im_g(i,j,kc,2,2,igz)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                du  = du  + halfdt*Im_r(i,j,kc,2,2,igx)
-                dw  = dw  + halfdt*Im_r(i,j,kc,2,2,igz)
-             endif
-
              if (v > ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
@@ -933,9 +876,16 @@ contains
                    qyp(i,j,kc,QW    ) = w
                 endif
              else ! wave moving toward the interface
-                qyp(i,j,kc,QU    ) = du
-                qyp(i,j,kc,QW    ) = dw
+                qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
+                qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
              endif
+
+             if (ppm_trace_sources .eq. 1) then
+                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,QU)
+                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,QW)
+             endif
+
+
 
              ! We may have already dealt with flattening in the parabola
              if (ppm_flatten_before_integrals == 0) then
@@ -1010,21 +960,14 @@ contains
              dvp   = v_ref    - Ip(i,j,kc,2,3,QV)
              dpp   = p_ref    - Ip(i,j,kc,2,3,QPRES)
 
-             ! If we are doing gravity tracing, then we add the force
+             ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                dvm = dvm - halfdt*Ip_g(i,j,kc,2,1,igy)
-                dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
+             if (ppm_trace_sources .eq. 1) then
+                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,QV)
              endif
 
-             ! If we are doing rotation tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                dvm = dvm - halfdt*Ip_r(i,j,kc,2,1,igy)
-                dvp = dvp - halfdt*Ip_r(i,j,kc,2,3,igy)
-             endif
 
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
@@ -1137,19 +1080,6 @@ contains
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
              
              ! transverse velocities
-             du    = Ip(i,j,kc,2,2,QU)
-             dw    = Ip(i,j,kc,2,2,QW)
-
-             if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-                du  = du  + halfdt*Ip_g(i,j,kc,2,2,igx)
-                dw  = dw  + halfdt*Ip_g(i,j,kc,2,2,igz)
-             endif
-
-             if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-                du  = du  + halfdt*Ip_r(i,j,kc,2,2,igx)
-                dw  = dw  + halfdt*Ip_r(i,j,kc,2,2,igz)
-             endif
-
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
@@ -1159,9 +1089,15 @@ contains
                    qym(i,j+1,kc,QW    ) = w
                 endif
              else ! wave is moving toward the interface
-                qym(i,j+1,kc,QU    ) = du
-                qym(i,j+1,kc,QW    ) = dw
+                qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
+                qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
              endif
+
+             if (ppm_trace_sources .eq. 1) then
+                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,QU)
+                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,QW)
+             endif
+
 
              ! We may have already dealt with flattening in the parabola
              if (ppm_flatten_before_integrals == 0) then
@@ -1238,7 +1174,7 @@ contains
   end subroutine tracexy_ppm
 
   subroutine tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
+                        Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
                         qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                         gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                         ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
@@ -1247,12 +1183,11 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QPRES, QGAME, &
          small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_grav, ppm_trace_rot, &
+         ppm_type, ppm_reference, ppm_trace_sources, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_reference_edge_limit, ppm_flatten_before_integrals, &
          ppm_predict_gammae, &
-         npassive, qpass_map, &
-         do_grav, do_rotation
+         npassive, qpass_map
     use bl_constants_module
 
     implicit none
@@ -1270,11 +1205,8 @@ contains
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
 
-    double precision   Ip_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_g(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-
-    double precision   Ip_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_r(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision   Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
+    double precision   Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
 
     double precision   Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
     double precision   Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
@@ -1310,10 +1242,6 @@ contains
 
     double precision xi, xi1
     double precision halfdt
-
-    integer, parameter :: igx = 1
-    integer, parameter :: igy = 2
-    integer, parameter :: igz = 3
 
     halfdt = HALF * dt
 
@@ -1413,20 +1341,12 @@ contains
           dwp   = w_ref    - Im(i,j,kc,3,3,QW)
           dpp   = p_ref    - Im(i,j,kc,3,3,QPRES)
 
-          ! If we are doing gravity tracing, then we add the force to
+          ! If we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-             dwm = dwm - halfdt*Im_g(i,j,kc,3,1,igz)
-             dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
-          endif
-
-          ! If we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-             dwm = dwm - halfdt*Im_r(i,j,kc,3,1,igz)
-             dwp = dwp - halfdt*Im_r(i,j,kc,3,3,igz)
+          if (ppm_trace_sources .eq. 1) then
+             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,QW)
+             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1537,19 +1457,6 @@ contains
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           ! transverse velocities
-          du    = Im(i,j,kc,3,2,QU)
-          dv    = Im(i,j,kc,3,2,QV)
-
-          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-             du  = du  + halfdt*Im_g(i,j,kc,3,2,igx)
-             dv  = dv  + halfdt*Im_g(i,j,kc,3,2,igy)
-          endif
-
-          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-             du  = du  + halfdt*Im_r(i,j,kc,3,2,igx)
-             dv  = dv  + halfdt*Im_r(i,j,kc,3,2,igy)
-          endif
-
           if (w > ZERO) then 
              if (ppm_reference_edge_limit == 1) then
                 qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
@@ -1559,9 +1466,15 @@ contains
                 qzp(i,j,kc,QV    ) = v
              endif
           else ! wave moving toward the interface
-             qzp(i,j,kc,QU    ) = du
-             qzp(i,j,kc,QV    ) = dv
+             qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
+             qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
           endif
+
+          if (ppm_trace_sources .eq. 1) then
+             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,QU)
+             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,QV)
+          endif
+
 
           ! We may have already dealt with flattening in the parabola
           if (ppm_flatten_before_integrals == 0) then
@@ -1656,20 +1569,12 @@ contains
           dwp   = w_ref    - Ip(i,j,km,3,3,QW)
           dpp   = p_ref    - Ip(i,j,km,3,3,QPRES)
 
-          ! If we are doing gravity tracing, then we add the force to
+          ! If we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-             dwm = dwm - halfdt*Ip_g(i,j,km,3,1,igz)
-             dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
-          endif
-
-          ! If we are doing rotation tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-             dwm = dwm - halfdt*Ip_r(i,j,km,3,1,igz)
-             dwp = dwp - halfdt*Ip_r(i,j,km,3,3,igz)
+          if (ppm_trace_sources .eq. 1) then
+             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,QW)
+             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1781,19 +1686,6 @@ contains
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
 
           ! Transverse velocity
-          du    = Ip(i,j,km,3,2,QU)
-          dv    = Ip(i,j,km,3,2,QV)
-
-          if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-             du  = du  + halfdt*Ip_g(i,j,km,3,2,igx)
-             dv  = dv  + halfdt*Ip_g(i,j,km,3,2,igy)
-          endif
-
-          if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-             du  = du  + halfdt*Ip_r(i,j,km,3,2,igx)
-             dv  = dv  + halfdt*Ip_r(i,j,km,3,2,igy)
-          endif
-
           if (w < ZERO) then
              if (ppm_reference_edge_limit == 1) then
                 qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
@@ -1803,9 +1695,15 @@ contains
                 qzm(i,j,kc,QV    ) = v
              endif
           else ! wave moving toward the interface
-             qzm(i,j,kc,QU    ) = du
-             qzm(i,j,kc,QV    ) = dv
+             qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
+             qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
           endif
+
+          if (ppm_trace_sources .eq. 1) then
+             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,QU)
+             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,QV)
+          endif
+
 
           ! We may have already taken care of flattening in the parabola
           if (ppm_flatten_before_integrals == 0) then

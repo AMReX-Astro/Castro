@@ -72,7 +72,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   eos_state%xn(:) = xn_l(:)
   eos_state%T = 100000.0_dp_t   ! initial guess
 
-  call eos(eos_input_rp, eos_state, .false.)
+  call eos(eos_input_rp, eos_state)
 
   cs_l = sqrt(eos_state%gam1*p_l/rho_l)
 
@@ -86,7 +86,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   eos_state%xn(:) = xn_r(:)
   eos_state%T = 100000.0_dp_t   ! initial guess
 
-  call eos(eos_input_rp, eos_state, .false.)
+  call eos(eos_input_rp, eos_state)
 
   cs_r = sqrt(eos_state%gam1*p_r/rho_r)
 
@@ -213,7 +213,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
      eos_state%xn(:) = xn_l(:)
      eos_state%T = 100000.0_dp_t   ! initial guess
      
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
         
      cs_star = sqrt(eos_state%gam1*pstar/rhostar)
 
@@ -234,7 +234,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
      eos_state%xn(:) = xn_r(:)
      eos_state%T = 100000.0_dp_t   ! initial guess
      
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
         
      cs_star = sqrt(eos_state%gam1*pstar/rhostar)
 

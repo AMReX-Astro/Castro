@@ -1,6 +1,5 @@
 &fortin
 
-  gravity = -1.d9
   do_isentropic = .true.
   boundary_type = 1
 
@@ -24,5 +23,11 @@
   pressgrad = 1.d20
   max_presserr_lev = 5
   max_pressgrad_lev = 5
+
+/
+
+&extern
+
+  eos_assume_neutral = T
 
 /

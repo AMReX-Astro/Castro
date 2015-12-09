@@ -1,79 +1,3 @@
-! :: ----------------------------------------------------------
-! :: Average the fine grid phi onto the coarse
-! :: grid.  Overlap is given in coarse grid coordinates.
-! :: Note this differs from ca_avgdown in that there is no volume weighting.
-! ::
-! :: INPUTS / OUTPUTS:
-! ::  crse      <=  coarse grid data
-! ::  clo,chi    => index limits of crse array interior
-! ::  fine       => fine grid data
-! ::  flo,fhi    => index limits of fine array interior
-! ::  rfine      => (ignore) used in 2-D RZ calc
-! ::  lo,hi      => index limits of overlap (crse grid)
-! ::  lrat       => refinement ratio
-! ::
-! :: NOTE:
-! ::  Assumes all data cell centered
-! :: ----------------------------------------------------------
-! ::
-      subroutine ca_avgdown_phi (crse,c_l1,c_l2,c_l3,c_h1,c_h2,c_h3, &
-                                 fine,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                                 lo,hi,lrat)
-
-      use bl_constants_module
-
-      implicit none
-
-      integer c_l1,c_l2,c_l3,c_h1,c_h2,c_h3
-      integer f_l1,f_l2,f_l3,f_h1,f_h2,f_h3
-      integer lo(3), hi(3)
-      integer lrat(3)
-      double precision crse(c_l1:c_h1,c_l2:c_h2,c_l3:c_h3)
-      double precision fine(f_l1:f_h1,f_l2:f_h2,f_l3:f_h3)
-
-      integer i, j, k, ic, jc, kc, ioff, joff, koff
-      double precision volfrac
-
-      !
-      ! ::::: set coarse grid to zero on overlap
-      !
-      do kc = lo(3), hi(3)
-         do jc = lo(2), hi(2)
-            do ic = lo(1), hi(1)
-               crse(ic,jc,kc) = ZERO
-            enddo
-         enddo
-      enddo
-      !
-      ! ::::: sum fine data
-      !
-      do koff = 0, lrat(3)-1
-        do kc = lo(3), hi(3)
-          k = kc*lrat(3) + koff
-          do joff = 0, lrat(2)-1
-            do jc = lo(2), hi(2)
-              j = jc*lrat(2) + joff
-              do ioff = 0, lrat(1)-1
-                do ic = lo(1), hi(1)
-                  i = ic*lrat(1) + ioff
-                  crse(ic,jc,kc) = crse(ic,jc,kc) + fine(i,j,k)
-                enddo
-              enddo
-            enddo
-          enddo
-        enddo
-      enddo
-
-      volfrac = ONE/dble(lrat(1)*lrat(2)*lrat(3))
-      do kc = lo(3), hi(3)
-         do jc = lo(2), hi(2)
-            do ic = lo(1), hi(1)
-               crse(ic,jc,kc) = volfrac*crse(ic,jc,kc)
-            enddo
-         enddo
-      enddo
-
-      end subroutine ca_avgdown_phi
 
 ! ::: 
 ! ::: ------------------------------------------------------------------
@@ -733,7 +657,6 @@
 
         use prob_params_module, only: problo, center, probhi
         use bl_constants_module
-        use meth_params_module, only: deterministic
 
         implicit none
 
@@ -814,6 +737,8 @@
 
         ! Compute pre-factors now to save computation time, for qC and qS
 
+        factArray(:,:) = ZERO
+        
         do l = 0, lnum
 
           ! The odd l Legendre polynomials are odd in their argument, so

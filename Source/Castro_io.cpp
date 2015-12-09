@@ -83,10 +83,14 @@ Castro::restart (Amr&     papa,
 
     AmrLevel::restart(papa,is,bReadSpecial);
 
-    if (version == 0) { // old chcekpoint w/o PhiGrav_Type
+    if (version == 0) { // old checkpoint without PhiGrav_Type
 #ifdef GRAVITY
-	state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
+      state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
 #endif      
+    }
+
+    if (version < 3) { // old checkpoint without Source_Type
+      state[Source_Type].restart(desc_lst[Source_Type], state[State_Type]);
     }
 
     // For versions < 2, we didn't store all three components
@@ -151,7 +155,7 @@ Castro::restart (Amr&     papa,
     
     // Get data from the reactions header file.
 
-    max_delta_e = 0.0;
+    max_dedt = 0.0;
 
     // Note that we want all grids on the domain to have this value,
     // so we have all processors read this in. We could do the same
@@ -162,9 +166,9 @@ Castro::restart (Amr&     papa,
     FullPathReactFile += "/ReactHeader";
     ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
 
-    // Maximum change in internal energy in last timestep.
+    // Maximum rate of change of internal energy in last timestep.
       
-    ReactFile >> max_delta_e;
+    ReactFile >> max_dedt;
 
     ReactFile.close();
 
@@ -173,7 +177,7 @@ Castro::restart (Amr&     papa,
     // but will achieve our desired effect of being
     // utilized in the first timestep calculation.
     
-    get_new_data(Reactions_Type).setVal(max_delta_e);
+    get_new_data(Reactions_Type).setVal(max_dedt);
 
 #endif
 	
@@ -368,23 +372,22 @@ Castro::restart (Amr&     papa,
 
 void
 Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
-{
-#ifdef GRAVITY
-    if (version == 0) {
-	// We are reading an old checkpoint with no PhiGrav_Type
-	for (int i=0; i<NUM_STATE_TYPE; ++i) {
-	    if (i == PhiGrav_Type) {
-		state_in_checkpoint[i] = 0;
-	    } else {
-		state_in_checkpoint[i] = 1;
-	    }
-	}
-    } else {
-	BoxLib::Error("Castro::set_state_in_checkpoint: should not get here?");
+{ 
+  for (int i=0; i<NUM_STATE_TYPE; ++i)
+    state_in_checkpoint[i] = 1;
+
+  for (int i=0; i<NUM_STATE_TYPE; ++i) {
+#ifdef GRAVITY    
+    if (version == 0 && i == PhiGrav_Type) {
+      // We are reading an old checkpoint with no PhiGrav_Type
+      state_in_checkpoint[i] = 0;
     }
-#else
-    BoxLib::Error("Castro::set_state_in_checkpoint: how did we get here?");
-#endif 
+#endif
+    if (version < 3 && i == Source_Type) {
+      // We are reading an old checkpoint with no Source_Type
+      state_in_checkpoint[i] = 0;
+    }
+  }
 }
 
 void
@@ -413,7 +416,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCastroHeaderFile += "/CastroHeader";
 	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
-	    CastroHeaderFile << "Checkpoint version: 2" << std::endl;
+	    CastroHeaderFile << "Checkpoint version: 3" << std::endl;
 	    CastroHeaderFile.close();
 	}
 
@@ -448,18 +451,18 @@ Castro::checkPoint(const std::string& dir,
 
 #ifdef REACTIONS		
 
-    // Write out maximum value of delta_e from reactions data.
-    // First, determine the maximum value of delta_e on all levels.
+    // Write out maximum value of delta_e/delta_t from reactions data.
+    // First, determine the maximum value of de/dt on all levels.
 
     if (level == 0)
-      max_delta_e = 0.0;
+      max_dedt = 0.0;
 
     // Determine the maximum absolute value of the delta_e component of the reactions MF.
     // Note that there are NumSpec components starting from 0 corresponding to the species changes.
 	  
-    max_delta_e = std::max(max_delta_e, get_new_data(Reactions_Type).norm0(NumSpec));
+    max_dedt = std::max(max_dedt, get_new_data(Reactions_Type).norm0(NumSpec));
 
-    ParallelDescriptor::ReduceRealMax(max_delta_e);
+    ParallelDescriptor::ReduceRealMax(max_dedt);
 
     // Now, write out to the header if we're on the finest level and therefore have checked all entries for delta_e.
     
@@ -470,7 +473,7 @@ Castro::checkPoint(const std::string& dir,
       FullPathReactHeaderFile += "/ReactHeader";
       ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
 
-      ReactHeaderFile << std::scientific << std::setprecision(16) << max_delta_e;
+      ReactHeaderFile << std::scientific << std::setprecision(16) << max_dedt;
       ReactHeaderFile.close();
 
     }
@@ -508,6 +511,12 @@ Castro::setPlotVariables ()
   }
 #endif
 
+  // Don't add the Source_Type data to the plotfile, we only
+  // want to store it in the checkpoints.
+
+  for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
+    parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+			       
   ParmParse pp("castro");
 
   bool plot_X;
@@ -975,4 +984,350 @@ Castro::writePlotFile (const std::string& dir,
     //
     ParticlePlotFile(dir);
 #endif
+}
+
+void
+Castro::writeSmallPlotFile (const std::string& dir,
+			    ostream&       os,
+			    VisMF::How     how)
+{
+    int i, n;
+    //
+    // The list of indices of State to write to plotfile.
+    // first component of pair is state_type,
+    // second component of pair is component # within the state_type
+    //
+    std::vector<std::pair<int,int> > plot_var_map;
+    for (int typ = 0; typ < desc_lst.size(); typ++)
+        for (int comp = 0; comp < desc_lst[typ].nComp();comp++)
+            if (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) &&
+                desc_lst[typ].getType() == IndexType::TheCellType())
+                plot_var_map.push_back(std::pair<int,int>(typ,comp));
+
+    int n_data_items = plot_var_map.size();
+
+    Real cur_time = state[State_Type].curTime();
+
+    if (level == 0 && ParallelDescriptor::IOProcessor())
+    {
+        //
+        // The first thing we write out is the plotfile type.
+        //
+        os << thePlotFileType() << '\n';
+
+        if (n_data_items == 0)
+            BoxLib::Error("Must specify at least one valid data item to plot");
+
+        os << n_data_items << '\n';
+
+	//
+	// Names of variables -- first state, then derived
+	//
+	for (i =0; i < plot_var_map.size(); i++)
+        {
+	    int typ = plot_var_map[i].first;
+	    int comp = plot_var_map[i].second;
+	    os << desc_lst[typ].name(comp) << '\n';
+        }
+
+        os << BL_SPACEDIM << '\n';
+        os << parent->cumTime() << '\n';
+        int f_lev = parent->finestLevel();
+        os << f_lev << '\n';
+        for (i = 0; i < BL_SPACEDIM; i++)
+            os << Geometry::ProbLo(i) << ' ';
+        os << '\n';
+        for (i = 0; i < BL_SPACEDIM; i++)
+            os << Geometry::ProbHi(i) << ' ';
+        os << '\n';
+        for (i = 0; i < f_lev; i++)
+            os << parent->refRatio(i)[0] << ' ';
+        os << '\n';
+        for (i = 0; i <= f_lev; i++)
+            os << parent->Geom(i).Domain() << ' ';
+        os << '\n';
+        for (i = 0; i <= f_lev; i++)
+            os << parent->levelSteps(i) << ' ';
+        os << '\n';
+        for (i = 0; i <= f_lev; i++)
+        {
+            for (int k = 0; k < BL_SPACEDIM; k++)
+                os << parent->Geom(i).CellSize()[k] << ' ';
+            os << '\n';
+        }
+        os << (int) Geometry::Coord() << '\n';
+        os << "0\n"; // Write bndry data.
+
+        // job_info file with details about the run
+	std::ofstream jobInfoFile;
+	std::string FullPathJobInfoFile = dir;
+	FullPathJobInfoFile += "/job_info";
+	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
+
+	std::string PrettyLine = "===============================================================================\n";
+	std::string OtherLine = "--------------------------------------------------------------------------------\n";
+	std::string SkipSpace = "        ";
+
+
+	// job information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Job Information\n";
+	jobInfoFile << PrettyLine;
+	
+	jobInfoFile << "job name: " << job_name << "\n\n";
+	jobInfoFile << "inputs file: " << inputs_name << "\n\n";
+
+	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
+#ifdef _OPENMP
+	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
+#endif
+
+	jobInfoFile << "\n";
+	jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
+	  getCPUTime()/3600.0;
+
+	jobInfoFile << "\n\n";
+
+        // plotfile information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Plotfile Information\n";
+	jobInfoFile << PrettyLine;
+
+	time_t now = time(0);
+
+	// Convert now to tm struct for local timezone
+	tm* localtm = localtime(&now);
+	jobInfoFile   << "output data / time: " << asctime(localtm);
+
+	char currentDir[FILENAME_MAX];
+	if (getcwd(currentDir, FILENAME_MAX)) {
+	  jobInfoFile << "output dir:         " << currentDir << "\n";
+	}
+
+	jobInfoFile << "\n\n";
+
+
+        // build information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Build Information\n";
+	jobInfoFile << PrettyLine;
+
+	jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
+	jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
+	jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
+	jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
+
+	jobInfoFile << "\n";
+	
+	jobInfoFile << "COMP:  " << buildInfoGetComp() << "\n";
+	jobInfoFile << "FCOMP: " << buildInfoGetFcomp() << "\n";
+
+	jobInfoFile << "\n";
+
+	jobInfoFile << "EOS:     " << buildInfoGetAux(1) << "\n";
+	jobInfoFile << "network: " << buildInfoGetAux(2) << "\n";
+
+	jobInfoFile << "\n";
+
+	const char* githash1 = buildInfoGetGitHash(1);
+	const char* githash2 = buildInfoGetGitHash(2);
+	const char* githash3 = buildInfoGetGitHash(3);
+	if (strlen(githash1) > 0) {
+	  jobInfoFile << "Castro   git hash: " << githash1 << "\n";
+	}
+	if (strlen(githash2) > 0) {
+	  jobInfoFile << "BoxLib   git hash: " << githash2 << "\n";
+	}
+	if (strlen(githash3) > 0) {	
+	  jobInfoFile << "AstroDev git hash: " << githash3 << "\n";
+	}
+
+	const char* buildgithash = buildInfoGetBuildGitHash();
+	const char* buildgitname = buildInfoGetBuildGitName();
+	if (strlen(buildgithash) > 0){
+	  jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
+	}
+	
+	jobInfoFile << "\n\n";
+
+
+	// grid information
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Grid Information\n";
+	jobInfoFile << PrettyLine;
+
+	for (i = 0; i <= f_lev; i++)
+	  {
+	    jobInfoFile << " level: " << i << "\n";
+	    jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
+	    jobInfoFile << "   maximum zones   = ";
+	    for (n = 0; n < BL_SPACEDIM; n++)
+	      {
+		jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
+		//jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
+	      }
+	    jobInfoFile << "\n\n";
+	  }
+
+	jobInfoFile << " Boundary conditions\n";
+	Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+	ParmParse pp("castro");
+	pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
+	pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
+
+
+	// these names correspond to the integer flags setup in the 
+	// Castro_setup.cpp
+	const char* names_bc[] =
+	  { "interior", "inflow", "outflow", 
+	    "symmetry", "slipwall", "noslipwall" };
+
+
+	jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
+	jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
+	if (BL_SPACEDIM >= 2) {
+	  jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
+	  jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
+	}
+	if (BL_SPACEDIM == 3) {
+	  jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
+	  jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
+	}
+
+	jobInfoFile << "\n\n";
+
+
+	// species info
+	Real Aion = 0.0;
+	Real Zion = 0.0;
+
+	int mlen = 20;
+
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Species Information\n";
+	jobInfoFile << PrettyLine;
+	
+	jobInfoFile << 
+	      std::setw(6) << "index" << SkipSpace << 
+	      std::setw(mlen+1) << "name" << SkipSpace <<
+	      std::setw(7) << "A" << SkipSpace <<
+	      std::setw(7) << "Z" << "\n";
+	jobInfoFile << OtherLine;
+
+	for (int i = 0; i < NumSpec; i++)
+          {
+
+	    int len = mlen;
+	    Array<int> int_spec_names(len);
+	    //
+	    // This call return the actual length of each string in "len"
+	    //
+	    BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)
+	      (int_spec_names.dataPtr(),&i,&len);
+	    char* spec_name = new char[len+1];
+	    for (int j = 0; j < len; j++) 
+	      spec_name[j] = int_spec_names[j];
+	    spec_name[len] = '\0';
+
+	    // get A and Z
+	    BL_FORT_PROC_CALL(GET_SPEC_AZ, get_spec_az)
+	      (&i, &Aion, &Zion);
+
+	    jobInfoFile << 
+	      std::setw(6) << i << SkipSpace << 
+	      std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
+	      std::setw(7) << Aion << SkipSpace <<
+	      std::setw(7) << Zion << "\n";
+	    delete [] spec_name;
+	  }
+	jobInfoFile << "\n\n";
+
+
+	// runtime parameters
+	jobInfoFile << PrettyLine;
+	jobInfoFile << " Inputs File Parameters\n";
+	jobInfoFile << PrettyLine;
+	
+	ParmParse::dumpTable(jobInfoFile, true);
+
+	jobInfoFile.close();
+	
+
+    }
+    // Build the directory to hold the MultiFab at this level.
+    // The name is relative to the directory containing the Header file.
+    //
+    static const std::string BaseName = "/Cell";
+    char buf[64];
+    sprintf(buf, "Level_%d", level);
+    std::string Level = buf;
+    //
+    // Now for the full pathname of that directory.
+    //
+    std::string FullPath = dir;
+    if (!FullPath.empty() && FullPath[FullPath.size()-1] != '/')
+        FullPath += '/';
+    FullPath += Level;
+    //
+    // Only the I/O processor makes the directory if it doesn't already exist.
+    //
+    if (ParallelDescriptor::IOProcessor())
+        if (!BoxLib::UtilCreateDirectory(FullPath, 0755))
+            BoxLib::CreateDirectoryFailed(FullPath);
+    //
+    // Force other processors to wait till directory is built.
+    //
+    ParallelDescriptor::Barrier();
+
+    if (ParallelDescriptor::IOProcessor())
+    {
+        os << level << ' ' << grids.size() << ' ' << cur_time << '\n';
+        os << parent->levelSteps(level) << '\n';
+
+        for (i = 0; i < grids.size(); ++i)
+        {
+            RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
+            for (n = 0; n < BL_SPACEDIM; n++)
+                os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
+        }
+        //
+        // The full relative pathname of the MultiFabs at this level.
+        // The name is relative to the Header file containing this name.
+        // It's the name that gets written into the Header.
+        //
+        if (n_data_items > 0)
+        {
+            std::string PathNameInHeader = Level;
+            PathNameInHeader += BaseName;
+            os << PathNameInHeader << '\n';
+        }
+    }
+    //
+    // We combine all of the multifabs -- state, derived, etc -- into one
+    // multifab -- plotMF.
+    // NOTE: we are assuming that each state variable has one component,
+    // but a derived variable is allowed to have multiple components.
+    int       cnt   = 0;
+    const int nGrow = 0;
+    MultiFab  plotMF(grids,n_data_items,nGrow);
+    MultiFab* this_dat = 0;
+    //
+    // Cull data from state variables -- use no ghost cells.
+    //
+    for (i = 0; i < plot_var_map.size(); i++)
+    {
+	int typ  = plot_var_map[i].first;
+	int comp = plot_var_map[i].second;
+	this_dat = &state[typ].newData();
+	MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
+	cnt++;
+    }
+
+    //
+    // Use the Full pathname when naming the MultiFab.
+    //
+    std::string TheFullPath = FullPath;
+    TheFullPath += BaseName;
+    VisMF::Write(plotMF,TheFullPath,how,true);
+
 }

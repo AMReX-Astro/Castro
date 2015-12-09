@@ -25,7 +25,8 @@ section_sources = Introduction/CastroIntroduction.tex \
                   Scaling/Scaling.tex \
                   Suggestions/Suggestions.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
-	          Rotation/CastroRotation.tex
+	          Rotation/CastroRotation.tex \
+                  runtime_parameters/runtime_parameters.tex
 
 CastroUserGuide.dvi: CastroUserGuide.tex $(eps_source) $(section_sources) $(eps_source)
 	latex CastroUserGuide.tex < /dev/null

@@ -1,6 +1,7 @@
 f90EXE_sources += Castro_nd.f90
 f90EXE_sources += Tagging_nd.f90
 f90EXE_sources += Problem.f90
+f90EXE_sources += set_castro_params.f90
 f90EXE_sources += meth_params.f90
 f90EXE_sources += prob_params.f90
 f90EXE_sources += tagging_params.f90
@@ -17,6 +18,9 @@ f90EXE_sources += EstDt_nd.f90
 f90EXE_sources += Derive_nd.f90
 f90EXE_sources += problem_derive_nd.f90
 f90EXE_sources += sponge_nd.f90
+f90EXE_sources += riemann_util.f90
+
+f90EXE_sources += flatten_nd.f90
 
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav_nd.f90
@@ -34,10 +38,21 @@ f90EXE_sources += EstDt_burning_nd.f90
 f90EXE_sources += React_nd.f90
 endif
 
+ifeq ($(USE_DIFFUSION), TRUE)
+f90EXE_sources += EstDt_diffusion_nd.f90
+endif
+
 ifeq ($(DIMENSION_AGNOSTIC), TRUE)
 f90EXE_sources += bc_fill_nd.f90
 F90EXE_sources += filcc_nd.F90
 f90EXE_sources += ext_src_nd.f90
 f90EXE_sources += Prob_nd.f90
 f90EXE_sources += problem_tagging_nd.f90
+endif
+
+ifeq ($(USE_DIFFUSION), TRUE)
+f90EXE_sources += Diffusion_nd.f90
+f90EXE_sources += thermal_conductivity_nd.f90
+f90EXE_sources += species_diff_coeff_nd.f90
+f90EXE_sources += visc_coeff_nd.f90
 endif

@@ -1,7 +1,7 @@
 # Define the location of the CASTRO top directory,
 # if not already defined by an environment variable.
 
-CASTRO_DIR ?= ../../
+CASTRO_DIR := ../../
 
 # Location of this directory. Useful if
 # you're trying to compile this from another location.
@@ -23,8 +23,12 @@ USE_OMP    = FALSE
 
 USE_GRAV   = TRUE
 
-# This sets the EOS directory in Castro/EOS
-EOS_dir     := gamma_law_general
+ifdef MICROPHYSICS_DIR
+  # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
+  EOS_dir     := gamma_law_general
+else
+  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+endif
 
 # This sets the network directory in Castro/Networks
 Network_dir := general_null

@@ -9,3 +9,9 @@
 
   problem = 1
 /
+
+&extern
+
+  eos_assume_neutral = T
+
+/

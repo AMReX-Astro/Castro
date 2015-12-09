@@ -160,3 +160,22 @@ subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
   call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
   
 end subroutine ca_gravzfill
+
+! ::: -----------------------------------------------------------
+
+subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
+                          domlo,domhi,delta,xlo,time,bc)
+
+  use probdata_module
+  implicit none
+  include 'bc_types.fi'
+
+  integer :: phi_l1,phi_l2,phi_h1,phi_h2
+  integer :: bc(2,2,*)
+  integer :: domlo(2), domhi(2)
+  double precision :: delta(2), xlo(2), time
+  double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+  
+  call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2,domlo,domhi,delta,xlo,bc)
+
+end subroutine ca_phigravfill

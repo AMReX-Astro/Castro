@@ -1,0 +1,37 @@
+module specific_network
+
+  use bl_types
+
+  implicit none
+
+contains
+  
+  subroutine specific_network_init
+
+    use extern_probin_module, only: net_name = 
+    
+    integer :: i
+
+    ! First, we call the specific network initialization.
+    ! This should set the number of species and number of
+    ! aux variables, and allocate and fill this module's
+    ! components appropriately.
+    
+    call specific_network_init
+
+    ! Check to make sure, and if not, throw an error.
+
+    if ( nspec .le. 0 ) then
+       call bl_error("Network did not set the number of species.")
+    endif
+
+    if (.not. allocated(spec_names) .or. .not. allocated(short_spec_names) .or. &
+        .not. allocated(aion) .or. .not. allocated(zion))
+        call bl_error("Network did not initialize necessary arrays.")
+    endif
+    
+    network_initialized = .true.
+
+  end subroutine specific_network_init
+
+end module specific_network

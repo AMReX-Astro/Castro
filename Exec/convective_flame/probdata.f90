@@ -1,12 +1,18 @@
 module probdata_module
 
-  double precision, save :: pert_factor, dens_base, pres_base, y_pert_center
-  double precision, save :: gravity, pert_width
-  
-  logical,          save :: do_isentropic
+  use network, only : nspec
 
-  integer,          save :: boundary_type
+  implicit none
 
-  double precision, save :: frac
+  character(len=80), save :: model_name
+
+  double precision, save :: pert_factor, x_pert_loc, pert_width
+  double precision, save :: cutoff_density
+
+  double precision, save :: thermal_conductivity
+
+  logical         , save :: zero_vels
+
+  double precision, save :: rho_ambient, T_ambient, e_ambient, xn_ambient(nspec)
 
 end module probdata_module

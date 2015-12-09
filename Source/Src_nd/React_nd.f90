@@ -7,8 +7,8 @@
       use eos_module
       use network           , only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-                                     UFS, UFX, small_dens, small_temp, allow_negative_energy
-      use castro_burner_module
+                                     UFS, UFX, dual_energy_eta3, allow_negative_energy
+      use burner_module
       use bl_constants_module
 
       implicit none
@@ -20,53 +20,53 @@
       double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
       double precision :: time, dt_react
 
-      integer          :: i,j,k,n
-      double precision :: rho, rhoInv, u, v, w, ke, e_in, e_out, temp
-      double precision :: delta_x(nspec), delta_e, delta_rho_e
-      double precision :: x_in(nspec+naux), x_out(nspec+naux)
+      integer          :: i, j, k
+      double precision :: rhoInv, rho_e_K, delta_x(nspec), delta_e, delta_rho_e
 
-      type (eos_t) :: eos_state
+      type (eos_t)  :: state_in
+      type (eos_t)  :: state_out
+
+      if (allow_negative_energy .eq. 0) state_in % reset = .true.
+      if (allow_negative_energy .eq. 0) state_out % reset = .true.
 
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
 
-               ! Define T from e
-               rho           = state(i,j,k,URHO)
-               rhoInv        = ONE / rho
-               u             = state(i,j,k,UMX)*rhoInv
-               v             = state(i,j,k,UMY)*rhoInv
-               w             = state(i,j,k,UMZ)*rhoInv
-               ke            = HALF * (u**2 + v**2 + w**2)
-               temp          = state(i,j,k,UTEMP)
-               x_in(1:nspec) = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-               x_in(nspec+1:nspec+naux)  = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+               rhoInv = ONE / state(i,j,k,URHO)
 
-               e_in          = state(i,j,k,UEINT) * rhoInv
-
-               eos_state % T   = temp
-               eos_state % rho = rho
-               eos_state % e   = e_in
-               eos_state % xn  = x_in(1:nspec)
-               eos_state % aux = x_in(nspec+1:nspec+naux)
-
-               ! Use this call to define T
+               state_in % rho = state(i,j,k,URHO)
+               state_in % T   = state(i,j,k,UTEMP)
                
-               call eos(eos_input_re, eos_state)
+               rho_e_K = state(i,j,k,UEDEN) - HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
 
-               temp = eos_state % T
-               e_in = eos_state % e
+               ! Dual energy formalism: switch between e and (E - K) depending on (E - K) / E.
 
-               call burner(rho, temp, x_in, e_in, dt_react, time, x_out, e_out)
+               if ( rho_e_K / state(i,j,k,UEDEN) .lt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
+                  state_in % e = rho_E_K * rhoInv
+               else
+                  state_in % e = state(i,j,k,UEINT) * rhoInv
+               endif
 
-               ! Make sure that species emerge in the proper range: [0,1]
-               do n = 1, nspec
-                  x_out(n) = max(min(x_out(n),ONE),ZERO)
-               end do
+               state_in % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+               state_in % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+               
+               call burner(state_in, state_out, dt_react, time)
 
-               delta_x     = x_out(1:nspec) - x_in(1:nspec)
-               delta_e     = e_out - e_in
-               delta_rho_e = rho * delta_e
+               ! Note that we want to update the total energy by taking the difference of the old
+               ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,
+               ! this reset should be enforced through an appropriate choice for the dual energy 
+               ! formalism parameter dual_energy_eta2 in reset_internal_energy.
+
+               delta_x     = state_out % xn - state_in % xn
+               delta_e     = state_out % e - state_in % e
+               delta_rho_e = state_out % rho * delta_e
+
+               state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
+               state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
+               state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * state_out % xn
+               state(i,j,k,UFX:UFX+naux-1)  = state(i,j,k,URHO) * state_out % aux
+               state(i,j,k,UTEMP)           = state_out % T
 
                ! Add burning rates to reactions MultiFab, but be
                ! careful because the reactions and state MFs may
@@ -76,30 +76,14 @@
                     j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
                     k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
                   
-                  reactions(i,j,k,1:nspec) = delta_x
-                  reactions(i,j,k,nspec+1) = delta_e
-                  reactions(i,j,k,nspec+2) = delta_rho_e
+                  reactions(i,j,k,1:nspec) = delta_x / dt_react
+                  reactions(i,j,k,nspec+1) = delta_e / dt_react
+                  reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
 
-               endif
+               endif               
                
-               state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
-               state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
-               state(i,j,k,UFS:UFS+nspec-1) = rho * x_out(1:nspec)
-               state(i,j,k,UFX:UFX+naux-1)  = rho * x_out(nspec+1:nspec+naux)
-   
-               ! Now update the temperature to match the new internal energy
-
-               eos_state % rho = rho
-               eos_state % e   = e_out
-               eos_state % xn  = x_out(1:nspec)
-               eos_state % aux = x_out(nspec+1:nspec+naux)
-
-               call eos(eos_input_re, eos_state)
-
-               state(i,j,k,UTEMP)           = eos_state % T
-
-            end do
-         end do
-      end do
+            enddo
+         enddo
+      enddo
 
   end subroutine ca_react_state

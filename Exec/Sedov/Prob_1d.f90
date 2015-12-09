@@ -72,7 +72,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use eos_module, only: gamma_const
   use bl_constants_module, only: M_PI, FOUR3RD
-  use meth_params_module , only: NVAR, URHO, UMX, UEDEN, UEINT, UFS
+  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
 
   implicit none
 
@@ -120,7 +120,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eint = p_zone/(gamma_const - 1.d0)
    
         state(i,URHO) = dens_ambient
-        state(i,UMX) = 0.d0
+        state(i,UMX:UMZ) = 0.d0
   
         state(i,UEDEN) = eint + 0.5d0 * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint
@@ -161,7 +161,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eint = p_zone/(gamma_const - 1.d0)
    
         state(i,URHO) = dens_ambient
-        state(i,UMX) = 0.d0
+        state(i,UMX:UMZ) = 0.d0
         
         state(i,UEDEN) = eint + 0.5d0 * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint

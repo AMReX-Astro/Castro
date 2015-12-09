@@ -1,14 +1,12 @@
-
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
-! These parameter are initialized in set_method_params().
+! These parameter are initialized in set_method_params() 
 
 module meth_params_module
 
   implicit none
 
-  double precision, save :: difmag        ! used only in consup to weight the divu contribution
   integer         , save :: iorder        ! used only in uslope 
 
   ! number of ghost cells for the hyperbolic solver
@@ -29,48 +27,11 @@ module meth_params_module
 
   integer         , save :: nadv
 
-  double precision, save :: small_dens, small_temp, small_pres, small_ener
+  integer, save :: npassive
+  integer, save, allocatable :: qpass_map(:), upass_map(:)
 
-  integer         , save :: allow_negative_energy
-
-  integer         , save :: do_acc
-
-  integer         , save :: ppm_type
-  integer         , save :: ppm_reference
-  integer         , save :: ppm_trace_grav
-  integer         , save :: ppm_trace_rot
-  integer         , save :: ppm_temp_fix
-  integer         , save :: ppm_tau_in_tracing
-  integer         , save :: ppm_predict_gammae
-  integer         , save :: ppm_reference_edge_limit
-  integer         , save :: ppm_flatten_before_integrals
-  integer         , save :: ppm_reference_eigenvectors
-  integer         , save :: hybrid_riemann
-  integer         , save :: use_colglaz
-  integer         , save :: use_flattening
-  integer         , save :: transverse_use_eos
-  integer         , save :: transverse_reset_density
-  integer         , save :: transverse_reset_rhoe
-
-  double precision, save :: burning_timestep_factor
-  
-  integer         , save :: cg_maxiter
-  double precision, save :: cg_tol
-
-  integer         , save :: hybrid_hydro
-  
-  integer         , save :: use_pslope
-  integer         , save :: do_grav
-  integer         , save :: grav_source_type
-  integer         , save :: do_sponge
-  integer         , save :: normalize_species
-  integer         , save :: fix_mass_flux
 
   integer         , save :: numpts_1d
-
-  double precision, save :: dual_energy_eta1
-  double precision, save :: dual_energy_eta2
-  logical, save :: dual_energy_update_E_from_e
 
   double precision, save, allocatable :: outflow_data_old(:,:)
   double precision, save, allocatable :: outflow_data_new(:,:)
@@ -79,17 +40,58 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   double precision, save :: max_dist
 
-  integer, save :: do_rotation
-  double precision, save :: rot_period
-  double precision, save :: rot_period_dot
-  integer, save :: rot_source_type
-  integer, save :: rot_axis
+  double precision, save :: diffuse_cutoff_density
 
   double precision, save :: const_grav
 
-  integer, save :: npassive
-  integer, save, allocatable :: qpass_map(:), upass_map(:)
+  logical, save :: get_g_from_phi
+  
+  character(len=:), allocatable :: gravity_type
+  
 
-  logical, save :: deterministic   ! set this to true for regression tests
+  double precision, save :: difmag
+  double precision, save :: small_dens
+  double precision, save :: small_temp
+  double precision, save :: small_pres
+  double precision, save :: small_ener
+  integer         , save :: hybrid_hydro
+  integer         , save :: ppm_type
+  integer         , save :: ppm_reference
+  integer         , save :: ppm_trace_sources
+  integer         , save :: ppm_temp_fix
+  integer         , save :: ppm_tau_in_tracing
+  integer         , save :: ppm_predict_gammae
+  integer         , save :: ppm_reference_edge_limit
+  integer         , save :: ppm_reference_eigenvectors
+  integer         , save :: hybrid_riemann
+  integer         , save :: use_colglaz
+  integer         , save :: riemann_solver
+  integer         , save :: cg_maxiter
+  double precision, save :: cg_tol
+  integer         , save :: use_flattening
+  integer         , save :: ppm_flatten_before_integrals
+  integer         , save :: transverse_use_eos
+  integer         , save :: transverse_reset_density
+  integer         , save :: transverse_reset_rhoe
+  logical         , save :: dual_energy_update_E_from_e
+  double precision, save :: dual_energy_eta1
+  double precision, save :: dual_energy_eta2
+  double precision, save :: dual_energy_eta3
+  integer         , save :: use_pslope
+  integer         , save :: normalize_species
+  integer         , save :: fix_mass_flux
+  integer         , save :: allow_negative_energy
+  integer         , save :: do_sponge
+  double precision, save :: burning_timestep_factor
+  double precision, save :: react_T_min
+  double precision, save :: react_T_max
+  integer         , save :: do_grav
+  integer         , save :: grav_source_type
+  integer         , save :: do_rotation
+  double precision, save :: rot_period
+  double precision, save :: rot_period_dot
+  integer         , save :: rot_source_type
+  integer         , save :: rot_axis
+  integer         , save :: do_acc
 
 end module meth_params_module

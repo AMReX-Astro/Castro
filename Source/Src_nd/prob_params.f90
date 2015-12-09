@@ -7,19 +7,23 @@ module prob_params_module
   implicit none
 
   ! boundary condition information
-  integer :: physbc_lo(3)
-  integer :: physbc_hi(3)
-  integer :: Outflow, Symmetry, SlipWall, NoSlipWall
+  integer, save :: physbc_lo(3)
+  integer, save :: physbc_hi(3)
+  integer, save :: Outflow, Symmetry, SlipWall, NoSlipWall
 
   ! geometry information
-  integer          :: coord_type
-  double precision :: center(3), problo(3), probhi(3)
+  integer         , save :: coord_type
+  double precision, save :: center(3), problo(3), probhi(3)
 
   ! dimension information
-  integer          :: dim
+  integer         , save :: dim
 
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
-  integer          :: dg(3)
+  integer         , save :: dg(3)
+
+  ! refinement information
+  integer         , save              :: max_level
+  integer         , save, allocatable :: dx_level(:,:)
   
 end module prob_params_module

@@ -11,8 +11,7 @@ contains
   subroutine trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                    dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                    qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                   grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                   rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
+                   src,src_l1,src_l2,src_h1,src_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
@@ -27,8 +26,7 @@ contains
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
+    integer src_l1,src_l2,src_h1,src_h2
 
     double precision dx, dy, dt
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
@@ -39,8 +37,7 @@ contains
     double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision  rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
+    double precision src(src_l1:src_h1,src_l2:src_h2,QVAR)
 
     double precision, allocatable :: dqx(:,:,:), dqy(:,:,:)
 
@@ -96,15 +93,15 @@ contains
 
        if (use_pslope .eq. 1) then
           call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                      flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
+                      flatn         , qd_l1, qd_l2, qd_h1, qd_h2, &
                       dqx(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                      grav          , gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                      src           ,src_l1,src_l2,src_h1,src_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,1)
 
           call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                      flatn        , qd_l1, qd_l2, qd_h1, qd_h2, &
+                      flatn         , qd_l1, qd_l2, qd_h1, qd_h2, &
                       dqy(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                      grav          , gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+                      src           ,src_l1,src_l2,src_h1,src_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,2)
        endif
 

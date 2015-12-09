@@ -2,6 +2,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use prob_params_module, only: center
   use probdata_module
+  use bl_constants_module
   use bl_error_module
 
   implicit none
@@ -25,22 +26,14 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      probin(i:i) = char(name(i))
   end do
          
-  ! Set namelist defaults
+  ! set namelist defaults
 
   ! set center, domain extrema
   center(1) = (problo(1)+probhi(1))/2.d0
   center(2) = (problo(2)+probhi(2))/2.d0
-
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ymin = problo(2)
-  ymax = probhi(2)
-
   
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
@@ -72,10 +65,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
+  use bl_constants_module
   use probdata_module
   use eos_module
   use network, only: nspec
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only: center
   
   implicit none
@@ -99,10 +93,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
     
   do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
+     ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
 
      do i = lo(1), hi(1)
-        xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5d0)
+        xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
         if (i == icen .and. j == jcen) then
            dens = dens_ambient*dens_pert_factor
@@ -118,20 +112,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         else if (xcen > center(1)) then
            xvel = -vel_pert
         else
-           xvel = 0.d0
+           xvel = ZERO
         endif
 
         state(i,j,UMX) = dens*xvel
-        state(i,j,UMY) = 0.d0
-
+        state(i,j,UMY) = ZERO
+        state(i,j,UMZ) = ZERO
 
         ! set the composition
-        X(:) = 0.d0
-        X(1) = 1.d0
+        X(:) = ZERO
+        X(1) = ONE
         
         
         ! compute the internal energy and temperature
-        eos_state%T = 1.d0 ! initial guess
+        eos_state%T = ONE ! initial guess
         eos_state%rho = dens
         eos_state%p = p_ambient
         eos_state%xn(:) = X
@@ -142,8 +136,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eint = eos_state%e
 
         state(i,j,UEDEN) = dens*eint +  &
-             0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
-                    state(i,j,UMY)**2/state(i,j,URHO))
+             HALF*(state(i,j,UMX)**2/state(i,j,URHO) + &
+                    state(i,j,UMY)**2/state(i,j,URHO) + &
+                    state(i,j,UMZ)**2/state(i,j,URHO))
 
         state(i,j,UEINT) = dens*eint
         state(i,j,UTEMP) = temp

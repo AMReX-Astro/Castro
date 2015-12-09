@@ -209,6 +209,9 @@ is specified by the user.  The option is allowed in 2D and 3D.  To define the gr
 vector, copy {\bf prescribe\_grav\_nd.f90} from {\bf Src\_nd} to your run directory.
 The makefile system will always choose this local copy of the file over the one in another directory.
 Then define the components of gravity inside a loop over the grid inside the file.
+If your problem uses a radial gravity in the form $g(r)$, you can simply adapt 
+{\bf ca\_prescribe\_grav\_gravityprofile}, otherwise you will have to adapt 
+{\bf ca\_prescribe\_grav}, both are located in {\bf prescribed\_grav\_nd.90}.
 \end{itemize}
 
 \section{GR correction}

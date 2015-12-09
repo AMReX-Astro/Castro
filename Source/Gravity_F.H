@@ -4,11 +4,6 @@
 
 BL_FORT_PROC_DECL(GET_GRAV_CONST,get_grav_const)(Real* Gconst);
 
-BL_FORT_PROC_DECL(CA_AVGDOWN_PHI,ca_avgdown_phi)
-    (BL_FORT_FAB_ARG(crse_fab), 
-     const BL_FORT_FAB_ARG(fine_fab),
-     const int ovlo[], const int ovhi[], const int rat[]);
-
 BL_FORT_PROC_DECL(CA_EDGE_INTERP,ca_edge_interp)
     (const int* flo, const int* fhi,
      const int* nc, const int* refRatio, const int* dir,
@@ -44,6 +39,11 @@ BL_FORT_PROC_DECL(CA_APPLY_METRIC,ca_apply_metric)
             const BL_FORT_FAB_ARG(zedge)), 
             const Real* dx, const int* coord_type);
 
+BL_FORT_PROC_DECL(CA_WEIGHT_CC,ca_weight_cc)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     const Real* dx, const int* coord_type);
+
 BL_FORT_PROC_DECL(CA_UNWEIGHT_CC,ca_unweight_cc)
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(cc),
@@ -55,8 +55,8 @@ BL_FORT_PROC_DECL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
      const Real* dx, const int* coord_type, const int* idir);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
-    (const BL_FORT_FAB_ARG(den),
-     const Real* grav, const Real* dx, const Real* problo);
+    (const BL_FORT_FAB_ARG(den), const int& lo, const int& hi,
+     const Real* grav, const Real* phi, const Real* dx, const Real* problo);
 
 #ifdef GR_GRAV
 BL_FORT_PROC_DECL(CA_COMPUTE_1D_GR_GRAV,ca_compute_1d_gr_grav)
