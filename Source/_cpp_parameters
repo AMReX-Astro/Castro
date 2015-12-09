@@ -167,6 +167,10 @@ burning_timestep_factor      Real          1.e200             y
 # permits reactions to be turned on and off -- mostly for efficiency's sake 
 do_react                     int          -1
 
+# minimum temperature for allowing reactions to occur in a zone
+react_T_min                  Real          0.0                y
+# maximum temperature for allowing reactions to occur in a zone
+react_T_max                  Real          1.e200             y
 
 #-----------------------------------------------------------------------------
 # category: gravity and rotation

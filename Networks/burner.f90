@@ -5,7 +5,8 @@ module burner_module
   use network
   use eos_module
   use actual_burner_module
-
+  use meth_params_module, only: react_T_min, react_T_max
+  
 contains
 
   subroutine burner(state_in, state_out, dt, time)
@@ -34,8 +35,10 @@ contains
     state_out = state_in
 
     ! Do the burning.
-    
-    call actual_burner(state_in, state_out, dt, time)
+
+    if (state_in % T > react_T_min .and. state_in % T < react_T_max) then
+       call actual_burner(state_in, state_out, dt, time)
+    endif
 
     ! Normalize the mass fractions to unity.
 
