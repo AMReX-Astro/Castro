@@ -4,7 +4,8 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, normalize_species_fluxes
+  public enforce_minimum_density, normalize_new_species, &
+         normalize_species_fluxes, divu
 
 contains
 
@@ -294,6 +295,63 @@ contains
     end do
     
   end subroutine normalize_new_species
+
+
+! ::: 
+! ::: ------------------------------------------------------------------
+! ::: 
+
+  subroutine divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,dx,dy,dz, &
+                  div,div_l1,div_l2,div_l3,div_h1,div_h2,div_h3)
+    
+    use meth_params_module, only : QU, QV, QW
+    use bl_constants_module
+    
+    implicit none
+
+    integer          :: lo(3),hi(3)
+    integer          :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+    integer          :: div_l1,div_l2,div_l3,div_h1,div_h2,div_h3
+    double precision :: dx, dy, dz
+    double precision :: div(div_l1:div_h1,div_l2:div_h2,div_l3:div_h3)
+    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,*)
+
+    integer          :: i, j, k
+    double precision :: ux, vy, wz, dxinv, dyinv, dzinv
+
+    dxinv = ONE/dx
+    dyinv = ONE/dy
+    dzinv = ONE/dz
+
+    do k=lo(3),hi(3)+1
+       do j=lo(2),hi(2)+1
+          do i=lo(1),hi(1)+1
+             
+             ux = FOURTH*( &
+                    + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
+                    + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
+                    + q(i  ,j-1,k  ,QU) - q(i-1,j-1,k  ,QU) &
+                    + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) ) * dxinv
+
+             vy = FOURTH*( &
+                    + q(i  ,j  ,k  ,QV) - q(i  ,j-1,k  ,QV) &
+                    + q(i  ,j  ,k-1,QV) - q(i  ,j-1,k-1,QV) &
+                    + q(i-1,j  ,k  ,QV) - q(i-1,j-1,k  ,QV) &
+                    + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) ) * dyinv
+
+             wz = FOURTH*( &
+                    + q(i  ,j  ,k  ,QW) - q(i  ,j  ,k-1,QW) &
+                    + q(i  ,j-1,k  ,QW) - q(i  ,j-1,k-1,QW) &
+                    + q(i-1,j  ,k  ,QW) - q(i-1,j  ,k-1,QW) &
+                    + q(i-1,j-1,k  ,QW) - q(i-1,j-1,k-1,QW) ) * dzinv
+
+             div(i,j,k) = ux + vy + wz
+
+          enddo
+       enddo
+    enddo
+    
+  end subroutine divu
 
 end module advection_util_module
 

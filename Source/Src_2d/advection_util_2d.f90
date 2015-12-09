@@ -4,7 +4,8 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, normalize_species_fluxes
+  public enforce_minimum_density, normalize_new_species, &
+         normalize_species_fluxes, divu
 
 contains
 
@@ -254,5 +255,72 @@ contains
     end do
     
   end subroutine normalize_new_species
-  
+
+! ::: 
+! ::: ------------------------------------------------------------------
+! ::: 
+
+  subroutine divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2,dx, &
+                  div,div_l1,div_l2,div_h1,div_h2)
+
+    use prob_params_module, only : coord_type
+    use meth_params_module, only : QU, QV
+    use bl_constants_module
+    
+    implicit none
+    
+    integer          :: lo(2),hi(2)
+    integer          :: q_l1,q_l2,q_h1,q_h2
+    integer          :: div_l1,div_l2,div_h1,div_h2
+    double precision :: q(q_l1:q_h1,q_l2:q_h2,*)
+    double precision :: div(div_l1:div_h1,div_l2:div_h2)
+    double precision :: dx(2)
+    
+    integer          :: i, j
+    double precision :: rl, rr, rc, ul, ur
+    double precision :: vb, vt
+    double precision :: ux,vy
+    
+    if (coord_type .eq. 0) then
+       do j=lo(2),hi(2)+1
+          do i=lo(1),hi(1)+1
+             ux = HALF*(q(i,j,QU)-q(i-1,j,QU)+q(i,j-1,QU)-q(i-1,j-1,QU))/dx(1)
+             vy = HALF*(q(i,j,QV)-q(i,j-1,QV)+q(i-1,j,QV)-q(i-1,j-1,QV))/dx(2)
+             div(i,j) = ux + vy
+          enddo
+       enddo
+    else
+       do i=lo(1),hi(1)+1
+          
+          if (i.eq.0) then
+             
+             div(i,lo(2):hi(2)+1) = ZERO
+             
+          else 
+
+             rl = (dble(i)-HALF) * dx(1)
+             rr = (dble(i)+HALF) * dx(1)
+             rc = (dble(i)     ) * dx(1)
+             
+             do j=lo(2),hi(2)+1
+                ! These are transverse averages in the y-direction
+                ul = HALF * (q(i-1,j,QU)+q(i-1,j-1,QU))
+                ur = HALF * (q(i  ,j,QU)+q(i  ,j-1,QU))
+                
+                ! Take 1/r d/dr(r*u)
+                div(i,j) = (rr*ur - rl*ul) / dx(1) / rc
+                
+                ! These are transverse averages in the x-direction
+                vb = HALF * (q(i,j-1,QV)+q(i-1,j-1,QV))
+                vt = HALF * (q(i,j  ,QV)+q(i-1,j  ,QV))
+                
+                div(i,j) = div(i,j) + (vt - vb) / dx(2)
+             enddo
+             
+          end if
+       enddo
+    end if
+
+  end subroutine divu
+
 end module advection_util_module

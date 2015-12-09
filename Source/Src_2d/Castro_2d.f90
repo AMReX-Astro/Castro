@@ -16,8 +16,8 @@
                           E_added_flux)
 
       use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
-      use advection_module, only : umeth2d, ctoprim, divu, consup
-      use advection_util_module, only : enforce_minimum_density, normalize_new_species
+      use advection_module, only : umeth2d, ctoprim, consup
+      use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
 
       implicit none
 
