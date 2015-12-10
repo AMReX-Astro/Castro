@@ -1301,11 +1301,11 @@ contains
 
                    R = sqrt( x**2 + y**2 )
 
-                   rho = rgdnvx(i,j,k)
-                   u   = wgdnvx(i,j,k)
-                   v   = ugdnvx(i,j,k)
-                   w   = vgdnvx(i,j,k)
-                   p   = pgdnvx(i,j,k)
+                   rho = rgdnvy(i,j,k)
+                   u   = wgdnvy(i,j,k)
+                   v   = ugdnvy(i,j,k)
+                   w   = vgdnvy(i,j,k)
+                   p   = pgdnvy(i,j,k)
                    
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
                    div1 = difmag*min(ZERO,div1)
@@ -1377,13 +1377,17 @@ contains
                    endif
 
                    ! Add the hybrid advection source terms
-                   if (n .eq. UMX) then
-                      uout(i,j,k,n) = uout(i,j,k,n) + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                                             - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
-                                                             + uin(i,j,k,UMY)**2 / (uin(i,j,k,URHO) * R**3) )
-                   else if (n .eq. UMY) then
-                      uout(i,j,k,n) = uout(i,j,k,n) + dt * (   y * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                                             - x * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy )
+                   if (hybrid_hydro .eq. 1) then
+                      
+                      if (n .eq. UMX) then
+                         uout(i,j,k,n) = uout(i,j,k,n) + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                                                - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                                                                + uin(i,j,k,UMY)**2 / (uin(i,j,k,URHO) * R**3) )
+                      else if (n .eq. UMY) then
+                         uout(i,j,k,n) = uout(i,j,k,n) + dt * (   y * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                                                - x * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy )
+                      endif
+
                    endif
                    
                    ! Add up some diagnostic quantities.
