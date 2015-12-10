@@ -1,10 +1,11 @@
-      subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
+      subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,dx,verbose)
 
       use eos_module 
       use network, only : nspec, naux
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
                                      small_temp, allow_negative_energy, &
-                                     dual_energy_eta2, dual_energy_update_E_from_e
+                                     dual_energy_eta2, dual_energy_update_E_from_e, hybrid_hydro
+      use prob_params_module, only : problo, center
       use bl_constants_module
 
       implicit none
@@ -12,11 +13,13 @@
       integer          :: lo(3), hi(3), verbose
       integer          :: u_lo(3), u_hi(3)
       double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-
+      double precision :: dx(3)
+      
       ! Local variables
       integer          :: i,j,k
       double precision :: Up, Vp, Wp, ke, rho_eint, eint_new, rhoInv
-
+      double precision :: x, y, R
+      
       type (eos_t) :: eos_state
 
       ! Reset internal energy
@@ -24,11 +27,21 @@
 
          do k = lo(3), hi(3)
             do j = lo(2), hi(2)
+               y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
                do i = lo(1), hi(1)
+                  x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+
+                  R = sqrt( x**2 + y**2 )
 
                   rhoInv = ONE/u(i,j,k,URHO)
-                  Up = u(i,j,k,UMX) * rhoInv
-                  Vp = u(i,j,k,UMY) * rhoInv
+
+                  if (hybrid_hydro .eq. 1) then
+                     Up = (u(i,j,k,UMX) * x - u(i,j,k,UMY) * y / R) / R * rhoInv
+                     Vp = (u(i,j,k,UMY) * x / R + u(i,j,k,UMX) * y) / R * rhoInv
+                  else
+                     Up = u(i,j,k,UMX) * rhoInv
+                     Vp = u(i,j,k,UMY) * rhoInv
+                  endif
                   Wp = u(i,j,k,UMZ) * rhoInv
                   ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
