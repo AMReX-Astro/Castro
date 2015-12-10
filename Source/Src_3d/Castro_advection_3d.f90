@@ -1278,9 +1278,7 @@ contains
                    div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
-                   if (n .eq. 1) then
-                      print *, i, j, rho, u, uin(i,j,k,1)
-                   endif
+
                    ! Reset the appropriate fluxes for the hybrid hydro scheme
 
                    if (hybrid_hydro .eq. 1) then
@@ -1384,7 +1382,12 @@ contains
           ! update everything else with fluxes
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
+                y = problo(2) + (dble(j) + HALF) * dy - center(2)
                 do i = lo(1),hi(1)
+                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
+
+                   R = sqrt( x**2 + y**2 )
+                   
                    volinv = ONE/vol(i,j,k)
 
                    uout(i,j,k,n) = uin(i,j,k,n) &
