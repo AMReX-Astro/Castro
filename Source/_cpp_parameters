@@ -30,7 +30,7 @@ add_ext_src                  int           0
 # whether to use the hybrid advection scheme that updates
 # z-angular momentum, cylindrical momentum, and azimuthal
 # momentum (3D only)
-hybrid_hydro                 int           1                  y
+hybrid_hydro                 int           0                  y
 
 # reconstruction type: 
 # 0: piecewise linear; 
