@@ -98,8 +98,8 @@ contains
        gamcm(i) = gamc(i-1)
        gamcp(i) = gamc(i)
 #ifdef RADIATION       
-       gamcm (i) = gamc (i-1)
-       gamcp (i) = gamc (i)
+       gamcgm (i) = gamcg(i-1)
+       gamcgp (i) = gamcg(i)
 #endif
     enddo
 
@@ -663,26 +663,34 @@ contains
        ul  = ql(k,QU)
        v1l = ql(k,QV)
        v2l = ql(k,QW)
-       pl  = ql(k,QPRES)
-       rel = ql(k,QREINT)
 
 #ifdef RADIATION
+       pl  = ql(k,QPTOT)
+       rel = ql(k,QREITOT)
+
        erl(:) = ql(k,qrad:qradhi)
        pl_g = ql(k,QPRES)
        rel_g = ql(k,QREINT)
+#else
+       pl  = ql(k,QPRES)
+       rel = ql(k,QREINT)
 #endif
        
        rr  = qr(k,QRHO)
        ur  = qr(k,QU)
        v1r  = qr(k,QV)
        v2r  = qr(k,QW)
-       pr  = qr(k,QPRES)
-       rer = qr(k,QREINT)
 
 #ifdef RADIATION
+       pr  = qr(k,QPTOT)
+       rer = qr(k,QREITOT)
+
        err(:) = qr(k,qrad:qradhi)
        pr_g = qr(k,QPRES)
        rer_g = qr(k,QREINT) 
+#else
+       pr  = qr(k,QPRES)
+       rer = qr(k,QREINT)
 #endif
        
        csmall = smallc(k)
