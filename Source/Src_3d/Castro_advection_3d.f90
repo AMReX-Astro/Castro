@@ -1182,8 +1182,9 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, normalize_species
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro
+    use prob_params_module, only : problo, center
     use bl_constants_module
     use advection_util_module, only : normalize_species_fluxes
 
@@ -1245,6 +1246,8 @@ contains
     double precision E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
     double precision :: div1, volinv
+    double precision :: x, y, R
+    double precision :: rho, u, v, w, p
     integer          :: i, j, k, n
 
     do n = 1, NVAR
@@ -1259,10 +1262,32 @@ contains
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
+                y = problo(2) + (dble(j) + HALF) * dy - center(2)
                 do i = lo(1),hi(1)+1
+                   x = problo(1) + dble(i) * dx - center(1)
+
+                   R = sqrt( x**2 + y**2 )
+
+                   rho = rgdnvx(i,j,k)
+                   u   = ugdnvx(i,j,k)
+                   v   = vgdnvx(i,j,k)
+                   w   = wgdnvx(i,j,k)
+                   p   = pgdnvx(i,j,k)
+                   
                    div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
+
+                   ! Reset the appropriate fluxes for the hybrid hydro scheme
+
+                   if (hybrid_hydro .eq. 1) then
+                      if (n .eq. UMX) then
+                         flux1(i,j,k,n) = (rho / R) * (x * u + y * v) * u
+                      else if (n .eq. UMY) then
+                         flux1(i,j,k,n) = rho * (x * v - y * u) * u
+                      endif
+                   endif
+                   
                    flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
              enddo
@@ -1270,10 +1295,30 @@ contains
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
+                y = problo(2) + dble(j) * dy - center(2)
                 do i = lo(1),hi(1)
+                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
+
+                   R = sqrt( x**2 + y**2 )
+
+                   rho = rgdnvx(i,j,k)
+                   u   = wgdnvx(i,j,k)
+                   v   = ugdnvx(i,j,k)
+                   w   = vgdnvx(i,j,k)
+                   p   = pgdnvx(i,j,k)
+                   
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
                    div1 = difmag*min(ZERO,div1)
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
+
+                   if (hybrid_hydro .eq. 1) then
+                      if (n .eq. UMX) then
+                         flux2(i,j,k,n) = (rho / R) * (x * u + y * v) * v
+                      else if (n .eq. UMY) then
+                         flux2(i,j,k,n) = rho * (x * v - y * u) * v
+                      endif
+                   endif
+                         
                    flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
              enddo
@@ -1329,6 +1374,16 @@ contains
                    !
                    if (n .eq. UEINT) then
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                   endif
+
+                   ! Add the hybrid advection source terms
+                   if (n .eq. UMX) then
+                      uout(i,j,k,n) = uout(i,j,k,n) + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                                             - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                                                             + uin(i,j,k,UMY)**2 / (uin(i,j,k,URHO) * R**3) )
+                   else if (n .eq. UMY) then
+                      uout(i,j,k,n) = uout(i,j,k,n) + dt * (   y * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                                             - x * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy )
                    endif
                    
                    ! Add up some diagnostic quantities.
