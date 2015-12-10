@@ -956,14 +956,15 @@ contains
              
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
+             
              if (hybrid_hydro .eq. 1) then
-                q(i,j,k,QU) = (uin(i,j,k,UMX) * x - uin(i,j,k,UMY) * y / R) / (uin(i,j,k,URHO) * R)
-                q(i,j,k,QV) = (uin(i,j,k,UMY) * x / R + uin(i,j,k,UMX) * y) / (uin(i,j,k,URHO) * R)
+                q(i,j,k,QU) = (uin(i,j,k,UMX) * x / R    - uin(i,j,k,UMY) * y / R**2) * rhoInv
+                q(i,j,k,QV) = (uin(i,j,k,UMY) * x / R**2 + uin(i,j,k,UMX) * y / R   ) * rhoInv
              else
-                q(i,j,k,QU) = uin(i,j,k,UMX)*rhoinv
-                q(i,j,k,QV) = uin(i,j,k,UMY)*rhoinv
+                q(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv
+                q(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv
              endif
-             q(i,j,k,QW) = uin(i,j,k,UMZ)*rhoinv
+             q(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv
 
              ! Get the internal energy, which we'll use for determining the pressure.
              ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
@@ -1277,7 +1278,9 @@ contains
                    div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
-
+                   if (n .eq. 1) then
+                      print *, i, j, rho, u, uin(i,j,k,1)
+                   endif
                    ! Reset the appropriate fluxes for the hybrid hydro scheme
 
                    if (hybrid_hydro .eq. 1) then
@@ -1302,9 +1305,9 @@ contains
                    R = sqrt( x**2 + y**2 )
 
                    rho = rgdnvy(i,j,k)
-                   u   = wgdnvy(i,j,k)
+                   u   = vgdnvy(i,j,k)
                    v   = ugdnvy(i,j,k)
-                   w   = vgdnvy(i,j,k)
+                   w   = wgdnvy(i,j,k)
                    p   = pgdnvy(i,j,k)
                    
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
@@ -1326,10 +1329,30 @@ contains
 
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
+                y = problo(2) + (dble(j) + HALF) * dy - center(2)
                 do i = lo(1),hi(1)
+                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
+
+                   R = sqrt( x**2 + y**2 )
+                   
+                   rho = rgdnvz(i,j,k)
+                   u   = vgdnvz(i,j,k)
+                   v   = wgdnvz(i,j,k)
+                   w   = ugdnvz(i,j,k)
+                   p   = pgdnvz(i,j,k)
+                   
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
                    div1 = difmag*min(ZERO,div1)
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dz*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
+
+                   if (hybrid_hydro .eq. 1) then
+                      if (n .eq. UMX) then
+                         flux1(i,j,k,n) = (rho / R) * (x * u + y * v) * w
+                      else if (n .eq. UMY) then
+                         flux1(i,j,k,n) = rho * (x * v - y * u) * w
+                      endif
+                   endif
+
                    flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
              enddo
