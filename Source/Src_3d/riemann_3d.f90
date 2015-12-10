@@ -20,7 +20,7 @@ contains
 
   subroutine cmpflx(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                     flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                    ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                    rgdnv,ugdnv,vgdnv,wgdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                     gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
@@ -49,7 +49,10 @@ contains
     double precision, intent(inout) ::     qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision, intent(inout) ::     qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
     double precision, intent(inout) ::    flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
+    double precision, intent(inout) ::  rgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision, intent(inout) ::  ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision, intent(inout) ::  vgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision, intent(inout) ::  wgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)    
     double precision, intent(inout) ::  pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision, intent(inout) :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
@@ -168,14 +171,14 @@ contains
        call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                      ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                      rgdnv,ugdnv,vgdnv,wgdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
        call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                       gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
                       flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                      ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                      rgdnv,ugdnv,vgdnv,wgdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                       idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -349,7 +352,7 @@ contains
   subroutine riemanncg(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
-                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                       rgdnv,ugdnv,vgdnv,wgdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
@@ -384,8 +387,11 @@ contains
     double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-    double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  rgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  vgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  wgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)    
+    double precision ::  pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
@@ -398,7 +404,7 @@ contains
     integer :: i,j,kc,kflux,k3d
     integer :: n, nq, ipassive
 
-    double precision :: rgdnv,v1gdnv,v2gdnv,ustar,gamgdnv
+    double precision :: ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
@@ -778,19 +784,19 @@ contains
           ! the transverse velocity states only depend on the
           ! direction that the contact moves
           if (ustar .gt. ZERO) then
-             v1gdnv = v1l
-             v2gdnv = v2l
+             vgdnv(i,j,kc) = v1l
+             wgdnv(i,j,kc) = v2l
           else if (ustar .lt. ZERO) then
-             v1gdnv = v1r
-             v2gdnv = v2r
+             vgdnv(i,j,kc) = v1r
+             wgdnv(i,j,kc) = v2r
           else
-             v1gdnv = HALF*(v1l+v1r)
-             v2gdnv = HALF*(v2l+v2r)
+             vgdnv(i,j,kc) = HALF*(v1l+v1r)
+             wgdnv(i,j,kc) = HALF*(v2l+v2r)
           endif
 
           ! linearly interpolate between the star and normal state -- this covers the
           ! case where we are inside the rarefaction fan.
-          rgdnv = frac*rstar + (ONE - frac)*ro
+          rgdnv(i,j,kc) = frac*rstar + (ONE - frac)*ro
           ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
           gamgdnv =  frac*gamstar + (ONE-frac)*gameo
@@ -798,13 +804,13 @@ contains
           ! now handle the cases where instead we are fully in the
           ! star or fully in the original (l/r) state
           if (spout .lt. ZERO) then
-             rgdnv = ro
+             rgdnv(i,j,kc) = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
              gamgdnv = gameo
           endif
           if (spin .ge. ZERO) then
-             rgdnv = rstar
+             rgdnv(i,j,kc) = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
              gamgdnv = gamstar
@@ -824,15 +830,15 @@ contains
           ugdnv(i,j,kc) = ugdnv(i,j,kc) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
+          uflx(i,j,kflux,URHO) = rgdnv(i,j,kc)*ugdnv(i,j,kc)
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
-          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1gdnv
-          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2gdnv
+          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*vgdnv(i,j,kc)
+          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*wgdnv(i,j,kc)
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
           rhoetot = pgdnv(i,j,kc)/(gamgdnv - ONE) + &
-               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+               HALF*rgdnv(i,j,kc)*(ugdnv(i,j,kc)**2 + vgdnv(i,j,kc)**2 + wgdnv(i,j,kc)**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*pgdnv(i,j,kc)/(gamgdnv - ONE)
@@ -853,7 +859,7 @@ contains
 
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
 
-             rho_K_contrib =  TWO3RD * rgdnv * qavg
+             rho_K_contrib =  TWO3RD * rgdnv(i,j,kc) * qavg
 
              uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 
@@ -894,7 +900,7 @@ contains
   subroutine riemannus(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                        gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
                        uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
-                       ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
+                       rgdnv,ugdnv,vgdnv,wgdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -919,8 +925,11 @@ contains
     double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-    double precision :: ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    double precision :: pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  rgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  ugdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  vgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision ::  wgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)    
+    double precision ::  pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
@@ -933,7 +942,7 @@ contains
     integer :: i,j,kc,kflux,k3d
     integer :: n, nq, ipassive
 
-    double precision :: rgdnv,v1gdnv,v2gdnv,regdnv
+    double precision :: regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
@@ -1096,29 +1105,29 @@ contains
           frac = max(ZERO,min(ONE,frac))
 
           if (ustar .gt. ZERO) then
-             v1gdnv = v1l
-             v2gdnv = v2l
+             vgdnv(i,j,kc) = v1l
+             wgdnv(i,j,kc) = v2l
           else if (ustar .lt. ZERO) then
-             v1gdnv = v1r
-             v2gdnv = v2r
+             vgdnv(i,j,kc) = v1r
+             wgdnv(i,j,kc) = v2r
           else
-             v1gdnv = HALF*(v1l+v1r)
-             v2gdnv = HALF*(v2l+v2r)
+             vgdnv(i,j,kc) = HALF*(v1l+v1r)
+             wgdnv(i,j,kc) = HALF*(v2l+v2r)
           endif
-          rgdnv = frac*rstar + (ONE - frac)*ro
+          rgdnv(i,j,kc) = frac*rstar + (ONE - frac)*ro
 
           ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
           pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
 
           regdnv = frac*estar + (ONE - frac)*reo
           if (spout .lt. ZERO) then
-             rgdnv = ro
+             rgdnv(i,j,kc) = ro
              ugdnv(i,j,kc) = uo
              pgdnv(i,j,kc) = po
              regdnv = reo
           endif
           if (spin .ge. ZERO) then
-             rgdnv = rstar
+             rgdnv(i,j,kc) = rstar
              ugdnv(i,j,kc) = ustar
              pgdnv(i,j,kc) = pstar
              regdnv = estar
@@ -1138,13 +1147,13 @@ contains
           ugdnv(i,j,kc) = ugdnv(i,j,kc) * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
+          uflx(i,j,kflux,URHO) = rgdnv(i,j,kc)*ugdnv(i,j,kc)
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
-          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1gdnv
-          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2gdnv
+          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*vgdnv(i,j,kc)
+          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*wgdnv(i,j,kc)
 
-          rhoetot = regdnv + HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv**2 + v2gdnv**2)
+          rhoetot = regdnv + HALF*rgdnv(i,j,kc)*(ugdnv(i,j,kc)**2 + vgdnv(i,j,kc)**2 + wgdnv(i,j,kc)**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
@@ -1163,7 +1172,7 @@ contains
 
              uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
 
-             rho_K_contrib =  TWO3RD * rgdnv * qavg
+             rho_K_contrib =  TWO3RD * rgdnv(i,j,kc) * qavg
 
              uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 

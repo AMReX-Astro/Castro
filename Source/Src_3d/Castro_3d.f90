@@ -69,6 +69,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer:: pdivu(:,:,:)
   double precision, pointer:: srcQ(:,:,:,:)
 
+  double precision, pointer:: rgdnvx(:,:,:)
+  double precision, pointer:: rgdnvy(:,:,:)
+  double precision, pointer:: rgdnvz(:,:,:)
+  double precision, pointer:: vgdnvx(:,:,:)
+  double precision, pointer:: vgdnvy(:,:,:)
+  double precision, pointer:: vgdnvz(:,:,:)
+  double precision, pointer:: wgdnvx(:,:,:)
+  double precision, pointer:: wgdnvy(:,:,:)
+  double precision, pointer:: wgdnvz(:,:,:)
   double precision, pointer:: pgdnvx(:,:,:)
   double precision, pointer:: pgdnvy(:,:,:)
   double precision, pointer:: pgdnvz(:,:,:)
@@ -98,6 +107,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call bl_allocate(  srcQ, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,QVAR)
 
+  call bl_allocate(rgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
+  call bl_allocate(rgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
+  call bl_allocate(rgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
+  call bl_allocate(vgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
+  call bl_allocate(vgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
+  call bl_allocate(vgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
+  call bl_allocate(wgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
+  call bl_allocate(wgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
+  call bl_allocate(wgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
   call bl_allocate(pgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
   call bl_allocate(pgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
   call bl_allocate(pgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
@@ -124,9 +142,18 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+               rgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+               rgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+               rgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+               vgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+               vgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+               vgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+               wgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+               wgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+               wgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                pgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                pgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                pgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
@@ -143,12 +170,21 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
               flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
               flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
+              rgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+              rgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+              rgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
               ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
               ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
               ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+              vgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+              vgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+              vgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+              wgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
+              wgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
+              wgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
               pgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
               pgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              pgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+              pgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &              
               area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
               area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
               area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
