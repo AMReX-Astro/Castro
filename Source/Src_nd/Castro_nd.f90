@@ -132,6 +132,28 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
+      subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in)
+
+        use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+        implicit none
+
+        integer, intent(in) :: level_in, iteration_in, ncycle_in
+        double precision, intent(in) :: time_in, dt_in
+
+        amr_level = level_in
+        amr_iteration = iteration_in
+        amr_ncycle = ncycle_in
+        
+        amr_time = time_in
+        amr_dt = dt_in
+
+      end subroutine set_amr_info
+      
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
       subroutine get_method_params(nGrowHyp)
 
         ! Passing data from f90 back to C++
@@ -456,7 +478,8 @@
 ! :::
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                    Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                    Interior_in, Inflow_in, Outflow_in, &
+                                    Symmetry_in, SlipWall_in, NoSlipWall_in, &
                                     coord_type_in, &
                                     problo_in, probhi_in, center_in)
 
@@ -469,7 +492,7 @@
 
         integer, intent(in) :: dm
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-        integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
+        integer, intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
         double precision, intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
@@ -478,6 +501,8 @@
         physbc_lo(1:dm) = physbc_lo_in(1:dm)
         physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
+        Interior   = Interior_in
+        Inflow     = Inflow_in
         Outflow    = Outflow_in
         Symmetry   = Symmetry_in
         SlipWall   = SlipWall_in
@@ -509,7 +534,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_refinement_params(max_level_in, dx_level_in)
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in)
 
         use prob_params_module
 
@@ -517,20 +542,25 @@
 
         integer,          intent(in) :: max_level_in
         double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+        integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
 
         integer :: lev, dir
 
         max_level = max_level_in
 
         allocate(dx_level(1:3, 0:max_level))
-
+        allocate(domlo_level(1:3, 0:max_level))
+        allocate(domhi_level(1:3, 0:max_level))
+        
         do lev = 0, max_level
            do dir = 1, 3
               dx_level(dir,lev) = dx_level_in(3*lev + dir)
+              domlo_level(dir,lev) = domlo_in(3*lev + dir)
+              domhi_level(dir,lev) = domhi_in(3*lev + dir)
            enddo
         enddo
 
-      end subroutine set_refinement_params
+      end subroutine set_grid_info
 
 ! :::
 ! ::: ----------------------------------------------------------------

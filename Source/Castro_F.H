@@ -22,6 +22,9 @@ BL_FORT_PROC_DECL(GET_SPEC_AZ,get_spec_az)(int* ispec, Real* A, Real* Z);
 
 BL_FORT_PROC_DECL(GET_AUX_NAMES,get_aux_names)(int* aux_names, int* iaux, int* len);
 
+BL_FORT_PROC_DECL(SET_AMR_INFO,set_amr_info)(const int& level, const int& iteration, const int& ncycle,
+					     const Real& time, const Real& dt);
+
 BL_FORT_PROC_DECL(GET_METHOD_PARAMS,get_method_params)(int* HYP_GROW);
 
 #if (BL_SPACEDIM > 1)
@@ -53,14 +56,16 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
 BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
+     const int& Interior_value, const int& Inflow_value,
      const int& Outflow_value, const int& Symmetry_value, 
      const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const Real* problo, const Real* probhi,
      const Real* center);
 
-BL_FORT_PROC_DECL(SET_REFINEMENT_PARAMS,set_refinement_params)
-    (const int& max_level, const Real* dx_level);
+BL_FORT_PROC_DECL(SET_GRID_INFO,set_grid_info)
+    (const int& max_level, const Real* dx_level,
+     const int* domlo_level, const int* domhi_level);
 
 BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
 BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);

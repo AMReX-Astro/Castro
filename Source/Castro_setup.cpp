@@ -254,7 +254,7 @@ Castro::variableSetUp ()
 
     BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
          (dm,phys_bc.lo(),phys_bc.hi(),
-	  Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+	  Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
 	  Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
 
     // Read in the parameters for the tagging criteria
