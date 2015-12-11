@@ -1027,7 +1027,7 @@ contains
     integer :: i,j,kc,kflux,k3d
     integer :: n, nq, ipassive
 
-    double precision :: rgdnv,v1gdnv,v2gdnv,regdnv
+    double precision :: rgdnv,regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
@@ -1045,6 +1045,7 @@ contains
     double precision :: estar_g, pstar_g
     double precision, dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
     double precision :: eddf, f1
+    integer :: g
 #endif
 
     double precision, pointer :: us1d(:)
@@ -1357,8 +1358,8 @@ contains
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
-          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1gdnv
-          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2gdnv
+          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1gdnv(i,j,kc)
+          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2gdnv(i,j,kc)
 
 #ifdef RADIATION
           rhoetot = regdnv_g + &
