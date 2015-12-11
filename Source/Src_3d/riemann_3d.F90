@@ -75,11 +75,12 @@ contains
     double precision, intent(inout) ::  pgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision, intent(inout) :: gegdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
 
+    double precision v1gdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+    double precision v2gdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
+
 #ifdef RADIATION
     double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
     double precision rflx(rflx_l1:rflx_h1, rflx_l2:rflx_h2, rflx_l3:rflx_h3,0:ngroups-1)
-    double precision v1gdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
-    double precision v2gdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3)
     double precision ergdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3,0:ngroups-1)
     double precision lmgdnv(pg_l1:pg_h1,pg_l2:pg_h2,pg_l3:pg_h3,0:ngroups-1)
     double precision gamcg(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
@@ -1031,7 +1032,7 @@ contains
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar, ustar
+    double precision :: rstar, cstar, estar, pstar, ustar, v1g, v2g
     double precision :: ro, uo, po, reo, co, gamco, entho, drho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
@@ -1118,6 +1119,7 @@ contains
        !dir$ ivdep
        do i = ilo, ihi
 
+#ifdef RADIATION
           if (idir == 1) then
              laml = lam(i-1,j,k3d,:)
           elseif (idir == 2) then
@@ -1126,6 +1128,7 @@ contains
              laml = lam(i,j,k3d-1,:)
           end if
           lamr = lam(i,j,k3d,:)
+#endif
 
           rl = max(ql(i,j,kc,QRHO), small_dens)
 
@@ -1275,27 +1278,29 @@ contains
 
           ! transverse velocities
           if (ustar > ZERO) then
-             v1gdnv(i,j,kc) = v1l
-             v2gdnv(i,j,kc) = v2l
+             v1g = v1l
+             v2g = v2l
 
           else if (ustar < ZERO) then
-             v1gdnv(i,j,kc) = v1r
-             v2gdnv(i,j,kc) = v2r
+             v1g = v1r
+             v2g = v2r
 
           else
-             v1gdnv(i,j,kc) = HALF*(v1l+v1r)
-             v2gdnv(i,j,kc) = HALF*(v2l+v2r)
+             v1g = HALF*(v1l+v1r)
+             v2g = HALF*(v2l+v2r)
           endif
 
           rgdnv = frac*rstar + (ONE - frac)*ro
           ugdnv(i,j,kc) = frac*ustar + (ONE - frac)*uo
 
+
 #ifdef RADIATION
+          v1gdnv(i,j,kc) = v1g
+          v2gdnv(i,j,kc) = v2g
           pgdnv_t       = frac*pstar + (1.d0 - frac)*po
           pgdnv_g       = frac*pstar_g + (1.d0 - frac)*po_g
           regdnv_g = frac*estar_g + (1.d0 - frac)*reo_g
           regdnv_r(:) = frac*estar_r(:) + (1.d0 - frac)*reo_r(:)
-
 #else
           pgdnv(i,j,kc) = frac*pstar + (ONE - frac)*po
           regdnv = frac*estar + (ONE - frac)*reo
@@ -1358,19 +1363,19 @@ contains
           uflx(i,j,kflux,URHO) = rgdnv*ugdnv(i,j,kc)
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*ugdnv(i,j,kc) + pgdnv(i,j,kc)
-          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1gdnv(i,j,kc)
-          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2gdnv(i,j,kc)
+          uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*v1g
+          uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*v2g
 
 #ifdef RADIATION
           rhoetot = regdnv_g + &
-               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv(i,j,kc)**2 + v2gdnv(i,j,kc)**2)
+               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1g**2 + v2g**2)
           
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv_g)
           
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv_g
 #else
           rhoetot = regdnv + &
-               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1gdnv(i,j,kc)**2 + v2gdnv(i,j,kc)**2)
+               HALF*rgdnv*(ugdnv(i,j,kc)**2 + v1g**2 + v2g**2)
 
           uflx(i,j,kflux,UEDEN) = ugdnv(i,j,kc)*(rhoetot + pgdnv(i,j,kc))
           uflx(i,j,kflux,UEINT) = ugdnv(i,j,kc)*regdnv
