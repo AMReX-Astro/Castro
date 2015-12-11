@@ -176,7 +176,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
        ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
        ugdnvz_out, ergdz, lmgdz, &
        ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-       pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc)
+       pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc,domlo,domhi)
 
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &

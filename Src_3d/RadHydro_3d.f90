@@ -1,5 +1,7 @@
 module rad_advection_module
 
+  use bl_constants_module
+  
   implicit none
 
   private
@@ -33,7 +35,7 @@ subroutine ctoprim_rad(lo,hi, &
        UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
        QVAR, QRHO, QU, QV, QW, QGAME, &
        QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
-       nadv, allow_negative_energy, small_temp
+       nadv, allow_negative_energy, small_temp  
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
@@ -386,14 +388,15 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
      ugdnvy_l1,ugdnvy_l2,ugdnvy_l3, ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
      ugdnvz_out, ergdz_out, lmgdz_out, &
      ugdnvz_l1,ugdnvz_l2,ugdnvz_l3, ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-     pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc)
+     pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, domlo, domhi)
 
-  use meth_params_module, only : QVAR, NVAR, QU, ppm_type
+  use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann
   use ppm_module
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
-  use riemann_rad_module, only : cmpflx_rad
+  use riemann_module, only : cmpflx, shock
   use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
+  use mempool_module, only : bl_allocate, bl_deallocate
   
   implicit none
 
@@ -446,6 +449,8 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   double precision rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,rfd2_l3:rfd2_h3,0:ngroups-1)
   double precision rflux3(rfd3_l1:rfd3_h1,rfd3_l2:rfd3_h2,rfd3_l3:rfd3_h3,0:ngroups-1)
 
+  integer :: domlo(3), domhi(3)
+  
   ! Local variables
 
   integer km,kc,kt,k3d,n
@@ -497,9 +502,24 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   double precision, allocatable:: pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), ergdnvtmpz2(:,:,:,:)
   
   double precision, allocatable:: pgdnvzf(:,:,:), ugdnvzf(:,:,:), ergdnvzf(:,:,:,:)
+
+  double precision, pointer:: gegdnvx(:,:,:)
+  double precision, pointer:: gegdnvxf(:,:,:)
+  double precision, pointer:: gegdnvtmpx(:,:,:)
+  
+  double precision, pointer:: gegdnvy(:,:,:)
+  double precision, pointer:: gegdnvyf(:,:,:)
+  double precision, pointer:: gegdnvtmpy(:,:,:)
+    
+  double precision, pointer:: gegdnvz(:,:,:)
+  double precision, pointer:: gegdnvzf(:,:,:)
+  double precision, pointer:: gegdnvtmpz1(:,:,:)
+  double precision, pointer:: gegdnvtmpz2(:,:,:)
   
   double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
 
+  double precision, pointer :: shk(:,:,:)
+  
   double precision, allocatable:: lmgdtmp(:,:,:,:)
 
   double precision, allocatable :: v1gdnvtmp(:,:,:), v2gdnvtmp(:,:,:)
@@ -539,6 +559,19 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   allocate ( ugdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
   allocate (ergdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
 
+  call bl_allocate (gegdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+
+  call bl_allocate (gegdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+
+  call bl_allocate (gegdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  call bl_allocate (gegdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  
   allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
   allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
   allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
@@ -608,6 +641,9 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   allocate (v1gdnvtmp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
   allocate (v2gdnvtmp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
 
+  ! for the hybrid Riemann solver
+  call bl_allocate(shk, ilo1-1,ihi1+1,ilo2-1,ihi2+1,ilo3-1,ihi3+1)
+  
   ! Local constants
   dtdx = dt/dx
   dtdy = dt/dy
@@ -623,6 +659,18 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   ! Initialize pdivu to zero
   pdivu(:,:,:) = 0.d0
 
+
+  ! multidimensional shock detection -- this will be used to do the
+  ! hybrid Riemann solver
+  if (hybrid_riemann == 1) then
+     call shock(q,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz)
+  else
+     shk(:,:,:) = ZERO
+  endif
+  
+  
   ! Initialize kc (current k-level) and km (previous k-level)
   kc = 1
   km = 2
@@ -656,24 +704,28 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
      end if
 
      ! Compute \tilde{F}^x at kc (k3d)
-     call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-          qxm,qxp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          fx,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-          rfx, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-          ugdnvx, v1gdnvtmp, v2gdnvtmp, pgdnvx, ergdnvx, lmgdtmp, &
-          ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-          1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d)
-
+     call cmpflx(qxm,qxp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 fx,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                 ugdnvx, pgdnvx, gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                 rfx, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                 v1gdnvtmp, v2gdnvtmp, ergdnvx, lmgdtmp, &
+                 gamcg, &
+                 gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                 shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &                 
+                 1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+     
      ! Compute \tilde{F}^y at kc (k3d)
-     call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-          qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          fy,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-          rfy, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-          ugdnvy, v1gdnvtmp, v2gdnvtmp, pgdnvy, ergdnvy, lmgdtmp, &
-          ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-          2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d)
+     call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 fy,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                 ugdnvy, pgdnvy, gegdnvy, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                 rfy, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                 v1gdnvtmp, v2gdnvtmp, ergdnvy, lmgdtmp, &
+                 gamcg, &
+                 gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                 shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                 2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
 
      ! Compute U'^y_x at kc (k3d)
      call transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -696,24 +748,28 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
           cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,k3d)
 
      ! Compute F^{x|y} at kc (k3d)
-     call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-          qmxy,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          fxy,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-          rfxy, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-          ugdnvtmpx, v1gdnvtmp, v2gdnvtmp, pgdnvtmpx, ergdnvtmpx, lmgdtmp, &
-          ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-          1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d)
+     call cmpflx(qmxy,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 fxy,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                 ugdnvtmpx, pgdnvtmpx, gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                 rfxy, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                 v1gdnvtmp, v2gdnvtmp, ergdnvtmpx, lmgdtmp, &
+                 gamcg, &
+                 gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                 shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                 1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
 
      ! Compute F^{y|x} at kc (k3d)
-     call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-          qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          fyx,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-          rfyx, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-          ugdnvtmpy, v1gdnvtmp, v2gdnvtmp, pgdnvtmpy, ergdnvtmpy, lmgdtmp, &
-          ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-          gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-          2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d)
+     call cmpflx(qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 fyx,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                 ugdnvtmpy, pgdnvtmpy, gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                 lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                 rfyx, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                 v1gdnvtmp, v2gdnvtmp, ergdnvtmpy, lmgdtmp, &
+                 gamcg, &
+                 gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                 shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                 2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
 
      if (k3d.ge.ilo3) then
 
@@ -725,14 +781,16 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
              ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
 
         ! Compute \tilde{F}^z at kc (k3d)
-        call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-             qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             fz,  ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-             rfz, ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-             ugdnvz, v1gdnvtmp, v2gdnvtmp, pgdnvz, ergdnvz, lmgdtmp, & 
-             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-             3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d)
+        call cmpflx(qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    fz,  ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                    ugdnvz, pgdnvz, gegdnvz, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                    rfz, ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                    v1gdnvtmp, v2gdnvtmp, ergdnvz, lmgdtmp, & 
+                    gamcg, &                    
+                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                    3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
 
         ! Compute U'^y_z at kc (k3d)
         call transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -755,24 +813,28 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
              cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,km,k3d)
 
         ! Compute F^{z|x} at kc (k3d)
-        call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-             qmzx,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             fzx,  ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-             rfzx, ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-             ugdnvtmpz1, v1gdnvtmp, v2gdnvtmp, pgdnvtmpz1, ergdnvtmpz1, lmgdtmp, & 
-             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-             3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d)
+        call cmpflx(qmzx,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    fzx,  ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
+                    ugdnvtmpz1, pgdnvtmpz1, gegdnvtmpz1, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                    rfzx, ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
+                    v1gdnvtmp, v2gdnvtmp, ergdnvtmpz1, lmgdtmp, &
+                    gamcg, &
+                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                    3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
         
         ! Compute F^{z|y} at kc (k3d)
-        call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-             qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             fzy,  ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-             rfzy, ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-             ugdnvtmpz2, v1gdnvtmp, v2gdnvtmp, pgdnvtmpz2, ergdnvtmpz2, lmgdtmp, &
-             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-             3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d)
+        call cmpflx(qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    fzy,  ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
+                    ugdnvtmpz2, pgdnvtmpz2, gegdnvtmpz2, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                    rfzy, ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
+                    v1gdnvtmp, v2gdnvtmp, ergdnvtmpz2, lmgdtmp, &                    
+                    gamcg, &
+                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                    3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
         
         ! Compute U''_z at kc (k3d)
         call transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, & 
@@ -790,14 +852,16 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
              hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
 
         ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
-        call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-             qzl,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             flux3,   fd3_l1, fd3_l2, fd3_l3, fd3_h1, fd3_h2, fd3_h3, &
-             rflux3, rfd3_l1,rfd3_l2,rfd3_l3,rfd3_h1,rfd3_h2,rfd3_h3, &
-             ugdnvzf, v1gdnvtmp, v2gdnvtmp, pgdnvzf, ergdnvzf, lmgdtmp, & 
-             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-             gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-             3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d)
+        call cmpflx(qzl,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    flux3,   fd3_l1, fd3_l2, fd3_l3, fd3_h1, fd3_h2, fd3_h3, &
+                    ugdnvzf, pgdnvzf, gegdnvzf, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                    rflux3, rfd3_l1,rfd3_l2,rfd3_l3,rfd3_h1,rfd3_h2,rfd3_h3, &
+                    v1gdnvtmp, v2gdnvtmp, ergdnvzf, lmgdtmp, &              
+                    gamcg, &                    
+                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                    3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
 
         do j=ilo2-1,ihi2+1
            do i=ilo1-1,ihi1+1
@@ -840,24 +904,28 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
                 cdtdz,ilo1-1,ihi1+1,ilo2-1,ihi2+1,km,kc,k3d)
          
            ! Compute F^{x|z} at km (k3d-1)
-           call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                qmxz,qpxz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                fxz,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                rfxz, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                ugdnvx, v1gdnvtmp, v2gdnvtmp, pgdnvx, ergdnvx, lmgdtmp, &
-                ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1)
+           call cmpflx(qmxz,qpxz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       fxz,  ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                       ugdnvx, pgdnvx, gegdnvx, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                       rfxz, ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
+                       v1gdnvtmp, v2gdnvtmp, ergdnvx, lmgdtmp, &
+                       gamcg, &
+                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                       1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
 
            ! Compute F^{y|z} at km (k3d-1)
-           call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                fyz,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                rfyz, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                ugdnvy, v1gdnvtmp, v2gdnvtmp, pgdnvy, ergdnvy, lmgdtmp, &
-                ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1)
+           call cmpflx(qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       fyz,  ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                       ugdnvy, pgdnvy, gegdnvy, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                       rfyz, ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+                       v1gdnvtmp, v2gdnvtmp, ergdnvy, lmgdtmp, &
+                       gamcg, &                       
+                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &              
+                       2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
            
            ! Compute U''_x at km (k3d-1)
            call transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -890,14 +958,16 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
                 hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
 
            ! Compute F^x at km (k3d-1)
-           call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                qxl,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                flux1,   fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
-                rflux1, rfd1_l1,rfd1_l2,rfd1_l3,rfd1_h1,rfd1_h2,rfd1_h3, &
-                ugdnvxf, v1gdnvtmp, v2gdnvtmp, pgdnvxf, ergdnvxf, lmgdtmp, &
-                ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1)
+           call cmpflx(qxl,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       flux1,   fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
+                       ugdnvxf, pgdnvxf, gegdnvxf, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                       rflux1, rfd1_l1,rfd1_l2,rfd1_l3,rfd1_h1,rfd1_h2,rfd1_h3, &
+                       v1gdnvtmp, v2gdnvtmp, ergdnvxf, lmgdtmp, &
+                       gamcg, &                           
+                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                       1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
            
            do j=ilo2-1,ihi2+1
               do i=ilo1-1,ihi1+2
@@ -917,14 +987,16 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
            end do
 
            ! Compute F^y at km (k3d-1)
-           call cmpflx_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                qyl,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                flux2,   fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
-                rflux2, rfd2_l1,rfd2_l2,rfd2_l3,rfd2_h1,rfd2_h2,rfd2_h3, &
-                ugdnvyf, v1gdnvtmp, v2gdnvtmp, pgdnvyf, ergdnvyf, lmgdtmp, &
-                ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                gamc,gamcg,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1)
+           call cmpflx(qyl,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       flux2,   fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
+                       ugdnvyf, pgdnvyf, gegdnvyf, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                       rflux2, rfd2_l1,rfd2_l2,rfd2_l3,rfd2_h1,rfd2_h2,rfd2_h3, &
+                       v1gdnvtmp, v2gdnvtmp, ergdnvyf, lmgdtmp, &
+                       gamcg, &
+                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
+                       2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
            
            do j=ilo2-1,ihi2+2
               do i=ilo1-1,ihi1+1
@@ -991,6 +1063,19 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   deallocate(rfzx,rfzy)
   deallocate(Ip,Im)
 
+  call bl_deallocate (gegdnvx)
+  call bl_deallocate (gegdnvxf)
+  call bl_deallocate (gegdnvtmpx)
+  call bl_deallocate ( gegdnvy)
+  call bl_deallocate (gegdnvyf)
+  call bl_deallocate (gegdnvtmpy)
+  call bl_deallocate (gegdnvz)
+  call bl_deallocate (gegdnvzf)
+  call bl_deallocate (gegdnvtmpz1)
+  call bl_deallocate (gegdnvtmpz2)
+
+  call bl_deallocate(shk)
+  
 end subroutine umeth3d_rad
 
 
