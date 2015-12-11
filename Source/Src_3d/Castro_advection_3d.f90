@@ -1285,7 +1285,7 @@ contains
                       if (n .eq. UMX) then
                          flux1(i,j,k,n) = (rho / R) * (x * u + y * v) * u
                       else if (n .eq. UMY) then
-                         flux1(i,j,k,n) = rho * (x * v - y * u) * u
+                         flux1(i,j,k,n) = rho * (x * v - y * u) * u + y * p
                       endif
                    endif
                    
@@ -1316,7 +1316,7 @@ contains
                       if (n .eq. UMX) then
                          flux2(i,j,k,n) = (rho / R) * (x * u + y * v) * v
                       else if (n .eq. UMY) then
-                         flux2(i,j,k,n) = rho * (x * v - y * u) * v
+                         flux2(i,j,k,n) = rho * (x * v - y * u) * v - x * p
                       endif
                    endif
                          
@@ -1409,9 +1409,6 @@ contains
                          uout(i,j,k,n) = uout(i,j,k,n) + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
                                                                 - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
                                                                 + uin(i,j,k,UMY)**2 / (uin(i,j,k,URHO) * R**3) )
-                      else if (n .eq. UMY) then
-                         uout(i,j,k,n) = uout(i,j,k,n) + dt * (   y * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                                                - x * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy )
                       endif
 
                    endif
