@@ -1345,9 +1345,9 @@ contains
 
                    if (hybrid_hydro .eq. 1) then
                       if (n .eq. UMX) then
-                         flux1(i,j,k,n) = (rho / R) * (x * u + y * v) * w
+                         flux3(i,j,k,n) = (rho / R) * (x * u + y * v) * w
                       else if (n .eq. UMY) then
-                         flux1(i,j,k,n) = rho * (x * v - y * u) * w
+                         flux3(i,j,k,n) = rho * (x * v - y * u) * w
                       endif
                    endif
 
