@@ -22,6 +22,9 @@ BL_FORT_PROC_DECL(GET_SPEC_AZ,get_spec_az)(int* ispec, Real* A, Real* Z);
 
 BL_FORT_PROC_DECL(GET_AUX_NAMES,get_aux_names)(int* aux_names, int* iaux, int* len);
 
+BL_FORT_PROC_DECL(SET_AMR_INFO,set_amr_info)(const int& level, const int& iteration, const int& ncycle,
+					     const Real& time, const Real& dt);
+
 BL_FORT_PROC_DECL(GET_METHOD_PARAMS,get_method_params)(int* HYP_GROW);
 
 #if (BL_SPACEDIM > 1)

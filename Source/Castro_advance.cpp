@@ -39,8 +39,12 @@ Castro::advance (Real time,
 {
     BL_PROFILE("Castro::advance()");
 
-   Real dt_new = dt;
+    Real dt_new = dt;
 
+    // Pass some information about the state of the simulation to a Fortran module.
+    
+    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, iteration, ncycle, time, dt);
+   
     if (do_hydro) 
     {
         dt_new = advance_hydro(time,dt,iteration,ncycle);

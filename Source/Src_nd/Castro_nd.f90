@@ -132,6 +132,28 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
+      subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in)
+
+        use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+        implicit none
+
+        integer, intent(in) :: level_in, iteration_in, ncycle_in
+        double precision, intent(in) :: time_in, dt_in
+
+        amr_level = level_in
+        amr_iteration = iteration_in
+        amr_ncycle = ncycle_in
+        
+        amr_time = time_in
+        amr_dt = dt_in
+
+      end subroutine set_amr_info
+      
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
       subroutine get_method_params(nGrowHyp)
 
         ! Passing data from f90 back to C++
