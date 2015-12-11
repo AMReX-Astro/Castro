@@ -82,6 +82,8 @@ module meth_params_module
   integer         , save :: allow_negative_energy
   integer         , save :: do_sponge
   double precision, save :: burning_timestep_factor
+  double precision, save :: react_T_min
+  double precision, save :: react_T_max
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation

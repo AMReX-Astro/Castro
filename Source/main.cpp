@@ -20,6 +20,8 @@
 #include <ParallelDescriptor.H>
 #include <AmrLevel.H>
 
+#include <time.h>
+
 #ifdef HAS_DUMPMODEL
 #include <DumpModel1d.H>
 #endif
@@ -77,6 +79,26 @@ main (int   argc,
       BoxLib::Abort(
        "Exiting because neither max_step nor stop_time is non-negative.");
     }
+
+    // Print the current date and time.
+
+    time_t time_type;
+
+    struct tm* time_pointer;
+
+    time(&time_type);
+
+    time_pointer = gmtime(&time_type);
+
+    if (ParallelDescriptor::IOProcessor()) 
+      std::cout << std::setfill('0') << "\nStarting run at "
+		<< std::setw(2) << time_pointer->tm_hour << ":"
+		<< std::setw(2) << time_pointer->tm_min << ":"
+		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
+		<< std::setw(2) << time_pointer->tm_mday << "/"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
+		<< time_pointer->tm_year + 1900 << "." << std::endl;
+    
     //
     // Initialize random seed after we're running in parallel.
     //
@@ -157,6 +179,19 @@ main (int   argc,
         amrptr->writePlotFile();
     }
 
+    time(&time_type);
+
+    time_pointer = gmtime(&time_type);
+
+    if (ParallelDescriptor::IOProcessor())
+      std::cout << std::setfill('0') << "\nStarting run at "
+		<< std::setw(2) << time_pointer->tm_hour << ":"
+		<< std::setw(2) << time_pointer->tm_min << ":"
+		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
+		<< std::setw(2) << time_pointer->tm_mday << "/"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
+		<< time_pointer->tm_year + 1900 << "." << std::endl;
+    
     delete amrptr;
     //
     // This MUST follow the above delete as ~Amr() may dump files to disk.

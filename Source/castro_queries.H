@@ -43,6 +43,8 @@ pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
 pp.query("burning_timestep_factor", burning_timestep_factor);
 pp.query("do_react", do_react);
+pp.query("react_T_min", react_T_min);
+pp.query("react_T_max", react_T_max);
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);

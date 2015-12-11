@@ -1651,24 +1651,44 @@ Castro::post_init (Real stop_time)
     int nlevs = max_level + 1;
     
     Real dx_level[3*nlevs];
+    int domlo_level[3*nlevs];
+    int domhi_level[3*nlevs];
 
-    const Real* dx_coarse = geom.CellSize();    
+    const Real* dx_coarse = geom.CellSize();
 
-    for (int dir = 0; dir < 3; dir++)
+    const int* domlo_coarse = geom.Domain().loVect();
+    const int* domhi_coarse = geom.Domain().hiVect();
+
+    for (int dir = 0; dir < 3; dir++) {
       dx_level[dir] = (ZFILL(dx_coarse))[dir];
+
+      domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
+      domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+    }
+      
     
     for (int lev = 1; lev <= max_level; lev++) {
       IntVect ref_ratio = parent->refRatio(lev-1);
+
+      // Note that we are explicitly calculating here what the
+      // data would be on refined levels rather than getting the
+      // data directly from those levels, because some potential
+      // refined levels may not exist at the beginning of the simulation.
       
       for (int dir = 0; dir < 3; dir++)
-	if (dir < BL_SPACEDIM)
+	if (dir < BL_SPACEDIM) {
 	  dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
-	else
+	  domlo_level[3 * lev + dir] = domlo_level[dir];
+	  domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	} else {
 	  dx_level[3 * lev + dir] = 0.0;
+	  domlo_level[3 * lev + dir] = 0;
+	  domhi_level[3 * lev + dir] = 0;
+	}
     }
 
-    BL_FORT_PROC_CALL(SET_REFINEMENT_PARAMS,set_refinement_params)
-      (max_level, dx_level);
+    BL_FORT_PROC_CALL(SET_GRID_INFO,set_grid_info)
+      (max_level, dx_level, domlo_level, domhi_level);
     
     //
     // Average data down from finer levels
