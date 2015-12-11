@@ -90,8 +90,14 @@ main (int   argc,
 
     time_pointer = gmtime(&time_type);
 
-    std::cout << "\nStarting run at " << time_pointer->tm_hour << ":" << time_pointer->tm_min << ":" << time_pointer->tm_sec << " UTC on "
-              << time_pointer->tm_mday << "/" << time_pointer->tm_mon + 1 << "/" << time_pointer->tm_year + 1900 << "." << std::endl;
+    if (ParallelDescriptor::IOProcessor()) 
+      std::cout << std::setfill('0') << "\nStarting run at "
+		<< std::setw(2) << time_pointer->tm_hour << ":"
+		<< std::setw(2) << time_pointer->tm_min << ":"
+		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
+		<< std::setw(2) << time_pointer->tm_mday << "/"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
+		<< time_pointer->tm_year + 1900 << "." << std::endl;
     
     //
     // Initialize random seed after we're running in parallel.
@@ -177,8 +183,14 @@ main (int   argc,
 
     time_pointer = gmtime(&time_type);
 
-    std::cout << "\nEnding run at " << time_pointer->tm_hour << ":" << time_pointer->tm_min << ":" << time_pointer->tm_sec << " UTC on "
-              << time_pointer->tm_mday << "/" << time_pointer->tm_mon + 1 << "/" << time_pointer->tm_year + 1900 << ".\n" << std::endl;
+    if (ParallelDescriptor::IOProcessor())
+      std::cout << std::setfill('0') << "\nStarting run at "
+		<< std::setw(2) << time_pointer->tm_hour << ":"
+		<< std::setw(2) << time_pointer->tm_min << ":"
+		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
+		<< std::setw(2) << time_pointer->tm_mday << "/"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
+		<< time_pointer->tm_year + 1900 << "." << std::endl;
     
     delete amrptr;
     //
