@@ -531,7 +531,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_refinement_params(max_level_in, dx_level_in)
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in)
 
         use prob_params_module
 
@@ -539,20 +539,25 @@
 
         integer,          intent(in) :: max_level_in
         double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+        integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
 
         integer :: lev, dir
 
         max_level = max_level_in
 
         allocate(dx_level(1:3, 0:max_level))
-
+        allocate(domlo_level(1:3, 0:max_level))
+        allocate(domhi_level(1:3, 0:max_level))
+        
         do lev = 0, max_level
            do dir = 1, 3
               dx_level(dir,lev) = dx_level_in(3*lev + dir)
+              domlo_level(dir,lev) = domlo_in(3*lev + dir)
+              domhi_level(dir,lev) = domhi_in(3*lev + dir)
            enddo
         enddo
 
-      end subroutine set_refinement_params
+      end subroutine set_grid_info
 
 ! :::
 ! ::: ----------------------------------------------------------------

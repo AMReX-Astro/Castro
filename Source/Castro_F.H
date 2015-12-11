@@ -62,8 +62,9 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
      const Real* problo, const Real* probhi,
      const Real* center);
 
-BL_FORT_PROC_DECL(SET_REFINEMENT_PARAMS,set_refinement_params)
-    (const int& max_level, const Real* dx_level);
+BL_FORT_PROC_DECL(SET_GRID_INFO,set_grid_info)
+    (const int& max_level, const Real* dx_level,
+     const int* domlo_level, const int* domhi_level);
 
 BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
 BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);
