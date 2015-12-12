@@ -110,7 +110,8 @@
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
-    use rotation_module, only: cross_product, get_omega, get_domegadt, rotational_acceleration
+    use math_module, only: cross_product
+    use rotation_module, only: get_omega, get_domegadt, rotational_acceleration
 
     implicit none
 

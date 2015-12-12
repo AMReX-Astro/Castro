@@ -24,6 +24,8 @@ f90EXE_sources += riemann_util.f90
 
 f90EXE_sources += flatten_nd.f90
 
+F90EXE_sources += math.F90
+
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav_nd.f90
 f90EXE_sources += Gravity_nd.f90
