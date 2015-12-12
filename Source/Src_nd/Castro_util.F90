@@ -48,7 +48,7 @@ contains
     endif
 
     do dir = 1, 3
-       if (cc(i)) then
+       if (cc(dir)) then
           ! If we're cell-centered, we want to be in the middle of the zone.
           
           offset(dir) = offset(dir) + HALF * dx(dir)
