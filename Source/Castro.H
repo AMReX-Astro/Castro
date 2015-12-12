@@ -283,6 +283,10 @@ public:
     //
     virtual void removeOldData () BL_OVERRIDE;
     //
+    //Passes some data about the grid to a Fortran module.
+    //
+    void setGridInfo();
+    //
     //Print information about energy budget.
     //
     void do_energy_diagnostics();

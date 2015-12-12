@@ -1,4 +1,3 @@
-f90EXE_sources += Castro_$(DIM)d.f90 
 f90EXE_sources += Castro_util_$(DIM)d.f90 
 
 f90EXE_sources += trace_$(DIM)d.f90
@@ -7,9 +6,13 @@ f90EXE_sources += slope_$(DIM)d.f90
 f90EXE_sources += trans_$(DIM)d.f90
 f90EXE_sources += ppm_$(DIM)d.f90
 
+ifneq ($(USE_RAD), TRUE)
+f90EXE_sources += Castro_$(DIM)d.f90 
 f90EXE_sources += Castro_advection_$(DIM)d.f90 
+endif
+
+F90EXE_sources += riemann_$(DIM)d.F90 
 f90EXE_sources += advection_util_$(DIM)d.f90 
-f90EXE_sources += riemann_$(DIM)d.f90 
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
 f90EXE_sources += bc_fill_$(DIM)d.f90

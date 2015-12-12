@@ -695,7 +695,12 @@ Castro::advance_hydro (Real time,
 	    
 	}
 	else {
-#endif
+	  BoxLib::Abort("Castro::advance -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
+	}
+#else
+
+	    // pure hydro (no radiation)
+	  
 	    Real E_added_grav    = 0.;
 	    Real E_added_flux    = 0.;
 	    Real E_added_rot     = 0.;
@@ -979,9 +984,7 @@ Castro::advance_hydro (Real time,
 #endif
 	    }
 
-#ifdef RADIATION
-	}
-#endif
+#endif    // RADIATION
     }
 
 #ifdef PARTICLES
