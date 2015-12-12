@@ -640,6 +640,8 @@ Castro::buildMetrics ()
 #if (BL_SPACEDIM <= 2)
     geom.GetDLogA(dLogArea[0],grids,0,NUM_GROW);
 #endif
+
+    if (level == 0) setGridInfo();    
 }
 
 void
@@ -648,6 +650,66 @@ Castro::setTimeLevel (Real time,
                       Real dt_new)
 {
     AmrLevel::setTimeLevel(time,dt_old,dt_new);
+}
+
+void
+Castro::setGridInfo ()
+{
+
+    // Send refinement data to Fortran. We do it here
+    // because now the grids have been initialized and
+    // we need this data for setting up the problem.
+    // Note that this routine will always get called
+    // on level 0, even if we are doing a restart,
+    // so it is safe to put this here. 
+
+    if (level == 0) {
+
+      int max_level = parent->maxLevel();
+      int nlevs = max_level + 1;
+    
+      Real dx_level[3*nlevs];
+      int domlo_level[3*nlevs];
+      int domhi_level[3*nlevs];
+
+      const Real* dx_coarse = geom.CellSize();
+
+      const int* domlo_coarse = geom.Domain().loVect();
+      const int* domhi_coarse = geom.Domain().hiVect();
+
+      for (int dir = 0; dir < 3; dir++) {
+	dx_level[dir] = (ZFILL(dx_coarse))[dir];
+
+	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
+	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+      }
+      
+    
+      for (int lev = 1; lev <= max_level; lev++) {
+	IntVect ref_ratio = parent->refRatio(lev-1);
+
+	// Note that we are explicitly calculating here what the
+	// data would be on refined levels rather than getting the
+	// data directly from those levels, because some potential
+	// refined levels may not exist at the beginning of the simulation.
+      
+	for (int dir = 0; dir < 3; dir++)
+	  if (dir < BL_SPACEDIM) {
+	    dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	    domlo_level[3 * lev + dir] = domlo_level[dir];
+	    domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	  } else {
+	    dx_level[3 * lev + dir] = 0.0;
+	    domlo_level[3 * lev + dir] = 0;
+	    domhi_level[3 * lev + dir] = 0;
+	  }
+      }
+
+      BL_FORT_PROC_CALL(SET_GRID_INFO,set_grid_info)
+	(max_level, dx_level, domlo_level, domhi_level);
+
+    }
+    
 }
 
 void
@@ -837,6 +899,7 @@ Castro::init (AmrLevel &old)
     BL_PROFILE("Castro::init(old)");
 
     Castro* oldlev = (Castro*) &old;
+
     //
     // Create new grid data by fillpatching from old.
     //
@@ -1645,51 +1708,6 @@ Castro::post_init (Real stop_time)
     if (level > 0)
         return;
 
-    // Send refinement data to Fortran
-
-    int max_level = parent->maxLevel();
-    int nlevs = max_level + 1;
-    
-    Real dx_level[3*nlevs];
-    int domlo_level[3*nlevs];
-    int domhi_level[3*nlevs];
-
-    const Real* dx_coarse = geom.CellSize();
-
-    const int* domlo_coarse = geom.Domain().loVect();
-    const int* domhi_coarse = geom.Domain().hiVect();
-
-    for (int dir = 0; dir < 3; dir++) {
-      dx_level[dir] = (ZFILL(dx_coarse))[dir];
-
-      domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
-      domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
-    }
-      
-    
-    for (int lev = 1; lev <= max_level; lev++) {
-      IntVect ref_ratio = parent->refRatio(lev-1);
-
-      // Note that we are explicitly calculating here what the
-      // data would be on refined levels rather than getting the
-      // data directly from those levels, because some potential
-      // refined levels may not exist at the beginning of the simulation.
-      
-      for (int dir = 0; dir < 3; dir++)
-	if (dir < BL_SPACEDIM) {
-	  dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
-	  domlo_level[3 * lev + dir] = domlo_level[dir];
-	  domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
-	} else {
-	  dx_level[3 * lev + dir] = 0.0;
-	  domlo_level[3 * lev + dir] = 0;
-	  domhi_level[3 * lev + dir] = 0;
-	}
-    }
-
-    BL_FORT_PROC_CALL(SET_GRID_INFO,set_grid_info)
-      (max_level, dx_level, domlo_level, domhi_level);
-    
     //
     // Average data down from finer levels
     // so that conserved data is consistent between levels.
