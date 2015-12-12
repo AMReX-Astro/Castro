@@ -799,7 +799,6 @@
 
       use bl_constants_module
       use prob_params_module, only: problo, center
-      use meth_params_module, only: hybrid_hydro
 
       implicit none
 
@@ -816,26 +815,16 @@
       integer          :: i, j, k
 
       double precision :: u, v, w, rho, rhoInv
-      double precision :: x, y, R
       
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
-            y = problo(2) + (dble(j) + HALF) * delta(2) - center(2)
             do i = lo(1), hi(1)
-               x = problo(1) + (dble(i) + HALF) * delta(1) - center(1)
-
-               R = sqrt( x**2 + y**2 )
 
                rho = dat(i,j,k,1)
                rhoInv = ONE / rho
-
-               if (hybrid_hydro .eq. 1) then
-                  u = (dat(i,j,k,2) * x / R    - dat(i,j,k,3) * y / R**2) * rhoInv
-                  v = (dat(i,j,k,3) * x / R**2 + dat(i,j,k,2) * y / R   ) * rhoInv
-               else                  
-                  u = dat(i,j,k,2) * rhoInv
-                  v = dat(i,j,k,3) * rhoInv
-               endif
+               
+               u = dat(i,j,k,2) * rhoInv
+               v = dat(i,j,k,3) * rhoInv
                w = dat(i,j,k,4) * rhoInv
 
                kineng(i,j,k,1) = HALF * rho * (u**2 + v**2 + w**2)

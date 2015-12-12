@@ -916,7 +916,6 @@ contains
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
     double precision :: dtdx, dtdy, dtdz
-    double precision :: x, y, R
     
     type (eos_t) :: eos_state
 
@@ -939,7 +938,6 @@ contains
     !
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
-          y = problo(2) + (dble(j) + HALF) * dy - center(2)
           do i = loq(1),hiq(1)             
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
@@ -950,20 +948,12 @@ contains
           end do
 
           do i = loq(1),hiq(1)
-             x = problo(1) + (dble(i) + HALF) * dx - center(1)
 
-             R = sqrt( x**2 + y**2 )
-             
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
              
-             if (hybrid_hydro .eq. 1) then
-                q(i,j,k,QU) = (uin(i,j,k,UMX) * x / R    - uin(i,j,k,UMY) * y / R**2) * rhoInv
-                q(i,j,k,QV) = (uin(i,j,k,UMY) * x / R**2 + uin(i,j,k,UMX) * y / R   ) * rhoInv
-             else
-                q(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv
-                q(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv
-             endif
+             q(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv
+             q(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv
              q(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv
 
              ! Get the internal energy, which we'll use for determining the pressure.
@@ -1246,11 +1236,90 @@ contains
     double precision dx, dy, dz, dt
     double precision E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
+    double precision ang_mom_flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3)
+    double precision ang_mom_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3)
+    double precision ang_mom_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3)
+
+    double precision rad_mom_flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3)
+    double precision rad_mom_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3)
+    double precision rad_mom_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3)    
+
+    double precision ang_mom_in(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+    double precision rad_mom_in(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+
+    double precision ang_mom_out(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+    double precision rad_mom_out(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))    
+    
     double precision :: div1, volinv
-    double precision :: x, y, R
+    double precision :: ang_mom, rad_mom
     double precision :: rho, u, v, w, p
     integer          :: i, j, k, n
 
+    if (hybrid_hydro .eq. 1) then
+       
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)+1
+
+                loc = pos(i,j,k,ccx=.false.)
+
+                R = sqrt( loc(1)**2 + loc(2)**2 )
+                
+                rho = rgdnvx(i,j,k)
+                u   = ugdnvx(i,j,k)
+                v   = vgdnvx(i,j,k)
+                w   = wgdnvx(i,j,k)
+                p   = pgdnvx(i,j,k)
+                   
+                rad_mom_flux1(i,j,k) = ((rho / R) * (x * u + y * v) * u) * area1(i,j,k) * dt
+                ang_mom_flux1(i,j,k) = (rho * (x * v - y * u) * u + y * p) * area1(i,j,k) * dt
+
+             enddo
+          enddo
+       enddo
+
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)+1
+             do i = lo(1),hi(1)
+                
+                loc = pos(i,j,k,ccy=.false.)
+
+                R = sqrt( loc(1)**2 + loc(2)**2 )
+                
+                rho = rgdnvy(i,j,k)
+                u   = vgdnvy(i,j,k)
+                v   = ugdnvy(i,j,k)
+                w   = wgdnvy(i,j,k)
+                p   = pgdnvy(i,j,k)
+                
+                rad_mom_flux2(i,j,k) = ((rho / R) * (x * u + y * v) * v) * area2(i,j,k) * dt
+                ang_mom_flux2(i,j,k) = (rho * (x * v - y * u) * v - x * p) * area2(i,j,k) * dt
+                
+             enddo
+          enddo
+       enddo
+       
+       do k = lo(3),hi(3)+1
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
+                
+                loc = pos(i,j,k,ccz=.false.)
+                
+                rho = rgdnvz(i,j,k)
+                u   = vgdnvz(i,j,k)
+                v   = wgdnvz(i,j,k)
+                w   = ugdnvz(i,j,k)
+                p   = pgdnvz(i,j,k)
+                
+                rad_mom_flux3(i,j,k) = ((rho / R) * (x * u + y * v) * w) * area3(i,j,k) * dt
+                ang_mom_flux3(i,j,k) = (rho * (x * v - y * u) * w) * area3(i,j,k) * dt
+
+             enddo
+          enddo
+       enddo
+
+    endif
+       
     do n = 1, NVAR
          
        if ( n.eq.UTEMP ) then
@@ -1263,32 +1332,11 @@ contains
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
-                y = problo(2) + (dble(j) + HALF) * dy - center(2)
-                do i = lo(1),hi(1)+1
-                   x = problo(1) + dble(i) * dx - center(1)
-
-                   R = sqrt( x**2 + y**2 )
-
-                   rho = rgdnvx(i,j,k)
-                   u   = ugdnvx(i,j,k)
-                   v   = vgdnvx(i,j,k)
-                   w   = wgdnvx(i,j,k)
-                   p   = pgdnvx(i,j,k)
-                   
+                do i = lo(1),hi(1)+1                  
                    div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
+
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
-
-                   ! Reset the appropriate fluxes for the hybrid hydro scheme
-
-                   if (hybrid_hydro .eq. 1) then
-                      if (n .eq. UMX) then
-                         flux1(i,j,k,n) = (rho / R) * (x * u + y * v) * u
-                      else if (n .eq. UMY) then
-                         flux1(i,j,k,n) = rho * (x * v - y * u) * u + y * p
-                      endif
-                   endif
-                   
                    flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
              enddo
@@ -1296,30 +1344,11 @@ contains
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
-                y = problo(2) + dble(j) * dy - center(2)
                 do i = lo(1),hi(1)
-                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
-
-                   R = sqrt( x**2 + y**2 )
-
-                   rho = rgdnvy(i,j,k)
-                   u   = vgdnvy(i,j,k)
-                   v   = ugdnvy(i,j,k)
-                   w   = wgdnvy(i,j,k)
-                   p   = pgdnvy(i,j,k)
-                   
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
                    div1 = difmag*min(ZERO,div1)
-                   flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
 
-                   if (hybrid_hydro .eq. 1) then
-                      if (n .eq. UMX) then
-                         flux2(i,j,k,n) = (rho / R) * (x * u + y * v) * v
-                      else if (n .eq. UMY) then
-                         flux2(i,j,k,n) = rho * (x * v - y * u) * v - x * p
-                      endif
-                   endif
-                         
+                   flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
                    flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
              enddo
@@ -1327,30 +1356,11 @@ contains
 
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
-                y = problo(2) + (dble(j) + HALF) * dy - center(2)
                 do i = lo(1),hi(1)
-                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
-
-                   R = sqrt( x**2 + y**2 )
-                   
-                   rho = rgdnvz(i,j,k)
-                   u   = vgdnvz(i,j,k)
-                   v   = wgdnvz(i,j,k)
-                   w   = ugdnvz(i,j,k)
-                   p   = pgdnvz(i,j,k)
-                   
                    div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
                    div1 = difmag*min(ZERO,div1)
+
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dz*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
-
-                   if (hybrid_hydro .eq. 1) then
-                      if (n .eq. UMX) then
-                         flux3(i,j,k,n) = (rho / R) * (x * u + y * v) * w
-                      else if (n .eq. UMY) then
-                         flux3(i,j,k,n) = rho * (x * v - y * u) * w
-                      endif
-                   endif
-
                    flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
              enddo
@@ -1382,12 +1392,8 @@ contains
           ! update everything else with fluxes
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
-                y = problo(2) + (dble(j) + HALF) * dy - center(2)
                 do i = lo(1),hi(1)
-                   x = problo(1) + (dble(i) + HALF) * dx - center(1)
 
-                   R = sqrt( x**2 + y**2 )
-                   
                    volinv = ONE/vol(i,j,k)
 
                    uout(i,j,k,n) = uin(i,j,k,n) &
@@ -1402,17 +1408,6 @@ contains
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
                    endif
 
-                   ! Add the hybrid advection source terms
-                   if (hybrid_hydro .eq. 1) then
-                      
-                      if (n .eq. UMX) then
-                         uout(i,j,k,n) = uout(i,j,k,n) + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                                                - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
-                                                                + uin(i,j,k,UMY)**2 / (uin(i,j,k,URHO) * R**3) )
-                      endif
-
-                   endif
-                   
                    ! Add up some diagnostic quantities.
                       
                    if (n .eq. UMX) then
@@ -1443,6 +1438,50 @@ contains
          
     enddo
 
+    ! Now update the radial and angular momenta, and overwrite the
+    ! x- and y- momenta accordingly.
+    
+    if (hybrid_hydro .eq. 1) then
+       
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
+                
+                loc = position(i,j,k)
+                
+                R = sqrt( loc(1)**2 + loc(2)**2 )
+                
+                rho = uin(i,j,k,URHO)
+
+                volinv = ONE / vol(i,j,k)
+                
+                rad_mom_in(i,j,k) = uin(i,j,k,UMX) * (x / R) + uin(i,j,k,UMY) * (y / R)
+                ang_mom_in(i,j,k) = uin(i,j,k,UMX) * x - uin(i,j,k,UMY) * y
+
+                rad_mom_out(i,j,k) = rad_mom_in(i,j,k) + &
+                                   + ( rad_mom_flux1(i,j,k,n) - rad_mom_flux1(i+1,j,k,n) &
+                                   +   rad_mom_flux2(i,j,k,n) - rad_mom_flux2(i,j+1,k,n) &
+                                   +   rad_mom_flux3(i,j,k,n) - rad_mom_flux3(i,j,k+1,n)) * volinv &
+                                   + dt * ( - (x / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                            - (y / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                                            + ang_mom_in(i,j,k)**2 / (uin(i,j,k,URHO) * R**3) )                
+                
+                ang_mom_out(i,j,k) = ang_mom_in(i,j,k) + &
+                                   + ( ang_mom_flux1(i,j,k,n) - ang_mom_flux1(i+1,j,k,n) &
+                                   +   ang_mom_flux2(i,j,k,n) - ang_mom_flux2(i,j+1,k,n) &
+                                   +   ang_mom_flux3(i,j,k,n) - ang_mom_flux3(i,j,k+1,n)) * volinv
+
+
+                uout(i,j,k,UMX) = rad_mom_out(i,j,k) * (x / R)    - ang_mom_out(i,j,k) * (y / R**2)
+                uout(i,j,k,UMY) = ang_mom_out(i,j,k) * (x / R**2) + rad_mom_out(i,j,k) * (y/R)
+                
+             enddo
+          enddo
+       enddo
+       
+    endif
+    
+    
   end subroutine consup
 
 end module advection_module

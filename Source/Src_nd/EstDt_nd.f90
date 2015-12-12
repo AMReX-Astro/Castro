@@ -3,8 +3,8 @@
      use network, only: nspec, naux
      use eos_module
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
-                                   allow_negative_energy, hybrid_hydro
-     use prob_params_module, only: dim, problo, center
+                                   allow_negative_energy
+     use prob_params_module, only: dim
      use bl_constants_module
 
      implicit none
@@ -18,8 +18,6 @@
      double precision :: sqrtK, grid_scl, dt4
      integer          :: i, j, k
 
-     double precision :: x, y, R
-     
      type (eos_t) :: eos_state
 
      grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
@@ -30,11 +28,7 @@
 
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
-           y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
            do i = lo(1), hi(1)
-              x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-
-              R = sqrt( x**2 + y**2 )
               
               rhoInv = ONE / u(i,j,k,URHO)
               
@@ -48,13 +42,8 @@
 
               ! Compute velocity and then calculate CFL timestep.     
 
-              if (hybrid_hydro .eq. 1) then
-                 ux = (u(i,j,k,UMX) * x - u(i,j,k,UMY) * y / R) * rhoInv / R
-                 uy = (u(i,j,k,UMY) * x / R + u(i,j,k,UMX) * y) * rhoInv / R
-              else
-                 ux = u(i,j,k,UMX) * rhoInv
-                 uy = u(i,j,k,UMY) * rhoInv
-              endif
+              ux = u(i,j,k,UMX) * rhoInv
+              uy = u(i,j,k,UMY) * rhoInv
               uz = u(i,j,k,UMZ) * rhoInv
 
               if (UESGS .gt. -1) &
