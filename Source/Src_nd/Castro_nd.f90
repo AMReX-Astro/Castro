@@ -141,12 +141,25 @@
         integer, intent(in) :: level_in, iteration_in, ncycle_in
         double precision, intent(in) :: time_in, dt_in
 
-        amr_level = level_in
-        amr_iteration = iteration_in
-        amr_ncycle = ncycle_in
-        
-        amr_time = time_in
-        amr_dt = dt_in
+        if (level_in .ge. 0) then
+           amr_level = level_in
+        endif
+
+        if (iteration_in .ge. 0) then
+           amr_iteration = iteration_in
+        endif
+
+        if (ncycle_in .ge. 0) then
+           amr_ncycle = ncycle_in
+        endif
+
+        if (time_in .ge. 0.0) then
+           amr_time = time_in
+        endif
+
+        if (dt_in .ge. 0.0) then
+           amr_dt = dt_in
+        endif
 
       end subroutine set_amr_info
       

@@ -724,7 +724,7 @@ Castro::initData ()
     const Real* dx  = geom.CellSize();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
-
+    
     S_new.setVal(0.);
 
     // make sure dx = dy = dz -- that's all we guarantee to support
@@ -742,6 +742,7 @@ Castro::initData ()
       }
 #endif
 
+    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, -1, -1, -1.0, -1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
@@ -1062,6 +1063,8 @@ Castro::estTimeStep (Real dt_old)
     if (fixed_dt > 0.0)
         return fixed_dt;
 
+    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, -1, -1, -1.0, -1.0);    
+    
     // This is just a dummy value to start with 
     Real estdt  = 1.0e+200;
 
