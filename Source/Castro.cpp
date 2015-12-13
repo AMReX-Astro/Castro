@@ -1101,10 +1101,9 @@ Castro::estTimeStep (Real dt_old)
 		  gPr.resize(tbox);
 		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 	  
-		  BL_FORT_PROC_CALL(CA_ESTDT_RAD, ca_estdt_rad)
-		      (BL_TO_FORTRAN(stateMF[mfi]),
-	               BL_TO_FORTRAN(gPr),
-	               tbox.loVect(),tbox.hiVect(),dx,&dt);
+		  ca_estdt_rad(BL_TO_FORTRAN(stateMF[mfi]),
+			       BL_TO_FORTRAN(gPr),
+			       tbox.loVect(),tbox.hiVect(),dx,&dt);
               }
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt_rad)	      
@@ -1132,10 +1131,9 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 		  
-		  BL_FORT_PROC_CALL(CA_ESTDT,ca_estdt)
-		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-		       BL_TO_FORTRAN_3D(stateMF[mfi]),
-		       ZFILL(dx),&dt);
+		  ca_estdt(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+			   BL_TO_FORTRAN_3D(stateMF[mfi]),
+			   ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
@@ -1160,10 +1158,9 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 
-		  BL_FORT_PROC_CALL(CA_ESTDT_DIFFUSION,ca_estdt_diffusion)
-		      (ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-		       BL_TO_FORTRAN_3D(stateMF[mfi]),
-		       ZFILL(dx),&dt);
+		  ca_estdt_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+				     BL_TO_FORTRAN_3D(stateMF[mfi]),
+				     ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
@@ -1202,10 +1199,10 @@ Castro::estTimeStep (Real dt_old)
 	    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	    {
 	        const Box& box = mfi.validbox();
-		BL_FORT_PROC_CALL(CA_ESTDT_BURNING,ca_estdt_burning)
-                    (BL_TO_FORTRAN_3D(S_new[mfi]),
-		     BL_TO_FORTRAN_3D(reactions_new[mfi]),
-		     ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),ZFILL(dx),&dt);
+		ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
+				 BL_TO_FORTRAN_3D(reactions_new[mfi]),
+				 ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+				 ZFILL(dx),&dt);
 
 	    }
 #ifdef _OPENMP

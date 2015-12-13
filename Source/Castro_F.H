@@ -345,20 +345,22 @@ BL_FORT_PROC_DECL(CA_GRAVZFILL,ca_gravzfill)
 
 #endif
 
-BL_FORT_PROC_DECL(CA_ESTDT,ca_estdt)
+extern "C" {
+  
+  void ca_estdt
     (const int* lo, const int* hi, 
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
 
 #ifdef DIFFUSION
-BL_FORT_PROC_DECL(CA_ESTDT_DIFFUSION,ca_estdt_diffusion)
+  void ca_estdt_diffusion
     (const int* lo, const int* hi, 
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
 #endif
 
 #ifdef RADIATION
-BL_FORT_PROC_DECL(CA_ESTDT_RAD,ca_estdt_rad)
+  void ca_estdt_rad
     (const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(gpr),
      const int lo[], const int hi[],
@@ -366,12 +368,14 @@ BL_FORT_PROC_DECL(CA_ESTDT_RAD,ca_estdt_rad)
 #endif
 
 #ifdef REACTIONS
-BL_FORT_PROC_DECL(CA_ESTDT_BURNING,ca_estdt_burning)
+    void ca_estdt_burning
     (const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(reactions),
      const int* lo, const int* hi,
      const Real* dx, Real* dt);
 #endif
+  
+}
 
 BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
     (const int* is_finest_level,

@@ -16,7 +16,7 @@ f90EXE_sources += compute_temp_nd.f90
 f90EXE_sources += reset_internal_energy_nd.f90
 f90EXE_sources += enforce_consistent_e_nd.f90
 f90EXE_sources += Castro_sums_nd.f90
-f90EXE_sources += EstDt_nd.f90
+F90EXE_sources += timestep.F90
 f90EXE_sources += Derive_nd.f90
 f90EXE_sources += problem_derive_nd.f90
 f90EXE_sources += sponge_nd.f90
@@ -38,12 +38,7 @@ f90EXE_sources += rotation_sources_nd.f90
 endif
 
 ifeq ($(USE_REACT), TRUE)
-f90EXE_sources += EstDt_burning_nd.f90
 f90EXE_sources += React_nd.f90
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
-f90EXE_sources += EstDt_diffusion_nd.f90
 endif
 
 ifeq ($(DIMENSION_AGNOSTIC), TRUE)
