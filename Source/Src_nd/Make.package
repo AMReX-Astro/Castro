@@ -17,9 +17,9 @@ f90EXE_sources += reset_internal_energy_nd.f90
 f90EXE_sources += enforce_consistent_e_nd.f90
 f90EXE_sources += Castro_sums_nd.f90
 F90EXE_sources += timestep.F90
-f90EXE_sources += Derive_nd.f90
-f90EXE_sources += problem_derive_nd.f90
-f90EXE_sources += sponge_nd.f90
+F90EXE_sources += Derive_nd.F90
+F90EXE_sources += problem_derive_nd.F90
+F90EXE_sources += sponge_nd.F90
 f90EXE_sources += riemann_util.f90
 
 f90EXE_sources += flatten_nd.f90
@@ -27,14 +27,14 @@ f90EXE_sources += flatten_nd.f90
 F90EXE_sources += math.F90
 
 ifeq ($(USE_GRAV), TRUE)
-f90EXE_sources += prescribe_grav_nd.f90
-f90EXE_sources += Gravity_nd.f90
-f90EXE_sources += gravity_sources_nd.f90
+F90EXE_sources += prescribe_grav_nd.F90
+F90EXE_sources += Gravity_nd.F90
+F90EXE_sources += gravity_sources_nd.F90
 endif
 
 ifeq ($(USE_ROTATION), TRUE)
-f90EXE_sources += Rotation_nd.f90
-f90EXE_sources += rotation_sources_nd.f90
+F90EXE_sources += Rotation_nd.F90
+F90EXE_sources += rotation_sources_nd.F90
 endif
 
 ifeq ($(USE_REACT), TRUE)

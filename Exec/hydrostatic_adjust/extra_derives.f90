@@ -1,6 +1,6 @@
 subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
                     u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
-                    domhi,dx,xlo,time,dt,bc,level,grid_no)
+                    domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
   use network, only : nspec, naux
   use eos_module
@@ -70,7 +70,7 @@ end subroutine ca_derpi
 
 subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
                           u,u_l1,u_h1,ncomp_u,lo,hi,domlo, &
-                          domhi,dx,xlo,time,dt,bc,level,grid_no)
+                          domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
   use network, only : nspec, naux
   use eos_module

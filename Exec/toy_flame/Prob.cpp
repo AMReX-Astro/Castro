@@ -26,11 +26,10 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	BL_FORT_PROC_CALL(FLAME_WIDTH_TEMP,flame_width_temp)
-            (BL_TO_FORTRAN_3D(fab),
-	     ARLIM_3D(lo),ARLIM_3D(hi),
-	     ZFILL(dx),&time,
-	     &T_max, &T_min, &grad_T_max);
+	flame_width_temp(BL_TO_FORTRAN_3D(fab),
+			 ARLIM_3D(lo),ARLIM_3D(hi),
+			 ZFILL(dx),&time,
+			 &T_max, &T_min, &grad_T_max);
     }
 
     delete mf;
@@ -63,11 +62,10 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	BL_FORT_PROC_CALL(FLAME_SPEED_DATA,flame_speed_data)
-            (BL_TO_FORTRAN_3D(fab),
-	     ARLIM_3D(lo),ARLIM_3D(hi),
-	     ZFILL(dx),
-	     &rho_fuel_dot_temp);
+	flame_speed_data(BL_TO_FORTRAN_3D(fab),
+			 ARLIM_3D(lo),ARLIM_3D(hi),
+			 ZFILL(dx),
+			 &rho_fuel_dot_temp);
     }
 
     rho_fuel_dot += rho_fuel_dot_temp;

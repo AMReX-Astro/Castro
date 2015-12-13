@@ -46,7 +46,7 @@ end subroutine problem_restart
 
 subroutine flame_width_temp(temp, t_lo, t_hi, &
                             lo, hi, dx, time, &
-                            T_max, T_min, grad_T_max)
+                            T_max, T_min, grad_T_max) bind(C)
 
   use bl_constants_module
 
@@ -102,7 +102,7 @@ end subroutine flame_width_temp
 
 subroutine flame_speed_data(omegadot, od_lo, od_hi, &
                             lo, hi, dx, &
-                            rho_X_dot)
+                            rho_X_dot) bind(C)
 
   use bl_constants_module
 
