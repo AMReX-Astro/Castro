@@ -69,7 +69,6 @@ BL_FORT_PROC_DECL(SET_GRID_INFO,set_grid_info)
 
 BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
 BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);
-BL_FORT_PROC_DECL(UPDATE_SPONGE_PARAMS,update_sponge_params)(const Real* time);
 
 #ifdef DIMENSION_AGNOSTIC
 
@@ -458,15 +457,20 @@ BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
      const Real& dt);
 #endif
 
-BL_FORT_PROC_DECL(CA_SPONGE,ca_sponge)
+extern "C"
+{
+  
+  void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);
 
+  void update_sponge_params(const Real* time);  
+  
 #ifdef GRAVITY
 
-BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
+  void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi),
@@ -476,7 +480,7 @@ BL_FORT_PROC_DECL(CA_GSRC,ca_gsrc)
      const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
 
-BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
+  void ca_corrgsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi_old),
@@ -492,22 +496,31 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
+  void ca_syncgsrc
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(gPhi),
+     const BL_FORT_FAB_ARG_3D(gdPhi),
+     const BL_FORT_FAB_ARG_3D(S),
+     const BL_FORT_FAB_ARG_3D(dS),
+     BL_FORT_FAB_ARG_3D(src),
+     const Real& dt);  
+  
 #endif
 
 #ifdef ROTATION
 
-BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_POTENTIAL,ca_fill_rotational_potential)
+  void ca_fill_rotational_potential
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),
      const Real* dx, const Real& time);
 
-BL_FORT_PROC_DECL(CA_FILL_ROTATIONAL_ACCELERATION,ca_fill_rotational_acceleration)
+  void ca_fill_rotational_acceleration
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, const Real& time);
 
-BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
+  void ca_rsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi),
@@ -517,7 +530,7 @@ BL_FORT_PROC_DECL(CA_RSRC,ca_rsrc)
      const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);
 
-BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
+  void ca_corrrsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi_old),
@@ -535,6 +548,8 @@ BL_FORT_PROC_DECL(CA_CORRRSRC,ca_corrrsrc)
 
 #endif
 
+}
+  
 BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(S_new), 
@@ -548,15 +563,6 @@ BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
      const int lo[], const int hi[], 
      const int& verbose, const int& is_old, const Real& dt);
 #endif
-
-BL_FORT_PROC_DECL(CA_SYNCGSRC,ca_syncgsrc)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(gPhi),
-     const BL_FORT_FAB_ARG_3D(gdPhi),
-     const BL_FORT_FAB_ARG_3D(S),
-     const BL_FORT_FAB_ARG_3D(dS),
-     BL_FORT_FAB_ARG_3D(src),
-     const Real& dt);
 
 BL_FORT_PROC_DECL(CA_SUMMASS,ca_summass)
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),

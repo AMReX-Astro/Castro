@@ -454,7 +454,7 @@ Castro::advance_hydro (Real time,
     // Permit the user to update the sponge parameters as a function of time.
 
     if (do_sponge)
-      BL_FORT_PROC_CALL(UPDATE_SPONGE_PARAMS,update_sponge_params)(&time);
+      update_sponge_params(&time);
 
     // Set up the time-rate of change of the source terms.
     
@@ -589,15 +589,14 @@ Castro::advance_hydro (Real time,
 
 #ifdef GRAVITY
 		    if (do_grav)
-		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			 BL_TO_FORTRAN_3D(phi_old[mfi]),
-			 BL_TO_FORTRAN_3D(grav_old[mfi]),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 ZFILL(dx),dt,&time,
-			 E_added_grav,mom_added);
+		      ca_gsrc(ARLIM_3D(lo), ARLIM_3D(hi),
+			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+			      BL_TO_FORTRAN_3D(phi_old[mfi]),
+			      BL_TO_FORTRAN_3D(grav_old[mfi]),
+			      BL_TO_FORTRAN_3D(stateold),
+			      BL_TO_FORTRAN_3D(stateout),
+			      ZFILL(dx),dt,&time,
+			      E_added_grav,mom_added);
 #endif		    
 
 		    for (int dir = 0; dir < 3; dir++)
@@ -609,15 +608,14 @@ Castro::advance_hydro (Real time,
 		    
 #ifdef ROTATION		    
 		    if (do_rotation)
-		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			 BL_TO_FORTRAN_3D(rot_old[mfi]),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 ZFILL(dx),dt,&time,
-			 E_added_rot,mom_added);		    
+		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
+			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+			      BL_TO_FORTRAN_3D(phirot_old[mfi]),
+			      BL_TO_FORTRAN_3D(rot_old[mfi]),
+			      BL_TO_FORTRAN_3D(stateold),
+			      BL_TO_FORTRAN_3D(stateout),
+			      ZFILL(dx),dt,&time,
+			      E_added_rot,mom_added);		    
 #endif
 
 		    for (int dir = 0; dir < 3; dir++)
@@ -626,10 +624,9 @@ Castro::advance_hydro (Real time,
 		    Real E_added_sponge = 0.0;
 		    
 		    if (do_sponge)
-		      BL_FORT_PROC_CALL(CA_SPONGE,ca_sponge)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
-			 E_added_sponge,mom_added);
+		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
+				BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
+				E_added_sponge,mom_added);
 
 		    if (radiation->do_inelastic_scattering) {
 			BL_FORT_PROC_CALL(CA_INELASTIC_SCT, ca_inelastic_sct)
@@ -815,15 +812,14 @@ Castro::advance_hydro (Real time,
 
 #ifdef GRAVITY
 		    if (do_grav)
-		      BL_FORT_PROC_CALL(CA_GSRC,ca_gsrc)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			 BL_TO_FORTRAN_3D(phi_old[mfi]),
-			 BL_TO_FORTRAN_3D(grav_old[mfi]),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 ZFILL(dx),dt,&time,
-			 E_added_grav,mom_added);
+		      ca_gsrc(ARLIM_3D(lo), ARLIM_3D(hi),
+			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+			      BL_TO_FORTRAN_3D(phi_old[mfi]),
+			      BL_TO_FORTRAN_3D(grav_old[mfi]),
+			      BL_TO_FORTRAN_3D(stateold),
+			      BL_TO_FORTRAN_3D(stateout),
+			      ZFILL(dx),dt,&time,
+			      E_added_grav,mom_added);
 #endif
 
 		    xmom_added_grav += mom_added[0];
@@ -837,16 +833,14 @@ Castro::advance_hydro (Real time,
 
 #ifdef ROTATION
 		    if (do_rotation)
-		      BL_FORT_PROC_CALL(CA_RSRC,ca_rsrc)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			 BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			 BL_TO_FORTRAN_3D(rot_old[mfi]),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 ZFILL(dx),dt,&time,
-			 E_added_rot,mom_added);
-
+		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
+			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+			      BL_TO_FORTRAN_3D(phirot_old[mfi]),
+			      BL_TO_FORTRAN_3D(rot_old[mfi]),
+			      BL_TO_FORTRAN_3D(stateold),
+			      BL_TO_FORTRAN_3D(stateout),
+			      ZFILL(dx),dt,&time,
+			      E_added_rot,mom_added);
 #endif
 
 		    xmom_added_rot += mom_added[0];
@@ -857,10 +851,9 @@ Castro::advance_hydro (Real time,
 			 mom_added[dir] = 0.0;
 
 		    if (do_sponge)
-		      BL_FORT_PROC_CALL(CA_SPONGE,ca_sponge)
-			(ARLIM_3D(lo), ARLIM_3D(hi),
-			 BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
-			 E_added_sponge,mom_added);
+		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
+				BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
+				E_added_sponge,mom_added);
 
 		    xmom_added_sponge += mom_added[0];
 		    ymom_added_sponge += mom_added[1];
@@ -1261,21 +1254,20 @@ Castro::advance_hydro (Real time,
 		
 		Real mom_added[3] = { 0.0 };
 
-		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
-		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		     ARLIM_3D(domlo), ARLIM_3D(domhi),
-		     BL_TO_FORTRAN_3D(phi_old[mfi]),
-		     BL_TO_FORTRAN_3D(phi_new[mfi]),
-		     BL_TO_FORTRAN_3D(grav_old[mfi]),
-		     BL_TO_FORTRAN_3D(grav_new[mfi]),
-		     BL_TO_FORTRAN_3D(S_old[mfi]),
-		     BL_TO_FORTRAN_3D(S_new[mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,&cur_time,
-		     BL_TO_FORTRAN_3D(volume[mfi]),
-		     E_added, mom_added);
+		ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			    ARLIM_3D(domlo), ARLIM_3D(domhi),
+			    BL_TO_FORTRAN_3D(phi_old[mfi]),
+			    BL_TO_FORTRAN_3D(phi_new[mfi]),
+			    BL_TO_FORTRAN_3D(grav_old[mfi]),
+			    BL_TO_FORTRAN_3D(grav_new[mfi]),
+			    BL_TO_FORTRAN_3D(S_old[mfi]),
+			    BL_TO_FORTRAN_3D(S_new[mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			    ZFILL(dx),dt,&cur_time,
+			    BL_TO_FORTRAN_3D(volume[mfi]),
+			    E_added, mom_added);
 
 		xmom_added += mom_added[0];
 		ymom_added += mom_added[1];
@@ -1360,21 +1352,20 @@ Castro::advance_hydro (Real time,
 
 		Real mom_added[3] = { 0.0 };
 
-		BL_FORT_PROC_CALL(CA_CORRRSRC,ca_corrrsrc)
-		    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		     ARLIM_3D(domlo), ARLIM_3D(domhi),
-		     BL_TO_FORTRAN_3D(phirot_old[mfi]),
-		     BL_TO_FORTRAN_3D(phirot_new[mfi]),
-		     BL_TO_FORTRAN_3D(rot_old[mfi]),
-		     BL_TO_FORTRAN_3D(rot_new[mfi]),
-		     BL_TO_FORTRAN_3D(S_old[mfi]),
-		     BL_TO_FORTRAN_3D(S_new[mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-		     BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-		     ZFILL(dx),dt,&cur_time,
-		     BL_TO_FORTRAN_3D(volume[mfi]),
-		     E_added,mom_added);
+		ca_corrrsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			    ARLIM_3D(domlo), ARLIM_3D(domhi),
+			    BL_TO_FORTRAN_3D(phirot_old[mfi]),
+			    BL_TO_FORTRAN_3D(phirot_new[mfi]),
+			    BL_TO_FORTRAN_3D(rot_old[mfi]),
+			    BL_TO_FORTRAN_3D(rot_new[mfi]),
+			    BL_TO_FORTRAN_3D(S_old[mfi]),
+			    BL_TO_FORTRAN_3D(S_new[mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			    ZFILL(dx),dt,&cur_time,
+			    BL_TO_FORTRAN_3D(volume[mfi]),
+			    E_added,mom_added);
 
 		xmom_added += mom_added[0];
 		ymom_added += mom_added[1];

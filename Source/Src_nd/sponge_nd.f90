@@ -1,11 +1,17 @@
+module sponge_module
 
-  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added)
+  implicit none
+
+  double precision, save :: sponge_lower_radius, sponge_upper_radius
+  double precision, save :: sponge_lower_density, sponge_upper_density
+  double precision, save :: sponge_timescale  
+
+contains
+
+  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added) bind(C)
 
     use prob_params_module,   only: problo, center, probhi
     use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
-    use sponge_params_module, only: sponge_lower_radius, sponge_upper_radius, &
-                                    sponge_lower_density, sponge_upper_density, &
-                                    sponge_timescale
     use bl_constants_module,  only: ZERO, HALF, ONE, M_PI
     
     implicit none
@@ -111,3 +117,5 @@
     enddo
 
   end subroutine ca_sponge
+
+end module sponge_module

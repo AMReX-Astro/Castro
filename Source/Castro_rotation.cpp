@@ -19,10 +19,9 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
       const Box& bx = mfi.growntilebox(ng);
 
-      BL_FORT_PROC_CALL(CA_FILL_ROTATIONAL_POTENTIAL,ca_fill_rotational_potential)
-		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
-		 BL_TO_FORTRAN_3D(phi[mfi]),
-		 ZFILL(dx),time);
+      ca_fill_rotational_potential(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+				   BL_TO_FORTRAN_3D(phi[mfi]),
+				   ZFILL(dx),time);
 
     }
 
@@ -41,11 +40,10 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
       const Box& bx = mfi.growntilebox(ng);
 
-      BL_FORT_PROC_CALL(CA_FILL_ROTATIONAL_ACCELERATION,ca_fill_rotational_acceleration)
-		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
-		 BL_TO_FORTRAN_3D(rot[mfi]),
-		 BL_TO_FORTRAN_3D(state[mfi]),
-		 ZFILL(dx),time);
+      ca_fill_rotational_acceleration(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+				      BL_TO_FORTRAN_3D(rot[mfi]),
+				      BL_TO_FORTRAN_3D(state[mfi]),
+				      ZFILL(dx),time);
 
     }
 

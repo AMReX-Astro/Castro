@@ -1484,14 +1484,13 @@ Castro::post_timestep (int iteration)
 		      
 		      // Compute sync source
 		      sync_src.resize(bx,3+1);
-		      BL_FORT_PROC_CALL(CA_SYNCGSRC,ca_syncgsrc)
-			  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			   BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
-			   BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
-			   BL_TO_FORTRAN_3D(S_new_lev[mfi]),
-			   BL_TO_FORTRAN_3D(dstate),
-			   BL_TO_FORTRAN_3D(sync_src),
-			   dt_lev);
+		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
+				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
+				  BL_TO_FORTRAN_3D(S_new_lev[mfi]),
+				  BL_TO_FORTRAN_3D(dstate),
+				  BL_TO_FORTRAN_3D(sync_src),
+				  dt_lev);
 
 		      sync_src.mult(0.5*dt_lev);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);

@@ -3,9 +3,9 @@
 ! By default it does nothing, meaning that the probin
 ! parameters are used.
 
-subroutine update_sponge_params(time)
+subroutine update_sponge_params(time) bind(C)
 
-  use sponge_params_module
+  use sponge_module
 
   implicit none
   

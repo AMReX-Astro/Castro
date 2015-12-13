@@ -1,5 +1,14 @@
+module rotation_sources_module
+
+  implicit none
+
+  public
+
+contains
+
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
+                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
+                     E_added,mom_added) bind(C)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
@@ -85,8 +94,7 @@
 
 
 
-  subroutine ca_corrrsrc(lo,hi, &
-                         domlo,domhi, &
+  subroutine ca_corrrsrc(lo,hi,domlo,domhi, &
                          pold,po_lo,po_hi, &
                          pnew,pn_lo,pn_hi, &
                          rold,ro_lo,ro_hi, &
@@ -98,7 +106,7 @@
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
                          vol,vol_lo,vol_hi, &
-                         E_added,mom_added)
+                         E_added,mom_added) bind(C)
 
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
@@ -176,10 +184,10 @@
     ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
     ! 3: Puts all work into KE, not (rho e)
     ! 4: Conservative rotation approach (discussed in first white dwarf merger paper)
-    
+
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
-    
+
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )
 
@@ -201,7 +209,7 @@
        enddo
 
        dt_omega = dt * omega_new
-       
+
        dt_omega_matrix(1,1) = ONE + dt_omega(1)**2
        dt_omega_matrix(1,2) = dt_omega(1) * dt_omega(2) + dt_omega(3)
        dt_omega_matrix(1,3) = dt_omega(1) * dt_omega(3) - dt_omega(2)
@@ -215,7 +223,7 @@
        dt_omega_matrix(3,3) = ONE + dt_omega(3)**2
 
        dt_omega_matrix = dt_omega_matrix / (ONE + dt_omega(1)**2 + dt_omega(2)**2 + dt_omega(3)**2)
-       
+
     endif
 
     do k = lo(3), hi(3)
@@ -264,7 +272,7 @@
 
              if (rot_source_type == 1) then
 
-               ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
+                ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
 
@@ -299,14 +307,14 @@
                 ! Equations 25 and 26 in the wdmerger paper.
 
                 unew(i,j,k,UMX:UMZ) = matmul(dt_omega_matrix, unew(i,j,k,UMX:UMZ))
-                
+
                 ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
                 ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
                 unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
-                                    + HALF * dt * r * omega_new**2 * rhon &
-                                    - HALF * dt * r * omega_old**2 * rhoo
-                
+                     + HALF * dt * r * omega_new**2 * rhon &
+                     - HALF * dt * r * omega_old**2 * rhoo
+
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, rho * phi.
                 ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
@@ -323,31 +331,31 @@
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
                 ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
                 ! get the density change (flux * dt * dA / dV).
-                
+
                 SrEcorr = - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
+                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
 
                 ! Now normalize by the volume of this cell to get the specific energy change.                
-                
+
                 SrEcorr = SrEcorr / vol(i,j,k)
-                
+
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
 
                 Sr_old = - rhoo * cross_product(domegadt_old, r)
                 Sr_new = - rhon * cross_product(domegadt_new, r)
-               
+
                 unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
 
                 vnew = unew(i,j,k,UMX:UMZ) / rhon
-                                
+
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
-                
+
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
              end if
@@ -370,7 +378,6 @@
        call bl_deallocate(phi)
     endif
 
-    end subroutine ca_corrrsrc
+  end subroutine ca_corrrsrc
 
-
-
+end module rotation_sources_module
