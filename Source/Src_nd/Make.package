@@ -7,7 +7,6 @@ f90EXE_sources += set_castro_params.f90
 f90EXE_sources += meth_params.f90
 f90EXE_sources += prob_params.f90
 f90EXE_sources += tagging_params.f90
-F90EXE_sources += sponge_params.F90
 F90EXE_sources += update_sponge_params.F90
 
 f90EXE_sources += interpolate.f90

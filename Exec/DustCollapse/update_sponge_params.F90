@@ -1,6 +1,6 @@
-subroutine update_sponge_params(time)
+subroutine update_sponge_params(time) bind(C)
 
-  use sponge_params_module
+  use sponge_module
   use probdata_module, only: r_old_s
   use bl_error_module, only: bl_error
 

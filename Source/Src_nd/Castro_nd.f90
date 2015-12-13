@@ -678,7 +678,7 @@
 
       subroutine get_sponge_params(name, namlen)
 
-        use sponge_params_module
+        use sponge_module
 
         ! Initialize the sponge parameters
 
