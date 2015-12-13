@@ -573,25 +573,35 @@ BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
      const int& verbose, const int& is_old, const Real& dt);
 #endif
 
-BL_FORT_PROC_DECL(CA_SUMMASS,ca_summass)
+extern "C"
+{
+  
+  void ca_summass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
-BL_FORT_PROC_DECL(CA_SUMSQUARED,ca_sumsquared)
+  
+  void ca_sumsquared
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
-BL_FORT_PROC_DECL(CA_SUMLOCMASS,ca_sumlocmass)
+  
+  void ca_sumlocmass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
-BL_FORT_PROC_DECL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
+  
+  void ca_sumlocmass2d
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir1, const int& idir2);
-BL_FORT_PROC_DECL(CA_SUMLOCSQUAREDMASS,ca_sumlocsquaredmass)
+  
+  void ca_sumlocsquaredmass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
-     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir); 
-BL_FORT_PROC_DECL(CA_SUMPRODUCT,ca_sumproduct)
+     const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
+  
+  void ca_sumproduct
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
 
+}
+  
 BL_FORT_PROC_DECL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
     (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);
 

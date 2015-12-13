@@ -79,9 +79,8 @@ Castro::volWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-	   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
 
         sum += s;
     }
@@ -130,9 +129,8 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	BL_FORT_PROC_CALL(CA_SUMSQUARED,ca_sumsquared)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+	ca_sumsquared(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+		      ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
 
         sum += s;
     }
@@ -182,9 +180,8 @@ Castro::locWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
+	ca_sumlocmass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+		      ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
 
         sum += s;
     }
@@ -235,9 +232,8 @@ Castro::locWgtSum2D (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	BL_FORT_PROC_CALL(CA_SUMLOCMASS2D,ca_sumlocmass2d)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir1,idir2);
+	ca_sumlocmass2d(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+			ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir1,idir2);
 
         sum += s;
     }
@@ -277,9 +273,8 @@ Castro::volWgtSumMF (MultiFab* mf, int comp, bool local)
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_N_3D(fab,comp),
-	   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_N_3D(fab,comp),
+		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
 
         sum += s;
     }
@@ -371,9 +366,8 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-          BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-   	      (ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
-               ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+          ca_summass(ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
+		     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
 
         }
         
@@ -470,9 +464,8 @@ Castro::locWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-          BL_FORT_PROC_CALL(CA_SUMLOCMASS,ca_sumlocmass)
-	      (ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
-	       ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
+          ca_sumlocmass(ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
+			ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
 
         }
      
@@ -524,9 +517,8 @@ Castro::volProductSum (const std::string& name1,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	BL_FORT_PROC_CALL(CA_SUMPRODUCT,ca_sumproduct)
-	  (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab1),
-	   BL_TO_FORTRAN_3D(fab2),ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+	ca_sumproduct(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab1),
+		      BL_TO_FORTRAN_3D(fab2),ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
         
         sum += s;
     }
@@ -572,9 +564,8 @@ Castro::locSquaredSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	BL_FORT_PROC_CALL(CA_SUMLOCSQUAREDMASS,ca_sumlocsquaredmass)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-	     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
+	ca_sumlocsquaredmass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+			     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s,idir);
 
         sum += s;
     }

@@ -11,7 +11,7 @@ F90EXE_sources += update_sponge_params.F90
 
 f90EXE_sources += interpolate.f90
 
-f90EXE_sources += Castro_sums_nd.f90
+F90EXE_sources += Castro_sums_nd.F90
 F90EXE_sources += timestep.F90
 F90EXE_sources += Derive_nd.F90
 F90EXE_sources += problem_derive_nd.F90

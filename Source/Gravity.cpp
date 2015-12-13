@@ -2367,8 +2367,8 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-	BL_FORT_PROC_CALL(CA_SUMMASS,ca_summass)
-	    (ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),dx,BL_TO_FORTRAN_3D(volume[level][mfi]),&s);
+	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
+		   dx,BL_TO_FORTRAN_3D(volume[level][mfi]),&s);
         sum += s;
     }
 
