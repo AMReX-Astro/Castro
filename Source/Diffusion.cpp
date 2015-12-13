@@ -182,19 +182,18 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 	       const Box ybx = mfi.nodaltilebox(1);,
 	       const Box zbx = mfi.nodaltilebox(2);)
         // Modify Rhs and coeffs with the appropriate metric terms.
-        BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
-            (bx.loVect(), bx.hiVect(),
-	     D_DECL(xbx.loVect(),
-		    ybx.loVect(),
-		    zbx.loVect()),
-	     D_DECL(xbx.hiVect(),
-		    ybx.hiVect(),
-		    zbx.hiVect()),
-             BL_TO_FORTRAN(Rhs[mfi]),
-             D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
-                    BL_TO_FORTRAN(coeffs[1][mfi]),
-                    BL_TO_FORTRAN(coeffs[2][mfi])),
-                    dx,&coord_type);
+        ca_apply_metric(bx.loVect(), bx.hiVect(),
+			D_DECL(xbx.loVect(),
+			       ybx.loVect(),
+			       zbx.loVect()),
+			D_DECL(xbx.hiVect(),
+			       ybx.hiVect(),
+			       zbx.hiVect()),
+			BL_TO_FORTRAN(Rhs[mfi]),
+			D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
+			       BL_TO_FORTRAN(coeffs[1][mfi]),
+			       BL_TO_FORTRAN(coeffs[2][mfi])),
+			dx,&coord_type);
     }
 }
 #endif
@@ -211,9 +210,8 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        BL_FORT_PROC_CALL(CA_WEIGHT_CC,ca_weight_cc)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+        ca_weight_cc(bx.loVect(), bx.hiVect(),
+		     BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
     }
 }
 
@@ -228,9 +226,8 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+        ca_unweight_cc(bx.loVect(), bx.hiVect(),
+		       BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
     }
 }
 #endif

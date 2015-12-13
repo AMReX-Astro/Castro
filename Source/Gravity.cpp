@@ -168,7 +168,7 @@ Gravity::read_params ()
         pp.query("delta_tol",delta_tol);
 
         Real Gconst;
-        BL_FORT_PROC_CALL(GET_GRAV_CONST, get_grav_const)(&Gconst);
+        get_grav_const(&Gconst);
         Ggravity = -4.0 * M_PI * Gconst;
         if (verbose > 0 && ParallelDescriptor::IOProcessor())
         {
@@ -1071,13 +1071,12 @@ Gravity::test_level_grad_phi_prev(int level)
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
-        BL_FORT_PROC_CALL(CA_TEST_RESIDUAL,ca_test_residual)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(Rhs[mfi]),
-             D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
-                    BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
-                    BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
-                    dx,problo,&coord_type);
+        ca_test_residual(bx.loVect(), bx.hiVect(),
+			 BL_TO_FORTRAN(Rhs[mfi]),
+			 D_DECL(BL_TO_FORTRAN(grad_phi_prev[level][0][mfi]),
+				BL_TO_FORTRAN(grad_phi_prev[level][1][mfi]),
+				BL_TO_FORTRAN(grad_phi_prev[level][2][mfi])),
+			 dx,problo,&coord_type);
     }
     if (verbose) {
        Real resnorm = Rhs.norm0();
@@ -1141,13 +1140,12 @@ Gravity::test_level_grad_phi_curr(int level)
         // Test whether using the edge-based gradients
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
-        BL_FORT_PROC_CALL(CA_TEST_RESIDUAL,ca_test_residual)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(Rhs[mfi]),
-             D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
-                    BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
-                    BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
-                    dx,problo,&coord_type);
+        ca_test_residual(bx.loVect(), bx.hiVect(),
+			 BL_TO_FORTRAN(Rhs[mfi]),
+			 D_DECL(BL_TO_FORTRAN(grad_phi_curr[level][0][mfi]),
+				BL_TO_FORTRAN(grad_phi_curr[level][1][mfi]),
+				BL_TO_FORTRAN(grad_phi_curr[level][2][mfi])),
+			 dx,problo,&coord_type);
     }
     if (verbose) {
        Real resnorm = Rhs.norm0();
@@ -1461,10 +1459,9 @@ Gravity::fill_ec_grow (int level,
             const int  nComp = 1;
             const Box& box   = crse_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
-            BL_FORT_PROC_CALL(CA_PC_EDGE_INTERP,ca_pc_edge_interp)
-                (box.loVect(), box.hiVect(), &nComp, rat, &n,
-                 BL_TO_FORTRAN(crse_src[mfi]),
-                 BL_TO_FORTRAN(fine_src[mfi]));
+            ca_pc_edge_interp(box.loVect(), box.hiVect(), &nComp, rat, &n,
+			      BL_TO_FORTRAN(crse_src[mfi]),
+			      BL_TO_FORTRAN(fine_src[mfi]));
         }
 
         crse_src.clear();
@@ -1488,9 +1485,9 @@ Gravity::fill_ec_grow (int level,
             const int  nComp = 1;
             const Box& fbox  = fine_src[mfi].box();
             const int* rat   = crse_ratio.getVect();
-            BL_FORT_PROC_CALL(CA_EDGE_INTERP,ca_edge_interp)
-                (fbox.loVect(), fbox.hiVect(), &nComp, rat, &n,
-                 BL_TO_FORTRAN(fine_src[mfi]));
+            ca_edge_interp(fbox.loVect(), fbox.hiVect(),
+			   &nComp, rat, &n,
+			   BL_TO_FORTRAN(fine_src[mfi]));
         }
 
 	ecF[n].copy(fine_src, 0, 0, 1, 0, ecF[n].nGrow()); // parallel copy
@@ -1546,8 +1543,7 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
    for (FillPatchIterator fpi(*amrlev,mf,0,time,State_Type,Density,nvar); 
         fpi.isValid(); ++fpi) 
    {
-      BL_FORT_PROC_CALL(CA_COMPUTE_1D_GR_GRAV,ca_compute_1d_gr_grav)
-          (BL_TO_FORTRAN(fpi()),grav_fab.dataPtr(),dx,problo);
+      ca_compute_1d_gr_grav(BL_TO_FORTRAN(fpi()),grav_fab.dataPtr(),dx,problo);
    }
 #else
    // Fill density, interpolated from coarser levels where needed,
@@ -1555,8 +1551,7 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
    for (FillPatchIterator fpi(*amrlev,mf,0,time,State_Type,Density,1); 
         fpi.isValid(); ++fpi) 
    {
-      BL_FORT_PROC_CALL(CA_COMPUTE_1D_GRAV,ca_compute_1d_grav)
-	(BL_TO_FORTRAN(fpi()),lo,hi,grav_fab.dataPtr(),phi_fab.dataPtr(),dx,problo);
+      ca_compute_1d_grav(BL_TO_FORTRAN(fpi()),lo,hi,grav_fab.dataPtr(),phi_fab.dataPtr(),dx,problo);
    }
 #endif
 
@@ -1600,10 +1595,8 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       BL_FORT_PROC_CALL(CA_PRESCRIBE_GRAV,ca_prescribe_grav)
-	   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-            BL_TO_FORTRAN_3D(grav_vector[mfi]),
-	    dx);
+       ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			 BL_TO_FORTRAN_3D(grav_vector[mfi]),dx);
     }
 
     if (verbose)
@@ -1638,11 +1631,10 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       BL_FORT_PROC_CALL(CA_PUT_RADIAL_GRAV,ca_put_radial_grav)
-	   (bx.loVect(),bx.hiVect(),dx,&dr,
-            BL_TO_FORTRAN(grav_vector[mfi]),
-            radial_grav.dataPtr(),geom.ProbLo(),
-            &n1d,&level);
+       ca_put_radial_grav(bx.loVect(),bx.hiVect(),dx,&dr,
+			  BL_TO_FORTRAN(grav_vector[mfi]),
+			  radial_grav.dataPtr(),geom.ProbLo(),
+			  &n1d,&level);
     }
 }
 #endif
@@ -1688,15 +1680,16 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx =mfi.tilebox();
-	    BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-		(bx.loVect(), bx.hiVect(),dx,&dr,
-		 BL_TO_FORTRAN(Rhs[mfi]), 
+	    ca_compute_radial_mass(bx.loVect(), bx.hiVect(),dx,&dr,
+				   BL_TO_FORTRAN(Rhs[mfi]), 
 #ifdef _OPENMP
-		 priv_radial_mass[tid].dataPtr(), priv_radial_vol[tid].dataPtr(),
+				   priv_radial_mass[tid].dataPtr(),
+				   priv_radial_vol[tid].dataPtr(),
 #else
-		 radial_mass.dataPtr(), radial_vol.dataPtr(),
+				   radial_mass.dataPtr(),
+				   radial_vol.dataPtr(),
 #endif
-		 geom.ProbLo(),&n1d,&drdxfac,&level);
+				   geom.ProbLo(),&n1d,&drdxfac,&level);
 	}
 
 #ifdef _OPENMP
@@ -1714,8 +1707,8 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
 
     // Integrate radially outward to define the gravity
-    BL_FORT_PROC_CALL(CA_INTEGRATE_PHI,ca_integrate_phi)
-        (radial_mass.dataPtr(),radial_grav.dataPtr(),radial_phi.dataPtr(),&dr,&n1d);
+    ca_integrate_phi(radial_mass.dataPtr(),radial_grav.dataPtr(),
+		     radial_phi.dataPtr(),&dr,&n1d);
 
     Box domain(parent->Geom(level).Domain());
 #ifdef _OPENMP
@@ -1724,12 +1717,11 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        BL_FORT_PROC_CALL(CA_PUT_RADIAL_PHI,ca_put_radial_phi)
-            (bx.loVect(), bx.hiVect(),
-             domain.loVect(), domain.hiVect(),
-             dx,&dr, BL_TO_FORTRAN(phi[mfi]),
-             radial_phi.dataPtr(),geom.ProbLo(),
-             &n1d,&fill_interior);
+        ca_put_radial_phi(bx.loVect(), bx.hiVect(),
+			  domain.loVect(), domain.hiVect(),
+			  dx,&dr, BL_TO_FORTRAN(phi[mfi]),
+			  radial_phi.dataPtr(),geom.ProbLo(),
+			  &n1d,&fill_interior);
     }
 
     if (verbose)
@@ -1839,19 +1831,21 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    BL_FORT_PROC_CALL(CA_COMPUTE_MULTIPOLE_MOMENTS,ca_compute_multipole_moments)
-		(bx.loVect(), bx.hiVect(), domain.loVect(), domain.hiVect(), 
-		 &symmetry_type,lo_bc,hi_bc,
-		 dx,BL_TO_FORTRAN(Rhs[mfi]),
-		 &lnum,
+	    ca_compute_multipole_moments(bx.loVect(), bx.hiVect(),
+					 domain.loVect(), domain.hiVect(), 
+					 &symmetry_type,lo_bc,hi_bc,
+					 dx,BL_TO_FORTRAN(Rhs[mfi]),
+					 &lnum,
 #ifdef _OPENMP
-		 priv_qL0[tid].dataPtr(),priv_qLC[tid].dataPtr(),priv_qLS[tid].dataPtr(),
-		 priv_qU0[tid].dataPtr(),priv_qUC[tid].dataPtr(),priv_qUS[tid].dataPtr(),
+					 priv_qL0[tid].dataPtr(),
+					 priv_qLC[tid].dataPtr(),priv_qLS[tid].dataPtr(),
+					 priv_qU0[tid].dataPtr(),
+					 priv_qUC[tid].dataPtr(),priv_qUS[tid].dataPtr(),
 #else
-		 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-		 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+					 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+					 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 #endif
-		 &numpts_at_level,&boundary_only);
+					 &numpts_at_level,&boundary_only);
 
 	}
 
@@ -1939,14 +1933,13 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        BL_FORT_PROC_CALL(CA_PUT_MULTIPOLE_PHI,ca_put_multipole_phi)
-            (bx.loVect(), bx.hiVect(),
-             domain.loVect(), domain.hiVect(),
-             dx, BL_TO_FORTRAN(phi[mfi]),
-             &lnum,
-	     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-	     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-	     &numpts_at_level,&boundary_only);
+        ca_put_multipole_phi(bx.loVect(), bx.hiVect(),
+			     domain.loVect(), domain.hiVect(),
+			     dx, BL_TO_FORTRAN(phi[mfi]),
+			     &lnum,
+			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+			     &numpts_at_level,&boundary_only);
     }
 
     if (verbose)
@@ -2066,21 +2059,23 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box bx = mfi.tilebox();
-	    BL_FORT_PROC_CALL(CA_COMPUTE_DIRECT_SUM_BC,ca_compute_direct_sum_bc)
-		(bx.loVect(), bx.hiVect(), domlo, domhi, 
-		 &symmetry_type,lo_bc,hi_bc,
-		 dx,BL_TO_FORTRAN(Rhs[mfi]),
-		 geom.ProbLo(),geom.ProbHi(),
+	    ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), domlo, domhi, 
+				     &symmetry_type,lo_bc,hi_bc,
+				     dx,BL_TO_FORTRAN(Rhs[mfi]),
+				     geom.ProbLo(),geom.ProbHi(),
 #ifdef _OPENMP
-		 priv_bcXYLo[tid].dataPtr(), priv_bcXYHi[tid].dataPtr(),
-		 priv_bcXZLo[tid].dataPtr(), priv_bcXZHi[tid].dataPtr(),
-		 priv_bcYZLo[tid].dataPtr(), priv_bcYZHi[tid].dataPtr()
+				     priv_bcXYLo[tid].dataPtr(),
+				     priv_bcXYHi[tid].dataPtr(),
+				     priv_bcXZLo[tid].dataPtr(),
+				     priv_bcXZHi[tid].dataPtr(),
+				     priv_bcYZLo[tid].dataPtr(),
+				     priv_bcYZHi[tid].dataPtr()
 #else
-		 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-		 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-		 bcYZLo.dataPtr(), bcYZHi.dataPtr()
+				     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+				     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+				     bcYZLo.dataPtr(), bcYZHi.dataPtr()
 #endif
-		    );
+				     );
 	}
 
 #ifdef _OPENMP
@@ -2139,12 +2134,11 @@ Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx= mfi.growntilebox();
-        BL_FORT_PROC_CALL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
-            (bx.loVect(), bx.hiVect(), domlo, domhi,
-             BL_TO_FORTRAN(phi[mfi]),
-             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-             bcYZLo.dataPtr(), bcYZHi.dataPtr());
+        ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(), domlo, domhi,
+			     BL_TO_FORTRAN(phi[mfi]),
+			     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+			     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+			     bcYZLo.dataPtr(), bcYZHi.dataPtr());
     }
 
     if (verbose)
@@ -2182,19 +2176,18 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 	       const Box& ybx = mfi.nodaltilebox(1);,
 	       const Box& zbx = mfi.nodaltilebox(2););
         // Modify Rhs and coeffs with the appropriate metric terms.
-        BL_FORT_PROC_CALL(CA_APPLY_METRIC,ca_apply_metric)
-            (bx.loVect(), bx.hiVect(),
-	     D_DECL(xbx.loVect(),
-		    ybx.loVect(),
-		    zbx.loVect()),
-	     D_DECL(xbx.hiVect(),
-		    ybx.hiVect(),
-		    zbx.hiVect()),
-             BL_TO_FORTRAN(Rhs[mfi]),
-             D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
-                    BL_TO_FORTRAN(coeffs[1][mfi]),
-                    BL_TO_FORTRAN(coeffs[2][mfi])),
-                    dx,&coord_type);
+        ca_apply_metric(bx.loVect(), bx.hiVect(),
+			D_DECL(xbx.loVect(),
+			       ybx.loVect(),
+			       zbx.loVect()),
+			D_DECL(xbx.hiVect(),
+			       ybx.hiVect(),
+			       zbx.hiVect()),
+			BL_TO_FORTRAN(Rhs[mfi]),
+			D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
+			       BL_TO_FORTRAN(coeffs[1][mfi]),
+			       BL_TO_FORTRAN(coeffs[2][mfi])),
+			dx,&coord_type);
     }
 }
 
@@ -2209,9 +2202,8 @@ Gravity::unweight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        BL_FORT_PROC_CALL(CA_UNWEIGHT_CC,ca_unweight_cc)
-            (bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+        ca_unweight_cc(bx.loVect(), bx.hiVect(),
+		       BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
     }
 }
 
@@ -2227,10 +2219,9 @@ Gravity::unweight_edges(int level, PArray<MultiFab>& edges)
 	for (MFIter mfi(edges[idir],true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    BL_FORT_PROC_CALL(CA_UNWEIGHT_EDGES,ca_unweight_edges)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(edges[idir][mfi]),
-		 dx,&coord_type,&idir);
+	    ca_unweight_edges(bx.loVect(), bx.hiVect(),
+			      BL_TO_FORTRAN(edges[idir][mfi]),
+			      dx,&coord_type,&idir);
 	}
     }
 }
@@ -2334,9 +2325,8 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
    {
        const Box& bx = mfi.growntilebox();
-       BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
-	   (&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
-	    problo,dx,bx.loVect(),bx.hiVect());
+       pm_add_to_grav(&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
+		      problo,dx,bx.loVect(),bx.hiVect());
    }
 }
 #endif
@@ -2488,28 +2478,26 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 	        const Box& bx = mfi.tilebox();
 		FArrayBox& fab = S[mfi];
 		
-		BL_FORT_PROC_CALL(CA_COMPUTE_RADIAL_MASS,ca_compute_radial_mass)
-		    (bx.loVect(), bx.hiVect(), dx, &dr,
-                     BL_TO_FORTRAN(fab), 
+		ca_compute_radial_mass(bx.loVect(), bx.hiVect(), dx, &dr,
+				       BL_TO_FORTRAN(fab), 
 #ifdef _OPENMP
-                     priv_radial_mass[tid].dataPtr(), 
-                     priv_radial_vol[tid].dataPtr(), 
+				       priv_radial_mass[tid].dataPtr(),
+				       priv_radial_vol[tid].dataPtr(),
 #else
-                     radial_mass[lev].dataPtr(), 
-                     radial_vol[lev].dataPtr(), 
+				       radial_mass[lev].dataPtr(),
+				       radial_vol[lev].dataPtr(),
 #endif
-                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+				       geom.ProbLo(),&n1d,&drdxfac,&lev);
 		
 #ifdef GR_GRAV
-		BL_FORT_PROC_CALL(CA_COMPUTE_AVGPRES,ca_compute_avgpres)
-		    (bx.loVect(), bx.hiVect(),dx,&dr,
-                     BL_TO_FORTRAN(fab),
+		ca_compute_avgpres(bx.loVect(), bx.hiVect(),dx,&dr,
+				   BL_TO_FORTRAN(fab),
 #ifdef _OPENMP
-                     priv_radial_pres.dataPtr(),
+				   priv_radial_pres.dataPtr(),
 #else
-                     radial_pres[lev].dataPtr(),
+				   radial_pres[lev].dataPtr(),
 #endif
-                     geom.ProbLo(),&n1d,&drdxfac,&lev);
+				   geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
 	    }
 
@@ -2642,15 +2630,13 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
 
     // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
-    BL_FORT_PROC_CALL(CA_INTEGRATE_GR_GRAV,ca_integrate_gr_grav)
-        (radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
-         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
+    ca_integrate_gr_grav(radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
+			 radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
 
 #else
     // Integrate radially outward to define the gravity
-    BL_FORT_PROC_CALL(CA_INTEGRATE_GRAV,ca_integrate_grav)
-        (radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
-         radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d); 
+    ca_integrate_grav(radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
+		      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d); 
 #endif
    
     if (verbose)
