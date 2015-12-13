@@ -2282,12 +2282,11 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
    {
         Box bx(fpi.validbox());
         int i = fpi.index();
-        BL_FORT_PROC_CALL(CA_DEFINE_TAU,ca_define_tau)
-                 (bx.loVect(), bx.hiVect(),
-                  BL_TO_FORTRAN(tau_diff[fpi]),
-                  BL_TO_FORTRAN(fpi()),
-                  BL_TO_FORTRAN(grav_vector[fpi]),
-                  dx_fine);
+        ca_define_tau(bx.loVect(), bx.hiVect(),
+		      BL_TO_FORTRAN(tau_diff[fpi]),
+		      BL_TO_FORTRAN(fpi()),
+		      BL_TO_FORTRAN(grav_vector[fpi]),
+		      dx_fine);
    }
 }
 #endif
@@ -2337,16 +2336,15 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        {
 	   const Box& bx = grids[mfi.index()];
 
-	   BL_FORT_PROC_CALL(CA_FILL_TEMP_COND,ca_fill_temp_cond)
-  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(state_old[mfi]),
+	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(state_old[mfi]),
 #ifdef TAU
-		BL_TO_FORTRAN_3D((*tau)[mfi]),
+			     BL_TO_FORTRAN_3D((*tau)[mfi]),
 #endif
-		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
-  	        ZFILL(dx_fine));
+			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+			     BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+			     ZFILL(dx_fine));
        }
    }
 
@@ -2375,9 +2373,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
        for (MFIter mfi(TempDiffTerm); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.validbox();
-	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(TempDiffTerm[mfi]));
+	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(TempDiffTerm[mfi]));
        }
    }
 }
@@ -2413,13 +2410,12 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    {
        const Box& bx = grids[mfi.index()];
 
-       BL_FORT_PROC_CALL(CA_FILL_SPEC_COEFF,ca_fill_spec_coeff)
-  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(state_old[mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
-  	        ZFILL(dx_fine));
+       ca_fill_spec_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			  BL_TO_FORTRAN_3D(state_old[mfi]),
+			  BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+			  BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+			  BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+			  ZFILL(dx_fine));
    }
 
    // Now copy the temporary array results back to the
@@ -2461,9 +2457,8 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
            for (MFIter mfi(SDT); mfi.isValid(); ++mfi)
            {
     	       const Box& bx = mfi.validbox();
-    	       BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-                   (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		    BL_TO_FORTRAN_3D(SDT[mfi]));
+    	       ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				 BL_TO_FORTRAN_3D(SDT[mfi]));
            }
        }
        // Copy back into SpecDiffTerm from the temporary SDT
@@ -2527,13 +2522,12 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
    {
        const Box& bx = grids[mfi.index()];
 
-       BL_FORT_PROC_CALL(CA_FILL_FIRST_VISC_COEFF,ca_fill_first_visc_coeff)
-  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(state_old[mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
-  	        ZFILL(dx_fine));
+       ca_fill_first_visc_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				BL_TO_FORTRAN_3D(state_old[mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+				ZFILL(dx_fine));
    }
 
    // Now copy the temporary array results back to the
@@ -2561,9 +2555,8 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
        for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.validbox();
-	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
        }
    }
 }
@@ -2602,13 +2595,12 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
    {
        const Box& bx = grids[mfi.index()];
 
-       BL_FORT_PROC_CALL(CA_FILL_SECND_VISC_COEFF,ca_fill_secnd_visc_coeff)
-  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(state_old[mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-		BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
-  	        ZFILL(dx_fine));
+       ca_fill_secnd_visc_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				BL_TO_FORTRAN_3D(state_old[mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
+				BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]),
+				ZFILL(dx_fine));
    }
 
    // Now copy the temporary array results back to the
@@ -2636,9 +2628,8 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
        for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.validbox();
-	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
        }
    }
 }
@@ -2672,11 +2663,10 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
    {
        const Box& bx = grids[mfi.index()];
 
-       BL_FORT_PROC_CALL(CA_COMPUTE_DIV_TAU_U,ca_compute_div_tau_u)
-  	       (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(ViscousTerm[mfi]),
-		BL_TO_FORTRAN_3D(state_old[mfi]),
-  	        ZFILL(dx_fine),&coord_type);
+       ca_compute_div_tau_u(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			    BL_TO_FORTRAN_3D(ViscousTerm[mfi]),
+			    BL_TO_FORTRAN_3D(state_old[mfi]),
+			    ZFILL(dx_fine),&coord_type);
    }
 
    // Extrapolate to ghost cells
@@ -2684,9 +2674,8 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
        for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.validbox();
-	   BL_FORT_PROC_CALL(CA_TEMPDIFFEXTRAP,ca_tempdiffextrap)
-               (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
+	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(ViscousTerm[mfi]));
        }
    }
 }
