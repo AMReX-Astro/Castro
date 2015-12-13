@@ -2781,8 +2781,7 @@ Castro::enforce_consistent_e (MultiFab& S)
         const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
-        BL_FORT_PROC_CALL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
-          (ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
     }
 }
 
@@ -3089,10 +3088,9 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         const Box& bx = mfi.tilebox();
 
-        BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
-	    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
-	     BL_TO_FORTRAN_3D(S_new[mfi]),
-	     print_fortran_warnings);
+        reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+			 BL_TO_FORTRAN_3D(S_new[mfi]),
+			 print_fortran_warnings);
     }
 
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
@@ -3129,8 +3127,7 @@ Castro::computeTemp(MultiFab& State)
     for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     { 
       const Box& bx = mfi.tilebox();
-      BL_FORT_PROC_CALL(COMPUTE_TEMP,compute_temp)
-	(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
+      compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
     }
 
 #endif

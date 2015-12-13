@@ -95,8 +95,22 @@ BL_FORT_PROC_DECL(CA_CHECK_INITIAL_SPECIES, ca_check_initial_species)
 
 BL_FORT_PROC_DECL(CA_GET_OMB,ca_get_omb)(Real* frac);
 
-BL_FORT_PROC_DECL(CA_ENFORCE_CONSISTENT_E,ca_enforce_consistent_e)
+extern "C"
+{
+
+  void compute_temp
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state));  
+  
+  void ca_enforce_consistent_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void reset_internal_e
+    (const int* lo, const int* hi, 
+     BL_FORT_FAB_ARG_3D(S_new), 
+     const int& verbose);
+
+}
 
 #ifdef MAESTRO_INIT
 BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
@@ -550,11 +564,6 @@ extern "C"
 
 }
   
-BL_FORT_PROC_DECL(RESET_INTERNAL_E,reset_internal_e)
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(S_new), 
-     const int& verbose);
-
 #ifdef SGS
 BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
     (BL_FORT_FAB_ARG(S_new), 
@@ -626,10 +635,6 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
      const BL_FORT_FAB_ARG_3D(Tau),
 #endif
      const Real& time, const Real& dt_react);
-
-BL_FORT_PROC_DECL(COMPUTE_TEMP,compute_temp)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state));
 
 extern "C"
 {
