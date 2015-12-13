@@ -206,4 +206,87 @@ contains
 
   end function area
 
+
+
+  ! Given 3D cell-centered indices (i,j,k), return the volume of the zone.
+  ! Note that Castro has no support for angular coordinates, so 
+  ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
+  ! in 2D, and Spherical in 1D.
+
+  function volume(i, j, k)
+
+    use amrinfo_module, only: amr_level
+    use bl_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
+    use prob_params_module, only: dim, coord_type, dx_level
+
+    implicit none
+
+    integer, intent(in) :: i, j, k
+
+    double precision :: volume
+
+    double precision :: dx(3), loc_l(3), loc_r(3)
+
+    dx = dx_level(:,amr_level)
+
+    if (coord_type .eq. 0) then
+
+       ! Cartesian (1D/2D/3D)
+
+       if (dim .eq. 1) then
+
+          volume = dx(1)
+
+       else if (dim .eq. 2) then
+
+          volume = dx(1) * dx(2)
+
+       else if (dim .eq. 3) then
+
+          volume = dx(1) * dx(2) * dx(3)
+
+       endif
+
+    else if (coord_type .eq. 1) then
+
+       ! Cylindrical (2D only)
+
+       ! Get inner and outer radii
+
+       loc_l = position(i  ,j,k,ccx=.true.)
+       loc_r = position(i+1,j,k,ccx=.true.)
+
+       if (dim .eq. 2) then
+
+          volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
+
+       else
+
+          call bl_error("Cylindrical coordinates only supported in 2D.")
+
+       endif
+
+    else if (coord_type .eq. 2) then
+
+       ! Spherical (1D only)
+
+       ! Get inner and outer radii
+
+       loc_l = position(i  ,j,k,ccx=.true.)
+       loc_r = position(i+1,j,k,ccx=.true.)
+
+       if (dim .eq. 1) then
+
+          volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
+
+       else
+
+          call bl_error("Spherical coordinates only supported in 1D.")
+
+       endif
+
+    endif
+
+  end function volume
+
 end module castro_util_module
