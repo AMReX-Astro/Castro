@@ -34,13 +34,13 @@ F90EXE_sources += rotation_sources_nd.F90
 endif
 
 ifeq ($(USE_REACT), TRUE)
-f90EXE_sources += React_nd.f90
+F90EXE_sources += React_nd.F90
 endif
 
 ifeq ($(DIMENSION_AGNOSTIC), TRUE)
 f90EXE_sources += bc_fill_nd.f90
 F90EXE_sources += filcc_nd.F90
-f90EXE_sources += ext_src_nd.f90
+F90EXE_sources += ext_src_nd.F90
 f90EXE_sources += Prob_nd.f90
 f90EXE_sources += problem_tagging_nd.f90
 endif

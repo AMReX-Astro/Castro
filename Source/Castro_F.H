@@ -624,10 +624,8 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
 
-}
-  
 #ifdef SGS
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+  void ca_ext_src
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(old_state),
      BL_FORT_FAB_ARG(fluxx),
@@ -640,7 +638,7 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      const Real* dx, const Real* time, const Real* dt);
 #else
 #ifdef DIMENSION_AGNOSTIC
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+  void ca_ext_src
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),
      const BL_FORT_FAB_ARG_3D(new_state),
@@ -648,7 +646,7 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
 #else
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+  void ca_ext_src
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG(old_state),
      const BL_FORT_FAB_ARG(new_state),
@@ -658,7 +656,7 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
 #endif
 #endif
 
-BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
+  void ca_react_state
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
@@ -666,9 +664,6 @@ BL_FORT_PROC_DECL(CA_REACT_STATE,ca_react_state)
      const BL_FORT_FAB_ARG_3D(Tau),
 #endif
      const Real& time, const Real& dt_react);
-
-extern "C"
-{
 
   void ca_tempdiffextrap
     (const int* lo, const int* hi,
