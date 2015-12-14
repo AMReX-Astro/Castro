@@ -176,52 +176,55 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const Real dx[], const Real xlo[], const Real xhi[]);
 #endif
 
+extern "C"
+{
+
 #ifdef DIMENSION_AGNOSTIC
 
-BL_FORT_PROC_DECL(CA_HYPFILL,ca_hypfill)
+  void ca_hypfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_DENFILL,ca_denfill)
+  void ca_denfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_XMOMFILL,ca_xmomfill)
+  void ca_xmomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_YMOMFILL,ca_ymomfill)
+  void ca_ymomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_ZMOMFILL,ca_zmomfill)
+  void ca_zmomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_ZEROFILL,ca_zerofill)
+  void ca_zerofill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_DEFAULT_FILL,ca_default_fill)
+  void ca_default_fill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
 #ifdef RADIATION
-BL_FORT_PROC_DECL(CA_RADFILL,ca_radfill)
+  void ca_radfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
@@ -229,7 +232,7 @@ BL_FORT_PROC_DECL(CA_RADFILL,ca_radfill)
 #endif
 
 #ifdef LEVELSET
-BL_FORT_PROC_DECL(CA_PHIFILL,ca_phifill)
+  void ca_phifill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
@@ -237,7 +240,7 @@ BL_FORT_PROC_DECL(CA_PHIFILL,ca_phifill)
 #endif
 
 #ifdef REACTIONS
-BL_FORT_PROC_DECL(CA_REACTFILL,ca_reactfill)
+  void ca_reactfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
@@ -245,85 +248,111 @@ BL_FORT_PROC_DECL(CA_REACTFILL,ca_reactfill)
 #endif
 
 #ifdef SGS
-BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
+  void ca_sgsfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 #endif
 
-#if defined(GRAVITY) || defined(ROTATION)
-BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
+#ifdef GRAVITY
+  void ca_phigravfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_GRAVXFILL,ca_gravxfill)
+  void ca_gravxfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_GRAVYFILL,ca_gravyfill)
+  void ca_gravyfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 
-BL_FORT_PROC_DECL(CA_GRAVZFILL,ca_gravzfill)
+  void ca_gravzfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc);
 #endif
 
+#ifdef ROTATION
+  void ca_phirotfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc);
+
+  void ca_rotxfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc);
+
+  void ca_rotyfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc);
+
+  void ca_rotzfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc);
+#endif
+  
 #else
 
-BL_FORT_PROC_DECL(CA_HYPFILL,ca_hypfill)
+  void ca_hypfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_DENFILL,ca_denfill)
+  void ca_denfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_XMOMFILL,ca_xmomfill)
+  void ca_xmomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_YMOMFILL,ca_ymomfill)
+  void ca_ymomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_ZMOMFILL,ca_zmomfill)
+  void ca_zmomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_ZEROFILL,ca_zerofill)
+  void ca_zerofill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_DEFAULT_FILL,ca_default_fill)
+  void ca_default_fill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
 #ifdef RADIATION
-BL_FORT_PROC_DECL(CA_RADFILL,ca_radfill)
+  void ca_radfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
@@ -331,7 +360,7 @@ BL_FORT_PROC_DECL(CA_RADFILL,ca_radfill)
 #endif
 
 #ifdef LEVELSET
-BL_FORT_PROC_DECL(CA_PHIFILL,ca_phifill)
+  void ca_phifill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
@@ -339,7 +368,7 @@ BL_FORT_PROC_DECL(CA_PHIFILL,ca_phifill)
 #endif
 
 #ifdef REACTIONS
-BL_FORT_PROC_DECL(CA_REACTFILL,ca_reactfill)
+  void ca_reactfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
@@ -347,33 +376,59 @@ BL_FORT_PROC_DECL(CA_REACTFILL,ca_reactfill)
 #endif
 
 #ifdef SGS
-BL_FORT_PROC_DECL(CA_SGSFILL,ca_sgsfill)
+  void ca_sgsfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 #endif
 
-#if defined(GRAVITY) || defined(ROTATION)
-BL_FORT_PROC_DECL(CA_PHIGRAVFILL,ca_phigravfill)
+#ifdef GRAVITY
+  void ca_phigravfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_GRAVXFILL,ca_gravxfill)
+  void ca_gravxfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_GRAVYFILL,ca_gravyfill)
+  void ca_gravyfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
      const Real* time, const int bc[]);
 
-BL_FORT_PROC_DECL(CA_GRAVZFILL,ca_gravzfill)
+  void ca_gravzfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+#endif
+
+#ifdef ROTATION
+  void ca_phirotfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+
+  void ca_rotxfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+
+  void ca_rotyfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[], 
+     const Real* time, const int bc[]);
+
+  void ca_rotzfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
@@ -381,8 +436,6 @@ BL_FORT_PROC_DECL(CA_GRAVZFILL,ca_gravzfill)
 #endif
 
 #endif
-
-extern "C" {
   
   void ca_estdt
     (const int* lo, const int* hi, 

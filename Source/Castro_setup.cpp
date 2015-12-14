@@ -450,40 +450,28 @@ Castro::variableSetUp ()
                           Density,
                           name,
                           bcs,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_denfill),
-                                    BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));
+                          BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef GRAVITY
     set_scalar_bc(bc,phys_bc);
-    desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_phigravfill));
     set_x_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,BndryFunc(ca_gravxfill));
     set_y_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,BndryFunc(ca_gravyfill));
     set_z_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,BndryFunc(ca_gravzfill));
 #endif
-
-    // For rotation we'll use the same boundary condition routines as for gravity, 
-    // since we use the rotation in the same manner as in the gravity.
 
 #ifdef ROTATION
     set_scalar_bc(bc,phys_bc);
-    desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_PHIGRAVFILL,ca_phigravfill)));
+    desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,BndryFunc(ca_phirotfill));
     set_x_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVXFILL,ca_gravxfill)));
+    desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,BndryFunc(ca_rotxfill));
     set_y_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVYFILL,ca_gravyfill)));
+    desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,BndryFunc(ca_rotyfill));
     set_z_vel_bc(bc,phys_bc);
-    desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_GRAVZFILL,ca_gravzfill)));
+    desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_rotzfill));
 #endif
 
     // Source term array will use standard hyperbolic fill.
@@ -493,13 +481,10 @@ Castro::variableSetUp ()
     for (int i = 0; i < NUM_STATE; i++)
       sources_name[i] = name[i] + "_source";
     
-    desc_lst.setComponent(Source_Type,Density,sources_name,bcs,
-			  BndryFunc(BL_FORT_PROC_CALL(CA_DENFILL,ca_denfill),
-				    BL_FORT_PROC_CALL(CA_HYPFILL,ca_hypfill)));       
+    desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));       
     
 #ifdef LEVELSET
-    desc_lst.setComponent(LS_State_Type,0,"LSphi",bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_PHIFILL,ca_phifill)));
+    desc_lst.setComponent(LS_State_Type,0,"LSphi",bc, BndryFunc(ca_phifill));
 #endif
 
 #ifdef REACTIONS
@@ -508,23 +493,17 @@ Castro::variableSetUp ()
     {
        set_scalar_bc(bc,phys_bc);
        name_react = "omegadot_" + spec_names[i];
-       desc_lst.setComponent(Reactions_Type, i, name_react, bc,
-                             BndryFunc(BL_FORT_PROC_CALL(CA_REACTFILL,ca_reactfill)));
+       desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_reactfill));
     }
-    desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_REACTFILL,ca_reactfill)));
-    desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_REACTFILL,ca_reactfill)));
+    desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_reactfill));
+    desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
 #ifdef SGS
     set_scalar_bc(bc,phys_bc);
-    desc_lst.setComponent(SGS_Type, 0, "prod_sgs", bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_SGSFILL,ca_sgsfill)));
-    desc_lst.setComponent(SGS_Type, 1, "diss_sgs", bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_SGSFILL,ca_sgsfill)));
-    desc_lst.setComponent(SGS_Type, 2, "turb_src", bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_SGSFILL,ca_sgsfill)));
+    desc_lst.setComponent(SGS_Type, 0, "prod_sgs", bc, BndryFunc(ca_sgsfill));
+    desc_lst.setComponent(SGS_Type, 1, "diss_sgs", bc, BndryFunc(ca_sgsfill));
+    desc_lst.setComponent(SGS_Type, 2, "turb_src", bc, BndryFunc(ca_sgsfill));
 #endif
 
 #ifdef RADIATION
@@ -560,7 +539,7 @@ Castro::variableSetUp ()
     if (!Radiation::do_multigroup) {
       desc_lst
         .setComponent(Rad_Type, Rad, "rad", bc,
-                      BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+                      BndryFunc(ca_radfill));
     }
     else {
       if (Radiation::nNeutrinoSpecies == 0 ||
@@ -569,7 +548,7 @@ Castro::variableSetUp ()
 	  sprintf(rad_name, "rad%d", i);
 	  desc_lst
             .setComponent(Rad_Type, i, rad_name, bc,
-                          BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+                          BndryFunc(ca_radfill));
 	}
       }
       else {
@@ -577,9 +556,7 @@ Castro::variableSetUp ()
 	for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
 	  for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
 	    sprintf(rad_name, "rads%dg%d", j, i);
-	    desc_lst
-              .setComponent(Rad_Type, indx, rad_name, bc,
-                            BndryFunc(BL_FORT_PROC_CALL(CA_RADFILL,ca_radfill)));
+	    desc_lst.setComponent(Rad_Type, indx, rad_name, bc, BndryFunc(ca_radfill));
 	    indx++;
 	  }
 	}
