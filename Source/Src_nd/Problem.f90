@@ -1,6 +1,6 @@
 ! problem-specific Fortran stuff goes here
 
-subroutine problem_checkpoint(int_dir_name, len)
+subroutine problem_checkpoint(int_dir_name, len) bind(C)
 
   ! called by the IO processor during checkpoint
 
@@ -22,7 +22,7 @@ subroutine problem_checkpoint(int_dir_name, len)
 end subroutine problem_checkpoint
 
 
-subroutine problem_restart(int_dir_name, len)
+subroutine problem_restart(int_dir_name, len) bind(C)
 
   ! called by ALL processors during restart 
 
