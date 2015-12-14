@@ -691,17 +691,29 @@ extern "C"
      const BL_FORT_FAB_ARG(grav),
      const Real dx[]);
 #endif  
-  
-}
+
+#ifdef AUX_UPDATE
+  void ca_auxupdate
+    (BL_FORT_FAB_ARG(state_old),
+     BL_FORT_FAB_ARG(state_new),
+     const int* lo, const int* hi,
+     const Real * dt);
+#endif  
 
 #ifdef SGS
-BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
+  void ca_reset_sgs
     (BL_FORT_FAB_ARG(S_new), 
      BL_FORT_FAB_ARG(sgs_old), 
      BL_FORT_FAB_ARG(sgs_new), 
      const int lo[], const int hi[], 
      const int& verbose, const int& is_old, const Real& dt);
-#endif
+#endif  
+
+#ifdef NEUTRINO
+  void ca_setgroup(const int& igroup);
+#endif  
+  
+}
 
 #ifdef DIMENSION_AGNOSTIC
 
@@ -761,20 +773,6 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const int& num_state,
    BL_FORT_FAB_ARG(state),
    const Real dx[], const Real xlo[], const Real xhi[]);
-#endif
-
-
-#ifdef AUX_UPDATE
-BL_FORT_PROC_DECL(CA_AUXUPDATE,ca_auxupdate)
-    (BL_FORT_FAB_ARG(state_old),
-     BL_FORT_FAB_ARG(state_new),
-     const int* lo, const int* hi,
-     const Real * dt);
-#endif
-
-#ifdef NEUTRINO
-BL_FORT_PROC_DECL(CA_SETGROUP,ca_setgroup)
-    (const int& igroup);
 #endif
 
 /* problem-specific includes */

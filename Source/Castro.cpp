@@ -1884,11 +1884,10 @@ Castro::advance_aux(Real time, Real dt)
         const Box& box = mfi.tilebox();
         FArrayBox& old_fab = S_old[mfi];
         FArrayBox& new_fab = S_new[mfi];
-	BL_FORT_PROC_CALL(CA_AUXUPDATE,ca_auxupdate)
-	     (BL_TO_FORTRAN(old_fab),
-	      BL_TO_FORTRAN(new_fab),
-              box.loVect(), box.hiVect(),
-              &dt);
+	void ca_auxupdate(BL_TO_FORTRAN(old_fab),
+			  BL_TO_FORTRAN(new_fab),
+			  box.loVect(), box.hiVect(),
+			  &dt);
     }
 }
 #endif
@@ -2953,8 +2952,7 @@ Castro::derive (const std::string& name,
       ig += Radiation::nNeutrinoGroups[n];
     }
 
-    BL_FORT_PROC_CALL(CA_SETGROUP,ca_setgroup)
-      (ig);
+    ca_setgroup(ig);
   }
 #endif
 
@@ -2983,8 +2981,7 @@ Castro::derive (const std::string& name,
       ig += Radiation::nNeutrinoGroups[n];
     }
 
-    BL_FORT_PROC_CALL(CA_SETGROUP,ca_setgroup)
-      (ig);
+    ca_setgroup(ig);
   }
 #endif
 
@@ -3029,11 +3026,10 @@ Castro::reset_old_sgs(Real dt)
    {
        const Box& bx = mfi.validbox();
 
-       BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
-           (BL_TO_FORTRAN(S_old[mfi]),
-            BL_TO_FORTRAN_N(sgs_old[mfi],0),
-            BL_TO_FORTRAN_N(sgs_old[mfi],0),
-            bx.loVect(),bx.hiVect(),verbose,is_old,dt);
+       ca_reset_sgs(BL_TO_FORTRAN(S_old[mfi]),
+		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
+		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
+		    bx.loVect(),bx.hiVect(),verbose,is_old,dt);
    }
 }
 void
@@ -3049,11 +3045,10 @@ Castro::reset_new_sgs(Real dt)
    {
        const Box& bx = mfi.validbox();
 
-       BL_FORT_PROC_CALL(CA_RESET_SGS,ca_reset_sgs)
-           (BL_TO_FORTRAN(S_new[mfi]),
-            BL_TO_FORTRAN_N(sgs_old[mfi],0),
-            BL_TO_FORTRAN_N(sgs_new[mfi],0),
-            bx.loVect(),bx.hiVect(),verbose,is_old,dt);
+       ca_reset_sgs(BL_TO_FORTRAN(S_new[mfi]),
+		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
+		    BL_TO_FORTRAN_N(sgs_new[mfi],0),
+		    bx.loVect(),bx.hiVect(),verbose,is_old,dt);
    }
 }
 #endif
