@@ -6,6 +6,7 @@
                                       grav_h1,grav_h2,grav_h3, &
                                  problo,dx,lo,hi)
 
+       use bl_constants_module         , only : HALF
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
 
