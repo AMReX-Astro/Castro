@@ -18,6 +18,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
   use advection_module, only : umeth2d, ctoprim, consup
   use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
+  use castro_util_2d_module, only : ca_enforce_nonnegative_species
 
   implicit none
 

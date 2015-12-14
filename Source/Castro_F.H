@@ -8,37 +8,42 @@ BL_FORT_PROC_DECL(FILCC,filcc)
                  const Real * dx_crse, const Real * xlo,
                  const int * bc);
 
-BL_FORT_PROC_DECL(CA_NETWORK_INIT,ca_network_init)();
+extern "C"
+{
+  
+  void ca_network_init();
 
-BL_FORT_PROC_DECL(CA_EXTERN_INIT,ca_extern_init)(const int* name, const int* namlen);
+  void ca_extern_init(const int* name, const int* namlen);
 
-BL_FORT_PROC_DECL(GET_NUM_SPEC,get_num_spec)(int* nspec);
+  void get_num_spec(int* nspec);
 
-BL_FORT_PROC_DECL(GET_NUM_AUX,get_num_aux)(int* naux);
+  void get_num_aux(int* naux);
 
-BL_FORT_PROC_DECL(GET_SPEC_NAMES,get_spec_names)(int* spec_names, int* ispec, int* len);
+  void get_spec_names(int* spec_names, int* ispec, int* len);
 
-BL_FORT_PROC_DECL(GET_SPEC_AZ,get_spec_az)(int* ispec, Real* A, Real* Z);
+  void get_spec_az(int* ispec, Real* A, Real* Z);
 
-BL_FORT_PROC_DECL(GET_AUX_NAMES,get_aux_names)(int* aux_names, int* iaux, int* len);
+  void get_aux_names(int* aux_names, int* iaux, int* len);
 
-BL_FORT_PROC_DECL(SET_AMR_INFO,set_amr_info)(const int& level, const int& iteration, const int& ncycle,
-					     const Real& time, const Real& dt);
+  void ca_set_special_tagging_flag(const Real& max_den, const int* flag);  
+  
+  void set_amr_info(const int& level, const int& iteration, const int& ncycle,
+		    const Real& time, const Real& dt);
 
-BL_FORT_PROC_DECL(GET_METHOD_PARAMS,get_method_params)(int* HYP_GROW);
+  void get_method_params(int* HYP_GROW);
 
 #if (BL_SPACEDIM > 1)
-BL_FORT_PROC_DECL(GET_NUMPTS_1D,get_numpts_1d)(int* numpts_1d);
-BL_FORT_PROC_DECL(SET_NUMPTS_1D,set_numpts_1d)(int* numpts_1d);
-BL_FORT_PROC_DECL(ALLOCATE_OUTFLOW_DATA,allocate_outflow_data)(const int* n1d, const int* nc);
-BL_FORT_PROC_DECL(SET_OLD_OUTFLOW_DATA,set_old_outflow_data)(Real* radial, Real* time, 
-                                                             int* numpts, int* nc);
-BL_FORT_PROC_DECL(SET_NEW_OUTFLOW_DATA,set_new_outflow_data)(Real* radial, Real* time, 
-                                                             int* numpts, int* nc);
-BL_FORT_PROC_DECL(SWAP_OUTFLOW_DATA,swap_outflow_data)();
+  void get_numpts_1d(int* numpts_1d);
+  void set_numpts_1d(int* numpts_1d);
+  void allocate_outflow_data(const int* n1d, const int* nc);
+  void set_old_outflow_data(Real* radial, Real* time, 
+			    int* numpts, int* nc);
+  void set_new_outflow_data(Real* radial, Real* time, 
+			    int* numpts, int* nc);
+  void swap_outflow_data();
 #endif
 
-BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
+  void set_method_params
     (const int& dm,
      const int& Density, const int& Xmom, 
      const int& Eden,    const int& Eint, 
@@ -53,7 +58,7 @@ BL_FORT_PROC_DECL(SET_METHOD_PARAMS,set_method_params)
 
 #include <castro_set_meth.H>
 
-BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
+  void set_problem_params
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Interior_value, const int& Inflow_value,
@@ -63,13 +68,24 @@ BL_FORT_PROC_DECL(SET_PROBLEM_PARAMS,set_problem_params)
      const Real* problo, const Real* probhi,
      const Real* center);
 
-BL_FORT_PROC_DECL(SET_GRID_INFO,set_grid_info)
+  void set_grid_info
     (const int& max_level, const Real* dx_level,
      const int* domlo_level, const int* domhi_level);
 
-BL_FORT_PROC_DECL(GET_TAGGING_PARAMS,get_tagging_params)(const int* name, const int* namlen);
-BL_FORT_PROC_DECL(GET_SPONGE_PARAMS,get_sponge_params)(const int* name, const int* namlen);
+  void get_tagging_params(const int* name, const int* namlen);
+  void get_sponge_params(const int* name, const int* namlen);
 
+#if (BL_SPACEDIM > 1)
+  void ca_compute_avgstate
+    (const int lo[], const int hi[], 
+     const Real* dx, const Real* dr, const int* nc,
+     const BL_FORT_FAB_ARG(S  ), const Real* avgden,
+     const BL_FORT_FAB_ARG(Vol), const Real* avgvol,
+     const Real* problo, const int* numpts_1d);
+#endif  
+  
+}
+  
 #ifdef DIMENSION_AGNOSTIC
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
@@ -90,14 +106,22 @@ BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
 
 #endif
 
-BL_FORT_PROC_DECL(CA_CHECK_INITIAL_SPECIES, ca_check_initial_species)
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));
-
 BL_FORT_PROC_DECL(CA_GET_OMB,ca_get_omb)(Real* frac);
 
 extern "C"
 {
 
+  void ca_check_initial_species
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));  
+
+  void ca_enforce_nonnegative_species
+    (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);  
+
+  void get_center(Real* center);
+  void set_center(Real* center);
+  void find_center(Real* data, Real* center, int* icen,
+		   const Real* dx, const Real* problo);  
+  
   void compute_temp
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state));  
@@ -602,9 +626,6 @@ extern "C"
 
 }
   
-BL_FORT_PROC_DECL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
-    (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);
-
 #ifdef SGS
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
@@ -705,9 +726,6 @@ BL_FORT_PROC_DECL(CA_DEFINE_TAU,ca_define_tau)
      const Real dx[]);
 #endif
 
-BL_FORT_PROC_DECL(CA_SET_SPECIAL_TAGGING_FLAG,ca_set_special_tagging_flag)
-    (const Real& max_den, const int* flag);
-
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
     (const Real* pm_delta_mass, const int* lo, const int* hi,
@@ -733,31 +751,9 @@ BL_FORT_PROC_DECL(CA_AUXUPDATE,ca_auxupdate)
      const Real * dt);
 #endif
 
-#if (BL_SPACEDIM > 1)
-BL_FORT_PROC_DECL(CA_COMPUTE_AVGSTATE,ca_compute_avgstate)
-    (const int lo[], const int hi[], 
-     const Real* dx, const Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG(S  ), const Real* avgden,
-     const BL_FORT_FAB_ARG(Vol), const Real* avgvol,
-     const Real* problo, const int* numpts_1d);
-#endif
-
-BL_FORT_PROC_DECL( GET_CENTER, get_center)(Real* center);
-BL_FORT_PROC_DECL( SET_CENTER, set_center)(Real* center);
-BL_FORT_PROC_DECL(FIND_CENTER,find_center)(Real* data, Real* center, int* icen,
-                                           const Real* dx, const Real* problo);
-
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_SETGROUP,ca_setgroup)
     (const int& igroup);
-#endif
-
-#ifdef ROTATION
-BL_FORT_PROC_DECL(CA_ROTATE,ca_rotate)
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(state),
-     BL_FORT_FAB_ARG(rotation_terms),
-     const Real* prob_lo, const Real* dx);
 #endif
 
 /* problem-specific includes */

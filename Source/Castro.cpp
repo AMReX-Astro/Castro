@@ -705,8 +705,7 @@ Castro::setGridInfo ()
 	  }
       }
 
-      BL_FORT_PROC_CALL(SET_GRID_INFO,set_grid_info)
-	(max_level, dx_level, domlo_level, domhi_level);
+      set_grid_info(max_level, dx_level, domlo_level, domhi_level);
 
     }
     
@@ -742,7 +741,7 @@ Castro::initData ()
       }
 #endif
 
-    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, -1, -1, -1.0, -1.0);
+    set_amr_info(level, -1, -1, -1.0, -1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
@@ -782,8 +781,7 @@ Castro::initData ()
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
-          BL_FORT_PROC_CALL(CA_CHECK_INITIAL_SPECIES, ca_check_initial_species)
-              (lo, hi, BL_TO_FORTRAN(S_new[mfi]));
+          ca_check_initial_species(lo, hi, BL_TO_FORTRAN(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
     }
@@ -834,7 +832,7 @@ Castro::initData ()
     if ( (level == 0) && (spherical_star == 1) ) {
        int nc = S_new.nComp();
        int n1d = get_numpts();
-       BL_FORT_PROC_CALL(ALLOCATE_OUTFLOW_DATA,allocate_outflow_data)(&n1d,&nc);
+       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -1063,7 +1061,7 @@ Castro::estTimeStep (Real dt_old)
     if (fixed_dt > 0.0)
         return fixed_dt;
 
-    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, -1, -1, -1.0, -1.0);    
+    set_amr_info(level, -1, -1, -1.0, -1.0);    
     
     // This is just a dummy value to start with 
     Real estdt  = 1.0e+200;
@@ -2765,8 +2763,7 @@ Castro::enforce_nonnegative_species (MultiFab& S_new)
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.tilebox();
-       BL_FORT_PROC_CALL(CA_ENFORCE_NONNEGATIVE_SPECIES,ca_enforce_nonnegative_species)
-           (BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
+       ca_enforce_nonnegative_species(BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
     }
 }
 
@@ -3002,7 +2999,7 @@ Castro::derive (const std::string& name,
 void
 Castro::network_init ()
 {
-   BL_FORT_PROC_CALL(CA_NETWORK_INIT,ca_network_init) ();
+   ca_network_init();
 }
 
 void
@@ -3021,9 +3018,7 @@ Castro::extern_init ()
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
 
-  BL_FORT_PROC_CALL(CA_EXTERN_INIT,ca_extern_init) 
-    (probin_file_name.dataPtr(),
-     &probin_file_length);
+  ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
 }
 
 #ifdef SGS
@@ -3142,8 +3137,7 @@ Castro::set_special_tagging_flag(Real time)
    Real max_den = S_new.norm0(Density);
 
    int flag_was_changed = 0;
-   BL_FORT_PROC_CALL(CA_SET_SPECIAL_TAGGING_FLAG,
-                     ca_set_special_tagging_flag)(max_den,&flag_was_changed);
+   ca_set_special_tagging_flag(max_den,&flag_was_changed);
    if (ParallelDescriptor::IOProcessor()) {
       if (flag_was_changed == 1) {
         std::ofstream os("Bounce_time",std::ios::out);
@@ -3228,11 +3222,10 @@ Castro::make_radial_data(int is_new)
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
-         BL_FORT_PROC_CALL(CA_COMPUTE_AVGSTATE,ca_compute_avgstate)
-             (bx.loVect(), bx.hiVect(),dx,&dr,&nc,
-              BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
-              BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
-              geom.ProbLo(),&numpts_1d);
+         ca_compute_avgstate(bx.loVect(), bx.hiVect(),dx,&dr,&nc,
+			     BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
+			     geom.ProbLo(),&numpts_1d);
       }
 
       ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
@@ -3261,8 +3254,7 @@ Castro::make_radial_data(int is_new)
       }
 
       Real new_time = state[State_Type].curTime();
-      BL_FORT_PROC_CALL(SET_NEW_OUTFLOW_DATA, set_new_outflow_data)
-        (radial_state_short.dataPtr(),&new_time,&np_max,&nc);
+      set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
    }
    else
    {
@@ -3272,11 +3264,10 @@ Castro::make_radial_data(int is_new)
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
-         BL_FORT_PROC_CALL(CA_COMPUTE_AVGSTATE,ca_compute_avgstate)
-             (bx.loVect(), bx.hiVect(),dx,&dr,&nc,
-              BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
-              BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
-              geom.ProbLo(),&numpts_1d);
+         ca_compute_avgstate(bx.loVect(), bx.hiVect(),dx,&dr,&nc,
+			     BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
+			     geom.ProbLo(),&numpts_1d);
       }
 
       ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
@@ -3305,8 +3296,7 @@ Castro::make_radial_data(int is_new)
       }
 
       Real old_time = state[State_Type].prevTime();
-      BL_FORT_PROC_CALL(SET_OLD_OUTFLOW_DATA, set_old_outflow_data)
-        (radial_state_short.dataPtr(),&old_time,&np_max,&nc);
+      set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
    }
 
 #endif
@@ -3335,7 +3325,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi) 
     {
-        BL_FORT_PROC_CALL(FIND_CENTER,find_center)(mf[mfi].dataPtr(),&center[0],mi,dx,geom.ProbLo());
+        find_center(mf[mfi].dataPtr(),&center[0],mi,dx,geom.ProbLo());
     }
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
@@ -3343,7 +3333,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Make sure if R-Z that center stays exactly on axis
     if ( Geometry::IsRZ() ) center[0] = 0;  
 
-    BL_FORT_PROC_CALL(SET_CENTER,set_center)(&center[0]);
+    set_center(&center[0]);
 }
 
 void
@@ -3359,7 +3349,7 @@ Castro::write_center ()
        Real time = state[State_Type].curTime();
 
        Real center[BL_SPACEDIM];
-       BL_FORT_PROC_CALL(GET_CENTER,get_center)(center);
+       get_center(center);
  
        if (time == 0.0) {
            data_logc << std::setw( 8) <<  "   nstep";

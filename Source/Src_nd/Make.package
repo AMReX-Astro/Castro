@@ -1,4 +1,4 @@
-f90EXE_sources += Castro_nd.f90
+F90EXE_sources += Castro_nd.F90
 F90EXE_sources += amrinfo.F90
 F90EXE_sources += Castro_util.F90
 f90EXE_sources += Tagging_nd.f90

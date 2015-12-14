@@ -337,7 +337,7 @@ Castro::restart (Amr&     papa,
        MultiFab& S_new = get_new_data(State_Type);
        int nc = S_new.nComp();
        int n1d = get_numpts();
-       BL_FORT_PROC_CALL(ALLOCATE_OUTFLOW_DATA,allocate_outflow_data)(&n1d,&nc);
+       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -528,7 +528,7 @@ Castro::setPlotVariables ()
           //
 	  // Get the number of species from the network model.
           //
-	  BL_FORT_PROC_CALL(GET_NUM_SPEC, get_num_spec)(&NumSpec);
+	  get_num_spec(&NumSpec);
           //
 	  // Get the species names from the network model.
           //
@@ -539,8 +539,7 @@ Castro::setPlotVariables ()
               //
               // This call return the actual length of each string in "len"
               //
-              BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)
-                  (int_spec_names.dataPtr(),&i,&len);
+              get_spec_names(int_spec_names.dataPtr(),&i,&len);
               char* spec_name = new char[len+1];
               for (int j = 0; j < len; j++) 
                   spec_name[j] = int_spec_names[j];
@@ -848,16 +847,14 @@ Castro::writePlotFile (const std::string& dir,
 	    //
 	    // This call return the actual length of each string in "len"
 	    //
-	    BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)
-	      (int_spec_names.dataPtr(),&i,&len);
+	    get_spec_names(int_spec_names.dataPtr(),&i,&len);
 	    char* spec_name = new char[len+1];
 	    for (int j = 0; j < len; j++) 
 	      spec_name[j] = int_spec_names[j];
 	    spec_name[len] = '\0';
 
 	    // get A and Z
-	    BL_FORT_PROC_CALL(GET_SPEC_AZ, get_spec_az)
-	      (&i, &Aion, &Zion);
+	    get_spec_az(&i, &Aion, &Zion);
 
 	    jobInfoFile << 
 	      std::setw(6) << i << SkipSpace << 
@@ -1222,16 +1219,14 @@ Castro::writeSmallPlotFile (const std::string& dir,
 	    //
 	    // This call return the actual length of each string in "len"
 	    //
-	    BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)
-	      (int_spec_names.dataPtr(),&i,&len);
+	    get_spec_names(int_spec_names.dataPtr(),&i,&len);
 	    char* spec_name = new char[len+1];
 	    for (int j = 0; j < len; j++) 
 	      spec_name[j] = int_spec_names[j];
 	    spec_name[len] = '\0';
 
 	    // get A and Z
-	    BL_FORT_PROC_CALL(GET_SPEC_AZ, get_spec_az)
-	      (&i, &Aion, &Zion);
+	    get_spec_az(&i, &Aion, &Zion);
 
 	    jobInfoFile << 
 	      std::setw(6) << i << SkipSpace << 

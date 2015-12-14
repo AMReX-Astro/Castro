@@ -181,7 +181,7 @@ Castro::variableSetUp ()
     int dm = BL_SPACEDIM;
 
     // Get the number of species from the network model.
-    BL_FORT_PROC_CALL(GET_NUM_SPEC, get_num_spec)(&NumSpec);
+    get_num_spec(&NumSpec);
 
     if (NumSpec > 0)
     {
@@ -190,7 +190,7 @@ Castro::variableSetUp ()
     }
 
     // Get the number of auxiliary quantities from the network model.
-    BL_FORT_PROC_CALL(GET_NUM_AUX, get_num_aux)(&NumAux);
+    get_num_aux(&NumAux);
 
     if (NumAux > 0)
     {
@@ -201,7 +201,7 @@ Castro::variableSetUp ()
     NUM_STATE = cnt;
 
     // Define NUM_GROW from the f90 module.
-    BL_FORT_PROC_CALL(GET_METHOD_PARAMS, get_method_params)(&NUM_GROW);
+    get_method_params(&NUM_GROW);
 
     const Real run_strt = ParallelDescriptor::second() ; 
 
@@ -227,14 +227,13 @@ Castro::variableSetUp ()
     int get_g_from_phi = 0;
     pp.query("get_g_from_phi", get_g_from_phi);
     
-    BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
-        (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-         NumAdv, 
-	 gravity_type_name.dataPtr(), &gravity_type_length,
-	 get_g_from_phi,
-	 use_sgs,
-	 diffuse_cutoff_density,
-	 const_grav);
+    set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
+		      NumAdv, 
+		      gravity_type_name.dataPtr(), &gravity_type_length,
+		      get_g_from_phi,
+		      use_sgs,
+		      diffuse_cutoff_density,
+		      const_grav);
 
 #include <castro_call_set_meth.H>
 
@@ -252,10 +251,9 @@ Castro::variableSetUp ()
     ParmParse ppc("castro");
     ppc.queryarr("center",center,0,BL_SPACEDIM);
 
-    BL_FORT_PROC_CALL(SET_PROBLEM_PARAMS, set_problem_params)
-         (dm,phys_bc.lo(),phys_bc.hi(),
-	  Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-	  Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
+    set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
+		       Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+		       Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
 
     // Read in the parameters for the tagging criteria
     // and store them in the Fortran module.
@@ -266,16 +264,12 @@ Castro::variableSetUp ()
     for (int i = 0; i < probin_file_length; i++)
       probin_file_name[i] = probin_file[i];
 
-    BL_FORT_PROC_CALL(GET_TAGGING_PARAMS, get_tagging_params)
-      (probin_file_name.dataPtr(),
-       &probin_file_length);
+    get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
     // Read in the parameters for the sponge
     // and store them in the Fortran module.
     
-    BL_FORT_PROC_CALL(GET_SPONGE_PARAMS, get_sponge_params)
-      (probin_file_name.dataPtr(),
-       &probin_file_length);    
+    get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);    
 
     Interpolater* interp = &cell_cons_interp;
 
@@ -398,7 +392,7 @@ Castro::variableSetUp ()
           int len = 20;
           Array<int> int_spec_names(len);
           // This call return the actual length of each string in "len" 
-          BL_FORT_PROC_CALL(GET_SPEC_NAMES, get_spec_names)(int_spec_names.dataPtr(),&i,&len);
+          get_spec_names(int_spec_names.dataPtr(),&i,&len);
           char char_spec_names[len+1];
           for (int j = 0; j < len; j++) 
              char_spec_names[j] = int_spec_names[j];
@@ -428,7 +422,7 @@ Castro::variableSetUp ()
           int len = 20;
           Array<int> int_aux_names(len);
           // This call return the actual length of each string in "len"
-          BL_FORT_PROC_CALL(GET_AUX_NAMES, get_aux_names)(int_aux_names.dataPtr(),&i,&len);
+          get_aux_names(int_aux_names.dataPtr(),&i,&len);
 	  char char_aux_names[len+1];
           for (int j = 0; j < len; j++)
              char_aux_names[j] = int_aux_names[j];

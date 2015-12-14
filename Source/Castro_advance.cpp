@@ -43,7 +43,7 @@ Castro::advance (Real time,
 
     // Pass some information about the state of the simulation to a Fortran module.
     
-    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, iteration, ncycle, time, dt);
+    set_amr_info(level, iteration, ncycle, time, dt);
    
     if (do_hydro) 
     {
@@ -203,7 +203,7 @@ Castro::advance_hydro (Real time,
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       BL_FORT_PROC_CALL(SWAP_OUTFLOW_DATA,swap_outflow_data)();
+       swap_outflow_data();
        int is_new = 0;
        make_radial_data(is_new);
     }
@@ -1499,7 +1499,7 @@ Castro::advance_no_hydro (Real time,
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       BL_FORT_PROC_CALL(SWAP_OUTFLOW_DATA,swap_outflow_data)();
+       swap_outflow_data();
        int is_new = 0;
        make_radial_data(is_new);
     }

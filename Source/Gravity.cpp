@@ -251,7 +251,7 @@ Gravity::install_level (int                   level,
     if (level == 0)
     {
         Real center[BL_SPACEDIM];
-        BL_FORT_PROC_CALL(GET_CENTER,get_center)(center);
+        get_center(center);
         Real x = Geometry::ProbHi(0) - center[0];
         Real y = Geometry::ProbHi(1) - center[1];
         max_radius_all_in_domain = std::min(x,y);
