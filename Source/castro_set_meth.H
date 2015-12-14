@@ -20,4 +20,4 @@ BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
     const int& grav_source_type, const int& do_rotation, 
     const Real& rotational_period, const Real& rotational_dPdt, 
     const int& rot_source_type, const int& rot_axis, 
-    const int& do_acc);
+    const Real& point_mass, const int& do_acc);

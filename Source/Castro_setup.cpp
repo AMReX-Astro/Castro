@@ -226,7 +226,7 @@ Castro::variableSetUp ()
 
     int get_g_from_phi = 0;
     pp.query("get_g_from_phi", get_g_from_phi);
-    
+
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, 
