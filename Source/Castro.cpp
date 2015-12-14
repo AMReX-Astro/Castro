@@ -2915,19 +2915,17 @@ Castro::errorEst (TagBoxArray& tags,
 	    const int*  thi     = tilebx.hiVect();
 
 #ifdef DIMENSION_AGNOSTIC
-	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
-	                     (tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
-			      BL_TO_FORTRAN_3D(S_new[mfi]),
-			      &tagval, &clearval, 
-			      ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()), 
-			      ZFILL(dx), ZFILL(prob_lo), &time, &level);
+	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
+			     BL_TO_FORTRAN_3D(S_new[mfi]),
+			     &tagval, &clearval, 
+			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()), 
+			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
 #else	    
-	    BL_FORT_PROC_CALL(SET_PROBLEM_TAGS, set_problem_tags)
-	                     (tptr,  ARLIM(tlo), ARLIM(thi),
-			      BL_TO_FORTRAN(S_new[mfi]),
-			      &tagval, &clearval, 
-			      tilebx.loVect(), tilebx.hiVect(), 
-			      dx, prob_lo, &time, &level);
+	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
+			     BL_TO_FORTRAN(S_new[mfi]),
+			     &tagval, &clearval, 
+			     tilebx.loVect(), tilebx.hiVect(), 
+			     dx, prob_lo, &time, &level);
 #endif
 	    
 	    //
