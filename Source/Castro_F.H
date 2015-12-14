@@ -2,12 +2,6 @@
 #define _Castro_F_H_
 #include <BLFort.H>
 
-BL_FORT_PROC_DECL(FILCC,filcc)
-                (Real * q, ARLIM_P(q_lo), ARLIM_P(q_hi),
-                 const int * domlo, const int * domhi,
-                 const Real * dx_crse, const Real * xlo,
-                 const int * bc);
-
 extern "C"
 {
   
