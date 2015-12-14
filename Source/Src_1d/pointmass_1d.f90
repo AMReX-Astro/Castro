@@ -1,7 +1,7 @@
 ! ::
 ! :: ----------------------------------------------------------
 ! ::
-       subroutine pm_add_to_grav(point_mass,grav,grav_l1,grav_h1,problo,dx,lo,hi)
+       subroutine pm_add_to_grav(point_mass,grav,grav_l1,grav_h1,problo,dx,lo,hi) bind(C)
 
        use fundamental_constants_module, only : Gconst
        use bl_constants_module
@@ -38,7 +38,7 @@
              uin,  uin_l1,  uin_h1, &
             uout, uout_l1, uout_h1, &
              vol,  vol_l1,  vol_h1, &
-           problo,dx,time,dt)
+           problo,dx,time,dt) bind(C)
 
       use meth_params_module, only : NVAR, URHO, UMX
       use bl_constants_module
@@ -75,7 +75,7 @@
       subroutine pm_fix_solution(lo,hi,&
              uin,  uin_l1,  uin_h1, &
             uout, uout_l1, uout_h1, &
-           problo,dx,time,dt)
+           problo,dx,time,dt) bind(C)
 
       use meth_params_module, only : NVAR, UMX
 

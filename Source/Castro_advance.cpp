@@ -551,7 +551,7 @@ Castro::advance_hydro (Real time,
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
 		
-		    BL_FORT_PROC_CALL(CA_UMDRV_RAD,ca_umdrv_rad)
+		    ca_umdrv_rad
 			(&is_finest_level,&time,
 			 bx.loVect(), bx.hiVect(),
 			 domain_lo, domain_hi,
@@ -629,12 +629,11 @@ Castro::advance_hydro (Real time,
 				E_added_sponge,mom_added);
 
 		    if (radiation->do_inelastic_scattering) {
-			BL_FORT_PROC_CALL(CA_INELASTIC_SCT, ca_inelastic_sct)
-			    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_3D(stateout),
-			     BL_TO_FORTRAN_3D(Erout),
-			     BL_TO_FORTRAN_3D(kappa_s[mfi]),
-			     dt);
+			ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					 BL_TO_FORTRAN_3D(stateout),
+					 BL_TO_FORTRAN_3D(Erout),
+					 BL_TO_FORTRAN_3D(kappa_s[mfi]),
+					 dt);
 		    }
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -650,12 +649,11 @@ Castro::advance_hydro (Real time,
 
 #ifdef POINTMASS
 		    if (level == finest_level)
-			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
-			    (&mass_change_at_center,
-			     bx.loVect(), bx.hiVect(),
-			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
-			     BL_TO_FORTRAN(volume[mfi]),
-			     geom.ProbLo(), dx, &time, &dt);
+			pm_compute_delta_mass(&mass_change_at_center,
+					      bx.loVect(), bx.hiVect(),
+					      BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+					      BL_TO_FORTRAN(volume[mfi]),
+					      geom.ProbLo(), dx, &time, &dt);
 #endif	
 		}
 
@@ -764,7 +762,7 @@ Castro::advance_hydro (Real time,
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
 	  
-		    BL_FORT_PROC_CALL(CA_UMDRV,ca_umdrv)
+		    ca_umdrv
 			(&is_finest_level,&time,
 			 lo, hi, domain_lo, domain_hi,
 			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
@@ -862,12 +860,11 @@ Castro::advance_hydro (Real time,
 		    
 #ifdef POINTMASS
 		    if (level == finest_level)
-			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
-			    (&mass_change_at_center, 
-			     lo, hi,
-			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
-			     BL_TO_FORTRAN(volume[mfi]),
-			     geom.ProbLo(), dx, &time, &dt);
+			pm_compute_delta_mass(&mass_change_at_center, 
+					      lo, hi,
+					      BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+					      BL_TO_FORTRAN(volume[mfi]),
+					      geom.ProbLo(), dx, &time, &dt);
 #endif
 		}
 
@@ -998,10 +995,9 @@ Castro::advance_hydro (Real time,
 	     for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
              {
 		const Box& bx = mfi.validbox();
-		BL_FORT_PROC_CALL(PM_FIX_SOLUTION,pm_fix_solution)
-		  (bx.loVect(), bx.hiVect(),
-		   BL_TO_FORTRAN(S_old[mfi]), BL_TO_FORTRAN(S_new[mfi]),
-		   geom.ProbLo(), dx, &time, &dt);
+		pm_fix_solution(bx.loVect(), bx.hiVect(),
+				BL_TO_FORTRAN(S_old[mfi]), BL_TO_FORTRAN(S_new[mfi]),
+				geom.ProbLo(), dx, &time, &dt);
              }
           }
     }

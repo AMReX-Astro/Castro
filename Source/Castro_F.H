@@ -78,31 +78,6 @@ extern "C"
      const Real* problo, const int* numpts_1d);
 #endif  
   
-}
-  
-#ifdef DIMENSION_AGNOSTIC
-
-BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const Real& time, 
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG_3D(state),
-     const Real* dx, const Real* xlo, const Real* xhi);
-
-#else
-
-BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const Real& time, 
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG(state),
-     const Real* dx, const Real* xlo, const Real* xhi);
-
-#endif
-
-extern "C"
-{
-
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));  
 
@@ -125,51 +100,6 @@ extern "C"
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(S_new), 
      const int& verbose);
-
-}
-
-#ifdef MAESTRO_INIT
-BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
-  (const int* lo, const int* hi, const int& MAESTRO_init_type,
-     BL_FORT_FAB_ARG(state),
-     const Real dx[], const Real& dr,
-     const Real xlo[], const Real xhi[],
-     const Real p0[], const int& MAESTRO_npts_model, const int& level);
-
-BL_FORT_PROC_DECL(CA_INITDATA_MAKEMODEL,ca_initdata_makemodel)
-  (Real model[], const int& model_size, const int& MAESTRO_npts_model,
-   const Real rho0[], const Real tempbar[], 
-   const Real dx[], const Real& dr, const int& r_model_start);
-
-BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
-  (const int* lo, const int* hi, 
-   BL_FORT_FAB_ARG(state),
-   const Real model[], const int& model_size, const int& MAESTRO_npts_model, 
-   const Real dx[], const Real& dr, const Real xlo[], const Real xhi[],
-   const int& r_model_start);
-#endif
-
-#ifdef LEVELSET
-BL_FORT_PROC_DECL(CA_INITPHI,ca_initphi)
-    (const int& level, const Real& time, 
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG(state),
-     int* type, ARLIM_P(type_lo), ARLIM_P(type_hi),
-     const Real dx[], const Real xlo[], const Real xhi[]);
-#endif
-
-#ifdef RADIATION
-BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
-  (const int& level, const Real& time,
-   const int* lo, const int* hi,
-   const int& num_state,
-   BL_FORT_FAB_ARG(state),
-   const Real dx[], const Real xlo[], const Real xhi[]);
-#endif
-
-extern "C"
-{
 
 #ifdef DIMENSION_AGNOSTIC
 
@@ -457,9 +387,7 @@ extern "C"
      const Real* dx, Real* dt);
 #endif
   
-}
-
-BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
+  void ca_umdrv
     (const int* is_finest_level,
      const Real* time, 
      const int    lo[], const int    hi[],
@@ -496,7 +424,7 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
      Real& E_added_flux);
 
 #ifdef RADIATION
-BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
+  void ca_umdrv_rad
     (const int* is_finest_level,
      const Real* time, 
      const int    lo[], const int    hi[],
@@ -532,7 +460,7 @@ BL_FORT_PROC_DECL(CA_UMDRV_RAD,ca_umdrv_rad)
      const int& verbose, 
      int* nstep_fsp); 
 
-BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
+  void ca_inelastic_sct
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(Erout),
@@ -540,9 +468,6 @@ BL_FORT_PROC_DECL(CA_INELASTIC_SCT, ca_inelastic_sct)
      const Real& dt);
 #endif
 
-extern "C"
-{
-  
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
@@ -550,6 +475,23 @@ extern "C"
      const Real& E_added, const Real* mom_added);
 
   void update_sponge_params(const Real* time);  
+
+#ifdef POINTMASS
+  void pm_compute_delta_mass
+    (const Real* pm_delta_mass, const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG(state),
+     BL_FORT_FAB_ARG(stateout),
+     const BL_FORT_FAB_ARG(volume),
+     const Real* problo, const Real dx[], 
+     const Real* time, const Real* dt);
+
+  void pm_fix_solution
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(stateold),
+     BL_FORT_FAB_ARG(statenew),
+     const Real* problo, const Real dx[], 
+     const Real* time, const Real* dt);
+#endif  
   
 #ifdef GRAVITY
 
@@ -630,20 +572,6 @@ extern "C"
      const Real& E_added, const Real* mom_added);
 
 #endif
-
-}
-  
-#ifdef SGS
-BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
-    (BL_FORT_FAB_ARG(S_new), 
-     BL_FORT_FAB_ARG(sgs_old), 
-     BL_FORT_FAB_ARG(sgs_new), 
-     const int lo[], const int hi[], 
-     const int& verbose, const int& is_old, const Real& dt);
-#endif
-
-extern "C"
-{
   
   void ca_summass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
@@ -755,33 +683,86 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, const int* coord_type);
 
-}
-  
 #ifdef TAU
-BL_FORT_PROC_DECL(CA_DEFINE_TAU,ca_define_tau)
+  void ca_define_tau
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG(tau_diff),
      const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[]);
+#endif  
+  
+}
+
+#ifdef SGS
+BL_FORT_PROC_DECL(CA_RESET_SGS,ca_reset_sgs)
+    (BL_FORT_FAB_ARG(S_new), 
+     BL_FORT_FAB_ARG(sgs_old), 
+     BL_FORT_FAB_ARG(sgs_new), 
+     const int lo[], const int hi[], 
+     const int& verbose, const int& is_old, const Real& dt);
 #endif
 
-#ifdef POINTMASS
-BL_FORT_PROC_DECL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
-    (const Real* pm_delta_mass, const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG(state),
-     BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(volume),
-     const Real* problo, const Real dx[], 
-     const Real* time, const Real* dt);
+#ifdef DIMENSION_AGNOSTIC
 
-BL_FORT_PROC_DECL(PM_FIX_SOLUTION,pm_fix_solution)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(stateold),
-     BL_FORT_FAB_ARG(statenew),
-     const Real* problo, const Real dx[], 
-     const Real* time, const Real* dt);
+BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
+    (const int& level, const Real& time, 
+     const int* lo, const int* hi,
+     const int& num_state,
+     BL_FORT_FAB_ARG_3D(state),
+     const Real* dx, const Real* xlo, const Real* xhi);
+
+#else
+
+BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
+    (const int& level, const Real& time, 
+     const int* lo, const int* hi,
+     const int& num_state,
+     BL_FORT_FAB_ARG(state),
+     const Real* dx, const Real* xlo, const Real* xhi);
+
 #endif
+
+#ifdef MAESTRO_INIT
+BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
+  (const int* lo, const int* hi, const int& MAESTRO_init_type,
+     BL_FORT_FAB_ARG(state),
+     const Real dx[], const Real& dr,
+     const Real xlo[], const Real xhi[],
+     const Real p0[], const int& MAESTRO_npts_model, const int& level);
+
+BL_FORT_PROC_DECL(CA_INITDATA_MAKEMODEL,ca_initdata_makemodel)
+  (Real model[], const int& model_size, const int& MAESTRO_npts_model,
+   const Real rho0[], const Real tempbar[], 
+   const Real dx[], const Real& dr, const int& r_model_start);
+
+BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
+  (const int* lo, const int* hi, 
+   BL_FORT_FAB_ARG(state),
+   const Real model[], const int& model_size, const int& MAESTRO_npts_model, 
+   const Real dx[], const Real& dr, const Real xlo[], const Real xhi[],
+   const int& r_model_start);
+#endif
+
+#ifdef LEVELSET
+BL_FORT_PROC_DECL(CA_INITPHI,ca_initphi)
+    (const int& level, const Real& time, 
+     const int* lo, const int* hi,
+     const int& num_state,
+     BL_FORT_FAB_ARG(state),
+     int* type, ARLIM_P(type_lo), ARLIM_P(type_hi),
+     const Real dx[], const Real xlo[], const Real xhi[]);
+#endif
+
+#ifdef RADIATION
+BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
+  (const int& level, const Real& time,
+   const int* lo, const int* hi,
+   const int& num_state,
+   BL_FORT_FAB_ARG(state),
+   const Real dx[], const Real xlo[], const Real xhi[]);
+#endif
+
 
 #ifdef AUX_UPDATE
 BL_FORT_PROC_DECL(CA_AUXUPDATE,ca_auxupdate)

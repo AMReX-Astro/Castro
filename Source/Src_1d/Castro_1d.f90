@@ -11,8 +11,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      vol,vol_l1,vol_h1,courno,verbose,&
      mass_added,eint_added,eden_added,&
      xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-     E_added_flux)
-
+     E_added_flux) bind(C)
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
   use advection_module  , only : umeth1d, ctoprim, consup
