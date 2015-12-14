@@ -183,7 +183,7 @@ def get_prototype(plist):
 
     indent = 4
 
-    prototype = "BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
+    prototype = "void set_castro_method_params\n"
     prototype += (indent-1)*" " + "("
 
     for n, d in enumerate(decls):
@@ -219,7 +219,7 @@ def get_cpp_call(plist):
         call += "#endif\n"
         
 
-    call += "BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)\n"
+    call += "set_castro_method_params\n"
 
     call += (indent-1)*" " + "("
 
@@ -292,7 +292,7 @@ def write_set_meth_sub(plist, set_template):
                 so.write("{}_in".format(p.f90_name))
 
                 if n == len(params)-1:
-                    so.write(")\n")
+                    so.write(") bind(C)\n")
                 else:
                     so.write(", ")
 

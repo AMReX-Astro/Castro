@@ -1,4 +1,4 @@
-BL_FORT_PROC_DECL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
+void set_castro_method_params
    (const Real& difmag, const Real& small_dens, 
     const Real& small_temp, const Real& small_pres, 
     const Real& small_ener, const int& ppm_type, 

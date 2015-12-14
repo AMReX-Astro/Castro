@@ -10,7 +10,7 @@ static int rot_source_type = 1;
 #ifndef ROTATION
 static int rot_axis = 3;
 #endif
-BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
+set_castro_method_params
    (difmag, small_dens, 
     small_temp, small_pres, 
     small_ener, ppm_type, 
