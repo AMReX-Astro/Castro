@@ -100,8 +100,6 @@ BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
 
 #endif
 
-BL_FORT_PROC_DECL(CA_GET_OMB,ca_get_omb)(Real* frac);
-
 extern "C"
 {
 
