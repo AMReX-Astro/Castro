@@ -1,0 +1,72 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
+stop_time = 10.0
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic =  0    0    0
+geometry.coord_sys   =  0
+geometry.prob_lo     = -2.0 -2.0 -2.0
+geometry.prob_hi     =  2.0  2.0  2.0
+castro.center        =  0.0  0.0  0.0
+
+amr.n_cell           =  64   64   64
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+
+castro.lo_bc       =  2 2 2
+castro.hi_bc       =  2 2 2
+
+# HYDRO
+castro.do_hydro      = 1
+castro.allow_negative_energy = 0
+castro.small_temp    = 1.e-10
+castro.small_dens    = 1.e-10
+
+# THERMODYNAMICS
+
+castro.dual_energy_update_E_from_e = 0             # Don't update the total energy using the internal energy
+castro.dual_energy_eta1 = 1.0e-3                   # Always use internal energy equation for Threshold for when to use the internal energy in calculating pressure
+castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
+
+# GRAVITY
+castro.do_grav           = 1
+castro.do_rotation       = 0
+castro.rotational_period = 1.0
+castro.point_mass        = 6.0e8
+gravity.gravity_type     = ConstantGrav
+gravity.const_grav       = 0.0
+
+# TIME STEP CONTROL
+castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.05    # scale back initial timestep
+castro.dt_cutoff      = 1.e-10  # level 0 timestep below which we halt
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = -1      # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 32
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = chk_    # root name of checkpoint file
+amr.check_int       = 100000  # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = plt_    # root name of plotfile
+amr.plot_int        = 100000  # number of timesteps between plotfiles
+amr.derive_plot_vars = NONE
+
+# PROBIN FILENAME
+amr.probin_file = probin
