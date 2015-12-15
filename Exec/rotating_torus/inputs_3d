@@ -21,18 +21,23 @@ castro.lo_bc       =  2 2 2
 castro.hi_bc       =  2 2 2
 
 # HYDRO
+
 castro.do_hydro      = 1
-castro.allow_negative_energy = 0
+castro.allow_negative_energy = 1
 castro.small_temp    = 1.e-10
 castro.small_dens    = 1.e-10
+
+castro.grav_source_type = 4
+castro.rot_source_type = 4
 
 # THERMODYNAMICS
 
 castro.dual_energy_update_E_from_e = 0             # Don't update the total energy using the internal energy
-castro.dual_energy_eta1 = 1.0e-3                   # Always use internal energy equation for Threshold for when to use the internal energy in calculating pressure
-castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
+castro.dual_energy_eta1 = 1.0e0                    # Always use internal energy equation for getting e
+castro.dual_energy_eta2 = 1.0e0                    # Never update internal energy from (E-K)
 
 # GRAVITY
+
 castro.do_grav           = 1
 castro.do_rotation       = 0
 castro.rotational_period = 1.0
