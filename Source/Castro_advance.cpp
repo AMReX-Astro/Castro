@@ -656,7 +656,7 @@ Castro::advance_hydro (Real time,
 			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
 			    (&mass_change_at_center,
 			     bx.loVect(), bx.hiVect(),
-			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+			     BL_TO_FORTRAN(stateold), BL_TO_FORTRAN(stateout),
 			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif	
@@ -872,7 +872,7 @@ Castro::advance_hydro (Real time,
 			BL_FORT_PROC_CALL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
 			    (&mass_change_at_center, 
 			     lo, hi,
-			     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+			     BL_TO_FORTRAN(stateold), BL_TO_FORTRAN(stateout),
 			     BL_TO_FORTRAN(volume[mfi]),
 			     geom.ProbLo(), dx, &time, &dt);
 #endif
