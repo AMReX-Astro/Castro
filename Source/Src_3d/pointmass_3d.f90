@@ -35,7 +35,7 @@
                 grav(i,j,k,1) = grav(i,j,k,1) + radial_force * (x*rinv)
                 grav(i,j,k,2) = grav(i,j,k,2) + radial_force * (y*rinv)
                 grav(i,j,k,3) = grav(i,j,k,3) + radial_force * (z*rinv)
-
+                
              end do
           end do
        end do
@@ -66,7 +66,7 @@
       double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  &
                                     uin_l3:uin_h3,NVAR)
       double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, &
-                                    uin_l3:uin_h3,NVAR)
+                                    uout_l3:uout_h3,NVAR)
       double precision   ::   vol(  vol_l1:  vol_h1,  vol_l2:  vol_h2, &
                                     vol_l3:  vol_h3)
       double precision   :: problo(3),dx(3),time,dt
@@ -126,7 +126,7 @@
       double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  &
                                     uin_l3:uin_h3,NVAR)
       double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, &
-                                    uin_l3:uin_h3,NVAR)
+                                    uout_l3:uout_h3,NVAR)
       double precision   :: problo(3),dx(3),time,dt
 
       double precision   :: eps
