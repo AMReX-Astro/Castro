@@ -2,6 +2,7 @@
 ! :: ----------------------------------------------------------
 ! ::
        subroutine pm_add_to_grav(point_mass,&
+                                 phi,phi_lo,phi_hi, &
                                  grav,grav_lo,grav_hi, &
                                  problo,dx,lo,hi)
 
@@ -12,7 +13,9 @@
        implicit none
        integer         , intent(in   ) :: lo(3), hi(3)
        integer         , intent(in   ) :: grav_lo(3), grav_hi(3)
+       integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
        double precision, intent(in   ) :: point_mass
+       double precision, intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
        double precision, intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
        double precision, intent(in   ) :: problo(3),dx(3)
 
@@ -31,6 +34,19 @@
                 radial_force = -Gconst * point_mass / rsq
 
                 rinv = 1.d0/sqrt(rsq)
+
+                ! Note that grav may have more ghost zones than
+                ! phi, so we need to check that we're doing
+                ! valid indexing here.
+                
+                if ( i .ge. phi_lo(1) .and. i .le. phi_hi(1) .and. &
+                     j .ge. phi_lo(2) .and. j .le. phi_hi(2) .and. &
+                     k .ge. phi_lo(3) .and. k .le. phi_hi(3) ) then
+                   
+                   phi(i,j,k) = phi(i,j,k) + Gconst * point_mass * rinv
+                   
+                endif
+                
                 grav(i,j,k,1) = grav(i,j,k,1) + radial_force * (x*rinv)
                 grav(i,j,k,2) = grav(i,j,k,2) + radial_force * (y*rinv)
                 grav(i,j,k,3) = grav(i,j,k,3) + radial_force * (z*rinv)

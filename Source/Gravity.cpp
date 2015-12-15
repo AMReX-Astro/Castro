@@ -854,6 +854,10 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level], BL_SPACEDIM, ng);
     grav.setVal(0.0,ng);
+
+    // In some cases we want to fill phi in this call.    
+    
+    MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);          
     
     if (gravity_type == "ConstantGrav") {
 
@@ -863,10 +867,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
-      // We also want to fill phi for MonopoleGrav, even though we don't return it.
-      
-      MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
-      
 #if (BL_SPACEDIM == 1)
        make_one_d_grav(level,time,grav,phi);
 #else
@@ -931,7 +931,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
-    add_pointmass_to_gravity(level,grav_vector,point_mass);
+    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
 
@@ -949,6 +949,10 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level],BL_SPACEDIM,ng);
     grav.setVal(0.0,ng);
+
+    // In some cases we want to fill phi in this call.
+    
+    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);    
     
     if (gravity_type == "ConstantGrav") {
 
@@ -956,10 +960,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
-
-      // We may want to fill phi for MonopoleGrav, even though we don't return it.      
-      
-      MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
 
 #if (BL_SPACEDIM == 1)
 	make_one_d_grav(level,time,grav,phi);
@@ -1025,7 +1025,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
-    add_pointmass_to_gravity(level,grav_vector,point_mass);
+    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
 
@@ -2324,7 +2324,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 
 #ifdef POINTMASS
 void
-Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_mass)
+Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
    const Real* dx     = parent->Geom(level).CellSize();
    const Real* problo = parent->Geom(level).ProbLo();
@@ -2335,7 +2335,7 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
    {
        const Box& bx = mfi.growntilebox();
        BL_FORT_PROC_CALL(PM_ADD_TO_GRAV,pm_add_to_grav)
-	   (&point_mass,BL_TO_FORTRAN_3D(grav_vector[mfi]),
+           (&point_mass,BL_TO_FORTRAN_3D(phi[mfi]),BL_TO_FORTRAN_3D(grav_vector[mfi]),
 	    ZFILL(problo),ZFILL(dx),ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
    }
 }
