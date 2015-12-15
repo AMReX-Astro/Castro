@@ -681,17 +681,17 @@ BL_FORT_PROC_DECL(CA_SET_SPECIAL_TAGGING_FLAG,ca_set_special_tagging_flag)
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_COMPUTE_DELTA_MASS,pm_compute_delta_mass)
     (const Real* pm_delta_mass, const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG(state),
-     BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(volume),
-     const Real* problo, const Real dx[], 
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(stateout),
+     const BL_FORT_FAB_ARG_3D(volume),
+     const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
 
 BL_FORT_PROC_DECL(PM_FIX_SOLUTION,pm_fix_solution)
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(stateold),
-     BL_FORT_FAB_ARG(statenew),
-     const Real* problo, const Real dx[], 
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(stateold),
+     BL_FORT_FAB_ARG_3D(statenew),
+     const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
 #endif
 

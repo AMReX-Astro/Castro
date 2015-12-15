@@ -32,6 +32,10 @@ f90EXE_sources += Gravity_nd.f90
 f90EXE_sources += gravity_sources_nd.f90
 endif
 
+ifeq ($(USE_POINTMASS), TRUE)
+f90EXE_sources += pointmass_nd.f90
+endif
+
 ifeq ($(USE_ROTATION), TRUE)
 f90EXE_sources += Rotation_nd.f90
 f90EXE_sources += rotation_sources_nd.f90

@@ -2,8 +2,7 @@
 ! :: ----------------------------------------------------------
 ! ::
        subroutine pm_add_to_grav(point_mass,&
-                                 grav,grav_l1,grav_l2,grav_l3, &
-                                      grav_h1,grav_h2,grav_h3, &
+                                 grav,grav_lo,grav_hi, &
                                  problo,dx,lo,hi)
 
        use bl_constants_module         , only : HALF
@@ -12,9 +11,9 @@
 
        implicit none
        integer         , intent(in   ) :: lo(3), hi(3)
-       integer         , intent(in   ) :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
+       integer         , intent(in   ) :: grav_lo(3), grav_hi(3)
        double precision, intent(in   ) :: point_mass
-       double precision, intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3,3)
+       double precision, intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
        double precision, intent(in   ) :: problo(3),dx(3)
 
        integer          :: i,j,k
@@ -47,28 +46,28 @@
 ! ::: 
 
       subroutine pm_compute_delta_mass(delta_mass,lo,hi,&
-             uin,  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3, &
-            uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
-             vol,  vol_l1,  vol_l2,  vol_l3,  vol_h1,  vol_h2,  vol_h3, &
-           problo,dx,time,dt) 
+                                       uin, uin_lo, uin_hi, &
+                                       uout, uout_lo, uout_hi, &
+                                       vol,  vol_lo, vol_hi, &
+                                       problo,dx,time,dt)
 
       use meth_params_module, only : NVAR, URHO
       use prob_params_module, only : center
 
       implicit none
 
-      integer :: lo(3),hi(3)
-      integer ::   uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
-      integer ::  uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-      integer ::   vol_l1,  vol_l2,  vol_l3,  vol_h1,  vol_h2,  vol_h3
+      integer :: lo(3),      hi(3)
+      integer :: uin_lo(3),  uin_hi(3)
+      integer :: uout_lo(3), uout_hi(3)
+      integer :: vol_lo(3),  vol_hi(3)
 
       double precision   ::   delta_mass
-      double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  &
-                                    uin_l3:uin_h3,NVAR)
-      double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, &
-                                    uout_l3:uout_h3,NVAR)
-      double precision   ::   vol(  vol_l1:  vol_h1,  vol_l2:  vol_h2, &
-                                    vol_l3:  vol_h3)
+      double precision   ::   uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),  &
+                                  uin_lo(3):uin_hi(3),NVAR)
+      double precision   ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), &
+                                  uout_lo(3):uout_hi(3),NVAR)
+      double precision   ::   vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2), &
+                                  vol_lo(3):vol_hi(3))
       double precision   :: problo(3),dx(3),time,dt
 
       double precision   :: eps
@@ -96,11 +95,11 @@
       kend = min(kcen+box_size-1, hi(3))
 
       do kk = kstart,kend
-      do jj = jstart,jend
-      do ii = istart,iend
-        delta_mass = delta_mass + vol(ii,jj,kk) * (uout(ii,jj,kk,URHO)-uin(ii,jj,kk,URHO))
-      end do
-      end do
+         do jj = jstart,jend
+            do ii = istart,iend
+               delta_mass = delta_mass + vol(ii,jj,kk) * (uout(ii,jj,kk,URHO)-uin(ii,jj,kk,URHO))
+            end do
+         end do
       end do
 
       end subroutine pm_compute_delta_mass
@@ -110,23 +109,23 @@
 ! ::: 
 
       subroutine pm_fix_solution(lo,hi,&
-             uin,  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3, &
-            uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
-           problo,dx,time,dt) 
+                                 uin,uin_lo,uin_hi, &
+                                 uout,uout_lo,uout_hi, &
+                                 problo,dx,time,dt)
 
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
 
       implicit none
 
-      integer :: lo(3),hi(3)
-      integer ::   uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
-      integer ::  uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
+      integer :: lo(3),      hi(3)
+      integer :: uin_lo(3),  uin_hi(3)
+      integer :: uout_lo(3), uout_hi(3)
 
-      double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  &
-                                    uin_l3:uin_h3,NVAR)
-      double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, &
-                                    uout_l3:uout_h3,NVAR)
+      double precision   ::   uin(  uin_lo(1):uin_hi(1),    uin_lo(2):uin_hi(2),  &
+                                    uin_lo(3):uin_hi(3),NVAR)
+      double precision   ::  uout( uout_lo(1):uout_hi(1),  uout_lo(2):uout_hi(2), &
+                                    uout_lo(3):uout_hi(3),NVAR)
       double precision   :: problo(3),dx(3),time,dt
 
       double precision   :: eps
@@ -154,11 +153,11 @@
       kend = min(kcen+box_size-1, hi(3))
 
       do kk = kstart,kend
-      do jj = jstart,jend
-      do ii = istart,iend
-         uout(ii,jj,kk,:) = uin(ii,jj,kk,:)
-      end do
-      end do
+         do jj = jstart,jend
+            do ii = istart,iend
+               uout(ii,jj,kk,:) = uin(ii,jj,kk,:)
+            end do
+         end do
       end do
 
       end subroutine pm_fix_solution
