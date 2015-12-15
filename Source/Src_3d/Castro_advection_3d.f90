@@ -836,7 +836,7 @@ contains
 
              kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
 
-             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .lt. dual_energy_eta1) then
+             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
                 q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
              else
                 q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
