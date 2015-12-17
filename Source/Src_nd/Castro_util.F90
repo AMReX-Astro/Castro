@@ -76,6 +76,24 @@ contains
   end function position
 
 
+  
+  ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
+  ! Optionally we can also be edge-centered in any of the directions.
+  
+  function position_to_index(loc) result(index)
+
+    use amrinfo_module, only: amr_level
+    use prob_params_module, only: dx_level
+    
+    double precision :: loc(3)
+
+    integer :: index(3)
+    
+    index = NINT(loc / dx_level(:,amr_level))
+    
+  end function position_to_index  
+
+
 
   ! Given 3D indices (i,j,k) and a direction dir, return the
   ! area of the face perpendicular to direction d. We assume
