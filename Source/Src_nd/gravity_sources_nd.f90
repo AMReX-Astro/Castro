@@ -1,9 +1,12 @@
     subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
                        uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type, hybrid_hydro
       use bl_constants_module
-
+      use math_module, only: cross_product
+      use castro_util_module, only: position
+      use prob_params_module, only: center
+      
       implicit none
 
       integer          :: lo(3), hi(3)
@@ -23,7 +26,7 @@
       double precision :: rho, rhoInv
       double precision :: Sr(3), SrE
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-      double precision :: old_mom(3)
+      double precision :: loc(3), R, old_mom(3), rad_mom, ang_mom
       integer          :: i, j, k
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -40,6 +43,9 @@
                rho    = uold(i,j,k,URHO)
                rhoInv = ONE / rho
 
+               loc = position(i,j,k) - center
+               R = sqrt( loc(1)**2 + loc(2)**2 )
+               
                ! **** Start Diagnostics ****
                old_re = unew(i,j,k,UEDEN)
                old_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
@@ -49,7 +55,19 @@
 
                Sr = rho * grav(i,j,k,:) * dt
 
-               unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+               if (hybrid_hydro .eq. 1) then
+                  rad_mom = unew(i,j,k,UMX) * (loc(1) / R) + unew(i,j,k,UMY) * (loc(2) / R)
+                  ang_mom = unew(i,j,k,UMY) * loc(1)       - unew(i,j,k,UMX) * loc(2)
+
+                  rad_mom = rad_mom - Sr(1) * (loc(1) / R) - Sr(2) * (loc(2) / R)
+                  ang_mom = ang_mom + Sr(1) * loc(2) - Sr(2) * loc(1)
+
+                  unew(i,j,k,UMX) = rad_mom * (loc(1) / R)    - ang_mom * (loc(2) / R**2)
+                  unew(i,j,k,UMY) = ang_mom * (loc(1) / R**2) + rad_mom * (loc(2) / R)                  
+                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + Sr(3)
+               else
+                  unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+               endif
 
                if (grav_source_type == 1 .or. grav_source_type == 2) then
 
@@ -106,11 +124,13 @@
                              E_added,mom_added)
 
       use mempool_module, only : bl_allocate, bl_deallocate
-      use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, gravity_type, get_g_from_phi
-      use prob_params_module, only : dg
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
+           grav_source_type, gravity_type, get_g_from_phi, hybrid_hydro
+      use prob_params_module, only : dg, center
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
+      use castro_util_module, only : position
 
       implicit none
 
@@ -162,7 +182,7 @@
 
       double precision :: old_ke, old_rhoeint, old_re
       double precision :: new_ke, new_rhoeint
-      double precision :: old_mom(3)
+      double precision :: old_mom(3), rad_mom, ang_mom, loc(3), R
 
       double precision, pointer :: phi(:,:,:)
       double precision, pointer :: grav(:,:,:,:)
@@ -279,6 +299,10 @@
          do j = lo(2),hi(2)
             do i = lo(1),hi(1)
 
+               loc = position(i,j,k) - center
+
+               R = sqrt( loc(1)**2 + loc(2)**2 )
+               
                rhoo    = uold(i,j,k,URHO)
                rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -312,7 +336,19 @@
 
                ! Correct momenta
 
-               unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+               if (hybrid_hydro .eq. 1) then
+                  rad_mom = unew(i,j,k,UMX) * (loc(1) / R) + unew(i,j,k,UMY) * (loc(2) / R)
+                  ang_mom = unew(i,j,k,UMY) * loc(1)       - unew(i,j,k,UMX) * loc(2)
+
+                  rad_mom = rad_mom - Srcorr(1) * (loc(1) / R) - Srcorr(2) * (loc(2) / R)
+                  ang_mom = ang_mom + Srcorr(1) * loc(2) - Srcorr(2) * loc(1)
+
+                  unew(i,j,k,UMX) = rad_mom * (loc(1) / R)    - ang_mom * (loc(2) / R**2)
+                  unew(i,j,k,UMY) = ang_mom * (loc(1) / R**2) + rad_mom * (loc(2) / R)                  
+                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + Srcorr(3)
+               else
+                  unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+               endif               
 
                ! Correct energy
 
