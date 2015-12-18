@@ -1243,11 +1243,7 @@ contains
     double precision rad_mom_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3)
     double precision rad_mom_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3)    
 
-    double precision ang_mom_in(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision rad_mom_in(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-
-    double precision ang_mom_out(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision rad_mom_out(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))    
+    double precision ang_mom, rad_mom
     
     double precision :: div1, volinv
     double precision :: rho, u, v, w, p
@@ -1269,9 +1265,12 @@ contains
                 v   = vgdnvx(i,j,k)
                 w   = wgdnvx(i,j,k)
                 p   = pgdnvx(i,j,k)
-                   
-                rad_mom_flux1(i,j,k) = ((rho / R) * (loc(1) * u + loc(2) * v) * u) * area1(i,j,k) * dt
-                ang_mom_flux1(i,j,k) = (rho * (loc(1) * v - loc(2) * u) * u + loc(2) * p) * area1(i,j,k) * dt
+
+                rad_mom = (rho / R) * (loc(1) * u + loc(2) * v)
+                ang_mom = rho * (loc(1) * v - loc(2) * u)
+                
+                rad_mom_flux1(i,j,k) = (rad_mom * u             ) * area1(i,j,k) * dt
+                ang_mom_flux1(i,j,k) = (ang_mom * u + loc(2) * p) * area1(i,j,k) * dt
 
              enddo
           enddo
@@ -1290,9 +1289,12 @@ contains
                 v   = ugdnvy(i,j,k)
                 w   = wgdnvy(i,j,k)
                 p   = pgdnvy(i,j,k)
+
+                rad_mom = (rho / R) * (loc(1) * u + loc(2) * v)
+                ang_mom = rho * (loc(1) * v - loc(2) * u)
                 
-                rad_mom_flux2(i,j,k) = ((rho / R) * (loc(1) * u + loc(2) * v) * v) * area2(i,j,k) * dt
-                ang_mom_flux2(i,j,k) = (rho * (loc(1) * v - loc(2) * u) * v - loc(1) * p) * area2(i,j,k) * dt
+                rad_mom_flux2(i,j,k) = (rad_mom * v             ) * area2(i,j,k) * dt
+                ang_mom_flux2(i,j,k) = (ang_mom * v - loc(1) * p) * area2(i,j,k) * dt
                 
              enddo
           enddo
@@ -1303,15 +1305,20 @@ contains
              do i = lo(1),hi(1)
                 
                 loc = position(i,j,k,ccz=.false.)
+
+                R = sqrt( loc(1)**2 + loc(2)**2 )                
                 
                 rho = rgdnvz(i,j,k)
                 u   = vgdnvz(i,j,k)
                 v   = wgdnvz(i,j,k)
                 w   = ugdnvz(i,j,k)
                 p   = pgdnvz(i,j,k)
+
+                rad_mom = (rho / R) * (loc(1) * u + loc(2) * v)
+                ang_mom = rho * (loc(1) * v - loc(2) * u)                
                 
-                rad_mom_flux3(i,j,k) = ((rho / R) * (loc(1) * u + loc(2) * v) * w) * area3(i,j,k) * dt
-                ang_mom_flux3(i,j,k) = (rho * (loc(1) * v - loc(2) * u) * w) * area3(i,j,k) * dt
+                rad_mom_flux3(i,j,k) = (rad_mom * w) * area3(i,j,k) * dt
+                ang_mom_flux3(i,j,k) = (ang_mom * w) * area3(i,j,k) * dt
 
              enddo
           enddo
@@ -1454,24 +1461,24 @@ contains
 
                 volinv = ONE / vol(i,j,k)
                 
-                rad_mom_in(i,j,k) = uin(i,j,k,UMX) * (loc(1) / R) + uin(i,j,k,UMY) * (loc(2) / R)
-                ang_mom_in(i,j,k) = uin(i,j,k,UMY) * loc(1)       - uin(i,j,k,UMX) * loc(2)
+                rad_mom = uin(i,j,k,UMX) * (loc(1) / R) + uin(i,j,k,UMY) * (loc(2) / R)
+                ang_mom = uin(i,j,k,UMY) * loc(1)       - uin(i,j,k,UMX) * loc(2)
 
-                rad_mom_out(i,j,k) = rad_mom_in(i,j,k) &
-                                   + ( rad_mom_flux1(i,j,k) - rad_mom_flux1(i+1,j,k) &
-                                   +   rad_mom_flux2(i,j,k) - rad_mom_flux2(i,j+1,k) &
-                                   +   rad_mom_flux3(i,j,k) - rad_mom_flux3(i,j,k+1) ) * volinv &
-                                   + dt * ( - (loc(1) / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                            - (loc(2) / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
-                                            + ang_mom_in(i,j,k)**2 / (uin(i,j,k,URHO) * R**3) )                
+                rad_mom = rad_mom &
+                        + ( rad_mom_flux1(i,j,k) - rad_mom_flux1(i+1,j,k) &
+                        +   rad_mom_flux2(i,j,k) - rad_mom_flux2(i,j+1,k) &
+                        +   rad_mom_flux3(i,j,k) - rad_mom_flux3(i,j,k+1) ) * volinv &
+                        + dt * ( - (loc(1) / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                 - (loc(2) / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                                 + ang_mom**2 / (rho * R**3) )                
                 
-                ang_mom_out(i,j,k) = ang_mom_in(i,j,k) &
-                                   + ( ang_mom_flux1(i,j,k) - ang_mom_flux1(i+1,j,k) &
-                                   +   ang_mom_flux2(i,j,k) - ang_mom_flux2(i,j+1,k) &
-                                   +   ang_mom_flux3(i,j,k) - ang_mom_flux3(i,j,k+1) ) * volinv
+                ang_mom = ang_mom &
+                        + ( ang_mom_flux1(i,j,k) - ang_mom_flux1(i+1,j,k) &
+                        +   ang_mom_flux2(i,j,k) - ang_mom_flux2(i,j+1,k) &
+                        +   ang_mom_flux3(i,j,k) - ang_mom_flux3(i,j,k+1) ) * volinv
 
-                uout(i,j,k,UMX) = rad_mom_out(i,j,k) * (loc(1) / R)    - ang_mom_out(i,j,k) * (loc(2) / R**2)
-                uout(i,j,k,UMY) = ang_mom_out(i,j,k) * (loc(1) / R**2) + rad_mom_out(i,j,k) * (loc(2) / R)
+                uout(i,j,k,UMX) = rad_mom * (loc(1) / R)    - ang_mom * (loc(2) / R**2)
+                uout(i,j,k,UMY) = ang_mom * (loc(1) / R**2) + rad_mom * (loc(2) / R)
                 
              enddo
           enddo
