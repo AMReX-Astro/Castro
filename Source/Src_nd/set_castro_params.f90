@@ -13,8 +13,8 @@ subroutine set_castro_method_params( &
   burning_timestep_factor_in, react_T_min_in, react_T_max_in,  &
   do_grav_in, grav_source_type_in, do_rotation_in,  &
   rot_period_in, rot_period_dot_in, rot_source_type_in,  &
-  rot_axis_in, do_acc_in)
-
+  rot_axis_in, point_mass_in, do_acc_in)
+  
   use meth_params_module
   use network, only : nspec, naux
   use eos_module
@@ -68,6 +68,7 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: rot_period_dot_in
   integer,          intent(in) :: rot_source_type_in
   integer,          intent(in) :: rot_axis_in
+  double precision, intent(in) :: point_mass_in
   integer,          intent(in) :: do_acc_in
 
   difmag = difmag_in
@@ -113,6 +114,7 @@ subroutine set_castro_method_params( &
   rot_period_dot = rot_period_dot_in
   rot_source_type = rot_source_type_in
   rot_axis = rot_axis_in
+  point_mass = point_mass_in
   do_acc = do_acc_in
 
   ! some checks

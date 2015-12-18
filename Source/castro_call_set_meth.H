@@ -10,6 +10,9 @@ static int rot_source_type = 1;
 #ifndef ROTATION
 static int rot_axis = 3;
 #endif
+#ifndef POINTMASS
+static Real point_mass = 0.0;
+#endif
 BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
    (difmag, small_dens, 
     small_temp, small_pres, 
@@ -32,4 +35,5 @@ BL_FORT_PROC_CALL(SET_CASTRO_METHOD_PARAMS, set_castro_method_params)
     do_grav, grav_source_type, 
     do_rotation, rotational_period, 
     rotational_dPdt, rot_source_type, 
-    rot_axis, do_acc);
+    rot_axis, point_mass, 
+    do_acc);

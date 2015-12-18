@@ -1,0 +1,15 @@
+&fortin
+
+  inner_radius = 0.75d0
+  outer_radius = 1.50d0
+
+  ambient_density = 1.0d-8
+
+/
+
+&extern
+
+  polytrope_gamma = 1.333333333d0
+  polytrope_K     = 1.0d25
+
+/

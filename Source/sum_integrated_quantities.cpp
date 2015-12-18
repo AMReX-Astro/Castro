@@ -16,6 +16,7 @@ Castro::sum_integrated_quantities ()
     Real time        = state[State_Type].curTime();
     Real mass        = 0.0;
     Real mom[3]      = { 0.0 };
+    Real ang_mom[3]  = { 0.0 };
     Real com[3]      = { 0.0 };
     Real com_vel[3]  = { 0.0 };
     Real rho_e       = 0.0;
@@ -43,6 +44,10 @@ Castro::sum_integrated_quantities ()
 	mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
 	mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
 
+	ang_mom[0] += ca_lev.volWgtSum("angular_momentum_x", time, local_flag);
+	ang_mom[1] += ca_lev.volWgtSum("angular_momentum_y", time, local_flag);
+	ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
+	
 	if (show_center_of_mass) {
 	   com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
 	   com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
@@ -82,12 +87,13 @@ Castro::sum_integrated_quantities ()
     if (verbose > 0)
     {
 #ifdef SGS
-	const int nfoo = 15;
-	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, rho_phi, Etot, delta_E, delta_K, 
+	const int nfoo = 18;
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
+			  rho_e, rho_K, rho_E, rho_phi, Etot, delta_E, delta_K, 
 			  prod_sgs, diss_sgs, turb_src, rms_mach};
 #else
-	const int nfoo = 8;
-	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], rho_e, rho_K, rho_E, rho_phi};
+	const int nfoo = 11;
+	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2], rho_e, rho_K, rho_E, rho_phi};
 #endif
 
 #ifdef BL_LAZY
@@ -102,22 +108,25 @@ Castro::sum_integrated_quantities ()
 	if (ParallelDescriptor::IOProcessor()) {
 
 	    int i = 0;
-	    mass     = foo[i++];
-	    mom[0]   = foo[i++];
-            mom[1]   = foo[i++];
-            mom[2]   = foo[i++];
-	    rho_e    = foo[i++];
-	    rho_K    = foo[i++];
-            rho_E    = foo[i++];
-	    rho_phi  = foo[i++];
+	    mass       = foo[i++];
+	    mom[0]     = foo[i++];
+            mom[1]     = foo[i++];
+            mom[2]     = foo[i++];
+	    ang_mom[0] = foo[i++];
+	    ang_mom[1] = foo[i++];
+	    ang_mom[2] = foo[i++];
+	    rho_e      = foo[i++];
+	    rho_K      = foo[i++];
+            rho_E      = foo[i++];
+	    rho_phi    = foo[i++];
 #ifdef SGS
-	    Etot     = foo[i++];
-	    delta_E  = foo[i++];
-	    delta_K  = foo[i++];
-	    prod_sgs = foo[i++];
-	    diss_sgs = foo[i++];
-	    turb_sgs = foo[i++];
-	    rms_mach = foo[i++];
+	    Etot       = foo[i++];
+	    delta_E    = foo[i++];
+	    delta_K    = foo[i++];
+	    prod_sgs   = foo[i++];
+	    diss_sgs   = foo[i++];
+	    turb_sgs   = foo[i++];
+	    rms_mach   = foo[i++];
 #endif
 
 #ifdef GRAVITY
@@ -130,6 +139,9 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
 	    std::cout << "TIME= " << time << " YMOM        = "   << mom[1]    << '\n';
 	    std::cout << "TIME= " << time << " ZMOM        = "   << mom[2]    << '\n';
+	    std::cout << "TIME= " << time << " ANG MOM X   = "   << ang_mom[0] << '\n';
+	    std::cout << "TIME= " << time << " ANG MOM Y   = "   << ang_mom[1] << '\n';
+	    std::cout << "TIME= " << time << " ANG MOM Z   = "   << ang_mom[2] << '\n';
 	    std::cout << "TIME= " << time << " RHO*e       = "   << rho_e     << '\n';
 	    std::cout << "TIME= " << time << " RHO*K       = "   << rho_K     << '\n';
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
@@ -160,6 +172,9 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(14) <<  "         xmom ";
 		      data_log1 << std::setw(14) <<  "         ymom ";
 		      data_log1 << std::setw(14) <<  "         zmom ";
+		      data_log1 << std::setw(14) <<  "     ang mom x";
+		      data_log1 << std::setw(14) <<  "     ang mom y";
+		      data_log1 << std::setw(14) <<  "     ang mom z";
 		      data_log1 << std::setw(14) <<  "        rho_K ";
 		      data_log1 << std::setw(14) <<  "        rho_e ";
 		      data_log1 << std::setw(14) <<  "        rho_E ";
@@ -176,6 +191,9 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[0];
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[1];
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << mom[2];
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << ang_mom[0];
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << ang_mom[1];
+		  data_log1 << std::setw(14) <<  std::setprecision(6) << ang_mom[2];
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_K;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_e;
 		  data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E;

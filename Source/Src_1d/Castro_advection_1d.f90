@@ -191,7 +191,7 @@ contains
 
        kineng = HALF * q(i,QRHO) * sum(q(i,QU:QW)**2)
 
-       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .lt. dual_energy_eta1) then
+       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .gt. dual_energy_eta1) then
           q(i,QREINT) = (uin(i,UEDEN) - kineng) / q(i,QRHO)
        else
           q(i,QREINT) = uin(i,UEINT) / q(i,QRHO)

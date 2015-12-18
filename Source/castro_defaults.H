@@ -63,6 +63,9 @@ int         Castro::rot_source_type = 1;
 #ifdef ROTATION
 int         Castro::rot_axis = 3;
 #endif
+#ifdef POINTMASS
+Real        Castro::point_mass = 0.0;
+#endif
 int         Castro::do_acc = -1;
 int         Castro::bndry_func_thread_safe = 1;
 int         Castro::grown_factor = 1;

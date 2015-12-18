@@ -143,7 +143,7 @@ class Param(object):
         return tstr
 
     def get_f90_decl_string(self):
-        # this is the line that goes into meth_params.f90
+        # this is the line that goes into meth_params.F90
 
         if not self.in_fortran:
             return None
@@ -249,9 +249,9 @@ def write_meth_module(plist, meth_template):
     except:
         sys.exit("invalid template file")
 
-    try: mo = open("Src_nd/meth_params.f90", "w")
+    try: mo = open("Src_nd/meth_params.F90", "w")
     except:
-        sys.exit("unable to open meth_params.f90 for writing")
+        sys.exit("unable to open meth_params.F90 for writing")
 
     param_decls = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
 

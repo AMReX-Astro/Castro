@@ -357,7 +357,7 @@ contains
 
           kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QW)**2)
           
-          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
+          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .gt. dual_energy_eta1) then
              q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
           else
              q(i,j,QREINT) = uin(i,j,UEINT) / q(i,j,QRHO)

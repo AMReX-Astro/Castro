@@ -259,6 +259,8 @@ contains
 
   subroutine check_e(state)
 
+    use meth_params_module, only: allow_negative_energy
+    
     implicit none
 
     type (eos_t), intent(inout) :: state
@@ -267,7 +269,7 @@ contains
        call bl_error('EOS: energy not initialized.')
     endif
     
-    if (state % e .lt. ZERO) then
+    if (state % e .lt. ZERO .and. allow_negative_energy .eq. 0) then
        if (state % reset) then
           state % T = max(smallt, state % T)
           state % rho = max(smalld, state % rho)

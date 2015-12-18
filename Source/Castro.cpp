@@ -91,10 +91,6 @@ int          Castro::FirstAdv      = -1;
 
 #include <castro_defaults.H>
 
-#ifdef POINTMASS
-Real         Castro::point_mass    = 0.0;
-#endif
-
 #ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
@@ -196,11 +192,6 @@ Castro::read_params ()
     do_reflux = (do_reflux ? 1 : 0);
 
     pp.query("dump_old",dump_old);
-
-#ifdef POINTMASS
-    pp.get("point_mass",point_mass);
-#endif
-
 
     // Get boundary conditions
     Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
@@ -2847,6 +2838,8 @@ Castro::errorEst (TagBoxArray& tags,
 {
     BL_PROFILE("Castro::errorEst()");
 
+    BL_FORT_PROC_CALL(SET_AMR_INFO,set_amr_info)(level, -1, -1, -1.0, -1.0);    
+    
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
