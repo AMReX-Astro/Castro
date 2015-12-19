@@ -64,9 +64,9 @@
 
                else if (grav_source_type .eq. 4) then
 
-                  ! Do nothing here, for the conservative gravity option.
+                  ! Add a predictor here; we'll remove this later.
 
-                  SrE = ZERO
+                  SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
                else 
                   call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
@@ -388,6 +388,10 @@
                   ! Now normalize by the volume of this cell to get the specific energy change.
                      
                   SrEcorr = SrEcorr / vol(i,j,k)
+
+                  ! Finally, remove the predictor step we applied earlier.
+
+                  SrEcorr = SrEcorr - dot_product(uold(i,j,k,UMX:UMZ) * rhooinv, Sr_old)
                   
                else 
                   call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
