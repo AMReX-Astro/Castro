@@ -4,7 +4,7 @@
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type, hybrid_hydro
       use bl_constants_module
       use math_module, only: cross_product
-      use castro_util_module, only: position
+      use castro_util_module, only: position, linear_to_hybrid_momentum, hybrid_to_linear_momentum
       use prob_params_module, only: center
       
       implicit none
@@ -26,7 +26,7 @@
       double precision :: rho, rhoInv
       double precision :: Sr(3), SrE
       double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-      double precision :: loc(3), R, old_mom(3), rad_mom, ang_mom
+      double precision :: loc(3), R, old_mom(3), hybrid_mom(3)
       integer          :: i, j, k
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -56,15 +56,13 @@
                Sr = rho * grav(i,j,k,:) * dt
 
                if (hybrid_hydro .eq. 1) then
-                  rad_mom = unew(i,j,k,UMX) * (loc(1) / R) + unew(i,j,k,UMY) * (loc(2) / R)
-                  ang_mom = unew(i,j,k,UMY) * loc(1)       - unew(i,j,k,UMX) * loc(2)
+                  hybrid_mom = linear_to_hybrid_momentum(loc, old_mom)
 
-                  rad_mom = rad_mom - Sr(1) * (loc(1) / R) - Sr(2) * (loc(2) / R)
-                  ang_mom = ang_mom + Sr(1) * loc(2) - Sr(2) * loc(1)
-
-                  unew(i,j,k,UMX) = rad_mom * (loc(1) / R)    - ang_mom * (loc(2) / R**2)
-                  unew(i,j,k,UMY) = ang_mom * (loc(1) / R**2) + rad_mom * (loc(2) / R)                  
-                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + Sr(3)
+                  hybrid_mom(1) = hybrid_mom(1) - Sr(1) * (loc(1) / R) - Sr(2) * (loc(2) / R)
+                  hybrid_mom(2) = hybrid_mom(2) + Sr(1) * loc(2) - Sr(2) * loc(1)
+                  hybrid_mom(3) = hybrid_mom(3) + Sr(3)
+                  
+                  unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
                else
                   unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
                endif
@@ -130,7 +128,7 @@
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
-      use castro_util_module, only : position
+      use castro_util_module, only : position, linear_to_hybrid_momentum, hybrid_to_linear_momentum
 
       implicit none
 
@@ -182,7 +180,7 @@
 
       double precision :: old_ke, old_rhoeint, old_re
       double precision :: new_ke, new_rhoeint
-      double precision :: old_mom(3), rad_mom, ang_mom, loc(3), R
+      double precision :: old_mom(3), hybrid_mom(3), loc(3), R
 
       double precision, pointer :: phi(:,:,:)
       double precision, pointer :: grav(:,:,:,:)
@@ -337,15 +335,13 @@
                ! Correct momenta
 
                if (hybrid_hydro .eq. 1) then
-                  rad_mom = unew(i,j,k,UMX) * (loc(1) / R) + unew(i,j,k,UMY) * (loc(2) / R)
-                  ang_mom = unew(i,j,k,UMY) * loc(1)       - unew(i,j,k,UMX) * loc(2)
+                  hybrid_mom = linear_to_hybrid_momentum(loc, unew(i,j,k,UMX:UMZ))
+                  
+                  hybrid_mom(1) = hybrid_mom(1) - Srcorr(1) * (loc(1) / R) - Srcorr(2) * (loc(2) / R)
+                  hybrid_mom(2) = hybrid_mom(2) + Srcorr(1) * loc(2) - Srcorr(2) * loc(1)
+                  hybrid_mom(3) = hybrid_mom(3) + Srcorr(3)
 
-                  rad_mom = rad_mom - Srcorr(1) * (loc(1) / R) - Srcorr(2) * (loc(2) / R)
-                  ang_mom = ang_mom + Srcorr(1) * loc(2) - Srcorr(2) * loc(1)
-
-                  unew(i,j,k,UMX) = rad_mom * (loc(1) / R)    - ang_mom * (loc(2) / R**2)
-                  unew(i,j,k,UMY) = ang_mom * (loc(1) / R**2) + rad_mom * (loc(2) / R)                  
-                  unew(i,j,k,UMZ) = unew(i,j,k,UMZ) + Srcorr(3)
+                  unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
                else
                   unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
                endif               
