@@ -1175,7 +1175,8 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
          UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro
     use bl_constants_module
-    use castro_util_module, only : position, linear_to_hybrid_momentum, hybrid_to_linear_momentum
+    use castro_util_module, only : position
+    use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
     use advection_util_module, only : normalize_species_fluxes
 
     integer lo(3), hi(3)
@@ -1239,7 +1240,7 @@ contains
     double precision hybrid_flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,3)
     double precision hybrid_flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,3)
 
-    double precision linear_mom(3), hybrid_mom(3)
+    double precision linear_mom(3), hybrid_mom_in(3), hybrid_mom_out(3), rho_in, rho_out
     
     double precision :: div1, volinv
     double precision :: rho, u, v, w, p
@@ -1262,11 +1263,11 @@ contains
 
                 linear_mom = rho * (/ u, v, w /)
 
-                hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
+                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
                 
-                hybrid_flux1(i,j,k,1) = (hybrid_mom(1) * u             ) * area1(i,j,k) * dt
-                hybrid_flux1(i,j,k,2) = (hybrid_mom(2) * u + loc(2) * p) * area1(i,j,k) * dt
-                hybrid_flux1(i,j,k,3) = (hybrid_mom(3) * u             ) * area1(i,j,k) * dt
+                hybrid_flux1(i,j,k,1) = (hybrid_mom_in(1) * u             ) * area1(i,j,k) * dt
+                hybrid_flux1(i,j,k,2) = (hybrid_mom_in(2) * u + loc(2) * p) * area1(i,j,k) * dt
+                hybrid_flux1(i,j,k,3) = (hybrid_mom_in(3) * u             ) * area1(i,j,k) * dt
 
              enddo
           enddo
@@ -1286,11 +1287,11 @@ contains
 
                 linear_mom = rho * (/ u, v, w /)
 
-                hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
+                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
                 
-                hybrid_flux2(i,j,k,1) = (hybrid_mom(1) * v             ) * area2(i,j,k) * dt
-                hybrid_flux2(i,j,k,2) = (hybrid_mom(2) * v - loc(1) * p) * area2(i,j,k) * dt
-                hybrid_flux2(i,j,k,3) = (hybrid_mom(3) * v             ) * area2(i,j,k) * dt
+                hybrid_flux2(i,j,k,1) = (hybrid_mom_in(1) * v             ) * area2(i,j,k) * dt
+                hybrid_flux2(i,j,k,2) = (hybrid_mom_in(2) * v - loc(1) * p) * area2(i,j,k) * dt
+                hybrid_flux2(i,j,k,3) = (hybrid_mom_in(3) * v             ) * area2(i,j,k) * dt
                 
              enddo
           enddo
@@ -1310,11 +1311,11 @@ contains
 
                 linear_mom = rho * (/ u, v, w /)
 
-                hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
+                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
 
-                hybrid_flux3(i,j,k,1) = (hybrid_mom(1) * w) * area3(i,j,k) * dt
-                hybrid_flux3(i,j,k,2) = (hybrid_mom(2) * w) * area3(i,j,k) * dt
-                hybrid_flux3(i,j,k,3) = (hybrid_mom(3) * w) * area3(i,j,k) * dt
+                hybrid_flux3(i,j,k,1) = (hybrid_mom_in(1) * w) * area3(i,j,k) * dt
+                hybrid_flux3(i,j,k,2) = (hybrid_mom_in(2) * w) * area3(i,j,k) * dt
+                hybrid_flux3(i,j,k,3) = (hybrid_mom_in(3) * w) * area3(i,j,k) * dt
 
              enddo
           enddo
@@ -1448,33 +1449,35 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
 
+                volinv = ONE / vol(i,j,k)                               
+                
                 loc = position(i,j,k)
 
                 R = sqrt( loc(1)**2 + loc(2)**2 )
                 
-                rho = uin(i,j,k,URHO)
+                rho_in  = uin(i,j,k,URHO)
+                rho_out = uout(i,j,k,URHO)
                 
-                volinv = ONE / vol(i,j,k)
-                
-                hybrid_mom = linear_to_hybrid_momentum(loc, uin(i,j,k,UMX:UMZ))                
+                hybrid_mom_in = linear_to_hybrid_momentum(loc, uin(i,j,k,UMX:UMZ))                
                 
                 do n = 1, 3
 
-                   hybrid_mom(n) = hybrid_mom(n) &
+                   hybrid_mom_out(n) = hybrid_mom_in(n) &
                                  + ( hybrid_flux1(i,j,k,n) - hybrid_flux1(i+1,j,k,n) &
                                    + hybrid_flux2(i,j,k,n) - hybrid_flux2(i,j+1,k,n) &
                                    + hybrid_flux3(i,j,k,n) - hybrid_flux3(i,j,k+1,n) ) * volinv
 
-                   if (n .eq. 1) then
-                      hybrid_mom(n) = hybrid_mom(n) &
-                        + dt * ( - (loc(1) / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                 - (loc(2) / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
-                                 + hybrid_mom(2)**2 / (rho * R**3) )
-                   endif
-
                 enddo
 
-                uout(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
+                ! Add the time-centered source term to the radial momentum
+                
+                hybrid_mom_out(1) = hybrid_mom_out(1) &
+                        + dt * ( - (loc(1) / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
+                                 - (loc(2) / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                                 + (HALF * (hybrid_mom_in(2) + hybrid_mom_out(2)))**2 / &
+                                 ( (HALF * (rho_in + rho_out)) * R**3) )
+                
+                uout(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom_out)
                 
              enddo
           enddo

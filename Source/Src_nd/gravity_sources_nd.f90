@@ -4,7 +4,8 @@
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type, hybrid_hydro
       use bl_constants_module
       use math_module, only: cross_product
-      use castro_util_module, only: position, linear_to_hybrid_momentum, hybrid_to_linear_momentum
+      use castro_util_module, only: position
+      use hybrid_advection_module, only: linear_to_hybrid_momentum, hybrid_to_linear_momentum
       use prob_params_module, only: center
       
       implicit none
@@ -128,7 +129,8 @@
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
-      use castro_util_module, only : position, linear_to_hybrid_momentum, hybrid_to_linear_momentum
+      use castro_util_module, only : position
+      use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
 
       implicit none
 
