@@ -1,9 +1,11 @@
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, hybrid_hydro
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
+    use castro_util_module, only: position
+    use hybrid_advection_module, only: linear_to_hybrid_momentum, hybrid_to_linear_momentum
 
     implicit none
 
@@ -25,12 +27,16 @@
     double precision :: rho, rhoInv
 
     double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-    double precision :: old_mom(3)
+    double precision :: old_mom(3), hybrid_mom(3), loc(3), R
     double precision :: E_added, mom_added(3)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             loc = position(i,j,k) - center
+             R = sqrt( loc(1)**2 + loc(2)**2 )
+               
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
@@ -43,7 +49,17 @@
 
              Sr = rho * rot(i,j,k,:) * dt
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+             if (hybrid_hydro .eq. 1) then
+                hybrid_mom = linear_to_hybrid_momentum(loc, old_mom)
+
+                hybrid_mom(1) = hybrid_mom(1) - Sr(1) * (loc(1) / R) - Sr(2) * (loc(2) / R)
+                hybrid_mom(2) = hybrid_mom(2) + Sr(1) * loc(2) - Sr(2) * loc(1)
+                hybrid_mom(3) = hybrid_mom(3) + Sr(3)
+
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
+             else
+                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+             endif
 
              ! Kinetic energy source: this is v . the momentum source.
              ! We don't apply in the case of the conservative energy
@@ -107,11 +123,13 @@
     ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, hybrid_hydro
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
     use math_module, only: cross_product
     use rotation_module, only: get_omega, get_domegadt, rotational_acceleration
+    use castro_util_module, only: position
+    use hybrid_advection_module, only: linear_to_hybrid_momentum, hybrid_to_linear_momentum
 
     implicit none
 
@@ -156,13 +174,13 @@
     double precision :: E_added, mom_added(3)
 
     integer          :: i,j,k
-    double precision :: r(3)
+    double precision :: loc(3), R
     double precision :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
     double precision :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
     double precision :: rhoo, rhon, rhooinv, rhoninv
 
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3)
+    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), hybrid_mom(3)
 
     double precision, pointer :: phi(:,:,:)
 
@@ -219,12 +237,12 @@
     endif
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
+             loc = position(i,j,k) - center
+             R = sqrt( loc(1)**2 + loc(2)**2 )             
+             
              rhoo = uold(i,j,k,URHO)
              rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -257,9 +275,19 @@
              Srcorr = HALF * (Sr_new - Sr_old)
 
              ! Correct momenta
+ 
+             if (hybrid_hydro .eq. 1) then
+                hybrid_mom = linear_to_hybrid_momentum(loc, unew(i,j,k,UMX:UMZ))
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+                hybrid_mom(1) = hybrid_mom(1) - Srcorr(1) * (loc(1) / R) - Srcorr(2) * (loc(2) / R)
+                hybrid_mom(2) = hybrid_mom(2) + Srcorr(1) * loc(2) - Srcorr(2) * loc(1)
+                hybrid_mom(3) = hybrid_mom(3) + Srcorr(3)
 
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
+             else
+                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+             endif
+ 
              ! Correct energy
 
              if (rot_source_type == 1) then
@@ -274,7 +302,7 @@
                 ! before we calculate the energy source term.
 
                 vnew = unew(i,j,k,UMX:UMZ) * rhoninv
-                Sr_new = rhon * rotational_acceleration(r, vnew, time) * dt
+                Sr_new = rhon * rotational_acceleration(loc, vnew, time) * dt
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -304,8 +332,8 @@
                 ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
                 unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
-                                    + HALF * dt * r * omega_new**2 * rhon &
-                                    - HALF * dt * r * omega_old**2 * rhoo
+                                    + HALF * dt * loc * omega_new**2 * rhon &
+                                    - HALF * dt * loc * omega_old**2 * rhoo
                 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, rho * phi.
@@ -339,8 +367,8 @@
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
 
-                Sr_old = - rhoo * cross_product(domegadt_old, r)
-                Sr_new = - rhon * cross_product(domegadt_new, r)
+                Sr_old = - rhoo * cross_product(domegadt_old, loc)
+                Sr_new = - rhon * cross_product(domegadt_new, loc)
                
                 unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
 
