@@ -227,6 +227,8 @@ Castro::variableSetUp ()
     int get_g_from_phi = 0;
     pp.query("get_g_from_phi", get_g_from_phi);
 
+#include <castro_call_set_meth.H>    
+    
     BL_FORT_PROC_CALL(SET_METHOD_PARAMS, set_method_params)
         (dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
          NumAdv, 
@@ -235,8 +237,6 @@ Castro::variableSetUp ()
 	 use_sgs,
 	 diffuse_cutoff_density,
 	 const_grav);
-
-#include <castro_call_set_meth.H>
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
