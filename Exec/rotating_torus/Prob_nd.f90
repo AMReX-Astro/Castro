@@ -77,8 +77,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(3), xhi(3)
   
   double precision :: loc(3), vel(3), R, Z, dist
-  double precision :: rho_s, fac
-  integer          :: i,j,k
+  double precision :: rho, rho_s, fac
+  integer          :: i, j, k
 
   type (eos_t)     :: eos_state
 
@@ -121,35 +121,36 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            if (fac > ZERO) then
 
-              state(i,j,k,URHO) = rho_s * fac**polytrope_index
+              rho = rho_s * fac**polytrope_index
 
-              if (state(i,j,k,URHO) < ambient_density) then
-                 state(i,j,k,URHO) = ambient_density
+              if (rho < ambient_density) then
+                 rho = ambient_density
               endif
-              
+
            else
 
-              state(i,j,k,URHO) = ambient_density
+              rho = ambient_density
 
            endif
 
-           eos_state % rho = state(i,j,k,URHO)
+           if (rho > ambient_density .and. do_rotation .ne. 1) then
+              vel = cross_product(omega, loc)
+           else
+              vel = ZERO
+           endif
+           
+           eos_state % rho = rho
            eos_state % T   = 1.0 
            eos_state % xn  = 1.0 / nspec
 
            call eos(eos_input_rt, eos_state)
 
-           if (do_rotation .eq. 1) then
-              vel = ZERO
-           else
-              vel = cross_product(omega, loc)              
-           endif
-           
+           state(i,j,k,URHO)    = rho
            state(i,j,k,UTEMP)   = eos_state % T
-           state(i,j,k,UEINT)   = state(i,j,k,URHO) * eos_state % e
+           state(i,j,k,UEINT)   = rho * eos_state % e
 
-           state(i,j,k,UMX:UMZ) = state(i,j,k,URHO) * vel           
-           state(i,j,k,UEDEN)   = state(i,j,k,UEINT) + HALF * state(i,j,k,URHO) * sum(vel**2)           
+           state(i,j,k,UMX:UMZ) = rho * vel           
+           state(i,j,k,UEDEN)   = state(i,j,k,UEINT) + HALF * rho * sum(vel**2)
 
            state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * (ONE / nspec)
            
