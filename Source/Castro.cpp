@@ -2169,8 +2169,16 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& ext_src_old, MultiFa
 
     ext_src_old.mult(-0.5*dt);
     ext_src_new.mult( 0.5*dt);
+    
     MultiFab::Add(S_new,ext_src_old,0,0,S_new.nComp(),0);
     MultiFab::Add(S_new,ext_src_new,0,0,S_new.nComp(),0);
+
+    // Return the source terms to their original form.
+
+    if (dt > 0.0) {
+      ext_src_old.mult(1.0/(-0.5*dt));
+      ext_src_new.mult(1.0/( 0.5*dt));
+    }
 }
 
 #ifdef SGS
