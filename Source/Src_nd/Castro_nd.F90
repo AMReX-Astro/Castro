@@ -303,6 +303,7 @@
         use meth_params_module
         use network, only : nspec, naux
         use parallel
+        use bl_constants_module, only : ZERO, ONE
 
         implicit none
 
@@ -484,6 +485,9 @@
         diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
 
+        rot_vec = ZERO
+        rot_vec(rot_axis) = ONE
+        
       end subroutine set_method_params
 
 ! :::

@@ -44,6 +44,8 @@ module meth_params_module
 
   double precision, save :: const_grav
 
+  double precision, save :: rot_vec(3)
+  
   logical, save :: get_g_from_phi
   
   character(len=:), allocatable :: gravity_type
