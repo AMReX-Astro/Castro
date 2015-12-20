@@ -37,25 +37,11 @@ contains
                      flux1, fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3, &
                      flux2, fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3, &
                      flux3, fd3_l1, fd3_l2, fd3_l3, fd3_h1, fd3_h2, fd3_h3, &
-                     rgdnvx_out,rgdx_l1,rgdx_l2,rgdx_l3,rgdx_h1,rgdx_h2,rgdx_h3, &
-                     rgdnvy_out,rgdy_l1,rgdy_l2,rgdy_l3,rgdy_h1,rgdy_h2,rgdy_h3, &
-                     rgdnvz_out,rgdz_l1,rgdz_l2,rgdz_l3,rgdz_h1,rgdz_h2,rgdz_h3, &
-                     ugdnvx_out,ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3, &
-                     ugdnvy_out,ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3, &
-                     ugdnvz_out,ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3, &
-                     vgdnvx_out,vgdx_l1,vgdx_l2,vgdx_l3,vgdx_h1,vgdx_h2,vgdx_h3, &
-                     vgdnvy_out,vgdy_l1,vgdy_l2,vgdy_l3,vgdy_h1,vgdy_h2,vgdy_h3, &
-                     vgdnvz_out,vgdz_l1,vgdz_l2,vgdz_l3,vgdz_h1,vgdz_h2,vgdz_h3, &
-                     wgdnvx_out,wgdx_l1,wgdx_l2,wgdx_l3,wgdx_h1,wgdx_h2,wgdx_h3, &
-                     wgdnvy_out,wgdy_l1,wgdy_l2,wgdy_l3,wgdy_h1,wgdy_h2,wgdy_h3, &
-                     wgdnvz_out,wgdz_l1,wgdz_l2,wgdz_l3,wgdz_h1,wgdz_h2,wgdz_h3, &
-                     pgdnvx_out,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                     pgdnvy_out,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
-                     pgdnvz_out,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                     q1, q1_lo, q1_hi, q2, q2_lo, q2_hi, q3, q3_lo, q3_hi, &
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
@@ -76,21 +62,9 @@ contains
     integer fd1_l1, fd1_l2, fd1_l3, fd1_h1, fd1_h2, fd1_h3
     integer fd2_l1, fd2_l2, fd2_l3, fd2_h1, fd2_h2, fd2_h3
     integer fd3_l1, fd3_l2, fd3_l3, fd3_h1, fd3_h2, fd3_h3
-    integer rgdx_l1,rgdx_l2,rgdx_l3,rgdx_h1,rgdx_h2,rgdx_h3
-    integer rgdy_l1,rgdy_l2,rgdy_l3,rgdy_h1,rgdy_h2,rgdy_h3
-    integer rgdz_l1,rgdz_l2,rgdz_l3,rgdz_h1,rgdz_h2,rgdz_h3
-    integer ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3
-    integer ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3
-    integer ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3
-    integer vgdx_l1,vgdx_l2,vgdx_l3,vgdx_h1,vgdx_h2,vgdx_h3
-    integer vgdy_l1,vgdy_l2,vgdy_l3,vgdy_h1,vgdy_h2,vgdy_h3
-    integer vgdz_l1,vgdz_l2,vgdz_l3,vgdz_h1,vgdz_h2,vgdz_h3
-    integer wgdx_l1,wgdx_l2,wgdx_l3,wgdx_h1,wgdx_h2,wgdx_h3
-    integer wgdy_l1,wgdy_l2,wgdy_l3,wgdy_h1,wgdy_h2,wgdy_h3
-    integer wgdz_l1,wgdz_l2,wgdz_l3,wgdz_h1,wgdz_h2,wgdz_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3    
+    integer q1_lo(3), q1_hi(3)
+    integer q2_lo(3), q2_hi(3)
+    integer q3_lo(3), q3_hi(3)
     integer domlo(3),domhi(3)
     integer km,kc,kt,k3d,n
     integer i,j,iwave,idim
@@ -104,21 +78,9 @@ contains
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,fd1_l3:fd1_h3,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,fd2_l3:fd2_h3,NVAR)
     double precision flux3(fd3_l1:fd3_h1,fd3_l2:fd3_h2,fd3_l3:fd3_h3,NVAR)
-    double precision rgdnvx_out(rgdx_l1:rgdx_h1,rgdx_l2:rgdx_h2,rgdx_l3:rgdx_h3)
-    double precision rgdnvy_out(rgdy_l1:rgdy_h1,rgdy_l2:rgdy_h2,rgdy_l3:rgdy_h3)
-    double precision rgdnvz_out(rgdz_l1:rgdz_h1,rgdz_l2:rgdz_h2,rgdz_l3:rgdz_h3)
-    double precision ugdnvx_out(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2,ugdx_l3:ugdx_h3)
-    double precision ugdnvy_out(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2,ugdy_l3:ugdy_h3)
-    double precision ugdnvz_out(ugdz_l1:ugdz_h1,ugdz_l2:ugdz_h2,ugdz_l3:ugdz_h3)
-    double precision vgdnvx_out(vgdx_l1:vgdx_h1,vgdx_l2:vgdx_h2,vgdx_l3:vgdx_h3)
-    double precision vgdnvy_out(vgdy_l1:vgdy_h1,vgdy_l2:vgdy_h2,vgdy_l3:vgdy_h3)
-    double precision vgdnvz_out(vgdz_l1:vgdz_h1,vgdz_l2:vgdz_h2,vgdz_l3:vgdz_h3)
-    double precision wgdnvx_out(wgdx_l1:wgdx_h1,wgdx_l2:wgdx_h2,wgdx_l3:wgdx_h3)
-    double precision wgdnvy_out(wgdy_l1:wgdy_h1,wgdy_l2:wgdy_h2,wgdy_l3:wgdy_h3)
-    double precision wgdnvz_out(wgdz_l1:wgdz_h1,wgdz_l2:wgdz_h2,wgdz_l3:wgdz_h3)
-    double precision pgdnvx_out(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvy_out(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvz_out(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)    
+    double precision    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),QVAR)
+    double precision    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),QVAR)
+    double precision    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),QVAR)
     double precision pdivu(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3)
     double precision dx, dy, dz, dt
     double precision dxinv, dyinv, dzinv
@@ -151,28 +113,9 @@ contains
     double precision, pointer::fyx(:,:,:,:),fyz(:,:,:,:)
     double precision, pointer::fzx(:,:,:,:),fzy(:,:,:,:)
     
-    double precision, pointer:: rgdnvx(:,:,:), pgdnvx(:,:,:), ugdnvx(:,:,:), &
-                                vgdnvx(:,:,:), wgdnvx(:,:,:), gegdnvx(:,:,:)
-    double precision, pointer:: rgdnvxf(:,:,:), pgdnvxf(:,:,:), ugdnvxf(:,:,:), &
-                                vgdnvxf(:,:,:), wgdnvxf(:,:,:), gegdnvxf(:,:,:)
-    double precision, pointer:: rgdnvtmpx(:,:,:), pgdnvtmpx(:,:,:), ugdnvtmpx(:,:,:), &
-                                vgdnvtmpx(:,:,:), wgdnvtmpx(:,:,:), gegdnvtmpx(:,:,:)
-    
-    double precision, pointer:: rgdnvy(:,:,:), pgdnvy(:,:,:), ugdnvy(:,:,:), &
-                                vgdnvy(:,:,:), wgdnvy(:,:,:), gegdnvy(:,:,:)
-    double precision, pointer:: rgdnvyf(:,:,:), pgdnvyf(:,:,:), ugdnvyf(:,:,:), &
-                                vgdnvyf(:,:,:), wgdnvyf(:,:,:), gegdnvyf(:,:,:)
-    double precision, pointer:: rgdnvtmpy(:,:,:), pgdnvtmpy(:,:,:), ugdnvtmpy(:,:,:), &
-                                vgdnvtmpy(:,:,:), wgdnvtmpy(:,:,:), gegdnvtmpy(:,:,:)
-    
-    double precision, pointer:: rgdnvz(:,:,:), pgdnvz(:,:,:), ugdnvz(:,:,:), &
-                                vgdnvz(:,:,:), wgdnvz(:,:,:), gegdnvz(:,:,:)
-    double precision, pointer:: rgdnvzf(:,:,:), pgdnvzf(:,:,:), ugdnvzf(:,:,:), &
-                                vgdnvzf(:,:,:), wgdnvzf(:,:,:), gegdnvzf(:,:,:)
-    double precision, pointer:: rgdnvtmpz1(:,:,:), pgdnvtmpz1(:,:,:), ugdnvtmpz1(:,:,:), &
-                                vgdnvtmpz1(:,:,:), wgdnvtmpz1(:,:,:), gegdnvtmpz1(:,:,:)
-    double precision, pointer:: rgdnvtmpz2(:,:,:), pgdnvtmpz2(:,:,:), ugdnvtmpz2(:,:,:), &
-                                vgdnvtmpz2(:,:,:), wgdnvtmpz2(:,:,:), gegdnvtmpz2(:,:,:)
+    double precision, pointer:: qgdnvx(:,:,:,:), qgdnvxf(:,:,:,:), qgdnvtmpx(:,:,:,:)    
+    double precision, pointer:: qgdnvy(:,:,:,:), qgdnvyf(:,:,:,:), qgdnvtmpy(:,:,:,:)    
+    double precision, pointer:: qgdnvz(:,:,:,:), qgdnvzf(:,:,:,:), qgdnvtmpz1(:,:,:,:), qgdnvtmpz2(:,:,:,:)
     
     double precision, pointer:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, pointer:: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
@@ -182,75 +125,18 @@ contains
     
     type (eos_t) :: eos_state
 
-    call bl_allocate ( rgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (     qgdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate (    qgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate (  qgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    call bl_allocate ( rgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (     qgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate (    qgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate (  qgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
 
-    call bl_allocate ( rgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate (gegdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( gegdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    
-    call bl_allocate ( rgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( pgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-
-    call bl_allocate ( rgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate ( pgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( ugdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( vgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-    call bl_allocate ( wgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)    
-    call bl_allocate (gegdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+    call bl_allocate (     qgdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate (    qgdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qgdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
+    call bl_allocate ( qgdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
     
     call bl_allocate ( qxm, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
     call bl_allocate ( qxp, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2,1,QVAR)
@@ -476,8 +362,7 @@ contains
        ! Compute \tilde{F}^x at kc (k3d)
        call cmpflx(qxm,qxp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                   rgdnvx,ugdnvx,vgdnvx,wgdnvx,pgdnvx,gegdnvx, &
-                   ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   qgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
@@ -485,8 +370,7 @@ contains
        ! Compute \tilde{F}^y at kc (k3d)
        call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                   rgdnvy,ugdnvy,vgdnvy,wgdnvy,pgdnvy,gegdnvy, &
-                   ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   qgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
@@ -494,22 +378,21 @@ contains
        ! Compute U'^y_x at kc (k3d)
        call transy1(qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                    ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    qgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,k3d)
 
        ! Compute U'^x_y at kc (k3d)
        call transx1(qym,qmyx,qyp,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                    ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                    qgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                     gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fxy,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                   rgdnvtmpx,ugdnvtmpx,vgdnvtmpx,wgdnvtmpx,pgdnvtmpx,gegdnvtmpx, &
-                   ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   qgdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
@@ -517,8 +400,7 @@ contains
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx,qpyx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    fyx,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                   rgdnvtmpy,ugdnvtmpy,vgdnvtmpy,wgdnvtmpy,pgdnvtmpy,gegdnvtmpy, &
-                   ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   qgdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                    shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                    2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
@@ -542,8 +424,7 @@ contains
           ! Compute \tilde{F}^z at kc (k3d)
           call cmpflx(qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                      rgdnvz, ugdnvz,vgdnvz,wgdnvz,pgdnvz,gegdnvz, &
-                      ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      qgdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
@@ -551,22 +432,21 @@ contains
           ! Compute U'^y_z at kc (k3d)
           call transy2(qzm,qmzy,qzp,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                       ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       qgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,km,k3d)
 
           ! Compute U'^x_z at kc (k3d)
           call transx2(qzm,qmzx,qzp,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                       ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       qgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,km,k3d)
 
           ! Compute F^{z|x} at kc (k3d)
           call cmpflx(qmzx,qpzx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fzx,ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-                      rgdnvtmpz1,ugdnvtmpz1,vgdnvtmpz1,wgdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1, &
-                      ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      qgdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
@@ -574,8 +454,7 @@ contains
           ! Compute F^{z|y} at kc (k3d)
           call cmpflx(qmzy,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       fzy,ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-                      rgdnvtmpz2,ugdnvtmpz2,vgdnvtmpz2,wgdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2, &
-                      ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      qgdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &                       
                       3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
@@ -584,8 +463,8 @@ contains
           call transxy(qzm,qzl,qzp,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        fxy,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                        fyx,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                       ugdnvtmpx,pgdnvtmpx,gegdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                       ugdnvtmpy,pgdnvtmpy,gegdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       qgdnvtmpx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                       qgdnvtmpy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                        hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
@@ -593,19 +472,14 @@ contains
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
           call cmpflx(qzl,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       flux3,fd3_l1,fd3_l2,fd3_l3,fd3_h1,fd3_h2,fd3_h3, &
-                      rgdnvzf,ugdnvzf,vgdnvzf,wgdnvzf,pgdnvzf,gegdnvzf, &
-                      ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                      qgdnvzf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                       gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                       shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
 
           do j=ilo2-1,ihi2+1
              do i=ilo1-1,ihi1+1
-                rgdnvz_out(i,j,k3d) = rgdnvzf(i,j,kc)
-                ugdnvz_out(i,j,k3d) = ugdnvzf(i,j,kc)
-                vgdnvz_out(i,j,k3d) = vgdnvzf(i,j,kc)
-                wgdnvz_out(i,j,k3d) = wgdnvzf(i,j,kc)
-                pgdnvz_out(i,j,k3d) = pgdnvzf(i,j,kc)
+                q3(i,j,k3d,:) = qgdnvzf(i,j,kc,:)
              end do
           end do
 
@@ -613,8 +487,8 @@ contains
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(pgdnvzf(i,j,kc)+pgdnvzf(i,j,km)) * &
-                              (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))*dzinv
+                        HALF*(qgdnvzf(i,j,kc,QPRES)+qgdnvzf(i,j,km,QPRES)) * &
+                              (qgdnvzf(i,j,kc,QW)-qgdnvzf(i,j,km,QW))*dzinv
                 end do
              end do
           end if
@@ -625,15 +499,14 @@ contains
              call transz(qxm,qmxz,qxp,qpxz, &
                          qym,qmyz,qyp,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                         ugdnvz,pgdnvz,gegdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         qgdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          cdtdz,ilo1-1,ihi1+1,ilo2-1,ihi2+1,km,kc,k3d)
          
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz,qpxz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fxz,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                         rgdnvx,ugdnvx,vgdnvx,wgdnvx,pgdnvx,gegdnvx, &
-                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         qgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
@@ -641,8 +514,7 @@ contains
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz,qpyz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          fyz,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                         rgdnvy,ugdnvy,vgdnvy,wgdnvy,pgdnvy,gegdnvy, &
-                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         qgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
@@ -651,8 +523,8 @@ contains
              call transyz(qxm,qxl,qxp,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           fyz,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                           fzy,ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
-                          ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                          ugdnvtmpz2,pgdnvtmpz2,gegdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          qgdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          qgdnvtmpz2,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                           hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
@@ -661,8 +533,8 @@ contains
              call transxz(qym,qyl,qyp,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           fxz,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                           fzx,ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
-                          ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                          ugdnvtmpz1,pgdnvtmpz1,gegdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          qgdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                          qgdnvtmpz1,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                           gamc,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                           hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
@@ -670,48 +542,38 @@ contains
              ! Compute F^x at km (k3d-1)
              call cmpflx(qxl,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          flux1,fd1_l1,fd1_l2,fd1_l3,fd1_h1,fd1_h2,fd1_h3, &
-                         rgdnvxf,ugdnvxf,vgdnvxf,wgdnvxf,pgdnvxf,gegdnvxf, &
-                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         qgdnvxf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
              
              do j=ilo2-1,ihi2+1
                 do i=ilo1-1,ihi1+2
-                   rgdnvx_out(i,j,k3d-1) = rgdnvxf(i,j,km)
-                   ugdnvx_out(i,j,k3d-1) = ugdnvxf(i,j,km)
-                   vgdnvx_out(i,j,k3d-1) = vgdnvxf(i,j,km)
-                   wgdnvx_out(i,j,k3d-1) = wgdnvxf(i,j,km)
-                   pgdnvx_out(i,j,k3d-1) = pgdnvxf(i,j,km)
+                   q1(i,j,k3d-1,:) = qgdnvxf(i,j,km,:)
                 end do
              end do
              
              ! Compute F^y at km (k3d-1)
              call cmpflx(qyl,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          flux2,fd2_l1,fd2_l2,fd2_l3,fd2_h1,fd2_h2,fd2_h3, &
-                         rgdnvyf,ugdnvyf,vgdnvyf,wgdnvyf,pgdnvyf,gegdnvyf, &
-                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                         qgdnvyf,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
 
              do j=ilo2-1,ihi2+2
                 do i=ilo1-1,ihi1+1
-                   rgdnvy_out(i,j,k3d-1) = rgdnvyf(i,j,km)
-                   ugdnvy_out(i,j,k3d-1) = ugdnvyf(i,j,km)
-                   vgdnvy_out(i,j,k3d-1) = vgdnvyf(i,j,km)
-                   wgdnvy_out(i,j,k3d-1) = wgdnvyf(i,j,km)
-                   pgdnvy_out(i,j,k3d-1) = pgdnvyf(i,j,km)
+                   q2(i,j,k3d-1,:) = qgdnvyf(i,j,km,:)
                 end do
              end do
 
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(pgdnvxf(i+1,j,km) + pgdnvxf(i,j,km)) *  &
-                              (ugdnvxf(i+1,j,km)-ugdnvxf(i,j,km))*dxinv + &
-                        HALF*(pgdnvyf(i,j+1,km) + pgdnvyf(i,j,km)) *  &
-                              (ugdnvyf(i,j+1,km)-ugdnvyf(i,j,km))*dyinv
+                        HALF*(qgdnvxf(i+1,j,km,QPRES) + qgdnvxf(i,j,km,QPRES)) *  &
+                              (qgdnvxf(i+1,j,km,QU)-qgdnvxf(i,j,km,QU))*dxinv + &
+                        HALF*(qgdnvyf(i,j+1,km,QPRES) + qgdnvyf(i,j,km,QPRES)) *  &
+                              (qgdnvyf(i,j+1,km,QV)-qgdnvyf(i,j,km,QV))*dyinv
                 end do
              end do
                
@@ -720,75 +582,18 @@ contains
     enddo
 
     ! Deallocate arrays
-    call bl_deallocate ( rgdnvx)
-    call bl_deallocate ( pgdnvx)
-    call bl_deallocate ( ugdnvx)
-    call bl_deallocate ( vgdnvx)
-    call bl_deallocate ( wgdnvx)    
-    call bl_deallocate (gegdnvx)
-
-    call bl_deallocate ( rgdnvxf)
-    call bl_deallocate ( pgdnvxf)
-    call bl_deallocate ( ugdnvxf)
-    call bl_deallocate ( vgdnvxf)
-    call bl_deallocate ( wgdnvxf)
-    call bl_deallocate (gegdnvxf)
-
-    call bl_deallocate ( rgdnvtmpx)
-    call bl_deallocate ( pgdnvtmpx)
-    call bl_deallocate ( ugdnvtmpx)
-    call bl_deallocate ( vgdnvtmpx)
-    call bl_deallocate ( wgdnvtmpx)
-    call bl_deallocate (gegdnvtmpx)
+    call bl_deallocate ( qgdnvx)
+    call bl_deallocate ( qgdnvxf)
+    call bl_deallocate ( qgdnvtmpx)
     
-    call bl_deallocate ( rgdnvy)
-    call bl_deallocate ( pgdnvy)
-    call bl_deallocate ( ugdnvy)
-    call bl_deallocate ( vgdnvy)
-    call bl_deallocate ( wgdnvy)
-    call bl_deallocate ( gegdnvy)
+    call bl_deallocate ( qgdnvy)
+    call bl_deallocate ( qgdnvyf)
+    call bl_deallocate ( qgdnvtmpy)
 
-    call bl_deallocate ( rgdnvyf)
-    call bl_deallocate ( pgdnvyf)
-    call bl_deallocate ( ugdnvyf)
-    call bl_deallocate ( vgdnvyf)
-    call bl_deallocate ( wgdnvyf)
-    call bl_deallocate (gegdnvyf)
-
-    call bl_deallocate ( rgdnvtmpy)
-    call bl_deallocate ( pgdnvtmpy)
-    call bl_deallocate ( ugdnvtmpy)
-    call bl_deallocate ( vgdnvtmpy)
-    call bl_deallocate ( wgdnvtmpy)
-    call bl_deallocate (gegdnvtmpy)
-
-    call bl_deallocate ( rgdnvz)
-    call bl_deallocate ( pgdnvz)
-    call bl_deallocate ( ugdnvz)
-    call bl_deallocate ( vgdnvz)
-    call bl_deallocate ( wgdnvz)
-    call bl_deallocate (gegdnvz)
-
-    call bl_deallocate ( rgdnvzf)
-    call bl_deallocate ( pgdnvzf)
-    call bl_deallocate ( ugdnvzf)
-    call bl_deallocate ( vgdnvzf)
-    call bl_deallocate ( wgdnvzf)
-    call bl_deallocate (gegdnvzf)
-
-    call bl_deallocate ( rgdnvtmpz1)
-    call bl_deallocate ( pgdnvtmpz1)
-    call bl_deallocate ( ugdnvtmpz1)
-    call bl_deallocate ( vgdnvtmpz1)
-    call bl_deallocate ( wgdnvtmpz1)
-    call bl_deallocate (gegdnvtmpz1)
-
-    call bl_deallocate ( rgdnvtmpz2)
-    call bl_deallocate ( pgdnvtmpz2)
-    call bl_deallocate ( ugdnvtmpz2)
-    call bl_deallocate ( vgdnvtmpz2)
-    call bl_deallocate ( wgdnvtmpz2)
-    call bl_deallocate (gegdnvtmpz2)
+    call bl_deallocate ( qgdnvz)
+    call bl_deallocate ( qgdnvzf)
+    call bl_deallocate ( qgdnvtmpz1)
+    call bl_deallocate ( qgdnvtmpz2)
     
     call bl_deallocate ( qxm)
     call bl_deallocate ( qxp)
@@ -1148,21 +953,7 @@ contains
                     flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                     flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                     flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                    rgdnvx,rgdx_l1,rgdx_l2,rgdx_l3,rgdx_h1,rgdx_h2,rgdx_h3, &
-                    rgdnvy,rgdy_l1,rgdy_l2,rgdy_l3,rgdy_h1,rgdy_h2,rgdy_h3, &
-                    rgdnvz,rgdz_l1,rgdz_l2,rgdz_l3,rgdz_h1,rgdz_h2,rgdz_h3, &
-                    ugdnvx,ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3, &
-                    ugdnvy,ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3, &
-                    ugdnvz,ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3, &
-                    vgdnvx,vgdx_l1,vgdx_l2,vgdx_l3,vgdx_h1,vgdx_h2,vgdx_h3, &
-                    vgdnvy,vgdy_l1,vgdy_l2,vgdy_l3,vgdy_h1,vgdy_h2,vgdy_h3, &
-                    vgdnvz,vgdz_l1,vgdz_l2,vgdz_l3,vgdz_h1,vgdz_h2,vgdz_h3, &
-                    wgdnvx,wgdx_l1,wgdx_l2,wgdx_l3,wgdx_h1,wgdx_h2,wgdx_h3, &
-                    wgdnvy,wgdy_l1,wgdy_l2,wgdy_l3,wgdy_h1,wgdy_h2,wgdy_h3, &
-                    wgdnvz,wgdz_l1,wgdz_l2,wgdz_l3,wgdz_h1,wgdz_h2,wgdz_h3, &
-                    pgdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                    pgdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
-                    pgdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                    qx,qx_lo,qx_hi,qy,qy_lo,qy_hi,qz,qz_lo,qz_hi, &
                     area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
                     area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
@@ -1173,7 +964,8 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro
+         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro, &
+         QRHO, QU, QV, QW, QPRES, QVAR
     use bl_constants_module
     use castro_util_module, only : position
     use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
@@ -1190,21 +982,9 @@ contains
     integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
     integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
     integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
-    integer rgdx_l1,rgdx_l2,rgdx_l3,rgdx_h1,rgdx_h2,rgdx_h3
-    integer rgdy_l1,rgdy_l2,rgdy_l3,rgdy_h1,rgdy_h2,rgdy_h3
-    integer rgdz_l1,rgdz_l2,rgdz_l3,rgdz_h1,rgdz_h2,rgdz_h3
-    integer ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3
-    integer ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3
-    integer ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3
-    integer vgdx_l1,vgdx_l2,vgdx_l3,vgdx_h1,vgdx_h2,vgdx_h3
-    integer vgdy_l1,vgdy_l2,vgdy_l3,vgdy_h1,vgdy_h2,vgdy_h3
-    integer vgdz_l1,vgdz_l2,vgdz_l3,vgdz_h1,vgdz_h2,vgdz_h3
-    integer wgdx_l1,wgdx_l2,wgdx_l3,wgdx_h1,wgdx_h2,wgdx_h3
-    integer wgdy_l1,wgdy_l2,wgdy_l3,wgdy_h1,wgdy_h2,wgdy_h3
-    integer wgdz_l1,wgdz_l2,wgdz_l3,wgdz_h1,wgdz_h2,wgdz_h3    
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer qx_lo(3), qx_hi(3)
+    integer qy_lo(3), qy_hi(3)
+    integer qz_lo(3), qz_hi(3)
     integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
     
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
@@ -1213,21 +993,9 @@ contains
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
     double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-    double precision rgdnvx(rgdx_l1:rgdx_h1,rgdx_l2:rgdx_h2,rgdx_l3:rgdx_h3)
-    double precision rgdnvy(rgdy_l1:rgdy_h1,rgdy_l2:rgdy_h2,rgdy_l3:rgdy_h3)
-    double precision rgdnvz(rgdz_l1:rgdz_h1,rgdz_l2:rgdz_h2,rgdz_l3:rgdz_h3)
-    double precision ugdnvx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2,ugdx_l3:ugdx_h3)
-    double precision ugdnvy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2,ugdy_l3:ugdy_h3)
-    double precision ugdnvz(ugdz_l1:ugdz_h1,ugdz_l2:ugdz_h2,ugdz_l3:ugdz_h3)
-    double precision vgdnvx(vgdx_l1:vgdx_h1,vgdx_l2:vgdx_h2,vgdx_l3:vgdx_h3)
-    double precision vgdnvy(vgdy_l1:vgdy_h1,vgdy_l2:vgdy_h2,vgdy_l3:vgdy_h3)
-    double precision vgdnvz(vgdz_l1:vgdz_h1,vgdz_l2:vgdz_h2,vgdz_l3:vgdz_h3)
-    double precision wgdnvx(wgdx_l1:wgdx_h1,wgdx_l2:wgdx_h2,wgdx_l3:wgdx_h3)
-    double precision wgdnvy(wgdy_l1:wgdy_h1,wgdy_l2:wgdy_h2,wgdy_l3:wgdy_h3)
-    double precision wgdnvz(wgdz_l1:wgdz_h1,wgdz_l2:wgdz_h2,wgdz_l3:wgdz_h3)    
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)    
+    double precision    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),QVAR)
+    double precision    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),QVAR)
+    double precision    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),QVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2,area1_l3:area1_h3)
     double precision area2(area2_l1:area2_h1,area2_l2:area2_h2,area2_l3:area2_h3)
     double precision area3(area3_l1:area3_h1,area3_l2:area3_h2,area3_l3:area3_h3)
@@ -1244,7 +1012,6 @@ contains
     double precision linear_mom(3), hybrid_mom_in(3), hybrid_mom_out(3), rho_in, rho_out
     
     double precision :: div1, volinv
-    double precision :: rho, u, v, w, p
     integer          :: i, j, k, n
     double precision :: loc(3), R
     
@@ -1256,19 +1023,15 @@ contains
 
                 loc = position(i,j,k,ccx=.false.) - center
 
-                rho = rgdnvx(i,j,k)
-                u   = ugdnvx(i,j,k)
-                v   = vgdnvx(i,j,k)
-                w   = wgdnvx(i,j,k)
-                p   = pgdnvx(i,j,k)
-
-                linear_mom = rho * (/ u, v, w /)
+                linear_mom = qx(i,j,k,QRHO) * qx(i,j,k,QU:QW)
 
                 hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
                 
-                hybrid_flux1(i,j,k,1) = (hybrid_mom_in(1) * u             ) * area1(i,j,k) * dt
-                hybrid_flux1(i,j,k,2) = (hybrid_mom_in(2) * u + loc(2) * p) * area1(i,j,k) * dt
-                hybrid_flux1(i,j,k,3) = (hybrid_mom_in(3) * u             ) * area1(i,j,k) * dt
+                hybrid_flux1(i,j,k,1) = hybrid_mom_in(1) * qx(i,j,k,QU)
+                hybrid_flux1(i,j,k,2) = hybrid_mom_in(2) * qx(i,j,k,QU) + loc(2) * qx(i,j,k,QPRES)
+                hybrid_flux1(i,j,k,3) = hybrid_mom_in(3) * qx(i,j,k,QU)
+
+                hybrid_flux1(i,j,k,:) = hybrid_flux1(i,j,k,:) * area1(i,j,k) * dt
 
              enddo
           enddo
@@ -1280,19 +1043,15 @@ contains
                 
                 loc = position(i,j,k,ccy=.false.) - center
 
-                rho = rgdnvy(i,j,k)
-                u   = vgdnvy(i,j,k)
-                v   = ugdnvy(i,j,k)
-                w   = wgdnvy(i,j,k)
-                p   = pgdnvy(i,j,k)
-
-                linear_mom = rho * (/ u, v, w /)
+                linear_mom = qy(i,j,k,QRHO) * qy(i,j,k,QU:QW)
 
                 hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
                 
-                hybrid_flux2(i,j,k,1) = (hybrid_mom_in(1) * v             ) * area2(i,j,k) * dt
-                hybrid_flux2(i,j,k,2) = (hybrid_mom_in(2) * v - loc(1) * p) * area2(i,j,k) * dt
-                hybrid_flux2(i,j,k,3) = (hybrid_mom_in(3) * v             ) * area2(i,j,k) * dt
+                hybrid_flux2(i,j,k,1) = hybrid_mom_in(1) * qy(i,j,k,QV)
+                hybrid_flux2(i,j,k,2) = hybrid_mom_in(2) * qy(i,j,k,QV) - loc(1) * qy(i,j,k,QPRES)
+                hybrid_flux2(i,j,k,3) = hybrid_mom_in(3) * qy(i,j,k,QV)
+
+                hybrid_flux2(i,j,k,:) = hybrid_flux2(i,j,k,:) * area2(i,j,k) * dt
                 
              enddo
           enddo
@@ -1304,20 +1063,16 @@ contains
                 
                 loc = position(i,j,k,ccz=.false.) - center
 
-                rho = rgdnvz(i,j,k)
-                u   = vgdnvz(i,j,k)
-                v   = wgdnvz(i,j,k)
-                w   = ugdnvz(i,j,k)
-                p   = pgdnvz(i,j,k)
-
-                linear_mom = rho * (/ u, v, w /)
+                linear_mom = qz(i,j,k,QRHO) * qz(i,j,k,QU:QW)
 
                 hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
 
-                hybrid_flux3(i,j,k,1) = (hybrid_mom_in(1) * w) * area3(i,j,k) * dt
-                hybrid_flux3(i,j,k,2) = (hybrid_mom_in(2) * w) * area3(i,j,k) * dt
-                hybrid_flux3(i,j,k,3) = (hybrid_mom_in(3) * w) * area3(i,j,k) * dt
+                hybrid_flux3(i,j,k,1) = hybrid_mom_in(1) * qz(i,j,k,QW)
+                hybrid_flux3(i,j,k,2) = hybrid_mom_in(2) * qz(i,j,k,QW)
+                hybrid_flux3(i,j,k,3) = hybrid_mom_in(3) * qz(i,j,k,QW)
 
+                hybrid_flux3(i,j,k,:) = hybrid_flux3(i,j,k,:) * area3(i,j,k) * dt
+                
              enddo
           enddo
        enddo
@@ -1473,8 +1228,8 @@ contains
                 ! Add the time-centered source term to the radial momentum
                 
                 hybrid_mom_out(1) = hybrid_mom_out(1) &
-                        + dt * ( - (loc(1) / R) * (pgdnvx(i+1,j,k) - pgdnvx(i,j,k)) / dx &
-                                 - (loc(2) / R) * (pgdnvy(i,j+1,k) - pgdnvy(i,j,k)) / dy &
+                        + dt * ( - (loc(1) / R) * (qx(i+1,j,k,QPRES) - qx(i,j,k,QPRES)) / dx &
+                                 - (loc(2) / R) * (qy(i,j+1,k,QPRES) - qy(i,j,k,QPRES)) / dy &
                                  + (HALF * (hybrid_mom_in(2) + hybrid_mom_out(2)))**2 / &
                                  ( (HALF * (rho_in + rho_out)) * R**3) )
                 

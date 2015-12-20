@@ -11,7 +11,7 @@ contains
   !===========================================================================
   subroutine transx1(qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
+                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,k3d)
     
@@ -34,7 +34,7 @@ contains
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
+    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer ilo,ihi,jlo,jhi,kc,k3d
     
@@ -43,9 +43,7 @@ contains
     double precision qymo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision qypo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision gegdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
+    double precision qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdx
     
@@ -114,12 +112,12 @@ contains
           ! for the fluid variables
           !-------------------------------------------------------------------
           
-          pgp = pgdnvx(i+1,j,kc)
-          pgm = pgdnvx(i,j,kc)
-          ugp = ugdnvx(i+1,j,kc)
-          ugm = ugdnvx(i,j,kc)
-          gegp = gegdnvx(i+1,j,kc)
-          gegm = gegdnvx(i,j,kc)
+          pgp  = qx(i+1,j,kc,QPRES)
+          pgm  = qx(i  ,j,kc,QPRES)
+          ugp  = qx(i+1,j,kc,QU   )
+          ugm  = qx(i  ,j,kc,QU   )
+          gegp = qx(i+1,j,kc,QGAME)
+          gegm = qx(i  ,j,kc,QGAME)
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -380,7 +378,7 @@ contains
   !===========================================================================
   subroutine transx2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
+                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
     
@@ -398,7 +396,7 @@ contains
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
+    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer ilo,ihi,jlo,jhi,kc,km,k3d
     
@@ -407,9 +405,7 @@ contains
     double precision qzmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision qzpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision gegdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
+    double precision qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdx
     
@@ -480,12 +476,12 @@ contains
           ! qzpo state
           !-------------------------------------------------------------------
 
-          pgp = pgdnvx(i+1,j,kc)
-          pgm = pgdnvx(i,j,kc)
-          ugp = ugdnvx(i+1,j,kc)
-          ugm = ugdnvx(i,j,kc)
-          gegp = gegdnvx(i+1,j,kc)
-          gegm = gegdnvx(i,j,kc)
+          pgp  = qx(i+1,j,kc,QPRES)
+          pgm  = qx(i  ,j,kc,QPRES)
+          ugp  = qx(i+1,j,kc,QU   )
+          ugm  = qx(i  ,j,kc,QU   )
+          gegp = qx(i+1,j,kc,QGAME)
+          gegm = qx(i  ,j,kc,QGAME)
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -562,12 +558,12 @@ contains
           ! qzmo state
           !-------------------------------------------------------------------
           
-          pgp = pgdnvx(i+1,j,km)
-          pgm = pgdnvx(i,j,km)
-          ugp = ugdnvx(i+1,j,km)
-          ugm = ugdnvx(i,j,km)
-          gegp = gegdnvx(i+1,j,km)
-          gegm = gegdnvx(i,j,km)
+          pgp  = qx(i+1,j,km,QPRES)
+          pgm  = qx(i  ,j,km,QPRES)
+          ugp  = qx(i+1,j,km,QU   )
+          ugm  = qx(i  ,j,km,QU   )
+          gegp = qx(i+1,j,km,QGAME)
+          gegm = qx(i  ,j,km,QGAME)
           
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -744,7 +740,7 @@ contains
   !===========================================================================
   subroutine transy1(qxm,qxmo,qxp,qxpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
+                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
     
@@ -762,7 +758,7 @@ contains
       
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
+    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer ilo,ihi,jlo,jhi,kc,k3d
     
@@ -771,9 +767,7 @@ contains
     double precision qxmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision qxpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
+    double precision qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdy
     
@@ -841,12 +835,12 @@ contains
           ! for the fluid variables
           !-------------------------------------------------------------------
           
-          pgp = pgdnvy(i,j+1,kc)
-          pgm = pgdnvy(i,j,kc)
-          ugp = ugdnvy(i,j+1,kc)
-          ugm = ugdnvy(i,j,kc)
-          gegp = gegdnvy(i,j+1,kc)
-          gegm = gegdnvy(i,j,kc)
+          pgp  = qy(i,j+1,kc,QPRES)
+          pgm  = qy(i,j  ,kc,QPRES)
+          ugp  = qy(i,j+1,kc,QV   )
+          ugm  = qy(i,j  ,kc,QV   )
+          gegp = qy(i,j+1,kc,QGAME)
+          gegm = qy(i,j  ,kc,QGAME)
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -1103,7 +1097,7 @@ contains
   !===========================================================================
   subroutine transy2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
+                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
@@ -1121,7 +1115,7 @@ contains
     
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
+    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer ilo,ihi,jlo,jhi,kc,km,k3d
     
@@ -1130,9 +1124,7 @@ contains
     double precision qzmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision qzpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
+    double precision qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdy
     
@@ -1203,12 +1195,12 @@ contains
           ! qzpo states
           !-------------------------------------------------------------------          
           
-          pgp = pgdnvy(i,j+1,kc)
-          pgm = pgdnvy(i,j,kc)
-          ugp = ugdnvy(i,j+1,kc)
-          ugm = ugdnvy(i,j,kc)
-          gegp = gegdnvy(i,j+1,kc)
-          gegm = gegdnvy(i,j,kc)
+          pgp  = qy(i,j+1,kc,QPRES)
+          pgm  = qy(i,j  ,kc,QPRES)
+          ugp  = qy(i,j+1,kc,QV   )
+          ugm  = qy(i,j  ,kc,QV   )
+          gegp = qy(i,j+1,kc,QGAME)
+          gegm = qy(i,j  ,kc,QGAME)
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -1286,12 +1278,12 @@ contains
           ! qzmo states
           !-------------------------------------------------------------------
 
-          pgp  =  pgdnvy(i,j+1,km)
-          pgm  =  pgdnvy(i,j,km)
-          ugp  =  ugdnvy(i,j+1,km)
-          ugm  =  ugdnvy(i,j,km)
-          gegp = gegdnvy(i,j+1,km)
-          gegm = gegdnvy(i,j,km)
+          pgp  = qy(i,j+1,km,QPRES)
+          pgm  = qy(i,j  ,km,QPRES)
+          ugp  = qy(i,j+1,km,QV   )
+          ugm  = qy(i,j  ,km,QV   )
+          gegp = qy(i,j+1,km,QGAME)
+          gegm = qy(i,j  ,km,QGAME)
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -1472,7 +1464,7 @@ contains
   subroutine transz(qxm,qxmo,qxp,qxpo, &
                     qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                     fz,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                    ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                    qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
@@ -1490,7 +1482,7 @@ contains
 
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
@@ -1503,9 +1495,7 @@ contains
     double precision qymo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision qypo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fz(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision gegdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
+    double precision qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision cdtdz
     
@@ -1587,12 +1577,12 @@ contains
           ! y-states for the fluid variables
           !-------------------------------------------------------------------    
 
-          pgp  =  pgdnvz(i,j,kc)
-          pgm  =  pgdnvz(i,j,km)
-          ugp  =  ugdnvz(i,j,kc)
-          ugm  =  ugdnvz(i,j,km)
-          gegp = gegdnvz(i,j,kc)
-          gegm = gegdnvz(i,j,km)
+          pgp  = qz(i,j,kc,QPRES)
+          pgm  = qz(i,j,km,QPRES)
+          ugp  = qz(i,j,kc,QW   )
+          ugm  = qz(i,j,km,QW   )
+          gegp = qz(i,j,kc,QGAME)
+          gegm = qz(i,j,km,QGAME)
 
           dup = pgp*ugp - pgm*ugm
           pav = HALF*(pgp+pgm)
@@ -2081,8 +2071,8 @@ contains
   subroutine transxy(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fxy,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      fyx,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                     ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
+                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
+                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
@@ -2103,8 +2093,8 @@ contains
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
     integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
+    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
+    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
     integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
@@ -2115,12 +2105,8 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fxy(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
     double precision fyx(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision gegdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
+    double precision  qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
+    double precision  qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
     double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision hdt,cdtdx,cdtdy
@@ -2188,33 +2174,33 @@ contains
           ! fluid variables
           !-------------------------------------------------------------------          
 
-          pgxp = pgdnvx(i+1,j,kc)
-          pgxm = pgdnvx(i,j,kc)
-          ugxp = ugdnvx(i+1,j,kc)          
-          ugxm = ugdnvx(i,j,kc)
-          gegxp = gegdnvx(i+1,j,kc)          
-          gegxm = gegdnvx(i,j,kc)
+          pgxp  = qx(i+1,j,kc,QPRES)
+          pgxm  = qx(i  ,j,kc,QPRES)
+          ugxp  = qx(i+1,j,kc,QU   )
+          ugxm  = qx(i  ,j,kc,QU   )
+          gegxp = qx(i+1,j,kc,QGAME)
+          gegxm = qx(i  ,j,kc,QGAME)
           
-          pgyp = pgdnvy(i,j+1,kc)
-          pgym = pgdnvy(i,j,kc)
-          ugyp = ugdnvy(i,j+1,kc)
-          ugym = ugdnvy(i,j,kc)
-          gegyp = gegdnvy(i,j+1,kc)
-          gegym = gegdnvy(i,j,kc)
+          pgyp  = qy(i,j+1,kc,QPRES)
+          pgym  = qy(i,j  ,kc,QPRES)
+          ugyp  = qy(i,j+1,kc,QV   )
+          ugym  = qy(i,j  ,kc,QV   )
+          gegyp = qy(i,j+1,kc,QGAME)
+          gegym = qy(i,j  ,kc,QGAME)
           
-          pgxpm = pgdnvx(i+1,j,km)
-          pgxmm = pgdnvx(i,j,km)
-          ugxpm = ugdnvx(i+1,j,km)
-          ugxmm = ugdnvx(i,j,km)
-          gegxpm = gegdnvx(i+1,j,km)
-          gegxmm = gegdnvx(i,j,km)
+          pgxpm  = qx(i+1,j,km,QPRES)
+          pgxmm  = qx(i  ,j,km,QPRES)
+          ugxpm  = qx(i+1,j,km,QU   )
+          ugxmm  = qx(i  ,j,km,QU   )
+          gegxpm = qx(i+1,j,km,QGAME)
+          gegxmm = qx(i  ,j,km,QGAME)
           
-          pgypm = pgdnvy(i,j+1,km)
-          pgymm = pgdnvy(i,j,km)
-          ugypm = ugdnvy(i,j+1,km)
-          ugymm = ugdnvy(i,j,km)
-          gegypm = gegdnvy(i,j+1,km)
-          gegymm = gegdnvy(i,j,km)
+          pgypm  = qy(i,j+1,km,QPRES)
+          pgymm  = qy(i,j  ,km,QPRES)
+          ugypm  = qy(i,j+1,km,QV   )
+          ugymm  = qy(i,j  ,km,QV   )
+          gegypm = qy(i,j+1,km,QGAME)
+          gegymm = qy(i,j  ,km,QGAME)
 
           duxp = pgxp*ugxp - pgxm*ugxm
           pxav = HALF*(pgxp+pgxm)
@@ -2512,8 +2498,8 @@ contains
   subroutine transxz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fxz,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
                      fzx,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                     ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                     ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
+                     qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
@@ -2534,8 +2520,8 @@ contains
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
     integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
+    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
@@ -2546,12 +2532,8 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fxz(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
     double precision fzx(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision gegdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision gegdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
+    double precision  qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
+    double precision  qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision hdt,cdtdx,cdtdz
@@ -2621,19 +2603,19 @@ contains
           ! add the transverse xz and zx differences to the y-states for the
           ! fluid variables
           !-------------------------------------------------------------------            
-          pgxp = pgdnvx(i+1,j,km)
-          pgxm = pgdnvx(i,j,km)
-          ugxp = ugdnvx(i+1,j,km)
-          ugxm = ugdnvx(i,j,km)
-          gegxp = gegdnvx(i+1,j,km)
-          gegxm = gegdnvx(i,j,km)
+          pgxp  = qx(i+1,j,km,QPRES)
+          pgxm  = qx(i  ,j,km,QPRES)
+          ugxp  = qx(i+1,j,km,QU   )
+          ugxm  = qx(i  ,j,km,QU   )
+          gegxp = qx(i+1,j,km,QGAME)
+          gegxm = qx(i  ,j,km,QGAME)
           
-          pgzp = pgdnvz(i,j,kc)
-          pgzm = pgdnvz(i,j,km)
-          ugzp = ugdnvz(i,j,kc)
-          ugzm = ugdnvz(i,j,km)
-          gegzp = gegdnvz(i,j,kc)
-          gegzm = gegdnvz(i,j,km)
+          pgzp  = qz(i,j,kc,QPRES)
+          pgzm  = qz(i,j,km,QPRES)
+          ugzp  = qz(i,j,kc,QW   )
+          ugzm  = qz(i,j,km,QW   )
+          gegzp = qz(i,j,kc,QGAME)
+          gegzm = qz(i,j,km,QGAME)
 
           duxp = pgxp*ugxp - pgxm*ugxm
           pxav = HALF*(pgxp+pgxm)
@@ -2922,8 +2904,8 @@ contains
   subroutine transyz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                      fyz,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
                      fzy,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                     ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
-                     ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
+                     qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
@@ -2944,8 +2926,8 @@ contains
     integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
     integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
     integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
+    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
     integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
     integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
     integer ilo,ihi,jlo,jhi,km,kc,k3d
@@ -2956,12 +2938,8 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
     double precision fyz(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
     double precision fzy(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision gegdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
+    double precision  qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
+    double precision  qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
     double precision hdt,cdtdy,cdtdz
@@ -3032,19 +3010,19 @@ contains
           ! fluid variables
           !-------------------------------------------------------------------          
 
-          pgyp = pgdnvy(i,j+1,km)
-          pgym = pgdnvy(i,j,km)
-          ugyp = ugdnvy(i,j+1,km)
-          ugym = ugdnvy(i,j,km)
-          gegyp = gegdnvy(i,j+1,km)
-          gegym = gegdnvy(i,j,km)
+          pgyp  = qy(i,j+1,km,QPRES)
+          pgym  = qy(i,j  ,km,QPRES)
+          ugyp  = qy(i,j+1,km,QV   )
+          ugym  = qy(i,j  ,km,QV   )
+          gegyp = qy(i,j+1,km,QGAME)
+          gegym = qy(i,j  ,km,QGAME)
           
-          pgzp = pgdnvz(i,j,kc)
-          pgzm = pgdnvz(i,j,km)
-          ugzp = ugdnvz(i,j,kc)
-          ugzm = ugdnvz(i,j,km)
-          gegzp = gegdnvz(i,j,kc)
-          gegzm = gegdnvz(i,j,km)
+          pgzp  = qz(i,j,kc,QPRES)
+          pgzm  = qz(i,j,km,QPRES)
+          ugzp  = qz(i,j,kc,QW   )
+          ugzm  = qz(i,j,km,QW   )
+          gegzp = qz(i,j,kc,QGAME)
+          gegzm = qz(i,j,km,QGAME)
 
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)

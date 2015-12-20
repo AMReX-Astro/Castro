@@ -19,7 +19,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, NVAR, NHYP, &
-                                 normalize_species
+                                 normalize_species, QU, QV, QW
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_module, only : divu
   use advection_util_module, only : enforce_minimum_density, normalize_new_species
@@ -69,22 +69,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer:: pdivu(:,:,:)
   double precision, pointer:: srcQ(:,:,:,:)
 
-  double precision, pointer:: rgdnvx(:,:,:)
-  double precision, pointer:: rgdnvy(:,:,:)
-  double precision, pointer:: rgdnvz(:,:,:)
-  double precision, pointer:: vgdnvx(:,:,:)
-  double precision, pointer:: vgdnvy(:,:,:)
-  double precision, pointer:: vgdnvz(:,:,:)
-  double precision, pointer:: wgdnvx(:,:,:)
-  double precision, pointer:: wgdnvy(:,:,:)
-  double precision, pointer:: wgdnvz(:,:,:)
-  double precision, pointer:: pgdnvx(:,:,:)
-  double precision, pointer:: pgdnvy(:,:,:)
-  double precision, pointer:: pgdnvz(:,:,:)
+  ! Edge-centered primitive variables  
+  double precision, pointer:: q1(:,:,:,:)
+  double precision, pointer:: q2(:,:,:,:)
+  double precision, pointer:: q3(:,:,:,:)
   
   double precision dx,dy,dz
   integer ngq,ngf
   integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
+  integer :: q1_lo(3), q1_hi(3), q2_lo(3), q2_hi(3), q3_lo(3), q3_hi(3)
 
   ngq = NHYP
   ngf = 1
@@ -107,18 +100,16 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call bl_allocate(  srcQ, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,QVAR)
 
-  call bl_allocate(rgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
-  call bl_allocate(rgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
-  call bl_allocate(rgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
-  call bl_allocate(vgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
-  call bl_allocate(vgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
-  call bl_allocate(vgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
-  call bl_allocate(wgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
-  call bl_allocate(wgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
-  call bl_allocate(wgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
-  call bl_allocate(pgdnvx, ugdnvx_l1,ugdnvx_h1,ugdnvx_l2,ugdnvx_h2,ugdnvx_l3,ugdnvx_h3)
-  call bl_allocate(pgdnvy, ugdnvy_l1,ugdnvy_h1,ugdnvy_l2,ugdnvy_h2,ugdnvy_l3,ugdnvy_h3)
-  call bl_allocate(pgdnvz, ugdnvz_l1,ugdnvz_h1,ugdnvz_l2,ugdnvz_h2,ugdnvz_l3,ugdnvz_h3)
+  q1_lo = (/ ugdnvx_l1, ugdnvx_l2, ugdnvx_l3 /)
+  q1_hi = (/ ugdnvx_h1, ugdnvx_h2, ugdnvx_h3 /)
+  q2_lo = (/ ugdnvy_l1, ugdnvy_l2, ugdnvy_l3 /)
+  q2_hi = (/ ugdnvy_h1, ugdnvy_h2, ugdnvy_h3 /)
+  q3_lo = (/ ugdnvz_l1, ugdnvz_l2, ugdnvz_l3 /)
+  q3_hi = (/ ugdnvz_h1, ugdnvz_h2, ugdnvz_h3 /)
+  
+  call bl_allocate(    q1, q1_lo(1),q1_hi(1),q1_lo(2),q1_hi(2),q1_lo(3),q1_hi(3),1,QVAR)
+  call bl_allocate(    q2, q2_lo(1),q2_hi(1),q2_lo(2),q2_hi(2),q2_lo(3),q2_hi(3),1,QVAR)
+  call bl_allocate(    q3, q3_lo(1),q3_hi(1),q3_lo(2),q3_hi(2),q3_lo(3),q3_hi(3),1,QVAR)
   
   dx = delta(1)
   dy = delta(2)
@@ -142,21 +133,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-               rgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               rgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               rgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-               ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-               vgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               vgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               vgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-               wgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               wgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               wgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-               pgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               pgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               pgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+               q1, q1_lo, q1_hi, q2, q2_lo, q2_hi, q3, q3_lo, q3_hi, &
                pdivu, domlo, domhi)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
@@ -170,21 +147,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
               flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
               flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-              rgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-              rgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              rgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-              ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-              ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-              vgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-              vgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              vgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-              wgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-              wgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              wgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-              pgdnvx,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-              pgdnvy,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-              pgdnvz,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &              
+              q1, q1_lo, q1_hi, q2, q2_lo, q2_hi, q3, q3_lo, q3_hi, &
               area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
               area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
               area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
@@ -213,6 +176,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                 lo,hi)
   end if
 
+  ! Copy data from the edge-centered state into ugdnv
+
+  ugdnvx_out(:,:,:) = q1(:,:,:,QU)
+  ugdnvy_out(:,:,:) = q2(:,:,:,QV)
+  ugdnvz_out(:,:,:) = q3(:,:,:,QW)
+  
   call bl_deallocate(     q)
   call bl_deallocate(  gamc)
   call bl_deallocate( flatn)
@@ -224,17 +193,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call bl_deallocate(  srcQ)
 
-  call bl_deallocate(rgdnvx)
-  call bl_deallocate(rgdnvy)
-  call bl_deallocate(rgdnvz)
-  call bl_deallocate(vgdnvx)
-  call bl_deallocate(vgdnvy)
-  call bl_deallocate(vgdnvz)
-  call bl_deallocate(wgdnvx)
-  call bl_deallocate(wgdnvy)
-  call bl_deallocate(wgdnvz)
-  call bl_deallocate(pgdnvx)
-  call bl_deallocate(pgdnvy)
-  call bl_deallocate(pgdnvz)
+  call bl_deallocate(    q1)
+  call bl_deallocate(    q2)
+  call bl_deallocate(    q3)
   
 end subroutine ca_umdrv
