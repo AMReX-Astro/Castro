@@ -1178,6 +1178,7 @@ contains
     use castro_util_module, only : position
     use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
     use advection_util_module, only : normalize_species_fluxes
+    use prob_params_module, only : center
 
     integer lo(3), hi(3)
     integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
@@ -1253,7 +1254,7 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)+1
 
-                loc = position(i,j,k,ccx=.false.)
+                loc = position(i,j,k,ccx=.false.) - center
 
                 rho = rgdnvx(i,j,k)
                 u   = ugdnvx(i,j,k)
@@ -1277,7 +1278,7 @@ contains
           do j = lo(2),hi(2)+1
              do i = lo(1),hi(1)
                 
-                loc = position(i,j,k,ccy=.false.)
+                loc = position(i,j,k,ccy=.false.) - center
 
                 rho = rgdnvy(i,j,k)
                 u   = vgdnvy(i,j,k)
@@ -1301,7 +1302,7 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
                 
-                loc = position(i,j,k,ccz=.false.)
+                loc = position(i,j,k,ccz=.false.) - center
 
                 rho = rgdnvz(i,j,k)
                 u   = vgdnvz(i,j,k)
@@ -1451,7 +1452,7 @@ contains
 
                 volinv = ONE / vol(i,j,k)                               
                 
-                loc = position(i,j,k)
+                loc = position(i,j,k) - center
 
                 R = sqrt( loc(1)**2 + loc(2)**2 )
                 
