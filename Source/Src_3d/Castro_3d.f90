@@ -224,4 +224,17 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call bl_deallocate(  srcQ)
 
+  call bl_deallocate(rgdnvx)
+  call bl_deallocate(rgdnvy)
+  call bl_deallocate(rgdnvz)
+  call bl_deallocate(vgdnvx)
+  call bl_deallocate(vgdnvy)
+  call bl_deallocate(vgdnvz)
+  call bl_deallocate(wgdnvx)
+  call bl_deallocate(wgdnvy)
+  call bl_deallocate(wgdnvz)
+  call bl_deallocate(pgdnvx)
+  call bl_deallocate(pgdnvy)
+  call bl_deallocate(pgdnvz)
+  
 end subroutine ca_umdrv
