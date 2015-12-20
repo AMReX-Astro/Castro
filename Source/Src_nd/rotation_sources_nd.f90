@@ -76,10 +76,10 @@
 
              else if (rot_source_type .eq. 4) then
 
-                ! Do nothing here, for the conservative rotation option.
-
-                SrE = ZERO
-
+                ! Add a predictor here; we'll remove this later.
+                
+                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
+                
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
              end if
@@ -375,6 +375,10 @@
                 vnew = unew(i,j,k,UMX:UMZ) / rhon
                                 
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
+
+                ! Finally, remove the predictor step we applied earlier.
+                
+                SrEcorr = SrEcorr - dot_product(uold(i,j,k,UMX:UMZ) * rhooinv, Sr_old)
                 
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")

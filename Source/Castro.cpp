@@ -1449,6 +1449,8 @@ Castro::post_timestep (int iteration)
 	    int ncycle = parent->nCycle(level);
 	    gravity->gravity_sync(level,finest_level,iteration,ncycle,drho_and_drhoU,dphi,grad_delta_phi_cc);
 
+	    Real dt = parent->dtLevel(level);
+	    
             for (int lev = level; lev <= finest_level; lev++)  
             {
               Real dt_lev = parent->dtLevel(lev);
@@ -1487,7 +1489,16 @@ Castro::post_timestep (int iteration)
 			   BL_TO_FORTRAN_3D(sync_src),
 			   dt_lev);
 
-		      sync_src.mult(0.5*dt_lev);
+		      // Now multiply the sync source by dt / 2, where dt
+		      // is the timestep on the base level, not the refined
+		      // levels. Using this level's dt ensures that we correct for
+		      // the errors in the previous fine grid timesteps, which
+		      // were all slightly incorrect because they didn't have the
+		      // contribution from refluxing. Since we do linear interpolation
+		      // of gravity in time, the total error sums up so that we
+		      // want to use dt / 2 on the base level.
+		      
+		      sync_src.mult(0.5*dt);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
 		  }
