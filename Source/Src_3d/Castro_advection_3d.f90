@@ -990,13 +990,10 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro, &
-         QRHO, QU, QV, QW, QPRES, QVAR
+         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro, QVAR
     use bl_constants_module
-    use castro_util_module, only : position
-    use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
+    use hybrid_advection_module, only : hybrid_update
     use advection_util_module, only : normalize_species_fluxes
-    use prob_params_module, only : center
 
     integer          ::       lo(3),       hi(3)
     integer          ::   uin_lo(3),   uin_hi(3)
@@ -1035,76 +1032,10 @@ contains
     double precision :: hybrid_flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),3)
     double precision :: hybrid_flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),3)
 
-    double precision :: linear_mom(3), hybrid_mom_in(3), hybrid_mom_out(3), rho_in, rho_out
-    
     double precision :: div1, volinv
     integer          :: i, j, k, n
     double precision :: loc(3), R
     
-    if (hybrid_hydro .eq. 1) then
-       
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)+1
-
-                loc = position(i,j,k,ccx=.false.) - center
-
-                linear_mom = qx(i,j,k,QRHO) * qx(i,j,k,QU:QW)
-
-                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
-                
-                hybrid_flux1(i,j,k,1) = hybrid_mom_in(1) * qx(i,j,k,QU)
-                hybrid_flux1(i,j,k,2) = hybrid_mom_in(2) * qx(i,j,k,QU) + loc(2) * qx(i,j,k,QPRES)
-                hybrid_flux1(i,j,k,3) = hybrid_mom_in(3) * qx(i,j,k,QU)
-
-                hybrid_flux1(i,j,k,:) = hybrid_flux1(i,j,k,:) * area1(i,j,k) * dt
-
-             enddo
-          enddo
-       enddo
-
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)+1
-             do i = lo(1),hi(1)
-                
-                loc = position(i,j,k,ccy=.false.) - center
-
-                linear_mom = qy(i,j,k,QRHO) * qy(i,j,k,QU:QW)
-
-                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
-                
-                hybrid_flux2(i,j,k,1) = hybrid_mom_in(1) * qy(i,j,k,QV)
-                hybrid_flux2(i,j,k,2) = hybrid_mom_in(2) * qy(i,j,k,QV) - loc(1) * qy(i,j,k,QPRES)
-                hybrid_flux2(i,j,k,3) = hybrid_mom_in(3) * qy(i,j,k,QV)
-
-                hybrid_flux2(i,j,k,:) = hybrid_flux2(i,j,k,:) * area2(i,j,k) * dt
-                
-             enddo
-          enddo
-       enddo
-       
-       do k = lo(3),hi(3)+1
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                
-                loc = position(i,j,k,ccz=.false.) - center
-
-                linear_mom = qz(i,j,k,QRHO) * qz(i,j,k,QU:QW)
-
-                hybrid_mom_in = linear_to_hybrid_momentum(loc, linear_mom)
-
-                hybrid_flux3(i,j,k,1) = hybrid_mom_in(1) * qz(i,j,k,QW)
-                hybrid_flux3(i,j,k,2) = hybrid_mom_in(2) * qz(i,j,k,QW)
-                hybrid_flux3(i,j,k,3) = hybrid_mom_in(3) * qz(i,j,k,QW)
-
-                hybrid_flux3(i,j,k,:) = hybrid_flux3(i,j,k,:) * area3(i,j,k) * dt
-                
-             enddo
-          enddo
-       enddo
-
-    endif
-       
     do n = 1, NVAR
          
        if ( n.eq.UTEMP ) then
@@ -1225,44 +1156,13 @@ contains
     ! Now update the hybrid momenta, and overwrite the linear momenta accordingly.
     
     if (hybrid_hydro .eq. 1) then
-
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-
-                volinv = ONE / vol(i,j,k)                               
-                
-                loc = position(i,j,k) - center
-
-                R = sqrt( loc(1)**2 + loc(2)**2 )
-                
-                rho_in  = uin(i,j,k,URHO)
-                rho_out = uout(i,j,k,URHO)
-                
-                hybrid_mom_in = linear_to_hybrid_momentum(loc, uin(i,j,k,UMX:UMZ))                
-                
-                do n = 1, 3
-
-                   hybrid_mom_out(n) = hybrid_mom_in(n) &
-                                 + ( hybrid_flux1(i,j,k,n) - hybrid_flux1(i+1,j,k,n) &
-                                   + hybrid_flux2(i,j,k,n) - hybrid_flux2(i,j+1,k,n) &
-                                   + hybrid_flux3(i,j,k,n) - hybrid_flux3(i,j,k+1,n) ) * volinv
-
-                enddo
-
-                ! Add the time-centered source term to the radial momentum
-                
-                hybrid_mom_out(1) = hybrid_mom_out(1) &
-                        + dt * ( - (loc(1) / R) * (qx(i+1,j,k,QPRES) - qx(i,j,k,QPRES)) / dx(1) &
-                                 - (loc(2) / R) * (qy(i,j+1,k,QPRES) - qy(i,j,k,QPRES)) / dx(2) &
-                                 + (HALF * (hybrid_mom_in(2) + hybrid_mom_out(2)))**2 / &
-                                 ( (HALF * (rho_in + rho_out)) * R**3) )
-                
-                uout(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom_out)
-                
-             enddo
-          enddo
-       enddo
+       
+       call hybrid_update(lo, hi, dx, dt, &
+                          uin, uin_lo, uin_hi, &
+                          uout, uout_lo, uout_hi, &
+                          qx, qx_lo, qx_hi, &
+                          qy, qy_lo, qy_hi, &
+                          qz, qz_lo, qz_hi)
        
     endif
     
