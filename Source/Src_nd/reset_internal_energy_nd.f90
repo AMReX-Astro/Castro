@@ -1,4 +1,4 @@
-      subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,dx,verbose)
+      subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
       use eos_module 
       use network, only : nspec, naux
@@ -12,7 +12,6 @@
       integer          :: lo(3), hi(3), verbose
       integer          :: u_lo(3), u_hi(3)
       double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-      double precision :: dx(3)
       
       ! Local variables
       integer          :: i,j,k

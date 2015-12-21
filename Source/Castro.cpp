@@ -3111,8 +3111,6 @@ Castro::reset_internal_energy(MultiFab& S_new)
         sum0 = volWgtSumMF(&S_new,Eden,true);
     }
 
-    const Real* dx = geom.CellSize();
-    
     // Synchronize (rho e) and (rho E) so they are consistent with each other
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3123,7 +3121,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
         BL_FORT_PROC_CALL(RESET_INTERNAL_E,reset_internal_e)
 	    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
-	     BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+	     BL_TO_FORTRAN_3D(S_new[mfi]), 
 	     print_fortran_warnings);
     }
 
