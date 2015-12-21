@@ -353,6 +353,10 @@
 
                else if (grav_source_type .eq. 4) then
 
+                  ! First, subtract the predictor step we applied earlier.
+
+                  SrEcorr = - SrE_old
+
                   ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                   ! the change in the gravitational potential energy, rho * phi.
                   ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
@@ -367,18 +371,18 @@
                   ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                   ! Note that in the hydrodynamics step, the fluxes used here were already 
-                  ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                  ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                   ! get the density change (flux * dt * dA / dV). 
                   
                   if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
                       .and. get_g_from_phi) ) then
 
-                     SrEcorr = - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                          flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                          flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                          flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                          flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                          flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) )
+                     SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                  flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                  flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                  flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                  flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                  flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                   ! However, at present phi is only actually filled for Poisson gravity,
                   ! and optionally monopole gravity if the user species get_g_from_phi.   
@@ -388,21 +392,13 @@
                      
                   else
 
-                     SrEcorr = HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
-                                        flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
-                                        flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
-                                        flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
-                                        flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                                        flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) )
+                     SrEcorr = SrEcorr + HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                                                  flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
+                                                  flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
+                                                  flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
+                                                  flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
+                                                  flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
                   endif
-                  
-                  ! Now normalize by the volume of this cell to get the specific energy change.
-                     
-                  SrEcorr = SrEcorr / vol(i,j,k)
-
-                  ! Finally, remove the predictor step we applied earlier.
-
-                  SrEcorr = SrEcorr - SrE_old
                   
                else 
                   call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")

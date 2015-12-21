@@ -316,7 +316,16 @@
                 Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
                 
                 call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
+
+
+
+
+                ! Conservative energy update
+
+                ! First, subtract the predictor step we applied earlier.
                 
+                SrEcorr = - SrE_old
+
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, rho * phi.
                 ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
@@ -331,20 +340,16 @@
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
-                ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV).
                 
-                SrEcorr = - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
+                SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                             flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                             flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                             flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                             flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                             flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
-                ! Now normalize by the volume of this cell to get the specific energy change.                
-                
-                SrEcorr = SrEcorr / vol(i,j,k)
-                
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
@@ -358,10 +363,6 @@
                                 
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
 
-                ! Finally, remove the predictor step we applied earlier.
-                
-                SrEcorr = SrEcorr - SrE_old
-                
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
              end if
