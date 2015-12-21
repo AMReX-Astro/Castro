@@ -1,11 +1,11 @@
     subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
                        uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time,E_added,mom_added)
 
-      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type, hybrid_hydro
+      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, grav_source_type
       use bl_constants_module
       use math_module, only: cross_product
       use castro_util_module, only: position
-      use hybrid_advection_module, only: linear_to_hybrid_momentum, hybrid_to_linear_momentum
+      use hybrid_advection_module, only: add_momentum_source
       use prob_params_module, only: center
       
       implicit none
@@ -26,8 +26,8 @@
 
       double precision :: rho, rhoInv
       double precision :: Sr(3), SrE
-      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-      double precision :: loc(3), R, old_mom(3), hybrid_mom(3)
+      double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+      double precision :: loc(3)
       integer          :: i, j, k
 
       ! Gravitational source options for how to add the work to (rho E):
@@ -45,7 +45,6 @@
                rhoInv = ONE / rho
 
                loc = position(i,j,k) - center
-               R = sqrt( loc(1)**2 + loc(2)**2 )
                
                ! **** Start Diagnostics ****
                old_re = unew(i,j,k,UEDEN)
@@ -56,17 +55,7 @@
 
                Sr = rho * grav(i,j,k,:) * dt
 
-               if (hybrid_hydro .eq. 1) then
-                  hybrid_mom = linear_to_hybrid_momentum(loc, old_mom)
-
-                  hybrid_mom(1) = hybrid_mom(1) - Sr(1) * (loc(1) / R) - Sr(2) * (loc(2) / R)
-                  hybrid_mom(2) = hybrid_mom(2) + Sr(1) * loc(2) - Sr(2) * loc(1)
-                  hybrid_mom(3) = hybrid_mom(3) + Sr(3)
-                  
-                  unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
-               else
-                  unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
-               endif
+               call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Sr)
 
                if (grav_source_type == 1 .or. grav_source_type == 2) then
 
@@ -124,13 +113,13 @@
 
       use mempool_module, only : bl_allocate, bl_deallocate
       use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
-           grav_source_type, gravity_type, get_g_from_phi, hybrid_hydro
+           grav_source_type, gravity_type, get_g_from_phi
       use prob_params_module, only : dg, center
       use bl_constants_module
       use multifab_module
       use fundamental_constants_module, only: Gconst
       use castro_util_module, only : position
-      use hybrid_advection_module, only : linear_to_hybrid_momentum, hybrid_to_linear_momentum
+      use hybrid_advection_module, only : add_momentum_source
 
       implicit none
 
@@ -182,7 +171,7 @@
 
       double precision :: old_ke, old_rhoeint, old_re
       double precision :: new_ke, new_rhoeint
-      double precision :: old_mom(3), hybrid_mom(3), loc(3), R
+      double precision :: old_mom(3), loc(3)
 
       double precision, pointer :: phi(:,:,:)
       double precision, pointer :: grav(:,:,:,:)
@@ -301,8 +290,6 @@
 
                loc = position(i,j,k) - center
 
-               R = sqrt( loc(1)**2 + loc(2)**2 )
-               
                rhoo    = uold(i,j,k,URHO)
                rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -336,17 +323,7 @@
 
                ! Correct momenta
 
-               if (hybrid_hydro .eq. 1) then
-                  hybrid_mom = linear_to_hybrid_momentum(loc, unew(i,j,k,UMX:UMZ))
-                  
-                  hybrid_mom(1) = hybrid_mom(1) - Srcorr(1) * (loc(1) / R) - Srcorr(2) * (loc(2) / R)
-                  hybrid_mom(2) = hybrid_mom(2) + Srcorr(1) * loc(2) - Srcorr(2) * loc(1)
-                  hybrid_mom(3) = hybrid_mom(3) + Srcorr(3)
-
-                  unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom)
-               else
-                  unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
-               endif               
+               call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
 
                ! Correct energy
 

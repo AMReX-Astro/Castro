@@ -13,13 +13,15 @@ contains
 
     double precision :: loc(3), mom_in(3), mom_out(3)
 
-    double precision :: R
+    double precision :: R, mom(3)
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
+
+    mom = mom_in
     
-    mom_out(1) = mom_in(1) * (loc(1) / R) + mom_in(2) * (loc(2) / R)
-    mom_out(2) = mom_in(2) * loc(1)       - mom_in(1) * loc(2)
-    mom_out(3) = mom_in(3)
+    mom_out(1) = mom(1) * (loc(1) / R) + mom(2) * (loc(2) / R)
+    mom_out(2) = mom(2) * loc(1)       - mom(1) * loc(2)
+    mom_out(3) = mom(3)
 
   end function linear_to_hybrid_momentum
 
@@ -33,15 +35,51 @@ contains
 
     double precision :: loc(3), mom_in(3), mom_out(3)
 
-    double precision :: R
+    double precision :: R, mom(3)
+
+    mom = mom_in
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
     
-    mom_out(1) = mom_in(1) * (loc(1) / R)    - mom_in(2) * (loc(2) / R**2)
-    mom_out(2) = mom_in(2) * (loc(1) / R**2) + mom_in(1) * (loc(2) / R)
-    mom_out(3) = mom_in(3)
+    mom_out(1) = mom(1) * (loc(1) / R)    - mom(2) * (loc(2) / R**2)
+    mom_out(2) = mom(2) * (loc(1) / R**2) + mom(1) * (loc(2) / R)
+    mom_out(3) = mom(3)
     
   end function hybrid_to_linear_momentum
+
+
+
+  ! Update momentum to account for source term
+
+  subroutine add_momentum_source(loc, mom, source)
+
+    use meth_params_module, only: hybrid_hydro
+
+    implicit none
+
+    double precision :: loc(3), mom(3), source(3)
+
+    double precision :: hybrid_mom(3), R
+
+    R = sqrt( loc(1)**2 + loc(2)**2 )
+    
+    if (hybrid_hydro .eq. 1) then
+
+       hybrid_mom = linear_to_hybrid_momentum(loc, mom)
+
+       hybrid_mom(1) = hybrid_mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
+       hybrid_mom(2) = hybrid_mom(2) + source(1) * loc(2) - source(2) * loc(1)
+       hybrid_mom(3) = hybrid_mom(3) + source(3)
+                  
+       mom = hybrid_to_linear_momentum(loc, hybrid_mom)    
+
+    else
+       
+       mom = mom + source
+       
+    endif
+
+  end subroutine add_momentum_source
 
 
 
