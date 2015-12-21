@@ -360,7 +360,7 @@
 
                 ! Finally, remove the predictor step we applied earlier.
                 
-                SrEcorr = SrEcorr - dot_product(uold(i,j,k,UMX:UMZ) * rhooinv, Sr_old)
+                SrEcorr = SrEcorr - SrE_old
                 
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
