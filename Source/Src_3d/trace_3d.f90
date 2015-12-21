@@ -8,10 +8,10 @@ module trace_module
   
 contains
 
-      subroutine tracexy(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         dqx,dqy,dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3, &
-                         qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                         ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+      subroutine tracexy(q,c,qd_lo,qd_hi, &
+                         dqx,dqy,dq_lo,dq_hi, &
+                         qxm,qxp,qym,qyp,qpd_lo,qpd_hi, &
+                         ilo1,ilo2,ihi1,ihi2,dx,dt,kc,k3d)
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -20,23 +20,23 @@ contains
       use bl_constants_module
       implicit none
 
-      integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-      integer dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3
-      integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-      integer ilo1,ilo2,ihi1,ihi2
-      integer kc,k3d
+      integer          :: qd_lo(3), qd_hi(3)
+      integer          :: dq_lo(3), dq_hi(3)
+      integer          :: qpd_lo(3),qpd_hi(3)
+      integer          :: ilo1, ilo2, ihi1, ihi2
+      integer          :: kc, k3d
 
-      double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-      double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+      double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+      double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-      double precision  dqx(dq_l1:dq_h1,dq_l2:dq_h2,dq_l3:dq_h3,QVAR)
-      double precision  dqy(dq_l1:dq_h1,dq_l2:dq_h2,dq_l3:dq_h3,QVAR)
+      double precision ::  dqx(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),QVAR)
+      double precision ::  dqy(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),QVAR)
 
-      double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision dx, dy, dt
+      double precision :: qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: dx(3), dt
 
       ! Local variables
       integer i, j, n, ipassive
@@ -55,8 +55,8 @@ contains
       double precision acmprght, acmpleft, acmpbot, acmptop
       double precision ascmprght, ascmpleft, ascmpbot, ascmptop
 
-      dtdx = dt/dx
-      dtdy = dt/dy
+      dtdx = dt/dx(1)
+      dtdy = dt/dx(2)
 
       if (ppm_type .ne. 0) then
         print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
@@ -391,10 +391,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-      subroutine tracez(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-           dqz,dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3, &
-           qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-           ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+      subroutine tracez(q,c,qd_lo,qd_hi, &
+                        dqz,dq_lo,dq_hi, &
+                        qzm,qzp,qpd_lo,qpd_hi, &
+                        ilo1,ilo2,ihi1,ihi2,dx,dt,km,kc,k3d)
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -404,19 +404,19 @@ contains
 
       implicit none
 
-      integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-      integer dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3
-      integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-      integer ilo1,ilo2,ihi1,ihi2
-      integer km,kc,k3d
+      integer          :: qd_lo(3), qd_hi(3)
+      integer          :: dq_lo(3), dq_hi(3)
+      integer          :: qpd_lo(3),qpd_hi(3)
+      integer          :: ilo1, ilo2, ihi1, ihi2
+      integer          :: km, kc, k3d
 
-      double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-      double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+      double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+      double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-      double precision  dqz(dq_l1:dq_h1,dq_l2:dq_h2,dq_l3:dq_h3,QVAR)
-      double precision qzm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision qzp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-      double precision dz, dt
+      double precision :: dqz( dq_lo(1):dq_hi(1),  dq_lo(2):dq_hi(2),  dq_lo(3):dq_hi(3), QVAR)
+      double precision :: qzm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: qzp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+      double precision :: dx(3), dt
 
       ! Local variables
       integer i, j
@@ -441,7 +441,7 @@ contains
         call bl_error("Error:: Castro_advection_3d.f90 :: tracez")
       end if
 
-      dtdz = dt/dz
+      dtdz = dt/dx(3)
       
       !!!!!!!!!!!!!!!
       ! NON-PPM CODE

@@ -18,17 +18,17 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine cmpflx(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                    flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                    q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+  subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, &
+                    flx, flx_lo, flx_hi, &
+                    q, q_lo, q_hi, &
 #ifdef RADIATION
-                    lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                    rflx, rflx_l1,rflx_l2,rflx_l3,rflx_h1,rflx_h2,rflx_h3, &
+                    lam, lam_lo, lam_hi, &
+                    rflx, rflx_lo, rflx_hi, &
                     v1gdnv, v2gdnv, ergdnv, lmgdnv, &
                     gamcg, &
 #endif
-                    gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                    shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
+                    gamc,csml,c,qd_lo,qd_hi, &
+                    shk,s_lo,s_hi, &
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -41,15 +41,15 @@ contains
     use rad_params_module, only : ngroups
 #endif
 
-    integer, intent(in) :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer, intent(in) :: flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
-    integer, intent(in) :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-    integer, intent(in) :: qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer, intent(in) :: s_l1,s_l2,s_l3,s_h1,s_h2,s_h3
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: flx_lo(3), flx_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
 
 #ifdef RADIATION
-    integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-    integer rflx_l1,rflx_l2,rflx_l3,rflx_h1,rflx_h2,rflx_h3
+    integer lam_lo(3), lam_hi(3)
+    integer rflx_lo(3), rflx_hi(3)
 #endif
 
     integer, intent(in) :: idir,ilo,ihi,jlo,jhi,kc,kflux,k3d
@@ -63,35 +63,36 @@ contains
     ! kflux -- this will be set correctly for the different cases.
 
 #ifdef RADIATION
-    double precision, intent(inout) :: qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision, intent(inout) :: qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
+    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
+    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
 #else
-    double precision, intent(inout) :: qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision, intent(inout) :: qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
 #endif
 
-    double precision, intent(inout) ::    flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR)
-    double precision, intent(inout) ::      q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    double precision, intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    double precision, intent(inout) ::      q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
-    double precision rflx(rflx_l1:rflx_h1, rflx_l2:rflx_h2, rflx_l3:rflx_h3,0:ngroups-1)
-    double precision v1gdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision v2gdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)    
-    double precision ergdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,0:ngroups-1)
-    double precision lmgdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,0:ngroups-1)
-    double precision gamcg(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    double precision v1gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision v2gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))    
+    double precision ergdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
+    double precision lmgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
+    double precision gamcg(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 #endif
 
     ! gamc, csml, c, shk come in dimensioned as the full box, so we
     ! use k3d here to index it in z
-    double precision, intent(inout) :: gamc(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision, intent(inout) ::    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision, intent(inout) :: csml(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision, intent(inout) ::  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
+    double precision, intent(inout) :: gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(inout) ::    c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(inout) :: csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(inout) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     ! local variables
     integer i, j
+    integer :: gd_lo(2), gd_hi(2)
     double precision, pointer :: smallc(:,:), cavg(:,:)
     double precision, pointer :: gamcm(:,:), gamcp(:,:)
 #ifdef RADIATION
@@ -104,13 +105,16 @@ contains
 
     double precision :: rhoInv
 
-    call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
-    call bl_allocate (   cavg, ilo,ihi,jlo,jhi)
-    call bl_allocate (  gamcm, ilo,ihi,jlo,jhi)
-    call bl_allocate (  gamcp, ilo,ihi,jlo,jhi)
+    gd_lo = (/ ilo, jlo /)
+    gd_hi = (/ ihi, jhi /)
+    
+    call bl_allocate ( smallc, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate (   cavg, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate (  gamcm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate (  gamcp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
 #ifdef RADIATION
-    call bl_allocate ( gamcgm, ilo,ihi,jlo,jhi)
-    call bl_allocate ( gamcgp, ilo,ihi,jlo,jhi)
+    call bl_allocate ( gamcgm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate ( gamcgp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
 #endif
 
     if (idir == 1) then
@@ -213,33 +217,33 @@ contains
     ! Solve Riemann problem
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
-       call riemannus(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
-                      flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                      q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+       call riemannus(qm, qp, qpd_lo, qpd_hi, &
+                      gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                      flx, flx_lo, flx_hi, &
+                      q, q_lo, q_hi, &
 #ifdef RADIATION
-                      lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                      gamcgm,gamcgp, &
-                      rflx, rflx_l1,rflx_l2,rflx_l3,rflx_h1,rflx_h2,rflx_h3, &
+                      lam, lam_lo, lam_hi, &
+                      gamcgm, gamcgp, &
+                      rflx, rflx_lo, rflx_hi, &
                       v1gdnv, v2gdnv, ergdnv, lmgdnv, & 
 #endif
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
-       call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                      gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
-                      flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                      q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                      idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+                      gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                      flx, flx_lo, flx_hi, &
+                      q, q_lo, q_hi, &
+                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
     elseif (riemann_solver == 2) then
        ! HLLC
-       call HLLC(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                 gamcm,gamcp,cavg,smallc,ilo,jlo,ihi,jhi, &
-                 flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3, &
-                 q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                 idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+       call HLLC(qm, qp, qpd_lo, qpd_hi, &
+                 gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                 flx, flx_lo, flx_hi, &
+                 q, q_lo, q_hi, &
+                 idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
     else
        call bl_error("ERROR: invalid value of riemann_solver")
     endif
@@ -296,20 +300,18 @@ contains
   end subroutine cmpflx
 
 
-  subroutine shock(q,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                   shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                   ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz)
+  subroutine shock(q,qd_lo,qd_hi,shk,s_lo,s_hi,lo,hi,dx)
 
     use prob_params_module, only : coord_type
     use meth_params_module, only : QU, QV, QW, QPRES, QVAR
     use bl_constants_module
 
-    integer, intent(in) :: qd_l1, qd_l2, qd_l3, qd_h1, qd_h2, qd_h3
-    integer, intent(in) :: s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
-    integer, intent(in) :: ilo1, ilo2, ilo3, ihi1, ihi2, ihi3
-    double precision, intent(in) :: dx, dy, dz
-    double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision, intent(inout) :: shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    double precision, intent(in) :: dx(3)
+    double precision, intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision, intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     integer :: i, j, k
 
@@ -329,17 +331,17 @@ contains
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
 
-    dxinv = ONE/dx
-    dyinv = ONE/dy
-    dzinv = ONE/dz
+    dxinv = ONE/dx(1)
+    dyinv = ONE/dx(2)
+    dzinv = ONE/dx(3)
 
     if (coord_type /= 0) then
        call bl_error("ERROR: invalid geometry in shock()")
     endif
 
-    do k = ilo3-1, ihi3+1
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
              ! construct div{U}
              divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv + &
@@ -406,10 +408,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine riemanncg(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                       gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
-                       uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
-                       q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+  subroutine riemanncg(ql,qr,qpd_lo,qpd_hi, &
+                       gamcl,gamcr,cav,smallc,gd_lo,gd_hi, &
+                       uflx,uflx_lo,uflx_hi, &
+                       q,q_lo,q_hi, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
@@ -430,21 +432,21 @@ contains
 
     double precision, parameter:: small = 1.d-8
 
-    integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer :: gd_l1,gd_l2,gd_h1,gd_h2
-    integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
-    integer :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+    integer :: qpd_lo(3),qpd_hi(3)
+    integer :: gd_lo(2),gd_hi(2)
+    integer :: uflx_lo(3),uflx_hi(3)
+    integer :: q_lo(3),q_hi(3)
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
 
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
+    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
     !         it should be used for print statements or tests against domlo, domhi, etc
@@ -949,14 +951,14 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine riemannus(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                       gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
-                       uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
-                       q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+  subroutine riemannus(ql,qr,qpd_lo,qpd_hi, &
+                       gamcl,gamcr,cav,smallc,gd_lo,gd_hi, &
+                       uflx,uflx_lo,uflx_hi, &
+                       q,q_lo,q_hi, &
 #ifdef RADIATION
-                       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
+                       lam,lam_lo,lam_hi, &
                        gamcgl,gamcgr, &
-                       rflx, rflx_l1,rflx_l2,rflx_l3,rflx_h1,rflx_h2,rflx_h3, &
+                       rflx, rflx_lo,rflx_hi, &
                        v1gdnv, v2gdnv, ergdnv, lmgdnv, &
 #endif
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
@@ -974,41 +976,41 @@ contains
 
     double precision, parameter:: small = 1.d-8
 
-    integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer :: gd_l1,gd_l2,gd_h1,gd_h2
-    integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
-    integer :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+    integer :: qpd_lo(3),qpd_hi(3)
+    integer :: gd_lo(2),gd_hi(2)
+    integer :: uflx_lo(3),uflx_hi(3)
+    integer :: q_lo(3),q_hi(3)
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
 
 #ifdef RADIATION
-    integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-    integer rflx_l1,rflx_l2,rflx_l3,rflx_h1,rflx_h2,rflx_h3
+    integer lam_lo(3),lam_hi(3)
+    integer rflx_lo(3),rflx_hi(3)
 #endif
 
 #ifdef RADIATION
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
 #else
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
 #endif
-    double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-    double precision ::      q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
+    double precision ::      q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
-    double precision gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision gamcgr(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,rflx_l3:rflx_h3,0:ngroups-1)
-    double precision v1gdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision v2gdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision ergdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,0:ngroups-1)
-    double precision lmgdnv(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,0:ngroups-1)
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    double precision v1gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision v2gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision ergdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
+    double precision lmgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
 #endif
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
@@ -1441,10 +1443,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine HLLC(ql,qr,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                  gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
-                  uflx,uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3, &
-                  q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+  subroutine HLLC(ql,qr,qpd_lo,qpd_hi, &
+                  gamcl,gamcr,cav,smallc,gd_lo,gd_hi, &
+                  uflx,uflx_lo,uflx_hi, &
+                  q,q_lo,q_hi, &
                   idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
 
@@ -1463,21 +1465,21 @@ contains
 
     double precision, parameter:: small = 1.d-8
 
-    integer :: qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer :: gd_l1,gd_l2,gd_h1,gd_h2
-    integer :: uflx_l1,uflx_l2,uflx_l3,uflx_h1,uflx_h2,uflx_h3
-    integer :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+    integer :: qpd_lo(3),qpd_hi(3)
+    integer :: gd_lo(2),gd_hi(2)
+    integer :: uflx_lo(3),uflx_hi(3)
+    integer :: q_lo(3),q_hi(3)
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
 
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,uflx_l3:uflx_h3,NVAR)
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    double precision :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
+    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
     !         it should be used for print statements or tests against domlo, domhi, etc

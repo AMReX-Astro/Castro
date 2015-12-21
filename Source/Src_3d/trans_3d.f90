@@ -9,10 +9,10 @@ contains
   !===========================================================================
   ! transx1
   !===========================================================================
-  subroutine transx1(qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
+  subroutine transx1(qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+                     fx,fx_lo,fx_hi, &
+                     qx,qx_lo,qx_hi, &
+                     gamc,gd_lo,gd_hi, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,k3d)
     
     ! Note that what we call ilo here is ilo = lo(1)
@@ -32,19 +32,19 @@ contains
     
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fx_lo(3),fx_hi(3)
+    integer qx_lo(3),qx_hi(3)
+    integer gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
     
-    double precision  qym(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qyp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qymo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qypo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
     
     integer i, j, n, nq, ipassive
@@ -376,10 +376,10 @@ contains
   !===========================================================================
   ! transx2
   !===========================================================================
-  subroutine transx2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fx,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
+  subroutine transx2(qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+                     fx,fx_lo,fx_hi, &
+                     qx,qx_lo,qx_hi, &
+                     gamc,gd_lo,gd_hi, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -394,19 +394,19 @@ contains
 
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fx_lo(3),fx_hi(3)
+    integer qx_lo(3),qx_hi(3)
+    integer gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
     
-    double precision  qzm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qzp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qzmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qzpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
     
     integer i, j, n, nq, ipassive
@@ -738,10 +738,10 @@ contains
   !===========================================================================
   ! transy1
   !===========================================================================
-  subroutine transy1(qxm,qxmo,qxp,qxpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
+  subroutine transy1(qxm,qxmo,qxp,qxpo,qd_lo,qd_hi, &
+                     fy,fy_lo,fy_hi, &
+                     qy,qy_lo,qy_hi, &
+                     gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
     
     use network, only : nspec, naux
@@ -756,19 +756,19 @@ contains
 
     implicit none
       
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fy_lo(3),fy_hi(3)
+    integer qy_lo(3),qy_hi(3)
+    integer gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
     
-    double precision  qxm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qxp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qxmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qxpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
     
     integer i, j, n, nq, ipassive
@@ -1095,10 +1095,10 @@ contains
   !===========================================================================
   ! transy2
   !===========================================================================
-  subroutine transy2(qzm,qzmo,qzp,qzpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fy,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
+  subroutine transy2(qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+                     fy,fy_lo,fy_hi, &
+                     qy,qy_lo,qy_hi, &
+                     gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -1113,19 +1113,19 @@ contains
 
     implicit none
     
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fy_lo(3),fy_hi(3)
+    integer qy_lo(3),qy_hi(3)
+    integer gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
     
-    double precision  qzm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qzp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qzmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qzpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
     
     integer i, j, n, nq, ipassive
@@ -1461,11 +1461,10 @@ contains
   !===========================================================================
   ! transz
   !===========================================================================
-  subroutine transz(qxm,qxmo,qxp,qxpo, &
-                    qym,qymo,qyp,qypo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                    fz,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                    qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
-                    gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
+  subroutine transz(qxm,qxmo,qxp,qxpo,qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+                    fz,fz_lo,fz_hi, &
+                    qz,qz_lo,qz_hi, &
+                    gamc,gd_lo,gd_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
     use network, only : nspec, naux
@@ -1480,23 +1479,23 @@ contains
 
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fz_lo(3),fz_hi(3)
+    integer qz_lo(3),qz_hi(3)
+    integer gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
-    double precision  qxm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qxp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qym(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qyp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qxmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qxpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qymo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qypo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fz(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    double precision qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
     
     integer n, nq, i, j, ipassive
@@ -2068,13 +2067,13 @@ contains
   !===========================================================================
   ! transxy
   !===========================================================================
-  subroutine transxy(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fxy,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     fyx,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
-                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
-                     srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
+  subroutine transxy(qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fxy,fx_lo,fx_hi, &
+                     fyx,fy_lo,fy_hi, &
+                     qx,qx_lo,qx_hi, &
+                     qy,qy_lo,qy_hi, &
+                     gamc,gd_lo,gd_hi, &
+                     srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
     
     use network, only : nspec, naux
@@ -2090,25 +2089,25 @@ contains
 
     implicit none
     
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
-    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fx_lo(3),fx_hi(3)
+    integer fy_lo(3),fy_hi(3)
+    integer qx_lo(3),qx_hi(3)
+    integer qy_lo(3),qy_hi(3)
+    integer gd_lo(3),gd_hi(3)
+    integer src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
-    double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fxy(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision fyx(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision  qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
-    double precision  qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    double precision fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),QVAR)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),QVAR)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
+    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
     
     integer i, j, n , nq, ipassive
@@ -2495,13 +2494,13 @@ contains
   !===========================================================================
   ! transxz
   !===========================================================================
-  subroutine transxz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fxz,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     fzx,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                     qx,qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3, &
-                     qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
-                     gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
-                     srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
+  subroutine transxz(qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fxz,fx_lo,fx_hi, &
+                     fzx,fz_lo,fz_hi, &
+                     qx,qx_lo,qx_hi, &
+                     qz,qz_lo,qz_hi, &
+                     gamc,gc_lo,gc_hi, &
+                     srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2517,25 +2516,25 @@ contains
 
     implicit none      
     
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer qx_l1,qx_l2,qx_l3,qx_h1,qx_h2,qx_h3
-    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
-    integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fx_lo(3),fx_hi(3)
+    integer fz_lo(3),fz_hi(3)
+    integer qx_lo(3),qx_hi(3)
+    integer qz_lo(3),qz_hi(3)
+    integer gc_lo(3),gc_hi(3)
+    integer src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
-    double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fxz(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision fzx(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision  qx(qx_l1:qx_h1,qx_l2:qx_h2,qx_l3:qx_h3,QVAR)
-    double precision  qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    double precision fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),QVAR)
+    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),QVAR)
+    double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
+    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz
     
     integer i, j, n, nq, ipassive
@@ -2901,13 +2900,13 @@ contains
   !===========================================================================
   ! transyz
   !===========================================================================
-  subroutine transyz(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fyz,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     fzy,fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3, &
-                     qy,qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3, &
-                     qz,qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3, &
-                     gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
-                     srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
+  subroutine transyz(qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fyz,fy_lo,fy_hi, &
+                     fzy,fz_lo,fz_hi, &
+                     qy,qy_lo,qy_hi, &
+                     qz,qz_lo,qz_hi, &
+                     gamc,gc_lo,gc_hi, &
+                     srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
     
     use network, only : nspec, naux
@@ -2923,25 +2922,25 @@ contains
 
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer fz_l1,fz_l2,fz_l3,fz_h1,fz_h2,fz_h3
-    integer qy_l1,qy_l2,qy_l3,qy_h1,qy_h2,qy_h3
-    integer qz_l1,qz_l2,qz_l3,qz_h1,qz_h2,qz_h3
-    integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
+    integer qd_lo(3),qd_hi(3)
+    integer fy_lo(3),fy_hi(3)
+    integer fz_lo(3),fz_hi(3)
+    integer qy_lo(3),qy_hi(3)
+    integer qz_lo(3),qz_hi(3)
+    integer gc_lo(3),gc_hi(3)
+    integer src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
     
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fyz(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision fzy(fz_l1:fz_h1,fz_l2:fz_h2,fz_l3:fz_h3,NVAR)
-    double precision  qy(qy_l1:qy_h1,qy_l2:qy_h2,qy_l3:qy_h3,QVAR)
-    double precision  qz(qz_l1:qz_h1,qz_l2:qz_h2,qz_l3:qz_h3,QVAR)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
+    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    double precision fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),QVAR)
+    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),QVAR)
+    double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
+    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
     
     integer i, j, n, nq, ipassive
