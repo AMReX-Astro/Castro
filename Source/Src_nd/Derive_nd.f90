@@ -943,20 +943,11 @@
 
       integer          :: i, j, k
 
-      double precision :: u, v, w, rho, rhoInv
-      
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
 
-               rho = dat(i,j,k,1)
-               rhoInv = ONE / rho
-               
-               u = dat(i,j,k,2) * rhoInv
-               v = dat(i,j,k,3) * rhoInv
-               w = dat(i,j,k,4) * rhoInv
-
-               kineng(i,j,k,1) = HALF * rho * (u**2 + v**2 + w**2)
+               kineng(i,j,k,1) = HALF / dat(i,j,k,1) * sum(dat(i,j,k,2:4)**2)
                
             end do
          end do
