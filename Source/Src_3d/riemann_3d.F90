@@ -1357,7 +1357,7 @@ contains
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*q(i,j,kc,iv2)
 
 #ifdef RADIATION
-          rhoetot = regdnv_g + + HALF*q(i,j,kc,QRHO)*(q(i,j,kc,iu)**2 + q(i,j,kc,iv1)**2 + q(i,j,kc,iv2)**2)
+          rhoetot = regdnv_g + HALF*q(i,j,kc,QRHO)*(q(i,j,kc,iu)**2 + q(i,j,kc,iv1)**2 + q(i,j,kc,iv2)**2)
           
           uflx(i,j,kflux,UEDEN) = q(i,j,kc,iu)*(rhoetot + pgdnv_g)
           
