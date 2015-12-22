@@ -83,13 +83,14 @@ contains
   function position_to_index(loc) result(index)
 
     use amrinfo_module, only: amr_level
-    use prob_params_module, only: dx_level
+    use prob_params_module, only: dx_level, dim
     
     double precision :: loc(3)
 
     integer :: index(3)
-    
-    index = NINT(loc / dx_level(:,amr_level))
+
+    index(1:dim)   = NINT(loc(1:dim) / dx_level(1:dim,amr_level))
+    index(dim+1:3) = 0
     
   end function position_to_index  
 
