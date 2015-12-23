@@ -434,9 +434,10 @@ checkpoint files (which are really directories):
 \item {\tt amr.check\_per}: how often (by simulation time) to
   write restart files (Real $> 0$; default: -1.0)
 
-  Note that if {\tt amr.check\_per} is used then in order to hit that
-exact time the code may modify the time step slightly, which will
-change your results ever so slightly than if you didn't set this flag.
+  Note that {\tt amr.check\_per} will write a checkpoint at the first
+  timestep whose ending time is past an integer multiple of this interval.
+  In particular, the timestep is not modified to match this interval, so
+  you won't get a checkpoint at exactly the time you requested.
 
 \item {\tt amr.restart}: name of the file (directory) from which to restart
   (Text; not used if not set)
@@ -464,8 +465,11 @@ change your results ever so slightly than if you didn't set this flag.
 Note:
 \begin{itemize}
 
-\item You should specify either {\tt amr.check\_int} or {\tt amr.check\_per}.
-  Do not try to specify both. 
+\item You can specify both {\tt amr.check\_int} or {\tt amr.check\_per},
+  if you so desire; the code will print a warning in case you did this
+  unintentionally. It will work as you would expect -- you will get checkpoints
+  at integer multiples of {\tt amr.check\_int} timesteps and at integer
+  multiples of {\tt amr.check\_per} simulation time intervals.
 
 \item {\tt amr.plotfile\_on\_restart} and {\tt amr.checkpoint\_on\_restart} 
 only take effect if {\tt amr.regrid\_on\_restart} is in effect.
@@ -514,9 +518,10 @@ the generation of plotfiles:
 \item {\tt amr.plot\_per}: how often (by simulation time) to write
   plot files (Real $> 0$; default: -1.0)
 
-Note that if {\tt amr.plot\_per} is used then in order to hit that
-exact time the code may modify the time step slightly, which will
-change your results ever so slightly than if you didn't set this flag.
+  Note that {\tt amr.plot\_per} will write a plotfile at the first
+  timestep whose ending time is past an integer multiple of this interval.
+  In particular, the timestep is not modified to match this interval, so
+  you won't get a checkpoint at exactly the time you requested.
 
 \item {\tt amr.plot\_vars}: name of state variables to include in
   plotfiles (valid options: {\tt ALL}, {\tt NONE} or a list; default:
@@ -555,8 +560,12 @@ it and see what's there.
 Some notes:
 \begin{itemize}
 
-\item You should specify either {\tt amr.plot\_int} or
-{\tt amr.plot\_per}.  Do not try to specify both. 
+\item You can specify both {\tt amr.plot\_int} or {\tt amr.plot\_per},
+  if you so desire; the code will print a warning in case you did this
+  unintentionally. It will work as you would expect -- you will get plotfiles
+  at integer multiples of {\tt amr.plot\_int} timesteps and at integer
+  multiples of {\tt amr.plot\_per} simulation time intervals.
+
 \end{itemize}
 
 
