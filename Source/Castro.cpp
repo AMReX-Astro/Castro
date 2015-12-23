@@ -1062,6 +1062,8 @@ Castro::estTimeStep (Real dt_old)
     const MultiFab& stateMF = get_new_data(State_Type);
 
     const Real* dx = geom.CellSize();    
+
+    std::string limiter = "non";
     
 #ifdef DIFFUSION
     if (do_hydro or diffuse_temp) 
@@ -1174,11 +1176,18 @@ Castro::estTimeStep (Real dt_old)
        estdt *= cfl;
        if (verbose && ParallelDescriptor::IOProcessor()) 
            std::cout << "...estimated hydro-limited timestep at level " << level << ": " << estdt << std::endl;
+
+       // Indicate that at present, the hydrodynamics is limiting the timestep.
+
+       limiter = "hydro";
     }
 
 #ifdef REACTIONS
     MultiFab& S_new = get_new_data(State_Type);
     MultiFab& reactions_new = get_new_data(Reactions_Type);
+
+    // Dummy value to start with
+    Real estdt_burn = 1.0e+200;
 
     if (do_react) {
     
@@ -1203,15 +1212,22 @@ Castro::estTimeStep (Real dt_old)
 #pragma omp critical (castro_estdt_burning)
 #endif
 	    {
-	        estdt = std::min(estdt,dt);
+	        estdt_burn = std::min(estdt_burn,dt);
 	    }
 	      
         }
     
-	ParallelDescriptor::ReduceRealMin(estdt);
+	ParallelDescriptor::ReduceRealMin(estdt_burn);
 
-	if (verbose && ParallelDescriptor::IOProcessor()) 
-	  std::cout << "...estimated burning-limited and hydro-limited timestep at level " << level << ": " << estdt << std::endl;
+	if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < 1.0e+200) 
+	  std::cout << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
+
+	// Determine if this is more restrictive than the hydro limiting
+
+	if (estdt_burn < estdt) {
+	  limiter = "burning";
+	  estdt = estdt_burn;
+	}
     }
 #endif
 
@@ -1226,7 +1242,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
-        cout << "Castro::estTimeStep at level " << level << ":  estdt = " << estdt << '\n';
+      cout << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
 
     return estdt;
 }
