@@ -95,9 +95,9 @@ main (int   argc,
 		<< std::setw(2) << time_pointer->tm_hour << ":"
 		<< std::setw(2) << time_pointer->tm_min << ":"
 		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
-		<< std::setw(2) << time_pointer->tm_mday << "/"
-		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
-		<< time_pointer->tm_year + 1900 << "." << std::endl;
+		<< time_pointer->tm_year + 1900 << "-"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
+		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
     
     //
     // Initialize random seed after we're running in parallel.
@@ -188,9 +188,9 @@ main (int   argc,
 		<< std::setw(2) << time_pointer->tm_hour << ":"
 		<< std::setw(2) << time_pointer->tm_min << ":"
 		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
-		<< std::setw(2) << time_pointer->tm_mday << "/"
-		<< std::setw(2) << time_pointer->tm_mon + 1 << "/"
-		<< time_pointer->tm_year + 1900 << "." << std::endl;
+		<< time_pointer->tm_year + 1900 << "-"
+		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
+		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
     
     delete amrptr;
     //
