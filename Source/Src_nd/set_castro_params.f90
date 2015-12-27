@@ -14,6 +14,7 @@ subroutine set_castro_method_params( &
   do_grav_in, grav_source_type_in, do_rotation_in,  &
   rot_period_in, rot_period_dot_in, rot_source_type_in,  &
   rot_axis_in, point_mass_in, do_acc_in)
+ &
   
   use meth_params_module
   use network, only : nspec, naux

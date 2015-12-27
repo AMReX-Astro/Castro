@@ -39,6 +39,7 @@ static Real sum_turb_src;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;
+static Real max_dt;
 static Real cfl;
 static Real init_shrink;
 static Real change_max;

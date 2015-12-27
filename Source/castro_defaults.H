@@ -39,6 +39,7 @@ Real        Castro::sum_turb_src = 0.0;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
+Real        Castro::max_dt = 1.e200;
 Real        Castro::cfl = 0.8;
 Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;

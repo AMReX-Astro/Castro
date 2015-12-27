@@ -51,4 +51,6 @@ module meth_params_module
 
   @@f90_declaractions@@
 
+  double precision, save :: rot_vec(3)
+
 end module meth_params_module

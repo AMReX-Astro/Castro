@@ -39,6 +39,7 @@ pp.query("sum_turb_src", sum_turb_src);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
+pp.query("max_dt", max_dt);
 pp.query("cfl", cfl);
 pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);

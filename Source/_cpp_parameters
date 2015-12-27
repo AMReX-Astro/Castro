@@ -146,6 +146,9 @@ initial_dt                   Real         -1.0
 # the smallest valid timestep---if we go below this, we abort
 dt_cutoff                    Real          0.0
 
+# the largest valid timestep---limit all timesteps to be no larger than this
+max_dt                       Real          1.e200
+
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
 cfl                          Real          0.8
