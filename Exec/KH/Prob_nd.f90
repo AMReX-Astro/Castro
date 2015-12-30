@@ -116,7 +116,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: w0, sigma, ramp, delta_y
   double precision :: vel1, vel2
   double precision :: y1, y2
-
+  double precision :: dye
+  
   integer :: sine_n
 
   vel1 = -0.5
@@ -162,7 +163,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            ! which will be perturbed in the following step
 
            vely = bulk_velocity
-
+           dye = ZERO
+           
            if (problem .eq. 1) then
 
               if (abs(yy - HALF * (y1 + y2)) < HALF * (y2 - y1)) then
@@ -207,6 +209,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               dens = rho1 + (rho2 - rho1) * HALF * (tanh( (yy - y1) / delta_y ) - tanh( (yy - y2) / delta_y ))
               velx = vel1 * (tanh( (yy - y1) / delta_y) - tanh( (yy - y2) / delta_y ) - ONE)
               vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy - y1)**2 / sigma**2) + exp(-(yy - y2)**2 / sigma**2))
+              dye  = HALF * (tanh( (yy - y2) / delta_y) - tanh( (yy - y1) / delta_y ) + TWO)
               
            else
 
@@ -218,10 +221,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UMX)  = dens * velx
            state(i,j,k,UMY)  = dens * vely
            state(i,j,k,UMZ)  = dens * velz
+           state(i,j,k,UFA)  = dye
 
            ! Establish the thermodynamic quantities
 
-           state(i,j,k,UFS:UFS-1+nspec) = 1.0d0 / nspec
+           state(i,j,k,UFS:UFS-1+nspec) = ONE / nspec
 
            eos_state % xn  = state(i,j,k,UFS:UFS-1+nspec)
            eos_state % rho = state(i,j,k,URHO)

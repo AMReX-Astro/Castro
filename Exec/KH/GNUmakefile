@@ -23,6 +23,8 @@ USE_OMP    ?= FALSE
 
 DIMENSION_AGNOSTIC = TRUE
 
+DEFINES += -DNUM_ADV=1
+
 # This sets the EOS directory in Castro/EOS
 EOS_dir     ?= gamma_law
 
