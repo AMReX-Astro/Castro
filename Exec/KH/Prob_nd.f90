@@ -5,7 +5,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
    use fundamental_constants_module
    use meth_params_module, only: small_temp, small_pres, small_dens
    use eos_module
-
+   
    implicit none
 
    integer :: init, namlen
@@ -55,7 +55,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
    open(untin,file=probin(1:namlen),form='formatted',status='old')
    read(untin,fortin)
    close(unit=untin)
-   
+
+   ! Force a different pressure choice for problem 4
+
+   if (problem .eq. 4) then
+      pressure = 10.0
+   endif
+
 end subroutine PROBINIT
 
 
@@ -81,7 +87,7 @@ end subroutine PROBINIT
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+                       state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
   use probdata_module
@@ -90,24 +96,26 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
        UEDEN, UEINT, UFS, UFA
   use network, only : nspec
   use bl_constants_module
+  use prob_params_module, only: problo, center, probhi
   
   implicit none
 
   integer :: level, nscal
   integer :: lo(3), hi(3)
-  integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
+  integer :: state_lo(3), state_hi(3)
   double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  double precision :: xx,yy,zz
+  double precision :: xx, yy, zz
 
   type (eos_t) :: eos_state
 
-  integer :: i,j,k,n
+  integer :: i, j, k, n
 
   double precision :: dens, velx, vely, velz
   double precision :: w0, sigma, ramp, delta_y
   double precision :: vel1, vel2
+  double precision :: y1, y2
 
   integer :: sine_n
 
@@ -126,8 +134,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      sine_n = 4
      w0 = 0.01
      delta_y = 0.025
+  else if (problem .eq. 4) then
+     sine_n = 2
+     w0 = 0.01
+     delta_y = 0.05
+     sigma = 0.2     
+     vel1 = ONE
+     vel2 = ONE
   endif
 
+  y1 = center(2) - (probhi(2) - problo(2)) * 0.25d0
+  y2 = center(2) + (probhi(2) - problo(2)) * 0.25d0  
+  
   velz = 0.0
   
   !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz, dens, velx, vely, velz, ramp, eos_state)
@@ -147,7 +165,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            if (problem .eq. 1) then
 
-              if (abs(yy - 0.5) < 0.25) then
+              if (abs(yy - HALF * (y1 + y2)) < HALF * (y2 - y1)) then
                  dens = rho2
                  velx = 0.5
               else
@@ -155,11 +173,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  velx = -0.5
               endif
 
-              vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy-0.25)**2/(2*sigma**2)) + exp(-(yy-0.75)**2/(2*sigma**2)))
+              vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy-y1)**2/(2*sigma**2)) + exp(-(yy-y2)**2/(2*sigma**2)))
 
            else if (problem .eq. 2) then
 
-             ramp = ((ONE + exp(-TWO*(yy-0.25)/delta_y))*(ONE + exp(TWO*(yy-0.75)/delta_y)))**(-1)
+             ramp = ((ONE + exp(-TWO*(yy-y1)/delta_y))*(ONE + exp(TWO*(yy-y2)/delta_y)))**(-1)
 
              dens = rho1 + ramp * (rho2 - rho1)
              velx = vel1 + ramp * (vel2 - vel1)
@@ -168,22 +186,28 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            else if (problem .eq. 3) then
 
-              if ( yy .lt. 0.25 ) then
-                 dens = rho1 - (rho1 - rho2) / 2 * exp( (yy-0.25) / delta_y )
-                 velx = vel1 - (vel1 - vel2) / 2 * exp( (yy-0.25) / delta_y )
-              else if ( yy .le. 0.50 ) then
-                 dens = rho2 + (rho1 - rho2) / 2 * exp( (0.25-yy) / delta_y )
-                 velx = vel2 + (vel1 - vel2) / 2 * exp( (0.25-yy) / delta_y )
-              else if ( yy .lt. 0.75 ) then
-                 dens = rho2 + (rho1 - rho2) / 2 * exp( (yy-0.75) / delta_y )
-                 velx = vel2 + (vel1 - vel2) / 2 * exp( (yy-0.75) / delta_y )
+              if ( yy .lt. y1 ) then
+                 dens = rho1 - (rho1 - rho2) / 2 * exp( (yy-y1) / delta_y )
+                 velx = vel1 - (vel1 - vel2) / 2 * exp( (yy-y1) / delta_y )
+              else if ( yy .le. HALF * (y1 + y2) ) then
+                 dens = rho2 + (rho1 - rho2) / 2 * exp( (y1-yy) / delta_y )
+                 velx = vel2 + (vel1 - vel2) / 2 * exp( (y1-yy) / delta_y )
+              else if ( yy .lt. y2 ) then
+                 dens = rho2 + (rho1 - rho2) / 2 * exp( (yy-y2) / delta_y )
+                 velx = vel2 + (vel1 - vel2) / 2 * exp( (yy-y2) / delta_y )
               else
-                 dens = rho1 - (rho1 - rho2) / 2 * exp( (0.75-yy) / delta_y )
-                 velx = vel1 - (vel1 - vel2) / 2 * exp( (0.75-yy) / delta_y )
+                 dens = rho1 - (rho1 - rho2) / 2 * exp( (y2-yy) / delta_y )
+                 velx = vel1 - (vel1 - vel2) / 2 * exp( (y2-yy) / delta_y )
               endif
 
               vely = vely + w0 * sin(sine_n*M_PI*xx)
 
+           else if (problem .eq. 4) then
+
+              dens = rho1 + (rho2 - rho1) * HALF * (tanh( (yy - y1) / delta_y ) - tanh( (yy - y2) / delta_y ))
+              velx = vel1 * (tanh( (yy - y1) / delta_y) - tanh( (yy - y2) / delta_y ) - ONE)
+              vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy - y1)**2 / sigma**2) + exp(-(yy - y2)**2 / sigma**2))
+              
            else
 
               call bl_error("Error: This problem choice is undefined.")
