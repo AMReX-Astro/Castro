@@ -96,7 +96,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   double precision :: xlo(2), xhi(2), time, delta(2)
   double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision :: xl, yl, xx, yy, xc, yc
+  double precision :: x, y, xl, yl, xx, yy, xc, yc
   double precision :: r
   double precision :: reint, p, u_phi, u_tot
 
@@ -104,9 +104,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   do j = lo(2), hi(2)
      yl = problo(2) + delta(2)*dble(j)
+     y = problo(2) + delta(2)*dble(j+HALF)
 
      do i = lo(1), hi(1)
         xl = problo(1) + delta(1)*dble(i)
+        x = problo(1) + delta(1)*dble(i+HALF)
 
         reint = ZERO
         u_tot = ZERO
@@ -149,8 +151,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! phi unit vector: \hat{\phi} = -sin(phi) \hat{x} + cos(phi) \hat{y}
         ! with cos(phi) = x/r; sin(phi) = y/r
-        state(i,j,UMX) = -rho0*q_r*u_phi*((yc-center(1))/r)  ! -sin(phi) = y/r
-        state(i,j,UMY) = rho0*q_r*u_phi*((xc-center(2))/r)   ! cos(phi) = x/r
+        r = sqrt((x - center(1))**2 + (y - center(2))**2)
+        state(i,j,UMX) = -rho0*q_r*u_phi*((yc-center(2))/r)  ! -sin(phi) = y/r
+        state(i,j,UMY) = rho0*q_r*u_phi*((xc-center(1))/r)   ! cos(phi) = x/r
 
         state(i,j,UEDEN) = reint +  &
              0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
