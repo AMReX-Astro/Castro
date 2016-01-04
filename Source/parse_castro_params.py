@@ -296,8 +296,8 @@ def write_set_meth_sub(plist, set_template):
                 else:
                     so.write(", ")
 
-                if n % 3 == 2:
-                    so.write(" &\n  ")
+                    if n % 3 == 2:
+                        so.write(" &\n  ")
 
         elif line.find("@@set_params@@") >= 0:
 
