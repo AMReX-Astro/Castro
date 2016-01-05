@@ -935,13 +935,13 @@ Castro::advance_hydro (Real time,
 		   }
 
 		   std::cout << "(rho E) added from fluxes                      : " << 
-				 E_added_flux*cell_vol << std::endl;
+				 E_added_flux << std::endl;
 		   std::cout << "xmom added from fluxes                      : " << 
-				 xmom_added_flux*cell_vol << std::endl;
+				 xmom_added_flux << std::endl;
 		   std::cout << "ymom added from fluxes                      : " << 
-				 ymom_added_flux*cell_vol << std::endl;
+				 ymom_added_flux << std::endl;
 		   std::cout << "zmom added from fluxes                      : " << 
-				 zmom_added_flux*cell_vol << std::endl;
+				 zmom_added_flux << std::endl;
 #ifdef GRAVITY
 		   if (do_grav) 
 		   {	 

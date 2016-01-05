@@ -984,8 +984,9 @@ contains
                     area2,area2_lo,area2_hi, &
                     area3,area3_lo,area3_hi, &
                     vol,vol_lo,vol_hi, &
-                    div,pdivu,lo,hi,dx,dt,E_added_flux,&
-                    xmom_added_flux,ymom_added_flux,zmom_added_flux)
+                    div,pdivu,lo,hi,dx,dt,E_added_flux, &
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                    verbose)
 
     use network, only : nspec, naux
     use eos_module
@@ -1009,7 +1010,9 @@ contains
     integer          ::    qy_lo(3),    qy_hi(3)
     integer          ::    qz_lo(3),    qz_hi(3)
     integer          ::   vol_lo(3),   vol_hi(3)
-    
+
+    integer          :: verbose
+
     double precision :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     double precision ::   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
@@ -1123,35 +1126,38 @@ contains
                       uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
                    endif
 
-                   ! Add up some diagnostic quantities.
-                      
-                   if (n .eq. UMX) then
-                      xmom_added_flux = xmom_added_flux + &
-                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-                   else if (n .eq. UMY) then
-                      ymom_added_flux = ymom_added_flux + &
-                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-                   else if (n .eq. UMZ) then
-                      zmom_added_flux = zmom_added_flux + &
-                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-                   else if (n .eq. UEDEN) then
-                      E_added_flux = E_added_flux + &
-                           ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                         +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                         +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-                   endif
                 enddo
              enddo
           enddo
        endif
          
     enddo
+
+    ! Add up some diagnostic quantities. Note that these are volumetric sums
+    ! so we are not dividing by the cell volume.
+
+    if (verbose .eq. 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) &
+                                                  +   flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) &
+                                                  +   flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
+                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) &
+                                                  +   flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) &
+                                                  +   flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
+                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) &
+                                                  +   flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) &
+                                                  +   flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
+                E_added_flux = E_added_flux + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) &
+                                            +   flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) &
+                                            +   flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN))
+             enddo
+          enddo
+       enddo
+
+    endif
 
     ! Now update the hybrid momenta, and overwrite the linear momenta accordingly.
     

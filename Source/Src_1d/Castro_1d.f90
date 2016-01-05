@@ -118,7 +118,8 @@ subroutine ca_umdrv(is_finest_level,time,&
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt,E_added_flux, &
-       xmom_added_flux,ymom_added_flux,zmom_added_flux)
+       xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+       verbose)
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_l1,uin_h1,uout,uout_l1,uout_h1,lo,hi,&

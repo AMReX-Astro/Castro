@@ -196,8 +196,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt,E_added_flux,&
-              xmom_added_flux,ymom_added_flux,zmom_added_flux)
+              div,pdivu,lo,hi,delta,dt,E_added_flux, &
+              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              verbose)
 
   ! Add the radiative cooling -- for SGS only.
   ! if (radiative_cooling_type.eq.2) then
