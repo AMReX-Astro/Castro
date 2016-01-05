@@ -1031,13 +1031,8 @@ contains
     double precision :: dx(3), dt
     double precision :: E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
-    double precision :: hybrid_flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),3)
-    double precision :: hybrid_flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),3)
-    double precision :: hybrid_flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),3)
-
     double precision :: div1, volinv
     integer          :: i, j, k, n
-    double precision :: loc(3), R
     
     do n = 1, NVAR
          

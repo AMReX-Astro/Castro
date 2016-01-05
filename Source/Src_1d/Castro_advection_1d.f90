@@ -390,7 +390,7 @@ contains
           xmom_added_flux = xmom_added_flux + ( flux(i,UMX) - flux(i+1,UMX) )
           ymom_added_flux = ymom_added_flux + ( flux(i,UMY) - flux(i+1,UMY) )
           zmom_added_flux = zmom_added_flux + ( flux(i,UMZ) - flux(i+1,UMZ) )
-          E_added_flux = E_added_flux + ( flux(i,UEDEN) - flux(i+1,UDEN) )
+          E_added_flux = E_added_flux + ( flux(i,UEDEN) - flux(i+1,UEDEN) )
 
        enddo
 
