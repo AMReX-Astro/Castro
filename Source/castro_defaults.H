@@ -5,6 +5,7 @@ Real        Castro::small_pres = -1.e200;
 Real        Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
 int         Castro::add_ext_src = 0;
+int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_reference = 1;
 int         Castro::ppm_trace_sources = 0;
@@ -38,6 +39,7 @@ Real        Castro::sum_turb_src = 0.0;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
+Real        Castro::max_dt = 1.e200;
 Real        Castro::cfl = 0.8;
 Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
@@ -61,6 +63,9 @@ int         Castro::rot_source_type = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rot_axis = 3;
+#endif
+#ifdef POINTMASS
+Real        Castro::point_mass = 0.0;
 #endif
 int         Castro::do_acc = -1;
 int         Castro::bndry_func_thread_safe = 1;

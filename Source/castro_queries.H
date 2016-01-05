@@ -5,6 +5,7 @@ pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("add_ext_src", add_ext_src);
+pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
 pp.query("ppm_reference", ppm_reference);
 pp.query("ppm_trace_sources", ppm_trace_sources);
@@ -38,6 +39,7 @@ pp.query("sum_turb_src", sum_turb_src);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
+pp.query("max_dt", max_dt);
 pp.query("cfl", cfl);
 pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
@@ -61,6 +63,9 @@ pp.query("rot_source_type", rot_source_type);
 #endif
 #ifdef ROTATION
 pp.query("rot_axis", rot_axis);
+#endif
+#ifdef POINTMASS
+pp.query("point_mass", point_mass);
 #endif
 pp.query("do_acc", do_acc);
 pp.query("bndry_func_thread_safe", bndry_func_thread_safe);

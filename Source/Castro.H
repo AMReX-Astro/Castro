@@ -580,10 +580,6 @@ protected:
     // for keeping track of energy change from burning
     static Real      max_dedt;
 
-#ifdef POINTMASS
-    static Real      point_mass;
-#endif
-
 #ifdef DIFFUSION
     static int       diffuse_temp;
     static int       diffuse_spec;

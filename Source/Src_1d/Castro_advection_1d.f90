@@ -191,7 +191,7 @@ contains
 
        kineng = HALF * q(i,QRHO) * sum(q(i,QU:QW)**2)
 
-       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .lt. dual_energy_eta1) then
+       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .gt. dual_energy_eta1) then
           q(i,QREINT) = (uin(i,UEDEN) - kineng) / q(i,QRHO)
        else
           q(i,QREINT) = uin(i,UEINT) / q(i,QRHO)
@@ -315,7 +315,8 @@ contains
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
                     div,pdivu,lo,hi,dx,dt,E_added_flux, &
-                    xmom_added_flux,ymom_added_flux,zmom_added_flux)
+                    xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                    verbose)
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
@@ -332,6 +333,7 @@ contains
     integer  flux_l1, flux_h1
     integer  area_l1, area_h1
     integer   vol_l1,  vol_h1
+    integer verbose
     double precision   uin(uin_l1:uin_h1,NVAR)
     double precision  uout(uout_l1:uout_h1,NVAR)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
@@ -374,25 +376,25 @@ contains
           do i = lo(1),hi(1)
              uout(i,n) = uin(i,n) &
                   + ( flux(i,n) - flux(i+1,n) ) / vol(i)
-
-             ! Add up some diagnostic quantities.
-                      
-             if (n .eq. UMX) then
-                xmom_added_flux = xmom_added_flux + &
-                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
-             else if (n .eq. UMY) then
-                ymom_added_flux = ymom_added_flux + &
-                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
-             else if (n .eq. UMZ) then
-                zmom_added_flux = zmom_added_flux + &
-                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
-             else if (n .eq. UEDEN) then
-                E_added_flux = E_added_flux + &
-                     ( flux(i,n) - flux(i+1,n) ) / vol(i)
-             endif
           enddo
        end if
     enddo
+
+    ! Add up some diagnostic quantities. Note that these are volumetric sums
+    ! so we are not dividing by the cell volume.
+
+    if (verbose .eq. 1) then
+
+       do i = lo(1), hi(1)
+                      
+          xmom_added_flux = xmom_added_flux + ( flux(i,UMX) - flux(i+1,UMX) )
+          ymom_added_flux = ymom_added_flux + ( flux(i,UMY) - flux(i+1,UMY) )
+          zmom_added_flux = zmom_added_flux + ( flux(i,UMZ) - flux(i+1,UMZ) )
+          E_added_flux = E_added_flux + ( flux(i,UEDEN) - flux(i+1,UDEN) )
+
+       enddo
+
+    endif
     
     ! Add gradp term to momentum equation
     do i = lo(1),hi(1)

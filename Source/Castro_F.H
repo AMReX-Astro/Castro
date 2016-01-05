@@ -479,19 +479,19 @@ extern "C"
 #ifdef POINTMASS
   void pm_compute_delta_mass
     (const Real* pm_delta_mass, const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG(state),
-     BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(volume),
-     const Real* problo, const Real dx[], 
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(stateout),
+     const BL_FORT_FAB_ARG_3D(volume),
+     const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
 
   void pm_fix_solution
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(stateold),
-     BL_FORT_FAB_ARG(statenew),
-     const Real* problo, const Real dx[], 
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(stateold),
+     BL_FORT_FAB_ARG_3D(statenew),
+     const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
-#endif  
+#endif
   
 #ifdef GRAVITY
 
@@ -690,7 +690,7 @@ extern "C"
      const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[]);
-#endif  
+#endif
 
 #ifdef AUX_UPDATE
   void ca_auxupdate

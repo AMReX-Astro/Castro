@@ -54,6 +54,7 @@ module meth_params_module
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
+  integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
   integer         , save :: ppm_trace_sources
@@ -91,6 +92,9 @@ module meth_params_module
   double precision, save :: rot_period_dot
   integer         , save :: rot_source_type
   integer         , save :: rot_axis
+  double precision, save :: point_mass
   integer         , save :: do_acc
+
+  double precision, save :: rot_vec(3)
 
 end module meth_params_module

@@ -13,6 +13,8 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
+    use castro_util_module, only: position
+    use hybrid_advection_module, only: add_momentum_source
 
     implicit none
 
@@ -34,12 +36,15 @@ contains
     double precision :: rho, rhoInv
 
     double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-    double precision :: old_mom(3)
+    double precision :: old_mom(3), loc(3)
     double precision :: E_added, mom_added(3)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             loc = position(i,j,k) - center
+               
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
@@ -52,7 +57,7 @@ contains
 
              Sr = rho * rot(i,j,k,:) * dt
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Sr)
 
              ! Kinetic energy source: this is v . the momentum source.
              ! We don't apply in the case of the conservative energy
@@ -69,10 +74,10 @@ contains
 
              else if (rot_source_type .eq. 4) then
 
-                ! Do nothing here, for the conservative rotation option.
-
-                SrE = ZERO
-
+                ! Add a predictor here; we'll remove this later.
+                
+                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
+                
              else 
                 call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
              end if
@@ -120,6 +125,8 @@ contains
     use bl_constants_module
     use math_module, only: cross_product
     use rotation_module, only: get_omega, get_domegadt, rotational_acceleration
+    use castro_util_module, only: position
+    use hybrid_advection_module, only: add_momentum_source
 
     implicit none
 
@@ -164,13 +171,13 @@ contains
     double precision :: E_added, mom_added(3)
 
     integer          :: i,j,k
-    double precision :: r(3)
+    double precision :: loc(3)
     double precision :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
     double precision :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
     double precision :: rhoo, rhon, rhooinv, rhoninv
 
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3)
+    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
     double precision, pointer :: phi(:,:,:)
 
@@ -227,12 +234,11 @@ contains
     endif
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
+             loc = position(i,j,k) - center
+             
              rhoo = uold(i,j,k,URHO)
              rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -266,8 +272,8 @@ contains
 
              ! Correct momenta
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
-
+             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
+ 
              ! Correct energy
 
              if (rot_source_type == 1) then
@@ -282,7 +288,7 @@ contains
                 ! before we calculate the energy source term.
 
                 vnew = unew(i,j,k,UMX:UMZ) * rhoninv
-                Sr_new = rhon * rotational_acceleration(r, vnew, time) * dt
+                Sr_new = rhon * rotational_acceleration(loc, vnew, time) * dt
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -299,6 +305,13 @@ contains
 
                 ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
 
+                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
+                ! and do the time-level n part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
+
+                new_mom = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
+                                              + HALF * dt * loc * omega_new**2 * rhon &
+                                              - HALF * dt * loc * omega_old**2 * rhoo                
+                
                 ! The following is the general solution to the 3D coupled system,
                 ! assuming that the rotation vector has components along all three
                 ! axes, obtained using Cramer's rule (the coefficient matrix is
@@ -306,14 +319,20 @@ contains
                 ! one axis for rotation; if it's the z-axis, then this reduces to
                 ! Equations 25 and 26 in the wdmerger paper.
 
-                unew(i,j,k,UMX:UMZ) = matmul(dt_omega_matrix, unew(i,j,k,UMX:UMZ))
+                new_mom = matmul(dt_omega_matrix, new_mom)
+                
+                Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
+                
+                call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
 
-                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
-                ! and do the remaining part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
 
-                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
-                     + HALF * dt * r * omega_new**2 * rhon &
-                     - HALF * dt * r * omega_old**2 * rhoo
+
+
+                ! Conservative energy update
+
+                ! First, subtract the predictor step we applied earlier.
+                
+                SrEcorr = - SrE_old
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, rho * phi.
@@ -329,27 +348,23 @@ contains
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
-                ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV).
-
-                SrEcorr = - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                     flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                     flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) )
-
-                ! Now normalize by the volume of this cell to get the specific energy change.                
-
-                SrEcorr = SrEcorr / vol(i,j,k)
+                
+                SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                             flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                             flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                             flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                             flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                             flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term. For the velocities this is a corrector step
                 ! and for the energy we add the full source term.
 
-                Sr_old = - rhoo * cross_product(domegadt_old, r)
-                Sr_new = - rhon * cross_product(domegadt_new, r)
-
+                Sr_old = - rhoo * cross_product(domegadt_old, loc)
+                Sr_new = - rhon * cross_product(domegadt_new, loc)
+               
                 unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
 
                 vnew = unew(i,j,k,UMX:UMZ) / rhon

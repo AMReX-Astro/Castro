@@ -357,7 +357,7 @@ contains
 
           kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QW)**2)
           
-          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
+          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .gt. dual_energy_eta1) then
              q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
           else
              q(i,j,QREINT) = uin(i,j,UEINT) / q(i,j,QRHO)
@@ -508,7 +508,8 @@ contains
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                      div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
-                     xmom_added_flux,ymom_added_flux,zmom_added_flux)
+                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                     verbose)
 
     use eos_module
     use network, only : nspec, naux
@@ -530,7 +531,9 @@ contains
     integer area1_l1,area1_l2,area1_h1,area1_h2
     integer area2_l1,area2_l2,area2_h1,area2_h2
     integer vol_l1,vol_l2,vol_h1,vol_h2
-    
+
+    integer verbose
+
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
@@ -608,33 +611,36 @@ contains
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
                 endif
                    
-                ! Add up some diagnostic quantities
-                   
-                if (n == UEDEN) then
-                   E_added_flux = E_added_flux + dt * & 
-                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-
-                else if (n == UMX) then
-                   xmom_added_flux = xmom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-
-                else if (n == UMY) then
-                   ymom_added_flux = ymom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-
-                else if (n == UMZ) then
-                   zmom_added_flux = zmom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                          flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)                    
-
-                end if
              enddo
           enddo
        end if
     enddo
+
+    ! Add up some diagnostic quantities. Note that these are volumetric sums
+    ! so we are not dividing by the cell volume.
+                   
+    if (verbose .eq. 1) then
+
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xmom_added_flux = xmom_added_flux + dt * ( flux1(i,j,UMX) - flux1(i+1,j,UMX) + &
+                                                        flux2(i,j,UMX) - flux2(i,j+1,UMX) )
+
+             ymom_added_flux = ymom_added_flux + dt * ( flux1(i,j,UMY) - flux1(i+1,j,UMY) + &
+                                                        flux2(i,j,UMY) - flux2(i,j+1,UMY) )
+
+             zmom_added_flux = zmom_added_flux + dt * ( flux1(i,j,UMZ) - flux1(i+1,j,UMZ) + &
+                                                        flux2(i,j,UMZ) - flux2(i,j+1,UMZ) )
+
+             E_added_flux = E_added_flux + dt * ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
+                                                  flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
+
+          enddo
+       enddo
+
+    endif
+
 
     ! Add gradp term to momentum equation -- only for axisymmetric
     ! coords (and only for the radial flux)

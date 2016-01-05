@@ -23,7 +23,7 @@ plan:
  -- Castro_nd.f90 will be split -- this will have a hardcoded version
     of the setup
 
- -- meth_params.f90 will be written by the script -- it will include
+ -- meth_params.F90 will be written by the script -- it will include
     all of the castro runtime paramters and the set routine.  It will
     use a template that already has the hardcoded parameters defined.
 

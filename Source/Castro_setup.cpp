@@ -170,8 +170,12 @@ Castro::variableSetUp ()
 #endif
     Temp = cnt++;
 
+#ifdef NUM_ADV
+    NumAdv = NUM_ADV;
+#else
     NumAdv = 0;
-
+#endif
+    
     if (NumAdv > 0)
     {
         FirstAdv = cnt;
@@ -226,6 +230,8 @@ Castro::variableSetUp ()
 
     int get_g_from_phi = 0;
     pp.query("get_g_from_phi", get_g_from_phi);
+
+#include <castro_call_set_meth.H>    
     
     set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
 		      NumAdv, 
@@ -234,8 +240,6 @@ Castro::variableSetUp ()
 		      use_sgs,
 		      diffuse_cutoff_density,
 		      const_grav);
-
-#include <castro_call_set_meth.H>
 
     Real run_stop = ParallelDescriptor::second() - run_strt;
  
@@ -711,6 +715,18 @@ Castro::variableSetUp ()
     derive_lst.add("magmom",IndexType::TheCellType(),1,ca_dermagmom,the_same_box);
     derive_lst.addComponent("magmom",desc_lst,State_Type,Xmom,3);
 
+    derive_lst.add("angular_momentum_x",IndexType::TheCellType(),1,ca_derangmomx,the_same_box);
+    derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,Xmom,3);
+
+    derive_lst.add("angular_momentum_y",IndexType::TheCellType(),1,ca_derangmomy,the_same_box);
+    derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,Xmom,3);
+
+    derive_lst.add("angular_momentum_z",IndexType::TheCellType(),1,ca_derangmomz,the_same_box);
+    derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
+    
 #ifdef GRAVITY
     derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
     derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);

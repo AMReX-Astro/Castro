@@ -9,13 +9,10 @@ module advection_util_module
 
 contains
 
-  subroutine normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_l3, &
-                                      flux1_h1,flux1_h2,flux1_h3, &
-                                      flux2,flux2_l1,flux2_l2,flux2_l3, &
-                                      flux2_h1,flux2_h2,flux2_h3, &
-                                      flux3,flux3_l1,flux3_l2,flux3_l3, &
-                                      flux3_h1,flux3_h2,flux3_h3, &
-                                      lo,hi)
+  subroutine normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+                                      flux2,flux2_lo,flux2_hi, &
+                                      flux3,flux3_lo,flux3_hi, &
+                                      lo, hi)
     
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -23,17 +20,17 @@ contains
 
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-    integer          :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-    integer          :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-    double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
-    double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
-    double precision :: flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+    integer          :: lo(3), hi(3)
+    integer          :: flux1_lo(3), flux1_hi(3)
+    integer          :: flux2_lo(3), flux2_hi(3)
+    integer          :: flux3_lo(3), flux3_hi(3)
+    double precision :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    double precision :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    double precision :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     
     ! Local variables
-    integer          :: i,j,k,n
-    double precision :: sum,fac
+    integer          :: i, j, k, n
+    double precision :: sum, fac
     
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -98,9 +95,8 @@ contains
 ! :: ----------------------------------------------------------
 ! ::
 
-  subroutine enforce_minimum_density(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                                     uout,uout_l1,uout_l2,uout_l3, &
-                                     uout_h1,uout_h2,uout_h3, &
+  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                     uout,uout_lo,uout_hi, &
                                      lo,hi,mass_added,eint_added,eden_added,verbose)
     
     use network, only : nspec, naux
@@ -112,10 +108,10 @@ contains
     implicit none
 
     integer          :: lo(3), hi(3), verbose
-    integer          ::  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
-    integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-    double precision ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
-    double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+    integer          ::  uin_lo(3),  uin_hi(3)
+    integer          :: uout_lo(3), uout_hi(3)
+    double precision ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+    double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     double precision :: mass_added, eint_added, eden_added
     
     ! Local variables
@@ -259,7 +255,7 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine normalize_new_species(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3,lo,hi)
+  subroutine normalize_new_species(u,u_lo,u_hi,lo,hi)
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -268,8 +264,8 @@ contains
     implicit none
 
     integer          :: lo(3), hi(3)
-    integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
-    double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
+    integer          :: u_lo(3), u_hi(3)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     
     ! Local variables
     integer          :: i,j,k,n
@@ -301,27 +297,26 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,dx,dy,dz, &
-                  div,div_l1,div_l2,div_l3,div_h1,div_h2,div_h3)
+  subroutine divu(lo,hi,q,q_lo,q_hi,dx,div,div_lo,div_hi)
     
-    use meth_params_module, only : QU, QV, QW
+    use meth_params_module, only : QU, QV, QW, QVAR
     use bl_constants_module
     
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-    integer          :: div_l1,div_l2,div_l3,div_h1,div_h2,div_h3
-    double precision :: dx, dy, dz
-    double precision :: div(div_l1:div_h1,div_l2:div_h2,div_l3:div_h3)
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,*)
+    integer          :: lo(3), hi(3)
+    integer          :: q_lo(3), q_hi(3)
+    integer          :: div_lo(3), div_hi(3)
+    double precision :: dx(3)
+    double precision :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
     integer          :: i, j, k
     double precision :: ux, vy, wz, dxinv, dyinv, dzinv
 
-    dxinv = ONE/dx
-    dyinv = ONE/dy
-    dzinv = ONE/dz
+    dxinv = ONE/dx(1)
+    dyinv = ONE/dx(2)
+    dzinv = ONE/dx(3)
 
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1

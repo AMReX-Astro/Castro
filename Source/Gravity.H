@@ -180,7 +180,7 @@ protected:
 #endif
 
 #ifdef POINTMASS
-    void add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_mass);
+    void add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass);
 #endif
 
 #ifdef PARTICLES

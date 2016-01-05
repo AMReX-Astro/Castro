@@ -649,11 +649,13 @@ Castro::advance_hydro (Real time,
 
 #ifdef POINTMASS
 		    if (level == finest_level)
-			pm_compute_delta_mass(&mass_change_at_center,
-					      bx.loVect(), bx.hiVect(),
-					      BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
-					      BL_TO_FORTRAN(volume[mfi]),
-					      geom.ProbLo(), dx, &time, &dt);
+			pm_compute_delta_mass
+			    (&mass_change_at_center,
+			     ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     BL_TO_FORTRAN_3D(stateold),
+			     BL_TO_FORTRAN_3D(stateout),
+			     BL_TO_FORTRAN_3D(volume[mfi]),
+			     ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
 #endif	
 		}
 
@@ -860,11 +862,13 @@ Castro::advance_hydro (Real time,
 		    
 #ifdef POINTMASS
 		    if (level == finest_level)
-			pm_compute_delta_mass(&mass_change_at_center, 
-					      lo, hi,
-					      BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
-					      BL_TO_FORTRAN(volume[mfi]),
-					      geom.ProbLo(), dx, &time, &dt);
+			pm_compute_delta_mass
+			    (&mass_change_at_center, 
+			     ARLIM_3D(lo), ARLIM_3D(hi),
+			     BL_TO_FORTRAN_3D(stateold),
+			     BL_TO_FORTRAN_3D(stateout),
+			     BL_TO_FORTRAN_3D(volume[mfi]),
+			     ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
 #endif
 		}
 
@@ -923,13 +927,13 @@ Castro::advance_hydro (Real time,
 		   }
 
 		   std::cout << "(rho E) added from fluxes                      : " << 
-				 E_added_flux*cell_vol << std::endl;
+				 E_added_flux << std::endl;
 		   std::cout << "xmom added from fluxes                      : " << 
-				 xmom_added_flux*cell_vol << std::endl;
+				 xmom_added_flux << std::endl;
 		   std::cout << "ymom added from fluxes                      : " << 
-				 ymom_added_flux*cell_vol << std::endl;
+				 ymom_added_flux << std::endl;
 		   std::cout << "zmom added from fluxes                      : " << 
-				 zmom_added_flux*cell_vol << std::endl;
+				 zmom_added_flux << std::endl;
 #ifdef GRAVITY
 		   if (do_grav) 
 		   {	 
@@ -995,9 +999,11 @@ Castro::advance_hydro (Real time,
 	     for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
              {
 		const Box& bx = mfi.validbox();
-		pm_fix_solution(bx.loVect(), bx.hiVect(),
-				BL_TO_FORTRAN(S_old[mfi]), BL_TO_FORTRAN(S_new[mfi]),
-				geom.ProbLo(), dx, &time, &dt);
+
+		pm_fix_solution
+		  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		   BL_TO_FORTRAN_3D(S_old[mfi]), BL_TO_FORTRAN_3D(S_new[mfi]),
+		   ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
              }
           }
     }

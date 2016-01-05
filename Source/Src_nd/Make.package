@@ -4,8 +4,8 @@ F90EXE_sources += Castro_util.F90
 f90EXE_sources += Tagging_nd.f90
 f90EXE_sources += Problem.f90
 f90EXE_sources += set_castro_params.f90
-f90EXE_sources += meth_params.f90
-f90EXE_sources += prob_params.f90
+F90EXE_sources += meth_params.F90
+F90EXE_sources += prob_params.F90
 f90EXE_sources += tagging_params.f90
 F90EXE_sources += update_sponge_params.F90
 
@@ -17,6 +17,7 @@ F90EXE_sources += Derive_nd.F90
 F90EXE_sources += problem_derive_nd.F90
 F90EXE_sources += sponge_nd.F90
 f90EXE_sources += riemann_util.f90
+F90EXE_sources += hybrid_advection_nd.F90
 
 f90EXE_sources += flatten_nd.f90
 
@@ -26,6 +27,10 @@ ifeq ($(USE_GRAV), TRUE)
 F90EXE_sources += prescribe_grav_nd.F90
 F90EXE_sources += Gravity_nd.F90
 F90EXE_sources += gravity_sources_nd.F90
+endif
+
+ifeq ($(USE_POINTMASS), TRUE)
+f90EXE_sources += pointmass_nd.f90
 endif
 
 ifeq ($(USE_ROTATION), TRUE)

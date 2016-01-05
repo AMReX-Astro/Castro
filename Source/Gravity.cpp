@@ -854,6 +854,10 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level], BL_SPACEDIM, ng);
     grav.setVal(0.0,ng);
+
+    // In some cases we want to fill phi in this call.    
+    
+    MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);          
     
     if (gravity_type == "ConstantGrav") {
 
@@ -863,10 +867,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
-      // We also want to fill phi for MonopoleGrav, even though we don't return it.
-      
-      MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
-      
 #if (BL_SPACEDIM == 1)
        make_one_d_grav(level,time,grav,phi);
 #else
@@ -931,7 +931,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
-    add_pointmass_to_gravity(level,grav_vector,point_mass);
+    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
 
@@ -949,6 +949,10 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level],BL_SPACEDIM,ng);
     grav.setVal(0.0,ng);
+
+    // In some cases we want to fill phi in this call.
+    
+    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);    
     
     if (gravity_type == "ConstantGrav") {
 
@@ -956,10 +960,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
     } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
-
-      // We may want to fill phi for MonopoleGrav, even though we don't return it.      
-      
-      MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
 
 #if (BL_SPACEDIM == 1)
 	make_one_d_grav(level,time,grav,phi);
@@ -1025,7 +1025,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
-    add_pointmass_to_gravity(level,grav_vector,point_mass);
+    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
 
@@ -1285,17 +1285,75 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
         crse_gphi_fine.set(n,new MultiFab(eba,1,0));
     }
 
-    if (is_new == 1)
+    Array< PArray<MultiFab> >& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
+
+    BoxLib::average_down_faces(grad_phi[level+1],crse_gphi_fine,fine_ratio);
+
+    const Geometry& cgeom = parent->Geom(level);
+    const Box& cdomain = cgeom.Domain();
+
+    for (int n = 0; n < BL_SPACEDIM; ++n) 
     {
-        BoxLib::average_down_faces(grad_phi_curr[level+1],crse_gphi_fine,fine_ratio);
-	for (int n=0; n<BL_SPACEDIM; ++n)
-	    grad_phi_curr[level][n].copy(crse_gphi_fine[n]);
-    }
-    else if (is_new == 0)
-    {
-        BoxLib::average_down_faces(grad_phi_prev[level+1],crse_gphi_fine,fine_ratio);
-	for (int n=0; n<BL_SPACEDIM; ++n)
-	    grad_phi_prev[level][n].copy(crse_gphi_fine[n]);
+	grad_phi[level][n].copy(crse_gphi_fine[n]);
+
+	if (cgeom.isPeriodic(n))
+	{
+	    const BoxArray& eba = crse_gphi_fine[n].boxArray();
+	    const DistributionMapping& edm = crse_gphi_fine[n].DistributionMap();
+	    Box edomain = BoxLib::surroundingNodes(cdomain,n);
+
+	    BoxList bl(eba.ixType());
+	    Array<int> iproc;
+	    Array<int> boxid;
+
+	    for (int i = 0; i < eba.size(); ++i) {
+		const Box& bx0 = eba[i];
+		bool touch_lo = bx0.smallEnd(n) == edomain.smallEnd(n);
+		bool touch_hi = bx0.bigEnd(n) == edomain.bigEnd(n);
+		if (touch_lo && !touch_hi)
+		{
+		    Box ibx = bx0;
+		    ibx.setRange(n, edomain.bigEnd(n));
+		    bl.push_back(ibx);
+		    iproc.push_back(edm[i]);
+		    boxid.push_back(i);
+		}
+		else if (touch_hi && !touch_lo)
+		{
+		    Box ibx = bx0;
+		    ibx.setRange(n, edomain.smallEnd(n));
+		    bl.push_back(ibx);
+		    iproc.push_back(edm[i]);
+		    boxid.push_back(i);
+		}
+	    }
+
+	    if (bl.size() > 0) 
+	    {
+		BoxArray nba(bl);
+
+		iproc.push_back(ParallelDescriptor::MyProc());
+		DistributionMapping ndm(iproc);
+		
+		MultiFab nmf(nba, 1, 0, ndm);
+		
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+		for (MFIter mfi(nmf); mfi.isValid(); ++mfi) {
+		    const Box& bx = mfi.validbox();
+		    Box sbx(bx);
+		    if (bx.bigEnd(n) == edomain.smallEnd(n)) {
+			sbx.shift(n, cdomain.length(n));
+		    } else {
+			sbx.shift(n, -cdomain.length(n));		    
+		    }
+		    nmf[mfi].copy(crse_gphi_fine[n][boxid[mfi.index()]], sbx, 0, bx, 0, 1);
+		}
+		
+		grad_phi[level][n].copy(nmf);
+	    }
+	}
     }
 }
 
@@ -2315,7 +2373,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 
 #ifdef POINTMASS
 void
-Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_mass)
+Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
    const Real* dx     = parent->Geom(level).CellSize();
    const Real* problo = parent->Geom(level).ProbLo();
@@ -2325,8 +2383,11 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& grav_vector, Real point_
    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
    {
        const Box& bx = mfi.growntilebox();
-       pm_add_to_grav(&point_mass,BL_TO_FORTRAN(grav_vector[mfi]),
-		      problo,dx,bx.loVect(),bx.hiVect());
+
+       pm_add_to_grav(&point_mass,BL_TO_FORTRAN_3D(phi[mfi]),
+		      BL_TO_FORTRAN_3D(grav_vector[mfi]),
+                      ZFILL(problo),ZFILL(dx),
+		      ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
    }
 }
 #endif

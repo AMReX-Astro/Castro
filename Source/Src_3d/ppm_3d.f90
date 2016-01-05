@@ -10,31 +10,32 @@ contains
   !
   ! characteristics based on u
   !
-  subroutine ppm(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                 u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                 flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                 Ip,Im, &
-                 ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc, &
+  subroutine ppm(s,s_lo,s_hi, &
+                 u,cspd,qd_lo,qd_hi, &
+                 flatn,f_lo,f_hi, &
+                 Ip,Im,I_lo,I_hi, &
+                 ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc, &
                  force_type_in)
 
     use meth_params_module, only : ppm_type
 
     implicit none
 
-    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
-    integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer           f_l1, f_l2, f_l3, f_h1, f_h2, f_h3
-    integer          ilo1,ilo2,ihi1,ihi2
+    integer          ::  s_lo(3),  s_hi(3)
+    integer          :: qd_lo(3), qd_hi(3)
+    integer          ::  f_lo(3),  f_hi(3)
+    integer          ::  I_lo(3),  I_hi(3)
+    integer          :: ilo1, ilo2, ihi1, ihi2
 
-    double precision     s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
-    double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
-    double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn( f_l1: f_h1, f_l2: f_h2, f_l3: f_h3)
-    double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
-    double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
+    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision dx,dy,dz,dt
-    integer          k3d,kc
+    double precision :: dx(3), dt
+    integer          :: k3d, kc
    
     integer, intent(in), optional :: force_type_in
 
@@ -45,17 +46,19 @@ contains
 
     if (ppm_type_to_use == 1) then
 
-        call ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+        call ppm_type1(s,s_lo,s_hi, &
+                       u,cspd,qd_lo,qd_hi, &
+                       flatn,f_lo,f_hi, &
+                       Ip,Im,I_lo,I_hi, &
+                       ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     else if (ppm_type_to_use == 2) then
 
-        call ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+        call ppm_type2(s,s_lo,s_hi, &
+                       u,cspd,qd_lo,qd_hi, &
+                       flatn,f_lo,f_hi, &
+                       Ip,Im,I_lo,I_hi, &
+                       ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     end if
 
@@ -65,10 +68,11 @@ contains
   ! ::: ----------------------------------------------------------------
   ! :::
   
-  subroutine ppm_type1(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+  subroutine ppm_type1(s,s_lo,s_hi, &
+                       u,cspd,qd_lo,qd_hi, &
+                       flatn,f_lo,f_hi, &
+                       Ip,Im,I_lo,I_hi, &
+                       ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
@@ -76,21 +80,22 @@ contains
   
     implicit none
 
-    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
-    integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer           f_l1, f_l2, f_l3, f_h1, f_h2, f_h3
-    integer          ilo1,ilo2,ihi1,ihi2
+    integer          ::  s_lo(3),  s_hi(3)
+    integer          :: qd_lo(3), qd_hi(3)
+    integer          ::  f_lo(3),  f_hi(3)
+    integer          ::  I_lo(3),  I_hi(3)
+    integer          :: ilo1, ilo2, ihi1, ihi2
 
-    double precision     s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
-    double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,3)
-    double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn( f_l1: f_h1, f_l2: f_h2, f_l3: f_h3)
+    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
 
-    double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
-    double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
+    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision dx,dy,dz,dt
-    integer          k3d,kc
+    double precision :: dx(3), dt
+    integer          :: k3d, kc
 
     ! local
     integer i,j,k
@@ -110,21 +115,21 @@ contains
     ! s_{i+\half}^{H.O.}
     double precision, pointer :: sedge(:,:)
 
-    dtdx = dt/dx
-    dtdy = dt/dy
-    dtdz = dt/dz
+    dtdx = dt/dx(1)
+    dtdy = dt/dx(2)
+    dtdz = dt/dx(3)
 
     if (ppm_type .ne. 1) &
          call bl_error("Should have ppm_type = 1 in ppm_type1")
 
-    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
-         print *,'Low bounds of array: ',s_l1, s_l2
+    if (s_lo(1) .gt. ilo1-3 .or. s_lo(2) .gt. ilo2-3) then
+         print *,'Low bounds of array: ',s_lo(1), s_lo(2)
          print *,'Low bounds of  loop: ',ilo1 , ilo2
          call bl_error("Need more ghost cells on array in ppm_type1")
     end if
 
-    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
-         print *,'Hi  bounds of array: ',s_h1, s_h2
+    if (s_hi(1) .lt. ihi1+3 .or. s_hi(2) .lt. ihi2+3) then
+         print *,'Hi  bounds of array: ',s_hi(1), s_hi(2)
          print *,'Hi  bounds of  loop: ',ihi1 , ihi2
          call bl_error("Need more ghost cells on array in ppm_type1")
     end if
@@ -550,10 +555,11 @@ contains
   ! ::: ----------------------------------------------------------------
   ! :::
 
-  subroutine ppm_type2(s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
-                       u,cspd,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                       flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
-                       Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+  subroutine ppm_type2(s,s_lo,s_hi, &
+                       u,cspd,qd_lo,qd_hi, &
+                       flatn,f_lo,f_hi, &
+                       Ip,Im,I_lo,I_hi, &
+                       ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
@@ -561,18 +567,21 @@ contains
 
     implicit none
 
-    integer           s_l1, s_l2, s_l3, s_h1, s_h2, s_h3
-    integer          qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer           f_l1, f_l2, f_l3, f_h1, f_h2, f_h3
-    integer          ilo1,ilo2,ihi1,ihi2
-    double precision s( s_l1: s_h1, s_l2: s_h2, s_l3: s_h3)
-    double precision u(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,1:3)
-    double precision cspd(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn(f_l1:f_h1,f_l2:f_h2,f_l3:f_h3)
-    double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
-    double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3)
-    double precision dx,dy,dz,dt
-    integer          k3d,kc
+    integer          ::  s_lo(3),  s_hi(3)
+    integer          :: qd_lo(3), qd_hi(3)
+    integer          ::  f_lo(3),  f_hi(3)
+    integer          ::  I_lo(3),  I_hi(3)
+    integer          :: ilo1, ilo2, ihi1, ihi2
+    
+    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    
+    double precision :: dx(3), dt
+    integer          :: k3d, kc
 
     ! local
     integer i,j,k
@@ -596,21 +605,21 @@ contains
     ! constant used in Colella 2008
     double precision, parameter :: C = 1.25d0
 
-    dtdx = dt/dx
-    dtdy = dt/dy
-    dtdz = dt/dz
+    dtdx = dt/dx(1)
+    dtdy = dt/dx(2)
+    dtdz = dt/dx(3)
 
     if (ppm_type .ne. 2) &
          call bl_error("Should have ppm_type = 2 in ppm_type2")
 
-    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
-         print *,'Low bounds of array: ',s_l1, s_l2
+    if (s_lo(1) .gt. ilo1-3 .or. s_lo(2) .gt. ilo2-3) then
+         print *,'Low bounds of array: ',s_lo(1), s_lo(2)
          print *,'Low bounds of  loop: ',ilo1 , ilo2
          call bl_error("Need more ghost cells on array in ppm_type2")
     end if
 
-    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
-         print *,'Hi  bounds of array: ',s_h1, s_h2
+    if (s_hi(1) .lt. ihi1+3 .or. s_hi(2) .lt. ihi2+3) then
+         print *,'Hi  bounds of array: ',s_hi(1), s_hi(2)
          print *,'Hi  bounds of  loop: ',ihi1 , ihi2
          call bl_error("Need more ghost cells on array in ppm_type2")
     end if

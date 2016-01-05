@@ -5,6 +5,7 @@ static Real small_pres;
 static Real small_ener;
 static int do_hydro;
 static int add_ext_src;
+static int hybrid_hydro;
 static int ppm_type;
 static int ppm_reference;
 static int ppm_trace_sources;
@@ -38,6 +39,7 @@ static Real sum_turb_src;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;
+static Real max_dt;
 static Real cfl;
 static Real init_shrink;
 static Real change_max;
@@ -61,6 +63,9 @@ static int rot_source_type;
 #endif
 #ifdef ROTATION
 static int rot_axis;
+#endif
+#ifdef POINTMASS
+static Real point_mass;
 #endif
 static int do_acc;
 static int bndry_func_thread_safe;

@@ -336,6 +336,135 @@ contains
 
 
 
+  subroutine ca_derangmomx(L,L_lo,L_hi,ncomp_L, &
+                           u,u_lo,u_hi,ncomp_u, &
+                           lo,hi,domlo,domhi, &
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+
+    use bl_constants_module, only: HALF
+    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
+    use math_module, only: cross_product
+
+    implicit none
+
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    double precision :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
+
+    integer          :: i, j, k
+    double precision :: loc(3), mom(3), ang_mom(3), rho
+
+    do k = lo(3), hi(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       do j = lo(2), hi(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          do i = lo(1), hi(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+
+             rho = u(i,j,k,1)
+             mom = u(i,j,k,2:4)
+             ang_mom = cross_product(loc, mom)
+
+             L(i,j,k,1) = ang_mom(1)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_derangmomx
+
+
+
+  subroutine ca_derangmomy(L,L_lo,L_hi,ncomp_L, &
+                           u,u_lo,u_hi,ncomp_u, &
+                           lo,hi,domlo,domhi, &
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+
+    use bl_constants_module, only: HALF
+    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
+    use math_module, only: cross_product
+
+    implicit none
+
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    double precision :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
+
+    integer          :: i, j, k
+    double precision :: loc(3), mom(3), ang_mom(3), rho
+
+    do k = lo(3), hi(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       do j = lo(2), hi(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          do i = lo(1), hi(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+
+             rho = u(i,j,k,1)
+             mom = u(i,j,k,2:4)
+             ang_mom = cross_product(loc, mom)
+
+             L(i,j,k,1) = ang_mom(2)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_derangmomy
+
+
+
+  subroutine ca_derangmomz(L,L_lo,L_hi,ncomp_L, &
+                           u,u_lo,u_hi,ncomp_u, &
+                           lo,hi,domlo,domhi, &
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+
+    use bl_constants_module, only: HALF
+    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
+    use math_module, only: cross_product
+
+    implicit none
+
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    double precision :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
+
+    integer          :: i, j, k
+    double precision :: loc(3), mom(3), ang_mom(3), rho
+
+    do k = lo(3), hi(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       do j = lo(2), hi(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          do i = lo(1), hi(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+
+             rho = u(i,j,k,1)
+             mom = u(i,j,k,2:4)
+             ang_mom = cross_product(loc, mom)
+
+             L(i,j,k,1) = ang_mom(3)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_derangmomz
+
+
+
   subroutine ca_derpres(p,p_lo,p_hi,ncomp_p, &
                         u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)

@@ -165,7 +165,7 @@ extern "C"
 
 #ifdef POINTMASS
   void pm_add_to_grav
-    (const Real* point_mass, BL_FORT_FAB_ARG(grav_vector),
+    (const Real* point_mass, BL_FORT_FAB_ARG_3D(phi), BL_FORT_FAB_ARG_3D(grav_vector),
      const Real* problo, const Real* dx, const int* lo, const int* hi);
 #endif
 
