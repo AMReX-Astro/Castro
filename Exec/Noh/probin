@@ -1,0 +1,14 @@
+&fortin
+
+/
+
+&tagging
+
+/
+
+&extern
+
+  eos_assume_neutral = F
+  eos_gamma = 1.6666666666666666666666666
+
+/

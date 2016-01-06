@@ -1290,70 +1290,11 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     BoxLib::average_down_faces(grad_phi[level+1],crse_gphi_fine,fine_ratio);
 
     const Geometry& cgeom = parent->Geom(level);
-    const Box& cdomain = cgeom.Domain();
 
     for (int n = 0; n < BL_SPACEDIM; ++n) 
     {
 	grad_phi[level][n].copy(crse_gphi_fine[n]);
-
-	if (cgeom.isPeriodic(n))
-	{
-	    const BoxArray& eba = crse_gphi_fine[n].boxArray();
-	    const DistributionMapping& edm = crse_gphi_fine[n].DistributionMap();
-	    Box edomain = BoxLib::surroundingNodes(cdomain,n);
-
-	    BoxList bl(eba.ixType());
-	    Array<int> iproc;
-	    Array<int> boxid;
-
-	    for (int i = 0; i < eba.size(); ++i) {
-		const Box& bx0 = eba[i];
-		bool touch_lo = bx0.smallEnd(n) == edomain.smallEnd(n);
-		bool touch_hi = bx0.bigEnd(n) == edomain.bigEnd(n);
-		if (touch_lo && !touch_hi)
-		{
-		    Box ibx = bx0;
-		    ibx.setRange(n, edomain.bigEnd(n));
-		    bl.push_back(ibx);
-		    iproc.push_back(edm[i]);
-		    boxid.push_back(i);
-		}
-		else if (touch_hi && !touch_lo)
-		{
-		    Box ibx = bx0;
-		    ibx.setRange(n, edomain.smallEnd(n));
-		    bl.push_back(ibx);
-		    iproc.push_back(edm[i]);
-		    boxid.push_back(i);
-		}
-	    }
-
-	    if (bl.size() > 0) 
-	    {
-		BoxArray nba(bl);
-
-		iproc.push_back(ParallelDescriptor::MyProc());
-		DistributionMapping ndm(iproc);
-		
-		MultiFab nmf(nba, 1, 0, ndm);
-		
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-		for (MFIter mfi(nmf); mfi.isValid(); ++mfi) {
-		    const Box& bx = mfi.validbox();
-		    Box sbx(bx);
-		    if (bx.bigEnd(n) == edomain.smallEnd(n)) {
-			sbx.shift(n, cdomain.length(n));
-		    } else {
-			sbx.shift(n, -cdomain.length(n));		    
-		    }
-		    nmf[mfi].copy(crse_gphi_fine[n][boxid[mfi.index()]], sbx, 0, bx, 0, 1);
-		}
-		
-		grad_phi[level][n].copy(nmf);
-	    }
-	}
+	cgeom.PeriodicCopy(grad_phi[level][n], crse_gphi_fine[n]);
     }
 }
 

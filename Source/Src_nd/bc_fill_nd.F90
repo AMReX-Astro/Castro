@@ -7,7 +7,7 @@ module bc_fill_module
 contains
 
   ! All subroutines in this file must be threadsafe because they are called
-  ! inside OpenMP paralle regions.
+  ! inside OpenMP parallel regions.
   
   subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
 
