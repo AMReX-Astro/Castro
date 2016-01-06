@@ -18,8 +18,6 @@ Castro::ErrorSetUp ()
     // DEFINE ERROR ESTIMATION QUANTITIES
     //
 
-  //  err_list.add("Temp",2,ErrorRec::Special,
-  //  	       BL_FORT_PROC_CALL(CA_LAPLAC_ERROR,ca_laplac_error));
-  err_list.add("Temp",1,ErrorRec::Special,
-	       BL_FORT_PROC_CALL(CA_TEMPERROR,ca_temperror));
+  //  err_list.add("Temp",2,ErrorRec::Special,ca_laplac_error);
+  err_list.add("Temp",1,ErrorRec::Special,ca_temperror);
 }

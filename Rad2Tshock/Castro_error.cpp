@@ -18,13 +18,9 @@ Castro::ErrorSetUp ()
     // DEFINE ERROR ESTIMATION QUANTITIES
     //
 
-  err_list.add("density",2,ErrorRec::Special,
-	       BL_FORT_PROC_CALL(CA_LAPLAC_ERROR,ca_laplac_error));
-  err_list.add("pressure",2,ErrorRec::Special,
-	       BL_FORT_PROC_CALL(CA_LAPLAC_ERROR,ca_laplac_error));
-  err_list.add("Temp",2,ErrorRec::Special,
-	       BL_FORT_PROC_CALL(CA_LAPLAC_ERROR,ca_laplac_error));
-  //  err_list.add("x_velocity",2,ErrorRec::Special,
-  //	       BL_FORT_PROC_CALL(CA_LAPLAC_ERROR,ca_laplac_error));
+  err_list.add("density",2,ErrorRec::Special,ca_laplac_error);
+  err_list.add("pressure",2,ErrorRec::Special,ca_laplac_error);
+  err_list.add("Temp",2,ErrorRec::Special,ca_laplac_error);
+  //  err_list.add("x_velocity",2,ErrorRec::Special,ca_laplac_error);
 
 }
