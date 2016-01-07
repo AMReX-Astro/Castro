@@ -1,11 +1,3 @@
-module ext_src_module
-
-  implicit none
-
-  public
-
-contains
-
   ! compute the external sources for all the conservative equations.
   ! 
   ! This is called twice in the evolution:
@@ -31,7 +23,7 @@ contains
                         old_state_h1,old_state_h2,old_state_h3,&
                         new_state,new_state_l1,new_state_l2,new_state_l3, &
                         new_state_h1,new_state_h2,new_state_h3,&
-                        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,problo,dx,time,dt) bind(C)
+                        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,problo,dx,time,dt)
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only : NVAR
@@ -59,5 +51,3 @@ contains
     src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO ! Fill work region only
 
   end subroutine ca_ext_src
-
-end module ext_src_module

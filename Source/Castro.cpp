@@ -2242,16 +2242,17 @@ Castro::getSource (Real time, Real dt, MultiFab& state, MultiFab& ext_src, Multi
         Box bxz = bx; bxz.surroundingNodes(2); bxz.grow(1);
         fluxz.resize(bxz,NUM_STATE);
 
-        ca_ext_src(bx.loVect(), bx.hiVect(),
-		   BL_TO_FORTRAN(state[mfi]),
-		   BL_TO_FORTRAN(fluxx),
-		   BL_TO_FORTRAN(fluxy),
-		   BL_TO_FORTRAN(fluxz),
-		   BL_TO_FORTRAN(ext_src[mfi]),
-		   BL_TO_FORTRAN_N(sgs_mf[mfi],0),
-		   BL_TO_FORTRAN_N(sgs_mf[mfi],1),
-		   BL_TO_FORTRAN_N(sgs_mf[mfi],2),
-		   dx,&time,&dt);
+        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(state[mfi]),
+	   BL_TO_FORTRAN(fluxx),
+	   BL_TO_FORTRAN(fluxy),
+	   BL_TO_FORTRAN(fluxz),
+	   BL_TO_FORTRAN(ext_src[mfi]),
+	   BL_TO_FORTRAN_N(sgs_mf[mfi],0),
+	   BL_TO_FORTRAN_N(sgs_mf[mfi],1),
+	   BL_TO_FORTRAN_N(sgs_mf[mfi],2),
+	   dx,&time,&dt);
   
         sgs_fluxes[0][mfi].copy(fluxx,0,0,NUM_STATE);
         sgs_fluxes[1][mfi].copy(fluxy,0,0,NUM_STATE);
@@ -2277,17 +2278,19 @@ Castro::getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new,
      {
        const Box& bx = mfi.growntilebox(ng);
 #ifdef DIMENSION_AGNOSTIC	   
-       ca_ext_src(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		  BL_TO_FORTRAN_3D(state_old[mfi]),
-		  BL_TO_FORTRAN_3D(state_new[mfi]),
-		  BL_TO_FORTRAN_3D(ext_src[mfi]),
-		  ZFILL(prob_lo),ZFILL(dx),&time,&dt);
+       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	 (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	  BL_TO_FORTRAN_3D(state_old[mfi]),
+	  BL_TO_FORTRAN_3D(state_new[mfi]),
+	  BL_TO_FORTRAN_3D(ext_src[mfi]),
+	  ZFILL(prob_lo),ZFILL(dx),&time,&dt);
 #else	   
-       ca_ext_src(bx.loVect(), bx.hiVect(),
-		  BL_TO_FORTRAN(state_old[mfi]),
-		  BL_TO_FORTRAN(state_new[mfi]),
-		  BL_TO_FORTRAN(ext_src[mfi]),
-		  prob_lo,dx,&time,&dt);
+       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
+	 (bx.loVect(), bx.hiVect(),
+	  BL_TO_FORTRAN(state_old[mfi]),
+	  BL_TO_FORTRAN(state_new[mfi]),
+	  BL_TO_FORTRAN(ext_src[mfi]),
+	  prob_lo,dx,&time,&dt);
 #endif	   
      }
 }

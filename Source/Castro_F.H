@@ -597,38 +597,6 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
 
-#ifdef SGS
-  void ca_ext_src
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(fluxx),
-     BL_FORT_FAB_ARG(fluxy),
-     BL_FORT_FAB_ARG(fluxz),
-     BL_FORT_FAB_ARG(ext_src),
-     BL_FORT_FAB_ARG(prod_sgs),
-     BL_FORT_FAB_ARG(diff_sgs),
-     BL_FORT_FAB_ARG(turb_src),
-     const Real* dx, const Real* time, const Real* dt);
-#else
-#ifdef DIMENSION_AGNOSTIC
-  void ca_ext_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(old_state),
-     const BL_FORT_FAB_ARG_3D(new_state),
-     BL_FORT_FAB_ARG_3D(ext_src),
-     const Real* prob_lo, const Real* dx, 
-     const Real* time, const Real* dt);
-#else
-  void ca_ext_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG(old_state),
-     const BL_FORT_FAB_ARG(new_state),
-     BL_FORT_FAB_ARG(ext_src),
-     const Real* prob_lo, const Real* dx, 
-     const Real* time, const Real* dt);
-#endif
-#endif
-
   void ca_react_state
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
@@ -773,6 +741,38 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const int& num_state,
    BL_FORT_FAB_ARG(state),
    const Real dx[], const Real xlo[], const Real xhi[]);
+#endif
+
+#ifdef SGS
+BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(old_state),
+     BL_FORT_FAB_ARG(fluxx),
+     BL_FORT_FAB_ARG(fluxy),
+     BL_FORT_FAB_ARG(fluxz),
+     BL_FORT_FAB_ARG(ext_src),
+     BL_FORT_FAB_ARG(prod_sgs),
+     BL_FORT_FAB_ARG(diff_sgs),
+     BL_FORT_FAB_ARG(turb_src),
+     const Real* dx, const Real* time, const Real* dt);
+#else
+#ifdef DIMENSION_AGNOSTIC
+BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(old_state),
+     const BL_FORT_FAB_ARG_3D(new_state),
+     BL_FORT_FAB_ARG_3D(ext_src),
+     const Real* prob_lo, const Real* dx, 
+     const Real* time, const Real* dt);
+#else
+BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG(old_state),
+     const BL_FORT_FAB_ARG(new_state),
+     BL_FORT_FAB_ARG(ext_src),
+     const Real* prob_lo, const Real* dx, 
+     const Real* time, const Real* dt);
+#endif
 #endif
 
 /* problem-specific includes */
