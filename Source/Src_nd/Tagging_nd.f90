@@ -393,7 +393,7 @@ contains
                          set,clear, &
                          rad,radlo,radhi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level)
+                         delta,xlo,problo,time,level) bind(C)
 
     use tagging_params_module
     use prob_params_module, only: dg
