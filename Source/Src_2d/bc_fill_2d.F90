@@ -233,7 +233,7 @@ contains
 
 #ifdef RADIATION
   subroutine ca_radfill(rad,rad_l1,rad_l2, &
-       rad_h1,rad_h2,domlo,domhi,delta,xlo,time,bc)
+       rad_h1,rad_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
 
     implicit none
 
