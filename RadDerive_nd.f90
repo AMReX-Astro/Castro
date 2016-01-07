@@ -3,9 +3,9 @@
 !       Compute neutrino group energy density per MeV
 !-----------------------------------------------------------------------
 
-      subroutine ca_derneut(neut,n_l1,n_l2,n_l3,n_h1,n_h2,n_h3,nv, &
-           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derneut(neut,n_lo,n_hi,nv, &
+                            dat,d_lo,d_hi,ncomp,lo,hi,domlo,domhi, &
+                            dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: dnugroup, current_group
         use rad_params_module, only: hplanck, mev2erg
@@ -13,11 +13,11 @@
 
         implicit none
 
-        integer n_l1,n_l2,n_l3,n_h1,n_h2,n_h3,nv
-        integer dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp
+        integer n_lo(3),n_hi(3),nv
+        integer d_lo(3),d_hi(3),ncomp
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision neut(n_l1:n_h1,n_l2:n_h2,n_l3:n_h3,nv)
-        double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,ncomp)
+        double precision neut(n_lo(1):n_hi(1),n_lo(2):n_hi(2),n_lo(3):n_hi(3),nv)
+        double precision dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),ncomp)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp), level, grid_no
 
@@ -42,9 +42,9 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derrhoyl(rhoyl,y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv, &
-           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derrhoyl(rhoyl,y_lo,y_hi,nv, &
+                             dat,d_lo,d_hi,ncomp,lo,hi,domlo,domhi, &
+                             dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: nugroup, ng0, ng1
         use rad_params_module, only: hplanck, avogadro
@@ -52,11 +52,11 @@
 
         implicit none
 
-        integer y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv
-        integer dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp
+        integer y_lo(3),y_hi(3),nv
+        integer d_lo(3),d_hi(3),ncomp
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision rhoyl(y_l1:y_h1,y_l2:y_h2,y_l3:y_h3,nv)
-        double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,ncomp)
+        double precision rhoyl(y_lo(1):y_hi(1),y_lo(2):y_hi(2),y_lo(3):y_hi(3),nv)
+        double precision dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),ncomp)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp), level, grid_no
 
@@ -86,9 +86,9 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_deryl(yl,y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv, &
-           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_deryl(yl,y_lo,y_hi,nv, &
+                          dat,d_lo,d_hi,ncomp,lo,hi,domlo,domhi, &
+                          dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: nugroup, ng0, ng1
         use rad_params_module, only: hplanck, avogadro
@@ -96,11 +96,11 @@
 
         implicit none
 
-        integer y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv
-        integer dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp
+        integer y_lo(3),y_hi(3),nv
+        integer d_lo(3),d_hi(3),ncomp
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision yl(y_l1:y_h1,y_l2:y_h2,y_l3:y_h3,nv)
-        double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,ncomp)
+        double precision yl(y_lo(1):y_hi(1),y_lo(2):y_hi(2),y_lo(3):y_hi(3),nv)
+        double precision dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),ncomp)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp), level, grid_no
 
@@ -131,9 +131,9 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derynue(y,y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv, &
-           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derynue(y,y_lo,y_hi,nv, &
+                            dat,d_lo,d_hi,ncomp,lo,hi,domlo,domhi, &
+                            dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: nugroup, ng0, ng1
         use rad_params_module, only: hplanck, avogadro
@@ -141,11 +141,11 @@
 
         implicit none
 
-        integer y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv
-        integer dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp
+        integer y_lo(3),y_hi(3),nv
+        integer d_lo(3),d_hi(3),ncomp
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision y(y_l1:y_h1,y_l2:y_h2,y_l3:y_h3,nv)
-        double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,ncomp)
+        double precision y(y_lo(1):y_hi(1),y_lo(2):y_hi(2),y_lo(3):y_hi(3),nv)
+        double precision dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),ncomp)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp), level, grid_no
 
@@ -173,9 +173,9 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derynuae(y,y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv, &
-           dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derynuae(y,y_lo,y_hi,nv, &
+                             dat,d_lo,d_hi,ncomp,lo,hi,domlo,domhi, &
+                             dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: nugroup, ng0, ng1
         use rad_params_module, only: hplanck, avogadro
@@ -183,11 +183,11 @@
 
         implicit none
 
-        integer y_l1,y_l2,y_l3,y_h1,y_h2,y_h3,nv
-        integer dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,ncomp
+        integer y_lo(3),y_hi(3),nv
+        integer d_lo(3),d_hi(3),ncomp
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision y(y_l1:y_h1,y_l2:y_h2,y_l3:y_h3,nv)
-        double precision dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,ncomp)
+        double precision y(y_lo(1):y_hi(1),y_lo(2):y_hi(2),y_lo(3):y_hi(3),nv)
+        double precision dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),ncomp)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp), level, grid_no
 
@@ -215,19 +215,19 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derertot(Et,Et_l1,Et_l2,Et_l3,Et_h1,Et_h2,Et_h3,ncomp_Et, &
-           Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er,lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derertot(Et,Et_lo,Et_hi,ncomp_Et, &
+                             Er,Er_lo,Er_hi,ncomp_Er,lo,hi,domlo, &
+                             domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: radtoE
 
         implicit none
 
-        integer Et_l1,Et_l2,Et_l3,Et_h1,Et_h2,Et_h3,ncomp_Et
-        integer Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er
+        integer Et_lo(3),Et_hi(3),ncomp_Et
+        integer Er_lo(3),Er_hi(3),ncomp_Er
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision Et(Et_l1:Et_h1,Et_l2:Et_h2,Et_l3:Et_h3,ncomp_Et)
-        double precision Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,ncomp_Er)
+        double precision Et(Et_lo(1):Et_hi(1),Et_lo(2):Et_hi(2),Et_lo(3):Et_hi(3),ncomp_Et)
+        double precision Er(Er_lo(1):Er_hi(1),Er_lo(2):Er_hi(2),Er_lo(3):Er_hi(3),ncomp_Er)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp_Er), level, grid_no
       
@@ -255,22 +255,20 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derenue(Enue,Enue_l1,Enue_l2,Enue_l3, &
-           Enue_h1,Enue_h2,Enue_h3,ncomp_Enue, &
-           Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er,&
-           lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derenue(Enue,Enue_lo,Enue_hi,ncomp_Enue, &
+                            Er,Er_lo,Er_hi,ncomp_Er,lo,hi,domlo,domhi, &
+                            dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: radtoE, ng0
 
         implicit none
 
-        integer Enue_l1,Enue_l2,Enue_l3,Enue_h1,Enue_h2,Enue_h3,ncomp_Enue
-        integer Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er
+        integer Enue_lo(3),Enue_hi(3),ncomp_Enue
+        integer Er_lo(3),Er_hi(3),ncomp_Er
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision Enue(Enue_l1:Enue_h1,Enue_l2:Enue_h2,Enue_l3:Enue_h3,&
+        double precision Enue(Enue_lo(1):Enue_hi(1),Enue_lo(2):Enue_hi(2),Enue_lo(3):Enue_hi(3),&
              ncomp_Enue)
-        double precision Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,ncomp_Er)
+        double precision Er(Er_lo(1):Er_hi(1),Er_lo(2):Er_hi(2),Er_lo(3):Er_hi(3),ncomp_Er)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp_Er), level, grid_no
       
@@ -298,22 +296,20 @@
 
 !-----------------------------------------------------------------------
 
-      subroutine ca_derenuae(Enuae,Enuae_l1,Enuae_l2,Enuae_l3, &
-           Enuae_h1,Enuae_h2,Enuae_h3,ncomp_Enuae, &
-           Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er,&
-           lo,hi,domlo, &
-           domhi,dx,xlo,time,dt,bc,level,grid_no)
+      subroutine ca_derenuae(Enuae,Enuae_lo,Enuae_hi,ncomp_Enuae, &
+                             Er,Er_lo,Er_hi,ncomp_Er,lo,hi,domlo,domhi, &
+                             dx,xlo,time,dt,bc,level,grid_no) bind(C)
 
         use rad_params_module, only: radtoE, ng0, ng1
 
         implicit none
 
-        integer Enuae_l1,Enuae_l2,Enuae_l3,Enuae_h1,Enuae_h2,Enuae_h3,ncomp_Enuae
-        integer Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3,ncomp_Er
+        integer Enuae_lo(3),Enuae_hi(3),ncomp_Enuae
+        integer Er_lo(3),Er_hi(3),ncomp_Er
         integer lo(3), hi(3), domlo(3), domhi(3)
-        double precision Enuae(Enuae_l1:Enuae_h1,Enuae_l2:Enuae_h2,Enuae_l3:Enuae_h3,&
+        double precision Enuae(Enuae_lo(1):Enuae_hi(1),Enuae_lo(2):Enuae_hi(2),Enuae_lo(3):Enuae_hi(3),&
              ncomp_Enuae)
-        double precision Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,ncomp_Er)
+        double precision Er(Er_lo(1):Er_hi(1),Er_lo(2):Er_hi(2),Er_lo(3):Er_hi(3),ncomp_Er)
         double precision dx(3), xlo(3), time, dt
         integer bc(3,2,ncomp_Er), level, grid_no
       

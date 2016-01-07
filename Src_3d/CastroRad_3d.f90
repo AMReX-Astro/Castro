@@ -19,14 +19,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
      area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
      area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
      vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-     courno,verbose, nstep_fsp)
+     courno,verbose, nstep_fsp) bind(C)
   
   use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
   use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
-
+  use castro_util_3d_module, only : ca_enforce_nonnegative_species
+  
   implicit none
 
   integer nstep_fsp

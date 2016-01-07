@@ -109,52 +109,55 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
    const Real* xnu, const int& ngroups, const int& ng0, const int& ng1);
 
 #ifdef NEUTRINO
-BL_FORT_PROC_DECL(CA_DERNEUT,ca_derneut)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+extern "C"
+{
+  void ca_derneut
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
-BL_FORT_PROC_DECL(CA_DERRHOYL,ca_derrhoyl)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_derrhoyl
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
-BL_FORT_PROC_DECL(CA_DERYL,ca_deryl)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_deryl
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
-BL_FORT_PROC_DECL(CA_DERYNUE,ca_derynue)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_derynue
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
-BL_FORT_PROC_DECL(CA_DERYNUAE,ca_derynuae)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_derynuae
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
+}
 #endif
-
+  
 BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
@@ -677,30 +680,33 @@ BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
     const Real* r, const Real* dt);
 
 // in RadDerive_?d.f90
-BL_FORT_PROC_DECL(CA_DERERTOT,ca_derertot)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+extern "C"
+{
+  void ca_derertot
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
-BL_FORT_PROC_DECL(CA_DERENUE,ca_derenue)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_derenue
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
-BL_FORT_PROC_DECL(CA_DERENUAE,ca_derenuae)
-    (BL_FORT_FAB_ARG(der),const int* nvar,
-     const BL_FORT_FAB_ARG(data),const int* ncomp,
+  void ca_derenuae
+    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
      const Real* delta, const Real* xlo,
      const Real* time, const Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
+}
 // </ MGFLD>
 
 // RadEOS
