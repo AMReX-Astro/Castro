@@ -21,7 +21,7 @@
                                  set,clear, &
                                  var,varlo,varhi, &
                                  lo,hi,nd,domlo,domhi, &
-                                 delta,xlo,problo,time,level)
+                                 delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg, dim
@@ -172,7 +172,7 @@
                              set,clear, &
                              den,denlo,denhi, &
                              lo,hi,nd,domlo,domhi, &
-                             delta,xlo,problo,time,level)
+                             delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg
@@ -248,7 +248,7 @@
                               set,clear, &
                               temp,templo,temphi, &
                               lo,hi,np,domlo,domhi, &
-                              delta,xlo,problo,time,level)
+                              delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg
@@ -323,7 +323,7 @@
                                set,clear, &
                                press,presslo,presshi, &
                                lo,hi,np,domlo,domhi, &
-                               delta,xlo,problo,time,level)
+                               delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg
@@ -398,7 +398,7 @@
                              set,clear, &
                              vel,vello,velhi, &
                              lo,hi,nv,domlo,domhi, &
-                             delta,xlo,problo,time,level)
+                             delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg
@@ -474,7 +474,7 @@
                              set,clear, &
                              rad,radlo,radhi, &
                              lo,hi,nr,domlo,domhi, &
-                             delta,xlo,problo,time,level)
+                             delta,xlo,problo,time,level) bind(C)
 
       use tagging_params_module
       use prob_params_module, only: dg
@@ -551,7 +551,7 @@
                              set,clear, &
                              ent,entlo,enthi, &
                              lo,hi,ne,domlo,domhi, &
-                             delta,xlo,problo,time,level)
+                             delta,xlo,problo,time,level) bind(C)
 
       use probdata_module
       use tagging_params_module
@@ -667,7 +667,7 @@
                             set,clear, &
                             ye,yelo,yehi, &
                             lo,hi,nr,domlo,domhi, &
-                            delta,xlo,problo,time,level)
+                            delta,xlo,problo,time,level) bind(C)
 
       use probdata_module
       use tagging_params_module
@@ -783,7 +783,7 @@
                               set,clear, &
                               grav,gravlo,gravhi, &
                               lo,hi,nr,domlo,domhi, &
-                              delta,xlo,problo,time,level)
+                              delta,xlo,problo,time,level) bind(C)
 
       use probdata_module
       use tagging_params_module
