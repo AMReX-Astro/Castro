@@ -103,32 +103,37 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, allocatable ::uy_zfc(:,:,:)
 
   integer ngq,ngf,iflaten
-  integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   double precision dx,dy,dz, mass_added,eint_added,eden_added
 
+  integer :: q_lo(3), q_hi(3)
+  integer :: uin_lo(3), uin_hi(3)
+  integer :: uout_lo(3), uout_hi(3)
+
+  uin_lo = (/ uin_l1, uin_l2, uin_l3 /)
+  uin_hi = (/ uin_h1, uin_h2, uin_h3 /)
+  
+  uout_lo = (/ uout_l1, uout_l2, uout_l3 /)
+  uout_hi = (/ uout_h1, uout_h2, uout_h3 /)  
+  
   ngq = NHYP
   ngf = 1
   iflaten = 1
-  
-  q_l1 = lo(1)-NHYP
-  q_l2 = lo(2)-NHYP
-  q_l3 = lo(3)-NHYP
-  q_h1 = hi(1)+NHYP
-  q_h2 = hi(2)+NHYP
-  q_h3 = hi(3)+NHYP
 
-  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QRADVAR))
-  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate( gamcg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(    cg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+  q_lo(:) = lo(:) - NHYP
+  q_hi(:) = hi(:) + NHYP
+
+  allocate(     q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR))
+  allocate(  gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
+  allocate( gamcg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
+  allocate( flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
+  allocate(     c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
+  allocate(    cg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
+  allocate(  csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
   allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
 
-  allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR))
+  allocate(  srcQ(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR))
 
   allocate( ergdx(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3,0:ngroups-1))
   allocate( ergdy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3,0:ngroups-1))
@@ -155,15 +160,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
        Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+       q,c,cg,gamc,gamcg,csml,flatn,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-       srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+       srcQ,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
        courno,dx,dy,dz,dt,ngq,ngf,iflaten)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       srcQ,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+       srcQ,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
        lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
        flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
        flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -180,8 +185,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
        pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc)
 
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-       dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
+  call divu(lo,hi,q,q_lo,q_hi,(/ dx, dy, dz /),div,lo,hi+1)
 
   !     Conservative update
   call consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
@@ -212,9 +216,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   mass_added = 0.d0
   eint_added = 0.d0
   eden_added = 0.d0
-  call enforce_minimum_density(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
-       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-       lo,hi,mass_added,eint_added,eden_added,verbose)
+  call enforce_minimum_density(uin, uin_lo, uin_hi, uout, uout_lo, uout_hi, &
+                              lo,hi,mass_added,eint_added,eden_added,verbose)
 
   ! Enforce species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
@@ -222,8 +225,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
  
   ! Re-normalize the species
   if (normalize_species .eq. 1) then
-     call normalize_new_species(uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-          lo,hi)
+     call normalize_new_species(uout,uout_lo,uout_hi,lo,hi)
   end if
       
   deallocate(q,gamc,gamcg,flatn,c,cg,csml,div,srcQ,pdivu,ergdx,ergdy,ergdz,lmgdx,lmgdy,lmgdz)
