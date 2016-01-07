@@ -1,5 +1,13 @@
+module bc_fill_module
+
+  implicit none
+
+  public
+
+contains
+
       subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,&
-                            domlo,domhi,delta,xlo,time,bc)
+                            domlo,domhi,delta,xlo,time,bc) bind(C)
  
       use eos_module
       use probdata_module
@@ -350,7 +358,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,&
-                            domlo,domhi,delta,xlo,time,bc)
+                            domlo,domhi,delta,xlo,time,bc) bind(C)
 
       use probdata_module
       use meth_params_module, only: outflow_data_old, outflow_data_new, &
@@ -596,7 +604,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-           domlo,domhi,delta,xlo,time,bc)
+                              domlo,domhi,delta,xlo,time,bc) bind(C)
 
       use probdata_module
       implicit none
@@ -615,7 +623,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-           domlo,domhi,delta,xlo,time,bc)
+                              domlo,domhi,delta,xlo,time,bc) bind(C)
 
       use probdata_module
       implicit none
@@ -634,7 +642,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-           domlo,domhi,delta,xlo,time,bc)
+                              domlo,domhi,delta,xlo,time,bc) bind(C)
 
       use probdata_module
       implicit none
@@ -653,7 +661,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
-                          phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc)
+                                phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
 
         implicit none
 
@@ -673,7 +681,7 @@
 ! ::: -----------------------------------------------------------
 
       subroutine ca_radfill(rad,rad_l1,rad_l2,rad_h1,rad_h2, &
-           domlo,domhi,delta,xlo,time,bc)
+                            domlo,domhi,delta,xlo,time,bc) bind(C)
 
       use probdata_module
       implicit none
@@ -688,3 +696,6 @@
       call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
 
       end subroutine ca_radfill
+
+end module bc_fill_module
+    
