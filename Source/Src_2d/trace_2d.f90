@@ -381,6 +381,8 @@ contains
           
        enddo
     enddo
+
+    deallocate(dqx,dqy)
     
   end subroutine trace
   

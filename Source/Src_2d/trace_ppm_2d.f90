@@ -1267,6 +1267,7 @@ contains
           
     
     deallocate(Ip,Im)
+    deallocate(Ip_gc,Im_gc)
     if (ppm_trace_sources == 1) then
        deallocate(Ip_src,Im_src)
     endif

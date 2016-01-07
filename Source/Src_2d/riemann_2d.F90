@@ -894,6 +894,8 @@ contains
        enddo
     enddo
 
+    deallocate(pstar_hist)
+
   end subroutine riemanncg
 
 ! :::

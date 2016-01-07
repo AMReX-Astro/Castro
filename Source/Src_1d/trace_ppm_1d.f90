@@ -538,6 +538,7 @@ contains
     enddo
 
     deallocate(Ip,Im)
+    deallocate(Ip_gc,Im_gc)
     
   end subroutine trace_ppm
   
