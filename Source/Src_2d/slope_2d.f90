@@ -372,6 +372,8 @@ contains
        enddo
     enddo
 
+    deallocate(q_nd)
+
   end subroutine multid_slope   
 
 end module slope_module
