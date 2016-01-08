@@ -12,6 +12,10 @@ contains
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use bl_constants_module
+    use math_module, only: cross_product
+    use castro_util_module, only: position
+    use hybrid_advection_module, only: add_momentum_source
+    use prob_params_module, only: center
 
     implicit none
 
@@ -31,8 +35,8 @@ contains
 
     double precision :: rho, rhoInv
     double precision :: Sr(3), SrE
-    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-    double precision :: old_mom(3)
+    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+    double precision :: loc(3)
     integer          :: i, j, k
 
     ! Gravitational source options for how to add the work to (rho E):
@@ -49,6 +53,8 @@ contains
              rho    = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
+             loc = position(i,j,k) - center
+
              ! **** Start Diagnostics ****
              old_re = unew(i,j,k,UEDEN)
              old_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
@@ -58,7 +64,7 @@ contains
 
              Sr = rho * grav(i,j,k,:) * dt
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Sr)
 
              if (grav_source_type == 1 .or. grav_source_type == 2) then
 
@@ -73,9 +79,9 @@ contains
 
              else if (grav_source_type .eq. 4) then
 
-                ! Do nothing here, for the conservative gravity option.
+                ! Add a predictor here; we'll remove this later.
 
-                SrE = ZERO
+                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else 
                 call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
@@ -95,7 +101,9 @@ contains
 
   end subroutine ca_gsrc
 
-
+  ! :::
+  ! ::: ------------------------------------------------------------------
+  ! :::
 
   subroutine ca_corrgsrc(lo,hi,domlo,domhi, &
                          pold,po_lo,po_hi, &
@@ -112,11 +120,14 @@ contains
                          E_added,mom_added) bind(C)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, gravity_type, get_g_from_phi
-    use prob_params_module, only : dg
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
+         grav_source_type, gravity_type, get_g_from_phi
+    use prob_params_module, only : dg, center
     use bl_constants_module
     use multifab_module
     use fundamental_constants_module, only: Gconst
+    use castro_util_module, only : position
+    use hybrid_advection_module, only : add_momentum_source
 
     implicit none
 
@@ -168,7 +179,7 @@ contains
 
     double precision :: old_ke, old_rhoeint, old_re
     double precision :: new_ke, new_rhoeint
-    double precision :: old_mom(3)
+    double precision :: old_mom(3), loc(3)
 
     double precision, pointer :: phi(:,:,:)
     double precision, pointer :: grav(:,:,:,:)
@@ -285,6 +296,8 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
+             loc = position(i,j,k) - center
+
              rhoo    = uold(i,j,k,URHO)
              rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -318,7 +331,7 @@ contains
 
              ! Correct momenta
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
 
              ! Correct energy
 
@@ -348,6 +361,10 @@ contains
 
              else if (grav_source_type .eq. 4) then
 
+                ! First, subtract the predictor step we applied earlier.
+
+                SrEcorr = - SrE_old
+
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the gravitational potential energy, rho * phi.
                 ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
@@ -362,18 +379,18 @@ contains
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
-                ! multiplied by dA and dt, so dividing by the cell volume at the end is enough to 
+                ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV). 
 
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
                      .and. get_g_from_phi) ) then
 
-                   SrEcorr = - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
+                   SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
                         flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
                         flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
                         flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
                         flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                        flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) )
+                        flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                    ! However, at present phi is only actually filled for Poisson gravity,
                    ! and optionally monopole gravity if the user species get_g_from_phi.   
@@ -383,17 +400,13 @@ contains
 
                 else
 
-                   SrEcorr = HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                   SrEcorr = SrEcorr + HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
                         flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
                         flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
                         flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
                         flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                        flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) )
+                        flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
                 endif
-
-                ! Now normalize by the volume of this cell to get the specific energy change.
-
-                SrEcorr = SrEcorr / vol(i,j,k)
 
              else 
                 call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
@@ -422,7 +435,9 @@ contains
 
   end subroutine ca_corrgsrc
 
-
+  ! :::
+  ! ::: ------------------------------------------------------------------
+  ! :::
 
   subroutine ca_syncgsrc(lo,hi, &
                          gphi,gphi_lo,gphi_hi, &
