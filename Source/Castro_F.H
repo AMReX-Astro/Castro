@@ -7,6 +7,8 @@ extern "C"
   
   void ca_network_init();
 
+  void burner_init();
+  
   void ca_extern_init(const int* name, const int* namlen);
 
   void get_num_spec(int* nspec);

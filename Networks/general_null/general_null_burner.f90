@@ -7,6 +7,14 @@ module actual_burner_module
   
 contains
 
+  subroutine actual_burner_init()
+
+    ! Do nothing in this burner.
+
+  end subroutine actual_burner_init
+
+
+
   subroutine actual_burner(state_in, state_out, dt, time)
 
     implicit none

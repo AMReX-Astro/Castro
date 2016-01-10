@@ -145,6 +145,11 @@ Castro::variableSetUp ()
     // Initialize the network
     network_init();
 
+#ifdef REACTIONS
+    // Initialize the burner
+    burner_init();
+#endif
+
     // Get options, set phys_bc
     read_params();
 

@@ -9,6 +9,16 @@ module burner_module
   
 contains
 
+  subroutine burner_init() bind(C)
+
+    implicit none
+
+    call actual_burner_init()
+    
+  end subroutine burner_init
+
+
+
   subroutine burner(state_in, state_out, dt, time)
 
     implicit none
