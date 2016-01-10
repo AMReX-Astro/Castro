@@ -13,14 +13,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         area,area_l1,area_h1,&
                         dloga,dloga_l1,dloga_h1,&
                         vol,vol_l1,vol_h1,courno,verbose, &
-                        nstep_fsp)
+                        nstep_fsp) bind(C)
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_util_module, only : enforce_minimum_density, normalize_new_species
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
-
+  use castro_util_1d_module, only : ca_enforce_nonnegative_species
+  
   implicit none
 
   integer nstep_fsp
@@ -562,7 +563,7 @@ subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
 end subroutine ca_correct_dterm
 
 subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
-  lo,hi,dx,dt)
+  lo,hi,dx,dt) bind(C)
 
   use network, only : nspec, naux
   use eos_module

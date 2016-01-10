@@ -526,89 +526,98 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
 
   double precision :: pggdnvx, pggdnvy, pggdnvz
 
-  allocate ( pgdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvxf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvtmpx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
+  integer :: qd_lo(3), qd_hi(3)
+  integer :: It_lo(3), It_hi(3)
 
-  allocate ( pgdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvyf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvtmpy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
+  qd_lo = (/ ilo1-1, ilo2-1, 1 /)
+  qd_hi = (/ ihi1+2, ihi2+2, 2 /)
 
-  allocate ( pgdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvtmpz1(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvtmpz2(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
-  allocate ( pgdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate ( ugdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (ergdnvzf(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
+  It_lo = (/ ilo1-1, ilo2-1, 1 /)
+  It_hi = (/ ihi1+1, ihi2+1, 2 /)
 
-  call bl_allocate (gegdnvx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvxf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvtmpx, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  allocate ( pgdnvx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvxf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvxf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvxf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvtmpx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvtmpx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvtmpx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
 
-  call bl_allocate (gegdnvy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvyf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvtmpy, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
+  allocate ( pgdnvy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvyf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvyf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvyf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvtmpy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvtmpy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvtmpy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
 
-  call bl_allocate (gegdnvz, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvzf, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvtmpz1, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  call bl_allocate (gegdnvtmpz2, ilo1-1,ihi1+2,ilo2-1,ihi2+2,1,2)
-  
-  allocate ( dqx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( dqy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( dqz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( pgdnvz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvtmpz1(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvtmpz1(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvtmpz1(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvtmpz2(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvtmpz2(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvtmpz2(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
+  allocate ( pgdnvzf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate ( ugdnvzf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (ergdnvzf(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
 
-  allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  call bl_allocate (gegdnvx, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvxf, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvtmpx, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
 
-  allocate ( qmxy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpxy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  call bl_allocate (gegdnvy, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvyf, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvtmpy, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+
+  call bl_allocate (gegdnvz, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvzf, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvtmpz1, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+  call bl_allocate (gegdnvtmpz2, qd_lo(1),qd_hi(1), qd_lo(2), qd_hi(2), qd_lo(3), qd_hi(3))
+
+  allocate ( dqx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( dqy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( dqz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+
+  allocate ( qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+
+  allocate ( qmxy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpxy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qmxz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpxz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qmxz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpxz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qmyx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpyx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qmyx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpyx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qmyz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpyz(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qmyz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpyz(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qzm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qzp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qxl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qxr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qyl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qyr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qzl(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qzr(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qxl(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qxr(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qyl(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qyr(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qzl(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qzr(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qmzx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpzx(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qmzx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpzx(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
-  allocate ( qmzy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
-  allocate ( qpzy(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,QRADVAR))
+  allocate ( qmzy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
+  allocate ( qpzy(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR))
   
   allocate ( fx(ilo1:ihi1+1,ilo2-1:ihi2+1,2,NVAR))
   allocate (rfx(ilo1:ihi1+1,ilo2-1:ihi2+1,2,0:ngroups-1))
@@ -636,10 +645,10 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
   allocate ( Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QRADVAR))
   allocate ( Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,3,QRADVAR))
 
-  allocate (lmgdtmp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2,0:ngroups-1))
+  allocate (lmgdtmp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),0:ngroups-1))
 
-  allocate (v1gdnvtmp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
-  allocate (v2gdnvtmp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,2))
+  allocate (v1gdnvtmp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
+  allocate (v2gdnvtmp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3)))
 
   ! for the hybrid Riemann solver
   call bl_allocate(shk, ilo1-1,ihi1+1,ilo2-1,ihi2+1,ilo3-1,ihi3+1)
@@ -687,11 +696,11 @@ subroutine umeth3d_rad(q, c,cg, gamc,gamcg, csml, flatn, &
      else
 
         do n=1,QRADVAR
-           call ppm(q(:,:,:,n),qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                q(:,:,:,QU:),c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), &
-                ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
+           call ppm(q(:,:,:,n),qd_lo,qd_hi, &
+                q(:,:,:,QU:),c,qd_lo,qd_hi, &
+                flatn,qd_lo,qd_hi, &
+                Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), It_lo, It_hi, &
+                ilo1,ilo2,ihi1,ihi2,(/dx,dy,dz/),dt,k3d,kc)
         end do
 
         ! Compute U_x and U_y at kc (k3d)
@@ -3588,6 +3597,10 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
   
   ! Local variables
 
+  integer :: flux1_lo(3), flux1_hi(3)
+  integer :: flux2_lo(3), flux2_hi(3)
+  integer :: flux3_lo(3), flux3_hi(3)
+  
   double precision :: div1
   double precision :: rho, Up, Vp, Wp
   double precision :: SrU, SrV, SrW, SrE
@@ -3610,6 +3623,16 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
      end if
   end if
 
+  flux1_lo = (/ flux1_l1, flux1_l2, flux1_l3 /)
+  flux1_hi = (/ flux1_h1, flux1_h2, flux1_h3 /)
+
+  flux2_lo = (/ flux2_l1, flux2_l2, flux2_l3 /)
+  flux2_hi = (/ flux2_h1, flux2_h2, flux2_h3 /)
+
+  flux3_lo = (/ flux3_l1, flux3_l2, flux3_l3 /)
+  flux3_hi = (/ flux3_h1, flux3_h2, flux3_h3 /)
+  
+  
   do n = 1, NVAR
          
      if ( n.eq.UTEMP ) then
@@ -3697,11 +3720,10 @@ subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
   enddo
 
   if (normalize_species .eq. 1) &
-       call normalize_species_fluxes( &
-       flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-       flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-       flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-       lo,hi)
+       call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+                                     flux2,flux2_lo,flux2_hi, &
+                                     flux3,flux3_lo,flux3_hi, &
+                                     lo,hi)
   
   do n = 1, NVAR
      

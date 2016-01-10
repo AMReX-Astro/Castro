@@ -213,7 +213,7 @@
            uu,uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3, &
            Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3, &
            ks,ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3, &
-           dt)
+           dt) bind(C)
         use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
         use rad_params_module, only : ngroups, nugroup, dlognu
         use radhydro_nd_module, only : inelastic_scatter
