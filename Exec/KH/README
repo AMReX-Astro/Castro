@@ -12,5 +12,12 @@ Problem 3 comes from McNally et al., 2012, ApJ, 201, 18:
 
 http://adsabs.harvard.edu/abs/2012ApJS..201...18M
 
-These problems are all posed in two dimensions; we give a 3D
-version, but this just replicates the problem along the last axis.
+Problem 4 is the same as Problem 3 but doubles the delta-y parameter,
+so that the transition is smoother.
+
+Problem 5 comes from Lecoanet et al., 2016, MNRAS, 455, 4274:
+
+http://adsabs.harvard.edu/abs/2015arXiv150903630L
+
+These problems are all posed in two dimensions; if you 
+compile in 3D, the problem is simply replicated along the last axis.

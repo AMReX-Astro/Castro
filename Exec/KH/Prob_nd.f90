@@ -56,9 +56,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
    read(untin,fortin)
    close(unit=untin)
 
-   ! Force a different pressure choice for problem 4
+   ! Force a different pressure choice for problem 5
 
-   if (problem .eq. 4) then
+   if (problem .eq. 5) then
       pressure = 10.0
    endif
 
@@ -136,6 +136,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      w0 = 0.01
      delta_y = 0.025
   else if (problem .eq. 4) then
+     sine_n = 4
+     w0 = 0.01
+     delta_y = 0.05
+  else if (problem .eq. 5) then
      sine_n = 2
      w0 = 0.01
      delta_y = 0.05
@@ -186,7 +190,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
              vely = vely + w0 * sin(sine_n*M_PI*xx)
 
-           else if (problem .eq. 3) then
+           else if (problem .eq. 3 .or. problem .eq. 4) then
 
               if ( yy .lt. y1 ) then
                  dens = rho1 - (rho1 - rho2) / 2 * exp( (yy-y1) / delta_y )
@@ -204,7 +208,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               vely = vely + w0 * sin(sine_n*M_PI*xx)
 
-           else if (problem .eq. 4) then
+           else if (problem .eq. 5) then
 
               dens = rho1 + (rho2 - rho1) * HALF * (tanh( (yy - y1) / delta_y ) - tanh( (yy - y2) / delta_y ))
               velx = vel1 * (tanh( (yy - y1) / delta_y) - tanh( (yy - y2) / delta_y ) - ONE)
