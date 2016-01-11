@@ -112,6 +112,7 @@ ifdef MICROPHYSICS_DIR
       EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
       NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
       SCREEN_PATH := $(MICROPHYSICS_DIR)/screening
+      RATE_PATH := $(MICROPHYSICS_DIR)/rates
 endif
 
 ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
@@ -162,6 +163,8 @@ EXTERN_CORE += $(NETWORK_PATH)
 ifdef MICROPHYSICS_DIR
   include $(SCREEN_PATH)/Make.package
   EXTERN_CORE += $(SCREEN_PATH)
+  include $(RATE_PATH)/Make.package
+  EXTERN_CORE += $(RATE_PATH)
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -192,6 +195,8 @@ endif
 ifdef MICROPHYSICS_DIR
   INCLUDE_LOCATIONS += $(SCREEN_PATH)
   VPATH_LOCATIONS   += $(SCREEN_PATH)
+  INCLUDE_LOCATIONS += $(RATE_PATH)
+  VPATH_LOCATIONS   += $(RATE_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
