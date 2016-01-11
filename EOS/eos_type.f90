@@ -62,44 +62,44 @@ module eos_type_module
     double precision :: e           = init_num
     double precision :: h           = init_num
     double precision :: s           = init_num
-    double precision :: dpdT
-    double precision :: dpdr
-    double precision :: dedT
-    double precision :: dedr
-    double precision :: dhdT
-    double precision :: dhdr
-    double precision :: dsdT
-    double precision :: dsdr
-    double precision :: dpde
-    double precision :: dpdr_e
+    double precision :: dpdT        = init_num
+    double precision :: dpdr        = init_num
+    double precision :: dedT        = init_num
+    double precision :: dedr        = init_num
+    double precision :: dhdT        = init_num
+    double precision :: dhdr        = init_num
+    double precision :: dsdT        = init_num
+    double precision :: dsdr        = init_num
+    double precision :: dpde        = init_num
+    double precision :: dpdr_e      = init_num
 
     double precision :: xn(nspec)   = init_num
     double precision :: aux(naux)   = init_num
-    double precision :: cv
-    double precision :: cp
-    double precision :: xne
-    double precision :: xnp
-    double precision :: eta
-    double precision :: pele
-    double precision :: ppos
-    double precision :: mu
-    double precision :: mu_e
-    double precision :: y_e
-    double precision :: dedX(nspec)
-    double precision :: dpdX(nspec)
-    double precision :: dhdX(nspec)
-    double precision :: gam1
-    double precision :: cs
+    double precision :: cv          = init_num
+    double precision :: cp          = init_num
+    double precision :: xne         = init_num
+    double precision :: xnp         = init_num
+    double precision :: eta         = init_num
+    double precision :: pele        = init_num
+    double precision :: ppos        = init_num
+    double precision :: mu          = init_num
+    double precision :: mu_e        = init_num
+    double precision :: y_e         = init_num
+    double precision :: dedX(nspec) = init_num
+    double precision :: dpdX(nspec) = init_num
+    double precision :: dhdX(nspec) = init_num
+    double precision :: gam1        = init_num
+    double precision :: cs          = init_num
 
-    double precision :: abar
-    double precision :: zbar
-    double precision :: dpdA
+    double precision :: abar        = init_num
+    double precision :: zbar        = init_num
+    double precision :: dpdA        = init_num
 
-    double precision :: dpdZ
-    double precision :: dedA
-    double precision :: dedZ
+    double precision :: dpdZ        = init_num
+    double precision :: dedA        = init_num
+    double precision :: dedZ        = init_num
 
-    logical :: reset
+    logical :: reset                = .false.
     
   end type eos_t
 
