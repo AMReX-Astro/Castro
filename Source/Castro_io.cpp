@@ -19,10 +19,6 @@
 #include "Radiation.H"
 #endif
 
-#ifdef PARTICLES
-#include <Particles_F.H>
-#endif
-
 #ifdef GRAVITY
 #include "Gravity.H"
 #endif
@@ -584,19 +580,19 @@ Castro::writePlotFile (const std::string& dir,
         {
 #ifdef PARTICLES
             if (it->name() == "particle_count" ||
-                it->name() == "total_particle_count" ||
-                it->name() == "particle_mass_density" ||
-                it->name() == "total_density")
+                it->name() == "total_particle_count")
             {
-                if (Castro::theDMPC())
+                if (Castro::theTracerPC())
                 {
                     derive_names.push_back(it->name());
                     num_derive++;
                 }
             } else 
 #endif
-            derive_names.push_back(it->name());
-            num_derive++;
+	    {
+		derive_names.push_back(it->name());
+		num_derive++;
+	    }
 	} 
     }
 
@@ -973,14 +969,6 @@ Castro::writePlotFile (const std::string& dir,
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
-
-#ifdef PARTICLES
-    //
-    // Write the particles in a plotfile directory 
-    // Particles are only written if particles.write_in_plotfile = 1 in inputs file.
-    //
-    ParticlePlotFile(dir);
-#endif
 }
 
 void

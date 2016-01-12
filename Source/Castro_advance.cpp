@@ -7,10 +7,6 @@
 #include "Radiation.H"
 #endif
 
-#ifdef PARTICLES
-#include <Particles_F.H>
-#endif
-
 #ifdef GRAVITY
 #include "Gravity.H"
 #endif
@@ -81,6 +77,36 @@ Castro::advance (Real time,
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
     final_radiation_call(S_new,iteration,ncycle);
+#endif
+
+#ifdef PARTICLES
+    if (TracerPC)
+    {
+	int ng = iteration;
+	Real t = time + 0.5*dt;
+	
+	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
+
+	{
+	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
+	    MultiFab& S = fpi.get_mf();
+	    
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	    for (MFIter mfi(Ucc,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx = mfi.growntilebox();
+		S[mfi].invert(1.0, bx, 0, 1);
+		for (int dir=0; dir < BL_SPACEDIM; ++dir) {
+		    Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
+		    Ucc[mfi].mult(S[mfi], bx, 0, dir);
+		}
+	    }
+	}
+
+	TracerPC->AdvectWithUcc(Ucc, level, dt);
+    }
 #endif
 
     return dt_new;
@@ -981,14 +1007,6 @@ Castro::advance_hydro (Real time,
 #endif    // RADIATION
     }
 
-#ifdef PARTICLES
-    if (do_dm_particles && particle_move_type == "Gravitational")
-    {
-	BL_ASSERT(level == 0);
-	Castro::theDMPC()->movePredict(grav_old, level, dt);
-    }
-#endif
-    
 #ifdef POINTMASS
     if (level == finest_level)
     {

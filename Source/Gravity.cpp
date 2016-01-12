@@ -18,11 +18,7 @@
 // Give this a bogus default value to force user to define in inputs file
 std::string Gravity::gravity_type = "fillme";
 #ifndef NDEBUG
-#ifndef PARTICLES
 int Gravity::test_solves  = 1;
-#else
-int Gravity::test_solves  = 0;
-#endif
 #else
 int Gravity::test_solves  = 0;
 #endif
@@ -1196,9 +1192,6 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     // Do level solve at beginning of time step in order to compute the
     //   difference between the multilevel and the single level solutions.
 
-#ifdef PARTICLES
-    BoxLib::Error("Particles + Gravity + AMR: here be dragons... ( Gravity.cpp Gravity::create_comp_minus_level_grad_phi() )");
-#endif
     int is_new = 0;
     solve_for_phi(level, SL_phi, SL_grad_phi, is_new);
 
@@ -2286,14 +2279,6 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 	    mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
 	}
 
-#ifdef PARTICLES
-	if ( Castro::theDMPC() ) {
-	    for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-                mass_offset += Castro::theDMPC()->sumParticleMass(lev);
-            }
-        }
-#endif
- 
 	mass_offset = mass_offset / geom.ProbSize();
 	if (verbose && ParallelDescriptor::IOProcessor()) 
 	    std::cout << "Defining average density to be " << mass_offset << std::endl;
@@ -2658,53 +2643,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     }
 }
 
-#ifdef PARTICLES
-void
-Gravity::AddParticlesToRhs (int               level,
-                            MultiFab&         Rhs,
-                            int               ngrow)
-{
-    if( Castro::theDMPC() )
-    {
-        MultiFab particle_mf(grids[level], 1, ngrow);
-        particle_mf.setVal(0.);
-        Castro::theDMPC()->AssignDensitySingleLevel(particle_mf, level);
-        MultiFab::Add(Rhs, particle_mf, 0, 0, 1, 0);
-    }
-}
-
-void
-Gravity::AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles)
-{
-    const int num_levels = finest_level - base_level + 1;
-
-    if( Castro::theDMPC() )
-    {
-        PArray<MultiFab> PartMF;
-        Castro::theDMPC()->AssignDensity(PartMF, base_level, 1, finest_level);
-        for (int lev = 0; lev < num_levels; lev++)
-        {
-            if (PartMF[lev].contains_nan(true))
-            {
-                std::cout << "Testing particle density at level " << base_level+lev << std::endl;
-                BoxLib::Abort("...PartMF has NaNs in Gravity::actual_multilevel_solve()");
-            }
-        }
-
-        for (int lev = finest_level - 1 - base_level; lev >= 0; lev--)
-        {
-            const IntVect& ratio = parent->refRatio(lev+base_level);
-	    BoxLib::average_down(PartMF[lev+1], PartMF[lev],
-				 0, 1, ratio);
-        }
-
-        for (int lev = 0; lev < num_levels; lev++)
-        {
-            MultiFab::Add(Rhs_particles[lev], PartMF[lev], 0, 0, 1, 0);
-        }
-    }
-}
-#endif
 #endif
 
 Real
@@ -2856,12 +2794,6 @@ Gravity::get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs, int is_new)
 	    LevelData[amr_lev].get_old_data(State_Type);
 	MultiFab::Copy(rhs[ilev], state, Density,0,1,0);
     }
-
-#ifdef PARTICLES
-    if ( Castro::theDMPC() )
-	AddParticlesToRhs(crse_level,crse_level+nlevs-1,rhs);
-#endif
-
 }
 
 void

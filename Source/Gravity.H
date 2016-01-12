@@ -4,10 +4,6 @@
 #include <AmrLevel.H>
 #include <FluxRegister.H>
 
-#ifdef PARTICLES
-#include <Particles.H>
-#endif
-
 class Gravity {
 
 public:
@@ -181,11 +177,6 @@ protected:
 
 #ifdef POINTMASS
     void add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass);
-#endif
-
-#ifdef PARTICLES
-    void AddParticlesToRhs(int level, MultiFab& Rhs, int ngrow);
-    void AddParticlesToRhs(int base_level, int finest_level, PArray<MultiFab>& Rhs_particles);
 #endif
 
 private:

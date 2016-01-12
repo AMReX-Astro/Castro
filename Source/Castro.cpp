@@ -170,6 +170,11 @@ Castro::variableCleanUp ()
   }
 #endif
 
+#ifdef PARTICLES
+  delete TracerPC;
+  TracerPC = 0;
+#endif
+
     desc_lst.clear();
 }
 
@@ -875,13 +880,7 @@ Castro::initData ()
 
 #ifdef PARTICLES
     if (level == 0)
-       init_particles();
-
-    // Must redistribute particles before calling init_santa_barbara so that the particles already
-    //  live on the higher level when we go to put some of the mass onto the grid.
-
-    if (level > 0) 
-       ParticleRedistribute();
+	init_particles();
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -1239,12 +1238,6 @@ Castro::estTimeStep (Real dt_old)
     if (do_radiation) radiation->EstTimeStep(estdt, level);
 #endif
 
-#ifdef PARTICLES
-#ifdef GRAVITY
-    ParticleEstTimeStep(estdt);
-#endif
-#endif
-
     if (verbose && ParallelDescriptor::IOProcessor())
       cout << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
 
@@ -1576,17 +1569,35 @@ Castro::post_timestep (int iteration)
     MultiFab& S_new = getLevel(level).get_new_data(State_Type);
     computeTemp(S_new);
 
+
+#ifdef PARTICLES
+    if (TracerPC)
+    {
+	const int ncycle = parent->nCycle(level);
+	//
+	// Don't redistribute/timestamp on the final subiteration except on the coarsest grid.
+	//
+	if (iteration < ncycle || level == 0)
+	{
+	    int ngrow = (level == 0) ? 0 : iteration;
+
+	    TracerPC->Redistribute(false, true, level, ngrow);
+            
+	    TimestampParticles(ngrow+1);
+	}
+    }
+#endif
 }
 
 void
 Castro::post_restart ()
 {
-    BL_PROFILE("Castro::post_restart()");
+   BL_PROFILE("Castro::post_restart()");
 
    Real cur_time = state[State_Type].curTime();
 
 #ifdef PARTICLES
-    ParticlePostRestart(parent->theRestartFile());
+   ParticlePostRestart(parent->theRestartFile());
 #endif
 
 #ifdef GRAVITY
@@ -1623,22 +1634,6 @@ Castro::post_restart ()
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
                 }
-#ifdef PARTICLES
-                if (do_dm_particles)
-                {
-                    // Do solve if we haven't already done it above
-                    if (gravity->NoComposite() == 1)
-                       gravity->multilevel_solve_for_new_phi(0,parent->finestLevel());
-
-                    for (int k = 0; k <= parent->finestLevel(); k++)
-                    {
-                        const BoxArray& ba = getLevel(k).boxArray();
-                        MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
-                        gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
-                    }
-                }
-#endif
-
             }
 
             if (grown_factor > 1)
@@ -1691,11 +1686,6 @@ Castro::postCoarseTimeStep (Real cumtime)
     if (do_grav)
         gravity->set_mass_offset(cumtime, 0);
 #endif
-
-#ifdef PARTICLES
-    if (Castro::theDMPC() && particle_move_type == "Random")
-        ParticleMoveRandom();
-#endif
 }
 
 void
@@ -1706,7 +1696,10 @@ Castro::post_regrid (int lbase,
     fine_mask = 0;
 
 #ifdef PARTICLES
-    if (level == lbase) ParticleRedistribute();
+    if (TracerPC) {
+	int ngrow = parent->nCycle(lbase);
+	TracerPC->Redistribute(false, true, lbase, ngrow);
+    }
 #endif
 
 #ifdef GRAVITY

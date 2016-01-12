@@ -747,9 +747,6 @@ Castro::variableSetUp ()
     derive_lst.add("particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
     derive_lst.addComponent("particle_count",desc_lst,State_Type,Density,1);
 
-    derive_lst.add("particle_mass_density",IndexType::TheCellType(),1,ca_dernull,grow_box_by_one);
-    derive_lst.addComponent("particle_mass_density",desc_lst,State_Type,Density,1);
-
     derive_lst.add("total_particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
     derive_lst.addComponent("total_particle_count",desc_lst,State_Type,Density,1);
 #endif

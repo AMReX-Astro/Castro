@@ -14,7 +14,7 @@
 
 #ifdef PARTICLES
 #include "AmrParticles.H"
-typedef AmrParticleContainer<1+BL_SPACEDIM> DarkMatterParticleContainer;  // mass + velocities
+typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save original position
 #endif
 
 #include <iostream>
@@ -133,63 +133,33 @@ public:
     // Read particle-related inputs
     //
     static void read_particle_params ();
-
+    //
+    //Initialize particle locations and velocities (and strengths if relevant)
+    //
+    void init_particles ();
     //
     // Write particles in checkpoint directories
     //
     void ParticleCheckPoint (const std::string& dir);
-
-    //
-    // Write particles in plotfile directories
-    //
-    void ParticlePlotFile (const std::string& dir);
-
     //
     // How to initialize at restart
     //
     void ParticlePostRestart (const std::string& restart_file);
-
-    //
-    // Redistribute
-    //
-    void ParticleRedistribute ();
-
-    //
-    // Move randomly 
-    //
-    void ParticleMoveRandom ();
-
-    //
-    //Initialize particle locations and velocities (and strengths if relevant)
-    //
-    virtual void init_particles () BL_OVERRIDE;
-
-    //
-    // Time step control based on particles
-    //
-    void ParticleEstTimeStep (Real& estdt);
-
     //
     // Derived quantities associated with particles
     //
     MultiFab* ParticleDerive (const std::string& name,
                               Real           time,
                               int            ngrow);
-
+    //
+    // Timestamp particles
+    //
+    void TimestampParticles (int ngrow); 
     //
     // Default verbosity of Particle class
     //
     static int particle_verbose;
 
-    //
-    // Default cfl of particles in Particle class
-    //
-    static Real particle_cfl;
-
-    //
-    // Should we write particles into plotfiles?
-    //
-    static int write_particles_in_plotfile;
 #endif
 
 #ifdef MAESTRO_INIT
@@ -460,7 +430,7 @@ public:
 #endif
 
 #ifdef PARTICLES
-    static DarkMatterParticleContainer* theDMPC ();
+    static TracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
     static int       NUM_STATE;
@@ -588,21 +558,7 @@ protected:
 #endif
 
 #ifdef PARTICLES
-    static bool do_dm_particles ;
-
-    // How do we want to initialize the particles?
-    // Must be "Random", "Cosmological" or "AsciiFile"
-    static  std::string particle_init_type;
-
-    // How do we want to move the particles?
-    // Must be "Random" or "Gravitational"
-    static  std::string particle_move_type;
-
-    // These control random initialization
-    static bool particle_initrandom_serialize;
-    static long particle_initrandom_count;
-    static Real particle_initrandom_mass;
-    static int  particle_initrandom_iseed;
+    static int       do_tracer_particles;
 #endif
 
     bool             FillPatchedOldState_ok;
@@ -632,6 +588,9 @@ protected:
   IntMultiFab LSmine;
 #endif
 
+#ifdef PARTICLES
+    static TracerParticleContainer* TracerPC;
+#endif
 
     // Name of the probin file and its length.
     static std::string probin_file;
