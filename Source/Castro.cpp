@@ -1696,9 +1696,8 @@ Castro::post_regrid (int lbase,
     fine_mask = 0;
 
 #ifdef PARTICLES
-    if (TracerPC) {
-	int ngrow = parent->nCycle(lbase);
-	TracerPC->Redistribute(false, true, lbase, ngrow);
+    if (TracerPC && level == lbase) {
+	TracerPC->Redistribute(false, false, lbase);
     }
 #endif
 
