@@ -111,10 +111,6 @@ all: $(executable)
 ifdef MICROPHYSICS_DIR
       EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
       NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
-      ifeq ($(USE_REACT), TRUE)
-        SCREEN_PATH := $(MICROPHYSICS_DIR)/screening
-        RATE_PATH := $(MICROPHYSICS_DIR)/rates
-      endif
 endif
 
 ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
@@ -162,13 +158,12 @@ include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
+# Note that this should be located after the include of the EOS and Network includes
+# since it has actions that depend on variables set there.
+
 ifdef MICROPHYSICS_DIR
-  ifeq ($(USE_REACT), TRUE)
-    include $(SCREEN_PATH)/Make.package
-    EXTERN_CORE += $(SCREEN_PATH)
-    include $(RATE_PATH)/Make.package
-    EXTERN_CORE += $(RATE_PATH)
-  endif
+  include $(MICROPHYSICS_DIR)/eos/Make.package
+  include $(MICROPHYSICS_DIR)/networks/Make.package
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -194,15 +189,6 @@ VPATH_LOCATIONS   += $(NETWORK_PATH)
 ifeq ($(USE_DIFFUSION), TRUE)
   INCLUDE_LOCATIONS += $(COND_PATH)
   VPATH_LOCATIONS   += $(COND_PATH)
-endif
-
-ifdef MICROPHYSICS_DIR
-  ifeq ($(USE_REACT), TRUE)
-    INCLUDE_LOCATIONS += $(SCREEN_PATH)
-    VPATH_LOCATIONS   += $(SCREEN_PATH)
-    INCLUDE_LOCATIONS += $(RATE_PATH)
-    VPATH_LOCATIONS   += $(RATE_PATH)
-  endif
 endif
 
 ifeq ($(USE_RAD), TRUE)
