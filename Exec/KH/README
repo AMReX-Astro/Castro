@@ -12,7 +12,7 @@ Problem 3 comes from McNally et al., 2012, ApJ, 201, 18:
 
 http://adsabs.harvard.edu/abs/2012ApJS..201...18M
 
-Problem 4 is the same as Problem 3 but doubles the delta-y parameter,
+Problem 4 is the same as Problem 3 but halves the perturbation frequency,
 so that the transition is smoother.
 
 Problem 5 comes from Lecoanet et al., 2016, MNRAS, 455, 4274:
