@@ -108,19 +108,60 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: q_lo(3), q_hi(3)
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
+  integer :: lam_lo(3), lam_hi(3)
+  integer :: flux1_lo(3), flux1_hi(3)
+  integer :: flux2_lo(3), flux2_hi(3)
+  integer :: flux3_lo(3), flux3_hi(3)  
+  integer :: radflux1_lo(3), radflux1_hi(3)
+  integer :: radflux2_lo(3), radflux2_hi(3)
+  integer :: radflux3_lo(3), radflux3_hi(3)  
+  integer :: ugdnvx_lo(3), ugdnvx_hi(3)
+  integer :: ugdnvy_lo(3), ugdnvy_hi(3)
+  integer :: ugdnvz_lo(3), ugdnvz_hi(3)
 
-  uin_lo = (/ uin_l1, uin_l2, uin_l3 /)
-  uin_hi = (/ uin_h1, uin_h2, uin_h3 /)
+  q_lo(:) = lo(:) - NHYP
+  q_hi(:) = hi(:) + NHYP
+
+  lam_lo(:) = [lam_l1, lam_l2, lam_l3]
+  lam_hi(:) = [lam_h1, lam_h2, lam_h3]
+
+  uin_lo = [uin_l1, uin_l2, uin_l3]
+  uin_hi = [uin_h1, uin_h2, uin_h3]
   
-  uout_lo = (/ uout_l1, uout_l2, uout_l3 /)
-  uout_hi = (/ uout_h1, uout_h2, uout_h3 /)  
+  uout_lo = [uout_l1, uout_l2, uout_l3]
+  uout_hi = [uout_h1, uout_h2, uout_h3]
+
+  flux1_lo = [flux1_l1, flux1_l2, flux1_l3]
+  flux1_hi = [flux1_h1, flux1_h2, flux1_h3]
+
+  flux2_lo = [flux2_l1, flux2_l2, flux2_l3]
+  flux2_hi = [flux2_h1, flux2_h2, flux2_h3]
+
+  flux3_lo = [flux3_l1, flux3_l2, flux3_l3]
+  flux3_hi = [flux3_h1, flux3_h2, flux3_h3]
+
+  radflux1_lo = [radflux1_l1, radflux1_l2, radflux1_l3]
+  radflux1_hi = [radflux1_h1, radflux1_h2, radflux1_h3]
+
+  radflux2_lo = [radflux2_l1, radflux2_l2, radflux2_l3]
+  radflux2_hi = [radflux2_h1, radflux2_h2, radflux2_h3]
+
+  radflux3_lo = [radflux3_l1, radflux3_l2, radflux3_l3]
+  radflux3_hi = [radflux3_h1, radflux3_h2, radflux3_h3]
   
+  ugdnvx_lo = [ugdnvx_l1, ugdnvx_l2, ugdnvx_l3]
+  ugdnvx_hi = [ugdnvx_h1, ugdnvx_h2, ugdnvx_h3]
+
+  ugdnvy_lo = [ugdnvy_l1, ugdnvy_l2, ugdnvy_l3]
+  ugdnvy_hi = [ugdnvy_h1, ugdnvy_h2, ugdnvy_h3]
+
+  ugdnvz_lo = [ugdnvz_l1, ugdnvz_l2, ugdnvz_l3]
+  ugdnvz_hi = [ugdnvz_h1, ugdnvz_h2, ugdnvz_h3]
+
   ngq = NHYP
   ngf = 1
   iflaten = 1
 
-  q_lo(:) = lo(:) - NHYP
-  q_hi(:) = hi(:) + NHYP
 
   allocate(     q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR))
   allocate(  gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
@@ -166,24 +207,21 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
        courno,dx,dy,dz,dt,ngq,ngf,iflaten)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
-       lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       srcQ,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
-       lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
-       flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-       flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-       flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-       radflux1,radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3, &
-       radflux2,radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3, &
-       radflux3,radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3, &
-       ugdnvx_out, ergdx, lmgdx, &
-       ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-       ugdnvy_out, ergdy, lmgdy, &
-       ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-       ugdnvz_out, ergdz, lmgdz, &
-       ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-       pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc,domlo,domhi)
-
+  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
+                   lam, lam_lo, lam_hi, &
+                   srcQ, q_lo, q_hi, &
+                   lo, hi, dx, dy, dz, dt, &
+                   flux1, flux1_lo, flux1_hi, &
+                   flux2, flux2_lo, flux2_hi, &
+                   flux3, flux3_lo, flux3_hi, &
+                   radflux1, radflux1_lo, radflux1_hi, &
+                   radflux2, radflux2_lo, radflux2_hi, &
+                   radflux3, radflux3_lo, radflux3_hi, &
+                   ugdnvx_out, ergdx, lmgdx, ugdnvx_lo, ugdnvx_hi, &
+                   ugdnvy_out, ergdy, lmgdy, ugdnvy_lo, ugdnvy_hi, &
+                   ugdnvz_out, ergdz, lmgdz, ugdnvz_lo, ugdnvz_hi, &
+                   pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc,domlo,domhi)
+  
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,(/ dx, dy, dz /),div,lo,hi+1)
 
