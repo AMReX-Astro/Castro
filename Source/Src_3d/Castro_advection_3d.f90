@@ -43,7 +43,10 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, &
+                                   QFS, QFX, QTEMP, QREINT, &
+                                   NGDNV, GDU, GDV, GDW, GDPRES, &
+                                   ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
@@ -80,9 +83,9 @@ contains
     double precision :: flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),fd1_lo(3):fd1_hi(3),NVAR)
     double precision :: flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),fd2_lo(3):fd2_hi(3),NVAR)
     double precision :: flux3(fd3_lo(1):fd3_hi(1),fd3_lo(2):fd3_hi(2),fd3_lo(3):fd3_hi(3),NVAR)
-    double precision ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),QVAR)
-    double precision ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),QVAR)
-    double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),QVAR)
+    double precision ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+    double precision ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+    double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     double precision :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     double precision :: dx(3), dt
     double precision :: dxinv, dyinv, dzinv
@@ -152,18 +155,18 @@ contains
     fz_lo = (/ lo(1) - 1, lo(2) - 1, 1 /)
     fz_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
     
-    call bl_allocate (     qgdnvx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate (    qgdnvxf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate (  qgdnvtmpx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate (     qgdnvx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (    qgdnvxf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (  qgdnvtmpx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
 
-    call bl_allocate (     qgdnvy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate (    qgdnvyf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate (  qgdnvtmpy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate (     qgdnvy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (    qgdnvyf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (  qgdnvtmpy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
 
-    call bl_allocate (     qgdnvz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate (    qgdnvzf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qgdnvtmpz1, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qgdnvtmpz2, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate (     qgdnvz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (    qgdnvzf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate ( qgdnvtmpz1, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate ( qgdnvtmpz2, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
     
     call bl_allocate ( qxm, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
     call bl_allocate ( qxp, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
@@ -512,8 +515,8 @@ contains
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(qgdnvzf(i,j,kc,QPRES)+qgdnvzf(i,j,km,QPRES)) * &
-                              (qgdnvzf(i,j,kc,QW)-qgdnvzf(i,j,km,QW))*dzinv
+                        HALF*(qgdnvzf(i,j,kc,GDPRES) + qgdnvzf(i,j,km,GDPRES)) * &
+                             (qgdnvzf(i,j,kc,GDW) - qgdnvzf(i,j,km,GDW))*dzinv
                 end do
              end do
           end if
@@ -594,10 +597,10 @@ contains
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(qgdnvxf(i+1,j,km,QPRES) + qgdnvxf(i,j,km,QPRES)) *  &
-                              (qgdnvxf(i+1,j,km,QU)-qgdnvxf(i,j,km,QU))*dxinv + &
-                        HALF*(qgdnvyf(i,j+1,km,QPRES) + qgdnvyf(i,j,km,QPRES)) *  &
-                              (qgdnvyf(i,j+1,km,QV)-qgdnvyf(i,j,km,QV))*dyinv
+                        HALF*(qgdnvxf(i+1,j,km,GDPRES) + qgdnvxf(i,j,km,GDPRES)) *  &
+                             (qgdnvxf(i+1,j,km,GDU) - qgdnvxf(i,j,km,GDU))*dxinv + &
+                        HALF*(qgdnvyf(i,j+1,km,GDPRES) + qgdnvyf(i,j,km,GDPRES)) *  &
+                             (qgdnvyf(i,j+1,km,GDV) - qgdnvyf(i,j,km,GDV))*dyinv
                 end do
              end do
                
