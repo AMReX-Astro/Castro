@@ -1294,7 +1294,7 @@ contains
           regdnv_g = frac*estar_g + (1.d0 - frac)*reo_g
           regdnv_r(:) = frac*estar_r(:) + (1.d0 - frac)*reo_r(:)
 #else
-          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
+          qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
           regdnv = frac*estar + (ONE - frac)*reo
 #endif
           
@@ -1670,7 +1670,7 @@ contains
           qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
 
           ! TODO
-          !qint(i,j,kc,QGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
+          !qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
 
 
           ! now we do the HLLC construction
