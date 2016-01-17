@@ -1,3 +1,23 @@
+convective_flame:
+
+  This models a laterally propagating flame through a stratified
+  atmosphere.  A constant conductivity and simple analytic burning
+  rate is used.  Rotation, via the Coriolis force, is included to
+  confine the flame. 
+
+
+Detonation:
+
+  A 1-d detonation wave propagating through a uniform medium.
+
+
+diffusion_test:
+
+  A pure diffusion problem -- no hydro.  A simple Gaussian profile
+  is setup and diffused, and should remain a Gaussian with time
+  (but with a different width and amplitude).
+
+
 double_bubble:
 
   Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal or
@@ -15,7 +35,26 @@ Dustcollapse:
   and Müller (1989).
 
 
-HCBubble
+evrard_collapse:
+
+
+
+gresho_vortex:
+
+  The Gresho vortex problem (see, e.g., Miczek, Roeple, and Edelmann
+  2015).  This is a stationary vortex -- it should remain unchanged
+  with time.  The problem parameters allow you to set the Mach number.
+
+
+HCBubble:
+
+
+
+hydrostatic_adjust:
+
+  A 1-d hydrostatic atmosphere that evolves in response to heating.
+  This is used as the reference calculation for the Maestro basestate
+  evolution algorithm.
 
 
 KH:
@@ -23,7 +62,12 @@ KH:
   A Kelvin-Helmholtz shear instability problem
 
 
+Noh:
+
+
+
 oddeven:
+
   A grid-aligned shock hitting a very small density perturbation.
   This demonstrates the odd-even decoupling problem that the
   hybrid_riemann option prevents.
@@ -33,6 +77,10 @@ reacting_bubble:
 
   A reacting bubble rise problem that was featured in the Maestro
   paper III algorithm paper.
+
+
+rotating_torus:
+
 
 
 RT:
@@ -66,10 +114,10 @@ Sod_stellar:
   Zingale & Katz (2015).
 
 
-reacting_bubble:
+StarGrav:
 
-  A reacting bubble rise problem that was featured in the Maestro
-  paper III algorithm paper.
+  Initialize a spherical model on a multi-d grid in hydrostatic
+  equilibrium.
 
 
 test_convect:
@@ -85,3 +133,19 @@ toy_convect:
   source.  This problem shows how to use the model parser to
   initialize a 1-d atmosphere on the Castro grid, incorporate a custom
   tagging routine, and write a custom diagnostics routine.
+
+
+toy_flame:
+
+  A simple 1-d laminar flame.
+
+
+uniform_cube_sphere:
+
+
+
+Vortices_LWAcoustics:
+
+
+
+xrb_mixed:
