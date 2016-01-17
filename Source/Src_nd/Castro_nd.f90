@@ -272,10 +272,10 @@
            deallocate(outflow_data_old)
              allocate(outflow_data_old(nc,np))
         end if
-
+        
         if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
            print *,'size of old and new dont match in swap_outflow_data '
-            call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+           call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
         end if
 
         outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
@@ -387,6 +387,11 @@
         QU    = 2
         QV    = 3
         QW    = 4
+
+        ! sanity check
+        if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+           call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
+        endif
 
         ! we'll carry this around as an potential alternate to (rho e)
         QGAME   = 5
@@ -647,8 +652,7 @@
 
         ! create the filename
         if (namlen > maxlen) then
-           print *, 'probin file name too long'
-           stop
+           call bl_error('probin file name too long')
         endif
 
         do i = 1, namlen
@@ -666,8 +670,7 @@
 
         else if (status > 0) then
            ! some problem in the namelist
-           print *, 'ERROR: problem in the tagging namelist'
-           stop
+           call bl_error('ERROR: problem in the tagging namelist')
         endif
 
         close (unit=un)
@@ -711,8 +714,7 @@
 
         ! create the filename
         if (namlen > maxlen) then
-           print *, 'probin file name too long'
-           stop
+           call bl_error('probin file name too long')
         endif
 
         do i = 1, namlen
@@ -730,8 +732,7 @@
 
         else if (status > 0) then
            ! some problem in the namelist
-           print *, 'ERROR: problem in the sponge namelist'
-           stop
+           call bl_error('ERROR: problem in the sponge namelist')
         endif
 
         close (unit=un)

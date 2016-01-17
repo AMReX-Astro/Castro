@@ -30,6 +30,17 @@ module meth_params_module
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
+  ! These are used for the Godunov state
+  ! Note that the velocity indices here are picked to be the same value
+  ! as in the primitive variable array
+  integer, parameter :: NGDNV = 7
+  integer, parameter :: GDRHO = 1
+  integer, parameter :: GDU = 2
+  integer, parameter :: GDV = 3
+  integer, parameter :: GDW = 4
+  integer, parameter :: GDPRES = 5
+  integer, parameter :: GDGAME = 6
+  integer, parameter :: GDLAM = 7   ! for radiation -- this is the limiter
 
   integer         , save :: numpts_1d
 

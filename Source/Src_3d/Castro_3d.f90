@@ -18,8 +18,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     E_added_flux) bind(C)
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, &
-                                 normalize_species, QU, QV, QW
+  use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, &
+                                 normalize_species, GDU, GDV, GDW
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_module, only : divu, enforce_minimum_density, normalize_new_species
   use castro_util_3d_module, only : ca_enforce_nonnegative_species
@@ -152,9 +152,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   q3_lo = ugdnvz_lo
   q3_hi = ugdnvz_hi
   
-  call bl_allocate(    q1, q1_lo(1),q1_hi(1),q1_lo(2),q1_hi(2),q1_lo(3),q1_hi(3),1,QVAR)
-  call bl_allocate(    q2, q2_lo(1),q2_hi(1),q2_lo(2),q2_hi(2),q2_lo(3),q2_hi(3),1,QVAR)
-  call bl_allocate(    q3, q3_lo(1),q3_hi(1),q3_lo(2),q3_hi(2),q3_lo(3),q3_hi(3),1,QVAR)
+  call bl_allocate(    q1, q1_lo(1),q1_hi(1),q1_lo(2),q1_hi(2),q1_lo(3),q1_hi(3),1,NGDNV)
+  call bl_allocate(    q2, q2_lo(1),q2_hi(1),q2_lo(2),q2_hi(2),q2_lo(3),q2_hi(3),1,NGDNV)
+  call bl_allocate(    q3, q3_lo(1),q3_hi(1),q3_lo(2),q3_hi(2),q3_lo(3),q3_hi(3),1,NGDNV)
   
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
@@ -221,9 +221,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Copy data from the edge-centered state into ugdnv
 
-  ugdnvx_out(:,:,:) = q1(:,:,:,QU)
-  ugdnvy_out(:,:,:) = q2(:,:,:,QV)
-  ugdnvz_out(:,:,:) = q3(:,:,:,QW)
+  ugdnvx_out(:,:,:) = q1(:,:,:,GDU)
+  ugdnvy_out(:,:,:) = q2(:,:,:,GDV)
+  ugdnvz_out(:,:,:) = q3(:,:,:,GDW)
   
   call bl_deallocate(     q)
   call bl_deallocate(  gamc)
