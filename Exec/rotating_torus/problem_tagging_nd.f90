@@ -5,7 +5,7 @@ subroutine set_problem_tags(tag,tag_lo,tag_hi, &
                             state,state_lo,state_hi, &
                             set,clear,&
                             lo,hi,&
-                            dx,problo,time,level)
+                            dx,problo,time,level) bind(C)
 
   use meth_params_module, only: NVAR
   use prob_params_module, only: center
