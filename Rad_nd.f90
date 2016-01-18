@@ -258,14 +258,14 @@
            kpr,kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3, &
            kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
            sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3)
-        
+
         use rad_params_module, only : ngroups, nugroup
         use opacity_table_module, only : get_opacities
         use network, only : naux
         use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-        
+
         implicit none
-        
+
         integer, intent(in) :: lo(3), hi(3)
         integer, intent(in) :: kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3
         integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
@@ -273,20 +273,20 @@
         double precision, intent(inout) :: kpr(kpr_l1:kpr_h1,kpr_l2:kpr_h2,kpr_l3:kpr_h3,0:ngroups-1)
         double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
         double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
-        
+
         integer :: i, j, k, g
         double precision :: kp, kr, nu, rho, temp, Ye
         logical, parameter :: comp_kp = .true.
         logical, parameter :: comp_kr = .true.
-        
+
         do g=0, ngroups-1
-           
+
            nu = nugroup(g)
-           
+
            do k = lo(3), hi(3)
            do j = lo(2), hi(2)
            do i = lo(1), hi(1)
-              
+
               rho = sta(i,j,k,URHO)
               temp = sta(i,j,k,UTEMP)
               if (naux > 0) then
@@ -294,18 +294,44 @@
               else
                  Ye = 0.d0
               end if
-              
+
               call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-              
+
               kpr(i,j,k,g) = kr
-              
+
               if (g .eq. 0) then
                  kps(i,j,k) = max(kr - kp, 0.d0)
               end if
-              
+
            end do
            end do
            end do
         end do
 
       end subroutine ca_compute_ros_sct
+
+      subroutine init_godunov_indices_rad() bind(C)
+
+        use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
+                                       GDLAMS, GDERADS, &
+                                       QU, QV, QW
+        use rad_params_module, only: ngroups
+
+        implicit none
+
+        ngdnv = 6 + 2*ngroups
+        GDRHO = 1
+        GDU = 2
+        GDV = 3
+        GDW = 4
+        GDPRES = 5
+        GDGAME = 6
+        GDLAMS = GDGAME+1            ! starting index for rad lambda
+        GDERADS = GDLAMS + ngroups   ! starting index for rad energy
+
+        ! sanity check
+        if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+           call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
+        endif
+
+      end subroutine init_godunov_indices_rad
