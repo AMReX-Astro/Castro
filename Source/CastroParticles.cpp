@@ -258,6 +258,8 @@ Castro::TimestampParticles (int ngrow)
 
 	for (int lev = level; lev <= finest_level; lev++)
 	{
+	    if (TracerPC->NumberOfParticlesAtLevel(lev) <= 0) continue;
+	    
 	    MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
 
 	    if (imax >= 0) {  // FillPatchIterator will fail otherwise

@@ -388,11 +388,6 @@
         QV    = 3
         QW    = 4
 
-        ! sanity check
-        if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-           call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
-        endif
-
         ! we'll carry this around as an potential alternate to (rho e)
         QGAME   = 5
         QLAST   = QGAME
@@ -494,6 +489,29 @@
         rot_vec(rot_axis) = ONE
         
       end subroutine set_method_params
+
+
+      subroutine init_godunov_indices() bind(C)
+
+        use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
+                                       QU, QV, QW
+
+        implicit none
+
+        ngdnv = 6
+        GDRHO = 1
+        GDU = 2
+        GDV = 3
+        GDW = 4
+        GDPRES = 5
+        GDGAME = 6
+
+        ! sanity check
+        if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+           call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
+        endif
+
+      end subroutine init_godunov_indices
 
 ! :::
 ! ::: ----------------------------------------------------------------
