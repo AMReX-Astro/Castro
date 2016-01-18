@@ -553,6 +553,16 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
+
+    // initialize the Godunov state array used in hydro -- we wait
+    // until here so that ngroups is defined (if needed) in
+    // rad_params_module
+#ifdef RADIATION
+    init_godunov_indices_rad();
+#else
+    init_godunov_indices();
+#endif
+
 #ifdef LEVELSET
     // Build level set narrowband helpers
     LStype.define(bl,1,1,Fab_allocate);
