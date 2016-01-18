@@ -961,7 +961,7 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QGAME, QREINT, QESGS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
                                    small_dens, small_pres, npassive, upass_map, qpass_map
 #ifdef RADIATION
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
