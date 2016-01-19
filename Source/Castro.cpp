@@ -1683,7 +1683,16 @@ Castro::post_restart ()
     React_new.setVal(0.0);
 #endif
 
-      set_special_tagging_flag(cur_time);
+    set_special_tagging_flag(cur_time);
+
+    // initialize the Godunov state array used in hydro -- we wait
+    // until here so that ngroups is defined (if needed) in
+    // rad_params_module
+#ifdef RADIATION
+    init_godunov_indices_rad();
+#else
+    init_godunov_indices();
+#endif
 }
 
 void
