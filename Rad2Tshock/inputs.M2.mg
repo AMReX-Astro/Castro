@@ -17,7 +17,7 @@ amr.n_cell   = 128  8  8
 amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
@@ -94,7 +94,7 @@ radiation.nGroups = 16
 radiation.lowestGroupHz = 1.e10
 radiation.highestGroupHz = 2.e14
 
-radiation.accelerate = 2
+radiation.accelerate = 1
 
 radiation.do_fspace_advection = 1
 radiation.Er_Lorentz_term = 0
@@ -192,7 +192,7 @@ radiation.const_scattering =  0.84886358672522422
 # 1002  PCG   using ParCSR ObjectType
 # 1003  PCG   using SStruct ObjectType
 
-radsolve.level_solver_flag = 105   # can be any supported hypre solver flag
+radsolve.level_solver_flag = 0   # can be any supported hypre solver flag
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
