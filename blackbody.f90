@@ -37,7 +37,7 @@ module blackbody_module
 
       if (x .gt. xlarge) then
          B = a_rad * T**4
-         dBdT = 0.d0
+         dBdT = 4.d0 * a_rad * T**3
       else if ( x .lt. xsmall) then
          B = 0.d0
          dBdT = 0.d0
