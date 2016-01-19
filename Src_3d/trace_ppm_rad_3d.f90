@@ -4,41 +4,41 @@ module trace_ppm_rad_module
 
 contains
   
-  subroutine tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       q,c,cg,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-       Ip,Im, &
-       qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-       ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+  subroutine tracexy_ppm_rad(lam, lam_lo, lam_hi, &
+                             q, c, cg, flatn, qd_lo, qd_hi, &
+                             Ip, Im, &
+                             qxm, qxp, qym, qyp, qs_lo, qs_hi, &
+                             ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QPRES, QFA, QFS, QFX, nadv, small_dens, &
-         ppm_type
+                                   QREINT, QPRES, QFA, QFS, QFX, nadv, small_dens, &
+                                   ppm_type
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
 
     implicit none
 
-    integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer :: lam_lo(3), lam_hi(3)
+    integer :: qd_lo(3), qd_hi(3)
+    integer :: qs_lo(3), qs_hi(3)
     integer ilo1,ilo2,ihi1,ihi2
     integer kc,k3d
 
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QRADVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision    cg(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QRADVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QRADVAR)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
+    double precision qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
+    double precision qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
+    double precision qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
+    double precision qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
     double precision dx, dy, dt
 
     ! Local variables
@@ -693,38 +693,40 @@ contains
   ! ::: ------------------------------------------------------------------
   ! ::: 
 
-  subroutine tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-       q,c,cg,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-       Ip,Im, &
-       qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-       ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
-
+  subroutine tracez_ppm_rad(lam, lam_lo, lam_hi, &
+                            q, c, cg, flatn, qd_lo, qd_hi, &
+                            Ip,Im, &
+                            qzm, qzp, qs_lo, qs_hi, &
+                            ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+    
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QPRES, QFA, QFS, QFX, nadv, small_dens, &
-         ppm_type
+                                   QREINT, QPRES, QFA, QFS, QFX, nadv, small_dens, &
+                                   ppm_type
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
 
     implicit none
 
-    integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
+    integer :: lam_lo(3), lam_hi(3)
+    integer :: qd_lo(3), qd_hi(3)
+    integer :: qs_lo(3), qs_hi(3)
     integer ilo1,ilo2,ihi1,ihi2
     integer km,kc,k3d
 
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QRADVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision    cg(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
     double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QRADVAR)
     double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QRADVAR)
-    double precision qzm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
-    double precision qzp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QRADVAR)
+
+    double precision qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
+    double precision qzp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
+
     double precision dz, dt
 
     !     Local variables

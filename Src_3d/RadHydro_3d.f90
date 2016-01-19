@@ -635,7 +635,7 @@ contains
     kc = 1
     km = 2
 
-    do k3d = ilo3-1, ihi3+1
+    do k3d = lo(3)-1, hi(3)+1
 
        ! Swap pointers to levels
        kt = km
@@ -647,19 +647,19 @@ contains
        else
 
           do n=1,QRADVAR
-             call ppm(q(:,:,:,n),qd_lo,qd_hi, &
-                      q(:,:,:,QU:),c,qd_lo,qd_hi, &
-                      flatn,qd_lo,qd_hi, &
+             call ppm(q(:,:,:,n),q_lo,q_hi, &
+                      q(:,:,:,QU:),c,q_lo,q_hi, &
+                      flatn,q_lo,q_hi, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), It_lo, It_hi, &
-                      ilo1,ilo2,ihi1,ihi2,(/dx,dy,dz/),dt,k3d,kc)
+                      lo(1),lo(2),hi(1),hi(2),(/dx,dy,dz/),dt,k3d,kc)
           end do
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                               q,c,cg,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+          call tracexy_ppm_rad(lam, lam_lo, lam_hi, &
+                               q, c, cg, flatn, q_lo, q_hi, &
                                Ip,Im, &
-                               qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                               ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+                               qxm, qxp, qym, qyp, qd_lo, qd_hi, &
+                               lo(1),lo(2),hi(1),hi(2),dx,dy,dt,kc,k3d)
 
        end if
 
@@ -667,36 +667,36 @@ contains
        call cmpflx(qxm, qxp, qd_lo, qd_hi, &
                    fx, fx_lo, fx_hi, &
                    qint,
-                   ugdnvx, pgdnvx, gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvx, pgdnvx, gegdnvx,lo(1)-1,lo(2)-1,1,hi(1)+2,hi(2)+2,2, &
                    lam, lam_lo, lam_hi, &
                    rfx, fx_lo, fx_hi, &
                    v1gdnvtmp, v2gdnvtmp, ergdnvx, lmgdtmp, &
                    gamcg, &
                    gamc, csml, c, q_lo, q_hi, &
                    shk, shk_lo, shk_hi, &
-                   1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
        ! Compute \tilde{F}^y at kc (k3d)
        call cmpflx(qym, qyp, qd_lo, qd_hi, &
                    fy, fy_lo, fy_hi, &
-                   ugdnvy, pgdnvy, gegdnvy, ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                   ugdnvy, pgdnvy, gegdnvy, lo(1)-1,lo(2)-1,1,hi(1)+2,hi(2)+2,2, &
                    lam, lam_lo, lam_hi, &
                    rfy, fy_lo, fy_hi, &
                    v1gdnvtmp, v2gdnvtmp, ergdnvy, lmgdtmp, &
                    gamcg, &
                    gamc, csml, c, q_lo, q_hi, &
                    shk, shk_lo, shk_hi, &
-                   2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
        ! Compute U'^y_x at kc (k3d)
        call transy1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                        qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                        qxm,qmxy,qxp,qpxy,lo(1)-1,lo(2)-1,1,hi(1)+2,hi(2)+2,2, &
                         fy, rfy, &
                         ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
                         ugdnvy, pgdnvy, ergdnvy, & 
                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                         gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,k3d)
+                        cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,k3d)
 
        ! Compute U'^x_y at kc (k3d)
        call transx1_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -706,7 +706,7 @@ contains
                         ugdnvx, pgdnvx, ergdnvx, & 
                         ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                         gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,k3d)
+                        cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy, qpxy, qd_lo, qd_hi, &
@@ -718,7 +718,7 @@ contains
                    gamcg, &
                    gamc, csml, c, q_lo, q_hi, &
                    shk, shk_lo, shk_hi, &
-                   1,ilo1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
+                   1,lo(1),hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
 
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx, qpyx, qd_lo, qd_hi, &
@@ -730,16 +730,16 @@ contains
                    gamcg, &
                    gamc, csml, c, q_lo, q_hi, &
                    shk, shk_lo, shk_hi, &
-                   2,ilo1,ihi1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
+                   2,lo(1),hi(1),lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
-       if (k3d.ge.ilo3) then
+       if (k3d .ge. lo(3)) then
 
           ! Compute U_z at kc (k3d)
-          call tracez_ppm_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                              q,c,cg,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
+          call tracez_ppm_rad(lam, lam_lo, lam_hi, &
+                              q, c, cg, flatn, q_lo, q_hi, &
                               Ip,Im, &
                               qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+                              lo(1),lo(2),hi(1),hi(2),dz,dt,km,kc,k3d)
 
           ! Compute \tilde{F}^z at kc (k3d)
           call cmpflx(qzm, qzp, qd_lo, qd_hi, &
@@ -751,7 +751,7 @@ contains
                       gamcg, &
                       gamc, csml, c, q_lo, q_hi, &
                       shk, shk_lo, shk_hi, &
-                      3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                      3,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute U'^y_z at kc (k3d)
           call transy2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -761,7 +761,7 @@ contains
                            ugdnvy, pgdnvy, ergdnvy, & 
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           cdtdy,ilo1-1,ihi1+1,ilo2,ihi2,kc,km,k3d)
+                           cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,km,k3d)
           
           ! Compute U'^x_z at kc (k3d)
           call transx2_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, & 
@@ -771,7 +771,7 @@ contains
                            ugdnvx, pgdnvx, ergdnvx, & 
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           cdtdx,ilo1,ihi1,ilo2-1,ihi2+1,kc,km,k3d)
+                           cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,km,k3d)
 
           ! Compute F^{z|x} at kc (k3d)
           call cmpflx(qmzx, qpzx, qd_lo, qd_hi, &
@@ -783,7 +783,7 @@ contains
                       gamcg, &
                       gamc, csml, c, q_lo, q_hi, &
                       shk, shk_lo, shk_hi, &
-                      3,ilo1,ihi1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+                      3,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
           ! Compute F^{z|y} at kc (k3d)
           call cmpflx(qmzy, qpzy, qd_lo, qd_hi, &
@@ -795,7 +795,7 @@ contains
                       gamcg, &
                       gamc, csml, c, q_lo, q_hi, &
                       shk, shk_lo, shk_hi, &
-                      3,ilo1-1,ihi1+1,ilo2,ihi2,kc,kc,k3d,domlo,domhi)
+                      3,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
           
           ! Compute U''_z at kc (k3d)
           call transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, & 
@@ -810,7 +810,7 @@ contains
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                            srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                           hdt,hdtdx,hdtdy,ilo1,ihi1,ilo2,ihi2,kc,km,k3d)
+                           hdt,hdtdx,hdtdy,lo(1),hi(1),lo(2),hi(2),kc,km,k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
           call cmpflx(qzl, qzr, qd_lo, qd_hi, &
@@ -822,10 +822,10 @@ contains
                       gamcg, &                    
                       gamc, csml, c, q_lo, q_hi, &
                       shk, shk_lo, shk_hi, &
-                      3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
+                      3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
           
-          do j=ilo2-1,ihi2+1
-             do i=ilo1-1,ihi1+1
+          do j=lo(2)-1,hi(2)+1
+             do i=lo(1)-1,hi(1)+1
                 ugdnvz_out(i,j,k3d) =   ugdnvzf(i,j,kc)
                 ux_zfc    (i,j,k3d) = v1gdnvtmp(i,j,kc)
                 uy_zfc    (i,j,k3d) = v2gdnvtmp(i,j,kc)
@@ -833,17 +833,17 @@ contains
           end do
 
           do g=0,ngroups-1
-             do j=ilo2-1,ihi2+1
-                do i=ilo1-1,ihi1+1
+             do j=lo(2)-1,hi(2)+1
+                do i=lo(1)-1,hi(1)+1
                    ergdz_out(i,j,k3d,g) = ergdnvzf(i,j,kc,g)
                    lmgdz_out(i,j,k3d,g) = lmgdtmp (i,j,kc,g)
                 end do
              end do
           end do
 
-          if (k3d .ge. ilo3+1 .and. k3d .le. ihi3+1) then
-             do j = ilo2,ihi2
-                do i = ilo1,ihi1
+          if (k3d .ge. lo(3)+1 .and. k3d .le. hi(3)+1) then
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
                    pggdnvz = 0.5d0*( pgdnvzf(i,j,kc) +  pgdnvzf(i,j,km)) 
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
                         pggdnvz * (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))/dz
@@ -851,7 +851,7 @@ contains
              end do
           end if
 
-          if (k3d.gt.ilo3) then
+          if (k3d .gt. lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
              call transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -862,7 +862,7 @@ contains
                              ugdnvz, pgdnvz, ergdnvz, &
                              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                              gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             cdtdz,ilo1-1,ihi1+1,ilo2-1,ihi2+1,km,kc,k3d)
+                             cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
              
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz, qpxz, qd_lo, qd_hi, &
@@ -874,7 +874,7 @@ contains
                          gamcg, &
                          gamc, csml, c, q_lo, q_hi, &
                          shk, shk_lo, shk_hi, &
-                         1,ilo1,ihi1+1,ilo2-1,ihi2+1,km,km,k3d-1,domlo,domhi)
+                         1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
              
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz, qpyz, qd_lo, qd_hi, &
@@ -886,7 +886,7 @@ contains
                          gamcg, &
                          gamc, csml, c, q_lo, q_hi, &
                          shk, shk_lo, shk_hi, &
-                         2,ilo1-1,ihi1+1,ilo2,ihi2+1,km,km,k3d-1,domlo,domhi)
+                         2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute U''_x at km (k3d-1)
              call transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -901,7 +901,7 @@ contains
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                               gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                               srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                              hdt,hdtdy,hdtdz,ilo1-1,ihi1+1,ilo2,ihi2,km,kc,k3d-1)
+                              hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
              
              ! Compute U''_y at km (k3d-1)
              call transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
@@ -916,7 +916,7 @@ contains
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                               gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                               srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                              hdt,hdtdx,hdtdz,ilo1,ihi1,ilo2-1,ihi2+1,km,kc,k3d-1)
+                              hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
              
              ! Compute F^x at km (k3d-1)
              call cmpflx(qxl, qxr, qd_lo, qd_hi, &
@@ -930,8 +930,8 @@ contains
                          shk, shk_lo, shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
 
-             do j=ilo2-1,ihi2+1
-                do i=ilo1-1,ihi1+2
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+2
                    ugdnvx_out(i,j,k3d-1) =   ugdnvxf(i,j,km)
                    uy_xfc    (i,j,k3d-1) = v1gdnvtmp(i,j,km)
                    uz_xfc    (i,j,k3d-1) = v2gdnvtmp(i,j,km)
@@ -939,8 +939,8 @@ contains
              end do
 
              do g=0,ngroups-1
-                do j=ilo2-1,ihi2+1
-                   do i=ilo1-1,ihi1+2
+                do j = lo(2)-1, hi(2)+1
+                   do i = lo(1)-1, hi(1)+2
                       ergdx_out(i,j,k3d-1,g) = ergdnvxf(i,j,km,g)
                       lmgdx_out(i,j,k3d-1,g) = lmgdtmp (i,j,km,g)
                    end do
@@ -957,10 +957,10 @@ contains
                          gamcg, &
                          gamc, csml, c, q_lo, q_hi, &
                          shk, shk_lo, shk_hi, &
-                         2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
+                         2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
 
-             do j=ilo2-1,ihi2+2
-                do i=ilo1-1,ihi1+1
+             do j = lo(2)-1, hi(2)+2
+                do i = lo(1)-1, hi(1)+1
                    ugdnvy_out(i,j,k3d-1) =   ugdnvyf(i,j,km)
                    ux_yfc    (i,j,k3d-1) = v1gdnvtmp(i,j,km)
                    uz_yfc    (i,j,k3d-1) = v2gdnvtmp(i,j,km)
@@ -968,16 +968,16 @@ contains
              end do
 
              do g=0,ngroups-1
-                do j=ilo2-1,ihi2+2
-                   do i=ilo1-1,ihi1+1
+                do j = lo(2)-1, hi(2)+2
+                   do i = lo(1)-1, hi(1)+1
                       ergdy_out(i,j,k3d-1,g) = ergdnvyf(i,j,km,g)
                       lmgdy_out(i,j,k3d-1,g) = lmgdtmp (i,j,km,g)
                    end do
                 end do
              end do
 
-             do j = ilo2,ihi2
-                do i = ilo1,ihi1
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
                    pggdnvx = 0.5d0*( pgdnvxf(i+1,j,km) +  pgdnvxf(i,j,km)) 
                    pggdnvy = 0.5d0*( pgdnvyf(i,j+1,km) +  pgdnvyf(i,j,km)) 
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
