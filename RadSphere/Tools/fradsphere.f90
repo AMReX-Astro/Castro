@@ -95,7 +95,7 @@ program fradsphere
 
   call get_command_argument(farg, value=pltfile)
 
-  print *, 'pltfile   = "', trim(pltfile), '"'
+  print *, '# pltfile   = "', trim(pltfile), '"'
 
 
   call build(pf, pltfile, unit)
@@ -129,8 +129,8 @@ program fradsphere
      call bl_error("ERROR: specified observer radius outside of domain")
   endif
 
-  print *, 'rmin = ', rmin
-  print *, 'rmax = ', rmax
+  print *, '# rmin = ', rmin
+  print *, '# rmax = ', rmax
 
   dim = pf%dim
   if (dim /= 1) call bl_error("ERROR: fradsphere only works for dim = 1")
@@ -248,10 +248,10 @@ program fradsphere
 
   ! output all the radiation energies
 
-  write(*,1000) "group name", "group center energy", &
+  write(*,1000) "group #", "group center energy", &
        "E_rad(nu)*dnu (erg/cm^3)", "E_rad(nu) (erg/cm^3/Hz)"
   do i = 1, ngroups
-     write (*,1001) pf%names(irad_begin-1+i), &               
+     write (*,1001) pf%names(irad_begin-1+i)(4:), &               
                     nu_groups(i), &  
                     sv(isv(idx_obs),1+irad_begin-1+i), &      
                     sv(isv(idx_obs),1+irad_begin-1+i)/dnu_groups(i)
