@@ -763,6 +763,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
 
+    for (int ilev = crse_level; ilev <= finest_level ; ++ilev) 
+        sanity_check(ilev);
+
     int nlevels = finest_level - crse_level + 1;
 
     PArray<MultiFab> phi_p(nlevels);
@@ -2804,6 +2807,7 @@ Gravity::sanity_check (int level)
     //  Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, 
     //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
     //  at this level touch the domain boundary and we must abort.
+
     if (level > 0  && !Geometry::isAllPeriodic()) 
     {
 	const Geometry& geom = parent->Geom(level);
