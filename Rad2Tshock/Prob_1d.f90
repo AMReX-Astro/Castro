@@ -1,5 +1,4 @@
-
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine probinit(init, name, namlen, problo, probhi)
 
   use probdata_module
   use network, only : network_init
@@ -12,45 +11,27 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   
   integer untin,i
   
-  namelist /fortin/ rho0, T0, v0, rho1, T1, v1
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
-  integer maxlen
-  parameter (maxlen=256)
+  ! build "probin" filename -- the name of file containing fortin namelist.
+  integer, parameter ::  maxlen = 256
   character probin*(maxlen)
-  
-  call network_init()
-  
-  if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
-  end if
-  
+
+  if (namlen >. maxlen) call bl_error("probin file name too long")
+    
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-  
-  ! set namelist defaults
-  
-  rho0 = 5.4588672836d-13
-  T0 = 100.d0
-  v0 = 235435.371882d0
-  rho1 = 1.24793794736d-12
-  T1 = 207.756999533d0
-  v1 = 102986.727159d0
-    
-  xmin = problo(1)
-  xmax = probhi(1)
 
-  ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  call network_init()
+    
+  ! read namelists -- this will override any defaults
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
+
+  xmin = problo(1)
+  xmax = probhi(1)
   
-end subroutine PROBINIT
+end subroutine probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -74,8 +55,8 @@ end subroutine PROBINIT
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-     state,state_l1,state_h1, &
-     delta,xlo,xhi)
+                       state,state_l1,state_h1, &
+                       delta,xlo,xhi)
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
@@ -143,9 +124,9 @@ end subroutine ca_initdata
 ! ::: -----------------------------------------------------------
 ! :::
 subroutine ca_initrad(level,time,lo,hi,nrad, &
-     rad_state,rad_state_l1, &
-     rad_state_h1, &
-     delta,xlo,xhi)
+                      rad_state,rad_state_l1, &
+                      rad_state_h1, &
+                      delta,xlo,xhi)
 
   use probdata_module
   use fundamental_constants_module, only: a_rad
