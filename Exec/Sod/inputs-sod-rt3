@@ -1,5 +1,3 @@
-castro.deterministic = 1
-
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
 stop_time =  0.2
