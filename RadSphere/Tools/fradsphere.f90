@@ -54,9 +54,7 @@ program fradsphere
   unit = unit_new()
   ung =  unit_new()
 
-  pltfile  = ''
   groupfile = "group_structure.dat"
-
   radius = 0.06d0
 
   narg = command_argument_count()
@@ -66,10 +64,6 @@ program fradsphere
      call get_command_argument(farg, value = fname)
 
      select case (fname)
-
-     case ('-p', '--pltfile')
-        farg = farg + 1
-        call get_command_argument(farg, value = pltfile)
 
      case ('-g', '--groupfile')
         farg = farg + 1
@@ -87,20 +81,21 @@ program fradsphere
      farg = farg + 1
   end do
 
-  if ( len_trim(pltfile) == 0 ) then
+  if (farg > narg) then
      print *, " "
      print *, "Print out the radiation quantities at a specified distance from"
      print *, "the origin.  This is written for the 1-d radiating sphere problem."
      print *, " "
-     print *, "./fradsphere -p plotfile -r radius -g groupfile"
+     print *, "./fradsphere [-r radius -g groupfile] plotfile"
      print *, " "
      print *, "Here groupfile is the file containing the group structure information"
      print *, "as output by Castro (usually group_structure.dat)."
      stop
   end if
 
+  call get_command_argument(farg, value=pltfile)
 
-  print *, 'pltfile   = "', trim(pltfile), '"'
+  print *, '# pltfile   = "', trim(pltfile), '"'
 
 
   call build(pf, pltfile, unit)
@@ -134,8 +129,8 @@ program fradsphere
      call bl_error("ERROR: specified observer radius outside of domain")
   endif
 
-  print *, 'rmin = ', rmin
-  print *, 'rmax = ', rmax
+  print *, '# rmin = ', rmin
+  print *, '# rmax = ', rmax
 
   dim = pf%dim
   if (dim /= 1) call bl_error("ERROR: fradsphere only works for dim = 1")
@@ -253,10 +248,10 @@ program fradsphere
 
   ! output all the radiation energies
 
-  write(*,1000) "group name", "group center energy", &
+  write(*,1000) "group #", "group center energy", &
        "E_rad(nu)*dnu (erg/cm^3)", "E_rad(nu) (erg/cm^3/Hz)"
   do i = 1, ngroups
-     write (*,1001) pf%names(irad_begin-1+i), &               
+     write (*,1001) pf%names(irad_begin-1+i)(4:), &               
                     nu_groups(i), &  
                     sv(isv(idx_obs),1+irad_begin-1+i), &      
                     sv(isv(idx_obs),1+irad_begin-1+i)/dnu_groups(i)
