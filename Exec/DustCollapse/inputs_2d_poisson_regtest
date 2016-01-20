@@ -1,7 +1,5 @@
-castro.deterministic = 1
-
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10
+max_step = 20
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0
@@ -9,7 +7,7 @@ geometry.coord_sys   = 1
 geometry.prob_lo     = 0.   0. 
 geometry.prob_hi     = 7.5e8 7.5e8
 
-amr.n_cell           = 384 384
+amr.n_cell           =  256  256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -31,6 +29,9 @@ gravity.gravity_type = PoissonGrav
 gravity.drdxfac      = 4
 gravity.drdxfac      = 1
 
+gravity.sl_tol = 1.e-9
+gravity.ml_tol = 1.e-9
+
 # RELEVANT FOR EOS 
 castro.small_temp    = 1.e-3
 castro.small_dens    = 1.e-6
@@ -48,11 +49,11 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 0       # maximum level number allowed
+amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
-amr.max_grid_size   = 96
+amr.blocking_factor = 16      # block factor in grid generation
+amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
