@@ -349,6 +349,7 @@ contains
 
   end subroutine ctoprim_rad
 
+
   ! ::: ---------------------------------------------------------------
   ! ::: :: UMETH3D     Compute hyperbolic fluxes using unsplit second
   ! ::: ::               order Godunov integrator.
@@ -386,7 +387,7 @@ contains
                          ugdnvy_out, ergdy_out, lmgdy_out, ugdnvy_lo, ugdnvy_hi, &
                          ugdnvz_out, ergdz_out, lmgdz_out, ugdnvz_lo, ugdnvz_hi, &
                          pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, domlo, domhi)
-    
+
     ! TODO:
     ! dx needs to be a vector
 
@@ -396,6 +397,7 @@ contains
     use rad_params_module, only : ngroups
     use riemann_module, only : cmpflx, shock
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
+    use transverse_rad_module
     use mempool_module, only : bl_allocate, bl_deallocate
 
     implicit none

@@ -13,6 +13,9 @@ module transverse_rad_module
 
     implicit none
 
+    private
+    public :: transx1, transx2, transy1, transy2, transz, transxy, transyz, transxz
+
 contains  
 
   subroutine transy1_rad(lam, lam_lo, lam_hi, &
