@@ -2,7 +2,7 @@ subroutine probinit(init, name, namlen, problo, probhi)
 
   use probdata_module
   use network, only : network_init
-  use eos_module, only : gamma_const
+
   implicit none
 
   integer init, namlen
@@ -15,7 +15,7 @@ subroutine probinit(init, name, namlen, problo, probhi)
   integer, parameter ::  maxlen = 256
   character probin*(maxlen)
 
-  if (namlen >. maxlen) call bl_error("probin file name too long")
+  if (namlen > maxlen) call bl_error("probin file name too long")
     
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -77,7 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   do i = lo(1), hi(1)
   
-     xcell = xlo(1) + delta(1) * (float(i-lo(1)) + 0.5d0)
+     xcell = xmin + delta(1) * (dble(i) + 0.5d0)
 
      if (xcell < 0.d0) then
         state(i,URHO) = rho0
@@ -146,7 +146,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
 
   do i = lo(1), hi(1)
 
-     xcell = xlo(1) + delta(1) * (float(i-lo(1)) + 0.5d0)
+     xcell = xmin + delta(1) * (dble(i) + 0.5d0)
    
      if (xcell < 0.d0) then
         T = T0

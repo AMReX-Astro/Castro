@@ -2,12 +2,12 @@
 max_step  = 3000    # maximum timestep
 stop_time = 0.08
 
-geometry.is_periodic = 0 0 0
+geometry.is_periodic = 0 1 1
 
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
 
 geometry.prob_lo   =   -1000. 0.0   0.0
-geometry.prob_hi   =     500. 1.    1.
+geometry.prob_hi   =     500. 93.75 93.75
 
 amr.n_cell   = 128  8  8
 
@@ -26,9 +26,9 @@ amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_files_output       = 0 # suppress plot files
+#amr.plot_files_output       = 0 # suppress plot files
 amr.plot_file       = plt_
-amr.plot_int        = 10     # number of timesteps between plot files
+amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
 xgraph.format = gnu
@@ -49,8 +49,8 @@ amr.grid_log        = grdlog  # name of grid logging file
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1    4    4
-castro.hi_bc       =  1    4    4
+castro.lo_bc       =  1    0    0
+castro.hi_bc       =  1    0    0
 
 # WHICH PHYSICS
 castro.do_grav        = 0
