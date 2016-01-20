@@ -503,6 +503,11 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) 
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
+       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs 
+       // ghost cells because they are only multiplying them by a zero coefficient.
+       MultiFab& phi_new = get_new_data(PhiGrav_Type);
+       phi_new.setVal(0.0);
+
    } else {
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
        phi_new.setVal(0.0);
@@ -1683,7 +1688,16 @@ Castro::post_restart ()
     React_new.setVal(0.0);
 #endif
 
-      set_special_tagging_flag(cur_time);
+    set_special_tagging_flag(cur_time);
+
+    // initialize the Godunov state array used in hydro -- we wait
+    // until here so that ngroups is defined (if needed) in
+    // rad_params_module
+#ifdef RADIATION
+    init_godunov_indices_rad();
+#else
+    init_godunov_indices();
+#endif
 }
 
 void
