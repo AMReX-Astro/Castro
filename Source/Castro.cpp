@@ -1776,7 +1776,7 @@ Castro::post_init (Real stop_time)
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
           BoxArray ba = getLevel(k).boxArray();
-          MultiFab& grav_new = get_new_data(Gravity_Type);
+          MultiFab& grav_new = getLevel(k).get_new_data(Gravity_Type);
           gravity->get_new_grav_vector(k,grav_new,cur_time);
        }
     }
