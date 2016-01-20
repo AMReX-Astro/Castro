@@ -503,6 +503,11 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) 
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
+       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs 
+       // ghost cells because they are only multiplying them by a zero coefficient.
+       MultiFab& phi_new = get_new_data(PhiGrav_Type);
+       phi_new.setVal(0.0);
+
    } else {
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
        phi_new.setVal(0.0);

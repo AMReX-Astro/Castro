@@ -1212,7 +1212,7 @@ Castro::advance_hydro (Real time,
             }
 	    
             // Here we use the "old" phi from the current time step as a guess for this solve
-	    MultiFab::Copy(phi_new,phi_old,0,0,1,0);
+	    MultiFab::Copy(phi_new,phi_old,0,0,1,phi_new.nGrow());
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
 		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 	    }
