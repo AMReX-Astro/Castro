@@ -54,9 +54,7 @@ program fradsphere
   unit = unit_new()
   ung =  unit_new()
 
-  pltfile  = ''
   groupfile = "group_structure.dat"
-
   radius = 0.06d0
 
   narg = command_argument_count()
@@ -66,10 +64,6 @@ program fradsphere
      call get_command_argument(farg, value = fname)
 
      select case (fname)
-
-     case ('-p', '--pltfile')
-        farg = farg + 1
-        call get_command_argument(farg, value = pltfile)
 
      case ('-g', '--groupfile')
         farg = farg + 1
@@ -87,18 +81,19 @@ program fradsphere
      farg = farg + 1
   end do
 
-  if ( len_trim(pltfile) == 0 ) then
+  if (farg > narg) then
      print *, " "
      print *, "Print out the radiation quantities at a specified distance from"
      print *, "the origin.  This is written for the 1-d radiating sphere problem."
      print *, " "
-     print *, "./fradsphere -p plotfile -r radius -g groupfile"
+     print *, "./fradsphere [-r radius -g groupfile] plotfile"
      print *, " "
      print *, "Here groupfile is the file containing the group structure information"
      print *, "as output by Castro (usually group_structure.dat)."
      stop
   end if
 
+  call get_command_argument(farg, value=pltfile)
 
   print *, 'pltfile   = "', trim(pltfile), '"'
 
