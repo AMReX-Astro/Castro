@@ -39,7 +39,7 @@ contains
     double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision  fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  qgdnvy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
     double precision cdtdy
 
     ! Local variables
@@ -272,7 +272,7 @@ contains
     double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision  fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision  qgdnvx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
@@ -504,7 +504,7 @@ contains
     double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision  fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  qgdnvy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
@@ -780,9 +780,7 @@ contains
     double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision  fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision  qgdnvx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
-    double precision  pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ergdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3,0:ngroups-1)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
@@ -1037,10 +1035,8 @@ contains
                          qm, qmo, qp, qpo, qd_lo, qd_hi, &
                          fxy, rfxy, fx_lo, fx_hi, &
                          fyx, rfyx, fy_lo, fy_hi, &
-                         ugdnvx, pgdnvx, ergdnvx, &
-                         pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                         ugdnvy, pgdnvy, ergdnvy, &
-                         pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
+                         qx, qx_lo, qx_hi, &
+                         qy, qy_lo, qy_hi, &
                          gamc, gd_lo, gd_hi, &
                          srcQ, src_lo, src_hi, &
                          hdt, cdtdx, cdtdy, ilo, ihi, jlo, jhi, kc, km, k3d)
@@ -1049,8 +1045,8 @@ contains
     integer :: qd_lo(3), qd_hi(3)
     integer :: fx_lo(3), fx_hi(3)
     integer :: fy_lo(3), fy_hi(3)
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
+    integer :: qx_lo(3), qx_hi(3)
+    integer :: qy_lo(3), qy_hi(3)
     integer :: gd_lo(3), gd_hi(3)
     integer :: src_lo(3), src_hi(3)
     integer ilo, ihi, jlo, jhi, km, kc, k3d
@@ -1064,12 +1060,8 @@ contains
     double precision rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
     double precision  fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision  pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ergdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3,0:ngroups-1)
-    double precision  ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision  pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision ergdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3,0:ngroups-1)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
@@ -1724,10 +1716,8 @@ contains
                          qm, qmo, qp, qpo, qd_lo, qd_hi, &
                          fyz, rfyz, fy_lo, fy_hi, &
                          fzy, rfzy, fz_lo, fz_hi, &
-                         ugdnvy, pgdnvy, ergdnvy, &
-                         pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
-                         ugdnvz , pgdnvz, ergdnvz, &
-                         pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                         qy, qy_lo, qy_hi, &
+                         qz, qz_lo, qz_hi, &
                          gamc, gc_lo, gc_hi, &
                          srcQ, src_lo, src_hi, &
                          hdt, cdtdy, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
@@ -1736,8 +1726,8 @@ contains
     integer :: qd_lo(3), qd_hi(3)
     integer :: fy_lo(3), fy_hi(3)
     integer :: fz_lo(3), fz_hi(3)
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer :: qy_lo(3), qy_hi(3)
+    integer :: qz_lo(3), qz_hi(3)
     integer :: gc_lo(3), gc_hi(3)
     integer :: src_lo(3), src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
@@ -1751,12 +1741,9 @@ contains
     double precision rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
     double precision  fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision  ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision  pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision ergdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3,0:ngroups-1)
-    double precision  ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision  pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision ergdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3,0:ngroups-1)
+    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
+    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),ngdnv)
+
     double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
@@ -2021,9 +2008,8 @@ contains
                          qm, qmo, qp, qpo, qd_lo, qd_hi, &
                          fxz, rfxz, fx_lo, fx_hi, &
                          fzx, rfzx, fz_lo, fz_hi, &
-                         ugdnvx, pgdnvx, ergdnvx, &
-                         pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                         ugdnvz, pgdnvz, ergdnvz, & 
+                         qx, qx_lo, qx_hi, &
+                         qz, qz_lo, qz_hi, &
                          pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
                          gamc, gc_lo, gc_hi, &
                          srcQ, src_lo, src_hi, &
@@ -2033,8 +2019,8 @@ contains
     integer :: qd_lo(3), qd_hi(3)
     integer :: fx_lo(3), fx_hi(3)
     integer :: fz_lo(3), fz_hi(3)
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
+    integer :: qx_lo(3), qx_hi(3)
+    integer :: qz_lo(3), qz_hi(3)
     integer :: gc_lo(3), gc_hi(3)
     integer :: src_lo(3), src_hi(3)
     integer ilo, ihi, jlo, jhi, km, kc, k3d
@@ -2048,12 +2034,8 @@ contains
     double precision rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
     double precision  fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR) 
     double precision rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision  ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision  pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ergdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3,0:ngroups-1)
-    double precision  ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision  pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision ergdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3,0:ngroups-1)
+    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),ngdnv)
+    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),ngdnv)
     double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz

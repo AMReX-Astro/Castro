@@ -788,10 +788,8 @@ contains
                            qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
                            fxy, rfxy, fx_lo, fx_hi, &
                            fyx, rfyx, fy_lo, fy_hi, &
-                           ugdnvtmpx, pgdnvtmpx, ergdnvtmpx, &
-                           ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                           ugdnvtmpy, pgdnvtmpy, ergdnvtmpy, &
-                           ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                           qgdnvtmpx, qt_lo, qt_hi, &
+                           qgdnvtmpy, qt_lo, qt_hi, &
                            gamcg, qd_lo, qd_hi, &
                            srcQ, src_lo, src_hi, &
                            hdt, hdtdx, hdtdy, lo(1), hi(1), lo(2), hi(2), kc, km, k3d)
@@ -839,12 +837,10 @@ contains
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
              call transz_rad(lam, lam_lo, lam_hi, &
                              qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
-                             fz, rfz, &
-                             ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                             ugdnvz, pgdnvz, ergdnvz, &
-                             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                             gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                             cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
+                             fz, rfz, fz_lo, fz_hi, &
+                             qgdnvz, qt_lo, qt_hi, &
+                             gamcg, qd_lo, qd_hi, &
+                             cdtdz, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, km, kc, k3d)
              
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
@@ -855,7 +851,7 @@ contains
                          gamcg, &
                          gamc, csml, c, qd_lo, qd_hi, &
                          shk, shk_lo, shk_hi, &
-                         1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
+                         1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
              
              ! Compute F^{y|z} at km (k3d-1)
              call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
@@ -866,17 +862,15 @@ contains
                          gamcg, &
                          gamc, csml, c, qd_lo, qd_hi, &
                          shk, shk_lo, shk_hi, &
-                         2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
+                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute U''_x at km (k3d-1)
              call transyz_rad(lam, lam_lo, lam_hi, &
                               qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
                               fyz, rfyz, fy_lo, fy_hi, &
                               fzy, rfzy, fz_lo, fz_hi, & 
-                              ugdnvy, pgdnvy, ergdnvy, &
-                              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              ugdnvtmpz2, pgdnvtmpz2, ergdnvtmpz2, &
-                              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                              qgdnvy, qt_lo, qt_hi, &
+                              qgdnvtmpz2, qt_lo, qt_hi, &
                               gamcg, qd_lo, qd_hi, &
                               srcQ, src_lo, src_hi, &
                               hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
@@ -886,10 +880,8 @@ contains
                               qym, qyl, qyp, qyr, qt_lo, qt_hi, &
                               fxz, rfxz, fx_lo, fx_hi, &
                               fzx, rfzx, fz_lo, fz_hi, &
-                              ugdnvx, pgdnvx, ergdnvx, &
-                              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              ugdnvtmpz1, pgdnvtmpz1, ergdnvtmpz1, &
-                              ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                              qgdnvx, qt_lo, qt_hi, &
+                              qgdnvtmpz1, qt_lo, qt_hi, &
                               gamcg, qd_lo, qd_hi, &
                               srcQ, src_lo, src_hi, &
                               hdt, hdtdx, hdtdz, lo(1), hi(1), lo(2)-1, hi(2)+1, km, kc, k3d-1)
