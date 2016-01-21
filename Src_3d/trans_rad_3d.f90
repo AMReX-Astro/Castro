@@ -5,6 +5,7 @@ module transverse_rad_module
                                    QPRES, QREINT, QFA, QFS, QFX, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UFA, UFS, UFX, &
+                                   GDPRES, GDU, GDV, GDW, GDERADS, ngdnv, &
                                    nadv
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
                                        fspace_type, comoving
@@ -14,7 +15,8 @@ module transverse_rad_module
     implicit none
 
     private
-    public :: transx1, transx2, transy1, transy2, transz, transxy, transyz, transxz
+    public :: transx1_rad, transx2_rad, transy1_rad, transy2_rad, transz_rad, &
+              transxy_rad, transyz_rad, transxz_rad
 
 contains  
 
@@ -40,6 +42,7 @@ contains
     double precision  fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
     double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),ngdnv)
+    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
     ! Local variables
@@ -143,13 +146,13 @@ contains
        do i = ilo, ihi
 
           lambda = lam(i,j,k3d,:)
-          pggp  =  pgdnvy(i,j+1,kc)
-          pggm  =  pgdnvy(i,j  ,kc)
-          ugp  =  ugdnvy(i,j+1,kc)
-          ugm  =  ugdnvy(i,j  ,kc)
+          pggp  = qy(i,j+1,kc,GDPRES)
+          pggm  = qy(i,j  ,kc,GDPRES)
+          ugp  =  qy(i,j+1,kc,GDV)
+          ugm  =  qy(i,j  ,kc,GDV)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvy(i,j+1,kc,:)
-          ergm = ergdnvy(i,j  ,kc,:)
+          ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
+          ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrrx = qxp(i,j,kc,QRHO)
@@ -376,13 +379,13 @@ contains
        do i = ilo, ihi 
 
           lambda = lam(i,j,k3d,:)
-          pggp  =  pgdnvx(i+1,j,kc)
-          pggm  =  pgdnvx(i  ,j,kc)
-          ugp  =  ugdnvx(i+1,j,kc)
-          ugm  =  ugdnvx(i  ,j,kc)
+          pggp  =  qx(i+1,j,kc,GDPRES)
+          pggm  =  qx(i  ,j,kc,GDPRES)
+          ugp  =  qx(i+1,j,kc,GDU)
+          ugm  =  qx(i  ,j,kc,GDU)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvx(i+1,j,kc,:)
-          ergm = ergdnvx(i  ,j,kc,:)
+          ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrry = qyp(i,j,kc,QRHO)
@@ -615,13 +618,13 @@ contains
        do i = ilo, ihi
 
           lambda = lam(i,j,k3d,:)
-          pggp  =  pgdnvy(i,j+1,kc)
-          pggm  =  pgdnvy(i,j  ,kc)
-          ugp  =  ugdnvy(i,j+1,kc)
-          ugm  =  ugdnvy(i,j  ,kc)
+          pggp  = qy(i,j+1,kc,GDPRES)
+          pggm  = qy(i,j  ,kc,GDPRES)
+          ugp  =  qy(i,j+1,kc,GDV)
+          ugm  =  qy(i,j  ,kc,GDV)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvy(i,j+1,kc,:)
-          ergm = ergdnvy(i,j  ,kc,:)
+          ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
+          ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
@@ -684,13 +687,13 @@ contains
           qzpo(i,j,kc,qreitot) = sum(qzpo(i,j,kc,qrad:qradhi)) + qzpo(i,j,kc,QREINT)
 
           lambda = lam(i,j,k3d-1,:)
-          pggp  =  pgdnvy(i,j+1,km)
-          pggm  =  pgdnvy(i,j  ,km)
-          ugp  =  ugdnvy(i,j+1,km)
-          ugm  =  ugdnvy(i,j  ,km)
+          pggp  =  qy(i,j+1,km,GDPRES)
+          pggm  =  qy(i,j  ,km,GDPRES)
+          ugp  =  qy(i,j+1,km,GDV)
+          ugm  =  qy(i,j  ,km,GDV)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvy(i,j+1,km,:)
-          ergm = ergdnvy(i,j  ,km,:)
+          ergp = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
+          ergm = qy(i,j  ,km,GDERADS:GDERADS-1+ngroups)
 
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
@@ -888,13 +891,13 @@ contains
        do i = ilo, ihi 
 
           lambda = lam(i,j,k3d,:)
-          pggp  =  pgdnvx(i+1,j,kc)
-          pggm  =  pgdnvx(i  ,j,kc)
-          ugp  =  ugdnvx(i+1,j,kc)
-          ugm  =  ugdnvx(i  ,j,kc)
+          pggp  =  qx(i+1,j,kc,GDPRES)
+          pggm  =  qx(i  ,j,kc,GDPRES)
+          ugp  =  qx(i+1,j,kc,GDU)
+          ugm  =  qx(i  ,j,kc,GDU)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvx(i+1,j,kc,:)
-          ergm = ergdnvx(i  ,j,kc,:)
+          ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
           dup = pggp*ugp - pggm*ugm
           pav = 0.5d0*(pggp+pggm)
@@ -957,13 +960,13 @@ contains
           qzpo(i,j,kc,qreitot) = sum(qzpo(i,j,kc,qrad:qradhi)) + qzpo(i,j,kc,QREINT)
 
           lambda = lam(i,j,k3d-1,:)
-          pggp  =  pgdnvx(i+1,j,km)
-          pggm  =  pgdnvx(i  ,j,km)
-          ugp  =  ugdnvx(i+1,j,km)
-          ugm  =  ugdnvx(i  ,j,km)
+          pggp  =  qx(i+1,j,km,GDPRES)
+          pggm  =  qx(i  ,j,km,GDPRES)
+          ugp  =  qx(i+1,j,km,GDU)
+          ugm  =  qx(i  ,j,km,GDU)
           ugc = 0.5d0*(ugp+ugm)
-          ergp = ergdnvx(i+1,j,km,:)
-          ergm = ergdnvx(i  ,j,km,:)
+          ergp = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
+          ergm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
 
           dup = pggp*ugp - pggm*ugm
           pav = 0.5d0*(pggp+pggm)
@@ -1185,35 +1188,35 @@ contains
 
           lamc = lam(i,j,k3d,:)
 
-          pggxp  =  pgdnvx(i+1,j,kc)
-          pggxm  =  pgdnvx(i  ,j,kc)
-          ugxp  =  ugdnvx(i+1,j,kc)
-          ugxm  =  ugdnvx(i  ,j,kc)
-          ergxp = ergdnvx(i+1,j,kc,:)
-          ergxm = ergdnvx(i  ,j,kc,:)
+          pggxp = qx(i+1,j,kc,GDPRES)
+          pggxm = qx(i  ,j,kc,GDPRES)
+          ugxp  = qx(i+1,j,kc,GDU)
+          ugxm  = qx(i  ,j,kc,GDU)
+          ergxp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergxm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
-          pggyp  =  pgdnvy(i,j+1,kc)
-          pggym  =  pgdnvy(i,j  ,kc)
-          ugyp  =  ugdnvy(i,j+1,kc)
-          ugym  =  ugdnvy(i,j  ,kc)
-          ergyp = ergdnvy(i,j+1,kc,:)
-          ergym = ergdnvy(i,j  ,kc,:)
+          pggyp = qy(i,j+1,kc,GDPRES)
+          pggym = qy(i,j  ,kc,GDPRES)
+          ugyp  = qy(i,j+1,kc,GDV)
+          ugym  = qy(i,j  ,kc,GDV)
+          ergyp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
+          ergym = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
 
           lamm = lam(i,j,k3d-1,:)
 
-          pggxpm  =  pgdnvx(i+1,j,km)
-          pggxmm  =  pgdnvx(i  ,j,km)
-          ugxpm  =  ugdnvx(i+1,j,km)
-          ugxmm  =  ugdnvx(i  ,j,km)
-          ergxpm = ergdnvx(i+1,j,km,:)
-          ergxmm = ergdnvx(i  ,j,km,:)
+          pggxpm = qx(i+1,j,km,GDPRES)
+          pggxmm = qx(i  ,j,km,GDPRES)
+          ugxpm  = qx(i+1,j,km,GDU)
+          ugxmm  = qx(i  ,j,km,GDU)
+          ergxpm = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
+          ergxmm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
 
-          pggypm  =  pgdnvy(i,j+1,km)
-          pggymm  =  pgdnvy(i,j  ,km)
-          ugypm  =  ugdnvy(i,j+1,km)
-          ugymm  =  ugdnvy(i,j  ,km)
-          ergypm = ergdnvy(i,j+1,km,:)
-          ergymm = ergdnvy(i,j  ,km,:)
+          pggypm = qy(i,j+1,km,GDPRES)
+          pggymm = qy(i,j  ,km,GDPRES)
+          ugypm  = qy(i,j+1,km,GDV)
+          ugymm  = qy(i,j  ,km,GDV)
+          ergypm = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
+          ergymm = qy(i,j  ,km,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrr = qp(i,j,kc,QRHO)
@@ -1381,16 +1384,15 @@ contains
   subroutine transz_rad(lam, lam_lo, lam_hi, &
                         qxm, qxmo, qxp, qxpo, qym, qymo, qyp, qypo, qd_lo, qd_hi, &
                         fz, rfz, fz_lo, fz_hi, &
-                        ugdnvz, pgdnvz, ergdnvz, &
-                        pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
+                        qz, qz_lo, qz_hi, &
                         gamc, gd_lo, gd_hi, &
                         cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
 
     integer :: lam_lo(3), lam_hi(3)
     integer :: qd_lo(3), qd_hi(3)
-    integer :: fz_lo(3), fx_hi(3)
-    integer pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
+    integer :: fz_lo(3), fz_hi(3)
+    integer :: qz_lo(3), qz_hi(3)
+    integer :: gd_lo(3), gd_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
@@ -1404,9 +1406,7 @@ contains
     double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision  fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision  ugdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision  pgdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3)
-    double precision ergdnvz(pgdz_l1:pgdz_h1,pgdz_l2:pgdz_h2,pgdz_l3:pgdz_h3,0:ngroups-1)
+    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),ngdnv)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
 
@@ -1542,12 +1542,12 @@ contains
 
           lambda = lam(i,j,k3d-1,:)
 
-          pggp  =  pgdnvz(i,j,kc)
-          pggm  =  pgdnvz(i,j,km)
-          ugp  =  ugdnvz(i,j,kc)
-          ugm  =  ugdnvz(i,j,km)
-          ergp = ergdnvz(i,j,kc,:)
-          ergm = ergdnvz(i,j,km,:)
+          pggp = qz(i,j,kc,GDPRES)
+          pggm = qz(i,j,km,GDPRES)
+          ugp  = qz(i,j,kc,GDW)
+          ugm  = qz(i,j,km,GDW)
+          ergp = qz(i,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergm = qz(i,j,km,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrrx = qxp(i,j,km,QRHO)
@@ -1864,19 +1864,19 @@ contains
 
           lambda = lam(i,j,k3d,:)
 
-          pggyp  =  pgdnvy(i,j+1,km)
-          pggym  =  pgdnvy(i,j  ,km)
-          ugyp  =  ugdnvy(i,j+1,km)
-          ugym  =  ugdnvy(i,j  ,km)
-          ergyp = ergdnvy(i,j+1,km,:)
-          ergym = ergdnvy(i,j  ,km,:)
+          pggyp = qy(i,j+1,km,GDPRES)
+          pggym = qy(i,j  ,km,GDPRES)
+          ugyp  = qy(i,j+1,km,GDV)
+          ugym  = qy(i,j  ,km,GDV)
+          ergyp = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
+          ergym = qy(i,j  ,km,GDERADS:GDERADS-1+ngroups)
 
-          pggzp  =  pgdnvz(i,j,kc)
-          pggzm  =  pgdnvz(i,j,km)
-          ugzp  =  ugdnvz(i,j,kc)
-          ugzm  =  ugdnvz(i,j,km)
-          ergzp = ergdnvz(i,j,kc,:)
-          ergzm = ergdnvz(i,j,km,:)
+          pggzp = qz(i,j,kc,GDPRES)
+          pggzm = qz(i,j,km,GDPRES)
+          ugzp  = qz(i,j,kc,GDW)
+          ugzm  = qz(i,j,km,GDW)
+          ergzp = qz(i,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergzm = qz(i,j,km,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrr = qp(i,j,km,QRHO)
@@ -2010,7 +2010,6 @@ contains
                          fzx, rfzx, fz_lo, fz_hi, &
                          qx, qx_lo, qx_hi, &
                          qz, qz_lo, qz_hi, &
-                         pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
                          gamc, gc_lo, gc_hi, &
                          srcQ, src_lo, src_hi, &
                          hdt, cdtdx, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
@@ -2156,19 +2155,19 @@ contains
 
           lambda = lam(i,j,k3d,:)
 
-          pggxp  =  pgdnvx(i+1,j,km)
-          pggxm  =  pgdnvx(i  ,j,km)
-          ugxp  =  ugdnvx(i+1,j,km)
-          ugxm  =  ugdnvx(i  ,j,km)
-          ergxp = ergdnvx(i+1,j,km,:)
-          ergxm = ergdnvx(i  ,j,km,:)
+          pggxp = qx(i+1,j,km,GDPRES)
+          pggxm = qx(i  ,j,km,GDPRES)
+          ugxp  = qx(i+1,j,km,GDU)
+          ugxm  = qx(i  ,j,km,GDU)
+          ergxp = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
+          ergxm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
 
-          pggzp  =  pgdnvz(i,j,kc)
-          pggzm  =  pgdnvz(i,j,km)
-          ugzp  =  ugdnvz(i,j,kc)
-          ugzm  =  ugdnvz(i,j,km)
-          ergzp = ergdnvz(i,j,kc,:)
-          ergzm = ergdnvz(i,j,km,:)
+          pggzp = qz(i,j,kc,GDPRES)
+          pggzm = qz(i,j,km,GDPRES)
+          ugzp  = qz(i,j,kc,GDW)
+          ugzm  = qz(i,j,km,GDW)
+          ergzp = qz(i,j,kc,GDERADS:GDERADS-1+ngroups)
+          ergzm = qz(i,j,km,GDERADS:GDERADS-1+ngroups)
 
           ! Convert to conservation form
           rrr = qp(i,j,km,QRHO)
