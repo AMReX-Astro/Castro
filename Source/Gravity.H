@@ -167,8 +167,6 @@ protected:
 
   static Real max_radius_all_in_domain;
 
-  void fill_ec_grow (int level, PArray<MultiFab>& ecF, const PArray<MultiFab>& ecC) const;
-
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
   void unweight_cc(int level,MultiFab& cc);

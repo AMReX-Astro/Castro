@@ -5,62 +5,6 @@ module gravity_1D_module
   public
 
 contains
-  
-  subroutine ca_edge_interp(flo, fhi, nc, ratio, dir, &
-       fine, fine_l0, fine_h0) bind(C)
-
-    implicit none
-    
-    integer flo(0:2-1), fhi(0:2-1), nc, ratio(0:2-1), dir
-    integer fine_l0, fine_h0
-    double precision fine(fine_l0:fine_h0,nc)
-    integer i,n,M
-    double precision val, df
-
-    !     Do linear in dir, pc transverse to dir, leave alone the fine values
-    !     lining up with coarse edges--assume these have been set to hold the 
-    !     values you want to interpolate to the rest.
-
-    do n=1,nc
-       do i=flo(0),fhi(0)-ratio(dir),ratio(0)
-          df = fine(i+ratio(dir),n)-fine(i,n)
-          do M=1,ratio(dir)-1
-             val = fine(i,n) + df*dble(M)/dble(ratio(dir))
-             fine(i+M,n) = val
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_edge_interp
-
-
-
-  subroutine ca_pc_edge_interp(lo, hi, nc, ratio, dir, &
-       crse, crse_l0, crse_h0,  &
-       fine, fine_l0, fine_h0) bind(C)
-    
-    implicit none
-    
-    integer lo(1),hi(1), nc, ratio(0:2-1), dir
-    integer crse_l0, crse_h0
-    integer fine_l0, fine_h0
-    double precision crse(crse_l0:crse_h0,nc)
-    double precision fine(fine_l0:fine_h0,nc)
-    integer i,ii,n
-
-    !     For edge-based data, fill fine values with piecewise-constant interp of coarse data.
-    !     Operate only on faces that overlap--ie, only fill the fine faces that make up each
-    !     coarse face, leave the in-between faces alone.
-    do n=1,nc
-       do i=lo(1),hi(1)
-          ii = ratio(0)*i
-          fine(ii,n) = crse(i,n)
-       enddo
-    enddo
-
-  end subroutine ca_pc_edge_interp
-
-
 
   subroutine ca_test_residual(lo, hi, &
        rhs, rhl1, rhh1,  &

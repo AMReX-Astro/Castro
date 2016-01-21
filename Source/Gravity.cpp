@@ -885,23 +885,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 #endif 
     } else if (gravity_type == "PoissonGrav") {
 
-       // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
        const Geometry& geom = parent->Geom(level);
-       if (level==0)
-       {
-             for (int i = 0; i < BL_SPACEDIM ; i++)
-             {
-                 grad_phi_prev[level][i].setBndry(0.0);
-		 BoxLib::fill_boundary(grad_phi_prev[level][i], geom);
-             }
- 
-       } else {
- 
-             PArray<MultiFab> crse_grad_phi(BL_SPACEDIM,PArrayManage);
-             GetCrseGradPhi(level,crse_grad_phi,time);
-             fill_ec_grow(level,grad_phi_prev[level],crse_grad_phi);
-       }
- 
        BoxLib::average_face_to_cellcenter(grav, grad_phi_prev[level], geom);
 
     } else {
@@ -920,12 +904,9 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
- 
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
-
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+	// Fill ghost cells
+	AmrLevel* amrlev = &parent->getLevel(level) ;
+	AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -981,24 +962,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 #endif
     } else if (gravity_type == "PoissonGrav") {
 
-      // Fill grow cells in grad_phi, will need to compute grad_phi_cc in 1 grow cell
-      const Geometry& geom = parent->Geom(level);
-      if (level==0)
-      {
-            for (int i = 0; i < BL_SPACEDIM ; i++)
-            {
-                grad_phi_curr[level][i].setBndry(0.0);
-		BoxLib::fill_boundary(grad_phi_curr[level][i], geom);
-            }
-
-      } else {
-
-            PArray<MultiFab> crse_grad_phi(BL_SPACEDIM,PArrayManage);
-            GetCrseGradPhi(level,crse_grad_phi,time);
-            fill_ec_grow(level,grad_phi_curr[level],crse_grad_phi);
-      }
-
-      BoxLib::average_face_to_cellcenter(grav, grad_phi_curr[level], geom);
+	const Geometry& geom = parent->Geom(level);
+	BoxLib::average_face_to_cellcenter(grav, grad_phi_curr[level], geom);
 
     } else {
        BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
@@ -1016,12 +981,9 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
- 
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
-
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+	// Fill ghost cells
+	AmrLevel* amrlev = &parent->getLevel(level) ;
+	AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -1363,139 +1325,6 @@ Gravity::reflux_phi (int level, MultiFab& dphi)
     const Geometry& geom = parent->Geom(level);
     dphi.setVal(0.);
     phi_flux_reg[level+1].Reflux(dphi,volume[level],1.0,0,0,1,geom);
-}
-
-void 
-Gravity::fill_ec_grow (int level,
-                       PArray<MultiFab>&       ecF,
-                       const PArray<MultiFab>& ecC) const
-{
-    BL_PROFILE("Gravity::fill_ec_grow()");
-
-    //
-    // Fill grow cells of the edge-centered mfs.  Assume
-    // ecF built on edges of grids at this amr level, and ecC 
-    // is build on edges of the grids at amr level-1
-    //
-    BL_ASSERT(ecF.size() == BL_SPACEDIM);
-
-    const int nGrow = ecF[0].nGrow();
-
-    if (nGrow == 0 || level == 0) return;
-
-#if BL_SPACEDIM >= 2
-    BL_ASSERT(nGrow == ecF[1].nGrow());
-#endif
-#if BL_SPACEDIM == 3
-    BL_ASSERT(nGrow == ecF[2].nGrow());
-#endif
-
-    const BoxArray& fgrids = grids[level];
-    const Geometry& fgeom  = parent->Geom(level);
-
-    BoxList bl = BoxLib::GetBndryCells(fgrids,1);
-
-    BoxArray f_bnd_ba(bl);
-
-    bl.clear();
-
-    BoxArray c_bnd_ba = BoxArray(f_bnd_ba.size());
-
-    IntVect crse_ratio = parent->refRatio(level-1);
-
-    for (int i = 0; i < f_bnd_ba.size(); ++i)
-    {
-        c_bnd_ba.set(i,Box(f_bnd_ba[i]).coarsen(crse_ratio));
-        f_bnd_ba.set(i,Box(c_bnd_ba[i]).refine(crse_ratio));
-    }
-    
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-    {
-        //
-        // crse_src & fine_src must have same parallel distribution.
-        // We'll use the KnapSack distribution for the fine_src_ba.
-        // Since fine_src_ba should contain more points, this'll lead
-        // to a better distribution.
-        //
-        BoxArray crse_src_ba(c_bnd_ba);
-        BoxArray fine_src_ba(f_bnd_ba);
-        
-        crse_src_ba.surroundingNodes(n);
-        fine_src_ba.surroundingNodes(n);
-        
-        std::vector<long> wgts(fine_src_ba.size());
-        
-        for (unsigned int i = 0; i < wgts.size(); i++)
-        {
-            wgts[i] = fine_src_ba[i].numPts();
-        }
-        DistributionMapping dm;
-        //
-        // This call doesn't invoke the MinimizeCommCosts() stuff.
-        // There's very little to gain with these types of coverings
-        // of trying to use SFC or anything else.
-        // This also guarantees that these DMs won't be put into the
-        // cache, as it's not representative of that used for more
-        // usual MultiFabs.
-        //
-        dm.KnapSackProcessorMap(wgts,ParallelDescriptor::NProcs());
-        
-        MultiFab crse_src; crse_src.define(crse_src_ba, 1, 0, dm, Fab_allocate);
-        MultiFab fine_src; fine_src.define(fine_src_ba, 1, 0, dm, Fab_allocate);
-        
-        crse_src.setVal(1.e200);
-        fine_src.setVal(1.e200);
-        //
-        // We want to fill crse_src from ecC[n].
-        //
-	crse_src.copy(ecC[n]);  // parallel copy
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(crse_src); mfi.isValid(); ++mfi)
-        {
-            const int  nComp = 1;
-            const Box& box   = crse_src[mfi].box();
-            const int* rat   = crse_ratio.getVect();
-            ca_pc_edge_interp(box.loVect(), box.hiVect(), &nComp, rat, &n,
-			      BL_TO_FORTRAN(crse_src[mfi]),
-			      BL_TO_FORTRAN(fine_src[mfi]));
-        }
-
-        crse_src.clear();
-        //
-        // Replace pc-interpd fine data with preferred u_mac data at
-        // this level u_mac valid only on surrounding faces of valid
-        // region - this op will not fill grow region.
-        //
-        fine_src.copy(ecF[n]); // parallel copy
-        
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(fine_src); mfi.isValid(); ++mfi)
-        {
-            //
-            // Interpolate unfilled grow cells using best data from
-            // surrounding faces of valid region, and pc-interpd data
-            // on fine edges overlaying coarse edges.
-            //
-            const int  nComp = 1;
-            const Box& fbox  = fine_src[mfi].box();
-            const int* rat   = crse_ratio.getVect();
-            ca_edge_interp(fbox.loVect(), fbox.hiVect(),
-			   &nComp, rat, &n,
-			   BL_TO_FORTRAN(fine_src[mfi]));
-        }
-
-	ecF[n].copy(fine_src, 0, 0, 1, 0, ecF[n].nGrow()); // parallel copy
-    }
-
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-    {
-	BoxLib::fill_boundary(ecF[n], fgeom);
-    }
 }
 
 #if (BL_SPACEDIM == 1)

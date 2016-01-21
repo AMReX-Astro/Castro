@@ -7,22 +7,6 @@ extern "C"
 
   void get_grav_const(Real* Gconst);
 
-  void ca_edge_interp
-    (const int* flo, const int* fhi,
-     const int* nc, const int* refRatio, const int* dir,
-     BL_FORT_FAB_ARG(fine));
-    
-  void ca_pc_edge_interp
-    (const int* lo, const int* hi,
-     const int* nc, const int* refRatio, const int* dir,
-     const BL_FORT_FAB_ARG(crse),
-     BL_FORT_FAB_ARG(fine));
-
-  void ca_average_ec
-    (const BL_FORT_FAB_ARG(grad_fine),
-           BL_FORT_FAB_ARG(grad_crse),
-     const int lo[], const int hi[], const int rat[], const int& idir);
-
   void ca_test_residual
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(rhs),
