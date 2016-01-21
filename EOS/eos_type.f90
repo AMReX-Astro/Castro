@@ -1,11 +1,11 @@
 module eos_type_module
-  
+
   use bl_types
   use network
   use eos_data_module
   use mempool_module
   use bl_constants_module
-  
+
   implicit none
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
@@ -100,11 +100,12 @@ module eos_type_module
     double precision :: dedZ        = init_num
 
     logical :: reset                = .false.
-    
+    logical :: check_small          = .true.
+
   end type eos_t
 
 contains
-  
+
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
@@ -123,9 +124,9 @@ contains
     ! mu_e, the mean number of nucleons per electron, and
     ! y_e, the electron fraction.
 
-    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))       
+    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))
     state % y_e = ONE / state % mu_e
-    
+
     state % abar = ONE / (sum(state % xn(:) / aion(:)))
     state % zbar = state % abar / state % mu_e
 
@@ -155,13 +156,13 @@ contains
                                    * (zion(:) - state % zbar)
 
     if (state % dPdr > ZERO) then
-    
+
        state % dhdX(:) = state % dedX(:) &
                        + (state % p / state % rho**2 - state % dedr) &
                        *  state % dPdX(:) / state % dPdr
 
     endif
-       
+
   end subroutine composition_derivatives
 
 
@@ -178,9 +179,9 @@ contains
     type (eos_t), intent(inout) :: state
 
     state % xn(:) = max(smallx, min(ONE, state % xn(:)))
-    
+
     state % xn(:) = state % xn(:) / sum(state % xn(:))
 
-  end subroutine normalize_abundances  
-  
+  end subroutine normalize_abundances
+
 end module eos_type_module

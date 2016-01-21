@@ -71,6 +71,8 @@ contains
 
     type (eos_t) :: eos_state
 
+    eos_state % check_small = .false.
+
     ! NOTE: it is better *not* to protect against small density in this routine
 
     ! update all of the passively-advective quantities in a single loop
@@ -416,6 +418,8 @@ contains
     double precision :: compo, compn
 
     type (eos_t) :: eos_state
+
+    eos_state % check_small = .false.
 
     ! NOTE: it is better *not* to protect against small density in this routine
 

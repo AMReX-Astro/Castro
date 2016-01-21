@@ -763,6 +763,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
 
+    for (int ilev = crse_level; ilev <= finest_level ; ++ilev) 
+        sanity_check(ilev);
+
     int nlevels = finest_level - crse_level + 1;
 
     PArray<MultiFab> phi_p(nlevels);
@@ -907,11 +910,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Do the copy to the output vector.
 
-    for (int dir = 0; dir < 3; dir++)
-      if (dir < BL_SPACEDIM)
-	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-      else
-	grav_vector.setVal(0.,dir,1,ng);
+    for (int dir = 0; dir < 3; dir++) {
+	if (dir < BL_SPACEDIM) {
+	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+	} else {
+	    grav_vector.setVal(0.,dir,1,ng);
+	}
+    }
     
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
@@ -920,7 +925,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -1001,11 +1006,13 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Do the copy to the output vector.
 
-    for (int dir = 0; dir < 3; dir++)
-      if (dir < BL_SPACEDIM)
-	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-      else
-	grav_vector.setVal(0.,dir,1,ng);
+    for (int dir = 0; dir < 3; dir++) {
+	if (dir < BL_SPACEDIM) {
+	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+	} else {
+	    grav_vector.setVal(0.,dir,1,ng);
+	}
+    }
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
@@ -1014,7 +1021,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -1176,7 +1183,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     PArray<MultiFab> SL_grad_phi(BL_SPACEDIM,PArrayManage);
 
     SL_phi.define(grids[level],1,1,Fab_allocate);
-    MultiFab::Copy(SL_phi,phi_old,0,0,1,0);
+    MultiFab::Copy(SL_phi,phi_old,0,0,1,1);
 
     comp_minus_level_phi.setVal(0.);
     for (int n=0; n<BL_SPACEDIM; ++n)
@@ -2804,6 +2811,7 @@ Gravity::sanity_check (int level)
     //  Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, 
     //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
     //  at this level touch the domain boundary and we must abort.
+
     if (level > 0  && !Geometry::isAllPeriodic()) 
     {
 	const Geometry& geom = parent->Geom(level);

@@ -392,7 +392,7 @@ extern "C"
     (const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(reactions),
      const int* lo, const int* hi,
-     const Real* dx, Real* dt);
+     const Real* dx, const Real* dt_old, Real* dt);
 #endif
   
   void ca_umdrv
