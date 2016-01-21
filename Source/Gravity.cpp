@@ -1179,7 +1179,7 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_
     PArray<MultiFab> SL_grad_phi(BL_SPACEDIM,PArrayManage);
 
     SL_phi.define(grids[level],1,1,Fab_allocate);
-    MultiFab::Copy(SL_phi,phi_old,0,0,1,0);
+    MultiFab::Copy(SL_phi,phi_old,0,0,1,1);
 
     comp_minus_level_phi.setVal(0.);
     for (int n=0; n<BL_SPACEDIM; ++n)
