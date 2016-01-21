@@ -1223,7 +1223,7 @@ Castro::estTimeStep (Real dt_old)
 		ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
 				 BL_TO_FORTRAN_3D(reactions_new[mfi]),
 				 ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-				 ZFILL(dx),&dt);
+				 ZFILL(dx),&dt_old,&dt);
 
 	    }
 #ifdef _OPENMP
