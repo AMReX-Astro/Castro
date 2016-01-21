@@ -691,8 +691,7 @@ contains
        call transy1_rad(lam, lam_lo, lam_hi, &
                         qxm, qmxy, qxp, qpxy, qt_lo, qt_hi, &
                         fy, rfy, fy_lo, fy_hi, &
-                        ugdnvy, pgdnvy, ergdnvy, & 
-                        ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                        qgdnvy, qt_lo, qt_hi, &
                         gamcg, qd_lo, qd_hi, &
                         cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, k3d)
 
@@ -700,8 +699,7 @@ contains
        call transx1_rad(lam, lam_lo, lam_hi, &
                         qym, qmyx, qyp, qpyx, qt_lo, qt_hi, &
                         fx, rfx, fx_lo, fx_hi, &
-                        ugdnvx, pgdnvx, ergdnvx, & 
-                        ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                        qgdnvx, qt_lo, qt_hi, &
                         gamcg, qd_lo, qd_hi, &
                         cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, k3d)
 
@@ -751,8 +749,7 @@ contains
           call transy2_rad(lam, lam_lo, lam_hi, &
                            qzm, qmzy, qzp, qpzy, qt_lo, qt_hi, &
                            fy, rfy, fy_lo, fy_hi, &
-                           ugdnvy, pgdnvy, ergdnvy, & 
-                           ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                           qgdnvy, qt_lo, qt_hi, &
                            gamcg, qd_lo, qd_hi, &
                            cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, km, k3d)
           
@@ -760,8 +757,7 @@ contains
           call transx2_rad(lam, lam_lo, lam_hi, &
                            qzm, qmzx, qzp, qpzx, qt_lo, qt_hi, &
                            fx, rfx, fx_lo, fx_hi, &
-                           ugdnvx, pgdnvx, ergdnvx, & 
-                           ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+                           qgdnvx, qt_lo, qt_hi, &
                            gamcg, qd_lo, qd_hi, &
                            cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, km, k3d)
 
@@ -788,19 +784,17 @@ contains
                       3, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
           
           ! Compute U''_z at kc (k3d)
-          call transxy_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, & 
-                           qzm,qzl,qzp,qzr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                           fxy, rfxy, &
-                           ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                           fyx, rfyx, &
-                           ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
+          call transxy_rad(lam, lam_lo, lam_hi, &
+                           qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
+                           fxy, rfxy, fx_lo, fx_hi, &
+                           fyx, rfyx, fy_lo, fy_hi, &
                            ugdnvtmpx, pgdnvtmpx, ergdnvtmpx, &
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                            ugdnvtmpy, pgdnvtmpy, ergdnvtmpy, &
                            ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                           gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                           srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                           hdt,hdtdx,hdtdy,lo(1),hi(1),lo(2),hi(2),kc,km,k3d)
+                           gamcg, qd_lo, qd_hi, &
+                           srcQ, src_lo, src_hi, &
+                           hdt, hdtdx, hdtdy, lo(1), hi(1), lo(2), hi(2), kc, km, k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
           call cmpflx(qzl, qzr, qt_lo, qt_hi, &
@@ -843,9 +837,8 @@ contains
           if (k3d .gt. lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
-             call transz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                             qxm,qmxz,qxp,qpxz,qym,qmyz,qyp,qpyz, &
-                             ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
+             call transz_rad(lam, lam_lo, lam_hi, &
+                             qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
                              fz, rfz, &
                              ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
                              ugdnvz, pgdnvz, ergdnvz, &
@@ -876,34 +869,30 @@ contains
                          2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
 
              ! Compute U''_x at km (k3d-1)
-             call transyz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                              qxm,qxl,qxp,qxr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              fyz, rfyz, &
-                              ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-                              fzy, rfzy, & 
-                              ilo1-1,ilo2,1,ihi1+1,ihi2,2, &
+             call transyz_rad(lam, lam_lo, lam_hi, &
+                              qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
+                              fyz, rfyz, fy_lo, fy_hi, &
+                              fzy, rfzy, fz_lo, fz_hi, & 
                               ugdnvy, pgdnvy, ergdnvy, &
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                               ugdnvtmpz2, pgdnvtmpz2, ergdnvtmpz2, &
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                              srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                              hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
+                              gamcg, qd_lo, qd_hi, &
+                              srcQ, src_lo, src_hi, &
+                              hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
              
              ! Compute U''_y at km (k3d-1)
-             call transxz_rad(lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                              qym,qyl,qyp,qyr,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              fxz, rfxz, &
-                              ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-                              fzx, rfzx, &
-                              ilo1,ilo2-1,1,ihi1,ihi2+1,2, &
+             call transxz_rad(lam, lam_lo, lam_hi, &
+                              qym, qyl, qyp, qyr, qt_lo, qt_hi, &
+                              fxz, rfxz, fx_lo, fx_hi, &
+                              fzx, rfzx, fz_lo, fz_hi, &
                               ugdnvx, pgdnvx, ergdnvx, &
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                               ugdnvtmpz1, pgdnvtmpz1, ergdnvtmpz1, &
                               ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              gamcg,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                              srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                              hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
+                              gamcg, qd_lo, qd_hi, &
+                              srcQ, src_lo, src_hi, &
+                              hdt, hdtdx, hdtdz, lo(1), hi(1), lo(2)-1, hi(2)+1, km, kc, k3d-1)
              
              ! Compute F^x at km (k3d-1)
              call cmpflx(qxl, qxr, qt_lo, qt_hi, &
