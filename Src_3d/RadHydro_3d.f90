@@ -391,7 +391,8 @@ contains
     ! TODO:
     ! dx needs to be a vector
 
-    use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann
+    use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann, &
+                                   GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, ngdnv
     use ppm_module
     use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
@@ -491,9 +492,9 @@ contains
     double precision, allocatable::rfyx(:,:,:,:),rfyz(:,:,:,:)
     double precision, allocatable::rfzx(:,:,:,:),rfzy(:,:,:,:)
 
-    double precision, allocatable:: qgdnvx(:,:,:), qgdnvxf(:,:,:), qgdnvtmpx(:,:,:)
-    double precision, allocatable:: qgdnvy(:,:,:), qgdnvyf(:,:,:), qgdnvtmpy(:,:,:)
-    double precision, allocatable:: qgdnvz(:,:,:), qgdnvtmpz1(:,:,:), qgdnvtmpz2(:,:,:), qgdnvzf(:,:,:)
+    double precision, allocatable:: qgdnvx(:,:,:,:), qgdnvxf(:,:,:,:), qgdnvtmpx(:,:,:,:)
+    double precision, allocatable:: qgdnvy(:,:,:,:), qgdnvyf(:,:,:,:), qgdnvtmpy(:,:,:,:)
+    double precision, allocatable:: qgdnvz(:,:,:,:), qgdnvtmpz1(:,:,:,:), qgdnvtmpz2(:,:,:,:), qgdnvzf(:,:,:,:)
 
     double precision, allocatable:: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
 
@@ -627,7 +628,7 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, qd_lo, qd_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+       call shock(q, qd_lo, qd_hi, shk, shk_lo, shk_hi, lo, hi, (/dx,dy,dz/))
     else
        shk(:,:,:) = ZERO
     endif
@@ -706,7 +707,7 @@ contains
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy, qpxy, qt_lo, qt_hi, &
                    fxy, fx_lo, fx_hi, &
-                   qdnvtmpx, qt_lo, qt_hi, &
+                   qgdnvtmpx, qt_lo, qt_hi, &
                    lam, lam_lo, lam_hi, &
                    rfxy, fx_lo, fx_hi, &
                    gamcg, &
@@ -731,8 +732,8 @@ contains
           call tracez_ppm_rad(lam, lam_lo, lam_hi, &
                               q, c, cg, flatn, qd_lo, qd_hi, &
                               Ip,Im, &
-                              qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                              lo(1),lo(2),hi(1),hi(2),dz,dt,km,kc,k3d)
+                              qzm, qzp, qt_lo, qt_hi, &
+                              lo(1), lo(2), hi(1), hi(2), dz, dt, km, kc, k3d)
 
           ! Compute \tilde{F}^z at kc (k3d)
           call cmpflx(qzm, qzp, qt_lo, qt_hi, &
