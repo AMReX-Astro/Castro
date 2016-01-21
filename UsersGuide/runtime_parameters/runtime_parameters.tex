@@ -317,7 +317,7 @@
 \verb=  do_react  = &   permits reactions to be turned on and off -- mostly for efficiency's sake  &  -1 \\
 \verb=  dtnuc_f1  = &   limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc\_f1}  $(e / de/dt)$  &  1.e200 \\
 \rowcolor{tableShade}
-\verb=  dtnuc_f2  = &   limit the timestep based on whether the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc\_f2} $(e / de/dt) (\Delta t_{\rm{old}} / t_s)$, where $t_s$ is the sound-crossing time $\Delta x / c_s$ and $\Delta t_{\rm{old}}$ is the last burning timestep  &  1.e200 \\
+\verb=  dtnuc_f2  = &   limit the timestep based on whether the burning can change the internal energy of a zone. The timestep is equal to [{\tt dtnuc\_f2} $(e / (de/dt \cdot \Delta t_{\rm{old}})) (1 / t_s)]^{-1}$, where $t_s$ is the sound-crossing time $\Delta x / c_s$ and $\Delta t_{\rm{old}}$ is the last burning timestep  &  1.e200 \\
 \verb=  react_T_max  = &   maximum temperature for allowing reactions to occur in a zone  &  1.e200 \\
 \rowcolor{tableShade}
 \verb=  react_T_min  = &   minimum temperature for allowing reactions to occur in a zone  &  0.0 \\

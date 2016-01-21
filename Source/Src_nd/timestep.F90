@@ -146,7 +146,7 @@ contains
     ! good estimate for the current timestep's burning.
     !
     ! For the second, we want to limit the timestep so that it
-    ! is equal to dtnuc_f2 * (e / (de/dt)) * (dt_old / t_s),
+    ! is equal to (dtnuc_f2 * (e / (de/dt * dt_old))^(-1) * t_s,
     ! where dt_old is the burning timestep that was used to calculate
     ! de/dt, and t_s = dx / c_s is the sound-crossing time.
     ! Note that the dt_old passed into this routine is the last
@@ -159,7 +159,7 @@ contains
     ! current timestep's burning.
 
     dtdx = (dt_old / TWO) * minval(dx(1:dim))
-    
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -185,7 +185,7 @@ contains
 
                    call eos(eos_input_re, eos_state)
 
-                   dt = min(dt, dtnuc_f2 * e / dedt * dtdx / eos_state % cs)
+                   dt = min(dt, (dtdx / eos_state % cs) / (dtnuc_f2 * e / dedt))
 
                 endif
 
