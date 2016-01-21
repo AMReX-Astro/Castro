@@ -910,11 +910,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Do the copy to the output vector.
 
-    for (int dir = 0; dir < 3; dir++)
-      if (dir < BL_SPACEDIM)
-	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-      else
-	grav_vector.setVal(0.,dir,1,ng);
+    for (int dir = 0; dir < 3; dir++) {
+	if (dir < BL_SPACEDIM) {
+	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+	} else {
+	    grav_vector.setVal(0.,dir,1,ng);
+	}
+    }
     
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
@@ -923,7 +925,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
@@ -1004,11 +1006,13 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Do the copy to the output vector.
 
-    for (int dir = 0; dir < 3; dir++)
-      if (dir < BL_SPACEDIM)
-	MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-      else
-	grav_vector.setVal(0.,dir,1,ng);
+    for (int dir = 0; dir < 3; dir++) {
+	if (dir < BL_SPACEDIM) {
+	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+	} else {
+	    grav_vector.setVal(0.,dir,1,ng);
+	}
+    }
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
@@ -1017,7 +1021,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        //   before returning it
        AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,3); 
+       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
     }
 #endif
 
