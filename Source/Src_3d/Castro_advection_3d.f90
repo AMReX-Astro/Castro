@@ -71,9 +71,7 @@ contains
     integer :: q2_lo(3), q2_hi(3)
     integer :: q3_lo(3), q3_hi(3)
     integer :: domlo(3), domhi(3)
-    integer :: km, kc, kt, k3d, n
-    integer :: i, j, iwave, idim
-    
+
     double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision ::  gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
@@ -92,7 +90,10 @@ contains
     double precision :: dtdx, dtdy, dtdz, hdt
     double precision :: cdtdx, cdtdy, cdtdz
     double precision :: hdtdx, hdtdy, hdtdz
-    
+
+    integer :: km, kc, kt, k3d, n
+    integer :: i, j, iwave, idim
+        
     ! Left and right state arrays (edge centered, cell centered)
     double precision, pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
     double precision, pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
@@ -137,23 +138,23 @@ contains
     integer :: fy_lo(3), fy_hi(3)
     integer :: fz_lo(3), fz_hi(3)
 
-    qt_lo = (/ lo(1) - 1, lo(2) - 1, 1 /)
-    qt_hi = (/ hi(1) + 2, hi(2) + 2, 2 /)
+    qt_lo = [lo(1) - 1, lo(2) - 1, 1]
+    qt_hi = [hi(1) + 2, hi(2) + 2, 2]
 
-    It_lo = (/ lo(1) - 1, lo(2) - 1, 1 /)
-    It_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
+    It_lo = [lo(1) - 1, lo(2) - 1, 1]
+    It_hi = [hi(1) + 1, hi(2) + 1, 2]
 
     shk_lo(:) = lo(:) - 1
     shk_hi(:) = hi(:) + 1
 
-    fx_lo = (/ lo(1)    , lo(2) - 1, 1 /)
-    fx_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
+    fx_lo = [lo(1)    , lo(2) - 1, 1]
+    fx_hi = [hi(1) + 1, hi(2) + 1, 2]
 
-    fy_lo = (/ lo(1) - 1, lo(2)    , 1 /)
-    fy_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
+    fy_lo = [lo(1) - 1, lo(2)    , 1]
+    fy_hi = [hi(1) + 1, hi(2) + 1, 2]
 
-    fz_lo = (/ lo(1) - 1, lo(2) - 1, 1 /)
-    fz_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
+    fz_lo = [lo(1) - 1, lo(2) - 1, 1]
+    fz_hi = [hi(1) + 1, hi(2) + 1, 2]
     
     call bl_allocate (     qgdnvx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
     call bl_allocate (    qgdnvxf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
