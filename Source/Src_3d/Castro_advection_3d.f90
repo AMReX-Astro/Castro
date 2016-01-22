@@ -155,65 +155,65 @@ contains
     fz_lo = (/ lo(1) - 1, lo(2) - 1, 1 /)
     fz_hi = (/ hi(1) + 1, hi(2) + 1, 2 /)
     
-    call bl_allocate (     qgdnvx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate (    qgdnvxf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate (  qgdnvtmpx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (     qgdnvx, qt_lo, qt_hi, NGDNV)
+    call bl_allocate (    qgdnvxf, qt_lo, qt_hi, NGDNV)
+    call bl_allocate (  qgdnvtmpx, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate (     qgdnvy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate (    qgdnvyf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate (  qgdnvtmpy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (     qgdnvy, qt_lo, qt_hi, NGDNV)
+    call bl_allocate (    qgdnvyf, qt_lo, qt_hi, NGDNV)
+    call bl_allocate (  qgdnvtmpy, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate (     qgdnvz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate (    qgdnvzf, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate ( qgdnvtmpz1, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
-    call bl_allocate ( qgdnvtmpz2, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,NGDNV)
+    call bl_allocate (     qgdnvz, qt_lo, qt_hi, NGDNV)
+    call bl_allocate (    qgdnvzf, qt_lo, qt_hi, NGDNV)
+    call bl_allocate ( qgdnvtmpz1, qt_lo, qt_hi, NGDNV)
+    call bl_allocate ( qgdnvtmpz2, qt_lo, qt_hi, NGDNV)
     
-    call bl_allocate ( qxm, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qxp, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qxm, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qxp, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmxy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpxy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmxy, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpxy, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmxz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpxz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmxz, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpxz, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qym, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qyp, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qym, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qyp, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmyx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpyx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmyx, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpyx, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmyz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpyz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmyz, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpyz, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qzm, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qzp, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qzm, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qzp, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qxl, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qxr, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qyl, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qyr, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qzl, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qzr, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qxl, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qxr, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qyl, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qyr, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qzl, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qzr, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmzx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpzx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmzx, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpzx, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( qmzy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-    call bl_allocate ( qpzy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+    call bl_allocate ( qmzy, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qpzy, qt_lo, qt_hi, QVAR)
 
-    call bl_allocate ( fx, fx_lo(1),fx_hi(1),fx_lo(2),fx_hi(2),fx_lo(3),fx_hi(3),1,NVAR)
-    call bl_allocate ( fy, fy_lo(1),fy_hi(1),fy_lo(2),fy_hi(2),fy_lo(3),fy_hi(3),1,NVAR)
-    call bl_allocate ( fz, fz_lo(1),fz_hi(1),fz_lo(2),fz_hi(2),fz_lo(3),fz_hi(3),1,NVAR)
+    call bl_allocate ( fx, fx_lo, fx_hi, NVAR)
+    call bl_allocate ( fy, fy_lo, fy_hi, NVAR)
+    call bl_allocate ( fz, fz_lo, fz_hi, NVAR)
 
-    call bl_allocate ( fxy, fx_lo(1),fx_hi(1),fx_lo(2),fx_hi(2),fx_lo(3),fx_hi(3),1,NVAR)
-    call bl_allocate ( fxz, fx_lo(1),fx_hi(1),fx_lo(2),fx_hi(2),fx_lo(3),fx_hi(3),1,NVAR)
+    call bl_allocate ( fxy, fx_lo, fx_hi, NVAR)
+    call bl_allocate ( fxz, fx_lo, fx_hi, NVAR)
 
-    call bl_allocate ( fyx, fy_lo(1),fy_hi(1),fy_lo(2),fy_hi(2),fy_lo(3),fy_hi(3),1,NVAR)
-    call bl_allocate ( fyz, fy_lo(1),fy_hi(1),fy_lo(2),fy_hi(2),fy_lo(3),fy_hi(3),1,NVAR)
+    call bl_allocate ( fyx, fy_lo, fy_hi, NVAR)
+    call bl_allocate ( fyz, fy_lo, fy_hi, NVAR)
 
-    call bl_allocate ( fzx, fz_lo(1),fz_hi(1),fz_lo(2),fz_hi(2),fz_lo(3),fz_hi(3),1,NVAR)
-    call bl_allocate ( fzy, fz_lo(1),fz_hi(1),fz_lo(2),fz_hi(2),fz_lo(3),fz_hi(3),1,NVAR)
+    call bl_allocate ( fzx, fz_lo, fz_hi, NVAR)
+    call bl_allocate ( fzy, fz_lo, fz_hi, NVAR)
 
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
@@ -228,13 +228,13 @@ contains
        call bl_allocate ( Ip_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
        call bl_allocate ( Im_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
     else
-       call bl_allocate ( dqx, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-       call bl_allocate ( dqy, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
-       call bl_allocate ( dqz, qt_lo(1),qt_hi(1),qt_lo(2),qt_hi(2),qt_lo(3),qt_hi(3),1,QVAR)
+       call bl_allocate ( dqx, qt_lo, qt_hi, QVAR)
+       call bl_allocate ( dqy, qt_lo, qt_hi, QVAR)
+       call bl_allocate ( dqz, qt_lo, qt_hi, QVAR)
     end if
 
     ! for the hybrid Riemann solver
-    call bl_allocate(shk, shk_lo(1), shk_hi(1), shk_lo(2), shk_hi(2), shk_lo(3), shk_hi(3))
+    call bl_allocate(shk, shk_lo, shk_hi)
     
     ! Local constants
     dxinv = ONE/dx(1)
