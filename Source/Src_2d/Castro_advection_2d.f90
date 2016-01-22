@@ -44,7 +44,8 @@ contains
                      domlo, domhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann
+    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
+                                   GDU, GDV, GDPRES, ngdnv
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
@@ -94,8 +95,7 @@ contains
     
     ! Work arrays to hold riemann state and conservative fluxes
     double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable ::  pgdxtmp(:,:) ,  ugdxtmp(:,:)
-    double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+    double precision, allocatable ::  qgdxtmp(:,:,:), qgdx(:,:,:), qgdy(:,:,:)
     double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
@@ -221,18 +221,19 @@ contains
       
     ! store p and u for output
     do j = pgdx_l2, pgdx_h2
-       do i = pgdx_l2, pgdx_h2
+       do i = pgdx_l1, pgdx_h1
           pgdx(i,j) = qgdx(i,j,GDPRES)
           ugdx(i,j) = qgdx(i,j,GDU)
        enddo
     enddo
 
     do j = pgdy_l2, pgdy_h2
-       do i = pgdy_l2, pgdy_h2
+       do i = pgdy_l1, pgdy_h1
           pgdy(i,j) = qgdy(i,j,GDPRES)
           ugdy(i,j) = qgdy(i,j,GDV)
        enddo
     enddo
+
 
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
@@ -248,7 +249,7 @@ contains
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
     deallocate(shk)
-    deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
+    deallocate(qgdxtmp,qgdx,qgdy)
     
   end subroutine umeth2d
 

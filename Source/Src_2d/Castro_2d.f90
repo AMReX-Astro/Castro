@@ -96,55 +96,55 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dx = delta(1)
   dy = delta(2)
 
-  !     Translate to primitive variables, compute sound speeds
-  !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  !       and set to correspond to coordinates of (lo:hi)
+  ! Translate to primitive variables, compute sound speeds.  Note that
+  ! (q,c,gamc,csml,flatn) are all dimensioned the same and set to
+  ! correspond to coordinates of (lo:hi)
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-       q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-       src,src_l1,src_l2,src_h1,src_h2, &
-       srcQ,q_l1,q_l2,q_h1,q_h2, &
-       courno,dx,dy,dt,ngq,ngf)
-
-  !     Compute hyperbolic fluxes using unsplit Godunov
+               q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+               src,src_l1,src_l2,src_h1,src_h2, &
+               srcQ,q_l1,q_l2,q_h1,q_h2, &
+               courno,dx,dy,dt,ngq,ngf)
+  
+  ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-       srcQ, q_l1,q_l2,q_h1,q_h2, &
-       lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
-       flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-       flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-       pgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       pgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
-       ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-       ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-       area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-       area2, area2_l1, area2_l2, area2_h1, area2_h2, &
-       pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-       domlo, domhi)
+               srcQ, q_l1,q_l2,q_h1,q_h2, &
+               lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
+               flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+               flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+               pgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+               pgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+               ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
+               ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+               area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+               area2, area2_l1, area2_l2, area2_h1, area2_h2, &
+               pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+               dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
+               domlo, domhi)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   ! this is used for the artifical viscosity
   call divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2, &
-       delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
+            delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
   !     Conservative update
   call consup(uin,    uin_l1,  uin_l2,  uin_h1,  uin_h2, &
-       uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
-       pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       pgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
-       src,    src_l1,  src_l2,  src_h1,  src_h2, &
-       flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-       flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-       area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-       area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-       vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-       div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
-       xmom_added_flux,ymom_added_flux,zmom_added_flux, &
-       verbose)
+              uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
+              pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+              pgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
+              src,    src_l1,  src_l2,  src_h1,  src_h2, &
+              flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+              flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+              area1,area1_l1,area1_l2,area1_h1,area1_h2, &
+              area2,area2_l1,area2_l2,area2_h1,area2_h2, &
+              vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
+              div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              verbose)
 
   ! Enforce the density >= small_dens.
-  call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-       uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-       lo,hi,mass_added,eint_added,eden_added,verbose)
+  call enforce_minimum_density(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
+                               uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                               lo,hi,mass_added,eint_added,eden_added,verbose)
 
   ! Enforce the species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
