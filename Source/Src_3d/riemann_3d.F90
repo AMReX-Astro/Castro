@@ -3,6 +3,22 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
+  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
+                                 QPRES, QGAME, QREINT, QESGS, QFS, &
+                                 QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                 UESGS, UFS, UFX, &
+                                 NGDNV, GDRHO, GDPRES, GDGAME, &
+                                 small_dens, small_pres, small_temp, &
+                                 cg_maxiter, cg_tol, &
+                                 npassive, upass_map, qpass_map, &
+                                 riemann_solver, ppm_temp_fix, hybrid_riemann, &
+                                 allow_negative_energy
+#ifdef RADIATION
+  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+  use rad_params_module, only : ngroups
+  use fluxlimiter_module, only : Edd_factor
+  use rad_params_module, only : ngroups
+#endif
 
   implicit none
 
@@ -32,13 +48,6 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, NGDNV, &
-                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
-                                   small_temp, allow_negative_energy
-#ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
-    use rad_params_module, only : ngroups
-#endif
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
@@ -297,7 +306,6 @@ contains
   subroutine shock(q,qd_lo,qd_hi,shk,s_lo,s_hi,lo,hi,dx)
 
     use prob_params_module, only : coord_type
-    use meth_params_module, only : QU, QV, QW, QPRES, QVAR
     use bl_constants_module
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -412,18 +420,9 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use bl_error_module
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, QREINT, QESGS, QFS, &
-                                   QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   UESGS, UFS, UFX, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
-                                   small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol, &
-                                   npassive, upass_map, qpass_map
 
     double precision, parameter:: small = 1.d-8
 
@@ -959,15 +958,6 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QGAME, QREINT, QESGS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
-                                   small_dens, small_pres, npassive, upass_map, qpass_map
-#ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
-    use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
-#endif
 
     double precision, parameter:: small = 1.d-8
 
@@ -1448,10 +1438,6 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QESGS, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
-                                   small_dens, small_pres, npassive, upass_map, qpass_map
 
     double precision, parameter:: small = 1.d-8
 
