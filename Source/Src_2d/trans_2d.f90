@@ -8,9 +8,7 @@ contains
 
   subroutine transx(qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
                     fx, fx_l1, fx_l2, fx_h1, fx_h2, &
-                    pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                    ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                    gegdx, gegdx_l1, gegdx_l2, gegdx_h1, gegdx_h2, &
+                    qgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                     gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     hdt, cdtdx,  &

@@ -103,11 +103,9 @@ contains
     double precision :: hdtdx, hdt, hdtdy
     integer          :: i,j
 
-    allocate ( pgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2))
-    allocate ( ugdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+    allocate ( qgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,ngdnv))
+    allocate ( qgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,ngdnv))
+    allocate ( qgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,ngdnv))
 
     allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
@@ -163,9 +161,7 @@ contains
     ! guesses for the x-interface states.  This produces the flux fx
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
+                qgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
@@ -174,9 +170,7 @@ contains
     ! guesses for the y-interface states.  This produces the flux fy
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
@@ -186,9 +180,7 @@ contains
     ! states.  This results in the new x-interface states qm and qp
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
@@ -199,9 +191,7 @@ contains
     ! is flux1
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
-                pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                qgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
@@ -211,9 +201,7 @@ contains
     ! states.  This results in the new y-interface states qm and qp
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                qgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
@@ -226,13 +214,25 @@ contains
     ! is flux2
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
+    ! store p and u for output
+    do j = pgdx_l2, pgdx_h2
+       do i = pgdx_l2, pgdx_h2
+          pgdx(i,j) = qgdx(i,j,GDPRES)
+          ugdx(i,j) = qgdx(i,j,GDU)
+       enddo
+    enddo
+
+    do j = pgdy_l2, pgdy_h2
+       do i = pgdy_l2, pgdy_h2
+          pgdy(i,j) = qgdy(i,j,GDPRES)
+          ugdy(i,j) = qgdy(i,j,GDV)
+       enddo
+    enddo
 
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
