@@ -506,7 +506,7 @@ Castro::Castro (Amr&            papa,
        // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs 
        // ghost cells because they are only multiplying them by a zero coefficient.
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0);
+       phi_new.setVal(0.0,phi_new.nGrow());
 
    } else {
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -1223,7 +1223,7 @@ Castro::estTimeStep (Real dt_old)
 		ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
 				 BL_TO_FORTRAN_3D(reactions_new[mfi]),
 				 ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-				 ZFILL(dx),&dt);
+				 ZFILL(dx),&dt_old,&dt);
 
 	    }
 #ifdef _OPENMP
@@ -1776,8 +1776,8 @@ Castro::post_init (Real stop_time)
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
           BoxArray ba = getLevel(k).boxArray();
-          MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
-          gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
+          MultiFab& grav_new = getLevel(k).get_new_data(Gravity_Type);
+          gravity->get_new_grav_vector(k,grav_new,cur_time);
        }
     }
 #endif
@@ -1858,8 +1858,8 @@ Castro::post_grown_restart ()
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
           BoxArray ba = getLevel(k).boxArray();
-          MultiFab grav_vec_new(ba,3,NUM_GROW,Fab_allocate);
-          gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
+          MultiFab& grav_new = get_new_data(Gravity_Type);
+          gravity->get_new_grav_vector(k,grav_new,cur_time);
        }
     }
 #endif

@@ -167,10 +167,16 @@ change_max                   Real          1.1
 #-----------------------------------------------------------------------------
 
 # limit the timestep based on how much the burning can change the internal
-# energy of a zone.  The goal is to have the timestep equal to
-# {\tt burning\_timestep\_factor}  $(e / \Delta e)$
-burning_timestep_factor      Real          1.e200             y
+# energy of a zone. The timestep is equal to
+# {\tt dtnuc\_f1}  $(e / de/dt)$
+dtnuc_f1                     Real          1.e200             y
 
+# limit the timestep based on whether the burning can change the internal 
+# energy of a zone. The timestep is equal to
+# [{\tt dtnuc\_f2} $(e / (de/dt \cdot \Delta t_{\rm{old}})) (1 / t_s)]^{-1}$,
+# where $t_s$ is the sound-crossing time $\Delta x / c_s$ and
+# $\Delta t_{\rm{old}}$ is the last burning timestep
+dtnuc_f2                     Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake 
 do_react                     int          -1

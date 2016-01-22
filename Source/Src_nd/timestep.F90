@@ -100,16 +100,18 @@ contains
 
 
 
-  ! Teactions-limited timestep
+  ! Reactions-limited timestep
 
-#ifdef REACTIONS  
+#ifdef REACTIONS
   subroutine ca_estdt_burning(u, u_lo, u_hi, &
-       reactions, r_lo, r_hi, &
-       lo, hi, dx, dt) bind(C)
+                              reactions, r_lo, r_hi, &
+                              lo, hi, dx, dt_old, dt) bind(C)
 
     use bl_constants_module, only: ZERO, TWO
-    use network, only: nspec
-    use meth_params_module, only : NVAR, URHO, UEINT, burning_timestep_factor
+    use network, only: nspec, naux
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc_f1, dtnuc_f2
+    use prob_params_module, only : dim
+    use eos_module
 
     implicit none
 
@@ -118,36 +120,75 @@ contains
     integer          :: lo(3), hi(3)
     double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
-    double precision :: dx(3), dt
+    double precision :: dx(3), dt, dt_old
 
     double precision :: e, dedt
     integer          :: i, j, k
 
-    ! The reactions MultiFab contains the net changes in X (the
+    type (eos_t)     :: eos_state
+    double precision :: dtdx
+
+    ! The reactions MultiFab contains the rate of changes of X (the
     ! first nspec values), e (the nspec+1 value), and rho*e (the
     ! nspec+2) value. 
     !
-    ! What we want to do is limit so that the timestep is equal to
-    ! burning_timestep_factor * (e / (de/dt)).  If the timestep
+    ! We have two burning timestep limiters.
+    !
+    ! For the first, we want to limit the timestep so that it
+    ! is equal to dtnuc_f1 * (e / (de/dt)).  If the timestep
     ! factor is equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
     ! magnitude in the next timestep. 
     !
-    ! If the timestep factor is
-    ! less than one, it functionally controls the fraction we will
+    ! If dtnuc_f1 is less than one, it controls the fraction we will
     ! allow the internal energy to change in this timestep due to
-    ! nuclear burning, provide that the last timestep's burning is a
+    ! nuclear burning, provided that the last timestep's burning is a
     ! good estimate for the current timestep's burning.
+    !
+    ! For the second, we want to limit the timestep so that it
+    ! is equal to (dtnuc_f2 * (e / (de/dt * dt_old))^(-1) * t_s,
+    ! where dt_old is the burning timestep that was used to calculate
+    ! de/dt, and t_s = dx / c_s is the sound-crossing time.
+    ! Note that the dt_old passed into this routine is the last
+    ! advance timestep, whereas because of the Strang splitting
+    ! we want to divide that by two to get the latest burning timestep.
+    !
+    ! If dtnuc_f2 is less than one, it controls the fraction of a zone
+    ! that a burning front can cross in a timestep, provided that
+    ! the last timestep's burning is a good estimate for the
+    ! current timestep's burning.
+
+    dtdx = (dt_old / TWO) * minval(dx(1:dim))
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              e = u(i,j,k,UEINT) / u(i,j,k,URHO)
-             dedt = reactions(i,j,k,nspec+1)
+             dedt = abs(reactions(i,j,k,nspec+1))
 
-             if (abs(dedt) > 1.d-100) then
-                dt = min(dt, burning_timestep_factor * e / abs(dedt))
+             if (dedt > 1.d-100) then
+
+                if (dtnuc_f1 < 1.d200) then
+
+                   dt = min(dt, dtnuc_f1 * e / dedt)
+
+                endif
+
+                if (dtnuc_f2 < 1.d200 .and. dtdx > ZERO) then
+
+                   eos_state % rho = u(i,j,k,URHO)
+                   eos_state % e   = e
+                   eos_state % T   = u(i,j,k,UTEMP)
+                   eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
+                   eos_state % aux = u(i,j,k,UFX:UFS+naux-1) / u(i,j,k,URHO)
+
+                   call eos(eos_input_re, eos_state)
+
+                   dt = min(dt, (dtdx / eos_state % cs) / (dtnuc_f2 * e / dedt))
+
+                endif
+
              endif
 
           enddo
@@ -158,7 +199,7 @@ contains
 #endif
 
 
-  
+
   ! Diffusion-limited timestep
 
 #ifdef DIFFUSION

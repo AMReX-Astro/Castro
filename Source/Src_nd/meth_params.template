@@ -30,6 +30,10 @@ module meth_params_module
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
+  ! These are used for the Godunov state
+  ! Note that the velocity indices here are picked to be the same value
+  ! as in the primitive variable array
+  integer, save :: ngdnv, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, GDLAMS, GDERADS
 
   integer         , save :: numpts_1d
 

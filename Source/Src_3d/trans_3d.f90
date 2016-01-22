@@ -73,6 +73,13 @@ contains
 
     type (eos_t) :: eos_state
 
+    ! It is possible that in the trans routines, we'll call the EOS with states 
+    ! that dip under the small density or small temperature; we don't want to
+    ! crash in that case, and instead we will allow the reset routines to deal 
+    ! with that later.
+
+    eos_state % check_small = .false.
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -422,6 +429,8 @@ contains
     logical :: reset
 
     type (eos_t) :: eos_state
+
+    eos_state % check_small = .false.
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -773,6 +782,8 @@ contains
 
     type (eos_t) :: eos_state
 
+    eos_state % check_small = .false.
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -1117,6 +1128,8 @@ contains
     logical :: reset
 
     type (eos_t) :: eos_state
+
+    eos_state % check_small = .false.
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1474,6 +1487,8 @@ contains
     logical :: reset
 
     type (eos_t) :: eos_state
+
+    eos_state % check_small = .false.
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -2070,6 +2085,8 @@ contains
 
     type (eos_t) :: eos_state
 
+    eos_state % check_small = .false.
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -2481,6 +2498,8 @@ contains
 
     type (eos_t) :: eos_state
 
+    eos_state % check_small = .false.
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -2874,6 +2893,8 @@ contains
     logical :: reset
 
     type (eos_t) :: eos_state
+
+    eos_state % check_small = .false.
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the

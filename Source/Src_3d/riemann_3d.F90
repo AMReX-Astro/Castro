@@ -24,7 +24,6 @@ contains
 #ifdef RADIATION
                     lam, lam_lo, lam_hi, &
                     rflx, rflx_lo, rflx_hi, &
-                    v1gdnv, v2gdnv, ergdnv, lmgdnv, &
                     gamcg, &
 #endif
                     gamc,csml,c,qd_lo,qd_hi, &
@@ -76,10 +75,6 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    double precision v1gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision v2gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))    
-    double precision ergdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
-    double precision lmgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
     double precision gamcg(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 #endif
 
@@ -225,7 +220,6 @@ contains
                       lam, lam_lo, lam_hi, &
                       gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
-                      v1gdnv, v2gdnv, ergdnv, lmgdnv, & 
 #endif
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
@@ -960,7 +954,6 @@ contains
                        lam,lam_lo,lam_hi, &
                        gamcgl,gamcgr, &
                        rflx, rflx_lo,rflx_hi, &
-                       v1gdnv, v2gdnv, ergdnv, lmgdnv, &
 #endif
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
@@ -968,7 +961,7 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QGAME, QREINT, QESGS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
                                    small_dens, small_pres, npassive, upass_map, qpass_map
 #ifdef RADIATION
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
@@ -1009,10 +1002,6 @@ contains
     double precision gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    double precision v1gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision v2gdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision ergdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
-    double precision lmgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),0:ngroups-1)
 #endif
 
     ! Note:  Here k3d is the k corresponding to the full 3d array --
@@ -1287,8 +1276,6 @@ contains
           qint(i,j,kc,iu  ) = frac*ustar + (ONE - frac)*uo
 
 #ifdef RADIATION
-          v1gdnv(i,j,kc) = qint(i,j,kc,iv1)
-          v2gdnv(i,j,kc) = qint(i,j,kc,iv2)
           pgdnv_t       = frac*pstar + (1.d0 - frac)*po
           pgdnv_g       = frac*pstar_g + (1.d0 - frac)*po_g
           regdnv_g = frac*estar_g + (1.d0 - frac)*reo_g
@@ -1329,11 +1316,11 @@ contains
 
 #ifdef RADIATION
           do g=0, ngroups-1
-             ergdnv(i,j,kc,g) = max(regdnv_r(g), 0.d0)
+             qint(i,j,kc,GDERADS+g) = max(regdnv_r(g), 0.d0)
           end do
           
           qint(i,j,kc,GDPRES) = pgdnv_g          
-          lmgdnv(i,j,kc,:) = lambda
+          qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
 
           qint(i,j,kc,GDGAME) = pgdnv_g/regdnv_g + ONE
 #else
@@ -1404,11 +1391,11 @@ contains
              do g=0,ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = 0.5d0*(1.d0-eddf)
-                rflx(i,j,kflux,g) = (1.d0+f1) * ergdnv(i,j,kc,g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = (1.d0+f1) * qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
              end do
           else ! type 2
              do g=0,ngroups-1
-                rflx(i,j,kflux,g) = ergdnv(i,j,kc,g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
              end do
           end if
 #endif
@@ -1494,7 +1481,7 @@ contains
     integer :: i,j,kc,kflux,k3d
     integer :: n, nq, ipassive
 
-    double precision :: rgdnv,v1gdnv,v2gdnv,regdnv
+    double precision :: rgdnv,regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
