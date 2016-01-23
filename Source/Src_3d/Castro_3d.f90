@@ -69,7 +69,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer:: pdivu(:,:,:)
   double precision, pointer:: srcQ(:,:,:,:)
 
-  ! Edge-centered primitive variables  
+  ! Edge-centered primitive variables (Riemann state)
   double precision, pointer:: q1(:,:,:,:)
   double precision, pointer:: q2(:,:,:,:)
   double precision, pointer:: q3(:,:,:,:)
@@ -127,23 +127,23 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   src_lo = (/ src_l1, src_l2, src_l3 /)
   src_hi = (/ src_h1, src_h2, src_h3 /)  
   
-  call bl_allocate(     q, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,QVAR)
-  call bl_allocate(  gamc, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
-  call bl_allocate( flatn, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
-  call bl_allocate(     c, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
-  call bl_allocate(  csml, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
+  call bl_allocate(     q, q_lo, q_hi, QVAR)
+  call bl_allocate(  gamc, q_lo, q_hi)
+  call bl_allocate( flatn, q_lo, q_hi)
+  call bl_allocate(     c, q_lo, q_hi)
+  call bl_allocate(  csml, q_lo, q_hi)
 
-  call bl_allocate(   div, lo(1),hi(1)+1,lo(2),hi(2)+1,lo(3),hi(3)+1)  
-  call bl_allocate( pdivu, lo(1),hi(1)  ,lo(2),hi(2)  ,lo(3),hi(3)  )
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)  
+  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
-  call bl_allocate(  srcQ, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,QVAR)
+  call bl_allocate(  srcQ, q_lo, q_hi, QVAR)
 
-  ugdnvx_lo = (/ ugdnvx_l1, ugdnvx_l2, ugdnvx_l3 /)
-  ugdnvx_hi = (/ ugdnvx_h1, ugdnvx_h2, ugdnvx_h3 /)
-  ugdnvy_lo = (/ ugdnvy_l1, ugdnvy_l2, ugdnvy_l3 /)
-  ugdnvy_hi = (/ ugdnvy_h1, ugdnvy_h2, ugdnvy_h3 /)
-  ugdnvz_lo = (/ ugdnvz_l1, ugdnvz_l2, ugdnvz_l3 /)
-  ugdnvz_hi = (/ ugdnvz_h1, ugdnvz_h2, ugdnvz_h3 /)
+  ugdnvx_lo = [ugdnvx_l1, ugdnvx_l2, ugdnvx_l3]
+  ugdnvx_hi = [ugdnvx_h1, ugdnvx_h2, ugdnvx_h3]
+  ugdnvy_lo = [ugdnvy_l1, ugdnvy_l2, ugdnvy_l3]
+  ugdnvy_hi = [ugdnvy_h1, ugdnvy_h2, ugdnvy_h3]
+  ugdnvz_lo = [ugdnvz_l1, ugdnvz_l2, ugdnvz_l3]
+  ugdnvz_hi = [ugdnvz_h1, ugdnvz_h2, ugdnvz_h3]
 
   q1_lo = ugdnvx_lo
   q1_hi = ugdnvx_hi
@@ -152,9 +152,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   q3_lo = ugdnvz_lo
   q3_hi = ugdnvz_hi
   
-  call bl_allocate(    q1, q1_lo(1),q1_hi(1),q1_lo(2),q1_hi(2),q1_lo(3),q1_hi(3),1,NGDNV)
-  call bl_allocate(    q2, q2_lo(1),q2_hi(1),q2_lo(2),q2_hi(2),q2_lo(3),q2_hi(3),1,NGDNV)
-  call bl_allocate(    q3, q3_lo(1),q3_hi(1),q3_lo(2),q3_hi(2),q3_lo(3),q3_hi(3),1,NGDNV)
+  call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
+  call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
+  call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
   
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
