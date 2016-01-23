@@ -15,7 +15,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     E_added_flux) bind(C)
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv
+  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
   use advection_module, only : umeth2d, ctoprim, consup
   use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
   use castro_util_2d_module, only : ca_enforce_nonnegative_species
@@ -60,8 +60,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, allocatable :: c(:,:)
   double precision, allocatable :: csml(:,:)
   double precision, allocatable :: div(:,:)
-  double precision, allocatable :: pgdx(:,:)
-  double precision, allocatable :: pgdy(:,:)
   double precision, allocatable :: srcQ(:,:,:)
   double precision, allocatable :: pdivu(:,:)
 
@@ -153,6 +151,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! Normalize the species 
   if (normalize_species .eq. 1) &
        call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+
+  ugdx(:,:) = q1(:,:,GDU)
+  ugdy(:,:) = q2(:,:,GDV)
 
   deallocate(q,gamc,flatn,c,csml,div,q1,q2,srcQ,pdivu)
 
