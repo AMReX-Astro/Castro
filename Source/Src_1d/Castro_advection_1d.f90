@@ -64,23 +64,26 @@ contains
     double precision, allocatable:: dq(:,:),  qm(:,:),   qp(:,:)
 
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
-    allocate ( dq(ilo-1:ihi+1,QVAR))
     allocate ( qm(ilo-1:ihi+1,QVAR))
     allocate ( qp(ilo-1:ihi+1,QVAR))
 
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
-       call trace_ppm(q,dq,c,flatn,gamc,qd_l1,qd_h1, &
+       call trace_ppm(q,c,flatn,gamc,qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
                       qm,qp,ilo-1,ihi+1, &
                       ilo,ihi,domlo,domhi,dx,dt)
     else
+       allocate ( dq(ilo-1:ihi+1,QVAR))
+
        call trace(q,dq,c,flatn,qd_l1,qd_h1, &
                   dloga,dloga_l1,dloga_h1, &
                   srcQ,src_l1,src_h1, &
                   qm,qp,ilo-1,ihi+1, &
                   ilo,ihi,domlo,domhi,dx,dt)
+
+       deallocate(dq)
     end if
 
     ! Solve Riemann problem, compute xflux from improved predicted states 
@@ -91,7 +94,7 @@ contains
                 ugdnv,ugdnv_l1,ugdnv_h1, &
                 gamc, csml,c,qd_l1,qd_h1,ilo,ihi)
 
-    deallocate (dq,qm,qp)
+    deallocate (qm,qp)
 
   end subroutine umeth1d
 

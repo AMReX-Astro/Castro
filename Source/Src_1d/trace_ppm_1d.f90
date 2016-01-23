@@ -8,7 +8,7 @@ module trace_ppm_module
 
 contains
 
-  subroutine trace_ppm(q,dq,c,flatn,gamc,qd_l1,qd_h1, &
+  subroutine trace_ppm(q,c,flatn,gamc,qd_l1,qd_h1, &
                        dloga,dloga_l1,dloga_h1, &
                        srcQ,src_l1,src_h1,&
                        qxm,qxp,qpd_l1,qpd_h1, &
@@ -40,7 +40,6 @@ contains
     double precision     c(qd_l1:qd_h1)
     double precision dloga(dloga_l1:dloga_h1)
     
-    double precision   dq( qpd_l1: qpd_h1,QVAR)
     double precision  qxm( qpd_l1: qpd_h1,QVAR)
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
     
