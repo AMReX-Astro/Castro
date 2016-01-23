@@ -129,72 +129,72 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
   !       and set to correspond to coordinates of (lo:hi)
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-       Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
-       lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-       src,src_l1,src_l2,src_h1,src_h2, &
-       srcQ,q_l1,q_l2,q_h1,q_h2, &
-       courno,dx,dy,dt,ngq,ngf,iflaten)
+                   Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
+                   lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                   q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+                   src,src_l1,src_l2,src_h1,src_h2, &
+                   srcQ,q_l1,q_l2,q_h1,q_h2, &
+                   courno,dx,dy,dt,ngq,ngf,iflaten)
 
 !     Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
-       lam, lam_l1,lam_l2,lam_h1,lam_h2, &
-       srcQ,q_l1,q_l2,q_h1,q_h2, &
-       lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
-       flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-       flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-       radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
-       radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
-       pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       pgdy,  lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
-       ergdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       ergdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
-       lamgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       lamgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
-       ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-       ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-       area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-       area2, area2_l1, area2_l2, area2_h1, area2_h2, &
-       pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-       uy_xfc, ux_yfc, &
-       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-       domlo, domhi)
+                   lam, lam_l1,lam_l2,lam_h1,lam_h2, &
+                   srcQ,q_l1,q_l2,q_h1,q_h2, &
+                   lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
+                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                   radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
+                   radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
+                   pgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                   pgdy,  lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                   ergdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                   ergdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                   lamgdx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                   lamgdy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                   ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
+                   ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                   area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+                   area2, area2_l1, area2_l2, area2_h1, area2_h2, &
+                   pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+                   uy_xfc, ux_yfc, &
+                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
+                   domlo, domhi)
 
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2, &
-       delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
+            delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
   !     Conservative update
   call consup_rad(uin,  uin_l1,  uin_l2,  uin_h1,  uin_h2, &
-       uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
-       Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
-       Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
-       pgdx,   lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       pgdy, lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
-       ergdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       ergdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
-       lamgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
-       lamgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
-       ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-       ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-       src,    src_l1,  src_l2,  src_h1,  src_h2, &
-       flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-       flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-       radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
-       radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
-       area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-       area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-       vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-       div,pdivu, uy_xfc, ux_yfc, &
-       lo,hi,dx,dy,dt, nstep_fsp)
+                  uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
+                  Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
+                  Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
+                  pgdx,   lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                  pgdy, lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
+                  ergdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                  ergdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
+                  lamgdx,  lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                  lamgdy,lo(1)-1,   lo(2), hi(1)+1, hi(2)+1, &
+                  ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
+                  ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                  src,    src_l1,  src_l2,  src_h1,  src_h2, &
+                  flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                  radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
+                  radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
+                  area1,area1_l1,area1_l2,area1_h1,area1_h2, &
+                  area2,area2_l1,area2_l2,area2_h1,area2_h2, &
+                  vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
+                  div,pdivu, uy_xfc, ux_yfc, &
+                  lo,hi,dx,dy,dt, nstep_fsp)
 
   ! Enforce the density >= small_dens.
   mass_added = 0.d0
   eint_added = 0.d0
   eden_added = 0.d0
-  call enforce_minimum_density( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-       uout,uout_l1,uout_l2,uout_h1,uout_h2,&
-       lo,hi,mass_added,eint_added,eden_added,verbose)
+  call enforce_minimum_density(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
+                               uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+                               lo,hi,mass_added,eint_added,eden_added,verbose)
   
   ! Enforce the species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
@@ -210,9 +210,9 @@ end subroutine ca_umdrv_rad
 
 ! This subroutine cannot be tiled
 subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
-     kap, kap_l1, kap_l2, kap_h1, kap_h2, &
-     lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-     dx, ngrow, limiter, filter_T, S)
+                                kap, kap_l1, kap_l2, kap_h1, kap_h2, &
+                                lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                                dx, ngrow, limiter, filter_T, S)
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda
@@ -672,17 +672,17 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
 end subroutine ca_compute_lamborder
 
 
-subroutine ca_get_v_dcf( lo, hi, &
-     er ,  er_l1,  er_l2,  er_h1,  er_h2, &
-     s  ,   s_l1,   s_l2,   s_h1,   s_h2, &
-     T  ,   T_l1,   T_l2,   T_h1,   T_h2, &
-     c_v, c_v_l1, c_v_l2, c_v_h1, c_v_h2, &
-     kr ,  kr_l1,  kr_l2,  kr_h1,  kr_h2, &
-     kp ,  kp_l1,  kp_l2,  kp_h1,  kp_h2, &
-     kp2, kp2_l1, kp2_l2, kp2_h1, kp2_h2, &
-     dtemp, dtime, sigma, c, &
-     v  ,   v_l1,   v_l2,   v_h1,   v_h2, &
-     dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2)
+subroutine ca_get_v_dcf(lo, hi, &
+                        er ,  er_l1,  er_l2,  er_h1,  er_h2, &
+                        s  ,   s_l1,   s_l2,   s_h1,   s_h2, &
+                        T  ,   T_l1,   T_l2,   T_h1,   T_h2, &
+                        c_v, c_v_l1, c_v_l2, c_v_h1, c_v_h2, &
+                        kr ,  kr_l1,  kr_l2,  kr_h1,  kr_h2, &
+                        kp ,  kp_l1,  kp_l2,  kp_h1,  kp_h2, &
+                        kp2, kp2_l1, kp2_l2, kp2_h1, kp2_h2, &
+                        dtemp, dtime, sigma, c, &
+                        v  ,   v_l1,   v_l2,   v_h1,   v_h2, &
+                        dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2)
 
   use meth_params_module, only : NVAR, URHO, UMX, UMY
 
@@ -730,13 +730,13 @@ subroutine ca_get_v_dcf( lo, hi, &
 end subroutine ca_get_v_dcf
 
 
-subroutine ca_compute_dcoefs( lo, hi, &
-     d  ,   d_l1,   d_l2,   d_h1,   d_h2, &
-     lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-     v ,    v_l1,   v_l2,   v_h1,   v_h2, &
-     dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
-     r, idir)
-
+subroutine ca_compute_dcoefs(lo, hi, &
+                             d  ,   d_l1,   d_l2,   d_h1,   d_h2, &
+                             lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                             v ,    v_l1,   v_l2,   v_h1,   v_h2, &
+                             dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
+                             r, idir)
+  
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
@@ -786,10 +786,10 @@ end subroutine ca_compute_dcoefs
 
 
 subroutine ca_update_dcf(lo, hi, &
-     dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
-     etainv, eti_l1, eti_l2, eti_h1, eti_h2, &
-     kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2)
-
+                         dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
+                         etainv, eti_l1, eti_l2, eti_h1, eti_h2, &
+                         kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2)
+  
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
@@ -811,10 +811,10 @@ subroutine ca_update_dcf(lo, hi, &
 end subroutine ca_update_dcf
 
 
-subroutine ca_set_dterm_face( lo, hi, &
-     Er, Er_l1, Er_l2, Er_h1, Er_h2, &
-     dc, dc_l1, dc_l2, dc_h1, dc_h2, &
-     dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir)
+subroutine ca_set_dterm_face(lo, hi, &
+                             Er, Er_l1, Er_l2, Er_h1, Er_h2, &
+                             dc, dc_l1, dc_l2, dc_h1, dc_h2, &
+                             dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir)
   implicit none
   
   integer, intent(in) :: lo(2), hi(2)
@@ -843,12 +843,12 @@ subroutine ca_set_dterm_face( lo, hi, &
 end subroutine ca_set_dterm_face
 
 
-subroutine ca_face2center( lo, hi, &
-     scomp, dcomp, ncomp, nf, nc, &
-     foox, foox_l1, foox_l2, foox_h1, foox_h2, &
-     fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
-     fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2)
-
+subroutine ca_face2center(lo, hi, &
+                          scomp, dcomp, ncomp, nf, nc, &
+                          foox, foox_l1, foox_l2, foox_h1, foox_h2, &
+                          fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
+                          fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2)
+  
   implicit none
 
   integer, intent(in) :: lo(2), hi(2), scomp,dcomp,ncomp,nf,nc
@@ -875,9 +875,9 @@ end subroutine ca_face2center
 
 ! no tiling
 subroutine ca_correct_dterm(  & 
-     dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
-     dfy, dfy_l1, dfy_l2, dfy_h1, dfy_h2, &
-     re, rc)
+                            dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
+                            dfy, dfy_l1, dfy_l2, dfy_h1, dfy_h2, &
+                            re, rc)
 
   implicit none
 
@@ -905,8 +905,8 @@ end subroutine ca_correct_dterm
 
 
 subroutine ca_estdt_rad(u,u_l1,u_l2,u_h1,u_h2, &
-     gpr,gpr_l1,gpr_l2,gpr_h1,gpr_h2, &
-     lo,hi,dx,dt) bind(C)
+                        gpr,gpr_l1,gpr_l2,gpr_h1,gpr_h2, &
+                        lo,hi,dx,dt) bind(C)
 
   use network, only : nspec, naux
   use eos_module
@@ -961,7 +961,7 @@ end subroutine ca_estdt_rad
 
 ! this is tiling safe
 subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
-     gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2)
+                       gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2)
 
   use rad_params_module, only : ngroups
 
@@ -988,8 +988,8 @@ end subroutine ca_est_gpr0
 
 ! this is tiling safe
 subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
-     Er, Er_l1, Er_l2, Er_h1, Er_h2, &
-     gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2, vlo, vhi, dx, limiter, comoving)
+                       Er, Er_l1, Er_l2, Er_h1, Er_h2, &
+                       gPr, gPr_l1, gPr_l2, gPr_h1, gPr_h2, vlo, vhi, dx, limiter, comoving)
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
