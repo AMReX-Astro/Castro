@@ -324,7 +324,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                        domlo, domhi)
 
   use network, only : nspec
-  use meth_params_module, only : NVAR, ppm_type, GDPRES, GDU, GDV, ngdnv
+  use meth_params_module, only : NVAR, ppm_type, GDPRES, GDU, GDV, GDERADS, GDLAMS, ngdnv
 
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
@@ -388,18 +388,19 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   double precision rflux1(rfd1_l1:rfd1_h1,rfd1_l2:rfd1_h2,0:ngroups-1)
   double precision rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,0:ngroups-1)
 
-!     Left and right state arrays (edge centered, cell centered)
-  double precision, allocatable:: qm(:,:,:),   qp(:,:,:)
-  double precision, allocatable::qxm(:,:,:),qym(:,:,:)
-  double precision, allocatable::qxp(:,:,:),qyp(:,:,:)
+  ! Left and right state arrays (edge centered, cell centered)
+  double precision, allocatable :: qm(:,:,:), qp(:,:,:)
+  double precision, allocatable ::qxm(:,:,:), qym(:,:,:)
+  double precision, allocatable ::qxp(:,:,:), qyp(:,:,:)
 
-!     Work arrays to hold 3 planes of riemann state and conservative fluxes
+  ! Work arrays to hold riemann state and conservative fluxes
   double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
   double precision, allocatable::  rfx(:,:,:), rfy(:,:,:)
   double precision, allocatable::   qgdxtmp(:,:,:), qgdx(:,:,:), qgdy(:,:,:)
+
   double precision, allocatable :: shk(:,:)
 
-!     Local scalar variables
+  ! Local scalar variables
   double precision :: dtdx
   double precision :: hdtdx, hdt, hdtdy
   integer          :: i,j
@@ -503,18 +504,21 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
-              pgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
+              qgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
               gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-  ! store p and u for output
+  ! store p, u, and others for output
   do j = pgdx_l2, pgdx_h2
      do i = pgdx_l1, pgdx_h1
         pgdx(i,j) = qgdx(i,j,GDPRES)
         ugdx(i,j) = qgdx(i,j,GDU)
+        uy_xfc(i,j) = qgdx(i,j,GDV)
+        ergdx(i,j,:) = qgdx(i,j,GDERADS:GDERADS-1+ngroups)
+        lmgdx(i,j,:) = qgdx(i,j,GDLAMS:GDLAMS-1+ngroups)
      enddo
   enddo
 
@@ -522,6 +526,9 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      do i = pgdy_l1, pgdy_h1
         pgdy(i,j) = qgdy(i,j,GDPRES)
         ugdy(i,j) = qgdy(i,j,GDV)
+        ux_yfc(i,j) = qgdy(i,j,GDU)
+        ergdy(i,j,:) = qgdy(i,j,GDERADS:GDERADS-1+ngroups)
+        lmgdy(i,j,:) = qgdy(i,j,GDLAMS:GDLAMS-1+ngroups)
      enddo
   enddo
 
@@ -537,10 +544,13 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      end do
   end do
 
-  deallocate(qm,qp,qxm,qxp,qym,qyp)
-  deallocate(fx,fy)
-  deallocate(rfx,rfy)
-  deallocate(qgdxtmp,qgdx,qgdy)
+  !deallocate(qm,qp,qxm,qxp,qym,qyp)
+  !deallocate(fx,fy)
+  !deallocate(rfx,rfy)
+  !deallocate(qgdxtmp)
+  !deallocate(qgdx)
+  !deallocate(qgdy)
+  !deallocate(shk)
 
 end subroutine umeth2d_rad
 
