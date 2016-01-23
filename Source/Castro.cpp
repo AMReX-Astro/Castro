@@ -1448,6 +1448,26 @@ Castro::post_timestep (int iteration)
 
         reflux();
 
+	// Sometimes refluxing can generate zones with rho < small_dens, so let's fix 
+	// that now if we need to.
+
+	Real mass_added = 0.;
+	Real e_added = 0.;
+	Real E_added = 0.;
+	int verbose = 0;
+
+	for (MFIter mfi(S_new_crse,true); mfi.isValid(); ++mfi) {
+
+	  const Box& bx = mfi.tilebox();
+
+	  enforce_minimum_density(BL_TO_FORTRAN(S_new_crse[mfi]),
+				  BL_TO_FORTRAN(S_new_crse[mfi]),
+				  bx.loVect(), bx.hiVect(),
+				  &mass_added, &e_added, &E_added, 
+				  &verbose);
+
+	}
+
         // We need to do this before anything else because refluxing changes the values of coarse cells
         //    underneath fine grids with the assumption they'll be over-written by averaging down
         if (level < finest_level)

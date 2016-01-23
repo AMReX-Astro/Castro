@@ -49,7 +49,13 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 2       # maximum level number allowed
+amr.max_level       = 2         # maximum level number allowed
+castro.dual_energy_eta2 = 1.e-4 # this is the default
+
+# Note that if you run with max_level = 3, you need to relax the eta2 value.
+#amr.max_level       = 3       # maximum level number allowed
+#castro.dual_energy_eta2 = 1.e-3
+
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 16      # block factor in grid generation
