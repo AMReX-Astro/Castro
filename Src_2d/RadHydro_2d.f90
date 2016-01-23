@@ -20,14 +20,13 @@ subroutine ctoprim_rad(lo,hi, &
                        q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                        src,src_l1,src_l2,src_h1,src_h2, &
                        srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                       courno,dx,dy,dt,ngp,ngf,iflaten)
+                       courno,dx,dy,dt,ngp,ngf)
 
   ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-  ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
-  ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region is
-  ! assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call assumes
-  ! ngp>=ngf+3 (ie, primitve data is used by the routine that computes
-  ! flatn).
+  ! lo-ngf:hi+ngf.  Declared dimensions of q,c,gamc,csml,flatn are
+  ! given by DIMS(q).  This declared region is assumed to encompass
+  ! lo-ngp:hi+ngp.  Also, uflaten call assumes ngp>=ngf+3 (ie,
+  ! primitve data is used by the routine that computes flatn).
 
   use network, only : nspec, naux
   use eos_module
@@ -53,7 +52,6 @@ subroutine ctoprim_rad(lo,hi, &
   integer q_l1,q_l2,q_h1,q_h2
   integer src_l1,src_l2,src_h1,src_h2
   integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
-  integer iflaten
 
   double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
   double precision :: Erin(Erin_l1:Erin_h1,Erin_l2:Erin_h2,0:ngroups-1)
@@ -243,10 +241,10 @@ subroutine ctoprim_rad(lo,hi, &
   enddo
   courno = max( courmx, courmy )
 
-!     Compute flattening coef for slope calculations
+  ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
      flatn = 0.d0
-  else if(iflaten.eq.1)then
+  elseif (use_flattening == 1) then
      do n=1,2
         loq(n)=lo(n)-ngf
         hiq(n)=hi(n)+ngf
@@ -308,18 +306,11 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                        flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                        rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
                        rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
-                       pgdx,pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                       pgdy,pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                       ergdx, ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2, &
-                       ergdy, ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2, &
-                       lmgdx, lmgdx_l1, lmgdx_l2, lmgdx_h1, lmgdx_h2, &
-                       lmgdy, lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2, &
-                       ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                       ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                       q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                       q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                        area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                        area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                        pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                       uy_xfc, ux_yfc, &
                        dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
                        domlo, domhi)
 
@@ -334,6 +325,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   implicit none
 
+  integer qd_l1, qd_l2, qd_h1, qd_h2
   integer lam_l1,lam_l2,lam_h1,lam_h2
   integer ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2
   integer ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2
@@ -341,15 +333,12 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   integer lmgdy_l1, lmgdy_l2, lmgdy_h1, lmgdy_h2
   integer rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2
   integer rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2
-  integer qd_l1, qd_l2, qd_h1, qd_h2
+  integer q1_l1, q1_l2, q1_h1, q1_h2
+  integer q2_l1, q2_l2, q2_h1, q2_h2
   integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
   integer src_l1, src_l2, src_h1, src_h2
   integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
   integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
-  integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
-  integer pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2
-  integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-  integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
   integer area1_l1, area1_l2, area1_h1, area1_h2
   integer area2_l1, area2_l2, area2_h1, area2_h2
   integer vol_l1, vol_l2, vol_h1, vol_h2
@@ -366,25 +355,15 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-  double precision  pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
-  double precision  ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-  double precision  pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
-  double precision  ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
+  double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+  double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
   double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
   double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
   double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
   double precision pdivu(ilo1:ihi1,ilo2:ihi2)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
-
-  double precision uy_xfc(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-  double precision ux_yfc(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
-
   double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
-  double precision ergdx(ergdx_l1:ergdx_h1,ergdx_l2:ergdx_h2,0:ngroups-1)
-  double precision ergdy(ergdy_l1:ergdy_h1,ergdy_l2:ergdy_h2,0:ngroups-1)
-  double precision lmgdx(lmgdx_l1:lmgdx_h1,lmgdx_l2:lmgdx_h2,0:ngroups-1)
-  double precision lmgdy(lmgdy_l1:lmgdy_h1,lmgdy_l2:lmgdy_h2,0:ngroups-1)
   double precision rflux1(rfd1_l1:rfd1_h1,rfd1_l2:rfd1_h2,0:ngroups-1)
   double precision rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,0:ngroups-1)
 
@@ -396,7 +375,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   ! Work arrays to hold riemann state and conservative fluxes
   double precision, allocatable::   fx(:,:,:),  fy(:,:,:)
   double precision, allocatable::  rfx(:,:,:), rfy(:,:,:)
-  double precision, allocatable::   qgdxtmp(:,:,:), qgdx(:,:,:), qgdy(:,:,:)
+  double precision, allocatable::   qgdxtmp(:,:,:)
 
   double precision, allocatable :: shk(:,:)
 
@@ -406,9 +385,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   integer          :: i,j
   double precision :: pggdx, pggdy
 
-  allocate ( qgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2, ngdnv))
-  allocate ( qgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,ngdnv))
-  allocate ( qgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,ngdnv))
+  allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv))
 
   allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QRADVAR) )
   allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QRADVAR) )
@@ -455,7 +432,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-              qgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
+              qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
               lam, lam_l1, lam_l2, lam_h1, lam_h2, &
               rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
               gamcg, gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
@@ -464,7 +441,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-              qgdy, pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
+              q2, q2_l1, q2_l2, q2_h1, q2_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
               gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
@@ -475,7 +452,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                   qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                   fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                   rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                  qgdy,  pgdy_l1 , pgdy_l2,  pgdy_h1,  pgdy_h2, &
+                  q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                   gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
                   srcQ, src_l1, src_l2, src_h1, src_h2, &
                   hdt, hdtdy, &
@@ -483,7 +460,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
-              qgdx, pgdx_l1,  pgdx_l2,  pgdx_h1,  pgdx_h2, &
+              q1, q1_l1, q1_l2, q1_h1, q1_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
               gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
@@ -494,7 +471,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                   qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                   fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                   rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                  qgdxtmp,  pgdx_l1,  pgdx_l2,  pgdx_h1,  pgdx_h2, &
+                  qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
                   gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
                   srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                   hdt, hdtdx, &
@@ -504,52 +481,31 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
-              qgdy,  pgdy_l1,  pgdy_l2,  pgdy_h1,  pgdy_h2, &
+              q2, q2_l1, q2_l2, q2_h1, q2_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
               gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-  ! store p, u, and others for output
-  do j = pgdx_l2, pgdx_h2
-     do i = pgdx_l1, pgdx_h1
-        pgdx(i,j) = qgdx(i,j,GDPRES)
-        ugdx(i,j) = qgdx(i,j,GDU)
-        uy_xfc(i,j) = qgdx(i,j,GDV)
-        ergdx(i,j,:) = qgdx(i,j,GDERADS:GDERADS-1+ngroups)
-        lmgdx(i,j,:) = qgdx(i,j,GDLAMS:GDLAMS-1+ngroups)
-     enddo
-  enddo
-
-  do j = pgdy_l2, pgdy_h2
-     do i = pgdy_l1, pgdy_h1
-        pgdy(i,j) = qgdy(i,j,GDPRES)
-        ugdy(i,j) = qgdy(i,j,GDV)
-        ux_yfc(i,j) = qgdy(i,j,GDU)
-        ergdy(i,j,:) = qgdy(i,j,GDERADS:GDERADS-1+ngroups)
-        lmgdy(i,j,:) = qgdy(i,j,GDLAMS:GDLAMS-1+ngroups)
-     enddo
-  enddo
 
   ! Construct p div{U} -- this will be used as a source to the internal
   ! energy update.  Note we construct this using the interface states
   ! returned from the Riemann solver.
-  do j = ilo2,ihi2
-     do i = ilo1,ihi1
-        pggdx = 0.5d0*(pgdx(i+1,j  )+pgdx(i,j))
-        pggdy = 0.5d0*(pgdy(i  ,j+1)+pgdy(i,j))
-        pdivu(i,j) = (pggdx*(ugdx(i+1,j  )*area1(i+1,j  )-ugdx(i,j)*area1(i,j)) &
-             +        pggdy*(ugdy(i  ,j+1)*area2(i  ,j+1)-ugdy(i,j)*area2(i,j)) ) / vol(i,j)
-     end do
-  end do
+    do j = ilo2,ihi2
+       do i = ilo1,ihi1
+          pdivu(i,j) = HALF*( &
+               (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
+               (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
+               (q2(i,j+1,GDPRES) + q2(i,j,GDPRES)) * &
+               (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
+       end do
+    end do
 
   deallocate(qm,qp,qxm,qxp,qym,qyp)
   deallocate(fx,fy)
   deallocate(rfx,rfy)
   deallocate(qgdxtmp)
-  deallocate(qgdx)
-  deallocate(qgdy)
   deallocate(shk)
 
 end subroutine umeth2d_rad
@@ -558,28 +514,22 @@ end subroutine umeth2d_rad
 ! ::: ------------------------------------------------------------------
 ! :::
 
-subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-     uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-      Erin, Erin_l1, Erin_l2, Erin_h1, Erin_h2, &
-     Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
-     pgdx,pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2, &
-     pgdy,pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2, &
-     ergdx,ergdx_l1,ergdx_l2,ergdx_h1,ergdx_h2, &
-     ergdy,ergdy_l1,ergdy_l2,ergdy_h1,ergdy_h2, &
-     lmgdx,lmgdx_l1,lmgdx_l2,lmgdx_h1,lmgdx_h2, &
-     lmgdy,lmgdy_l1,lmgdy_l2,lmgdy_h1,lmgdy_h2, &
-     ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-     ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
-     src , src_l1, src_l2, src_h1, src_h2, &
-     flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-     flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-     rflux1,rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2, &
-     rflux2,rflux2_l1,rflux2_l2,rflux2_h1,rflux2_h2, &
-     area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-     area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-     vol,vol_l1,vol_l2,vol_h1,vol_h2, &
-     div,pdivu, uy_xfc, ux_yfc, &
-     lo,hi,dx,dy,dt, nstep_fsp)
+subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
+                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
+                      Erin, Erin_l1, Erin_l2, Erin_h1, Erin_h2, &
+                      Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
+                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                      q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+                      src , src_l1, src_l2, src_h1, src_h2, &
+                      flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                      flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                      rflux1,rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2, &
+                      rflux2,rflux2_l1,rflux2_l2,rflux2_h1,rflux2_h2, &
+                      area1,area1_l1,area1_l2,area1_h1,area1_h2, &
+                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
+                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
+                      div,pdivu, &
+                      lo,hi,dx,dy,dt, nstep_fsp)
 
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
        normalize_species
@@ -598,14 +548,8 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   integer uout_l1,uout_l2,uout_h1,uout_h2
   integer Erout_l1,Erout_l2,Erout_h1,Erout_h2
   integer Erin_l1,Erin_l2,Erin_h1,Erin_h2
-  integer pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2
-  integer pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2
-  integer ergdx_l1,ergdx_l2,ergdx_h1,ergdx_h2
-  integer ergdy_l1,ergdy_l2,ergdy_h1,ergdy_h2
-  integer lmgdx_l1,lmgdx_l2,lmgdx_h1,lmgdx_h2
-  integer lmgdy_l1,lmgdy_l2,lmgdy_h1,lmgdy_h2
-  integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-  integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
+  integer q1_l1, q1_l2, q1_h1, q1_h2
+  integer q2_l1, q2_l2, q2_h1, q2_h2
   integer   src_l1,  src_l2,  src_h1,  src_h2
   integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
@@ -619,14 +563,8 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
   double precision  Erin( Erin_l1: Erin_h1, Erin_l2: Erin_h2,0:ngroups-1)
   double precision Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
-  double precision  pgdx( pgdx_l1: pgdx_h1, pgdx_l2: pgdx_h2)
-  double precision  pgdy( pgdy_l1: pgdy_h1, pgdy_l2: pgdy_h2)
-  double precision ergdx(ergdx_l1:ergdx_h1,ergdx_l2:ergdx_h2,0:ngroups-1)
-  double precision ergdy(ergdy_l1:ergdy_h1,ergdy_l2:ergdy_h2,0:ngroups-1)
-  double precision lmgdx(lmgdx_l1:lmgdx_h1,lmgdx_l2:lmgdx_h2,0:ngroups-1)
-  double precision lmgdy(lmgdy_l1:lmgdy_h1,lmgdy_l2:lmgdy_h2,0:ngroups-1)
-  double precision  ugdx( ugdx_l1: ugdx_h1, ugdx_l2: ugdx_h2)
-  double precision  ugdy( ugdy_l1: ugdy_h1, ugdy_l2: ugdy_h2)
+  double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+  double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
   double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
   double precision  flux1( flux1_l1: flux1_h1, flux1_l2: flux1_h2,NVAR)
   double precision  flux2( flux2_l1: flux2_h1, flux2_l2: flux2_h2,NVAR)
@@ -637,15 +575,11 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
   double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
   double precision pdivu(lo(1):hi(1),lo(2):hi(2))
-  double precision uy_xfc( ugdx_l1: ugdx_h1, ugdx_l2: ugdx_h2)
-  double precision ux_yfc( ugdy_l1: ugdy_h1, ugdy_l2: ugdy_h2)
   double precision dx, dy, dt
 
   integer i, j, n, g
 
   double precision div1
-  double precision SrU, SrV
-  double precision rho, Up, Vp, SrE
 
   double precision, dimension(0:ngroups-1) :: Erscale
   double precision, dimension(0:ngroups-1) :: ustar, af
@@ -774,7 +708,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         ! the gas pressure in the momentum flux for all Cartesian coordinate
         ! directions
         if (coord_type == 1) then
-           dpdx = ( pgdx(i+1,j) - pgdx(i,j))/ dx
+           dpdx = ( q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
         else
            dpdx = ZERO
         endif
@@ -785,9 +719,10 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         dprdx = 0.d0
         dprdy = 0.d0
         do g= 0, ngroups-1
-           lamc = 0.25d0*(lmgdx(i,j,g) + lmgdx(i+1,j,g) + lmgdy(i,j,g) + lmgdy(i,j+1,g))
-           dprdx = dprdx + lamc*(ergdx(i+1,j,g) - ergdx(i,j,g))/dx
-           dprdy = dprdy + lamc*(ergdy(i,j+1,g) - ergdy(i,j,g))/dy
+           lamc = 0.25d0*(q1(i,j,GDLAMS+g) + q1(i+1,j,GDLAMS+g) + &
+                          q2(i,j,GDLAMS+g) + q2(i,j+1,GDLAMS+g))
+           dprdx = dprdx + lamc*(q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx
+           dprdy = dprdy + lamc*(q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dy
         end do
 
         uout(i,j,UMX) = uout(i,j,UMX) - dt * dpdx
@@ -811,51 +746,52 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           ux = 0.5d0*(ugdx(i,j) + ugdx(i+1,j))
-           uy = 0.5d0*(ugdy(i,j) + ugdy(i,j+1))
+           ux = 0.5d0*(q1(i,j,GDU) + q1(i+1,j,GDU))
+           uy = 0.5d0*(q2(i,j,GDV) + q2(i,j+1,GDV))
 
-           divu = (ugdx(i+1,j  )*area1(i+1,j  ) - ugdx(i,j)*area1(i,j) &
-                +  ugdy(i  ,j+1)*area2(i  ,j+1) - ugdy(i,j)*area2(i,j) &
-                & ) / vol(i,j)
+           divu = (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j) + &
+                   q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) / vol(i,j)
 
-           dudx(1) = (ugdx(i+1,j)-ugdx(i,j))/dx
-           dudx(2) = (uy_xfc(i+1,j)-uy_xfc(i,j))/dx
+           dudx(1) = (q1(i+1,j,GDU) - q1(i,j,GDU))/dx
+           dudx(2) = (q1(i+1,j,GDV) - q1(i,j,GDV))/dx
 
-           dudy(1) = (ux_yfc(i,j+1)-ux_yfc(i,j))/dy
-           dudy(2) = (ugdy(i,j+1)-ugdy(i,j))/dy
+           dudy(1) = (q2(i,j+1,GDU) - q2(i,j,GDU))/dy
+           dudy(2) = (q2(i,j+1,GDV) - q2(i,j,GDV))/dy
 
            ! Note that for single group, fspace_type is always 1
            do g=0, ngroups-1
 
-              nhat(1) = (ergdx(i+1,j,g)-ergdx(i,j,g))/dx
-              nhat(2) = (ergdy(i,j+1,g)-ergdy(i,j,g))/dy
+              nhat(1) = (q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx
+              nhat(2) = (q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dy
 
               GnDotu(1) = dot_product(nhat, dudx)
               GnDotu(2) = dot_product(nhat, dudy)
 
               nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.d-50)
 
-              lamc = 0.25d0*(lmgdx(i,j,g)+lmgdx(i+1,j,g)+lmgdy(i,j,g)+lmgdy(i,j+1,g))
+              lamc = 0.25d0*(q1(i,j,GDLAMS+g) + q1(i+1,j,GDLAMS+g) + &
+                             q2(i,j,GDLAMS+g) + q2(i,j+1,GDLAMS+g))
               Eddf = Edd_factor(lamc)
               f1 = (1.d0-Eddf)*0.5d0
               f2 = (3.d0*Eddf-1.d0)*0.5d0
               af(g) = -(f1*divu + f2*nnColonDotGu)
 
               if (fspace_type .eq. 1) then
-                 Eddfxp = Edd_factor(lmgdx(i+1,j  ,g))
-                 Eddfxm = Edd_factor(lmgdx(i  ,j  ,g))
-                 Eddfyp = Edd_factor(lmgdy(i  ,j+1,g))
-                 Eddfym = Edd_factor(lmgdy(i  ,j  ,g))
+                 Eddfxp = Edd_factor(q1(i+1,j  ,GDLAMS+g))
+                 Eddfxm = Edd_factor(q1(i  ,j  ,GDLAMS+g))
+                 Eddfyp = Edd_factor(q2(i  ,j+1,GDLAMS+g))
+                 Eddfym = Edd_factor(q2(i  ,j  ,GDLAMS+g))
 
                  f1xp = 0.5d0*(1.d0-Eddfxp)
                  f1xm = 0.5d0*(1.d0-Eddfxm)
                  f1yp = 0.5d0*(1.d0-Eddfyp)
                  f1ym = 0.5d0*(1.d0-Eddfym)
 
-                 Gf1E(1) = (f1xp*ergdx(i+1,j,g) - f1xm*ergdx(i,j,g)) / dx
-                 Gf1E(2) = (f1yp*ergdy(i,j+1,g) - f1ym*ergdy(i,j,g)) / dy
+                 Gf1E(1) = (f1xp*q1(i+1,j,GDERADS+g) - f1xm*q1(i,j,GDERADS+g)) / dx
+                 Gf1E(2) = (f1yp*q2(i,j+1,GDERADS+g) - f1ym*q2(i,j,GDERADS+g)) / dy
 
-                 Egdc = 0.25d0*(ergdx(i,j,g)+ergdx(i+1,j,g)+ergdy(i,j,g)+ergdy(i,j+1,g))
+                 Egdc = 0.25d0*(q1(i,j,GDERADS+g) + q1(i+1,j,GDERADS+g) + &
+                                q2(i,j,GDERADS+g) + q2(i,j+1,GDERADS+g))
 
                  Erout(i,j,g) = Erout(i,j,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
                       - dt*f2*Egdc*nnColonDotGu
@@ -881,7 +817,7 @@ subroutine consup_rad( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      do i = lo(1), hi(1)+1
         flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
         if (coord_type == 1) then
-           flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+           flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*q1(i,j,GDPRES)
         endif
      enddo
   enddo
@@ -913,10 +849,13 @@ end subroutine consup_rad
 
 
 subroutine ppflaten(lof, hif, &
-     flatn, q, q_l1,q_l2, q_h1,q_h2)
+                    flatn, q, q_l1,q_l2, q_h1,q_h2)
+
   use meth_params_module, only : QPRES, QU, QV
   use radhydro_params_module, only : flatten_pp_threshold, QRADVAR, qptot
+
   implicit none
+
   integer, intent(in) :: lof(2), hif(2), q_l1, q_h1, q_l2, q_h2
   double precision, intent(in) :: q(q_l1:q_h1,q_l2:q_h2,QRADVAR)
   double precision, intent(inout) :: flatn(q_l1:q_h1,q_l2:q_h2)
@@ -924,13 +863,13 @@ subroutine ppflaten(lof, hif, &
   integer :: i,j
 
   do j=lof(2),hif(2)
-  do i=lof(1),hif(1)
-     if (q(i-1,j,QU)+q(i,j-1,QV) > q(i+1,j,QU)+q(i,j+1,QV)) then
-        if (q(i,j,QPRES) < flatten_pp_threshold* q(i,j,qptot)) then
-           flatn(i,j) = 0.d0
+     do i=lof(1),hif(1)
+        if (q(i-1,j,QU)+q(i,j-1,QV) > q(i+1,j,QU)+q(i,j+1,QV)) then
+           if (q(i,j,QPRES) < flatten_pp_threshold* q(i,j,qptot)) then
+              flatn(i,j) = 0.d0
+           end if
         end if
-     end if
-  end do
+     end do
   end do
 end subroutine ppflaten
 
