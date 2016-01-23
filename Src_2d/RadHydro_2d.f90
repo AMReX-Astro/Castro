@@ -544,13 +544,13 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      end do
   end do
 
-  !deallocate(qm,qp,qxm,qxp,qym,qyp)
-  !deallocate(fx,fy)
-  !deallocate(rfx,rfy)
-  !deallocate(qgdxtmp)
-  !deallocate(qgdx)
-  !deallocate(qgdy)
-  !deallocate(shk)
+  deallocate(qm,qp,qxm,qxp,qym,qyp)
+  deallocate(fx,fy)
+  deallocate(rfx,rfy)
+  deallocate(qgdxtmp)
+  deallocate(qgdx)
+  deallocate(qgdy)
+  deallocate(shk)
 
 end subroutine umeth2d_rad
 
