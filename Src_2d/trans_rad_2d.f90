@@ -1,4 +1,4 @@
-module transverse_module
+module transverse_rad_module
 
   use network, only : nspec
 
@@ -424,4 +424,4 @@ contains
 
   end subroutine transx_rad
 
-end module transverse_module
+end module transverse_rad_module

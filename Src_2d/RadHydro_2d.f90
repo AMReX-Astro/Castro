@@ -330,7 +330,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
   use trace_ppm_rad_module, only : trace_ppm_rad
-  use transverse_module
+  use transverse_rad_module
 
   implicit none
 
