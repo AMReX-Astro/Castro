@@ -33,10 +33,8 @@ contains
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                     pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                     pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                     ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                     ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                      area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                      pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -59,10 +57,8 @@ contains
     integer src_l1, src_l2, src_h1, src_h2
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
-    integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
-    integer pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2
-    integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-    integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
+    integer q1_l1, q1_l2, q1_h1, q1_h2
+    integer q2_l1, q2_l2, q2_h1, q2_h2
     integer area1_l1, area1_l2, area1_h1, area1_h2
     integer area2_l1, area2_l2, area2_h1, area2_h2
     integer vol_l1, vol_l2, vol_h1, vol_h2
@@ -77,10 +73,8 @@ contains
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
-    double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
-    double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-    double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -95,7 +89,7 @@ contains
     
     ! Work arrays to hold riemann state and conservative fluxes
     double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable ::  qgdxtmp(:,:,:), qgdx(:,:,:), qgdy(:,:,:)
+    double precision, allocatable ::  qgdxtmp(:,:,:)
     double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
@@ -103,9 +97,7 @@ contains
     double precision :: hdtdx, hdt, hdtdy
     integer          :: i,j
 
-    allocate ( qgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,ngdnv))
-    allocate ( qgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,ngdnv))
-    allocate ( qgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,ngdnv))
+    allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv))
 
     allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
@@ -161,7 +153,7 @@ contains
     ! guesses for the x-interface states.  This produces the flux fx
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                qgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
+                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
@@ -170,7 +162,7 @@ contains
     ! guesses for the y-interface states.  This produces the flux fy
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
@@ -180,7 +172,7 @@ contains
     ! states.  This results in the new x-interface states qm and qp
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
@@ -191,7 +183,7 @@ contains
     ! is flux1
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
-                qgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
+                q1, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
@@ -201,7 +193,7 @@ contains
     ! states.  This results in the new y-interface states qm and qp
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                qgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
+                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
@@ -214,42 +206,28 @@ contains
     ! is flux2
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                qgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
-    ! store p and u for output
-    do j = pgdx_l2, pgdx_h2
-       do i = pgdx_l1, pgdx_h1
-          pgdx(i,j) = qgdx(i,j,GDPRES)
-          ugdx(i,j) = qgdx(i,j,GDU)
-       enddo
-    enddo
-
-    do j = pgdy_l2, pgdy_h2
-       do i = pgdy_l1, pgdy_h1
-          pgdy(i,j) = qgdy(i,j,GDPRES)
-          ugdy(i,j) = qgdy(i,j,GDV)
-       enddo
-    enddo
-
-
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
     ! returned from the Riemann solver.
     do j = ilo2,ihi2
        do i = ilo1,ihi1
-          pdivu(i,j) = HALF * &
-               ((pgdx(i+1,j)+pgdx(i,j))*(ugdx(i+1,j)*area1(i+1,j)-ugdx(i,j)*area1(i,j)) &
-               +(pgdy(i,j+1)+pgdy(i,j))*(ugdy(i,j+1)*area2(i,j+1)-ugdy(i,j)*area2(i,j)) ) / vol(i,j)
+          pdivu(i,j) = HALF*( &
+               (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
+               (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
+               (q2(i,j+1,GDPRES) + q2(i,j,GDPRES)) * &
+               (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
        end do
     end do
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
     deallocate(shk)
-    deallocate(qgdxtmp,qgdx,qgdy)
+    deallocate(qgdxtmp)
     
   end subroutine umeth2d
 
@@ -500,8 +478,8 @@ contains
 
   subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                     pgdx,pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2, &
-                     pgdy,pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2, &
+                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      src , src_l1, src_l2, src_h1, src_h2, &
                      flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                      flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -515,7 +493,7 @@ contains
     use eos_module
     use network, only : nspec, naux
     use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, &
+                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, &
                                    normalize_species
     use prob_params_module, only : coord_type
     use bl_constants_module
@@ -524,8 +502,8 @@ contains
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer uout_l1,uout_l2,uout_h1,uout_h2
-    integer pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2
-    integer pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2
+    integer q1_l1, q1_l2, q1_h1, q1_h2
+    integer q2_l1, q2_l2, q2_h1, q2_h2
     integer   src_l1,  src_l2,  src_h1,  src_h2
     integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
     integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
@@ -537,8 +515,8 @@ contains
 
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
-    double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
     double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
@@ -648,7 +626,7 @@ contains
     if (coord_type == 1) then
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
+             uout(i,j,UMX) = uout(i,j,UMX) - dt * (q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
              !uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
           enddo
        enddo
@@ -661,7 +639,7 @@ contains
        do i = lo(1), hi(1)+1
           flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
           if (coord_type == 1) then
-             flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+             flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*q1(i,j,GDPRES)
           endif
        enddo
     enddo
