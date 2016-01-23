@@ -531,7 +531,6 @@ contains
     integer i, j, n
 
     double precision div1
-    !double precision SrU, SrV
     !double precision rho, Up, Vp, SrE
 
     ! Normalize the species fluxes
