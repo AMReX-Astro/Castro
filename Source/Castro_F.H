@@ -89,6 +89,13 @@ extern "C"
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));  
 
+  void enforce_minimum_density
+    (BL_FORT_FAB_ARG(S_old),
+     BL_FORT_FAB_ARG(S_new),
+     const int* lo, const int* hi,
+     const Real* mass_added, const Real* e_added, const Real* E_added,
+     const int* verbose);
+
   void ca_enforce_nonnegative_species
     (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);  
 

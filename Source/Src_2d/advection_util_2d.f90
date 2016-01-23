@@ -71,7 +71,7 @@ contains
 
   subroutine enforce_minimum_density( uin,  uin_l1, uin_l2, uin_h1, uin_h2, &
                                       uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                                      lo, hi, mass_added, eint_added, eden_added, verbose)
+                                      lo, hi, mass_added, eint_added, eden_added, verbose) bind(C)
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
                                    UFS, small_dens, smalL_temp, npassive, upass_map
