@@ -1448,6 +1448,11 @@ Castro::post_timestep (int iteration)
 
         reflux();
 
+        // We need to do this before anything else because refluxing changes the values of coarse cells
+        //    underneath fine grids with the assumption they'll be over-written by averaging down
+        if (level < finest_level)
+           avgDown();
+
 	// Sometimes refluxing can generate zones with rho < small_dens, so let's fix 
 	// that now if we need to.
 
@@ -1467,11 +1472,6 @@ Castro::post_timestep (int iteration)
 				  &verbose);
 
 	}
-
-        // We need to do this before anything else because refluxing changes the values of coarse cells
-        //    underneath fine grids with the assumption they'll be over-written by averaging down
-        if (level < finest_level)
-           avgDown();
 
         // This needs to be done after any changes to the state from refluxing.
         enforce_nonnegative_species(S_new_crse);
