@@ -34,7 +34,7 @@ subroutine ctoprim_rad(lo,hi, &
                                  QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, &
                                  QTEMP, QFS, QFX, &
                                  nadv, allow_negative_energy, small_temp, &
-                                 npassive, upass_map, qpass_map
+                                 npassive, upass_map, qpass_map, use_flattening
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
@@ -244,6 +244,7 @@ subroutine ctoprim_rad(lo,hi, &
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
      flatn = 0.d0
+
   elseif (use_flattening == 1) then
      do n=1,2
         loq(n)=lo(n)-ngf
@@ -532,7 +533,7 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                       lo,hi,dx,dy,dt, nstep_fsp)
 
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
-       normalize_species
+       normalize_species, ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace

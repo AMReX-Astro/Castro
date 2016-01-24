@@ -19,7 +19,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol     ,     vol_l1,     vol_l2,     vol_h1,     vol_h2, &
                         courno,verbose, nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
+  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
@@ -185,8 +185,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)
 
-  deallocate(q,gamc,gamcg,flatn,c,cg,csml,div,pgdx,pgdy,ergdx,ergdy)
-  deallocate(lamgdx,lamgdy,srcQ,pdivu)
+  deallocate(q,gamc,gamcg,flatn,c,cg,csml,div)
+  deallocate(srcQ,pdivu)
 
 end subroutine ca_umdrv_rad
 
