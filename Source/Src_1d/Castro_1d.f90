@@ -59,6 +59,15 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer i,ngf,ngq
   integer q_l1, q_h1
 
+  integer ::  uin_lo(1),  uin_hi(1)
+  integer :: uout_lo(1), uout_hi(1)
+
+  uin_lo  = [uin_l1]
+  uin_hi  = [uin_h1]
+
+  uout_lo = [uout_l1]
+  uout_hi = [uout_h1]
+
   ngq = NHYP
   ngf = 1
 
@@ -122,7 +131,7 @@ subroutine ca_umdrv(is_finest_level,time,&
        verbose)
 
   ! Enforce the density >= small_dens.
-  call enforce_minimum_density(uin,uin_l1,uin_h1,uout,uout_l1,uout_h1,lo,hi,&
+  call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi,lo,hi,&
        mass_added,eint_added,eden_added,verbose)
 
   ! Enforce that the species >= 0

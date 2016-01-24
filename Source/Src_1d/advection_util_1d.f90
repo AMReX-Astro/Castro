@@ -45,9 +45,9 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine enforce_minimum_density( uin,  uin_l1, uin_h1, &
-                                      uout,uout_l1,uout_h1,&
-                                      lo, hi, mass_added, eint_added, eden_added, verbose) bind(C)
+  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                     uout,uout_lo,uout_hi, &
+                                     lo,hi,mass_added,eint_added,eden_added,verbose) bind(C)
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    UFS, UFX, small_dens, small_temp, npassive, upass_map
@@ -58,10 +58,10 @@ contains
     implicit none
     
     integer          :: lo(1), hi(1), verbose
-    integer          :: uin_l1 , uin_h1
-    integer          :: uout_l1,uout_h1
-    double precision :: uin(uin_l1:uin_h1,NVAR)
-    double precision :: uout(uout_l1:uout_h1,NVAR)
+    integer          ::  uin_lo(1),  uin_hi(1)
+    integer          :: uout_lo(1), uout_hi(1)
+    double precision ::  uin( uin_lo(1): uin_hi(1),NVAR)
+    double precision :: uout(uout_lo(1):uout_hi(1),NVAR)
     double precision :: mass_added, eint_added, eden_added
     
     ! Local variables
