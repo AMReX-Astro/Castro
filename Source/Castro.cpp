@@ -1456,17 +1456,25 @@ Castro::post_timestep (int iteration)
 	// Sometimes refluxing can generate zones with rho < small_dens, so let's fix 
 	// that now if we need to.
 
-	Real mass_added = 0.;
-	Real e_added = 0.;
-	Real E_added = 0.;
-	int verbose = 0;
-
+	MultiFab& S_old_crse = get_old_data(State_Type);
+	
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif	
 	for (MFIter mfi(S_new_crse,true); mfi.isValid(); ++mfi) {
+
+	  Real mass_added = 0.;
+	  Real e_added = 0.;
+	  Real E_added = 0.;
+	  int verbose = 0;	  
 
 	  const Box& bx = mfi.tilebox();
 
-	  enforce_minimum_density(BL_TO_FORTRAN(S_new_crse[mfi]),
-				  BL_TO_FORTRAN(S_new_crse[mfi]),
+	  FArrayBox& stateold = S_old_crse[mfi];
+	  FArrayBox& statenew = S_new_crse[mfi];
+	  
+	  enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
+				  statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
 				  bx.loVect(), bx.hiVect(),
 				  &mass_added, &e_added, &E_added, 
 				  &verbose);
