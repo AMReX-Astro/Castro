@@ -7,7 +7,7 @@ module riemann_module
                                  QPRES, QGAME, QREINT, QESGS, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UESGS, UFS, UFX, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, &
+                                 NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, &
                                  npassive, upass_map, qpass_map, &
