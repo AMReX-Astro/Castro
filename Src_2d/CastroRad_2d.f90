@@ -171,8 +171,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   mass_added = 0.d0
   eint_added = 0.d0
   eden_added = 0.d0
-  call enforce_minimum_density(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-                               uout,uout_l1,uout_l2,uout_h1,uout_h2,&
+  call enforce_minimum_density(uin, [uin_l1, uin_l2], [uin_h1, uin_h2], &
+                               uout,[uout_l1,uout_l2],[uout_h1,uout_h2],&
                                lo,hi,mass_added,eint_added,eden_added,verbose)
   
   ! Enforce the species >= 0
