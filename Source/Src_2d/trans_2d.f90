@@ -69,9 +69,7 @@ contains
 
     eos_state % check_small = .false.
 
-    ! NOTE: it is better *not* to protect against small density in this routine
-
-    ! update all of the passively-advective quantities in a single loop
+    ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -163,7 +161,6 @@ contains
              endif
 
              ! Convert back to primitive form
-             ! NOTE: should probably have a j >= jlo+1 here as in 3-d
              rhotmp = rrnewr
              qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
              qpo(i,j,QU  ) = runewr/rhotmp
