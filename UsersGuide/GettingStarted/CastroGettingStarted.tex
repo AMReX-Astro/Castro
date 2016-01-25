@@ -12,9 +12,16 @@
 
 \begin{enumerate}
 
-\item Download the \boxlib\ repository by typing: 
+\item Clone/fork the \boxlib\ repository from the \boxlib\ Codes {\sf
+  github} page (\url{https://github.com/BoxLib-Codes}).  To
+  clone via the command line, simply type:
 \begin{verbatim}
-git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git
+git clone https://github.com/BoxLib-Codes/BoxLib.git
+\end{verbatim}
+Alternately, if you have a {\sf github} account with your
+machine's SSH-keys registered, you can do:
+\begin{verbatim}
+git clone ssh://git@github.com:/BoxLib-Codes/Castro.git
 \end{verbatim}
 
 This will create a directory called {\tt BoxLib/} on your machine.
@@ -25,6 +32,13 @@ git pull
 \end{verbatim}
 in the {\tt BoxLib/} directory.  
 
+If you prefer not to use {\sf git}, you can navigate to the
+\href{https://github.com/BoxLib-Codes}{\boxlib\ Codes} page in
+your browser, click on \boxlib, and press the ``Download ZIP''
+button to get an archive of the software. However, if you do this
+then you will need to re-download the software each time you want to
+update, so this is not recommended.
+
 \item Set the environment variable, {\tt BOXLIB\_HOME}, on your
   machine to point to the path name where you have put \boxlib.
   You can add this to your {\tt .bashrc} as:
@@ -32,16 +46,24 @@ in the {\tt BoxLib/} directory.
 export BOXLIB_HOME="/path/to/BoxLib/"
 \end{verbatim}
 
-\item Clone/fork the \castro\ repository from the \boxlib\ Codes {\sf
-  github} page (\url{https://github.com/BoxLib-Codes/Castro}).  To
-  clone via the commandline, simply type:
+\item Clone/fork the \castro\ repository from the same {\sf
+  github} organization as above, using either HTTP access:
 \begin{verbatim}
 git clone https://github.com/BoxLib-Codes/Castro.git
 \end{verbatim}
-alternately, if you have a {\sf github} account with your
-machine's SSH-keys registered, you can do:
+or SSH access if you have it enabled:
 \begin{verbatim}
 git clone ssh://git@github.com:/BoxLib-Codes/Castro.git
+\end{verbatim}
+Or, as above, you can download a ZIP file of the code from
+\href{https://github.com/BoxLib-Codes}{our main {\sf github} page},
+by clicking on the \castro\ link.
+
+\item We recommend setting the {\tt CASTRO\_DIR} environment
+  variable to point to the path name where you have put \castro.
+  Add the following to your {\tt .bashrc}:
+\begin{verbatim}
+export CASTRO_DIR="/path/to/Castro/"
 \end{verbatim}
 
 \end{enumerate}
