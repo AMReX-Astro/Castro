@@ -6,7 +6,7 @@ subroutine probinit(init,name,namlen,problo,probhi)
   use probdata_module
   use prob_params_module, only: center
   use meth_params_module, only: point_mass
-  use rotation_module, only: get_omega
+  use rotation_frequency_module, only: get_omega
   
   implicit none 
 
@@ -62,7 +62,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, do_rotation
-  use rotation_module, only: get_omega
+  use rotation_frequency_module, only: get_omega
   use math_module, only: cross_product
   use prob_params_module, only: center
   use castro_util_module, only: position
