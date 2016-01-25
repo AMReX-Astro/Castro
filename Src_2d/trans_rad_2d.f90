@@ -2,11 +2,11 @@ module transverse_rad_module
 
   use bl_constants_module
   use network, only : nspec
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QPRES, QREINT, &
+  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                  URHO, UMX, UMY, UEDEN, &
                                  GDPRES, GDU, GDV, GDERADS, ngdnv, &
                                  npassive, upass_map, qpass_map, ppm_trace_sources, &
-                                 ppm_type
+                                 ppm_type, small_pres, transverse_reset_density
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
        fspace_type, comoving
   use rad_params_module, only : ngroups
@@ -65,7 +65,7 @@ contains
     double precision :: rrnewr, runewr, rvnewr, renewr
     double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
     double precision :: rrnewl, runewl, rvnewl, renewl
-    double precision :: ugp, ugm, dup, pav, du, pnewl,pnewr
+    double precision :: ugp, ugm, dAup, pav, dAu, pnewl,pnewr
     double precision :: rhotmp
 
     double precision pggp, pggm, dre, dmom
@@ -121,9 +121,9 @@ contains
 
           ! we need to augment our conserved system with either a p
           ! equation to be able to deal with the general EOS
-          dAup = area1(i+1,j)*pggp*ugp - area1(i,j)pggm*ugm
+          dAup = area1(i+1,j)*pggp*ugp - area1(i,j)*pggm*ugm
           pav = 0.5d0*(pggp+pggm)
-          dAu = area1(i+1,j)ugp-area1(i,j)*ugm
+          dAu = area1(i+1,j)*ugp-area1(i,j)*ugm
 
           !-------------------------------------------------------------------
           ! add the transverse flux difference in the x-direction to y-states
@@ -217,7 +217,7 @@ contains
              ! but these are divergences, so we need area factors
              pnewr = qp(i,j  ,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
              qpo(i,j,QPRES) =  pnewr            + hdt*srcQ(i,j,QPRES)
-             qpo(i,j,QPRES) = max(qpo(i,j,QPRES,small_pres)
+             qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
 
              qpo(i,j,qrad:qradhi) = ernewr(:)
              qpo(i,j,qptot)   = sum(lambda*ernewr) + qpo(i,j,QPRES)
@@ -285,7 +285,7 @@ contains
              ! but these are divergences, so we need area factors
              pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
              qmo(i,j+1,QPRES) = pnewl +hdt*srcQ(i,j,QPRES)
-             qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES,small_pres)
+             qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
 
              qmo(i,j+1,qrad:qradhi) = ernewl(:)
              qmo(i,j+1,qptot)   = sum(lambda*ernewl) + qmo(i,j+1,QPRES)
@@ -514,7 +514,7 @@ contains
                    runewl = rul
                    rvnewl = rvl
                    renewl = rel
-                   ernewl(:) = erl(:
+                   ernewl(:) = erl(:)
                 endif
              endif
 
