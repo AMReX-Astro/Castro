@@ -84,7 +84,7 @@ contains
 
     else
        
-       call bl_error("Error:: Castro_rot_sources_3d.f90 :: unknown coord_type")
+       call bl_error("Error:: rotation_nd.f90 :: unknown coord_type")
        
     endif
 
