@@ -34,10 +34,10 @@ contains
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
-    integer qd_lo(3),qd_hi(3)
-    integer fx_lo(3),fx_hi(3)
-    integer qx_lo(3),qx_hi(3)
-    integer gd_lo(3),gd_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fx_lo(3),fx_hi(3)
+    integer :: qx_lo(3),qx_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
     double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -82,10 +82,10 @@ contains
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
-    ! transerse term and convert back to the primitive quantity
+    ! transverse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    do ipassive = 1,npassive
+    do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
@@ -391,10 +391,10 @@ contains
                      gamc,gd_lo,gd_hi, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fx_lo(3),fx_hi(3)
-    integer qx_lo(3),qx_hi(3)
-    integer gd_lo(3),gd_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fx_lo(3),fx_hi(3)
+    integer :: qx_lo(3),qx_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
     double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -437,7 +437,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    do ipassive = 1,npassive
+    do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
@@ -743,10 +743,10 @@ contains
                      gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fy_lo(3),fy_hi(3)
-    integer qy_lo(3),qy_hi(3)
-    integer gd_lo(3),gd_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fy_lo(3),fy_hi(3)
+    integer :: qy_lo(3),qy_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
     double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -1090,10 +1090,10 @@ contains
                      gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fy_lo(3),fy_hi(3)
-    integer qy_lo(3),qy_hi(3)
-    integer gd_lo(3),gd_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fy_lo(3),fy_hi(3)
+    integer :: qy_lo(3),qy_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
     double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -1446,10 +1446,10 @@ contains
                     gamc,gd_lo,gd_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fz_lo(3),fz_hi(3)
-    integer qz_lo(3),qz_hi(3)
-    integer gd_lo(3),gd_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fz_lo(3),fz_hi(3)
+    integer :: qz_lo(3),qz_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
     double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -2045,13 +2045,13 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fx_lo(3),fx_hi(3)
-    integer fy_lo(3),fy_hi(3)
-    integer qx_lo(3),qx_hi(3)
-    integer qy_lo(3),qy_hi(3)
-    integer gd_lo(3),gd_hi(3)
-    integer src_lo(3),src_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fx_lo(3),fx_hi(3)
+    integer :: fy_lo(3),fy_hi(3)
+    integer :: qx_lo(3),qx_hi(3)
+    integer :: qy_lo(3),qy_hi(3)
+    integer :: gd_lo(3),gd_hi(3)
+    integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
     double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -2461,13 +2461,13 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fx_lo(3),fx_hi(3)
-    integer fz_lo(3),fz_hi(3)
-    integer qx_lo(3),qx_hi(3)
-    integer qz_lo(3),qz_hi(3)
-    integer gc_lo(3),gc_hi(3)
-    integer src_lo(3),src_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fx_lo(3),fx_hi(3)
+    integer :: fz_lo(3),fz_hi(3)
+    integer :: qx_lo(3),qx_hi(3)
+    integer :: qz_lo(3),qz_hi(3)
+    integer :: gc_lo(3),gc_hi(3)
+    integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
     double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -2856,13 +2856,13 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    integer qd_lo(3),qd_hi(3)
-    integer fy_lo(3),fy_hi(3)
-    integer fz_lo(3),fz_hi(3)
-    integer qy_lo(3),qy_hi(3)
-    integer qz_lo(3),qz_hi(3)
-    integer gc_lo(3),gc_hi(3)
-    integer src_lo(3),src_hi(3)
+    integer :: qd_lo(3),qd_hi(3)
+    integer :: fy_lo(3),fy_hi(3)
+    integer :: fz_lo(3),fz_hi(3)
+    integer :: qy_lo(3),qy_hi(3)
+    integer :: qz_lo(3),qz_hi(3)
+    integer :: gc_lo(3),gc_hi(3)
+    integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
     double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
