@@ -124,7 +124,8 @@ contains
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
     use math_module, only: cross_product
-    use rotation_module, only: get_omega, get_domegadt, rotational_acceleration
+    use rotation_module, only: rotational_acceleration
+    use rotation_frequency_module, only: get_omega, get_domegadt
     use castro_util_module, only: position
     use hybrid_advection_module, only: add_momentum_source
 

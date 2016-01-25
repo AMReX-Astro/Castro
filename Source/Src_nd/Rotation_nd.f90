@@ -1,96 +1,15 @@
 module rotation_module
 
   use math_module, only: cross_product
-  
+  use rotation_frequency_module, only: get_omega, get_domegadt
+
   implicit none
 
   private
 
-  public get_omega, get_domegadt, rotational_acceleration, rotational_potential
+  public rotational_acceleration, rotational_potential
 
 contains
-
-  function get_omega(time) result(omega)
-
-    use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
-    use bl_constants_module, only: ZERO, TWO, M_PI
-
-    implicit none
-
-    double precision :: time
-    double precision :: omega(3)
-
-    double precision :: curr_period
-    
-    ! If rot_period is less than zero, that means rotation is disabled, and so we should effectively
-    ! shut off the source term by setting omega = 0. Note that by default rot_axis == 3 for Cartesian
-    ! coordinates and rot_axis == 2 for cylindrical coordinates.
-
-    omega = ZERO
-
-    if (coord_type == 0 .or. coord_type == 1) then
-
-       if (rot_period > ZERO) then
-          
-          ! If we have a time rate of change of the rotational period,
-          ! adjust it accordingly in the calculation of omega. We assume 
-          ! that the change has been linear and started at t == 0.
-          
-          curr_period = rot_period + rot_period_dot * time
-          
-          omega(rot_axis) = TWO * M_PI / curr_period
-          
-       endif
-
-    else
-
-       call bl_error("Error:: rotation_nd.f90 :: invalid coord_type")
-
-    endif
-
-  end function get_omega
-
-  
-  
-  function get_domegadt(time) result(domegadt)
-
-    use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
-    use bl_constants_module, only: ZERO, TWO, M_PI
-
-    implicit none
-
-    double precision :: time
-    double precision :: domegadt(3)
-
-    double precision :: curr_period, curr_omega(3)
-
-    domegadt = ZERO
-    
-    if (coord_type == 0 .or. coord_type .eq. 1) then
-
-       if (rot_period > ZERO) then
-
-          ! Rate of change of the rotational frequency is given by
-          ! d( ln(period) ) / dt = - d( ln(omega) ) / dt
-
-          curr_period = rot_period + rot_period_dot * time
-          curr_omega  = get_omega(time)
-
-          domegadt = -curr_omega * (rot_period_dot / curr_period)
-
-       endif
-
-    else
-       
-       call bl_error("Error:: rotation_nd.f90 :: unknown coord_type")
-       
-    endif
-
-  end function get_domegadt
-
-  
 
   ! Given a position and velocity, calculate 
   ! the rotational acceleration. This is the sum of:
@@ -144,7 +63,7 @@ contains
   end function rotational_potential
 
 
-  
+
   subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) bind(C)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ
@@ -163,7 +82,7 @@ contains
     double precision :: r(3)
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)       
+       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
        do j = lo(2), hi(2)
           r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
@@ -172,7 +91,7 @@ contains
              r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              phi(i,j,k) = rotational_potential(r,time)
-             
+
           enddo
        enddo
     enddo
@@ -201,7 +120,7 @@ contains
     double precision :: r(3)
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)       
+       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
        do j = lo(2), hi(2)
           r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
@@ -210,7 +129,7 @@ contains
              r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
              rot(i,j,k,:) = rotational_acceleration(r, state(i,j,k,UMX:UMZ) / state(i,j,k,URHO), time)
-             
+
           enddo
        enddo
     enddo

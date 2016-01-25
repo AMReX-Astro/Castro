@@ -35,6 +35,7 @@ endif
 
 ifeq ($(USE_ROTATION), TRUE)
 f90EXE_sources += Rotation_nd.f90
+f90EXE_sources += Rotation_frequency.f90
 f90EXE_sources += rotation_sources_nd.f90
 endif
 
