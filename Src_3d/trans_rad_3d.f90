@@ -108,6 +108,11 @@ contains
     do j = jlo, jhi 
        do i = ilo, ihi 
 
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the x-direction to y-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
+
           lambda = lam(i,j,k3d,:)
           pggp  =  qx(i+1,j,kc,GDPRES)
           pggm  =  qx(i  ,j,kc,GDPRES)
@@ -117,36 +122,16 @@ contains
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
-          ! Convert to conservation form
-          rrry = qyp(i,j,kc,QRHO)
-          rury = rrry*qyp(i,j,kc,QU)
-          rvry = rrry*qyp(i,j,kc,QV)
-          rwry = rrry*qyp(i,j,kc,QW)
-          ekenry = 0.5d0*rrry*(qyp(i,j,kc,QU)**2 + qyp(i,j,kc,QV)**2 + qyp(i,j,kc,QW)**2)
-          rery = qyp(i,j,kc,QREINT) + ekenry
-          err  = qyp(i,j,kc,qrad:qradhi)
+          ! we need to augment our conserved system with a p 
+          ! equation to be able to deal with the general EOS
+          dup = pggp*ugp - pggm*ugm
+          pav = 0.5d0*(pggp+pggm)
+          du = ugp-ugm
 
-          rrly = qym(i,j+1,kc,QRHO)
-          ruly = rrly*qym(i,j+1,kc,QU)
-          rvly = rrly*qym(i,j+1,kc,QV)
-          rwly = rrly*qym(i,j+1,kc,QW)
-          ekenly = 0.5d0*rrly* &
-               (qym(i,j+1,kc,QU)**2 + qym(i,j+1,kc,QV)**2 + qym(i,j+1,kc,QW)**2)
-          rely = qym(i,j+1,kc,QREINT) + ekenly
-          erl  = qym(i,j+1,kc,qrad:qradhi)
-
-          ! Add transverse predictor
-          rrnewry = rrry - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-          runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
-          rvnewry = rvry - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
-          rwnewry = rwry - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
           lamge = lambda(:) * (ergp(:)-ergm(:))
           dmom = - cdtdx*sum(lamge(:))
-          runewry = runewry + dmom
           luge = ugc * lamge(:)
           dre = -cdtdx*sum(luge)
-          renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN)) &
-               + dre
 
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
@@ -164,48 +149,123 @@ contains
              der(:) = cdtdx * luge
           end if
 
-          ernewr  = err(:) - cdtdx*(rfx(i+1,j,kc,:) - rfx(i,j,kc,:)) &
-               + der(:)
 
-          rrnewly = rrly - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-          runewly = ruly - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
-          rvnewly = rvly - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
-          rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
-          runewly = runewly + dmom
-          renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN)) &
-               + dre
-          ernewl  = erl(:) - cdtdx*(rfx(i+1,j,kc,:) - rfx(i,j,kc,:)) &
-               + der(:)
+          !-------------------------------------------------------------------
+          ! qypo state
+          !-------------------------------------------------------------------
 
-          dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
-          du = ugp-ugm
+          if (j >= jlo+1) then
 
-          pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
-          pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
+             ! Convert to conservation form
+             rrry = qyp(i,j,kc,QRHO)
+             rury = rrry*qyp(i,j,kc,QU)
+             rvry = rrry*qyp(i,j,kc,QV)
+             rwry = rrry*qyp(i,j,kc,QW)
+             ekenry = HALF*rrry* &
+                  (qyp(i,j,kc,QU)**2 + qyp(i,j,kc,QV)**2 + qyp(i,j,kc,QW)**2)
+             rery = qyp(i,j,kc,QREINT) + ekenry
+             err  = qyp(i,j,kc,qrad:qradhi)
 
-          ! Convert back to non-conservation form
-          qypo(i,j,kc,QRHO) = rrnewry
-          qypo(i,j,kc,QU) = runewry/qypo(i,j,kc,QRHO)
-          qypo(i,j,kc,QV) = rvnewry/qypo(i,j,kc,QRHO)
-          qypo(i,j,kc,QW) = rwnewry/qypo(i,j,kc,QRHO)
-          rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
-          qypo(i,j,kc,QREINT) = renewry - rhoekenry
-          qypo(i,j,kc,QPRES) = pnewry
-          qypo(i,j,kc,qrad:qradhi) = ernewr(:)
-          qypo(i,j,kc,qptot  ) = sum(lambda(:)*ernewr(:)) + qypo(i,j,kc,QPRES)
-          qypo(i,j,kc,qreitot) = sum(qypo(i,j,kc,qrad:qradhi)) + qypo(i,j,kc,QREINT)
 
-          qymo(i,j+1,kc,QRHO) = rrnewly
-          qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
-          qymo(i,j+1,kc,QV) = rvnewly/qymo(i,j+1,kc,QRHO)
-          qymo(i,j+1,kc,QW) = rwnewly/qymo(i,j+1,kc,QRHO)
-          rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
-          qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
-          qymo(i,j+1,kc,QPRES) = pnewly
-          qymo(i,j+1,kc,qrad:qradhi) = ernewl(:)
-          qymo(i,j+1,kc,qptot  ) = sum(lambda(:)*ernewl(:)) + qymo(i,j+1,kc,QPRES)
-          qymo(i,j+1,kc,qreitot) = sum(qymo(i,j+1,kc,qrad:qradhi)) + qymo(i,j+1,kc,QREINT)
+             ! Add transverse predictor
+             rrnewry = rrry - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+             runewry = rury - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
+             runewry = runewry + dmom
+             rvnewry = rvry - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
+             rwnewry = rwry - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
+
+             renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN)) &
+                  + dre
+
+             ernewr  = err(:) - cdtdx*(rfx(i+1,j,kc,:) - rfx(i,j,kc,:)) &
+                  + der(:)
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewry < ZERO) then
+                   rrnewry = rrry
+                   runewry = rury
+                   rvnewry = rvry
+                   rwnewry = rwry
+                   renewry = rery
+                   ernewr = err(:)
+                endif
+             endif
+
+             ! Convert back to non-conservation form
+             qypo(i,j,kc,QRHO) = rrnewry
+             qypo(i,j,kc,QU) = runewry/qypo(i,j,kc,QRHO)
+             qypo(i,j,kc,QV) = rvnewry/qypo(i,j,kc,QRHO)
+             qypo(i,j,kc,QW) = rwnewry/qypo(i,j,kc,QRHO)
+
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,kc,QRHO)
+             qypo(i,j,kc,QREINT) = renewry - rhoekenry
+
+             pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+             qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
+
+             qypo(i,j,kc,qrad:qradhi) = ernewr(:)
+             qypo(i,j,kc,qptot  ) = sum(lambda(:)*ernewr(:)) + qypo(i,j,kc,QPRES)
+             qypo(i,j,kc,qreitot) = sum(qypo(i,j,kc,qrad:qradhi)) + qypo(i,j,kc,QREINT)
+          endif
+
+          !-------------------------------------------------------------------
+          ! qymo state
+          !-------------------------------------------------------------------
+
+          if (j <= jhi-1) then
+
+             ! Convert to conservation form
+             rrly = qym(i,j+1,kc,QRHO)
+             ruly = rrly*qym(i,j+1,kc,QU)
+             rvly = rrly*qym(i,j+1,kc,QV)
+             rwly = rrly*qym(i,j+1,kc,QW)
+             ekenly = HALF*rrly* &
+                  (qym(i,j+1,kc,QU)**2 + qym(i,j+1,kc,QV)**2 + qym(i,j+1,kc,QW)**2)
+             rely = qym(i,j+1,kc,QREINT) + ekenly
+             erl  = qym(i,j+1,kc,qrad:qradhi)
+
+             ! Add transverse predictor
+             rrnewly = rrly - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+             runewly = ruly - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
+             runewly = runewly + dmom
+             rvnewly = rvly - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
+             rwnewly = rwly - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
+
+             renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN)) &
+                  + dre
+
+             ernewl  = erl(:) - cdtdx*(rfx(i+1,j,kc,:) - rfx(i,j,kc,:)) &
+                  + der(:)
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewly < ZERO) then
+                   rrnewly = rrly
+                   runewly = ruly
+                   rvnewly = rvly
+                   rwnewly = rwly 
+                   renewly = rely
+                   ernewl  = erl(:) 
+                endif
+             endif
+             
+             qymo(i,j+1,kc,QRHO) = rrnewly
+             qymo(i,j+1,kc,QU) = runewly/qymo(i,j+1,kc,QRHO)
+             qymo(i,j+1,kc,QV) = rvnewly/qymo(i,j+1,kc,QRHO)
+             qymo(i,j+1,kc,QW) = rwnewly/qymo(i,j+1,kc,QRHO)
+
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,kc,QRHO)
+             qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
+
+             pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+             qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
+
+             qymo(i,j+1,kc,qrad:qradhi) = ernewl(:)
+             qymo(i,j+1,kc,qptot  ) = sum(lambda(:)*ernewl(:)) + qymo(i,j+1,kc,QPRES)
+             qymo(i,j+1,kc,qreitot) = sum(qymo(i,j+1,kc,qrad:qradhi)) + qymo(i,j+1,kc,QREINT)
+
+          endif
 
        enddo
     enddo
