@@ -139,11 +139,10 @@ contains
           du = ugp-ugm
           dge = gegp-gegm
 
-          !----------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! qypo state
-          !----------------------------------------------------------------
+          !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (j.ge.jlo+1) then
 
              ! Convert to conservation form
@@ -212,7 +211,6 @@ contains
           ! qymo state
           !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (j.le.jhi-1) then
 
              ! Convert to conservation form
