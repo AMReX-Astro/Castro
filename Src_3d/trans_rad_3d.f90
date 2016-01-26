@@ -119,14 +119,14 @@ contains
           pggm  =  qx(i  ,j,kc,GDPRES)
           ugp  =  qx(i+1,j,kc,GDU)
           ugm  =  qx(i  ,j,kc,GDU)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
           ! we need to augment our conserved system with a p 
           ! equation to be able to deal with the general EOS
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
 
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -137,14 +137,14 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = HALF*(ONE-eddf)
                 der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdx * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdx * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
              end do
           else ! mixed frame
              der(:) = cdtdx * luge
@@ -334,6 +334,7 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
+
        do j = jlo, jhi 
           do i = ilo, ihi 
 
@@ -358,137 +359,184 @@ contains
     do j = jlo, jhi 
        do i = ilo, ihi 
 
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the x-direction to z-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
+
+          !-------------------------------------------------------------------
+          ! qzpo state
+          !-------------------------------------------------------------------
+
           lambda = lam(i,j,k3d,:)
           pggp  =  qx(i+1,j,kc,GDPRES)
           pggm  =  qx(i  ,j,kc,GDPRES)
           ugp  =  qx(i+1,j,kc,GDU)
           ugm  =  qx(i  ,j,kc,GDU)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
 
+          ! we need to augment our conserved system with a p equation
+          ! to be able to deal with the general EOS
+
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
+
+          lamge = lambda(:) * (ergp(:)-ergm(:))
+          dmom = - cdtdx*sum(lamge(:))
+          luge = HALF*(ugp+ugm) * lamge(:)
+          dre = -cdtdx*sum(luge)
+
+          if (fspace_type .eq. 1 .and. comoving) then
+             do g=0, ngroups-1
+                eddf = Edd_factor(lambda(g))
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
+             end do
+          else if (fspace_type .eq. 2) then
+             do g=0, ngroups-1
+                eddf = Edd_factor(lambda(g))
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdx * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
+             end do
+          else ! mixed frame
+             der(:) = cdtdx * luge
+          end if
 
           ! Convert to conservation form
           rrrz = qzp(i,j,kc,QRHO)
           rurz = rrrz*qzp(i,j,kc,QU)
           rvrz = rrrz*qzp(i,j,kc,QV)
           rwrz = rrrz*qzp(i,j,kc,QW)
-          ekenrz = 0.5d0*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 + qzp(i,j,kc,QW)**2)
+          ekenrz = HALF*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 + qzp(i,j,kc,QW)**2)
           rerz = qzp(i,j,kc,QREINT) + ekenrz
           err  = qzp(i,j,kc,qrad:qradhi)
 
           ! Add transverse predictor
           rrnewrz = rrrz - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
           runewrz = rurz - cdtdx*(fx(i+1,j,kc,UMX) - fx(i,j,kc,UMX))
+          runewrz = runewrz + dmom
           rvnewrz = rvrz - cdtdx*(fx(i+1,j,kc,UMY) - fx(i,j,kc,UMY))
           rwnewrz = rwrz - cdtdx*(fx(i+1,j,kc,UMZ) - fx(i,j,kc,UMZ))
-          lamge = lambda(:) * (ergp(:)-ergm(:))
-          dmom = - cdtdx*sum(lamge(:))
-          runewrz = runewrz + dmom
-          luge = 0.5d0*(ugp+ugm) * lamge(:)
-          dre = -cdtdx*sum(luge)
+
           renewrz = rerz - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN)) &
                + dre
-
-          if (fspace_type .eq. 1 .and. comoving) then
-             do g=0, ngroups-1
-                eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
-             end do
-          else if (fspace_type .eq. 2) then
-             do g=0, ngroups-1
-                eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdx * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
-             end do
-          else ! mixed frame
-             der(:) = cdtdx * luge
-          end if
 
           ernewr  = err(:) - cdtdx*(rfx(i+1,j,kc,:) - rfx(i,j,kc,:)) &
                + der(:)
 
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewrz < ZERO) then
+             rrnewrz = rrrz
+             runewrz = rurz
+             rvnewrz = rvrz
+             rwnewrz = rwrz
+             renewrz = rerz
+             ernewr  = err(:)
+            endif
 
-          pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-1.d0))
-
-          ! Convert back to non-conservation form
+          ! Convert back to primitive form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
-          rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+
+          ! note: we run the risk of (rho e) being negative here
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
-          qzpo(i,j,kc,QPRES) = pnewrz
+
+          pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+          qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+
           qzpo(i,j,kc,qrad:qradhi) = ernewr(:)
           qzpo(i,j,kc,qptot  ) = sum(lambda(:)*ernewr(:)) + qzpo(i,j,kc,QPRES)
           qzpo(i,j,kc,qreitot) = sum(qzpo(i,j,kc,qrad:qradhi)) + qzpo(i,j,kc,QREINT)
+
+
+          !-------------------------------------------------------------------
+          ! qzmo state
+          !-------------------------------------------------------------------
 
           lambda = lam(i,j,k3d-1,:)
           pggp  =  qx(i+1,j,km,GDPRES)
           pggm  =  qx(i  ,j,km,GDPRES)
           ugp  =  qx(i+1,j,km,GDU)
           ugm  =  qx(i  ,j,km,GDU)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
 
+          ! we need to augment our conserved system with a p equation to
+          ! be able to deal with the general EOS
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
 
+          lamge = lambda(:) * (ergp(:)-ergm(:))
+          dmom = - cdtdx*sum(lamge(:))
+          luge = HALF*(ugp+ugm) * lamge(:)
+          dre = -cdtdx*sum(luge)
+
+          if (fspace_type .eq. 1 .and. comoving) then
+             do g=0, ngroups-1
+                eddf = Edd_factor(lambda(g))
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
+             end do
+          else if (fspace_type .eq. 2) then
+             do g=0, ngroups-1
+                eddf = Edd_factor(lambda(g))
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdx * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
+             end do
+          else ! mixed frame
+             der(:) = cdtdx * luge
+          end if
+
+          ! Convert to conservation form
           rrlz = qzm(i,j,kc,QRHO)
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
           rwlz = rrlz*qzm(i,j,kc,QW)
-          ekenlz = 0.5d0*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 + qzm(i,j,kc,QW)**2)
+          ekenlz = HALF*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
           erl  = qzm(i,j,kc,qrad:qradhi)
 
           ! Add transverse predictor
           rrnewlz = rrlz - cdtdx*(fx(i+1,j,km,URHO) - fx(i,j,km,URHO))
           runewlz = rulz - cdtdx*(fx(i+1,j,km,UMX) - fx(i,j,km,UMX))
+          runewlz = runewlz + dmom
           rvnewlz = rvlz - cdtdx*(fx(i+1,j,km,UMY) - fx(i,j,km,UMY))
           rwnewlz = rwlz - cdtdx*(fx(i+1,j,km,UMZ) - fx(i,j,km,UMZ))
-          lamge = lambda(:) * (ergp(:)-ergm(:))
-          dmom = - cdtdx*sum(lamge(:))
-          runewlz = runewlz + dmom
-          luge = 0.5d0*(ugp+ugm) * lamge(:)
-          dre = -cdtdx*sum(luge)
           renewlz = relz - cdtdx*(fx(i+1,j,km,UEDEN) - fx(i,j,km,UEDEN)) &
                + dre
-
-          if (fspace_type .eq. 1 .and. comoving) then
-             do g=0, ngroups-1
-                eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
-             end do
-          else if (fspace_type .eq. 2) then
-             do g=0, ngroups-1
-                eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdx * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
-             end do
-          else ! mixed frame
-             der(:) = cdtdx * luge
-          end if
 
           ernewl  = erl(:) - cdtdx*(rfx(i+1,j,km,:) - rfx(i,j,km,:)) &
                +der(:)
 
-          pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-1.d0))
+          ! Reset to original value if adding transverse terms made density negative
+          if (transverse_reset_density == 1 .and. rrnewlz < ZERO) then
+             rrnewlz = rrlz
+             runewlz = rulz
+             rvnewlz = rvlz
+             rwnewlz = rwlz
+             renewlz = relz
+             ernewl  = erl(:)
+          endif
 
+          ! Convert back to primitive form
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
-          rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
-          qzmo(i,j,kc,QPRES) = pnewlz
+
+          pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+          qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+
           qzmo(i,j,kc,qrad:qradhi) = ernewl(:)
           qzmo(i,j,kc,qptot  ) = sum(lambda(:)*ernewl(:)) + qzmo(i,j,kc,QPRES)
           qzmo(i,j,kc,qreitot) = sum(qzmo(i,j,kc,qrad:qradhi)) + qzmo(i,j,kc,QREINT)
@@ -587,106 +635,160 @@ contains
     do j = jlo, jhi
        do i = ilo, ihi
 
+          !-------------------------------------------------------------------
+          ! add the transverse flux difference in the y-direction to x-states
+          ! for the fluid variables
+          !-------------------------------------------------------------------
+
           lambda = lam(i,j,k3d,:)
           pggp  = qy(i,j+1,kc,GDPRES)
           pggm  = qy(i,j  ,kc,GDPRES)
           ugp  =  qy(i,j+1,kc,GDV)
           ugm  =  qy(i,j  ,kc,GDV)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
 
-          ! Convert to conservation form
-          rrrx = qxp(i,j,kc,QRHO)
-          rurx = rrrx*qxp(i,j,kc,QU)
-          rvrx = rrrx*qxp(i,j,kc,QV)
-          rwrx = rrrx*qxp(i,j,kc,QW)
-          ekenrx = 0.5d0*rrrx*(qxp(i,j,kc,QU)**2 + qxp(i,j,kc,QV)**2 &
-               + qxp(i,j,kc,QW)**2)
-          rerx = qxp(i,j,kc,QREINT) + ekenrx
-          err  = qxp(i,j,kc,qrad:qradhi)
 
-          rrlx = qxm(i+1,j,kc,QRHO)
-          rulx = rrlx*qxm(i+1,j,kc,QU)
-          rvlx = rrlx*qxm(i+1,j,kc,QV)
-          rwlx = rrlx*qxm(i+1,j,kc,QW)
-          ekenlx = 0.5d0*rrlx*(qxm(i+1,j,kc,QU)**2 + qxm(i+1,j,kc,QV)**2 &
-               + qxm(i+1,j,kc,QW)**2)
-          relx = qxm(i+1,j,kc,QREINT) + ekenlx
-          erl  = qxm(i+1,j,kc,qrad:qradhi)
+          ! we need to augment our conserved system with a p equation to
+          ! be able to deal with the general EOS
 
-          ! Add transverse predictor
-          rrnewrx = rrrx - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-          runewrx = rurx - cdtdy*(fy(i,j+1,kc,UMX) - fy(i,j,kc,UMX))
-          rvnewrx = rvrx - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
-          rwnewrx = rwrx - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
+          du = ugp-ugm
+
           lamge = lambda(:) * (ergp(:)-ergm(:))
           dmom = - cdtdy*sum(lamge(:))
-          rvnewrx = rvnewrx + dmom
           luge = ugc * lamge(:)
           dre = -cdtdy*sum(luge)
-          renewrx = rerx - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))  &
-               + dre
 
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = HALF*(ONE-eddf)
                 der(g) = cdtdy * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdy * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdy * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
              end do
           else ! mixed frame
              der(:) = cdtdy * luge
           end if
 
-          ernewr = err(:) - cdtdy*(rfy(i,j+1,kc,:) - rfy(i,j,kc,:)) &
-               + der(:)
 
-          rrnewlx = rrlx - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-          runewlx = rulx - cdtdy*(fy(i,j+1,kc,UMX) - fy(i,j,kc,UMX))
-          rvnewlx = rvlx - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
-          rwnewlx = rwlx - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
-          rvnewlx = rvnewlx + dmom
-          renewlx = relx - cdtdy*(fy(i,j+1,kc,UEDEN)- fy(i,j,kc,UEDEN)) &
-               + dre
-          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,kc,:) - rfy(i,j,kc,:)) &
-               + der(:)
+          !-------------------------------------------------------------------
+          ! qxpo state
+          !-------------------------------------------------------------------
 
-          dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
-          du = ugp-ugm
+          if (i >= ilo+1) then
+             ! Convert to conservation form
+             rrrx = qxp(i,j,kc,QRHO)
+             rurx = rrrx*qxp(i,j,kc,QU)
+             rvrx = rrrx*qxp(i,j,kc,QV)
+             rwrx = rrrx*qxp(i,j,kc,QW)
+             ekenrx = HALF*rrrx*(qxp(i,j,kc,QU)**2 + qxp(i,j,kc,QV)**2 &
+                  + qxp(i,j,kc,QW)**2)
+             rerx = qxp(i,j,kc,QREINT) + ekenrx
+             err  = qxp(i,j,kc,qrad:qradhi)
 
-          pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
-          pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+             ! Add transverse predictor
+             rrnewrx = rrrx - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
+             runewrx = rurx - cdtdy*(fy(i,j+1,kc,UMX) - fy(i,j,kc,UMX))
+             rvnewrx = rvrx - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
+             rvnewrx = rvnewrx + dmom
+             rwnewrx = rwrx - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
+             renewrx = rerx - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))  &
+                  + dre
 
-          ! Convert back to non-conservation form
-          qxpo(i,j,kc,QRHO) = rrnewrx
-          qxpo(i,j,kc,QU) = runewrx/qxpo(i,j,kc,QRHO)
-          qxpo(i,j,kc,QV) = rvnewrx/qxpo(i,j,kc,QRHO)
-          qxpo(i,j,kc,QW) = rwnewrx/qxpo(i,j,kc,QRHO)
-          rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
-          qxpo(i,j,kc,QREINT)= renewrx - rhoekenrx
-          qxpo(i,j,kc,QPRES) = pnewrx
-          qxpo(i,j,kc,qrad:qradhi) = ernewr(:)
-          qxpo(i,j,kc,qptot  ) = sum(lambda(:)*ernewr(:)) + qxpo(i,j,kc,QPRES)
-          qxpo(i,j,kc,qreitot) = sum(qxpo(i,j,kc,qrad:qradhi)) + qxpo(i,j,kc,QREINT)
+             ernewr = err(:) - cdtdy*(rfy(i,j+1,kc,:) - rfy(i,j,kc,:)) &
+                  + der(:)
 
-          qxmo(i+1,j,kc,QRHO) = rrnewlx
-          qxmo(i+1,j,kc,QU) = runewlx/qxmo(i+1,j,kc,QRHO)
-          qxmo(i+1,j,kc,QV) = rvnewlx/qxmo(i+1,j,kc,QRHO)
-          qxmo(i+1,j,kc,QW) = rwnewlx/qxmo(i+1,j,kc,QRHO)
-          rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
-          qxmo(i+1,j,kc,QREINT)= renewlx - rhoekenlx
-          qxmo(i+1,j,kc,QPRES) = pnewlx
-          qxmo(i+1,j,kc,qrad:qradhi) = ernewl(:)
-          qxmo(i+1,j,kc,qptot  ) = sum(lambda(:)*ernewl(:)) + qxmo(i+1,j,kc,QPRES)
-          qxmo(i+1,j,kc,qreitot) = sum(qxmo(i+1,j,kc,qrad:qradhi)) + qxmo(i+1,j,kc,QREINT)
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewrx < ZERO) then
+                   rrnewrx = rrrx
+                   runewrx = rurx
+                   rvnewrx = rvrx
+                   rwnewrx = rwrx
+                   renewrx = rerx
+                   ernewr = err(:)
+                endif
+             endif
 
+             qxpo(i,j,kc,QRHO) = rrnewrx
+             qxpo(i,j,kc,QU) = runewrx/qxpo(i,j,kc,QRHO)
+             qxpo(i,j,kc,QV) = rvnewrx/qxpo(i,j,kc,QRHO)
+             qxpo(i,j,kc,QW) = rwnewrx/qxpo(i,j,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,kc,QRHO)
+             qxpo(i,j,kc,QREINT)= renewrx - rhoekenrx
+
+             pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+             qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
+
+             qxpo(i,j,kc,qrad:qradhi) = ernewr(:)
+             qxpo(i,j,kc,qptot  ) = sum(lambda(:)*ernewr(:)) + qxpo(i,j,kc,QPRES)
+             qxpo(i,j,kc,qreitot) = sum(qxpo(i,j,kc,qrad:qradhi)) + qxpo(i,j,kc,QREINT)
+          endif
+
+
+          !-------------------------------------------------------------------
+          ! qxmo state
+          !-------------------------------------------------------------------
+
+          if (i <= ihi-1) then
+             rrlx = qxm(i+1,j,kc,QRHO)
+             rulx = rrlx*qxm(i+1,j,kc,QU)
+             rvlx = rrlx*qxm(i+1,j,kc,QV)
+             rwlx = rrlx*qxm(i+1,j,kc,QW)
+             ekenlx = HALF*rrlx*(qxm(i+1,j,kc,QU)**2 + qxm(i+1,j,kc,QV)**2 &
+                  + qxm(i+1,j,kc,QW)**2)
+             relx = qxm(i+1,j,kc,QREINT) + ekenlx
+             erl  = qxm(i+1,j,kc,qrad:qradhi)
+
+             ! Add transverse predictor
+             rrnewlx = rrlx - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
+             runewlx = rulx - cdtdy*(fy(i,j+1,kc,UMX) - fy(i,j,kc,UMX))
+             rvnewlx = rvlx - cdtdy*(fy(i,j+1,kc,UMY) - fy(i,j,kc,UMY))
+             rvnewlx = rvnewlx + dmom
+             rwnewlx = rwlx - cdtdy*(fy(i,j+1,kc,UMZ) - fy(i,j,kc,UMZ))
+             renewlx = relx - cdtdy*(fy(i,j+1,kc,UEDEN)- fy(i,j,kc,UEDEN)) &
+                  + dre
+             ernewl  = erl(:) - cdtdy*(rfy(i,j+1,kc,:) - rfy(i,j,kc,:)) &
+                  + der(:)
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1) then
+                if (rrnewlx < ZERO) then
+                   rrnewlx = rrlx 
+                   runewlx = rulx 
+                   rvnewlx = rvlx 
+                   rwnewlx = rwlx 
+                   renewlx = relx 
+                   ernewl  = erl(:)
+                endif
+             endif
+
+             qxmo(i+1,j,kc,QRHO) = rrnewlx
+             qxmo(i+1,j,kc,QU) = runewlx/qxmo(i+1,j,kc,QRHO)
+             qxmo(i+1,j,kc,QV) = rvnewlx/qxmo(i+1,j,kc,QRHO)
+             qxmo(i+1,j,kc,QW) = rwnewlx/qxmo(i+1,j,kc,QRHO)
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,kc,QRHO)
+             qxmo(i+1,j,kc,QREINT)= renewlx - rhoekenlx
+
+             pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+             qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
+
+             qxmo(i+1,j,kc,qrad:qradhi) = ernewl(:)
+             qxmo(i+1,j,kc,qptot  ) = sum(lambda(:)*ernewl(:)) + qxmo(i+1,j,kc,QPRES)
+             qxmo(i+1,j,kc,qreitot) = sum(qxmo(i+1,j,kc,qrad:qradhi)) + qxmo(i+1,j,kc,QREINT)
+          endif
        enddo
     enddo
 
@@ -785,7 +887,7 @@ contains
           pggm  = qy(i,j  ,kc,GDPRES)
           ugp  =  qy(i,j+1,kc,GDV)
           ugm  =  qy(i,j  ,kc,GDV)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
 
@@ -794,7 +896,7 @@ contains
           rurz = rrrz*qzp(i,j,kc,QU)
           rvrz = rrrz*qzp(i,j,kc,QV)
           rwrz = rrrz*qzp(i,j,kc,QW)
-          ekenrz = 0.5d0*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 &
+          ekenrz = HALF*rrrz*(qzp(i,j,kc,QU)**2 + qzp(i,j,kc,QV)**2 &
                + qzp(i,j,kc,QW)**2)
           rerz = qzp(i,j,kc,QREINT) + ekenrz
           err  = qzp(i,j,kc,qrad:qradhi)
@@ -807,7 +909,7 @@ contains
           lamge = lambda(:) * (ergp(:)-ergm(:))
           dmom = - cdtdy*sum(lamge(:))
           rvnewrz = rvnewrz + dmom
-          luge = 0.5d0*(ugp+ugm) * lamge(:)
+          luge = HALF*(ugp+ugm) * lamge(:)
           dre = -cdtdy*sum(luge)
           renewrz = rerz - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN)) &
                + dre
@@ -815,14 +917,14 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = HALF*(ONE-eddf)
                 der(g) = cdtdy * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdy * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdy * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
              end do
           else ! mixed frame
              der(:) = cdtdy * luge
@@ -832,17 +934,17 @@ contains
                + der(:)
 
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
 
-          pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - 1.d0))
+          pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
 
           ! Convert back to non-conservation form
           qzpo(i,j,kc,QRHO) = rrnewrz
           qzpo(i,j,kc,QU) = runewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QV) = rvnewrz/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QW) = rwnewrz/qzpo(i,j,kc,QRHO)
-          rhoekenrz = 0.5d0*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
+          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,kc,QRHO)
           qzpo(i,j,kc,QREINT)= renewrz - rhoekenrz
           qzpo(i,j,kc,QPRES) = pnewrz
           qzpo(i,j,kc,qrad:qradhi) = ernewr(:)
@@ -854,7 +956,7 @@ contains
           pggm  =  qy(i,j  ,km,GDPRES)
           ugp  =  qy(i,j+1,km,GDV)
           ugm  =  qy(i,j  ,km,GDV)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,km,GDERADS:GDERADS-1+ngroups)
 
@@ -862,7 +964,7 @@ contains
           rulz = rrlz*qzm(i,j,kc,QU)
           rvlz = rrlz*qzm(i,j,kc,QV)
           rwlz = rrlz*qzm(i,j,kc,QW)
-          ekenlz = 0.5d0*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 &
+          ekenlz = HALF*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 &
                + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
           erl  = qzm(i,j,kc,qrad:qradhi)
@@ -875,7 +977,7 @@ contains
           lamge = lambda(:) * (ergp(:)-ergm(:))
           dmom = - cdtdy*sum(lamge(:))
           rvnewlz = rvnewlz + dmom
-          luge = 0.5d0*(ugp+ugm) * lamge(:)
+          luge = HALF*(ugp+ugm) * lamge(:)
           dre = -cdtdy*sum(luge)
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN)) &
                + dre
@@ -883,14 +985,14 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = HALF*(ONE-eddf)
                 der(g) = cdtdy * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdy * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdy * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
              end do
           else ! mixed frame
              der(:) = cdtdy * luge
@@ -900,16 +1002,16 @@ contains
                + der
 
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
 
-          pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+          pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
 
           qzmo(i,j,kc,QRHO) = rrnewlz
           qzmo(i,j,kc,QU) = runewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QV) = rvnewlz/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QW) = rwnewlz/qzmo(i,j,kc,QRHO)
-          rhoekenlz = 0.5d0*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
+          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,kc,QRHO)
           qzmo(i,j,kc,QREINT)= renewlz - rhoekenlz
           qzmo(i,j,kc,QPRES) = pnewlz
           qzmo(i,j,kc,qrad:qradhi) = ernewl(:)
@@ -1041,7 +1143,7 @@ contains
           rurx = rrrx*qxp(i,j,km,QU)
           rvrx = rrrx*qxp(i,j,km,QV)
           rwrx = rrrx*qxp(i,j,km,QW)
-          ekenrx = 0.5d0*rrrx*(qxp(i,j,km,QU)**2 + qxp(i,j,km,QV)**2 &
+          ekenrx = HALF*rrrx*(qxp(i,j,km,QU)**2 + qxp(i,j,km,QV)**2 &
                + qxp(i,j,km,QW)**2)
           rerx = qxp(i,j,km,QREINT) + ekenrx
           errx = qxp(i,j,km,qrad:qradhi)
@@ -1050,7 +1152,7 @@ contains
           rury = rrry*qyp(i,j,km,QU)
           rvry = rrry*qyp(i,j,km,QV)
           rwry = rrry*qyp(i,j,km,QW)
-          ekenry = 0.5d0*rrry*(qyp(i,j,km,QU)**2 + qyp(i,j,km,QV)**2 &
+          ekenry = HALF*rrry*(qyp(i,j,km,QU)**2 + qyp(i,j,km,QV)**2 &
                + qyp(i,j,km,QW)**2)
           rery = qyp(i,j,km,QREINT) + ekenry
           erry = qyp(i,j,km,qrad:qradhi)
@@ -1059,7 +1161,7 @@ contains
           rulx = rrlx*qxm(i+1,j,km,QU)
           rvlx = rrlx*qxm(i+1,j,km,QV)
           rwlx = rrlx*qxm(i+1,j,km,QW)
-          ekenlx = 0.5d0*rrlx*(qxm(i+1,j,km,QU)**2 + qxm(i+1,j,km,QV)**2 &
+          ekenlx = HALF*rrlx*(qxm(i+1,j,km,QU)**2 + qxm(i+1,j,km,QV)**2 &
                + qxm(i+1,j,km,QW)**2)
           relx = qxm(i+1,j,km,QREINT) + ekenlx
           erlx = qxm(i+1,j,km,qrad:qradhi)
@@ -1068,7 +1170,7 @@ contains
           ruly = rrly*qym(i,j+1,km,QU)
           rvly = rrly*qym(i,j+1,km,QV)
           rwly = rrly*qym(i,j+1,km,QW)
-          ekenly = 0.5d0*rrly*(qym(i,j+1,km,QU)**2 + qym(i,j+1,km,QV)**2 &
+          ekenly = HALF*rrly*(qym(i,j+1,km,QU)**2 + qym(i,j+1,km,QV)**2 &
                + qym(i,j+1,km,QW)**2)
           rely = qym(i,j+1,km,QREINT) + ekenly
           erly = qym(i,j+1,km,qrad:qradhi)
@@ -1081,7 +1183,7 @@ contains
           lamge = lambda(:) * (ergp(:)-ergm(:))
           dmz = - cdtdz*sum(lamge)
           rwnewrx = rwnewrx + dmz
-          luge = 0.5d0*(ugp+ugm) * lamge(:)
+          luge = HALF*(ugp+ugm) * lamge(:)
           dre = -cdtdz*sum(luge)
           renewrx = rerx - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN)) &
                + dre
@@ -1089,14 +1191,14 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdz*0.5d0*(ugp+ugm)*(ergp(g)-ergm(g))
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdz*0.5d0*(ergp(g)+ergm(g))*(ugm-ugp)*f1
+                f1 = HALF*(ONE-eddf)
+                der(g) = cdtdz*HALF*(ergp(g)+ergm(g))*(ugm-ugp)*f1
              end do
           else ! mixed frame
              der(:) = cdtdz * luge
@@ -1136,21 +1238,21 @@ contains
                + der(:)
 
           dup = pggp*ugp - pggm*ugm
-          pav = 0.5d0*(pggp+pggm)
+          pav = HALF*(pggp+pggm)
           du = ugp-ugm
 
-          pnewrx = qxp(i  ,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
-          pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+          pnewrx = qxp(i  ,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+          pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
 
-          pnewry = qyp(i,j  ,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
-          pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - 1.d0))
+          pnewry = qyp(i,j  ,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+          pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
 
           ! Convert back to non-conservation form
           qxpo(i,j,km,QRHO) = rrnewrx
           qxpo(i,j,km,QU) = runewrx/qxpo(i,j,km,QRHO)
           qxpo(i,j,km,QV) = rvnewrx/qxpo(i,j,km,QRHO)
           qxpo(i,j,km,QW) = rwnewrx/qxpo(i,j,km,QRHO)
-          rhoekenrx = 0.5d0*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
+          rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
           qxpo(i,j,km,QREINT)= renewrx - rhoekenrx
           qxpo(i,j,km,QPRES) = pnewrx
           qxpo(i,j,km,qrad:qradhi) = ernewrx(:)
@@ -1161,7 +1263,7 @@ contains
           qypo(i,j,km,QU) = runewry/qypo(i,j,km,QRHO)
           qypo(i,j,km,QV) = rvnewry/qypo(i,j,km,QRHO)
           qypo(i,j,km,QW) = rwnewry/qypo(i,j,km,QRHO)
-          rhoekenry = 0.5d0*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
+          rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
           qypo(i,j,km,QREINT)= renewry - rhoekenry
           qypo(i,j,km,QPRES) = pnewry
           qypo(i,j,km,qrad:qradhi) = ernewry(:)
@@ -1172,7 +1274,7 @@ contains
           qxmo(i+1,j,km,QU) = runewlx/qxmo(i+1,j,km,QRHO)
           qxmo(i+1,j,km,QV) = rvnewlx/qxmo(i+1,j,km,QRHO)
           qxmo(i+1,j,km,QW) = rwnewlx/qxmo(i+1,j,km,QRHO)
-          rhoekenlx = 0.5d0*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
+          rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
           qxmo(i+1,j,km,QREINT)= renewlx - rhoekenlx
           qxmo(i+1,j,km,QPRES) = pnewlx
           qxmo(i+1,j,km,qrad:qradhi) = ernewlx(:)
@@ -1183,7 +1285,7 @@ contains
           qymo(i,j+1,km,QU) = runewly/qymo(i,j+1,km,QRHO)
           qymo(i,j+1,km,QV) = rvnewly/qymo(i,j+1,km,QRHO)
           qymo(i,j+1,km,QW) = rwnewly/qymo(i,j+1,km,QRHO)
-          rhoekenly = 0.5d0*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
+          rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
           qymo(i,j+1,km,QREINT)= renewly - rhoekenly
           qymo(i,j+1,km,QPRES) = pnewly
           qymo(i,j+1,km,qrad:qradhi) = ernewly(:)
@@ -1330,7 +1432,7 @@ contains
           rur = rrr*qp(i,j,kc,QU)
           rvr = rrr*qp(i,j,kc,QV)
           rwr = rrr*qp(i,j,kc,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,kc,QU)**2 + qp(i,j,kc,QV)**2 + &
+          ekenr = HALF*rrr*(qp(i,j,kc,QU)**2 + qp(i,j,kc,QV)**2 + &
                qp(i,j,kc,QW)**2)
           rer = qp(i,j,kc,QREINT) + ekenr
           err = qp(i,j,kc,qrad:qradhi)
@@ -1339,7 +1441,7 @@ contains
           rul = rrl*qm(i,j,kc,QU)
           rvl = rrl*qm(i,j,kc,QV)
           rwl = rrl*qm(i,j,kc,QW)
-          ekenl = 0.5d0*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
+          ekenl = HALF*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
                qm(i,j,kc,QW)**2)
           rel = qm(i,j,kc,QREINT) + ekenl
           erl = qm(i,j,kc,qrad:qradhi)
@@ -1359,8 +1461,8 @@ contains
           dmy = - cdtdy*sum(lgey)
           runewr = runewr + dmx
           rvnewr = rvnewr + dmy
-          lugex = 0.5d0*(ugxp+ugxm) * lgex(:)
-          lugey = 0.5d0*(ugyp+ugym) * lgey(:)
+          lugex = HALF*(ugxp+ugxm) * lgex(:)
+          lugey = HALF*(ugyp+ugym) * lgey(:)
           dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
           renewr = rer - cdtdx*(fxy(i+1,j  ,kc,UEDEN) - fxy(i,j,kc,UEDEN)) &
                - cdtdy*(fyx(i  ,j+1,kc,UEDEN) - fyx(i,j,kc,UEDEN))  &
@@ -1369,16 +1471,16 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lamc(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
-                     +       cdtdy*0.5d0*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                     +       cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lamc(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
-                     +       cdtdy*0.5d0*(ergyp(g)+ergym(g))*(ugym-ugyp) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                     +       cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) )
              end do
           else ! mixed frame
              der(:) = cdtdx * lugex + cdtdy * lugey
@@ -1402,8 +1504,8 @@ contains
           dmy = - cdtdy*sum(lgey)
           runewl = runewl + dmx
           rvnewl = rvnewl + dmy 
-          lugex = 0.5d0*(ugxpm+ugxmm) * lgex(:)
-          lugey = 0.5d0*(ugypm+ugymm) * lgey(:)
+          lugex = HALF*(ugxpm+ugxmm) * lgex(:)
+          lugey = HALF*(ugypm+ugymm) * lgey(:)
           dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
           renewl = rel - cdtdx*(fxy(i+1,j  ,km,UEDEN) - fxy(i,j,km,UEDEN)) &
                - cdtdy*(fyx(i  ,j+1,km,UEDEN) - fyx(i,j,km,UEDEN)) &
@@ -1412,16 +1514,16 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lamm(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ugxpm+ugxmm)*(ergxpm(g)-ergxmm(g)) &
-                     +       cdtdy*0.5d0*(ugypm+ugymm)*(ergypm(g)-ergymm(g)) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ugxpm+ugxmm)*(ergxpm(g)-ergxmm(g)) &
+                     +       cdtdy*HALF*(ugypm+ugymm)*(ergypm(g)-ergymm(g)) )
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lamm(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ergxpm(g)+ergxmm(g))*(ugxmm-ugxpm) &
-                     +       cdtdy*0.5d0*(ergypm(g)+ergymm(g))*(ugymm-ugypm) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ergxpm(g)+ergxmm(g))*(ugxmm-ugxpm) &
+                     +       cdtdy*HALF*(ergypm(g)+ergymm(g))*(ugymm-ugypm) )
              end do
           else ! mixed frame
              der(:) = cdtdx * lugex + cdtdy * lugey
@@ -1432,24 +1534,24 @@ contains
                &          + der(:)
 
           duxp = pggxp*ugxp - pggxm*ugxm
-          pxav = 0.5d0*(pggxp+pggxm)
+          pxav = HALF*(pggxp+pggxm)
           dux = ugxp-ugxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-1.d0))
+          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
 
           duxpm = pggxpm*ugxpm - pggxmm*ugxmm
-          pxavm = 0.5d0*(pggxpm+pggxmm)
+          pxavm = HALF*(pggxpm+pggxmm)
           duxm = ugxpm-ugxmm
-          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-1.d0))
+          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
 
           duyp = pggyp*ugyp - pggym*ugym
-          pyav = 0.5d0*(pggyp+pggym)
+          pyav = HALF*(pggyp+pggym)
           duy = ugyp-ugym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-1.d0))
+          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
 
           duypm = pggypm*ugypm - pggymm*ugymm
-          pyavm = 0.5d0*(pggypm+pggymm)
+          pyavm = HALF*(pggypm+pggymm)
           duym = ugypm-ugymm
-          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-1.d0))
+          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
 
           pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
           pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
@@ -1460,7 +1562,7 @@ contains
           qpo(i,j,kc,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
           qpo(i,j,kc,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
           qpo(i,j,kc,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
           qpo(i,j,kc,QPRES ) = pnewr             + hdt*srcQ(i,j,k3d,QPRES)
           qpo(i,j,kc,qrad:qradhi) = ernewr(:)
@@ -1472,7 +1574,7 @@ contains
           qmo(i,j,kc,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d-1,QU)
           qmo(i,j,kc,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QV)
           qmo(i,j,kc,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d-1,QW)
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
           qmo(i,j,kc,QPRES ) = pnewl             + hdt*srcQ(i,j,k3d-1,QPRES)
           qmo(i,j,kc,qrad:qradhi) = ernewl(:)
@@ -1608,7 +1710,7 @@ contains
           rur = rrr*qp(i,j,km,QU)
           rvr = rrr*qp(i,j,km,QV)
           rwr = rrr*qp(i,j,km,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
+          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + qp(i,j,km,QW)**2)
           rer = qp(i,j,km,QREINT) + ekenr
           err = qp(i,j,km,qrad:qradhi)
 
@@ -1616,7 +1718,7 @@ contains
           rul = rrl*qm(i,j+1,km,QU)
           rvl = rrl*qm(i,j+1,km,QV)
           rwl = rrl*qm(i,j+1,km,QW)
-          ekenl = 0.5d0*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
+          ekenl = HALF*rrl*(qm(i,j+1,km,QU)**2 + qm(i,j+1,km,QV)**2 + qm(i,j+1,km,QW)**2)
           rel = qm(i,j+1,km,QREINT) + ekenl
           erl = qm(i,j+1,km,qrad:qradhi)
 
@@ -1635,8 +1737,8 @@ contains
           dmz = - cdtdz*sum(lgez)
           runewr = runewr + dmx
           rwnewr = rwnewr + dmz
-          lugex = 0.5d0*(ugxp+ugxm) * lgex(:)
-          lugez = 0.5d0*(ugzp+ugzm) * lgez(:)
+          lugex = HALF*(ugxp+ugxm) * lgex(:)
+          lugez = HALF*(ugzp+ugzm) * lgez(:)
           dre = -cdtdx * sum(lugex) - cdtdz * sum(lugez)
           renewr = rer - cdtdx*(fxz(i+1,j,km,UEDEN) - fxz(i,j,km,UEDEN)) &
                - cdtdz*(fzx(i  ,j,kc,UEDEN) - fzx(i,j,km,UEDEN)) &
@@ -1645,16 +1747,16 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
-                     +       cdtdz*0.5d0*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                     +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdx*0.5d0*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
-                     +       cdtdz*0.5d0*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                     +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
              end do
           else ! mixed frame
              der(:) = cdtdx*lugex + cdtdz*lugez
@@ -1682,14 +1784,14 @@ contains
                &          + der(:)
 
           duxp = pggxp*ugxp - pggxm*ugxm
-          pxav = 0.5d0*(pggxp+pggxm)
+          pxav = HALF*(pggxp+pggxm)
           dux = ugxp-ugxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-1.d0))
+          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
 
           duzp = pggzp*ugzp - pggzm*ugzm
-          pzav = 0.5d0*(pggzp+pggzm)
+          pzav = HALF*(pggzp+pggzm)
           duz = ugzp-ugzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
+          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
 
           pnewr = qp(i,j,km,QPRES) - pxnew - pznew
           pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
@@ -1700,7 +1802,7 @@ contains
           qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
           qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
           qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
           qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
           qpo(i,j,km,QPRES ) = pnewr            + hdt*srcQ(i,j,k3d,QPRES)
           qpo(i,j,km,qrad:qradhi) = ernewr(:)
@@ -1712,7 +1814,7 @@ contains
           qmo(i,j+1,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU)
           qmo(i,j+1,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV)
           qmo(i,j+1,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW)
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
           qmo(i,j+1,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
           qmo(i,j+1,km,QPRES ) = pnewl            + hdt*srcQ(i,j,k3d,QPRES)
           qmo(i,j+1,km,qrad:qradhi) = ernewl(:)
@@ -1850,7 +1952,7 @@ contains
           rur = rrr*qp(i,j,km,QU)
           rvr = rrr*qp(i,j,km,QV)
           rwr = rrr*qp(i,j,km,QW)
-          ekenr = 0.5d0*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
+          ekenr = HALF*rrr*(qp(i,j,km,QU)**2 + qp(i,j,km,QV)**2 + &
                qp(i,j,km,QW)**2)
           rer = qp(i,j,km,QREINT) + ekenr
           err = qp(i,j,km,qrad:qradhi)
@@ -1859,7 +1961,7 @@ contains
           rul = rrl*qm(i+1,j,km,QU)
           rvl = rrl*qm(i+1,j,km,QV)
           rwl = rrl*qm(i+1,j,km,QW)
-          ekenl = 0.5d0*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
+          ekenl = HALF*rrl*(qm(i+1,j,km,QU)**2 + qm(i+1,j,km,QV)**2 + &
                qm(i+1,j,km,QW)**2)
           rel = qm(i+1,j,km,QREINT) + ekenl
           erl = qm(i+1,j,km,qrad:qradhi)
@@ -1879,8 +1981,8 @@ contains
           dmz = - cdtdz*sum(lgez)
           rvnewr = rvnewr + dmy 
           rwnewr = rwnewr + dmz
-          lugey = 0.5d0*(ugyp+ugym) * lgey(:)
-          lugez = 0.5d0*(ugzp+ugzm) * lgez(:)
+          lugey = HALF*(ugyp+ugym) * lgey(:)
+          lugez = HALF*(ugzp+ugzm) * lgez(:)
           dre = -cdtdy*sum(lugey) - cdtdz*sum(lugez)
           renewr = rer - cdtdy*(fyz(i,j+1,km,UEDEN) - fyz(i,j,km,UEDEN)) &
                - cdtdz*(fzy(i,j  ,kc,UEDEN) - fzy(i,j,km,UEDEN)) &
@@ -1889,16 +1991,16 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdy*0.5d0*(ugyp+ugym)*(ergyp(g)-ergym(g)) &
-                     +       cdtdz*0.5d0*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) &
+                     +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = f1*(cdtdy*0.5d0*(ergyp(g)+ergym(g))*(ugym-ugyp) &
-                     +       cdtdz*0.5d0*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                f1 = HALF*(ONE-eddf)
+                der(g) = f1*(cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) &
+                     +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
              end do
           else ! mixed frame
              der(:) = cdtdy*lugey + cdtdz*lugez
@@ -1926,14 +2028,14 @@ contains
                &          + der(:)
 
           duyp = pggyp*ugyp - pggym*ugym
-          pyav = 0.5d0*(pggyp+pggym)
+          pyav = HALF*(pggyp+pggym)
           duy = ugyp-ugym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-1.d0))
+          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
 
           duzp = pggzp*ugzp - pggzm*ugzm
-          pzav = 0.5d0*(pggzp+pggzm)
+          pzav = HALF*(pggzp+pggzm)
           duz = ugzp-ugzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-1.d0))
+          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
 
           pnewr = qp(i,j,km,QPRES) - pynew - pznew
           pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
@@ -1944,7 +2046,7 @@ contains
           qpo(i,j,km,QU    ) = runewr/rhotmp + hdt*srcQ(i,j,k3d,QU)
           qpo(i,j,km,QV    ) = rvnewr/rhotmp + hdt*srcQ(i,j,k3d,QV)
           qpo(i,j,km,QW    ) = rwnewr/rhotmp + hdt*srcQ(i,j,k3d,QW)
-          rhoekenr = 0.5d0*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rhotmp
           qpo(i,j,km,QREINT)= renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
           qpo(i,j,km,QPRES ) = pnewr            + hdt*srcQ(i,j,k3d,QPRES)
           qpo(i,j,km,qrad:qradhi) = ernewr(:)
@@ -1956,7 +2058,7 @@ contains
           qmo(i+1,j,km,QU    ) = runewl/rhotmp + hdt*srcQ(i,j,k3d,QU)
           qmo(i+1,j,km,QV    ) = rvnewl/rhotmp + hdt*srcQ(i,j,k3d,QV)
           qmo(i+1,j,km,QW    ) = rwnewl/rhotmp + hdt*srcQ(i,j,k3d,QW)
-          rhoekenl = 0.5d0*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rhotmp
           qmo(i+1,j,km,QREINT)= renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
           qmo(i+1,j,km,QPRES ) = pnewl            + hdt*srcQ(i,j,k3d,QPRES)
           qmo(i+1,j,km,qrad:qradhi) = ernewl(:)
