@@ -7,7 +7,8 @@ module transverse_rad_module
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFA, UFS, UFX, &
                                  GDPRES, GDU, GDV, GDW, GDERADS, ngdnv, &
-                                 nadv, upass_map, qpass_map, npassive
+                                 nadv, upass_map, qpass_map, npassive, &
+                                 transverse_reset_density, small_pres
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
                                      fspace_type, comoving
   use rad_params_module, only : ngroups
