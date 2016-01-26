@@ -844,7 +844,6 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              ! Convert to conservation form
              rrrx = qxp(i,j,kc,QRHO)
@@ -1561,7 +1560,6 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              ! Convert to conservation form
              rrrx = qxp(i,j,km,QRHO)
@@ -2583,7 +2581,6 @@ contains
           ! qypo state
           !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (j.ge.jlo+1) then
              ! Convert to conservation form
              rrr = qp(i,j,km,QRHO)
@@ -2980,7 +2977,6 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          ! Convert back to primitive form
           if (i.ge.ilo+1) then
              ! Convert to conservation form
              rrr = qp(i,j,km,QRHO)
