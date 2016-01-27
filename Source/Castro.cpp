@@ -2509,6 +2509,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    if (level > 0) {
        const BoxArray& crse_grids = getLevel(level-1).boxArray();
        CrseSpec.define(crse_grids,1,1,Fab_allocate);
+        CrseDen.define(crse_grids,1,1,Fab_allocate);
    }
 
    // Fill one species at a time at this level.
