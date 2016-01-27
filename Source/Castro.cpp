@@ -2620,6 +2620,7 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
        // Fill temperature at next coarser level, if it exists.
        const BoxArray& crse_grids = getLevel(level-1).boxArray();
        CrseVel.define(crse_grids,1,1,Fab_allocate);
+       CrseDen.define(crse_grids,1,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseVel ,1,time,State_Type,Xmom   ,1);
        FillPatch(getLevel(level-1),CrseDen ,1,time,State_Type,Density,1);
        MultiFab::Divide(CrseVel, CrseDen, 0, 0, 1, 1);
@@ -2693,6 +2694,7 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
        // Fill temperature at next coarser level, if it exists.
        const BoxArray& crse_grids = getLevel(level-1).boxArray();
        CrseVel.define(crse_grids,1,1,Fab_allocate);
+       CrseDen.define(crse_grids,1,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseVel ,1,time,State_Type,Xmom   ,1);
        FillPatch(getLevel(level-1),CrseDen ,1,time,State_Type,Density,1);
        MultiFab::Divide(CrseVel, CrseDen, 0, 0, 1, 1);
