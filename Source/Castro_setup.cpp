@@ -694,6 +694,17 @@ Castro::variableSetUp ()
   derive_lst.addComponent("z_velocity",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("z_velocity",desc_lst,State_Type,Zmom,1);
 
+#ifdef REACTIONS
+  //
+  // Nuclear energy generation timescale t_e == e / edot
+  // Sound-crossing time t_s == dx / c_s
+  // Ratio of these is t_s_t_e == t_s / t_e
+  //
+  derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
+#endif
+
 #ifdef SGS
   derive_lst.add("K",IndexType::TheCellType(),1,ca_dervel,the_same_box);
   derive_lst.addComponent("K",desc_lst,State_Type,Density,1);

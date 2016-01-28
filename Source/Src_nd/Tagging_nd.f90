@@ -505,4 +505,53 @@ contains
 
   end subroutine ca_enterror
 
+  ! ::: -----------------------------------------------------------
+  ! ::: This routine will tag cells based on the sound crossing time
+  ! ::: relative to the nuclear energy injection timescale.
+  ! ::: At present we tag for maximal refinement since this
+  ! ::: criterion is necessary for numerical burning stability.
+  ! ::: -----------------------------------------------------------
+
+  subroutine ca_nucerror(tag,taglo,taghi, &
+                         set,clear, &
+                         t,tlo,thi, &
+                         lo,hi,nr,domlo,domhi, &
+                         delta,xlo,problo,time,level) bind(C)
+
+    use tagging_params_module
+    use meth_params_module, only: dxnuc
+
+    implicit none
+
+    integer          :: set, clear, nr, level
+    integer          :: taglo(3), taghi(3)
+    integer          :: tlo(3), thi(3)
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    double precision :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
+    double precision :: delta(3), xlo(3), problo(3), time
+
+    double precision :: t_sound, t_enuc
+    integer          :: i, j, k
+
+    ! Disable if we're not utilizing this tagging
+
+    if (dxnuc > 1.d199) return
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (t(i,j,k,1) > dxnuc) then
+
+                tag(i,j,k) = set
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_nucerror
+
 end module tagging_module

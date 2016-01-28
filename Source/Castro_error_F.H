@@ -65,6 +65,16 @@ extern "C"
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
+  void ca_nucerror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     BL_FORT_FAB_ARG_3D(state),
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const Real* dx, const Real* xlo, const Real* problo,
+     const Real* time, const int* level);
+
 #ifdef LEVELSET
   void ca_lserror
     (int* tag, const int* tag_lo, const int* tag_hi,
