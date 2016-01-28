@@ -169,13 +169,13 @@ contains
 
              if (dedt > 1.d-100) then
 
-                if (dtnuc_f1 < 1.d200) then
+                if (dtnuc_f1 < 1.d199) then
 
                    dt = min(dt, dtnuc_f1 * e / dedt)
 
                 endif
 
-                if (dtnuc_f2 < 1.d200 .and. dtdx > ZERO) then
+                if (dtnuc_f2 < 1.d199 .and. dtdx > ZERO) then
 
                    eos_state % rho = u(i,j,k,URHO)
                    eos_state % e   = e
