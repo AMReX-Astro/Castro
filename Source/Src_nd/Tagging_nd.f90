@@ -2,24 +2,57 @@ module tagging_module
 
   implicit none
 
+  double precision, save ::    denerr,   dengrad
+  double precision, save ::    enterr,   entgrad
+  double precision, save ::    velerr,   velgrad
+  double precision, save ::   temperr,  tempgrad
+  double precision, save ::  presserr, pressgrad
+  double precision, save ::    raderr,   radgrad
+  integer         , save ::  max_denerr_lev,   max_dengrad_lev
+  integer         , save ::  max_enterr_lev,   max_entgrad_lev
+  integer         , save ::  max_velerr_lev,   max_velgrad_lev
+  integer         , save ::  max_temperr_lev,  max_tempgrad_lev
+  integer         , save ::  max_presserr_lev, max_pressgrad_lev
+  integer         , save ::  max_raderr_lev,   max_radgrad_lev
+
   public
 
 contains
 
-  ! All subroutines in this file must be threadsafe because they are called
-  ! inside OpenMP paralle regions.
-  
+  ! All tagging subroutines in this file must be threadsafe because
+  ! they are called inside OpenMP parallel regions.
+
+! ::: -----------------------------------------------------------
+! ::: This routine will tag high error cells based on the temperature
+! ::: 
+! ::: INPUTS/OUTPUTS:
+! ::: 
+! ::: tag      <=  integer tag array
+! ::: lo,hi     => index extent of work region
+! ::: set       => integer value to tag cell for refinement
+! ::: clear     => integer value to untag cell
+! ::: temp      => temperature array
+! ::: np        => number of components in temp array (should be 1)
+! ::: domlo,hi  => index extent of problem domain
+! ::: delta     => cell spacing
+! ::: xlo       => physical location of lower left hand
+! :::              corner of work region
+! ::: problo    => phys loc of lower left corner of prob domain
+! ::: time      => problem evolution time
+! ::: level     => refinement level of this array
+! ::: -----------------------------------------------------------
+
+
   ! ::: -----------------------------------------------------------
   ! ::: This routine will tag high error cells based on the Laplacian.
   ! ::: -----------------------------------------------------------
-  
+
   subroutine ca_laplac_error(tag,taglo,taghi, &
                              set,clear, &
                              var,varlo,varhi, &
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg, dim
 
     implicit none
@@ -51,7 +84,7 @@ contains
     do k=lo(3)-1*dg(3),hi(3)+1*dg(3)
        do j=lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i=lo(1)-1*dg(1),hi(1)+1*dg(1)
-             delu(i,j,k,1)  =     var(i+1*dg(1),j,k)  -     var(i-1*dg(1),j,k) 
+             delu(i,j,k,1)  =     var(i+1*dg(1),j,k)  -     var(i-1*dg(1),j,k)
              delua(i,j,k,1) = abs(var(i+1*dg(1),j,k)) + abs(var(i-1*dg(1),j,k))
           end do
        end do
@@ -100,32 +133,32 @@ contains
              delu3(3) = abs(delu(i+1,j,k,2)) + abs(delu(i-1,j,k,2))
              delu4(3) =    delua(i+1,j,k,2)  +    delua(i-1,j,k,2)
 
-             ! d/dydy                     
+             ! d/dydy
              delu2(4) =     delu(i,j+1,k,2)  -     delu(i,j-1,k,2)
              delu3(4) = abs(delu(i,j+1,k,2)) + abs(delu(i,j-1,k,2))
              delu4(4) =    delua(i,j+1,k,2)  +    delua(i,j-1,k,2)
 
-             ! d/dzdx                                            
+             ! d/dzdx
              delu2(5) =     delu(i,j,k+1,1)  -     delu(i,j,k-1,1)
              delu3(5) = abs(delu(i,j,k+1,1)) + abs(delu(i,j,k-1,1))
              delu4(5) =    delua(i,j,k+1,1)  +    delua(i,j,k-1,1)
 
-             ! d/dzdy                                            
+             ! d/dzdy
              delu2(6) =     delu(i,j,k+1,2)  -     delu(i,j,k-1,2)
              delu3(6) = abs(delu(i,j,k+1,2)) + abs(delu(i,j,k-1,2))
              delu4(6) =    delua(i,j,k+1,2)  +    delua(i,j,k-1,2)
 
-             ! d/dxdz                                            
+             ! d/dxdz
              delu2(7) =     delu(i+1,j,k,3)  -     delu(i-1,j,k,3)
              delu3(7) = abs(delu(i+1,j,k,3)) + abs(delu(i-1,j,k,3))
              delu4(7) =    delua(i+1,j,k,3)  +    delua(i-1,j,k,3)
 
-             ! d/dydz                                            
+             ! d/dydz
              delu2(8) =     delu(i,j+1,k,3)  -     delu(i,j-1,k,3)
              delu3(8) = abs(delu(i,j+1,k,3)) + abs(delu(i,j-1,k,3))
              delu4(8) =    delua(i,j+1,k,3)  +    delua(i,j-1,k,3)
 
-             ! d/dzdz                                            
+             ! d/dzdz
              delu2(9) =     delu(i,j,k+1,3)  -     delu(i,j,k-1,3)
              delu3(9) = abs(delu(i,j,k+1,3)) + abs(delu(i,j,k-1,3))
              delu4(9) =    delua(i,j,k+1,3)  +    delua(i,j,k-1,3)
@@ -155,7 +188,6 @@ contains
                          lo,hi,nd,domlo,domhi, &
                          delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -215,7 +247,6 @@ contains
                           lo,hi,np,domlo,domhi, &
                           delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -275,7 +306,6 @@ contains
                            lo,hi,np,domlo,domhi, &
                            delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -335,7 +365,6 @@ contains
                          lo,hi,nv,domlo,domhi, &
                          delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -395,7 +424,6 @@ contains
                          lo,hi,nr,domlo,domhi, &
                          delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -455,7 +483,6 @@ contains
                          lo,hi,nr,domlo,domhi, &
                          delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dg
 
     implicit none
@@ -504,5 +531,53 @@ contains
     endif
 
   end subroutine ca_enterror
+
+  ! ::: -----------------------------------------------------------
+  ! ::: This routine will tag cells based on the sound crossing time
+  ! ::: relative to the nuclear energy injection timescale.
+  ! ::: At present we tag for maximal refinement since this
+  ! ::: criterion is necessary for numerical burning stability.
+  ! ::: -----------------------------------------------------------
+
+  subroutine ca_nucerror(tag,taglo,taghi, &
+                         set,clear, &
+                         t,tlo,thi, &
+                         lo,hi,nr,domlo,domhi, &
+                         delta,xlo,problo,time,level) bind(C)
+
+    use meth_params_module, only: dxnuc
+
+    implicit none
+
+    integer          :: set, clear, nr, level
+    integer          :: taglo(3), taghi(3)
+    integer          :: tlo(3), thi(3)
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    double precision :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
+    double precision :: delta(3), xlo(3), problo(3), time
+
+    double precision :: t_sound, t_enuc
+    integer          :: i, j, k
+
+    ! Disable if we're not utilizing this tagging
+
+    if (dxnuc > 1.d199) return
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (t(i,j,k,1) > dxnuc) then
+
+                tag(i,j,k) = set
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_nucerror
 
 end module tagging_module

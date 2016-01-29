@@ -86,8 +86,8 @@ module meth_params_module
   integer         , save :: fix_mass_flux
   integer         , save :: allow_negative_energy
   integer         , save :: do_sponge
-  double precision, save :: dtnuc_f1
-  double precision, save :: dtnuc_f2
+  double precision, save :: dtnuc
+  double precision, save :: dxnuc
   double precision, save :: react_T_min
   double precision, save :: react_T_max
   integer         , save :: do_grav

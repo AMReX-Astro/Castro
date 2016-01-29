@@ -738,6 +738,74 @@ contains
 
 
 
+  subroutine ca_derenuctimescale(t,t_lo,t_hi,ncomp_t, &
+                                 u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
+                                 domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+
+    use bl_constants_module, only: ZERO, ONE
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
+    use network, only: nspec, naux
+    use prob_params_module, only: dim
+    use eos_module, only: eos_t, eos_input_re, eos
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: t_lo(3), t_hi(3), ncomp_t
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    double precision :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
+    double precision :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
+
+    integer          :: i, j, k
+    double precision :: rhoInv, eint, enuc, t_s, t_e
+
+    type (eos_t)     :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             enuc = abs(u(i,j,k,ncomp_u))
+
+             if (enuc > 1.d-100) then
+
+                rhoInv = ONE / u(i,j,k,URHO)
+
+                eint = u(i,j,k,UEINT) * rhoInv
+
+                t_e = eint / enuc
+
+                ! Calculate sound-speed
+
+                eos_state % rho  = u(i,j,k,URHO)
+                eos_state % T    = u(i,j,k,UTEMP)
+                eos_state % e    = eint
+                eos_state % xn   = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux  = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                call eos(eos_input_re, eos_state)
+
+                t_s = minval(dx(1:dim)) / eos_state % cs
+
+                t(i,j,k,1) = t_s / t_e
+
+             else
+
+                t(i,j,k,1) = ZERO
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_derenuctimescale
+
+
+
   subroutine ca_derspec(spec,s_lo,s_hi,nv, &
                         dat,d_lo,d_hi,nc,lo,hi,domlo, &
                         domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)

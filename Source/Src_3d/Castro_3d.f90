@@ -97,35 +97,35 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   q_lo(:) = lo(:) - NHYP
   q_hi(:) = hi(:) + NHYP
 
-  uin_lo = (/ uin_l1, uin_l2, uin_l3 /)
-  uin_hi = (/ uin_h1, uin_h2, uin_h3 /)
+  uin_lo = [ uin_l1, uin_l2, uin_l3 ]
+  uin_hi = [ uin_h1, uin_h2, uin_h3 ]
   
-  uout_lo = (/ uout_l1, uout_l2, uout_l3 /)
-  uout_hi = (/ uout_h1, uout_h2, uout_h3 /)
+  uout_lo = [ uout_l1, uout_l2, uout_l3 ]
+  uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
-  flux1_lo = (/ flux1_l1, flux1_l2, flux1_l3 /)
-  flux1_hi = (/ flux1_h1, flux1_h2, flux1_h3 /)
+  flux1_lo = [ flux1_l1, flux1_l2, flux1_l3 ]
+  flux1_hi = [ flux1_h1, flux1_h2, flux1_h3 ]
 
-  flux2_lo = (/ flux2_l1, flux2_l2, flux2_l3 /)
-  flux2_hi = (/ flux2_h1, flux2_h2, flux2_h3 /)
+  flux2_lo = [ flux2_l1, flux2_l2, flux2_l3 ]
+  flux2_hi = [ flux2_h1, flux2_h2, flux2_h3 ]
 
-  flux3_lo = (/ flux3_l1, flux3_l2, flux3_l3 /)
-  flux3_hi = (/ flux3_h1, flux3_h2, flux3_h3 /)  
+  flux3_lo = [ flux3_l1, flux3_l2, flux3_l3 ]
+  flux3_hi = [ flux3_h1, flux3_h2, flux3_h3 ]  
   
-  area1_lo = (/ area1_l1, area1_l2, area1_l3 /)
-  area1_hi = (/ area1_h1, area1_h2, area1_h3 /)
+  area1_lo = [ area1_l1, area1_l2, area1_l3 ]
+  area1_hi = [ area1_h1, area1_h2, area1_h3 ]
 
-  area2_lo = (/ area2_l1, area2_l2, area2_l3 /)
-  area2_hi = (/ area2_h1, area2_h2, area2_h3 /)
+  area2_lo = [ area2_l1, area2_l2, area2_l3 ]
+  area2_hi = [ area2_h1, area2_h2, area2_h3 ]
 
-  area3_lo = (/ area3_l1, area3_l2, area3_l3 /)
-  area3_hi = (/ area3_h1, area3_h2, area3_h3 /)
+  area3_lo = [ area3_l1, area3_l2, area3_l3 ]
+  area3_hi = [ area3_h1, area3_h2, area3_h3 ]
 
-  vol_lo = (/ vol_l1, vol_l2, vol_l3 /)
-  vol_hi = (/ vol_h1, vol_h2, vol_h3 /)
+  vol_lo = [ vol_l1, vol_l2, vol_l3 ]
+  vol_hi = [ vol_h1, vol_h2, vol_h3 ]
 
-  src_lo = (/ src_l1, src_l2, src_l3 /)
-  src_hi = (/ src_h1, src_h2, src_h3 /)  
+  src_lo = [ src_l1, src_l2, src_l3 ]
+  src_hi = [ src_h1, src_h2, src_h3 ]  
   
   call bl_allocate(     q, q_lo, q_hi, QVAR)
   call bl_allocate(  gamc, q_lo, q_hi)

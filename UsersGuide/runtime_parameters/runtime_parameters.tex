@@ -187,7 +187,7 @@
 \verb=  cg_maxiter  = &   for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state  &  12 \\
 \verb=  cg_tol  = &   for the Colella \& Glaz Riemann solver, the tolerance to demand in finding the star state  &  1.0e-5 \\
 \rowcolor{tableShade}
-\verb=  difmag  = &   the coefficient of the artifical viscosity  &  0.1 \\
+\verb=  difmag  = &   the coefficient of the artificial viscosity  &  0.1 \\
 \verb=  do_hydro  = &   permits hydro to be turned on and off for running pure rad problems  &  -1 \\
 \rowcolor{tableShade}
 \verb=  do_sponge  = &   permits sponge to be turned on and off  &  0 \\
@@ -315,9 +315,9 @@
 
 \rowcolor{tableShade}
 \verb=  do_react  = &   permits reactions to be turned on and off -- mostly for efficiency's sake  &  -1 \\
-\verb=  dtnuc_f1  = &   limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc\_f1}  $(e / de/dt)$  &  1.e200 \\
+\verb=  dtnuc  = &   limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$  &  1.e200 \\
 \rowcolor{tableShade}
-\verb=  dtnuc_f2  = &   limit the timestep based on whether the burning can change the internal energy of a zone. The timestep is equal to [{\tt dtnuc\_f2} $(e / (de/dt \cdot \Delta t_{\rm{old}})) (1 / t_s)]^{-1}$, where $t_s$ is the sound-crossing time $\Delta x / c_s$ and $\Delta t_{\rm{old}}$ is the last burning timestep  &  1.e200 \\
+\verb=  dxnuc  = &   limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale.  &  1.e200 \\
 \verb=  react_T_max  = &   maximum temperature for allowing reactions to occur in a zone  &  1.e200 \\
 \rowcolor{tableShade}
 \verb=  react_T_min  = &   minimum temperature for allowing reactions to occur in a zone  &  0.0 \\

@@ -1094,18 +1094,15 @@ contains
              uo = HALF*(ul+ur)
              po = HALF*(pl+pr)
 
-#ifdef RADIATION
-             po_r(:) = lambda(:) * reo_r(:)
-             po_g = HALF*(pr_g+pl_g)
-#endif
-
              reo = HALF*(rel+rer)
              gamco = HALF*(gamcl(i,j)+gamcr(i,j))
 
 #ifdef RADIATION
              reo_r(:) = HALF*(erl(:)+err(:))
              reo_g = HALF*(rel_g+rer_g)
+             po_r(:) = lambda(:) * reo_r(:)
              gamco_g = HALF*(gamcgl(i,j)+gamcgr(i,j))
+             po_g = HALF*(pr_g+pl_g)
 #endif
 
           endif

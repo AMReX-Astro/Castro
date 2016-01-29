@@ -10,7 +10,7 @@ subroutine set_castro_method_params( &
   dual_energy_update_E_from_e_in, dual_energy_eta1_in, dual_energy_eta2_in,  &
   dual_energy_eta3_in, use_pslope_in, normalize_species_in,  &
   fix_mass_flux_in, allow_negative_energy_in, do_sponge_in,  &
-  dtnuc_f1_in, dtnuc_f2_in, react_T_min_in,  &
+  dtnuc_in, dxnuc_in, react_T_min_in,  &
   react_T_max_in, do_grav_in, grav_source_type_in,  &
   do_rotation_in, rot_period_in, rot_period_dot_in,  &
   rot_source_type_in, rot_axis_in, point_mass_in,  &
@@ -59,8 +59,8 @@ subroutine set_castro_method_params( &
   integer,          intent(in) :: fix_mass_flux_in
   integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: do_sponge_in
-  double precision, intent(in) :: dtnuc_f1_in
-  double precision, intent(in) :: dtnuc_f2_in
+  double precision, intent(in) :: dtnuc_in
+  double precision, intent(in) :: dxnuc_in
   double precision, intent(in) :: react_T_min_in
   double precision, intent(in) :: react_T_max_in
   integer,          intent(in) :: do_grav_in
@@ -106,8 +106,8 @@ subroutine set_castro_method_params( &
   fix_mass_flux = fix_mass_flux_in
   allow_negative_energy = allow_negative_energy_in
   do_sponge = do_sponge_in
-  dtnuc_f1 = dtnuc_f1_in
-  dtnuc_f2 = dtnuc_f2_in
+  dtnuc = dtnuc_in
+  dxnuc = dxnuc_in
   react_T_min = react_T_min_in
   react_T_max = react_T_max_in
   do_grav = do_grav_in

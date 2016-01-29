@@ -617,7 +617,7 @@
 
       subroutine get_tagging_params(name, namlen) bind(C)
 
-        use tagging_params_module
+        use tagging_module
 
         ! Initialize the tagging parameters
 
