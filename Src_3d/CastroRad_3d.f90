@@ -21,7 +21,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
                         vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                         courno,verbose, nstep_fsp) bind(C)
   
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species
+
+  use mempool_module, only : bl_allocate, bl_deallocate
+  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, GDU, GDV, GDW, ngdnv
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
@@ -89,26 +91,18 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer :: pdivu(:,:,:)
   double precision, pointer :: srcQ(:,:,:,:)
 
-  double precision, allocatable:: ergdx(:,:,:,:)
-  double precision, allocatable:: ergdy(:,:,:,:)
-  double precision, allocatable:: ergdz(:,:,:,:)
-  double precision, allocatable:: lmgdx(:,:,:,:)
-  double precision, allocatable:: lmgdy(:,:,:,:)
-  double precision, allocatable:: lmgdz(:,:,:,:)
-
-  double precision, allocatable ::uy_xfc(:,:,:)
-  double precision, allocatable ::uz_xfc(:,:,:)
-  double precision, allocatable ::ux_yfc(:,:,:)
-  double precision, allocatable ::uz_yfc(:,:,:)
-  double precision, allocatable ::ux_zfc(:,:,:)
-  double precision, allocatable ::uy_zfc(:,:,:)
-
+  double precision, pointer :: q1(:,:,:,:)
+  double precision, pointer :: q2(:,:,:,:)
+  double precision, pointer :: q3(:,:,:,:)
+  
   integer ngq,ngf,iflaten
   double precision dx,dy,dz, mass_added,eint_added,eden_added
 
   integer :: q_lo(3), q_hi(3)
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
+  integer :: Erin_lo(3), Erin_hi(3)
+  integer :: Erout_lo(3), Erout_hi(3)
   integer :: lam_lo(3), lam_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
   integer :: flux2_lo(3), flux2_hi(3)
@@ -116,6 +110,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: radflux1_lo(3), radflux1_hi(3)
   integer :: radflux2_lo(3), radflux2_hi(3)
   integer :: radflux3_lo(3), radflux3_hi(3)  
+  integer :: q1_lo(3), q1_hi(3)
+  integer :: q2_lo(3), q2_hi(3)
+  integer :: q3_lo(3), q3_hi(3)
   integer :: area1_lo(3), area1_hi(3)
   integer :: area2_lo(3), area2_hi(3)
   integer :: area3_lo(3), area3_hi(3)
@@ -123,7 +120,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: ugdnvy_lo(3), ugdnvy_hi(3)
   integer :: ugdnvz_lo(3), ugdnvz_hi(3)
   integer :: vol_lo(3), vol_hi(3)
-
+  integer :: src_lo(3), src_hi(3)
+  
   q_lo(:) = lo(:) - NHYP
   q_hi(:) = hi(:) + NHYP
 
@@ -171,6 +169,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   vol_lo = [vol_l1, vol_l2, vol_l3]
   vol_hi = [vol_h1, vol_h2, vol_h3]
+
+  src_lo = [src_l1, src_l2, src_l3]
+  src_hi = [src_h1, src_h2, src_h3]
   
   ngq = NHYP
   ngf = 1
@@ -245,7 +246,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   !     Conservative update
   call consup_rad(uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
-                  Erin, Erin_lo, Erin_out, &
+                  Erin, Erin_lo, Erin_hi, &
                   Erout, Erout_lo, Erout_hi, &
                   src, src_lo, src_hi, &
                   flux1, flux1_lo, flux1_hi, &
@@ -254,6 +255,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
                   radflux1, radflux1_lo, radflux1_hi, &
                   radflux2, radflux2_lo, radflux2_hi, &
                   radflux3, radflux3_lo, radflux3_hi, &
+                  q1, q1_lo, q1_hi, &
+                  q2, q2_lo, q2_hi, &
+                  q3, q3_lo, q3_hi, &
                   area1, area1_lo, area1_hi, &
                   area2, area2_lo, area2_hi, &
                   area3, area3_lo, area3_hi, &

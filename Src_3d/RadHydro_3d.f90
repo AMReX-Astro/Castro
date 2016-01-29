@@ -685,7 +685,8 @@ contains
                                    UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
                                    QVAR, QRHO, QU, QV, QW, QGAME, &
                                    QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
-                                   nadv, allow_negative_energy, small_temp
+                                   nadv, allow_negative_energy, small_temp, &
+                                   use_flattening
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
                                        flatten_pp_threshold, first_order_hydro
     use rad_params_module, only : ngroups
@@ -970,23 +971,22 @@ contains
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf
        enddo
-       call uflaten(loq,hiq, &
+       call uflaten(loq, hiq, &
             q(:,:,:,qptot), &
             q(:,:,:,QU), &
             q(:,:,:,QV), &
             q(:,:,:,QW), &
-            flatn,(/q_l1,q_l2,q_l3/),(/q_h1,q_h2,q_h3/))
+            flatn, q_lo, q_hi)
        call uflaten(loq,hiq, &
             q(:,:,:,qpres), &
             q(:,:,:,QU), &
             q(:,:,:,QV), &
             q(:,:,:,QW), &
-            flatg,(/q_l1,q_l2,q_l3/),(/q_h1,q_h2,q_h3/))
+            flatg, q_lo, q_hi)
        flatn = flatn * flatg
 
        if (flatten_pp_threshold > 0.d0) then
-          call ppflaten(loq,hiq, &
-               flatn, q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+          call ppflaten(loq, hiq, flatn, q, q_lo, q_hi)
        end if
     else
        flatn = 1.d0
@@ -1015,6 +1015,9 @@ contains
                         radflux1, radflux1_lo, radflux1_hi, &
                         radflux2, radflux2_lo, radflux2_hi, &
                         radflux3, radflux3_lo, radflux3_hi, &
+                        q1, q1_lo, q1_hi, &
+                        q2, q2_lo, q2_hi, &
+                        q3, q3_lo, q3_hi, &
                         area1, area1_lo, area1_hi, &
                         area2, area2_lo, area2_hi, &
                         area3, area3_lo, area3_hi, &
@@ -1023,7 +1026,8 @@ contains
                         lo,hi,dx,dy,dz,dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, normalize_species
+                                   UEDEN, UEINT, UTEMP, normalize_species, &
+                                   GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, ngdnv
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
@@ -1045,6 +1049,9 @@ contains
     integer :: radflux1_lo(3), radflux1_hi(3)
     integer :: radflux2_lo(3), radflux2_hi(3)
     integer :: radflux3_lo(3), radflux3_hi(3)
+    integer :: q1_lo(3), q1_hi(3)
+    integer :: q2_lo(3), q2_hi(3)
+    integer :: q3_lo(3), q3_hi(3)
     integer :: area1_lo(3), area1_hi(3)
     integer :: area2_lo(3), area2_hi(3)
     integer :: area3_lo(3), area3_hi(3)
@@ -1062,6 +1069,9 @@ contains
     double precision radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
     double precision radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
     double precision radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
+    double precision ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+    double precision ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+    double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     double precision area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     double precision area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
     double precision area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
@@ -1243,12 +1253,12 @@ contains
              dprdy = 0.d0
              dprdz = 0.d0
              do g=0,ngroups-1
-                lamc = (lmgdx(i,j,k,g)+lmgdx(i+1,j,k,g) &
-                     +  lmgdy(i,j,k,g)+lmgdy(i,j+1,k,g) &
-                     +  lmgdz(i,j,k,g)+lmgdz(i,j,k+1,g) ) / 6.d0
-                dprdx = dprdx + lamc*(ergdx(i+1,j,k,g)-ergdx(i,j,k,g))/dx
-                dprdy = dprdy + lamc*(ergdy(i,j+1,k,g)-ergdy(i,j,k,g))/dy
-                dprdz = dprdz + lamc*(ergdz(i,j,k+1,g)-ergdz(i,j,k,g))/dz
+                lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
+                        q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
+                        q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
+                dprdx = dprdx + lamc*(q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx
+                dprdy = dprdy + lamc*(q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dy
+                dprdz = dprdz + lamc*(q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dz
              end do
 
              ek1 = (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
@@ -1276,30 +1286,30 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
 
-                ux = 0.5d0*(ugdx(i,j,k) + ugdx(i+1,j,k))
-                uy = 0.5d0*(ugdy(i,j,k) + ugdy(i,j+1,k))
-                uz = 0.5d0*(ugdz(i,j,k) + ugdz(i,j,k+1))
+                ux = 0.5d0*(q1(i,j,k,GDU) + q1(i+1,j,k,GDU))
+                uy = 0.5d0*(q2(i,j,k,GDV) + q2(i,j+1,k,GDV))
+                uz = 0.5d0*(q3(i,j,k,GDW) + q3(i,j,k+1,GDW))
 
-                dudx(1) = (ugdx(i+1,j,k)-ugdx(i,j,k))/dx
-                dudx(2) = (uy_xfc(i+1,j,k)-uy_xfc(i,j,k))/dx
-                dudx(3) = (uz_xfc(i+1,j,k)-uz_xfc(i,j,k))/dx
+                dudx(1) = (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx
+                dudx(2) = (q1(i+1,j,k,GDV) - q1(i,j,k,GDV))/dx
+                dudx(3) = (q1(i+1,j,k,GDW) - q1(i,j,k,GDW))/dx
 
-                dudy(1) = (ux_yfc(i,j+1,k)-ux_yfc(i,j,k))/dy
-                dudy(2) = (ugdy(i,j+1,k)-ugdy(i,j,k))/dy
-                dudy(3) = (uz_yfc(i,j+1,k)-uz_yfc(i,j,k))/dy
+                dudy(1) = (q2(i,j+1,k,GDU) - q2(i,j,k,GDU))/dy
+                dudy(2) = (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dy
+                dudy(3) = (q2(i,j+1,k,GDW) - q2(i,j,k,GDW))/dy
 
-                dudz(1) = (ux_zfc(i,j,k+1)-ux_zfc(i,j,k))/dz
-                dudz(2) = (uy_zfc(i,j,k+1)-uy_zfc(i,j,k))/dz
-                dudz(3) = (ugdz(i,j,k+1)-ugdz(i,j,k))/dz
+                dudz(1) = (q3(i,j,k+1,GDU) - q3(i,j,k,GDU))/dz
+                dudz(2) = (q3(i,j,k+1,GDV) - q3(i,j,k,GDV))/dz
+                dudz(3) = (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dz
 
                 divu = dudx(1) + dudy(2) + dudz(3)
 
                 ! Note that for single group, fspace_type is always 1
                 do g=0, ngroups-1
 
-                   nhat(1) = (ergdx(i+1,j,k,g)-ergdx(i,j,k,g))/dx
-                   nhat(2) = (ergdy(i,j+1,k,g)-ergdy(i,j,k,g))/dy
-                   nhat(3) = (ergdz(i,j,k+1,g)-ergdz(i,j,k,g))/dz
+                   nhat(1) = (q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx
+                   nhat(2) = (q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dy
+                   nhat(3) = (q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dz
 
                    GnDotu(1) = dot_product(nhat, dudx)
                    GnDotu(2) = dot_product(nhat, dudy)
@@ -1307,21 +1317,21 @@ contains
 
                    nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.d-50)
 
-                   lamc = (lmgdx(i,j,k,g)+lmgdx(i+1,j,k,g) &
-                        +  lmgdy(i,j,k,g)+lmgdy(i,j+1,k,g) &
-                        +  lmgdz(i,j,k,g)+lmgdz(i,j,k+1,g) ) / 6.d0
+                   lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
+                           q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
+                           q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
                    Eddf = Edd_factor(lamc)
                    f1 = (1.d0-Eddf)*0.5d0
                    f2 = (3.d0*Eddf-1.d0)*0.5d0
                    af(g) = -(f1*divu + f2*nnColonDotGu)
 
                    if (fspace_type .eq. 1) then
-                      Eddfxp = Edd_factor(lmgdx(i+1,j  ,k  ,g))
-                      Eddfxm = Edd_factor(lmgdx(i  ,j  ,k  ,g))
-                      Eddfyp = Edd_factor(lmgdy(i  ,j+1,k  ,g))
-                      Eddfym = Edd_factor(lmgdy(i  ,j  ,k  ,g))
-                      Eddfzp = Edd_factor(lmgdz(i  ,j  ,k+1,g))
-                      Eddfzm = Edd_factor(lmgdz(i  ,j  ,k  ,g))
+                      Eddfxp = Edd_factor(q1(i+1,j  ,k  ,GDLAMS+g))
+                      Eddfxm = Edd_factor(q1(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfyp = Edd_factor(q2(i  ,j+1,k  ,GDLAMS+g))
+                      Eddfym = Edd_factor(q2(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfzp = Edd_factor(q3(i  ,j  ,k+1,GDLAMS+g))
+                      Eddfzm = Edd_factor(q3(i  ,j  ,k  ,GDLAMS+g))
 
                       f1xp = 0.5d0*(1.d0-Eddfxp)
                       f1xm = 0.5d0*(1.d0-Eddfxm)
@@ -1330,13 +1340,13 @@ contains
                       f1zp = 0.5d0*(1.d0-Eddfzp)
                       f1zm = 0.5d0*(1.d0-Eddfzm)
 
-                      Gf1E(1) = (f1xp*ergdx(i+1,j,k,g) - f1xm*ergdx(i,j,k,g)) / dx
-                      Gf1E(2) = (f1yp*ergdy(i,j+1,k,g) - f1ym*ergdy(i,j,k,g)) / dy
-                      Gf1E(3) = (f1zp*ergdz(i,j,k+1,g) - f1zm*ergdz(i,j,k,g)) / dz
+                      Gf1E(1) = (f1xp*q1(i+1,j,k,GDERADS+g) - f1xm*q1(i,j,k,GDERADS+g)) / dx
+                      Gf1E(2) = (f1yp*q2(i,j+1,k,GDERADS+g) - f1ym*q2(i,j,k,GDERADS+g)) / dy
+                      Gf1E(3) = (f1zp*q3(i,j,k+1,GDERADS+g) - f1zm*q3(i,j,k,GDERADS+g)) / dz
 
-                      Egdc = (ergdx(i,j,k,g)+ergdx(i+1,j,k,g) &
-                           +  ergdy(i,j,k,g)+ergdy(i,j+1,k,g) &
-                           +  ergdz(i,j,k,g)+ergdz(i,j,k+1,g) ) / 6.d0
+                      Egdc = (q1(i,j,k,GDERADS+g) + q1(i+1,j,k,GDERADS+g) &
+                           +  q2(i,j,k,GDERADS+g) + q2(i,j+1,k,GDERADS+g) &
+                           +  q3(i,j,k,GDERADS+g) + q3(i,j,k+1,GDERADS+g) ) / 6.d0
 
                       Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)+uz*Gf1E(3)) &
                            - dt*f2*Egdc*nnColonDotGu
@@ -1357,14 +1367,13 @@ contains
   end subroutine consup_rad
 
 
-  subroutine ppflaten(lof, hif, &
-       flatn, q, q_l1,q_l2,q_l3, q_h1,q_h2,q_h3)
+  subroutine ppflaten(lof, hif, flatn, q, q_lo, q_hi)
     use meth_params_module, only : QPRES, QU, QV, QW
     use radhydro_params_module, only : flatten_pp_threshold, QRADVAR, qptot
     implicit none
-    integer, intent(in) :: lof(3), hif(3), q_l1, q_h1, q_l2, q_h2, q_l3, q_h3
-    double precision, intent(in) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QRADVAR)
-    double precision, intent(inout) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    integer, intent(in) :: lof(3), hif(3), q_lo(3), q_hi(3)
+    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
+    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i,j,k
 
