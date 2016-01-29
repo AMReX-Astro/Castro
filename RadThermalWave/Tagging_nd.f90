@@ -49,7 +49,6 @@ contains
        lo,hi,np,domlo,domhi, &
        delta,xlo,problo,time,level) bind(C)
 
-    use tagging_params_module
     use prob_params_module, only: dim
 
     implicit none
