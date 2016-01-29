@@ -760,8 +760,8 @@ contains
        hiq(i) = hi(i)+ngp
     enddo    
     
-    call bl_allocate( dpdrho, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
-    call bl_allocate(   dpde, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3))
+    call bl_allocate( dpdrho, q_lo, q_hi)
+    call bl_allocate(   dpde, q_lo, q_hi)
 !    call bl_allocate(dpdX_er, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,nspec)
 
     !
