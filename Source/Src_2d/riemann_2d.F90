@@ -1094,9 +1094,6 @@ contains
              uo = HALF*(ul+ur)
              po = HALF*(pl+pr)
 
-#ifdef RADIATION
-#endif
-
              reo = HALF*(rel+rer)
              gamco = HALF*(gamcl(i,j)+gamcr(i,j))
 
