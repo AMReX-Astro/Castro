@@ -43,10 +43,10 @@ contains
                          rflux1,rfd1_lo, rfd1_hi, &
                          rflux2,rfd2_lo, rfd2_hi, &
                          rflux3,rfd3_lo, rfd3_hi, &
-                         ugdnvx_out, ergdx_out, lmgdx_out, ugdnvx_lo, ugdnvx_hi, &
-                         ugdnvy_out, ergdy_out, lmgdy_out, ugdnvy_lo, ugdnvy_hi, &
-                         ugdnvz_out, ergdz_out, lmgdz_out, ugdnvz_lo, ugdnvz_hi, &
-                         pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, domlo, domhi)
+                         q1, q1_lo, q1_hi, &
+                         q2, q2_lo, q2_hi, &
+                         q3, q3_lo, q3_hi, &                         
+                         pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann, &
                                    GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, ngdnv
@@ -66,15 +66,15 @@ contains
     integer :: rfd2_lo(3), rfd2_hi(3)
     integer :: rfd3_lo(3), rfd3_hi(3)
     integer :: qd_lo(3), qd_hi(3)
+    integer :: q1_lo(3), q1_hi(3)
+    integer :: q2_lo(3), q2_hi(3)
+    integer :: q3_lo(3), q3_hi(3)
     integer :: lo(3), hi(3)
     integer :: domlo(3), domhi(3)
 
     integer :: fd1_lo(3), fd1_hi(3)
     integer :: fd2_lo(3), fd2_hi(3)
     integer :: fd3_lo(3), fd3_hi(3)
-    integer :: ugdnvx_lo(3), ugdnvx_hi(3)
-    integer :: ugdnvy_lo(3), ugdnvy_hi(3)
-    integer :: ugdnvz_lo(3), ugdnvz_hi(3)
 
     double precision     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
     double precision     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
@@ -87,25 +87,15 @@ contains
     double precision flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),fd1_lo(3):fd1_hi(3),NVAR)
     double precision flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),fd2_lo(3):fd2_hi(3),NVAR)
     double precision flux3(fd3_lo(1):fd3_hi(1),fd3_lo(2):fd3_hi(2),fd3_lo(3):fd3_hi(3),NVAR)
-    double precision ugdnvx_out(ugdnvx_lo(1):ugdnvx_hi(1),ugdnvx_lo(2):ugdnvx_hi(2),ugdnvx_lo(3):ugdnvx_hi(3))
-    double precision ugdnvy_out(ugdnvy_lo(1):ugdnvy_hi(1),ugdnvy_lo(2):ugdnvy_hi(2),ugdnvy_lo(3):ugdnvy_hi(3))
-    double precision ugdnvz_out(ugdnvz_lo(1):ugdnvz_hi(1),ugdnvz_lo(2):ugdnvz_hi(2),ugdnvz_lo(3):ugdnvz_hi(3))
+    double precision ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+    double precision ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+    double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision uy_xfc(ugdnvx_lo(1):ugdnvx_hi(1),ugdnvx_lo(2):ugdnvx_hi(2),ugdnvx_lo(3):ugdnvx_hi(3))
-    double precision uz_xfc(ugdnvx_lo(1):ugdnvx_hi(1),ugdnvx_lo(2):ugdnvx_hi(2),ugdnvx_lo(3):ugdnvx_hi(3))
-    double precision ux_yfc(ugdnvy_lo(1):ugdnvy_hi(1),ugdnvy_lo(2):ugdnvy_hi(2),ugdnvy_lo(3):ugdnvy_hi(3))
-    double precision uz_yfc(ugdnvy_lo(1):ugdnvy_hi(1),ugdnvy_lo(2):ugdnvy_hi(2),ugdnvy_lo(3):ugdnvy_hi(3))
-    double precision ux_zfc(ugdnvz_lo(1):ugdnvz_hi(1),ugdnvz_lo(2):ugdnvz_hi(2),ugdnvz_lo(3):ugdnvz_hi(3))
-    double precision uy_zfc(ugdnvz_lo(1):ugdnvz_hi(1),ugdnvz_lo(2):ugdnvz_hi(2),ugdnvz_lo(3):ugdnvz_hi(3))
+
     double precision dx, dy, dz, dt
 
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision ergdx_out(ugdnvx_lo(1):ugdnvx_hi(1),ugdnvx_lo(2):ugdnvx_hi(2),ugdnvx_lo(3):ugdnvx_hi(3),0:ngroups-1)
-    double precision ergdy_out(ugdnvy_lo(1):ugdnvy_hi(1),ugdnvy_lo(2):ugdnvy_hi(2),ugdnvy_lo(3):ugdnvy_hi(3),0:ngroups-1)
-    double precision ergdz_out(ugdnvz_lo(1):ugdnvz_hi(1),ugdnvz_lo(2):ugdnvz_hi(2),ugdnvz_lo(3):ugdnvz_hi(3),0:ngroups-1)
-    double precision lmgdx_out(ugdnvx_lo(1):ugdnvx_hi(1),ugdnvx_lo(2):ugdnvx_hi(2),ugdnvx_lo(3):ugdnvx_hi(3),0:ngroups-1)
-    double precision lmgdy_out(ugdnvy_lo(1):ugdnvy_hi(1),ugdnvy_lo(2):ugdnvy_hi(2),ugdnvy_lo(3):ugdnvy_hi(3),0:ngroups-1)
-    double precision lmgdz_out(ugdnvz_lo(1):ugdnvz_hi(1),ugdnvz_lo(2):ugdnvz_hi(2),ugdnvz_lo(3):ugdnvz_hi(3),0:ngroups-1)
+
     double precision rflux1(rfd1_lo(1):rfd1_hi(1),rfd1_lo(2):rfd1_hi(2),rfd1_lo(3):rfd1_hi(3),0:ngroups-1)
     double precision rflux2(rfd2_lo(1):rfd2_hi(1),rfd2_lo(2):rfd2_hi(2),rfd2_lo(3):rfd2_hi(3),0:ngroups-1)
     double precision rflux3(rfd3_lo(1):rfd3_hi(1),rfd3_lo(2):rfd3_hi(2),rfd3_lo(3):rfd3_hi(3),0:ngroups-1)
@@ -471,18 +461,7 @@ contains
 
           do j=lo(2)-1,hi(2)+1
              do i=lo(1)-1,hi(1)+1
-                ugdnvz_out(i,j,k3d) = qgdnvzf(i,j,kc,GDW)
-                ux_zfc    (i,j,k3d) = qgdnvzf(i,j,kc,GDU)
-                uy_zfc    (i,j,k3d) = qgdnvzf(i,j,kc,GDU)
-             end do
-          end do
-
-          do g=0,ngroups-1
-             do j=lo(2)-1,hi(2)+1
-                do i=lo(1)-1,hi(1)+1
-                   ergdz_out(i,j,k3d,g) = qgdnvzf(i,j,kc,GDERADS+g)
-                   lmgdz_out(i,j,k3d,g) = qgdnvzf(i,j,kc,GDLAMS+g)
-                end do
+                q3(i,j,k3d,:) = qgdnvzf(i,j,kc,:)
              end do
           end do
 
@@ -561,22 +540,12 @@ contains
                          shk, shk_lo, shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
 
-             do j = lo(2)-1, hi(2)+1
-                do i = lo(1)-1, hi(1)+2
-                   ugdnvx_out(i,j,k3d-1) = qgdnvxf(i,j,km,GDU)
-                   uy_xfc    (i,j,k3d-1) = qgdnvxf(i,j,km,GDV)
-                   uz_xfc    (i,j,k3d-1) = qgdnvxf(i,j,km,GDW)
+             do j=lo(2)-1,hi(2)+1
+                do i=lo(1)-1,hi(1)+2
+                   q1(i,j,k3d-1,:) = qgdnvxf(i,j,km,:)
                 end do
              end do
 
-             do g=0,ngroups-1
-                do j = lo(2)-1, hi(2)+1
-                   do i = lo(1)-1, hi(1)+2
-                      ergdx_out(i,j,k3d-1,g) = qgdnvxf(i,j,km,GDERADS+g)
-                      lmgdx_out(i,j,k3d-1,g) = qgdnvxf(i,j,km,GDLAMS+g)
-                   end do
-                end do
-             end do
 
              ! Compute F^y at km (k3d-1)
              call cmpflx(qyl, qyr, qt_lo, qt_hi, &
@@ -589,20 +558,9 @@ contains
                          shk, shk_lo, shk_hi, &
                          2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
 
-             do j = lo(2)-1, hi(2)+2
-                do i = lo(1)-1, hi(1)+1
-                   ugdnvy_out(i,j,k3d-1) = qgdnvyf(i,j,km,GDV)
-                   ux_yfc    (i,j,k3d-1) = qgdnvyf(i,j,km,GDU)
-                   uz_yfc    (i,j,k3d-1) = qgdnvyf(i,j,km,GDW)
-                end do
-             end do
-
-             do g=0,ngroups-1
-                do j = lo(2)-1, hi(2)+2
-                   do i = lo(1)-1, hi(1)+1
-                      ergdy_out(i,j,k3d-1,g) = qgdnvyf(i,j,km,GDERADS+g)
-                      lmgdy_out(i,j,k3d-1,g) = qgdnvyf(i,j,km,GDLAMS+g)
-                   end do
+             do j=lo(2)-1,hi(2)+2
+                do i=lo(1)-1,hi(1)+1
+                   q2(i,j,k3d-1,:) = qgdnvyf(i,j,km,:)
                 end do
              end do
 
@@ -706,17 +664,16 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  subroutine ctoprim_rad(lo,hi, &
-                         uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                         Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
-                         lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                         q,c,cg,gamc,gamcg,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
+  subroutine ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
+                         Erin,Erin_lo,Erin_hi, &
+                         lam,lam_lo,lam_hi, &
+                         q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
                          src, src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                          srcQ, srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
-                         courno,dx,dy,dz,dt,ngp,ngf,iflaten)
+                         courno,dx,dy,dz,dt,ngp,ngf)
 
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-    ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
+    ! lo-ngf:hi+ngf.  Declared dimensions of
     ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region
     ! is assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call
     ! assumes ngp>=ngf+3 (ie, primitve data is used by the routine
@@ -740,27 +697,27 @@ contains
     double precision, parameter:: small = 1.d-8
 
     integer lo(3), hi(3)
-    integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-    integer Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3
-    integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-    integer q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
+    integer uin_lo(3), uin_hi(3)
+    integer Erin_lo(3, Erin_hi(3)
+    integer lam_lo(3), lam_hi(3)
+    integer q_lo(3), q_hi(3)
+    integer src_lo(3), src_hi(3)
+    integer srQ_lo(3), srQ_hi(3)
 
-    double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
-    double precision Erin(Erin_l1:Erin_h1,Erin_l2:Erin_h2,Erin_l3:Erin_h3,0:ngroups-1)
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,lam_l3:lam_h3,0:ngroups-1)
-    double precision ::     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QRADVAR)
-    double precision ::     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision ::    cg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: gamc (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: gamcg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: csml (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
+    double precision :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision ::     q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
+    double precision ::     c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision ::    cg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision :: gamc (q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision :: gamcg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision :: csml (q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
     double precision :: dx, dy, dz, dt, courno
-    integer          :: ngp, ngf, iflaten
+    integer          :: ngp, ngf
 
     ! Local variables
 
@@ -1008,7 +965,7 @@ contains
     ! Compute flattening coef for slope calculations
     if (first_order_hydro) then
        flatn = 0.d0
-    else if(iflaten.eq.1)then
+    elseif (use_flattening == 1) then
        do n=1,3
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf
@@ -1045,32 +1002,26 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  subroutine consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-       uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-       Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
-       Erout,Erout_l1,Erout_l2,Erout_l3,Erout_h1,Erout_h2,Erout_h3, &
-       ugdx, ergdx, lmgdx, &
-       ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3, &
-       ugdy, ergdy, lmgdy, &
-       ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3, &
-       ugdz, ergdz, lmgdz, &
-       ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3, &
-       src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-       flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-       flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-       flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-       radflux1,radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3, &
-       radflux2,radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3, &
-       radflux3,radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3, &
-       area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-       area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-       area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-       vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-       div,pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, &
-       lo,hi,dx,dy,dz,dt, nstep_fsp)
+  subroutine consup_rad(uin, uin_lo, uin_hi, &
+                        uout, uout_lo, uout_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        Erout, Erout_lo, Erout_hi, &
+                        src, src_lo, src_hi, &
+                        flux1, flux1_lo, flux1_hi, &
+                        flux2, flux2_lo, flux2_hi, &
+                        flux3, flux3_lo, flux3_hi, &
+                        radflux1, radflux1_lo, radflux1_hi, &
+                        radflux2, radflux2_lo, radflux2_hi, &
+                        radflux3, radflux3_lo, radflux3_hi, &
+                        area1, area1_lo, area1_hi, &
+                        area2, area2_lo, area2_hi, &
+                        area3, area3_lo, area3_hi, &
+                        vol, vol_lo, vol_hi, &
+                        div, pdivu, &
+                        lo,hi,dx,dy,dz,dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, normalize_species
+                                   UEDEN, UEINT, UTEMP, normalize_species
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
@@ -1080,65 +1031,46 @@ contains
     implicit none
 
     integer nstep_fsp
-    integer lo(3), hi(3)
-    integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-    integer  uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-    integer   src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3
-    integer Erout_l1,Erout_l2,Erout_l3,Erout_h1,Erout_h2,Erout_h3
-    integer Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3
-    integer ugdx_l1,ugdx_l2,ugdx_l3,ugdx_h1,ugdx_h2,ugdx_h3
-    integer ugdy_l1,ugdy_l2,ugdy_l3,ugdy_h1,ugdy_h2,ugdy_h3
-    integer ugdz_l1,ugdz_l2,ugdz_l3,ugdz_h1,ugdz_h2,ugdz_h3
-    integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-    integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-    integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-    integer radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3
-    integer radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3
-    integer radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3
-    integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
-    integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
-    integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
-    integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
+    integer :: lo(3), hi(3)
+    integer :: uin_lo(3), uin_hi(3)
+    integer :: uout_lo(3), uout_hi(3)
+    integer :: Erout_lo(3), Erout_hi(3)
+    integer :: Erin_lo(3), Erin_hi(3)
+    integer :: src_lo(3), src_hi(3)
+    integer :: flux1_lo(3), flux1_hi(3)
+    integer :: flux2_lo(3), flux2_hi(3)
+    integer :: flux3_lo(3), flux3_hi(3)
+    integer :: radflux1_lo(3), radflux1_hi(3)
+    integer :: radflux2_lo(3), radflux2_hi(3)
+    integer :: radflux3_lo(3), radflux3_hi(3)
+    integer :: area1_lo(3), area1_hi(3)
+    integer :: area2_lo(3), area2_hi(3)
+    integer :: area3_lo(3), area3_hi(3)
+    integer :: vol_lo(3), vol_hi(3)
+
+    double precision uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
 
     double precision  Erin( Erin_l1: Erin_h1,  Erin_l2: Erin_h2,  Erin_l3: Erin_h3,0:ngroups-1)
     double precision Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3,0:ngroups-1)
-    double precision  ugdx(ugdx_l1:ugdx_h1, ugdx_l2:ugdx_h2, ugdx_l3:ugdx_h3)
-    double precision ergdx(ugdx_l1:ugdx_h1, ugdx_l2:ugdx_h2, ugdx_l3:ugdx_h3,0:ngroups-1)
-    double precision lmgdx(ugdx_l1:ugdx_h1, ugdx_l2:ugdx_h2, ugdx_l3:ugdx_h3,0:ngroups-1)
-    double precision  ugdy(ugdy_l1:ugdy_h1, ugdy_l2:ugdy_h2, ugdy_l3:ugdy_h3)
-    double precision ergdy(ugdy_l1:ugdy_h1, ugdy_l2:ugdy_h2, ugdy_l3:ugdy_h3,0:ngroups-1)
-    double precision lmgdy(ugdy_l1:ugdy_h1, ugdy_l2:ugdy_h2, ugdy_l3:ugdy_h3,0:ngroups-1)
-    double precision  ugdz(ugdz_l1:ugdz_h1, ugdz_l2:ugdz_h2, ugdz_l3:ugdz_h3)
-    double precision ergdz(ugdz_l1:ugdz_h1, ugdz_l2:ugdz_h2, ugdz_l3:ugdz_h3,0:ngroups-1)
-    double precision lmgdz(ugdz_l1:ugdz_h1, ugdz_l2:ugdz_h2, ugdz_l3:ugdz_h3,0:ngroups-1)
-    double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
-    double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
     double precision   src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
     double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
-    double precision radflux1(radflux1_l1:radflux1_h1,radflux1_l2:radflux1_h2,radflux1_l3:radflux1_h3,0:ngroups-1)
-    double precision radflux2(radflux2_l1:radflux2_h1,radflux2_l2:radflux2_h2,radflux2_l3:radflux2_h3,0:ngroups-1)
-    double precision radflux3(radflux3_l1:radflux3_h1,radflux3_l2:radflux3_h2,radflux3_l3:radflux3_h3,0:ngroups-1)
-    double precision area1(area1_l1:area1_h1,area1_l2:area1_h2,area1_l3:area1_h3)
-    double precision area2(area2_l1:area2_h1,area2_l2:area2_h2,area2_l3:area2_h3)
-    double precision area3(area3_l1:area3_h1,area3_l2:area3_h2,area3_l3:area3_h3)
-    double precision vol(vol_l1:vol_h1,vol_l2:vol_h2,vol_l3:vol_h3)
+    double precision radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
+    double precision radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
+    double precision radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
+    double precision area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    double precision area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    double precision area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    double precision vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision uy_xfc(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2,ugdx_l3:ugdx_h3)
-    double precision uz_xfc(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2,ugdx_l3:ugdx_h3)
-    double precision ux_yfc(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2,ugdy_l3:ugdy_h3)
-    double precision uz_yfc(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2,ugdy_l3:ugdy_h3)
-    double precision ux_zfc(ugdz_l1:ugdz_h1,ugdz_l2:ugdz_h2,ugdz_l3:ugdz_h3)
-    double precision uy_zfc(ugdz_l1:ugdz_h1,ugdz_l2:ugdz_h2,ugdz_l3:ugdz_h3)
+
     double precision dx, dy, dz, dt
 
     ! Local variables
-
-    integer :: flux1_lo(3), flux1_hi(3)
-    integer :: flux2_lo(3), flux2_hi(3)
-    integer :: flux3_lo(3), flux3_hi(3)
 
     double precision :: div1
     double precision :: rho, Up, Vp, Wp
@@ -1161,16 +1093,6 @@ contains
           Erscale = nugroup*dlognu
        end if
     end if
-
-    flux1_lo = (/ flux1_l1, flux1_l2, flux1_l3 /)
-    flux1_hi = (/ flux1_h1, flux1_h2, flux1_h3 /)
-
-    flux2_lo = (/ flux2_l1, flux2_l2, flux2_l3 /)
-    flux2_hi = (/ flux2_h1, flux2_h2, flux2_h3 /)
-
-    flux3_lo = (/ flux3_l1, flux3_l2, flux3_l3 /)
-    flux3_hi = (/ flux3_h1, flux3_h2, flux3_h3 /)
-
 
     do n = 1, NVAR
 
@@ -1259,10 +1181,10 @@ contains
     enddo
 
     if (normalize_species .eq. 1) &
-         call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
-         flux2,flux2_lo,flux2_hi, &
-         flux3,flux3_lo,flux3_hi, &
-         lo,hi)
+         call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
+                                       flux2,flux2_lo,flux2_hi, &
+                                       flux3,flux3_lo,flux3_hi, &
+                                       lo,hi)
 
     do n = 1, NVAR
 

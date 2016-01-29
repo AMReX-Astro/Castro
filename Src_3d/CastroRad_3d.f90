@@ -77,17 +77,18 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
   double precision delta(3),dt,time,courno
   
-  !     Automatic arrays for workspace
-  double precision, allocatable:: q(:,:,:,:)
-  double precision, allocatable:: gamc(:,:,:)
-  double precision, allocatable:: gamcg(:,:,:)
-  double precision, allocatable:: flatn(:,:,:)
-  double precision, allocatable:: c(:,:,:)
-  double precision, allocatable:: cg(:,:,:)
-  double precision, allocatable:: csml(:,:,:)
-  double precision, allocatable:: div(:,:,:)
-  double precision, allocatable:: pdivu(:,:,:)
-  double precision, allocatable:: srcQ(:,:,:,:)
+  ! Automatic arrays for workspace
+  double precision, pointer :: q(:,:,:,:)
+  double precision, pointer :: gamc(:,:,:)
+  double precision, pointer :: gamcg(:,:,:)
+  double precision, pointer :: flatn(:,:,:)
+  double precision, pointer :: c(:,:,:)
+  double precision, pointer :: cg(:,:,:)
+  double precision, pointer :: csml(:,:,:)
+  double precision, pointer :: div(:,:,:)
+  double precision, pointer :: pdivu(:,:,:)
+  double precision, pointer :: srcQ(:,:,:,:)
+
   double precision, allocatable:: ergdx(:,:,:,:)
   double precision, allocatable:: ergdy(:,:,:,:)
   double precision, allocatable:: ergdz(:,:,:,:)
@@ -115,9 +116,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: radflux1_lo(3), radflux1_hi(3)
   integer :: radflux2_lo(3), radflux2_hi(3)
   integer :: radflux3_lo(3), radflux3_hi(3)  
+  integer :: area1_lo(3), area1_hi(3)
+  integer :: area2_lo(3), area2_hi(3)
+  integer :: area3_lo(3), area3_hi(3)
   integer :: ugdnvx_lo(3), ugdnvx_hi(3)
   integer :: ugdnvy_lo(3), ugdnvy_hi(3)
   integer :: ugdnvz_lo(3), ugdnvz_hi(3)
+  integer :: vol_lo(3), vol_hi(3)
 
   q_lo(:) = lo(:) - NHYP
   q_hi(:) = hi(:) + NHYP
@@ -130,6 +135,12 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   
   uout_lo = [uout_l1, uout_l2, uout_l3]
   uout_hi = [uout_h1, uout_h2, uout_h3]
+
+  Erin_lo = [Erin_l1, Erin_l2, Erin_l3]
+  Erin_hi = [Erin_h1, Erin_h2, Erin_h3]
+
+  Erout_lo = [Erout_l1, Erout_l2, Erout_l3]
+  Erout_hi = [Erout_h1, Erout_h2, Erout_h3]
 
   flux1_lo = [flux1_l1, flux1_l2, flux1_l3]
   flux1_hi = [flux1_h1, flux1_h2, flux1_h3]
@@ -148,7 +159,35 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   radflux3_lo = [radflux3_l1, radflux3_l2, radflux3_l3]
   radflux3_hi = [radflux3_h1, radflux3_h2, radflux3_h3]
+
+  area1_lo = [area1_l1, area1_l2, area1_l3]
+  area1_hi = [area1_h1, area1_h2, area1_h3]
+
+  area2_lo = [area2_l1, area2_l2, area2_l3]
+  area2_hi = [area2_h1, area2_h2, area2_h3]
+
+  area3_lo = [area3_l1, area3_l2, area3_l3]
+  area3_hi = [area3_h1, area3_h2, area3_h3]
+
+  vol_lo = [vol_l1, vol_l2, vol_l3]
+  vol_hi = [vol_h1, vol_h2, vol_h3]
   
+  ngq = NHYP
+  ngf = 1
+
+  call bl_allocate(     q, q_lo, q_hi, QRADVAR)
+  call bl_allocate(  gamc, q_lo, q_hi)
+  call bl_allocate( gamcg, q_lo, q_hi)
+  call bl_allocate( flatn, q_lo, q_hi)
+  call bl_allocate(     c, q_lo, q_hi)
+  call bl_allocate(    cg, q_lo, q_hi)
+  call bl_allocate(  csml, q_lo, q_hi)
+
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
+  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3))
+
+  call bl_allocate(  srcQ, q_lo, q_hi, QVAR)
+
   ugdnvx_lo = [ugdnvx_l1, ugdnvx_l2, ugdnvx_l3]
   ugdnvx_hi = [ugdnvx_h1, ugdnvx_h2, ugdnvx_h3]
 
@@ -158,55 +197,33 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   ugdnvz_lo = [ugdnvz_l1, ugdnvz_l2, ugdnvz_l3]
   ugdnvz_hi = [ugdnvz_h1, ugdnvz_h2, ugdnvz_h3]
 
-  ngq = NHYP
-  ngf = 1
-  iflaten = 1
+  q1_lo = ugdnvx_lo
+  q1_hi = ugdnvx_hi
+  q2_lo = ugdnvy_lo
+  q2_hi = ugdnvy_hi
+  q3_lo = ugdnvz_lo
+  q3_hi = ugdnvz_hi
 
-
-  allocate(     q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR))
-  allocate(  gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate( gamcg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate( flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate(     c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate(    cg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate(  csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3)))
-  allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
-  
-  allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
-
-  allocate(  srcQ(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR))
-
-  allocate( ergdx(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3,0:ngroups-1))
-  allocate( ergdy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3,0:ngroups-1))
-  allocate( ergdz(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3,0:ngroups-1))
-
-  allocate( lmgdx(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3,0:ngroups-1))
-  allocate( lmgdy(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3,0:ngroups-1))
-  allocate( lmgdz(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3,0:ngroups-1))
-
-  allocate (uy_xfc(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3))
-  allocate (uz_xfc(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3))
-  allocate (ux_yfc(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3))
-  allocate (uz_yfc(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3))
-  allocate (ux_zfc(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3))
-  allocate (uy_zfc(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3))
+  call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
+  call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
+  call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
  
   dx = delta(1)
   dy = delta(2)
   dz = delta(3)
 
-  !     Translate to primitive variables, compute sound speeds
-  !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  !       and set to correspond to coordinates of (lo:hi)
-  call ctoprim_rad(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                   Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
-                   lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                   q,c,cg,gamc,gamcg,csml,flatn,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
-                   src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                   srcQ,q_lo(1),q_lo(2),q_lo(3),q_hi(1),q_hi(2),q_hi(3), &
-                   courno,dx,dy,dz,dt,ngq,ngf,iflaten)
+  ! Translate to primitive variables, compute sound speeds
+  ! Note that (q,c,gamc,csml,flatn) are all dimensioned the same
+  ! and set to correspond to coordinates of (lo:hi)
+  call ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
+                   Erin,Erin_lo,Erin_hi, &
+                   lam,lam_lo,lam_hi, &
+                   q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
+                   src,src_lo,src_hi, &
+                   srcQ,q_lo,q_hi, &
+                   courno,dx,dy,dz,dt,ngq,ngf)
 
-!     Compute hyperbolic fluxes using unsplit Godunov
+  ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
                    lam, lam_lo, lam_hi, &
                    srcQ, q_lo, q_hi, &
@@ -217,37 +234,31 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
                    radflux1, radflux1_lo, radflux1_hi, &
                    radflux2, radflux2_lo, radflux2_hi, &
                    radflux3, radflux3_lo, radflux3_hi, &
-                   ugdnvx_out, ergdx, lmgdx, ugdnvx_lo, ugdnvx_hi, &
-                   ugdnvy_out, ergdy, lmgdy, ugdnvy_lo, ugdnvy_hi, &
-                   ugdnvz_out, ergdz, lmgdz, ugdnvz_lo, ugdnvz_hi, &
-                   pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc,domlo,domhi)
+                   q1, q1_lo, q1_hi, &
+                   q2, q2_lo, q2_hi, &
+                   q3, q3_lo, q3_hi, &
+                   pdivu, domlo, domhi)
   
   !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,(/ dx, dy, dz /),div,lo,hi+1)
 
   !     Conservative update
-  call consup_rad(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                  uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                  Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
-                  Erout,Erout_l1,Erout_l2,Erout_l3,Erout_h1,Erout_h2,Erout_h3, &
-                  ugdnvx_out, ergdx, lmgdx, &
-                  ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-                  ugdnvy_out, ergdy, lmgdy, &
-                  ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-                  ugdnvz_out, ergdz, lmgdz, &
-                  ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-                  src ,  src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3, &
-                  flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                  flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                  flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                  radflux1,radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3, &
-                  radflux2,radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3, &
-                  radflux3,radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3, &
-                  area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-                  area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-                  area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-                  vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                  div,pdivu, uy_xfc, uz_xfc, ux_yfc, uz_yfc, ux_zfc, uy_zfc, &
+  call consup_rad(uin, uin_lo, uin_hi, &
+                  uout, uout_lo, uout_hi, &
+                  Erin, Erin_lo, Erin_out, &
+                  Erout, Erout_lo, Erout_hi, &
+                  src, src_lo, src_hi, &
+                  flux1, flux1_lo, flux1_hi, &
+                  flux2, flux2_lo, flux2_hi, &
+                  flux3, flux3_lo, flux3_hi, &
+                  radflux1, radflux1_lo, radflux1_hi, &
+                  radflux2, radflux2_lo, radflux2_hi, &
+                  radflux3, radflux3_lo, radflux3_hi, &
+                  area1, area1_lo, area1_hi, &
+                  area2, area2_lo, area2_hi, &
+                  area3, area3_lo, area3_hi, &
+                  vol, vol_lo, vol_hi, &
+                  div, pdivu, &
                   lo,hi,dx,dy,dz,dt, nstep_fsp)
 
   ! Enforce the density >= small_dens.
@@ -255,7 +266,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   eint_added = 0.d0
   eden_added = 0.d0
   call enforce_minimum_density(uin, uin_lo, uin_hi, uout, uout_lo, uout_hi, &
-                              lo,hi,mass_added,eint_added,eden_added,verbose)
+                               lo,hi,mass_added,eint_added,eden_added,verbose)
 
   ! Enforce species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
@@ -266,8 +277,28 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
      call normalize_new_species(uout,uout_lo,uout_hi,lo,hi)
   end if
       
-  deallocate(q,gamc,gamcg,flatn,c,cg,csml,div,srcQ,pdivu,ergdx,ergdy,ergdz,lmgdx,lmgdy,lmgdz)
-  deallocate(uy_xfc,uz_xfc,ux_yfc,uz_yfc,ux_zfc,uy_zfc)
+  ! Copy data from the edge-centered state into ugdnv
+
+  ugdnvx_out(:,:,:) = q1(:,:,:,GDU)
+  ugdnvy_out(:,:,:) = q2(:,:,:,GDV)
+  ugdnvz_out(:,:,:) = q3(:,:,:,GDW)
+
+  call bl_deallocate(q)
+  call bl_deallocate(gamc)
+  call bl_deallocate(gamcg)
+  call bl_deallocate(flatn)
+  call bl_deallocate(c)
+  call bl_deallocate(cg)
+  call bl_deallocate(csml)
+  
+  call bl_deallocate(div)
+  call bl_deallocate(pdivu)
+
+  call bl_deallocate(srcQ)
+
+  call bl_deallocate(q1)
+  call bl_deallocate(q2)
+  call bl_deallocate(q3)
 
 end subroutine ca_umdrv_rad
 
