@@ -668,8 +668,8 @@ contains
                          Erin,Erin_lo,Erin_hi, &
                          lam,lam_lo,lam_hi, &
                          q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
-                         src, src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                         srcQ, srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
+                         src, src_lo, src_hi, &
+                         srcQ, srQ_lo, srQ_hi, &
                          courno,dx,dy,dz,dt,ngp,ngf)
 
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
@@ -698,7 +698,7 @@ contains
 
     integer lo(3), hi(3)
     integer uin_lo(3), uin_hi(3)
-    integer Erin_lo(3, Erin_hi(3)
+    integer Erin_lo(3), Erin_hi(3)
     integer lam_lo(3), lam_hi(3)
     integer q_lo(3), q_hi(3)
     integer src_lo(3), src_hi(3)
@@ -721,9 +721,9 @@ contains
 
     ! Local variables
 
-    double precision, allocatable :: dpdrho(:,:,:)
-    double precision, allocatable :: dpde(:,:,:)
-    double precision, allocatable :: flatg(:,:,:)
+    double precision, pointer :: dpdrho(:,:,:)
+    double precision, pointer :: dpde(:,:,:)
+    double precision, pointer :: flatg(:,:,:)
 
     integer          :: i, j, k, g
     integer          :: loq(3), hiq(3)
@@ -735,9 +735,9 @@ contains
 
     type(eos_t) :: eos_state
 
-    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(  flatg(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
+    call bl_allocate( dpdrho, q_lo, q_hi)
+    call bl_allocate(   dpde, q_lo, q_hi)
+    call bl_allocate(  flatg, q_lo, q_hi)
 
     do i=1,3
        loq(i) = lo(i)-ngp
@@ -992,7 +992,9 @@ contains
        flatn = 1.d0
     endif
 
-    deallocate(dpdrho,dpde)
+    call bl_deallocate(dpdrho)
+    call bl_deallocate(dpde)
+    call bl_deallocate(flatg)
 
     q(:,:,:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
 
@@ -1051,12 +1053,12 @@ contains
     double precision uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
 
-    double precision  Erin( Erin_l1: Erin_h1,  Erin_l2: Erin_h2,  Erin_l3: Erin_h3,0:ngroups-1)
-    double precision Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3,0:ngroups-1)
-    double precision   src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR)
-    double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR)
-    double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR)
+    double precision  Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    double precision Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
+    double precision   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    double precision flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    double precision flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     double precision radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
     double precision radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
     double precision radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
