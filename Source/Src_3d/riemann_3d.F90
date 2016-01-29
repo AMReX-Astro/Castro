@@ -1198,11 +1198,12 @@ contains
              do g=0, ngroups-1
                 lambda(g) = 2.0d0*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.d-50)
              end do
-             po_r(:) = lambda(:) * reo_r(:)
-             po_g = 0.5*(pr_g+pl_g)
+
              reo_r(:) = 0.5d0*(erl(:)+err(:))
              reo_g = 0.5d0*(rel_g+rer_g)
+             po_r(:) = lambda(:) * reo_r(:)
              gamco_g = 0.5d0*(gamcgl(i,j)+gamcgr(i,j))
+             po_g = 0.5*(pr_g+pl_g)
 #endif
 
           endif
