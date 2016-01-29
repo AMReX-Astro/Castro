@@ -753,11 +753,11 @@ contains
           do g=0, ngroups-1
              lambda(g) = 0.5d0*(lam(k-1,g)+lam(k,g))
           end do
-          po_r(:) = lambda(:) * reo_r(:)
-          po_g = 0.5*(pr_g+pl_g)
           reo_r(:) = 0.5d0*(erl(:)+err(:))
           reo_g = 0.5d0*(rel_g+rer_g)
+          po_r(:) = lambda(:) * reo_r(:)
           gamco_g = 0.5d0*(gamcgl(k)+gamcgr(k))
+          po_g = 0.5*(pr_g+pl_g)
 #endif
        endif
 
