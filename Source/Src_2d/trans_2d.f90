@@ -67,6 +67,8 @@ contains
 
     type (eos_t) :: eos_state
 
+    logical :: reset_state
+
     eos_state % check_small = .false.
 
     ! update all of the passively-advected quantities in a single loop
@@ -131,7 +133,7 @@ contains
           !-------------------------------------------------------------------
 
           ! "right" state on the j-1/2 interface
-          if (j.ge.jlo+1) then
+          if (j >= jlo+1) then
 
              ! Convert to conservation form
              rrr = qp(i,j,QRHO)
@@ -151,13 +153,13 @@ contains
              renewr = rer - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
                                  area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
 
-             if (transverse_reset_density == 1) then
-                if (rrnewr < ZERO) then
-                   rrnewr = rrr
-                   runewr = rur
-                   rvnewr = rvr
-                   renewr = rer
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                renewr = rer
+                reset_state = .true.
              endif
 
              ! Convert back to primitive form
@@ -177,61 +179,66 @@ contains
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
              qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
-                ! If it is negative, reset the internal energy by
-                ! using the discretized expression for updating (rho e).
-                qpo(i,j,QREINT) = qp(i,j,QREINT) - &
-                     hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
-                          area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
-
-                ! if we are still negative, then we need to reset
-                if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
-                   eos_state % rho = qpo(i,j,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qpo(i,j,QREINT) = qpo(i,j,QRHO)*eos_state % e
-                   qpo(i,j,QPRES) = eos_state % p
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating (rho e).
+                   qpo(i,j,QREINT) = qp(i,j,QREINT) - &
+                        hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
+                             area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
+                      eos_state % rho = qpo(i,j,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qpo(i,j,QREINT) = qpo(i,j,QRHO)*eos_state % e
+                      qpo(i,j,QPRES) = eos_state % p
+                   endif
                 endif
-             endif
 
-             if (ppm_predict_gammae == 0) then
+                if (ppm_predict_gammae == 0) then
+                   
+                   ! Optionally, use the EOS to calculate the pressure.
+                   
+                   if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
+                      eos_state % rho = qpo(i,j,QRHO)
+                      eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
+                      eos_state % T   = small_temp
+                      eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
 
-                ! Optionally, use the EOS to calculate the pressure.
+                      call eos(eos_input_re, eos_state)
 
-                if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
-                   eos_state % rho = qpo(i,j,QRHO)
-                   eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   pnewr = eos_state % p
-                   qpo(i,j,QPRES ) = pnewr
-                   qpo(i,j,QREINT) = eos_state % e * eos_state % rho
+                      pnewr = eos_state % p
+                      qpo(i,j,QPRES ) = pnewr
+                      qpo(i,j,QREINT) = eos_state % e * eos_state % rho
+                   else
+                      ! we are expressing the pressure evolution as:
+                      !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
+                      ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
+                      ! but these are divergences, so we need area factors
+                      pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
+                      qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+                   endif
+                   
+                   qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
+                   
                 else
-                   ! we are expressing the pressure evolution as:
-                   !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
-                   ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
-                   ! but these are divergences, so we need area factors
-                   pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
-                   qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+                   
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,QGAME) = qp(i,j,QGAME) + &
+                        hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                   
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
+
                 endif
-
-                qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
-
              else
-
-                ! Update gammae with its transverse terms
-                qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                     hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
-
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
-
+                qpo(i,j,QPRES) = qp(i,j,QPRES)
+                qpo(i,j,QGAME) = qp(i,j,QGAME)
              endif
 
           end if
@@ -241,7 +248,7 @@ contains
           !-------------------------------------------------------------------
 
           ! "left" state on the j+1/2 interface
-          if (j.le.jhi-1) then
+          if (j <= jhi-1) then
 
              rrl = qm(i,j+1,QRHO)
              rul = rrl*qm(i,j+1,QU)
@@ -260,13 +267,13 @@ contains
              renewl = rel - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
                                  area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
 
-             if (transverse_reset_density == 1) then
-                if (rrnewl < ZERO) then
-                   rrnewl = rrl
-                   runewl = rul
-                   rvnewl = rvl
-                   renewl = rel
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                renewl = rel
+                reset_state = .true.
              endif
 
              ! Convert back to primitive form
@@ -285,62 +292,67 @@ contains
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i,j+1,QW))**2)/rhotmp
              qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,QREINT) <= ZERO) then
-             ! If it is negative, reset the internal energy by using
-             ! the discretized expression for updating (rho e).
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using
+                   ! the discretized expression for updating (rho e).
+                   
+                   qmo(i,j+1,QREINT) = qm(i,j+1,QREINT) - &
+                        hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
+                             area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
 
-                qmo(i,j+1,QREINT) = qm(i,j+1,QREINT) - &
-                     hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
-                          area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
-
-                ! if we are still negative, then we need to reset
-                if (qmo(i,j+1,QREINT) < ZERO .and. qmo(i,j+1,QRHO) > ZERO) then
-                   eos_state % rho = qmo(i,j+1,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i,j+1,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qmo(i,j+1,QREINT) = qmo(i,j+1,QRHO)*eos_state % e
-                   qmo(i,j+1,QPRES) = eos_state % p
+                   ! if we are still negative, then we need to reset
+                   if (qmo(i,j+1,QREINT) < ZERO .and. qmo(i,j+1,QRHO) > ZERO) then
+                      eos_state % rho = qmo(i,j+1,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i,j+1,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qmo(i,j+1,QREINT) = qmo(i,j+1,QRHO)*eos_state % e
+                      qmo(i,j+1,QPRES) = eos_state % p
+                   endif
                 endif
-             endif
 
-             if (ppm_predict_gammae == 0) then
+                if (ppm_predict_gammae == 0) then
 
-                ! Optionally, use the EOS to calculate the pressure.
+                   ! Optionally, use the EOS to calculate the pressure.
 
-                if (transverse_use_eos .eq. 1 .and. qmo(i,j+1,QRHO) > ZERO) then
-                   eos_state % rho = qmo(i,j+1,QRHO)
-                   eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qmo(i,j+1,QFS:QFS+nspec-1)
+                   if (transverse_use_eos .eq. 1 .and. qmo(i,j+1,QRHO) > ZERO) then
+                      eos_state % rho = qmo(i,j+1,QRHO)
+                      eos_state % e   = qmo(i,j+1,QREINT) / qmo(i,j+1,QRHO)
+                      eos_state % T   = small_temp
+                      eos_state % xn  = qmo(i,j+1,QFS:QFS+nspec-1)
+                      
+                      call eos(eos_input_re, eos_state)
+                      
+                      pnewr = eos_state % p
+                      qmo(i,j+1,QPRES ) = pnewr
+                      qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
+                   else
+                      ! we are expressing the pressure evolution as:
+                      !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
+                      ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
+                      ! but these are divergences, so we need area factors
+                      pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
+                      qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+                   endif
+                   
+                   qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
 
-                   call eos(eos_input_re, eos_state)
-
-                   pnewr = eos_state % p
-                   qmo(i,j+1,QPRES ) = pnewr
-                   qmo(i,j+1,QREINT) = eos_state % e * eos_state % rho
                 else
-                   ! we are expressing the pressure evolution as:
-                   !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
-                   ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
-                   ! but these are divergences, so we need area factors
-                   pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
-                   qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+                   
+                   ! Update gammae with its transverse terms
+                   qmo(i,j+1,QGAME) = qm(i,j+1,QGAME) + &
+                        hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                   
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i,j+1,QPRES) = qmo(i,j+1,QREINT)*(qmo(i,j+1,QGAME)-ONE)
+
                 endif
-
-                qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
-
              else
-
-                ! Update gammae with its transverse terms
-                qmo(i,j+1,QGAME) = qm(i,j+1,QGAME) + &
-                     hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
-
-                ! and compute the p edge state from this and (rho e)
-                qmo(i,j+1,QPRES) = qmo(i,j+1,QREINT)*(qmo(i,j+1,QGAME)-ONE)
-
+                qmo(i,j+1,QPRES) = qm(i,j+1,QPRES)
+                qmo(i,j+1,QGAME) = qm(i,j+1,QGAME)
              endif
 
           end if
@@ -392,6 +404,8 @@ contains
     double precision :: compo, compn
 
     type (eos_t) :: eos_state
+
+    logical :: reset_state
 
     eos_state % check_small = .false.
 
@@ -456,7 +470,7 @@ contains
           !-------------------------------------------------------------------
 
           ! right state on the i-1/2 interface
-          if (i.ge.ilo+1) then
+          if (i >= ilo+1) then
 
              ! Convert to conservation form
              rrr = qp(i,j,QRHO)
@@ -473,13 +487,13 @@ contains
                           -cdtdy*(pgp-pgm)
              renewr = rer - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN))
 
-             if (transverse_reset_density == 1) then
-                if (rrnewr <= ZERO) then
-                   rrnewr = rrr
-                   runewr = rur
-                   rvnewr = rvr
-                   renewr = rer
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr <= ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                renewr = rer
+                reset_state = .true.
              end if
 
              ! convert back to non-conservation form
@@ -498,54 +512,59 @@ contains
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
              qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
-                qpo(i,j,QREINT) = qp(i,j,QREINT) - &
-                     cdtdy*(fy(i,j+1,UEINT)- fy(i,j,UEINT) + pav*du)
-
-                ! if we are still negative, then we need to reset
-                if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
-                   eos_state % rho = qpo(i,j,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qpo(i,j,QREINT) = qpo(i,j,QRHO) * eos_state % e
-                   qpo(i,j,QPRES) = eos_state % p
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
+                   qpo(i,j,QREINT) = qp(i,j,QREINT) - &
+                        cdtdy*(fy(i,j+1,UEINT)- fy(i,j,UEINT) + pav*du)
+                   
+                   ! if we are still negative, then we need to reset
+                   if (qpo(i,j,QREINT) < ZERO .and. qpo(i,j,QRHO) > ZERO) then
+                      eos_state % rho = qpo(i,j,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qpo(i,j,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qpo(i,j,QREINT) = qpo(i,j,QRHO) * eos_state % e
+                      qpo(i,j,QPRES) = eos_state % p
+                   endif
                 endif
-             endif
 
-             if (ppm_predict_gammae == 0) then
+                if (ppm_predict_gammae == 0) then
+                   
+                   ! Optionally, use the EOS to calculate the pressure.
 
-                ! Optionally, use the EOS to calculate the pressure.
+                   if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
+                      eos_state % rho = qpo(i,j,QRHO)
+                      eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
+                      eos_state % T   = small_temp
+                      eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
+                      
+                      call eos(eos_input_re, eos_state)
+                      
+                      pnewr = eos_state % p
+                      qpo(i,j,QPRES ) = pnewr
+                      qpo(i,j,QREINT) = eos_state % e * eos_state % rho
+                   else
+                      pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
+                      qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+                   endif
 
-                if (transverse_use_eos .eq. 1 .and. qpo(i,j,QRHO) > ZERO) then
-                   eos_state % rho = qpo(i,j,QRHO)
-                   eos_state % e   = qpo(i,j,QREINT) / qpo(i,j,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qpo(i,j,QFS:QFS+nspec-1)
+                   qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
 
-                   call eos(eos_input_re, eos_state)
-
-                   pnewr = eos_state % p
-                   qpo(i,j,QPRES ) = pnewr
-                   qpo(i,j,QREINT) = eos_state % e * eos_state % rho
                 else
-                   pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
-                   qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,QGAME) = qp(i,j,QGAME) + &
+                        cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
+
                 endif
-
-                qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
-
              else
-
-                ! Update gammae with its transverse terms
-                qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
-
+                qpo(i,j,QPRES) = qp(i,j,QPRES)
+                qpo(i,j,QGAME) = qp(i,j,QGAME)
              endif
 
           end if
@@ -555,7 +574,7 @@ contains
           !-------------------------------------------------------------------
 
           ! left state on the i+1/2 interface
-          if (i.le.ihi-1) then
+          if (i <= ihi-1) then
 
              rrl = qm(i+1,j,QRHO)
              rul = rrl*qm(i+1,j,QU)
@@ -570,13 +589,13 @@ contains
              renewl = rel - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN))
 
 
-             if (transverse_reset_density == 1) then
-                if (rrnewl <= ZERO) then
-                   rrnewl = rrl
-                   runewl = rul
-                   rvnewl = rvl
-                   renewl = rel
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl <= ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                renewl = rel
+                reset_state = .true.
              endif
 
              rhotmp =  rrnewl
@@ -594,57 +613,62 @@ contains
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i+1,j,QW))**2)/rhotmp
              qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,QREINT) .le. ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   
+                   qmo(i+1,j,QREINT) = qm(i+1,j,QREINT) - &
+                        cdtdy*(fy(i,j+1,UEINT) - fy(i,j,UEINT) + pav*du)
 
-                qmo(i+1,j,QREINT) = qm(i+1,j,QREINT) - &
-                     cdtdy*(fy(i,j+1,UEINT) - fy(i,j,UEINT) + pav*du)
+                   ! if we are still negative, then we need to reset
+                   if (qmo(i+1,j,QREINT) < ZERO .and. qmo(i+1,j,QRHO) > ZERO) then
+                      eos_state % rho = qmo(i+1,j,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qmo(i+1,j,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
 
-                ! if we are still negative, then we need to reset
-                if (qmo(i+1,j,QREINT) < ZERO .and. qmo(i+1,j,QRHO) > ZERO) then
-                   eos_state % rho = qmo(i+1,j,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i+1,j,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qmo(i+1,j,QREINT) = qmo(i+1,j,QRHO)*eos_state % e
-                   qmo(i+1,j,QPRES) = eos_state % p
+                      qmo(i+1,j,QREINT) = qmo(i+1,j,QRHO)*eos_state % e
+                      qmo(i+1,j,QPRES) = eos_state % p
+                   endif
                 endif
-             endif
 
-             if (ppm_predict_gammae == 0) then
+                if (ppm_predict_gammae == 0) then
 
-                ! Optionally, use the EOS to calculate the pressure.
+                   ! Optionally, use the EOS to calculate the pressure.
 
-                if (transverse_use_eos .eq. 1 .and. qmo(i+1,j,QRHO) > ZERO) then
-                   eos_state % rho = qmo(i+1,j,QRHO)
-                   eos_state % e   = qmo(i+1,j,QREINT) / qmo(i+1,j,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qmo(i+1,j,QFS:QFS+nspec-1)
+                   if (transverse_use_eos .eq. 1 .and. qmo(i+1,j,QRHO) > ZERO) then
+                      eos_state % rho = qmo(i+1,j,QRHO)
+                      eos_state % e   = qmo(i+1,j,QREINT) / qmo(i+1,j,QRHO)
+                      eos_state % T   = small_temp
+                      eos_state % xn  = qmo(i+1,j,QFS:QFS+nspec-1)
+                      
+                      call eos(eos_input_re, eos_state)
+                      
+                      pnewr = eos_state % p
+                      qmo(i+1,j,QPRES ) = pnewr
+                      qmo(i+1,j,QREINT) = eos_state % e * eos_state % rho
+                   else
+                      pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
+                      qmo(i+1,j,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+                   endif
 
-                   call eos(eos_input_re, eos_state)
+                   qmo(i+1,j,QPRES) = max(qmo(i+1,j,QPRES),small_pres)
 
-                   pnewr = eos_state % p
-                   qmo(i+1,j,QPRES ) = pnewr
-                   qmo(i+1,j,QREINT) = eos_state % e * eos_state % rho
                 else
-                   pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
-                   qmo(i+1,j,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+
+                   ! Update gammae with its transverse terms
+                   qmo(i+1,j,QGAME) = qm(i+1,j,QGAME) + &
+                        cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
+                   
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i+1,j,QPRES) = qmo(i+1,j,QREINT)*(qmo(i+1,j,QGAME)-ONE)
+                   
                 endif
-
-                qmo(i+1,j,QPRES) = max(qmo(i+1,j,QPRES),small_pres)
-
              else
-
-                ! Update gammae with its transverse terms
-                qmo(i+1,j,QGAME) = qm(i+1,j,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qmo(i+1,j,QPRES) = qmo(i+1,j,QREINT)*(qmo(i+1,j,QGAME)-ONE)
-
+                qmo(i+1,j,QPRES) = qm(i+1,j,QPRES)
+                qmo(i+1,j,QGAME) = qm(i+1,j,QGAME) 
              endif
 
           end if
