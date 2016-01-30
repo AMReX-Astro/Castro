@@ -20,6 +20,60 @@ module transverse_module
 
 contains
 
+  subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
+
+    integer, intent(in) :: ii, jj, kk
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    double precision, intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+
+    logical :: reset
+    type (eos_t) :: eos_state
+
+    reset = .false.
+
+    if (transverse_reset_rhoe == 1) then
+       ! if we are still negative, then we need to reset
+       if (qedge(ii,jj,kk,QREINT) < ZERO) then
+          reset = .true.
+
+          eos_state % rho = qedge(ii,jj,kk,QRHO)
+          eos_state % T = small_temp
+          eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
+
+          call eos(eos_input_rt, eos_state)
+
+          qedge(ii,jj,kk,QREINT) = qedge(ii,jj,kk,QRHO)*eos_state % e
+          qedge(ii,jj,kk,QPRES) = eos_state % p
+       endif
+
+    end if
+
+    if (ppm_predict_gammae == 0 ) then
+
+       if (transverse_use_eos == 1) then
+          eos_state % rho = qedge(ii,jj,kk,QRHO)
+          eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
+          eos_state % T   = small_temp
+          eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
+
+          call eos(eos_input_re, eos_state)
+
+          qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
+          qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
+       end if
+
+    else
+       if (reset) then
+          ! recompute the p edge state from this and (rho e), since we reset
+          ! qreint  (actually, is this code even necessary?)
+          qedge(ii,jj,kk,QPRES) = qedge(ii,jj,kk,QREINT)*(qedge(ii,jj,kk,QGAME)-ONE)
+          qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
+       end if
+    end if
+
+  end subroutine reset_edge_state_thermo
+
+
   !===========================================================================
   ! transx1
   !===========================================================================
@@ -73,9 +127,9 @@ contains
 
     type (eos_t) :: eos_state
 
-    ! It is possible that in the trans routines, we'll call the EOS with states 
+    ! It is possible that in the trans routines, we'll call the EOS with states
     ! that dip under the small density or small temperature; we don't want to
-    ! crash in that case, and instead we will allow the reset routines to deal 
+    ! crash in that case, and instead we will allow the reset routines to deal
     ! with that later.
 
     eos_state % check_small = .false.
@@ -205,6 +259,8 @@ contains
                 qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
                 qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
              end if
+
+             call reset_edge_state_thermo(qypo, qd_lo, qd_hi, i, j, kc)
           end if
 
           !-------------------------------------------------------------------
@@ -273,108 +329,11 @@ contains
                 qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
                 qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
              end if
+
+             call reset_edge_state_thermo(qymo, qd_lo, qd_hi, i, j+1, kc)
           endif
        enddo
 
-       !----------------------------------------------------------------
-       ! qypo state
-       !----------------------------------------------------------------
-
-       if (j.ge.jlo+1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qypo(i,j,kc,QREINT) < ZERO) then
-                   reset = .true.
-
-                   eos_state % rho = qypo(i,j,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qypo(i,j,kc,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qypo(i,j,kc,QREINT) = qypo(i,j,kc,QRHO)*eos_state % e
-                   qypo(i,j,kc,QPRES) = eos_state % p
-                endif
-             end do
-          end if
-
-          if (ppm_predict_gammae == 0 ) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qypo(i,j,kc,QRHO)
-                   eos_state % e   = qypo(i,j,kc,QREINT) / qypo(i,j,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qypo(i,j,kc,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qypo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                   qypo(i,j,kc,QPRES) = max(eos_state % p ,small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
-                   qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
-                end do
-             end if
-          end if
-       end if
-
-       !----------------------------------------------------------------
-       ! qmpo state
-       !----------------------------------------------------------------
-
-       if (j.le.jhi-1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qymo(i,j+1,kc,QREINT) < ZERO) then
-                   reset = .true.
-
-                   eos_state % rho = qymo(i,j+1,kc,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qymo(i,j+1,kc,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qymo(i,j+1,kc,QREINT) = qymo(i,j+1,kc,QRHO)*eos_state % e
-                   qymo(i,j+1,kc,QPRES) = eos_state % p
-                endif
-             end do
-          endif
-
-          if (ppm_predict_gammae == 0) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qymo(i,j+1,kc,QRHO)
-                   eos_state % e   = qymo(i,j+1,kc,QREINT) / qymo(i,j+1,kc,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qymo(i,j+1,kc,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qymo(i,j+1,kc,QREINT) = eos_state % e * eos_state % rho
-                   qymo(i,j+1,kc,QPRES) = max(eos_state % p, small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
-                   qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
-                end do
-             end if
-          end if
-       end if
     enddo
 
   end subroutine transx1
@@ -550,6 +509,7 @@ contains
              qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qzpo, qd_lo, qd_hi, i, j, kc)
 
           !-------------------------------------------------------------------
           ! qzmo state
@@ -631,102 +591,9 @@ contains
              qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qzmo, qd_lo, qd_hi, i, j, kc)
+
        enddo
-
-       !-------------------------------------------------------------------
-       ! qzpo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qzpo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
-                qzpo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qzpo(i,j,kc,QPRES) = max(eos_state % p ,small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
-                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qzmo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qzmo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
-                qzmo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qzmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
-                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
     enddo
 
   end subroutine transx2
@@ -906,6 +773,8 @@ contains
                 qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qxpo, qd_lo, qd_hi, i, j, kc)
+
           end if
 
           !-------------------------------------------------------------------
@@ -974,105 +843,11 @@ contains
                 qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qxmo, qd_lo, qd_hi, i+1, j, kc)
+
           endif
-
+          
        enddo
-
-       !-------------------------------------------------------------------
-       ! qxpo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo+1, ihi
-             ! if we are still negative, then we need to reset
-             if (qxpo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qxpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qxpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qxpo(i,j,kc,QREINT) = qxpo(i,j,kc,QRHO) * eos_state % e
-                qxpo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo+1, ihi
-                eos_state % rho = qxpo(i,j,kc,QRHO)
-                eos_state % e   = qxpo(i,j,kc,QREINT) / qxpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qxpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qxpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-              end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo+1, ihi
-                ! and compute the p edge state from this and (rho e)
-                qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
-                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qxmo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi-1
-             ! if we are still negative, then we need to reset
-             if (qxmo(i+1,j,kc,QREINT) < ZERO) then
-                reset = .true.
-                eos_state % rho = qxmo(i+1,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qxmo(i+1,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qxmo(i+1,j,kc,QREINT) = qxmo(i+1,j,kc,QRHO)*eos_state % e
-                qxmo(i+1,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi-1
-                eos_state % rho = qxmo(i+1,j,kc,QRHO)
-                eos_state % e   = qxmo(i+1,j,kc,QREINT) / qxmo(i+1,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxmo(i+1,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qxmo(i+1,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qxmo(i+1,j,kc,QPRES) = max(eos_state % p ,small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi-1
-                ! and compute the p edge state from this and (rho e)
-                qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
-                qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
     enddo
 
   end subroutine transy1
@@ -1249,6 +1024,8 @@ contains
              qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qzpo, qd_lo, qd_hi, i, j, kc)
+
 
           !-------------------------------------------------------------------
           ! qzmo states
@@ -1332,103 +1109,9 @@ contains
              qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qzmo, qd_lo, qd_hi, i, j, kc)
+
        enddo
-
-       !-------------------------------------------------------------------
-       ! qzpo states
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qzpo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qzpo(i,j,kc,QREINT) = qzpo(i,j,kc,QRHO)*eos_state % e
-                qzpo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qzpo(i,j,kc,QRHO)
-                eos_state % e   = qzpo(i,j,kc,QREINT) / qzpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qzpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qzpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
-                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qzmo states
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qzmo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qzmo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qzmo(i,j,kc,QREINT) = qzmo(i,j,kc,QRHO)*eos_state % e
-                qzmo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qzmo(i,j,kc,QRHO)
-                eos_state % e   = qzmo(i,j,kc,QREINT) / qzmo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzmo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qzmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qzmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
-                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
     enddo
 
   end subroutine transy2
@@ -1621,6 +1304,8 @@ contains
                 qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qxpo, qd_lo, qd_hi, i, j, km)
+
           end if
 
           !-------------------------------------------------------------------
@@ -1687,6 +1372,8 @@ contains
                 qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
                 qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
              endif
+
+             call reset_edge_state_thermo(qypo, qd_lo, qd_hi, i, j, km)
 
           end if
 
@@ -1756,6 +1443,8 @@ contains
                 qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
              end if
 
+             call reset_edge_state_thermo(qxmo, qd_lo, qd_hi, i+1, j, km)
+
           endif
 
 
@@ -1824,206 +1513,11 @@ contains
                 qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qymo, qd_lo, qd_hi, i, j+1, km)
+
           endif
 
        enddo
-
-       !-------------------------------------------------------------------
-       ! qxpo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo+1, ihi
-             ! if we are still negative, then we need to reset
-             if (qxpo(i,j,km,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qxpo(i,j,km,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qxpo(i,j,km,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qxpo(i,j,km,QREINT) = qxpo(i,j,km,QRHO)*eos_state % e
-                qxpo(i,j,km,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo+1, ihi
-                eos_state % rho = qxpo(i,j,km,QRHO)
-                eos_state % e   = qxpo(i,j,km,QREINT) / qxpo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxpo(i,j,km,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qxpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                qxpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo+1, ihi
-                ! and compute the p edge state from this and (rho e)
-                qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
-                qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qypo state
-       !-------------------------------------------------------------------
-
-       if (j.ge.jlo+1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qypo(i,j,km,QREINT) < ZERO) then
-                   reset = .true.
-
-                   eos_state % rho = qypo(i,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qypo(i,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qypo(i,j,km,QREINT) = qypo(i,j,km,QRHO)*eos_state % e
-                   qypo(i,j,km,QPRES) = eos_state % p
-                endif
-             end do
-          end if
-
-          if (ppm_predict_gammae == 0) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qypo(i,j,km,QRHO)
-                   eos_state % e   = qypo(i,j,km,QREINT) / qypo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qypo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qypo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                   qypo(i,j,km,QPRES) = max(eos_state % p, small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
-                   qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
-                end do
-             end if
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qxmo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi-1
-             ! if we are still negative, then we need to reset
-             if (qxmo(i+1,j,km,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qxmo(i+1,j,km,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qxmo(i+1,j,km,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qxmo(i+1,j,km,QREINT) = qxmo(i+1,j,km,QRHO)*eos_state % e
-                qxmo(i+1,j,km,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi-1
-                eos_state % rho = qxmo(i+1,j,km,QRHO)
-                eos_state % e   = qxmo(i+1,j,km,QREINT) / qxmo(i+1,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qxmo(i+1,j,km,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qxmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
-                qxmo(i+1,j,km,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi-1
-                ! and compute the p edge state from this and (rho e)
-                qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
-                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qymo state
-       !-------------------------------------------------------------------
-
-       if (j.le.jhi-1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qymo(i,j+1,km,QREINT) < ZERO) then
-                   reset = .true.
-
-                   eos_state % rho = qymo(i,j+1,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qymo(i,j+1,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qymo(i,j+1,km,QREINT) =  qymo(i,j+1,km,QRHO)*eos_state % e
-                   qymo(i,j+1,km,QPRES) =  eos_state % p
-                endif
-             end do
-          end if
-
-          if (ppm_predict_gammae == 0) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qymo(i,j+1,km,QRHO)
-                   eos_state % e   = qymo(i,j+1,km,QREINT) / qymo(i,j+1,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qymo(i,j+1,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qymo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
-                   qymo(i,j+1,km,QPRES) = max(eos_state % p, small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
-                   qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
-                end do
-             end if
-          end if
-       end if
-
     enddo
 
   end subroutine transz
@@ -2298,6 +1792,7 @@ contains
              qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, kc)
 
           !-------------------------------------------------------------------
           ! qzmo state
@@ -2343,103 +1838,9 @@ contains
              qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
           endif
 
+          call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j, kc)
+
        enddo
-
-       !-------------------------------------------------------------------
-       ! qzpo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qpo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qpo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
-                qpo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qpo(i,j,kc,QRHO)
-                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qpo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
-                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qzmo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi
-             ! if we are still negative, then we need to reset
-             if (qmo(i,j,kc,QREINT) < ZERO) then
-                reset = .true.
-                eos_state % rho = qmo(i,j,kc,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
-                qmo(i,j,kc,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi
-                eos_state % rho = qmo(i,j,kc,QRHO)
-                eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-                qmo(i,j,kc,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi
-                ! and compute the p edge state from this and (rho e)
-                qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
-                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
-             end do
-          end if
-       end if
-
     enddo
 
   end subroutine transxy
@@ -2652,6 +2053,8 @@ contains
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
+
           end if
 
 
@@ -2732,108 +2135,11 @@ contains
                 qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
              endif
 
+             call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j+1, km)
+
           endif
 
        enddo
-
-       !-------------------------------------------------------------------
-       ! qypo state
-       !-------------------------------------------------------------------
-
-       if (j.ge.jlo+1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qpo(i,j,km,QREINT) < ZERO) then
-                   reset = .true.
-
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
-                   qpo(i,j,km,QPRES) = eos_state % p
-                endif
-             end do
-          end if
-
-          if (ppm_predict_gammae == 0) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qpo(i,j,km,QRHO)
-                   eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                   qpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
-                end do
-             end if
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qymo state
-       !-------------------------------------------------------------------
-
-       if (j.le.jhi-1) then
-          reset = .false.
-          if (transverse_reset_rhoe == 1) then
-             do i = ilo, ihi
-                ! if we are still negative, then we need to reset
-                if (qmo(i,j+1,km,QREINT) < ZERO) then
-                   reset = .true.
-                   eos_state % rho = qmo(i,j+1,km,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i,j+1,km,QFS:QFS-1+nspec)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QRHO)*eos_state % e
-                   qmo(i,j+1,km,QPRES) = eos_state % p
-                endif
-             end do
-          end if
-
-          if (ppm_predict_gammae == 0) then
-             if (transverse_use_eos .eq. 1) then
-                do i = ilo, ihi
-                   eos_state % rho = qmo(i,j+1,km,QRHO)
-                   eos_state % e   = qmo(i,j+1,km,QREINT) / qmo(i,j+1,km,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qmo(i,j+1,km,QFS:QFS+nspec-1)
-
-                   call eos(eos_input_re, eos_state)
-
-                   qmo(i,j+1,km,QREINT) = eos_state % e * eos_state % rho
-                   qmo(i,j+1,km,QPRES) = max(eos_state % p, small_pres)
-                end do
-             end if
-          else
-             if (reset) then
-                !DIR$ vector always
-                do i = ilo, ihi
-                   ! and compute the p edge state from this and (rho e)
-                   qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
-                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
-                end do
-             end if
-          end if
-       end if
     enddo
 
   end subroutine transxz
@@ -3051,6 +2357,8 @@ contains
                 qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
              end if
 
+             call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
+
           endif
 
           !-------------------------------------------------------------------
@@ -3131,106 +2439,11 @@ contains
                 qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
              end if
 
+             call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i+1, j, km)
+
           endif
 
        enddo
-
-       !-------------------------------------------------------------------
-       ! qxpo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo+1, ihi
-             ! if we are still negative, then we need to reset
-             if (qpo(i,j,km,QREINT) .le. ZERO) then
-                reset = .true.
-
-                eos_state % rho = qpo(i,j,km,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qpo(i,j,km,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qpo(i,j,km,QREINT) = qpo(i,j,km,QRHO)*eos_state % e
-                qpo(i,j,km,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo+1, ihi
-                eos_state % rho = qpo(i,j,km,QRHO)
-                eos_state % e   = qpo(i,j,km,QREINT) / qpo(i,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,km,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qpo(i,j,km,QREINT) = eos_state % e * eos_state % rho
-                qpo(i,j,km,QPRES) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo+1, ihi
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
-             end do
-          end if
-       end if
-
-       !-------------------------------------------------------------------
-       ! qxmo state
-       !-------------------------------------------------------------------
-
-       reset = .false.
-       if (transverse_reset_rhoe == 1) then
-          do i = ilo, ihi-1
-             ! if we are still negative, then we need to reset
-             if (qmo(i+1,j,km,QREINT) < ZERO) then
-                reset = .true.
-
-                eos_state % rho = qmo(i+1,j,km,QRHO)
-                eos_state % T = small_temp
-                eos_state % xn(:) = qmo(i+1,j,km,QFS:QFS-1+nspec)
-
-                call eos(eos_input_rt, eos_state)
-
-                qmo(i+1,j,km,QREINT) = qmo(i+1,j,km,QRHO)*eos_state % e
-                qmo(i+1,j,km,QPRES) = eos_state % p
-             endif
-          end do
-       end if
-
-       if (ppm_predict_gammae == 0) then
-          if (transverse_use_eos .eq. 1) then
-             do i = ilo, ihi-1
-                eos_state % rho = qmo(i+1,j,km,QRHO)
-                eos_state % e   = qmo(i+1,j,km,QREINT) / qmo(i+1,j,km,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qmo(i+1,j,km,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qmo(i+1,j,km,QREINT) = eos_state % e * eos_state % rho
-                qmo(i+1,j,km,QPRES  ) = max(eos_state % p, small_pres)
-             end do
-          end if
-       else
-          if (reset) then
-             !DIR$ vector always
-             do i = ilo, ihi-1
-                ! and compute the p edge state from this and (rho e)
-                qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
-                qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
-             end do
-          end if
-       end if
-
     enddo
 
   end subroutine transyz
