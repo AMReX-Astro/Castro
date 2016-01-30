@@ -29,6 +29,12 @@ contains
     logical :: reset
     type (eos_t) :: eos_state
 
+    ! It is possible that in the trans routines, we'll call the EOS with states
+    ! that dip under the small density or small temperature; we don't want to
+    ! crash in that case, and instead we will allow the reset routines to deal
+    ! with that later.
+    eos_state % check_small = .false.
+
     reset = .false.
 
     if (transverse_reset_rhoe == 1) then
@@ -123,16 +129,8 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    logical :: reset
+    logical :: reset_state
 
-    type (eos_t) :: eos_state
-
-    ! It is possible that in the trans routines, we'll call the EOS with states
-    ! that dip under the small density or small temperature; we don't want to
-    ! crash in that case, and instead we will allow the reset routines to deal
-    ! with that later.
-
-    eos_state % check_small = .false.
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -148,14 +146,14 @@ contains
 
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
 
-             if (j.ge.jlo+1) then
+             if (j >= jlo+1) then
                 rr = qyp(i,j,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
                 compu = rr*qyp(i,j,kc,nq) - compn
                 qypo(i,j,kc,nq) = compu/rrnew
              end if
 
-             if (j.le.jhi-1) then
+             if (j <= jhi-1) then
                 rr = qym(i,j+1,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
                 compu = rr*qym(i,j+1,kc,nq) - compn
@@ -197,7 +195,7 @@ contains
           ! qypo state
           !-------------------------------------------------------------------
 
-          if (j.ge.jlo+1) then
+          if (j >= jlo+1) then
 
              ! Convert to conservation form
              rrry = qyp(i,j,kc,QRHO)
@@ -216,14 +214,14 @@ contains
              renewry = rery - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewry .lt. ZERO) then
-                   rrnewry = rrry
-                   runewry = rury
-                   rvnewry = rvry
-                   rwnewry = rwry
-                   renewry = rery
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewry < ZERO) then
+                rrnewry = rrry
+                runewry = rury
+                rvnewry = rvry
+                rwnewry = rwry
+                renewry = rery
+                reset_state = .true.
              endif
 
              qypo(i,j,kc,QRHO) = rrnewry
@@ -236,29 +234,36 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)*rhoinv
              qypo(i,j,kc,QREINT) = renewry - rhoekenry
 
-             if (transverse_reset_rhoe .eq. 1 .and. qypo(i,j,kc,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by
-                ! using the discretized expression for updating (rho e).
-                qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-             end if
+             if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                if (transverse_reset_rhoe .eq. 1 .and. qypo(i,j,kc,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating (rho e).
+                   qypo(i,j,kc,QREINT) = qyp(i,j,kc,QREINT) - &
+                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+                end if
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-                qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                   qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME) + &
+                        cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
+                   qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
+                end if
              else
-                ! Update gammae with its transverse terms
-                qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME) + &
-                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
-                qypo(i,j,kc,QPRES) = max(qypo(i,j,kc,QPRES),small_pres)
-             end if
+                qypo(i,j,kc,QPRES) = qyp(i,j,kc,QPRES)
+                qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME)
+             endif
 
              call reset_edge_state_thermo(qypo, qd_lo, qd_hi, i, j, kc)
           end if
@@ -267,7 +272,7 @@ contains
           ! qymo state
           !-------------------------------------------------------------------
 
-          if (j.le.jhi-1) then
+          if (j <= jhi-1) then
 
              ! Convert to conservation form
              rrly = qym(i,j+1,kc,QRHO)
@@ -286,14 +291,14 @@ contains
              renewly = rely - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewly .lt. ZERO) then
-                   rrnewly = rrly
-                   runewly = ruly
-                   rvnewly = rvly
-                   rwnewly = rwly
-                   renewly = rely
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewly < ZERO) then
+                rrnewly = rrly
+                runewly = ruly
+                rvnewly = rvly
+                rwnewly = rwly
+                renewly = rely
+                reset_state = .true.
              endif
 
              qymo(i,j+1,kc,QRHO) = rrnewly
@@ -306,29 +311,35 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)*rhoinv
              qymo(i,j+1,kc,QREINT) = renewly - rhoekenly
 
-             if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,kc,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
-                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-             end if
+             if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+                if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,kc,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qymo(i,j+1,kc,QREINT) = qym(i,j+1,kc,QREINT) - &
+                        cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+                end if
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-                qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                   qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME) + &
+                        cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
+                   qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
+                end if
              else
-                ! Update gammae with its transverse terms
-                qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME) + &
-                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
-                qymo(i,j+1,kc,QPRES) = max(qymo(i,j+1,kc,QPRES), small_pres)
-             end if
+                qymo(i,j+1,kc,QPRES) = qym(i,j+1,kc,QPRES)
+                qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME)
+             endif
 
              call reset_edge_state_thermo(qymo, qd_lo, qd_hi, i, j+1, kc)
           endif
@@ -383,11 +394,7 @@ contains
     double precision compn, compu
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -466,12 +473,14 @@ contains
           renewrz = rerz - cdtdx*(fx(i+1,j,kc,UEDEN) - fx(i,j,kc,UEDEN))
 
           ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewrz < ZERO) then
              rrnewrz = rrrz
              runewrz = rurz
              rvnewrz = rvrz
              rwnewrz = rwrz
              renewrz = rerz
+             reset_state = .true.
           endif
 
           ! Convert back to primitive form
@@ -485,28 +494,35 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)*rhoinv
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                  cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
-          end if
+          if (.not. reset_state) then
+             ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,kc,UEINT) - fx(i,j,kc,UEINT) + pav*du)
+             end if
 
-          if (ppm_predict_gammae == 0) then
-             ! add the transverse term to the p evolution eq here
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
-             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
+             if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                ! and compute the p edge state from this and (rho e)
+                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
-                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
-             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             qzpo(i,j,kc,QPRES) = qzp(i,j,kc,QPRES)
+             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qzpo, qd_lo, qd_hi, i, j, kc)
@@ -549,12 +565,14 @@ contains
           renewlz = relz - cdtdx*(fx(i+1,j,km,UEDEN) - fx(i,j,km,UEDEN))
 
           ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewlz < ZERO) then
              rrnewlz = rrlz
              runewlz = rulz
              rvnewlz = rvlz
              rwnewlz = rwlz
              renewlz = relz
+             reset_state = .true.
           endif
 
           ! Convert back to primitive form
@@ -568,27 +586,34 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)*rhoinv
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-                  cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
-          endif
+          if (.not. reset_state) then
+             ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                     cdtdx*(fx(i+1,j,km,UEINT) - fx(i,j,km,UEINT) + pav*du)
+             endif
 
-          if (ppm_predict_gammae == 0) then
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
-             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
+
+             if (ppm_predict_gammae == 0) then
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+                qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                ! and compute the p edge state from this and (rho e)
+                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
-                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
-             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             qzmo(i,j,kc,QPRES) = qzm(i,j,kc,QPRES)
+             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qzmo, qd_lo, qd_hi, i, j, kc)
@@ -643,11 +668,7 @@ contains
     double precision rhoekenrx, rhoekenlx
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -662,14 +683,14 @@ contains
           do i = ilo, ihi
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
 
-             if (i.ge.ilo+1) then
+             if (i >= ilo+1) then
                 rr = qxp(i,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
                 compu = rr*qxp(i,j,kc,nq) - compn
                 qxpo(i,j,kc,nq) = compu/rrnew
              end if
 
-             if (i.le.ihi-1) then
+             if (i <= ihi-1) then
                 rr = qxm(i+1,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
                 compu = rr*qxm(i+1,j,kc,nq) - compn
@@ -711,7 +732,7 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          if (i.ge.ilo+1) then
+          if (i >= ilo+1) then
              ! Convert to conservation form
              rrrx = qxp(i,j,kc,QRHO)
              rurx = rrrx*qxp(i,j,kc,QU)
@@ -729,14 +750,14 @@ contains
              renewrx = rerx - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewrx .lt. ZERO) then
-                   rrnewrx = rrrx
-                   runewrx = rurx
-                   rvnewrx = rvrx
-                   rwnewrx = rwrx
-                   renewrx = rerx
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewrx < ZERO) then
+                rrnewrx = rrrx
+                runewrx = rurx
+                rvnewrx = rvrx
+                rwnewrx = rwrx
+                renewrx = rerx
+                reset_state = .true.
              endif
 
              qxpo(i,j,kc,QRHO) = rrnewrx
@@ -749,28 +770,35 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)*rhoinv
              qxpo(i,j,kc,QREINT) = renewrx - rhoekenrx
 
-             if (transverse_reset_rhoe == 1 .and. qxpo(i,j,kc,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by
-                ! using the discretized expression for updating (rho e).
-                qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
-                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                if (transverse_reset_rhoe == 1 .and. qxpo(i,j,kc,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating (rho e).
+                   qxpo(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) - &
+                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
+                endif
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-                qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                   qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME) + &
+                        cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
+                   qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
-                qxpo(i,j,kc,QPRES) = max(qxpo(i,j,kc,QPRES), small_pres)
+                qxpo(i,j,kc,QPRES) = qxp(i,j,kc,QPRES)
+                qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME)
              endif
 
              call reset_edge_state_thermo(qxpo, qd_lo, qd_hi, i, j, kc)
@@ -781,7 +809,7 @@ contains
           ! qxmo state
           !-------------------------------------------------------------------
 
-          if (i.le.ihi-1) then
+          if (i <= ihi-1) then
              ! Convert to conservation form
              rrlx = qxm(i+1,j,kc,QRHO)
              rulx = rrlx*qxm(i+1,j,kc,QU)
@@ -799,14 +827,14 @@ contains
              renewlx = relx - cdtdy*(fy(i,j+1,kc,UEDEN)- fy(i,j,kc,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewlx .lt. ZERO) then
-                   rrnewlx = rrlx
-                   runewlx = rulx
-                   rvnewlx = rvlx
-                   rwnewlx = rwlx
-                   renewlx = relx
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewlx < ZERO) then
+                rrnewlx = rrlx
+                runewlx = rulx
+                rvnewlx = rvlx
+                rwnewlx = rwlx
+                renewlx = relx
+                reset_state = .true.
              endif
 
              qxmo(i+1,j,kc,QRHO) = rrnewlx
@@ -819,34 +847,41 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)*rhoinv
              qxmo(i+1,j,kc,QREINT) = renewlx - rhoekenlx
 
-             if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,kc,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
-                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,kc,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qxmo(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) - &
+                        cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
+                endif
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-                qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                   qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME) + &
+                        cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
+                   qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
-                qxmo(i+1,j,kc,QPRES) = max(qxmo(i+1,j,kc,QPRES), small_pres)
+                qxmo(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES)
+                qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME)
              endif
 
              call reset_edge_state_thermo(qxmo, qd_lo, qd_hi, i+1, j, kc)
 
           endif
-          
+
        enddo
     enddo
 
@@ -897,11 +932,7 @@ contains
     double precision rhoekenrz, rhoekenlz
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -981,12 +1012,14 @@ contains
           renewrz = rerz - cdtdy*(fy(i,j+1,kc,UEDEN) - fy(i,j,kc,UEDEN))
 
           ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewrz < ZERO) then
              rrnewrz = rrrz
              runewrz = rurz
              rvnewrz = rvrz
              rwnewrz = rwrz
              renewrz = rerz
+             reset_state = .true.
           endif
 
           ! Convert back to primitive form
@@ -1000,28 +1033,33 @@ contains
           rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)*rhoinv
           qzpo(i,j,kc,QREINT) = renewrz - rhoekenrz
 
-          if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
-                  cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
-          endif
+          if (.not. reset_state) then
+             if (transverse_reset_rhoe == 1 .and. qzpo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qzpo(i,j,kc,QREINT) = qzp(i,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,kc,UEINT) - fy(i,j,kc,UEINT) + pav*du)
+             endif
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
-          if (ppm_predict_gammae == 0) then
-             ! add the transverse term to the p evolution eq here
-             pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
-             qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+             if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
+                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+
+                ! and compute the p edge state from this and (rho e)
+                qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
+                qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
-                  cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
-             qzpo(i,j,kc,QPRES) = max(qzpo(i,j,kc,QPRES), small_pres)
+             qzpo(i,j,kc,QPRES) = qzp(i,j,kc,QPRES)
+             qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qzpo, qd_lo, qd_hi, i, j, kc)
@@ -1066,12 +1104,14 @@ contains
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
 
           ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewlz < ZERO) then
              rrnewlz = rrlz
              runewlz = rulz
              rvnewlz = rvlz
              rwnewlz = rwlz
              renewlz = relz
+             reset_state = .true.
           endif
 
           ! Convert back to primitive form
@@ -1085,28 +1125,33 @@ contains
           rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)*rhoinv
           qzmo(i,j,kc,QREINT) = renewlz - rhoekenlz
 
-          if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
-                  cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
-          endif
+          if (.not. reset_state) then
+             if (transverse_reset_rhoe == 1 .and. qzmo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qzmo(i,j,kc,QREINT) = qzm(i,j,kc,QREINT) - &
+                     cdtdy*(fy(i,j+1,km,UEINT) - fy(i,j,km,UEINT) + pav*du)
+             endif
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
-          if (ppm_predict_gammae == 0) then
-             ! add the transverse term to the p evolution eq here
-             pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-             qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+             if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
+                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                ! and compute the p edge state from this and (rho e)
+                qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
+                qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
-                  cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
-             qzmo(i,j,kc,QPRES) = max(qzmo(i,j,kc,QPRES), small_pres)
+             qzmo(i,j,kc,QPRES) = qzm(i,j,kc,QPRES)
+             qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qzmo, qd_lo, qd_hi, i, j, kc)
@@ -1164,11 +1209,7 @@ contains
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
     double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1184,28 +1225,28 @@ contains
 
              compn = cdtdz*(fz(i,j,kc,n) - fz(i,j,km,n))
 
-             if (i.ge.ilo+1) then
+             if (i >= ilo+1) then
                 rr = qxp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
                 compu = rr*qxp(i,j,km,nq) - compn
                 qxpo(i,j,km,nq) = compu/rrnew
              end if
 
-             if (j.ge.jlo+1) then
+             if (j >= jlo+1) then
                 rr = qyp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
                 compu = rr*qyp(i,j,km,nq) - compn
                 qypo(i,j,km,nq) = compu/rrnew
              end if
 
-             if (i.le.ihi-1) then
+             if (i <= ihi-1) then
                 rr = qxm(i+1,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
                 compu = rr*qxm(i+1,j,km,nq) - compn
                 qxmo(i+1,j,km,nq) = compu/rrnew
              end if
 
-             if (j.le.jhi-1) then
+             if (j <= jhi-1) then
                 rr = qym(i,j+1,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
                 compu = rr*qym(i,j+1,km,nq) - compn
@@ -1243,7 +1284,7 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          if (i.ge.ilo+1) then
+          if (i >= ilo+1) then
              ! Convert to conservation form
              rrrx = qxp(i,j,km,QRHO)
              rurx = rrrx*qxp(i,j,km,QU)
@@ -1261,14 +1302,14 @@ contains
              renewrx = rerx - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewrx .lt. ZERO) then
-                   rrnewrx = rrrx
-                   runewrx = rurx
-                   rvnewrx = rvrx
-                   rwnewrx = rwrx
-                   renewrx = rerx
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewrx < ZERO) then
+                rrnewrx = rrrx
+                runewrx = rurx
+                rvnewrx = rvrx
+                rwnewrx = rwrx
+                renewrx = rerx
+                reset_state = .true.
              end if
 
              qxpo(i,j,km,QRHO) = rrnewrx
@@ -1280,28 +1321,33 @@ contains
              rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,km,QRHO)
              qxpo(i,j,km,QREINT) = renewrx - rhoekenrx
 
-             if (transverse_reset_rhoe == 1 .and. qxpo(i,j,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qxpo(i,j,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qxpo(i,j,km,QREINT) = qxp(i,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
+                   qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME) + &
-                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
-                qxpo(i,j,km,QPRES) = max(qxpo(i,j,km,QPRES), small_pres)
+                qxpo(i,j,km,QPRES) = qxp(i,j,km,QPRES)
+                qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME)
              endif
 
              call reset_edge_state_thermo(qxpo, qd_lo, qd_hi, i, j, km)
@@ -1312,7 +1358,7 @@ contains
           ! qypo state
           !-------------------------------------------------------------------
 
-          if (j.ge.jlo+1) then
+          if (j >= jlo+1) then
              ! Convert to conservation form
              rrry = qyp(i,j,km,QRHO)
              rury = rrry*qyp(i,j,km,QU)
@@ -1330,14 +1376,14 @@ contains
              renewry = rery - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewry .lt. ZERO) then
-                   rrnewry = rrry
-                   runewry = rury
-                   rvnewry = rvry
-                   rwnewry = rwry
-                   renewry = rery
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewry < ZERO) then
+                rrnewry = rrry
+                runewry = rury
+                rvnewry = rvry
+                rwnewry = rwry
+                renewry = rery
+                reset_state = .true.
              end if
 
              qypo(i,j,km,QRHO) = rrnewry
@@ -1349,28 +1395,33 @@ contains
              rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,km,QRHO)
              qypo(i,j,km,QREINT) = renewry - rhoekenry
 
-             if (transverse_reset_rhoe == 1 .and. qypo(i,j,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qypo(i,j,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qypo(i,j,km,QREINT) = qyp(i,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                qypo(i,j,km,QPRES) = max(pnewry,small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   qypo(i,j,km,QPRES) = max(pnewry,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
+                   qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME) + &
-                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
-                qypo(i,j,km,QPRES) = max(qypo(i,j,km,QPRES), small_pres)
+                qypo(i,j,km,QPRES) = qyp(i,j,km,QPRES)
+                qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME)
              endif
 
              call reset_edge_state_thermo(qypo, qd_lo, qd_hi, i, j, km)
@@ -1381,7 +1432,7 @@ contains
           ! qxmo state
           !-------------------------------------------------------------------
 
-          if (i.le.ihi-1) then
+          if (i <= ihi-1) then
 
              ! Convert to conservation form
              rrlx = qxm(i+1,j,km,QRHO)
@@ -1400,14 +1451,14 @@ contains
              renewlx = relx - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewlx .lt. ZERO) then
-                   rrnewlx = rrlx
-                   runewlx = rulx
-                   rvnewlx = rvlx
-                   rwnewlx = rwlx
-                   renewlx = relx
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewlx < ZERO) then
+                rrnewlx = rrlx
+                runewlx = rulx
+                rvnewlx = rvlx
+                rwnewlx = rwlx
+                renewlx = relx
+                reset_state = .true.
              end if
 
              qxmo(i+1,j,km,QRHO) = rrnewlx
@@ -1419,29 +1470,34 @@ contains
              rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,km,QRHO)
              qxmo(i+1,j,km,QREINT) = renewlx - rhoekenlx
 
-             if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qxmo(i+1,j,km,QREINT) = qxm(i+1,j,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
+                   qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
+                end if
              else
-                ! Update gammae with its transverse terms
-                qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
-                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
-                qxmo(i+1,j,km,QPRES) = max(qxmo(i+1,j,km,QPRES), small_pres)
-             end if
+                qxmo(i+1,j,km,QPRES) = qxm(i+1,j,km,QPRES)
+                qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME)
+             endif
 
              call reset_edge_state_thermo(qxmo, qd_lo, qd_hi, i+1, j, km)
 
@@ -1452,7 +1508,7 @@ contains
           ! qymo state
           !-------------------------------------------------------------------
 
-          if (j.le.jhi-1) then
+          if (j <= jhi-1) then
              ! Convert to conservation form
              rrly = qym(i,j+1,km,QRHO)
              ruly = rrly*qym(i,j+1,km,QU)
@@ -1470,14 +1526,14 @@ contains
              renewly = rely - cdtdz*(fz(i,j,kc,UEDEN) - fz(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewly .lt. ZERO) then
-                   rrnewly = rrly
-                   runewly = ruly
-                   rvnewly = rvly
-                   rwnewly = rwly
-                   renewly = rely
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewly < ZERO) then
+                rrnewly = rrly
+                runewly = ruly
+                rvnewly = rvly
+                rwnewly = rwly
+                renewly = rely
+                reset_state = .true.
              endif
 
              qymo(i,j+1,km,QRHO) = rrnewly
@@ -1489,28 +1545,33 @@ contains
              rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,km,QRHO)
              qymo(i,j+1,km,QREINT) = renewly - rhoekenly
 
-             if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
-                     cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qymo(i,j+1,km,QREINT) = qym(i,j+1,km,QREINT) - &
+                        cdtdz*(fz(i,j,kc,UEINT) - fz(i,j,km,UEINT) + pav*du)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
-                qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+
+                   ! and compute the p edge state from this and (rho e)
+                   qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
+                   qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME) + &
-                     cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
-
-                ! and compute the p edge state from this and (rho e)
-                qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
-                qymo(i,j+1,km,QPRES) = max(qymo(i,j+1,km,QPRES), small_pres)
+                qymo(i,j+1,km,QPRES) = qym(i,j+1,km,QPRES)
+                qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME)
              endif
 
              call reset_edge_state_thermo(qymo, qd_lo, qd_hi, i, j+1, km)
@@ -1571,11 +1632,7 @@ contains
     double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1685,6 +1742,11 @@ contains
           pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
           geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
 
+
+          !-------------------------------------------------------------------
+          ! qzpo state
+          !-------------------------------------------------------------------
+
           ! Convert to conservation form
           rrr = qp(i,j,kc,QRHO)
           rur = rrr*qp(i,j,kc,QU)
@@ -1694,13 +1756,6 @@ contains
                qp(i,j,kc,QW)**2)
           rer = qp(i,j,kc,QREINT) + ekenr
 
-          rrl = qm(i,j,kc,QRHO)
-          rul = rrl*qm(i,j,kc,QU)
-          rvl = rrl*qm(i,j,kc,QV)
-          rwl = rrl*qm(i,j,kc,QW)
-          ekenl = HALF*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
-               qm(i,j,kc,QW)**2)
-          rel = qm(i,j,kc,QREINT) + ekenl
 
           ! Add transverse predictor
           rrnewr = rrr - cdtdx*(fxy(i+1,j,kc,URHO) - fxy(i,j,kc,URHO)) &
@@ -1714,42 +1769,16 @@ contains
           renewr = rer - cdtdx*(fxy(i+1,j,kc,UEDEN) - fxy(i,j,kc,UEDEN)) &
                        - cdtdy*(fyx(i,j+1,kc,UEDEN) - fyx(i,j,kc,UEDEN))
 
-
-          rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
-                       - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
-          runewl = rul - cdtdx*(fxy(i+1,j,km,UMX) - fxy(i,j,km,UMX)) &
-                       - cdtdy*(fyx(i,j+1,km,UMX) - fyx(i,j,km,UMX))
-          rvnewl = rvl - cdtdx*(fxy(i+1,j,km,UMY) - fxy(i,j,km,UMY)) &
-                       - cdtdy*(fyx(i,j+1,km,UMY) - fyx(i,j,km,UMY))
-          rwnewl = rwl - cdtdx*(fxy(i+1,j,km,UMZ) - fxy(i,j,km,UMZ)) &
-                       - cdtdy*(fyx(i,j+1,km,UMZ) - fyx(i,j,km,UMZ))
-          renewl = rel - cdtdx*(fxy(i+1,j,km,UEDEN) - fxy(i,j,km,UEDEN)) &
-                       - cdtdy*(fyx(i,j+1,km,UEDEN) - fyx(i,j,km,UEDEN))
-
           ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewr .lt. ZERO) then
-                rrnewr = rrr
-                runewr = rur
-                rvnewr = rvr
-                rwnewr = rwr
-                renewr = rer
-             endif
-             if (rrnewl .lt. ZERO) then
-                rrnewl = rrl
-                runewl = rul
-                rvnewl = rvl
-                rwnewl = rwl
-                renewl = rel
-             endif
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+             rrnewr = rrr
+             runewr = rur
+             rvnewr = rvr
+             rwnewr = rwr
+             renewr = rer
+             reset_state = .true.
           endif
-
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-
-          !-------------------------------------------------------------------
-          ! qzpo state
-          !-------------------------------------------------------------------
 
           ! Convert back to primitive form
           qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -1764,39 +1793,78 @@ contains
           endif
 
           ! note: we run the risk of (rho e) being negative here
+          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
           qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-          if (transverse_reset_rhoe == 1 .and. qpo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
-                  - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
-                  - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
-                  + hdt*srcQ(i,j,k3d,QREINT)
-          endif
+          if (.not. reset_state) then
+             if (transverse_reset_rhoe == 1 .and. qpo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
+                     - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
+                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
+                     + hdt*srcQ(i,j,k3d,QREINT)
+             endif
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
-          if (ppm_predict_gammae == 0) then
-             ! add the transverse term to the p evolution eq here
-             pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-             qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
+             if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
+                qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
+
+                ! and compute the p edge state from this and (rho e)
+                qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
+                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
-
-             ! and compute the p edge state from this and (rho e)
-             qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
-             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
+             qpo(i,j,kc,QPRES) = qp(i,j,kc,QPRES)
+             qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, kc)
 
+
           !-------------------------------------------------------------------
           ! qzmo state
           !-------------------------------------------------------------------
+
+          ! Convert to conservation form
+          rrl = qm(i,j,kc,QRHO)
+          rul = rrl*qm(i,j,kc,QU)
+          rvl = rrl*qm(i,j,kc,QV)
+          rwl = rrl*qm(i,j,kc,QW)
+          ekenl = HALF*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
+               qm(i,j,kc,QW)**2)
+          rel = qm(i,j,kc,QREINT) + ekenl
+
+          ! Add transverse predictor
+          rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
+                       - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
+          runewl = rul - cdtdx*(fxy(i+1,j,km,UMX) - fxy(i,j,km,UMX)) &
+                       - cdtdy*(fyx(i,j+1,km,UMX) - fyx(i,j,km,UMX))
+          rvnewl = rvl - cdtdx*(fxy(i+1,j,km,UMY) - fxy(i,j,km,UMY)) &
+                       - cdtdy*(fyx(i,j+1,km,UMY) - fyx(i,j,km,UMY))
+          rwnewl = rwl - cdtdx*(fxy(i+1,j,km,UMZ) - fxy(i,j,km,UMZ)) &
+                       - cdtdy*(fyx(i,j+1,km,UMZ) - fyx(i,j,km,UMZ))
+          renewl = rel - cdtdx*(fxy(i+1,j,km,UEDEN) - fxy(i,j,km,UEDEN)) &
+                       - cdtdy*(fyx(i,j+1,km,UEDEN) - fyx(i,j,km,UEDEN))
+
+          ! Reset to original value if adding transverse terms made density negative
+          reset_state = .false.
+          if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+             rrnewl = rrl
+             runewl = rul
+             rvnewl = rvl
+             rwnewl = rwl
+             renewl = rel
+             reset_state = .true.
+          endif
 
           qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
           qmo(i,j,kc,QU    ) = runewl/rrnewl
@@ -1810,32 +1878,38 @@ contains
           endif
 
           ! note: we run the risk of (rho e) being negative here
+          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
           qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
 
-          if (transverse_reset_rhoe == 1 .and. qmo(i,j,kc,QREINT) .le. ZERO) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-             qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
-                  - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
-                  - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
-                  + hdt*srcQ(i,j,k3d-1,QREINT)
-          endif
+          if (.not. reset_state) then
+             if (transverse_reset_rhoe == 1 .and. qmo(i,j,kc,QREINT) <= ZERO) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
+                qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
+                     - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
+                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
+                     + hdt*srcQ(i,j,k3d-1,QREINT)
+             endif
 
-          ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-          ! If we are wrong, we will fix it later
+             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+             ! If we are wrong, we will fix it later
 
-          if (ppm_predict_gammae == 0) then
-             ! add the transverse term to the p evolution eq here
-             pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
-             qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
+             if (ppm_predict_gammae == 0) then
+                ! add the transverse term to the p evolution eq here
+                pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
+                qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
+             else
+                ! Update gammae with its transverse terms
+                qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
+
+                ! and compute the p edge state from this and (rho e)
+                qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
+                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
+             endif
           else
-             ! Update gammae with its transverse terms
-             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
-
-             ! and compute the p edge state from this and (rho e)
-             qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
+             qmo(i,j,kc,QPRES) = qm(i,j,kc,QPRES)
+             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME)
           endif
 
           call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j, kc)
@@ -1891,11 +1965,7 @@ contains
     double precision uxav, gexav, dgex, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl, drr, dcompn
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1914,7 +1984,7 @@ contains
              dcompn = - cdtdx*(fxz(i+1,j,km,n   ) - fxz(i,j,km,n)) &
                       - cdtdz*(fzx(i  ,j,kc,n   ) - fzx(i,j,km,n))
 
-             if (j.ge.jlo+1) then
+             if (j >= jlo+1) then
                 rrr = qp(i,j,km,QRHO)
                 compr = rrr*qp(i,j,km,nq)
 
@@ -1924,7 +1994,7 @@ contains
                 qpo(i,j  ,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
              end if
 
-             if (j.le.jhi-1) then
+             if (j <= jhi-1) then
                 rrl = qm(i,j+1,km,QRHO)
                 compl = rrl*qm(i,j+1,km,nq)
 
@@ -1982,7 +2052,7 @@ contains
           ! qypo state
           !-------------------------------------------------------------------
 
-          if (j.ge.jlo+1) then
+          if (j >= jlo+1) then
              ! Convert to conservation form
              rrr = qp(i,j,km,QRHO)
              rur = rrr*qp(i,j,km,QU)
@@ -2004,15 +2074,15 @@ contains
                           - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewr .lt. ZERO) then
-                   rrnewr = rrr
-                   runewr = rur
-                   rvnewr = rvr
-                   rwnewr = rwr
-                   renewr = rer
-                endif
-             end if
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                rwnewr = rwr
+                renewr = rer
+                reset_state = .true.
+             endif
 
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,km,QU    ) = runewr/rrnewr
@@ -2029,28 +2099,33 @@ contains
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) .le. ZERO) then
-                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                     - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) <= ZERO) then
+                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewr = qp(i,j,km,QPRES) - pxnew - pznew
-                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,km,QPRES) - pxnew - pznew
+                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
-
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
@@ -2062,7 +2137,7 @@ contains
           ! qymo state
           !-------------------------------------------------------------------
 
-          if (j.le.jhi-1) then
+          if (j <= jhi-1) then
              ! Convert to conservation form
              rrl = qm(i,j+1,km,QRHO)
              rul = rrl*qm(i,j+1,km,QU)
@@ -2084,14 +2159,14 @@ contains
                           - cdtdz*(fzx(i,j,kc,UEDEN) - fzx(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewl .lt. ZERO) then
-                   rrnewl = rrl
-                   runewl = rul
-                   rvnewl = rvl
-                   rwnewl = rwl
-                   renewl = rel
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                rwnewl = rwl
+                renewl = rel
+                reset_state = .true.
              endif
 
              qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
@@ -2105,34 +2180,39 @@ contains
                 qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
-             ! note: we run the risk of (rho e) being negative here
-             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
+             if (.not. reset_state) then
+                ! note: we run the risk of (rho e) being negative here
+                rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+                qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
-                     - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                     - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-             endif
+                if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
+                        - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
-                qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
+                   qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
+                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
+                endif
              else
-                ! Update gammae with its transverse terms
-                qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
-
-                ! and compute the p edge state from this and (rho e)
-                qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
-                qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
+                qmo(i,j+1,km,QPRES) = qm(i,j+1,km,QPRES)
+                qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME)
              endif
 
              call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j+1, km)
@@ -2191,11 +2271,7 @@ contains
     double precision compr, compl, compnr, compnl
     double precision drr, dcompn
 
-    logical :: reset
-
-    type (eos_t) :: eos_state
-
-    eos_state % check_small = .false.
+    logical :: reset_state
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -2214,7 +2290,7 @@ contains
              dcompn = - cdtdy*(fyz(i,j+1,km,n   ) - fyz(i,j,km,n)) &
                       - cdtdz*(fzy(i,j  ,kc,n   ) - fzy(i,j,km,n))
 
-             if (i.ge.ilo+1) then
+             if (i >= ilo+1) then
                 rrr = qp(i,j,km,QRHO)
                 compr = rrr*qp(i,j,km,nq)
 
@@ -2224,7 +2300,7 @@ contains
                 qpo(i  ,j,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
              end if
 
-             if (i.le.ihi-1) then
+             if (i <= ihi-1) then
                 rrl = qm(i+1,j,km,QRHO)
                 compl = rrl*qm(i+1,j,km,nq)
 
@@ -2283,7 +2359,7 @@ contains
           ! qxpo state
           !-------------------------------------------------------------------
 
-          if (i.ge.ilo+1) then
+          if (i >= ilo+1) then
              ! Convert to conservation form
              rrr = qp(i,j,km,QRHO)
              rur = rrr*qp(i,j,km,QU)
@@ -2306,14 +2382,14 @@ contains
                           - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewr .lt. ZERO) then
-                   rrnewr = rrr
-                   runewr = rur
-                   rvnewr = rvr
-                   rwnewr = rwr
-                   renewr = rer
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                rwnewr = rwr
+                renewr = rer
+                reset_State = .true.
              end if
 
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -2331,31 +2407,36 @@ contains
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
-                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-             endif
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
+                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewr = qp(i,j,km,QPRES) - pynew - pznew
-                qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,km,QPRES) - pynew - pznew
+                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
+                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
+                end if
              else
-                ! Update gammae with its transverse terms
-                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
-
-                ! and compute the p edge state from this and (rho e)
-                qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
-             end if
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
+             endif
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
 
@@ -2365,7 +2446,7 @@ contains
           ! qxmo state
           !-------------------------------------------------------------------
 
-          if (i.le.ihi-1) then
+          if (i <=ihi-1) then
              ! Convert to conservation form
              rrl = qm(i+1,j,km,QRHO)
              rul = rrl*qm(i+1,j,km,QU)
@@ -2388,14 +2469,14 @@ contains
                           - cdtdz*(fzy(i,j,kc,UEDEN) - fzy(i,j,km,UEDEN))
 
              ! Reset to original value if adding transverse terms made density negative
-             if (transverse_reset_density == 1) then
-                if (rrnewl .lt. ZERO) then
-                   rrnewl = rrl
-                   runewl = rul
-                   rvnewl = rvl
-                   rwnewl = rwl
-                   renewl = rel
-                endif
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                rwnewl = rwl
+                renewl = rel
+                reset_state = .true.
              endif
 
              qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
@@ -2409,35 +2490,40 @@ contains
                 qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
-             ! note: we run the risk of (rho e) being negative here
-             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
+             if (.not. reset_state) then
+                ! note: we run the risk of (rho e) being negative here
+                rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+                qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
 
-             if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,km,QREINT) .le. ZERO) then
-                ! If it is negative, reset the internal energy by using the discretized
-                ! expression for updating (rho e).
-                qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
-                     - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                     - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
-             endif
+                if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,km,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
+                        - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
+                        + hdt*srcQ(i,j,k3d,QREINT)
+                endif
 
-             ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
-             ! If we are wrong, we will fix it later
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
 
-             if (ppm_predict_gammae == 0) then
-                ! add the transverse term to the p evolution eq here
-                pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
-                qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
+                   qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                   qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
+                else
+                   ! Update gammae with its transverse terms
+                   qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
+                   qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
+                end if
              else
-                ! Update gammae with its transverse terms
-                qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
-
-                ! and compute the p edge state from this and (rho e)
-                qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
-                qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
-             end if
+                qmo(i+1,j,km,QPRES  ) = qm(i+1,j,km,QPRES)
+                qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME)
+             endif
 
              call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i+1, j, km)
 
