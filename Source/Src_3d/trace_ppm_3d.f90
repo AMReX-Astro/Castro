@@ -153,7 +153,7 @@ contains
 
           if (i .ge. ilo1) then
 
-             ! Set the reference state 
+             ! Set the reference state
              if (ppm_reference == 0 .or. &
                   (ppm_reference == 1 .and. u - cc >= ZERO .and. &
                    ppm_reference_edge_limit == 0) ) then
@@ -167,7 +167,7 @@ contains
                 tau_ref  = ONE/rho
 
                 gam_ref  = gam
-                
+
                 game_ref = game
 
              else
@@ -187,6 +187,9 @@ contains
                 game_ref = Im(i,j,kc,1,1,QGAME)
              endif
 
+             rho_ref = max(rho_ref,small_dens)
+             p_ref = max(p_ref,small_pres)
+
              ! For tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
@@ -195,13 +198,13 @@ contains
 
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
-   
+
              ! Note: for the transverse velocities, the jump is carried
              !       only by the u wave (the contact)
-   
+
              dum   = u_ref    - Im(i,j,kc,1,1,QU)
              dpm   = p_ref    - Im(i,j,kc,1,1,QPRES)
-   
+
              drho  = rho_ref  - Im(i,j,kc,1,2,QRHO)
              dp    = p_ref    - Im(i,j,kc,1,2,QPRES)
              drhoe = rhoe_ref - Im(i,j,kc,1,2,QREINT)
@@ -218,7 +221,7 @@ contains
                 dum = dum - halfdt*Im_src(i,j,kc,1,1,QU)
                 dup = dup - halfdt*Im_src(i,j,kc,1,3,QU)
              endif
-   
+
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
              if (ppm_reference_eigenvectors == 0) then
@@ -242,7 +245,7 @@ contains
              if (ppm_tau_in_tracing == 0) then
 
                 ! These are analogous to the beta's from the original PPM
-                ! paper (except we work with rho instead of tau).  This is 
+                ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
                 alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
@@ -273,8 +276,8 @@ contains
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
                 endif
 
-             endif    ! which tracing method 
-                
+             endif    ! which tracing method
+
              if (u-cc .gt. ZERO) then
                 amright = ZERO
              else if (u-cc .lt. ZERO) then
@@ -301,7 +304,7 @@ contains
                 azrright = -HALF*alpha0r
                 azeright = -HALF*alpha0e
              endif
-                
+
              ! The final interface states are just
              ! q_s = q_ref - sum(l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
@@ -321,10 +324,10 @@ contains
                    e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
                    qxp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qxp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright 
+                   qxp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
                    qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES )/(qxp(i,j,kc,QGAME) - 1.0d0)
                 endif
-             endif    
+             endif
 
              ! Enforce small_*
              qxp(i,j,kc,QRHO ) = max(qxp(i,j,kc,QRHO ),small_dens)
@@ -345,7 +348,7 @@ contains
                    qxp(i,j,kc,QV    ) = v
                    qxp(i,j,kc,QW    ) = w
                 endif
-             else ! wave moving toward the interface 
+             else ! wave moving toward the interface
                 qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
                 qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
              endif
@@ -377,7 +380,7 @@ contains
           !--------------------------------------------------------------------
           if (i .le. ihi1) then
 
-             ! Set the reference state 
+             ! Set the reference state
              if (ppm_reference == 0 .or. &
                   (ppm_reference == 1 .and. u + cc <= ZERO .and. &
                    ppm_reference_edge_limit == 0) ) then
@@ -409,6 +412,9 @@ contains
                 game_ref = Ip(i,j,kc,1,3,QGAME)
              endif
 
+             rho_ref = max(rho_ref,small_dens)
+             p_ref = max(p_ref,small_pres)
+
              ! For tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
@@ -417,10 +423,10 @@ contains
 
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
-   
+
              dum   = u_ref    - Ip(i,j,kc,1,1,QU)
              dpm   = p_ref    - Ip(i,j,kc,1,1,QPRES)
-   
+
              drho  = rho_ref  - Ip(i,j,kc,1,2,QRHO)
              dp    = p_ref    - Ip(i,j,kc,1,2,QPRES)
              drhoe = rhoe_ref - Ip(i,j,kc,1,2,QREINT)
@@ -461,9 +467,9 @@ contains
              if (ppm_tau_in_tracing == 0) then
 
                 ! These are analogous to the beta's from the original PPM
-                ! paper (except we work with rho instead of tau).  This is 
+                ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
-                
+
                 alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
                 alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
@@ -492,7 +498,7 @@ contains
                 endif
 
              end if
-                
+
              if (u-cc .gt. ZERO) then
                 amleft = -alpham
              else if (u-cc .lt. ZERO) then
@@ -500,7 +506,7 @@ contains
              else
                 amleft = -HALF*alpham
              endif
-                
+
              if (u+cc .gt. ZERO) then
                 apleft = -alphap
              else if (u+cc .lt. ZERO) then
@@ -508,7 +514,7 @@ contains
              else
                 apleft = -HALF*alphap
              endif
-                
+
              if (u .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
@@ -520,7 +526,7 @@ contains
                 azeleft = -HALF*alpha0e
              endif
 
-                
+
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}left as defined above have the minus already
@@ -587,7 +593,7 @@ contains
        end do
     end do
 
-    
+
     !--------------------------------------------------------------------------
     ! passively advected quantities
     !--------------------------------------------------------------------------
@@ -608,26 +614,26 @@ contains
                 xi = ONE
              endif
 
-             ! the flattening here is a little confusing.  If 
+             ! the flattening here is a little confusing.  If
              ! ppm_flatten_before_integrals = 0, then we are blending
              ! the cell centered state and the edge state here through
              ! the flattening procedure.  Otherwise, we've already
-             ! took care of flattening.  What we want to do is: 
-             !                                                                  
-             ! q_l*  (1-xi)*q_i + xi*q_l                                        
-             !                                                                  
-             ! where                                                            
-             !                                                                  
-             ! q_l = q_ref - Proj{(q_ref - I)}                                  
-             !                                                                  
-             ! and Proj{} represents the characteristic projection.             
-             ! But for these, there is only 1-wave that matters, the u          
-             ! wave, so no projection is needed.  Since we are not              
-             ! projecting, the reference state doesn't matter, so we            
-             ! take it to be q_i, therefore, we reduce to                       
-             !                                                                  
-             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]                         
-             !      = q_i + xi*(I - q_i)       
+             ! took care of flattening.  What we want to do is:
+             !
+             ! q_l*  (1-xi)*q_i + xi*q_l
+             !
+             ! where
+             !
+             ! q_l = q_ref - Proj{(q_ref - I)}
+             !
+             ! and Proj{} represents the characteristic projection.
+             ! But for these, there is only 1-wave that matters, the u
+             ! wave, so no projection is needed.  Since we are not
+             ! projecting, the reference state doesn't matter, so we
+             ! take it to be q_i, therefore, we reduce to
+             !
+             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
+             !      = q_i + xi*(I - q_i)
 
              if (u .gt. ZERO) then
                 qxp(i,j,kc,n) = q(i,j,k3d,n)
@@ -697,7 +703,7 @@ contains
 
           if (j .ge. ilo2) then
 
-             ! Set the reference state 
+             ! Set the reference state
              if (ppm_reference == 0 .or. &
                   (ppm_reference == 1 .and. v - cc >= ZERO .and. &
                    ppm_reference_edge_limit == 0) ) then
@@ -728,6 +734,9 @@ contains
                 game_ref = Im(i,j,kc,2,1,QGAME)
              endif
 
+             rho_ref = max(rho_ref,small_dens)
+             p_ref = max(p_ref,small_pres)
+
              ! For tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
@@ -736,10 +745,10 @@ contains
 
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
-   
+
              dvm   = v_ref    - Im(i,j,kc,2,1,QV)
              dpm   = p_ref    - Im(i,j,kc,2,1,QPRES)
-   
+
              drho  = rho_ref  - Im(i,j,kc,2,2,QRHO)
              dp    = p_ref    - Im(i,j,kc,2,2,QPRES)
              drhoe = rhoe_ref - Im(i,j,kc,2,2,QREINT)
@@ -802,7 +811,7 @@ contains
                 alpham = HALF*( dvm - dpm*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alphap = HALF*(-dvp - dpp*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alpha0r = dtau + dp*(ONE/Clag_ev)**2
-                
+
                 if (ppm_predict_gammae == 0) then
                    alpha0e = de - dp*p_ev*(ONE/Clag_ev)**2
                 else
@@ -811,7 +820,7 @@ contains
                 endif
 
              end if
-   
+
              if (v-cc .gt. ZERO) then
                 amright = ZERO
              else if (v-cc .lt. ZERO) then
@@ -819,7 +828,7 @@ contains
              else
                 amright = -HALF*alpham
              endif
-             
+
              if (v+cc .gt. ZERO) then
                 apright = ZERO
              else if (v+cc .lt. ZERO) then
@@ -827,7 +836,7 @@ contains
              else
                 apright = -HALF*alphap
              endif
-             
+
              if (v .gt. ZERO) then
                 azrright = ZERO
                 azeright = ZERO
@@ -838,7 +847,7 @@ contains
                 azrright = -HALF*alpha0r
                 azeright = -HALF*alpha0e
              endif
-                
+
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
@@ -848,7 +857,7 @@ contains
                 qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
                 qyp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
              else
-                tau_s = tau_ref + apright + amright + azrright                
+                tau_s = tau_ref + apright + amright + azrright
                 qyp(i,j,kc,QRHO  ) = ONE/tau_s
                 qyp(i,j,kc,QV    ) = v_ref + (amright - apright)*Clag_ev
 
@@ -909,7 +918,7 @@ contains
 
           if (j .le. ihi2) then
 
-             ! Set the reference state 
+             ! Set the reference state
              if (ppm_reference == 0 .or. &
                   (ppm_reference == 1 .and. v + cc <= ZERO .and. &
                    ppm_reference_edge_limit == 0) ) then
@@ -941,6 +950,9 @@ contains
                 game_ref = Ip(i,j,kc,2,3,QGAME)
              endif
 
+             rho_ref = max(rho_ref,small_dens)
+             p_ref = max(p_ref,small_pres)
+
              ! For tracing (optionally)
              cc_ref = sqrt(gam_ref*p_ref/rho_ref)
              csq_ref = cc_ref**2
@@ -949,10 +961,10 @@ contains
 
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
-   
+
              dvm   = v_ref    - Ip(i,j,kc,2,1,QV)
              dpm   = p_ref    - Ip(i,j,kc,2,1,QPRES)
-   
+
              drho  = rho_ref  - Ip(i,j,kc,2,2,QRHO)
              dp    = p_ref    - Ip(i,j,kc,2,2,QPRES)
              drhoe = rhoe_ref - Ip(i,j,kc,2,2,QREINT)
@@ -994,12 +1006,12 @@ contains
 
                 ! These are analogous to the beta's from the original PPM
                 ! paper.  This is simply (l . dq), where dq = qref - I(q)
- 
+
                 alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dvm)*(rho_ev/cc_ev)
                 alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dvp)*(rho_ev/cc_ev)
                 alpha0r = drho - dp/csq_ev
                 alpha0e = drhoe - dp*enth_ev
-                
+
              else
                 ! (tau, u, p, e) eigensystem
                 ! or
@@ -1021,7 +1033,7 @@ contains
                    gfactor = (game - 1.0d0)*(game - gam)
                    alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
                 endif
-                
+
              end if
 
              if (v-cc .gt. ZERO) then
@@ -1031,7 +1043,7 @@ contains
              else
                 amleft = -HALF*alpham
              endif
-             
+
              if (v+cc .gt. ZERO) then
                 apleft = -alphap
              else if (v+cc .lt. ZERO) then
@@ -1039,7 +1051,7 @@ contains
              else
                 apleft = -HALF*alphap
              endif
-             
+
              if (v .gt. ZERO) then
                 azrleft = -alpha0r
                 azeleft = -alpha0e
@@ -1070,7 +1082,7 @@ contains
                    e_s = rhoe_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
                    qym(i,j+1,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qym(i,j+1,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft 
+                   qym(i,j+1,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
                    qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES )/(qym(i,j+1,kc,QGAME) - 1.0d0)
                 endif
 
@@ -1079,7 +1091,7 @@ contains
              ! Enforce small_*
              qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
-             
+
              ! transverse velocities
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
@@ -1147,7 +1159,7 @@ contains
              endif
           enddo
        end do
-          
+
        ! Minus state on face j+1
        do j = ilo2-1, ihi2
           !DIR$ vector always
@@ -1168,14 +1180,14 @@ contains
                 qym(i,j+1,kc,n) = q(i,j,k3d,n) + HALF*xi*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
              endif
           enddo
-          
+
        enddo
     enddo
 
   end subroutine tracexy_ppm
 
 
-  
+
   subroutine tracez_ppm(q,c,flatn,qd_lo,qd_hi, &
                         Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,I_lo,I_hi, &
                         qzm,qzp,qpd_lo,qpd_hi, &
@@ -1322,6 +1334,9 @@ contains
              game_ref = Im(i,j,kc,3,1,QGAME)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           ! For tracing (optionally)
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
@@ -1372,7 +1387,7 @@ contains
              p_ev    = p_ref
              tau_ev  = tau_ref
           endif
-          
+
           if (ppm_tau_in_tracing == 0) then
 
              ! These are analogous to the beta's from the original PPM
@@ -1382,7 +1397,7 @@ contains
              alpha0r = drho - dp/csq_ev
              alpha0e = drhoe - dp*enth_ev
 
-          else 
+          else
              ! (tau, u, p, e) eigensystem
              ! or
              ! (tau, u, p, game) eigensystem
@@ -1447,7 +1462,7 @@ contains
              qzp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)           
+                e_s = rhoe_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
                 qzp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
              else
                 qzp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
@@ -1461,7 +1476,7 @@ contains
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           ! transverse velocities
-          if (w > ZERO) then 
+          if (w > ZERO) then
              if (ppm_reference_edge_limit == 1) then
                 qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
                 qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
@@ -1550,6 +1565,9 @@ contains
              game_ref = Ip(i,j,km,3,3,QGAME)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           ! For tracing (optionally)
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
@@ -1600,11 +1618,11 @@ contains
              p_ev    = p_ref
              tau_ev  = tau_ref
           endif
-          
+
           if (ppm_tau_in_tracing == 0) then
 
              ! These are analogous to the beta's from the original PPM
-             ! paper.  This is simply (l . dq), where dq = qref - I(q)             
+             ! paper.  This is simply (l . dq), where dq = qref - I(q)
              alpham = HALF*(dpm*(ONE/(rho_ev*cc_ev)) - dwm)*(rho_ev/cc_ev)
              alphap = HALF*(dpp*(ONE/(rho_ev*cc_ev)) + dwp)*(rho_ev/cc_ev)
              alpha0r = drho - dp/csq_ev
@@ -1633,8 +1651,8 @@ contains
                 alpha0e = gfactor*dp/(tau_ev*Clag_ev**2) + dge
              endif
 
-          endif 
-             
+          endif
+
           if (w-cc .gt. ZERO) then
              amleft = -alpham
           else if (w-cc .lt. ZERO) then
@@ -1659,7 +1677,7 @@ contains
              azrleft = -HALF*alpha0r
              azeleft = -HALF*alpha0e
           endif
-             
+
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           ! note that the a{mpz}left as defined above have the minus already
@@ -1721,7 +1739,7 @@ contains
              qzm(i,j,kc,QREINT) = xi1*rhoe + xi*qzm(i,j,kc,QREINT)
              qzm(i,j,kc,QPRES ) = xi1*p    + xi*qzm(i,j,kc,QPRES )
 
-          endif          
+          endif
 
        end do
     end do
@@ -1736,16 +1754,16 @@ contains
        do j = ilo2-1, ihi2+1
           !DIR$ vector always
           do i = ilo1-1, ihi1+1
-             
+
              ! Plus state on face kc
              w = q(i,j,k3d,QW)
-             
+
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j,k3d)
              else
                 xi = ONE
              endif
-             
+
              if (w .gt. ZERO) then
                 qzp(i,j,kc,n) = q(i,j,k3d,n)
              else if (w .lt. ZERO) then
@@ -1753,16 +1771,16 @@ contains
              else
                 qzp(i,j,kc,n) = q(i,j,k3d,n) + HALF*xi*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
              endif
-             
+
              ! Minus state on face k
              w = q(i,j,k3d-1,QW)
-             
+
              if (ppm_flatten_before_integrals == 0) then
                 xi = flatn(i,j,k3d-1)
              else
                 xi = ONE
              endif
-             
+
              if (w .gt. ZERO) then
                 qzm(i,j,kc,n) = q(i,j,k3d-1,n) + xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
              else if (w .lt. ZERO) then
@@ -1770,11 +1788,11 @@ contains
              else
                 qzm(i,j,kc,n) = q(i,j,k3d-1,n) + HALF*xi*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
              endif
-             
+
           enddo
        enddo
     enddo
-      
+
   end subroutine tracez_ppm
 
 end module trace_ppm_module

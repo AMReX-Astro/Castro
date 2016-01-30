@@ -15,8 +15,8 @@ contains
                        ilo,ihi,domlo,domhi,dx,dt)
 
     use meth_params_module, only : iorder, QVAR, QRHO, QU, &
-         QREINT, QPRES, QFS, QFX, & 
-         small_dens, ppm_type, fix_mass_flux, &
+         QREINT, QPRES, QFS, QFX, &
+         small_dens, small_pres, ppm_type, fix_mass_flux, &
          ppm_reference, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, &
          npassive, qpass_map
@@ -39,10 +39,10 @@ contains
     double precision flatn(qd_l1:qd_h1)
     double precision     c(qd_l1:qd_h1)
     double precision dloga(dloga_l1:dloga_h1)
-    
+
     double precision  qxm( qpd_l1: qpd_h1,QVAR)
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
-    
+
     ! Local variables
     integer          :: i, j = 0, k = 0
     integer          :: n, ipassive
@@ -66,7 +66,7 @@ contains
     double precision :: acmprght, acmpleft
     double precision :: ascmprght, ascmpleft
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
-    
+
     double precision :: xi, xi1
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
@@ -76,17 +76,17 @@ contains
 
     double precision, allocatable :: Ip_gc(:,:,:)
     double precision, allocatable :: Im_gc(:,:,:)
-    
+
     fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
          .and. (ilo .eq. domlo(1))
     fix_mass_flux_hi = (fix_mass_flux .eq. 1) .and. (physbc_hi(1) .eq. Outflow) &
          .and. (ihi .eq. domhi(1))
-    
+
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_1d.f90 :: trace_ppm")
     end if
-    
+
     hdt = HALF * dt
     dtdx = dt/dx
 
@@ -102,7 +102,7 @@ contains
 
     ! This does the characteristic tracing to build the interface
     ! states using the normal predictor only (no transverse terms).
-    !  
+    !
     ! We first fill the Im and Ip arrays -- these are the averages of
     ! the various primitive state variables under the parabolic
     ! interpolant over the region swept out by one of the 3 different
@@ -171,7 +171,7 @@ contains
 
           p_ref    = p
           rhoe_ref = rhoe
-          
+
           gam_ref = gamc(i)
 
        else
@@ -180,12 +180,15 @@ contains
           ! Woodward use
           rho_ref  = Im(i,1,QRHO)
           u_ref    = Im(i,1,QU)
-          
+
           p_ref    = Im(i,1,QPRES)
           rhoe_ref = Im(i,1,QREINT)
 
           gam_ref = Im_gc(i,1,1)
        endif
+
+       rho_ref = max(rho_ref,small_dens)
+       p_ref = max(p_ref,small_pres)
 
        ! for tracing (optionally)
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
@@ -193,17 +196,17 @@ contains
        Clag_ref = rho_ref*cc_ref
        enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
-       ! *m are the jumps carried by u-c 
-       ! *p are the jumps carried by u+c    
+       ! *m are the jumps carried by u-c
+       ! *p are the jumps carried by u+c
 
        dum    = (u_ref    - Im(i,1,QU))
        dpm    = (p_ref    - Im(i,1,QPRES))
        drhoem = (rhoe_ref - Im(i,1,QREINT))
-             
+
        drho  = (rho_ref  - Im(i,2,QRHO))
        dp    = (p_ref    - Im(i,2,QPRES))
        drhoe = (rhoe_ref - Im(i,2,QREINT))
-             
+
        dup    = (u_ref    - Im(i,3,QU))
        dpp    = (p_ref    - Im(i,3,QPRES))
        drhoep = (rhoe_ref - Im(i,3,QREINT))
@@ -226,9 +229,9 @@ contains
           enth_ev = enth_ref
           p_ev    = p_ref
        endif
-          
+
        ! these are analogous to the beta's from the original PPM paper
-       ! (except we work with rho instead of tau).  This is simply 
+       ! (except we work with rho instead of tau).  This is simply
        ! (l . dq), where dq = qref - I(q)
 
        alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
@@ -260,9 +263,9 @@ contains
           azeright = -alpha0e
        else
           azrright = -HALF*alpha0r
-          azeright = -HALF*alpha0e        
+          azeright = -HALF*alpha0e
        endif
-       
+
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
        if (i .ge. ilo) then
@@ -283,6 +286,7 @@ contains
           qxp(i,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
 
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
+          qxp(i,QPRES) = max(small_pres,qxp(i,QPRES))
 
           ! add source terms
           qxp(i  ,QRHO  ) = qxp(i,QRHO  ) + hdt*srcQ(i,QRHO)
@@ -301,7 +305,7 @@ contains
        if (ppm_reference == 0 .or. &
             (ppm_reference == 1 .and. u + cc <= ZERO .and. &
             ppm_reference_edge_limit == 0) ) then
-          ! original Castro way -- cc values 
+          ! original Castro way -- cc values
           rho_ref  = rho
           u_ref    = u
 
@@ -311,7 +315,7 @@ contains
           gam_ref = gamc(i)
 
        else
-          ! this will be the fastest moving state to the right      
+          ! this will be the fastest moving state to the right
           rho_ref  = Ip(i,3,QRHO)
           u_ref    = Ip(i,3,QU)
 
@@ -321,13 +325,16 @@ contains
           gam_ref  = Ip_gc(i,3,1)
        endif
 
+       rho_ref = max(rho_ref,small_dens)
+       p_ref = max(p_ref,small_pres)
+
        ! for tracing (optionally)
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
        enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
 
-       ! *m are the jumps carried by u-c 
+       ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
        dum    = (u_ref    - Ip(i,1,QU))
        dpm    = (p_ref    - Ip(i,1,QPRES))
@@ -343,7 +350,7 @@ contains
 
 
        ! optionally use the reference state in evaluating the
-       ! eigenvectors 
+       ! eigenvectors
        if (ppm_reference_eigenvectors == 0) then
           rho_ev  = rho
           cc_ev   = cc
@@ -362,7 +369,7 @@ contains
 
 
        ! these are analogous to the beta's from the original PPM paper
-       ! (except we work with rho instead of tau).  This is simply 
+       ! (except we work with rho instead of tau).  This is simply
        ! (l . dq), where dq = qref - I(q)
        alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
@@ -415,6 +422,7 @@ contains
           qxm(i+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
 
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
+          qxm(i+1,QPRES) = max(qxm(i+1,QPRES),small_pres)
 
           ! add source terms
           qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + hdt*srcQ(i,QRHO)
@@ -423,8 +431,8 @@ contains
           qxm(i+1,QREINT) = qxm(i+1,QREINT) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
        end if
-       
-  
+
+
        !----------------------------------------------------------------------
        ! geometry source terms
        !----------------------------------------------------------------------
@@ -460,7 +468,7 @@ contains
        qxm(ilo,QPRES ) = q(domlo(1)-1,QPRES)
        qxm(ilo,QREINT) = q(domlo(1)-1,QREINT)
     end if
-   
+
     ! Enforce constant mass flux rate if specified
     if (fix_mass_flux_hi) then
        qxp(ihi+1,QRHO  ) = q(domhi(1)+1,QRHO)
@@ -468,7 +476,7 @@ contains
        qxp(ihi+1,QPRES ) = q(domhi(1)+1,QPRES)
        qxp(ihi+1,QREINT) = q(domhi(1)+1,QREINT)
     end if
-    
+
 
     !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
@@ -488,9 +496,9 @@ contains
 
           ! the flattening here is a little confusing.  What we want
           ! to do is:
-          !       
+          !
           ! q_l*  (1-xi)*q_i + xi*q_l
-          !     
+          !
           ! where
           !
           ! q_l = q_ref - Proj{(q_ref - I)}
@@ -501,7 +509,7 @@ contains
           ! projecting, the reference state doesn't matter, so we
           ! take it to be q_i, therefore, we reduce to
           !
-          ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)] 
+          ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
           !      = q_i + xi*(I - q_i)
 
           if (u .gt. ZERO) then
@@ -533,12 +541,12 @@ contains
           endif
        enddo
        if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
-       
+
     enddo
 
     deallocate(Ip,Im)
     deallocate(Ip_gc,Im_gc)
-    
+
   end subroutine trace_ppm
-  
+
 end module trace_ppm_module
