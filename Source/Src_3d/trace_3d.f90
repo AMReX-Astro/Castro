@@ -16,7 +16,7 @@ contains
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, &
-                                     npassive, qpass_map, small_dens, ppm_type
+                                     npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
       implicit none
@@ -152,11 +152,12 @@ contains
             
             if (i .ge. ilo1) then
                qxp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-               qxp(i,j,kc,QRHO) = max(small_dens,qxp(i,j,kc,QRHO))
+               qxp(i,j,kc,QRHO) = max(small_dens, qxp(i,j,kc,QRHO))
                qxp(i,j,kc,QU) = u_ref + (apright - amright)*cc/rho
                qxp(i,j,kc,QV) = v_ref + azv1rght
                qxp(i,j,kc,QW) = w_ref + azw1rght
                qxp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
+               qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES), small_pres)
                qxp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
             end if
 
@@ -207,6 +208,7 @@ contains
                qxm(i+1,j,kc,QV) = v_ref + azv1left
                qxm(i+1,j,kc,QW) = w_ref + azw1left
                qxm(i+1,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
+               qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES), small_pres)
                qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
             endif
 
@@ -356,6 +358,7 @@ contains
                qyp(i,j,kc,QU) = u_ref + azu1rght
                qyp(i,j,kc,QW) = w_ref + azw1rght
                qyp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
+               qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
                qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
             end if
 
@@ -405,6 +408,7 @@ contains
                qym(i,j+1,kc,QU) = u_ref + azu1left
                qym(i,j+1,kc,QW) = w_ref + azw1left
                qym(i,j+1,kc,QPRES) = p_ref + (apleft + amleft)*csq
+               qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES), small_pres)
                qym(i,j+1,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
             endif
 
@@ -488,7 +492,7 @@ contains
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, &
-                                     npassive, qpass_map, small_dens, ppm_type
+                                     npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
       implicit none
@@ -614,6 +618,7 @@ contains
             qzp(i,j,kc,QU) = u_ref + azu1rght
             qzp(i,j,kc,QV) = v_ref + azv1rght
             qzp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
+            qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES), small_pres)
             qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
             ! repeat above with km (k3d-1) to get qzm at kc
@@ -689,6 +694,7 @@ contains
             qzm(i,j,kc,QU) = u_ref + azu1left
             qzm(i,j,kc,QV) = v_ref + azv1left
             qzm(i,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
+            qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES), small_pres)
             qzm(i,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
          enddo
