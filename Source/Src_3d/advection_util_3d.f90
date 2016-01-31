@@ -13,6 +13,10 @@ contains
                                       flux2,flux2_lo,flux2_hi, &
                                       flux3,flux3_lo,flux3_hi, &
                                       lo, hi)
+
+    ! here we normalize the fluxes of the mass fractions so that
+    ! they sum to 0.  This is essentially the CMA procedure that is
+    ! defined in Plewa & Muller, 1999, A&A, 342, 179
     
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -20,13 +24,13 @@ contains
 
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: flux1_lo(3), flux1_hi(3)
-    integer          :: flux2_lo(3), flux2_hi(3)
-    integer          :: flux3_lo(3), flux3_hi(3)
-    double precision :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    double precision :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    double precision :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
+    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
+    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
+    double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     
     ! Local variables
     integer          :: i, j, k, n
@@ -107,12 +111,13 @@ contains
 
     implicit none
 
-    integer          :: lo(3), hi(3), verbose
-    integer          ::  uin_lo(3),  uin_hi(3)
-    integer          :: uout_lo(3), uout_hi(3)
-    double precision ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
-    double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    double precision :: mass_added, eint_added, eden_added
+    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) ::  uin_lo(3),  uin_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+
+    double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+    double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    double precision, intent(out) :: mass_added, eint_added, eden_added
     
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n,ipassive
@@ -263,9 +268,9 @@ contains
 
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: u_lo(3), u_hi(3)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    double precision, intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     
     ! Local variables
     integer          :: i,j,k,n
@@ -304,12 +309,12 @@ contains
     
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: q_lo(3), q_hi(3)
-    integer          :: div_lo(3), div_hi(3)
-    double precision :: dx(3)
-    double precision :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
-    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: div_lo(3), div_hi(3)
+    double precision, intent(in) :: dx(3)
+    double precision, intent(inout) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
     integer          :: i, j, k
     double precision :: ux, vy, wz, dxinv, dyinv, dzinv
