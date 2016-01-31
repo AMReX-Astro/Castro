@@ -29,9 +29,6 @@ int  Gravity::drdxfac        = 1;
 int  Gravity::lnum           = 0;
 int  Gravity::direct_sum_bcs = 0;
 int  Gravity::get_g_from_phi = 0;
-Real Gravity::sl_tol         = 1.e100;
-Real Gravity::ml_tol         = 1.e100;
-Real Gravity::delta_tol      = 1.e100;
 Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
@@ -66,6 +63,8 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
     level_solver_resnorm(MAX_LEV),
+    ml_tol(MAX_LEV),
+    delta_tol(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
     phys_bc(_phys_bc)
@@ -149,19 +148,88 @@ Gravity::read_params ()
 	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 	
         // Allow run-time input of solver tolerances
-	if (Geometry::IsCartesian()) {
-	  ml_tol = 1.e-11;
-	  sl_tol = 1.e-11;
-	  delta_tol = 1.e-11;
+
+	for (int lev = 0; lev <= MAX_LEV; lev++) {
+
+	    if (Geometry::IsCartesian()) {
+	      ml_tol[lev] = 1.e-11;
+	      delta_tol[lev] = 1.e-11;
+	    }
+	    else {
+	      ml_tol[lev] = 1.e-10;
+	      delta_tol[lev] = 1.e-10;
+	    }
+
 	}
-	else {
-	  ml_tol = 1.e-10;
-	  sl_tol = 1.e-10;
-	  delta_tol = 1.e-10;
+
+	int nlevs = parent->maxLevel() + 1;
+
+	Real tol;
+	Real d_tol;
+
+	// For backwards compatibility, read in sl_tol if we're 
+	// only using a single level; but this is now considered 
+	// deprecated, and we should use ml_tol for reading in
+	// the tolerance at every level. If we have set both
+	// ml_tol and sl_tol, sl_tol will be ignored on
+	// multi-level calculations.
+
+	int got_sl_tol = pp.query("sl_tol", tol);
+
+	if (parent->maxLevel() == 0) {
+	  ml_tol[0] = tol;
 	}
-        pp.query("ml_tol",ml_tol);
-        pp.query("sl_tol",sl_tol);
-        pp.query("delta_tol",delta_tol);
+
+	int cnt = pp.countval("ml_tol");
+
+	// Only read in ml_tol if we're doing a multi-level
+	// calculation and the user hasn't set sl_tol.
+
+	if (!(nlevs == 1 && got_sl_tol == 1)) {
+
+	  // If we've only got one value, set every level's 
+	  // tolerance to that value. Otherwise, read in an 
+	  // array that must have at least nlevs values.
+
+	  if (cnt == 1) {
+
+	    pp.get("ml_tol", tol);
+
+	    for (int lev = 0; lev <= MAX_LEV; lev++) {
+
+	      ml_tol[lev] = tol;
+		
+	    }
+
+	  }
+	  else if (cnt > 1) {
+
+	    pp.getarr("ml_tol", ml_tol, 0, nlevs);
+
+	  }
+
+	}
+
+	cnt = pp.countval("delta_tol");
+
+	// Same approach as for ml_tol.
+
+	if (cnt == 1) {
+
+	  pp.get("delta_tol", d_tol);
+
+	  for (int lev = 0; lev <= MAX_LEV; lev++ ) {
+
+	      delta_tol[lev] = d_tol;
+
+	    }
+
+	}
+	else if (cnt > 1) {
+
+	  pp.getarr("delta_tol", delta_tol, 0, nlevs);
+
+	}
 
         Real Gconst;
         get_grav_const(&Gconst);
@@ -489,7 +557,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        rhs[0].plus(-local_correction,0,1,0);
     }
 
-    Real     tol = delta_tol;
+    Real     tol = delta_tol[crse_level];
     Real abs_tol = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev < fine_level; lev++)
         abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
@@ -2576,7 +2644,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real     tol = (nlevs == 1) ? sl_tol : ml_tol;
+	Real     tol = ml_tol[crse_level];
 	Real abs_tol = 0.0;
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;

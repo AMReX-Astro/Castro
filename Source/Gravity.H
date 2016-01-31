@@ -127,6 +127,11 @@ protected:
   //
   Array<Real> level_solver_resnorm;
   //
+  // Error tolerance on each level
+  //
+  Array<Real> ml_tol;
+  Array<Real> delta_tol;
+  //
   // Volume and area fractions.
   //
   PArray<MultiFab> volume;
@@ -152,9 +157,6 @@ protected:
   static int   get_g_from_phi;
   static Real  const_grav;
   static Real  mass_offset;
-  static Real  sl_tol;
-  static Real  ml_tol;
-  static Real  delta_tol;
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
   static Array< Array<Real> > radial_mass;
