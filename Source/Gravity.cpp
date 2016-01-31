@@ -149,7 +149,7 @@ Gravity::read_params ()
 	
         // Allow run-time input of solver tolerances
 
-	for (int lev = 0; lev <= MAX_LEV; lev++) {
+	for (int lev = 0; lev < MAX_LEV; lev++) {
 
 	    if (Geometry::IsCartesian()) {
 	      ml_tol[lev] = 1.e-11;
@@ -195,7 +195,7 @@ Gravity::read_params ()
 
 	    pp.get("ml_tol", tol);
 
-	    for (int lev = 0; lev <= MAX_LEV; lev++) {
+	    for (int lev = 0; lev < MAX_LEV; lev++) {
 
 	      ml_tol[lev] = tol;
 		
@@ -218,7 +218,7 @@ Gravity::read_params ()
 
 	  pp.get("delta_tol", d_tol);
 
-	  for (int lev = 0; lev <= MAX_LEV; lev++ ) {
+	  for (int lev = 0; lev < MAX_LEV; lev++ ) {
 
 	      delta_tol[lev] = d_tol;
 
