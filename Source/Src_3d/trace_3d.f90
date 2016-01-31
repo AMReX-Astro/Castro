@@ -15,7 +15,7 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, QFS, QFX, &
+                                     QREINT, QESGS, QPRES, &
                                      npassive, qpass_map, small_dens, ppm_type
       use bl_constants_module
       implicit none
@@ -398,7 +398,7 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, QFS, QFX, &
+                                     QREINT, QESGS, QPRES, &
                                      npassive, qpass_map, small_dens, ppm_type
       use bl_constants_module
 
