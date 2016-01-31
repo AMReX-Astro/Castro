@@ -16,7 +16,7 @@ contains
 
     use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
                                    QREINT, QPRES, QFS, QFX, &
-                                   npassive, qpass_map, small_dens, ppm_type, use_pslope
+                                   npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
 
@@ -179,6 +179,7 @@ contains
              qxp(i,j,QU) = u_ref + (apright - amright)*cc/rho
              qxp(i,j,QV) = v_ref + azv1rght
              qxp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qxp(i,j,QPRES) = max(qxp(i,j,QPRES),small_pres)
              qxp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
           end if
 
@@ -204,6 +205,7 @@ contains
              qxm(i+1,j,QU) = u_ref + (apleft - amleft)*cc/rho
              qxm(i+1,j,QV) = v_ref + azv1left
              qxm(i+1,j,QPRES) = p_ref + (apleft + amleft)*csq
+             qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
              qxm(i+1,j,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
           end if
           
@@ -320,6 +322,7 @@ contains
              qyp(i,j,QV) = v_ref + (apright - amright)*cc/rho
              qyp(i,j,QU) = u_ref + azu1rght
              qyp(i,j,QPRES) = p_ref + (apright + amright)*csq
+             qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
              qyp(i,j,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
           end if
 
@@ -345,6 +348,7 @@ contains
              qym(i,j+1,QV) = v_ref + (apleft - amleft)*cc/rho
              qym(i,j+1,QU) = u_ref + azu1left
              qym(i,j+1,QPRES) = p_ref + (apleft + amleft)*csq
+             qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
              qym(i,j+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
           end if
           
