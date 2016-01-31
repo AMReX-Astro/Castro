@@ -1813,19 +1813,19 @@ contains
                 ! add the transverse term to the p evolution eq here
                 pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
                 qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
              else
                 ! Update gammae with its transverse terms
                 qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
 
                 ! and compute the p edge state from this and (rho e)
                 qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
-                qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
              endif
           else
-             qpo(i,j,kc,QPRES) = qp(i,j,kc,QPRES)
+             qpo(i,j,kc,QPRES) = qp(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
              qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME)
           endif
+
+          qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
 
           call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, kc)
 
@@ -1898,19 +1898,19 @@ contains
                 ! add the transverse term to the p evolution eq here
                 pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
                 qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
-                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
              else
                 ! Update gammae with its transverse terms
                 qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
-                qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
              endif
           else
-             qmo(i,j,kc,QPRES) = qm(i,j,kc,QPRES)
+             qmo(i,j,kc,QPRES) = qm(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d-1,QPRES)
              qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME)
           endif
+
+          qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
 
           call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j, kc)
 
@@ -2114,19 +2114,19 @@ contains
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pxnew - pznew
                    qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
 
                    ! and compute the p edge state from this and (rho e)
                    qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
                 endif
              else
-                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
+
+             qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
 
@@ -2201,19 +2201,19 @@ contains
                    ! add the transverse term to the p evolution eq here
                    pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
                    qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES),small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
 
                    ! and compute the p edge state from this and (rho e)
                    qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
-                   qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
                 endif
              else
-                qmo(i,j+1,km,QPRES) = qm(i,j+1,km,QPRES)
+                qmo(i,j+1,km,QPRES) = qm(i,j+1,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME)
              endif
+
+             qmo(i,j+1,km,QPRES) = max(qmo(i,j+1,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i, j+1, km)
 
@@ -2389,7 +2389,7 @@ contains
                 rvnewr = rvr
                 rwnewr = rwr
                 renewr = rer
-                reset_State = .true.
+                reset_state = .true.
              end if
 
              qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
@@ -2424,19 +2424,19 @@ contains
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pynew - pznew
                    qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
-                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES),small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
 
                    ! and compute the p edge state from this and (rho e)
                    qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
-                   qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
                 end if
              else
-                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
+             
+             qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)
 
@@ -2511,19 +2511,19 @@ contains
                    ! add the transverse term to the p evolution eq here
                    pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
                    qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
-                   qmo(i+1,j,km,QPRES  ) = max(qmo(i+1,j,km,QPRES),small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
 
                    ! and compute the p edge state from this and (rho e)
                    qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
-                   qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
                 end if
              else
-                qmo(i+1,j,km,QPRES  ) = qm(i+1,j,km,QPRES)
+                qmo(i+1,j,km,QPRES  ) = qm(i+1,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME)
              endif
+
+             qmo(i+1,j,km,QPRES) = max(qmo(i+1,j,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qmo, qd_lo, qd_hi, i+1, j, km)
 
