@@ -4,6 +4,7 @@ module actual_burner_module
   use bl_constants_module
   use network
   use eos_type_module
+  use burn_type_module
   
 contains
 
@@ -19,8 +20,8 @@ contains
 
     implicit none
 
-    type (eos_t), intent(in)     :: state_in
-    type (eos_t), intent(inout)  :: state_out
+    type (burn_t), intent(in)    :: state_in
+    type (burn_t), intent(inout) :: state_out
     double precision, intent(in) :: dt, time
 
     ! Do nothing in this burner.

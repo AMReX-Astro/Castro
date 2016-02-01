@@ -11,11 +11,11 @@ contains
                            reactions,r_lo,r_hi, &
                            time,dt_react) bind(C)
 
-    use eos_module
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          UFS, UFX, dual_energy_eta3, allow_negative_energy
     use burner_module
+    use burn_type_module
     use bl_constants_module
 
     implicit none
@@ -30,11 +30,8 @@ contains
     integer          :: i, j, k
     double precision :: rhoInv, rho_e_K, delta_x(nspec), delta_e, delta_rho_e
 
-    type (eos_t)  :: state_in
-    type (eos_t)  :: state_out
-
-    if (allow_negative_energy .eq. 0) state_in % reset = .true.
-    if (allow_negative_energy .eq. 0) state_out % reset = .true.
+    type (burn_t) :: state_in
+    type (burn_t) :: state_out
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
