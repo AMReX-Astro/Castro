@@ -2644,7 +2644,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real     tol = ml_tol[crse_level];
+	Real     tol = ml_tol[fine_level];
 	Real abs_tol = 0.0;
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
