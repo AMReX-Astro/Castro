@@ -1,4 +1,5 @@
 f90EXE_sources += actual_network.f90
+f90EXE_sources += actual_network_data.f90
 
 ifeq ($(USE_REACT),TRUE)
 f90EXE_sources += actual_burner.f90
