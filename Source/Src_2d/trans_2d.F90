@@ -4,7 +4,7 @@ module transverse_module
   use network, only : nspec
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, &
-                                 GDU, GDV, GDPRES, GDGAME, ngdnv, &
+                                 GDU, GDV, GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
                                  small_pres, small_temp, &
                                  npassive, qpass_map, upass_map, &
                                  transverse_use_eos, ppm_type, ppm_trace_sources, &
