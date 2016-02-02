@@ -153,6 +153,7 @@ the \yt\ python package.  The standard tool used within the
 \begin{enumerate}
 
 \item Get \amrvis:
+
 \begin{verbatim}
 git clone https://ccse.lbl.gov/pub/Downloads/Amrvis.git
 \end{verbatim}
@@ -187,8 +188,18 @@ You may then want to create an alias to {\tt amrvis2d}, for example
 \begin{verbatim}
 alias amrvis2d /tmp/Amrvis/amrvis2d...ex
 \end{verbatim}
+where {\tt /tmp/Amrvis/amrvis2d...ex} is the full path and name of the \amrvis\ executable.
 
-\item Return to the {\tt Castro/Exec/Sedov} directory.  You should
+\item Configure \amrvis:  
+
+  Copy the {\tt amrvis.defaults} file to your home directory (you can
+  rename it to {\tt .amrvis.defaults} if you wish).  Then edit the
+  file, and change the {\tt palette} line to point to the full
+  path/filename of the {\tt Palette} file that comes with \amrvis.
+
+\item Visualize:
+
+  Return to the {\tt Castro/Exec/Sedov} directory.  You should
   have a number of output files, including some in the form {\tt *pltXXXXX},
   where {\tt XXXXX} is a number corresponding to the timestep the file
   was output.  {\tt
