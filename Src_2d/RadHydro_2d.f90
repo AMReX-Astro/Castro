@@ -322,7 +322,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
   use trace_ppm_rad_module, only : trace_ppm_rad
-  use transverse_rad_module
+  use transverse_module
 
   implicit none
 
@@ -449,15 +449,15 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
   
-  call transy_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                  qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                  fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                  rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                  q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                  gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  srcQ, src_l1, src_l2, src_h1, src_h2, &
-                  hdt, hdtdy, &
-                  ilo1-1, ihi1+1, ilo2, ihi2)
+  call transy(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+              qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+              rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+              q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+              gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
+              srcQ, src_l1, src_l2, src_h1, src_h2, &
+              hdt, hdtdy, &
+              ilo1-1, ihi1+1, ilo2, ihi2)
 
   call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
@@ -468,17 +468,17 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-  call transx_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                  qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                  fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                  rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                  qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                  gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
-                  srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
-                  hdt, hdtdx, &
-                  area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                  vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                  ilo1, ihi1, ilo2-1, ihi2+1)
+  call transx(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+              qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+              fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+              rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+              qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
+              gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
+              srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
+              hdt, hdtdx, &
+              area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+              vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+              ilo1, ihi1, ilo2-1, ihi2+1)
 
   call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
               flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
