@@ -21,22 +21,22 @@ contains
 
     implicit none
 
-    integer          ::  s_lo(3),  s_hi(3)
-    integer          :: qd_lo(3), qd_hi(3)
-    integer          ::  f_lo(3),  f_hi(3)
-    integer          ::  I_lo(3),  I_hi(3)
-    integer          :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) ::  s_lo(3),  s_hi(3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) ::  f_lo(3),  f_hi(3)
+    integer, intent(in) ::  I_lo(3),  I_hi(3)
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: k3d, kc
 
-    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
-    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision :: dx(3), dt
-    integer          :: k3d, kc
-   
+    double precision, intent(in) :: dx(3), dt
+
     integer, intent(in), optional :: force_type_in
 
     integer :: ppm_type_to_use
@@ -80,22 +80,22 @@ contains
   
     implicit none
 
-    integer          ::  s_lo(3),  s_hi(3)
-    integer          :: qd_lo(3), qd_hi(3)
-    integer          ::  f_lo(3),  f_hi(3)
-    integer          ::  I_lo(3),  I_hi(3)
-    integer          :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) ::  s_lo(3),  s_hi(3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) ::  f_lo(3),  f_hi(3)
+    integer, intent(in) ::  I_lo(3),  I_hi(3)
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: k3d, kc
 
-    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
 
-    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision :: dx(3), dt
-    integer          :: k3d, kc
+    double precision, intent(in) :: dx(3), dt
 
     ! local
     integer i,j,k
@@ -567,21 +567,22 @@ contains
 
     implicit none
 
-    integer          ::  s_lo(3),  s_hi(3)
-    integer          :: qd_lo(3), qd_hi(3)
-    integer          ::  f_lo(3),  f_hi(3)
-    integer          ::  I_lo(3),  I_hi(3)
-    integer          :: ilo1, ilo2, ihi1, ihi2
-    
-    double precision ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    double precision :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    
-    double precision :: dx(3), dt
-    integer          :: k3d, kc
+    integer, intent(in) ::  s_lo(3),  s_hi(3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) ::  f_lo(3),  f_hi(3)
+    integer, intent(in) ::  I_lo(3),  I_hi(3)
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: k3d, kc
+
+    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+
+    double precision, intent(in) :: dx(3), dt
+
 
     ! local
     integer i,j,k

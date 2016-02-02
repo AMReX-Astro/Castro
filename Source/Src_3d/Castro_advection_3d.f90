@@ -5,13 +5,13 @@ module advection_module
   private
 
   public umeth3d, ctoprim, consup
-  
+
 contains
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH3D     Compute hyperbolic fluxes using unsplit second
 ! ::: ::               order Godunov integrator.
-! ::: :: 
+! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: c           => (const)  sound speed
@@ -61,31 +61,35 @@ contains
 
     implicit none
 
-    integer :: qd_lo(3), qd_hi(3)
-    integer :: src_lo(3), src_hi(3)
-    integer :: lo(3), hi(3)
-    integer :: fd1_lo(3), fd1_hi(3)
-    integer :: fd2_lo(3), fd2_hi(3)
-    integer :: fd3_lo(3), fd3_hi(3)
-    integer :: q1_lo(3), q1_hi(3)
-    integer :: q2_lo(3), q2_hi(3)
-    integer :: q3_lo(3), q3_hi(3)
-    integer :: domlo(3), domhi(3)
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: fd1_lo(3), fd1_hi(3)
+    integer, intent(in) :: fd2_lo(3), fd2_hi(3)
+    integer, intent(in) :: fd3_lo(3), fd3_hi(3)
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: q3_lo(3), q3_hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
 
-    double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision ::  gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision ::  csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision :: flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),fd1_lo(3):fd1_hi(3),NVAR)
-    double precision :: flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),fd2_lo(3):fd2_hi(3),NVAR)
-    double precision :: flux3(fd3_lo(1):fd3_hi(1),fd3_lo(2):fd3_hi(2),fd3_lo(3):fd3_hi(3),NVAR)
-    double precision ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
-    double precision ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
-    double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-    double precision :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision :: dx(3), dt
+    double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision, intent(in) ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) ::  gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) ::  csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+
+    double precision, intent(inout) :: flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),fd1_lo(3):fd1_hi(3),NVAR)
+    double precision, intent(inout) :: flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),fd2_lo(3):fd2_hi(3),NVAR)
+    double precision, intent(inout) :: flux3(fd3_lo(1):fd3_hi(1),fd3_lo(2):fd3_hi(2),fd3_lo(3):fd3_hi(3),NVAR)
+    double precision, intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+    double precision, intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+    double precision, intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+    double precision, intent(inout) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+
+    double precision, intent(in) :: dx(3), dt
+
+
     double precision :: dxinv, dyinv, dzinv
     double precision :: dtdx, dtdy, dtdz, hdt
     double precision :: cdtdx, cdtdy, cdtdz
@@ -93,42 +97,42 @@ contains
 
     integer :: km, kc, kt, k3d, n
     integer :: i, j, iwave, idim
-        
+
     ! Left and right state arrays (edge centered, cell centered)
     double precision, pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
     double precision, pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
     double precision, pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
-    
+
     double precision, pointer :: qmxy(:,:,:,:), qpxy(:,:,:,:)
     double precision, pointer :: qmxz(:,:,:,:), qpxz(:,:,:,:)
-    
+
     double precision, pointer :: qmyx(:,:,:,:), qpyx(:,:,:,:)
     double precision, pointer :: qmyz(:,:,:,:), qpyz(:,:,:,:)
-    
+
     double precision, pointer :: qmzx(:,:,:,:), qpzx(:,:,:,:)
     double precision, pointer :: qmzy(:,:,:,:), qpzy(:,:,:,:)
-    
+
     double precision, pointer :: qxl(:,:,:,:), qxr(:,:,:,:)
     double precision, pointer :: qyl(:,:,:,:), qyr(:,:,:,:)
     double precision, pointer :: qzl(:,:,:,:), qzr(:,:,:,:)
-    
+
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
     double precision, pointer ::  fx(:,:,:,:), fy(:,:,:,:), fz(:,:,:,:)
-    
+
     double precision, pointer :: fxy(:,:,:,:), fxz(:,:,:,:)
     double precision, pointer :: fyx(:,:,:,:), fyz(:,:,:,:)
     double precision, pointer :: fzx(:,:,:,:), fzy(:,:,:,:)
-    
-    double precision, pointer :: qgdnvx(:,:,:,:), qgdnvxf(:,:,:,:), qgdnvtmpx(:,:,:,:)    
-    double precision, pointer :: qgdnvy(:,:,:,:), qgdnvyf(:,:,:,:), qgdnvtmpy(:,:,:,:)    
+
+    double precision, pointer :: qgdnvx(:,:,:,:), qgdnvxf(:,:,:,:), qgdnvtmpx(:,:,:,:)
+    double precision, pointer :: qgdnvy(:,:,:,:), qgdnvyf(:,:,:,:), qgdnvtmpy(:,:,:,:)
     double precision, pointer :: qgdnvz(:,:,:,:), qgdnvzf(:,:,:,:), qgdnvtmpz1(:,:,:,:), qgdnvtmpz2(:,:,:,:)
-    
+
     double precision, pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     double precision, pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
     double precision, pointer :: shk(:,:,:)
-    
+
     type (eos_t) :: eos_state
 
     integer :: qt_lo(3), qt_hi(3)
@@ -155,7 +159,7 @@ contains
 
     fz_lo = [lo(1) - 1, lo(2) - 1, 1]
     fz_hi = [hi(1) + 1, hi(2) + 1, 2]
-    
+
     call bl_allocate (     qgdnvx, qt_lo, qt_hi, NGDNV)
     call bl_allocate (    qgdnvxf, qt_lo, qt_hi, NGDNV)
     call bl_allocate (  qgdnvtmpx, qt_lo, qt_hi, NGDNV)
@@ -168,7 +172,7 @@ contains
     call bl_allocate (    qgdnvzf, qt_lo, qt_hi, NGDNV)
     call bl_allocate ( qgdnvtmpz1, qt_lo, qt_hi, NGDNV)
     call bl_allocate ( qgdnvtmpz2, qt_lo, qt_hi, NGDNV)
-    
+
     call bl_allocate ( qxm, qt_lo, qt_hi, QVAR)
     call bl_allocate ( qxp, qt_lo, qt_hi, QVAR)
 
@@ -220,11 +224,11 @@ contains
        ! x-index, y-index, z-index, dim, characteristics, variables
        call bl_allocate ( Ip, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
        call bl_allocate ( Im, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
-       
+
        ! for source terms
        call bl_allocate ( Ip_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
        call bl_allocate ( Im_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
-       
+
        ! for gamc -- needed for the reference state in eigenvectors
        call bl_allocate ( Ip_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
        call bl_allocate ( Im_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
@@ -236,7 +240,7 @@ contains
 
     ! for the hybrid Riemann solver
     call bl_allocate(shk, shk_lo, shk_hi)
-    
+
     ! Local constants
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)
@@ -263,7 +267,7 @@ contains
     else
        shk(:,:,:) = ZERO
     endif
-    
+
 
     ! We come into this routine with a 3-d box of data, but we operate
     ! on it locally by considering 2 planes that encompass all of the
@@ -278,7 +282,7 @@ contains
     ! With each loop in the k direction, we will overwrite the old
     ! data in the planar arrays.
 
-    
+
     ! Initialize kc (current k-level) and km (previous k-level)
     kc = 1
     km = 2
@@ -316,7 +320,7 @@ contains
                       flatn,qd_lo,qd_hi, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1),It_lo,It_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
-          else          
+          else
 
              do iwave = 1, 3
                 do idim = 1, 3
@@ -325,7 +329,7 @@ contains
                       do i = lo(1)-1, hi(1)+1
                          eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
                          eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
-                         
+
                          eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
                          eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX+naux-1)
 
@@ -371,7 +375,7 @@ contains
           call uslope(q,flatn,qd_lo,qd_hi, &
                       dqx,dqy,dqz,qt_lo,qt_hi, &
                       lo(1),lo(2),hi(1),hi(2),kc,k3d,QVAR)
-          
+
           if (use_pslope .eq. 1) &
                call pslope(q(:,:,:,QPRES),q(:,:,:,QRHO), &
                            flatn,qd_lo,qd_hi, &
@@ -385,7 +389,7 @@ contains
                        dqx,dqy,qt_lo,qt_hi, &
                        qxm,qxp,qym,qyp,qt_lo,qt_hi, &
                        lo(1),lo(2),hi(1),hi(2),dx,dt,kc,k3d)
-          
+
        end if
 
        ! Compute \tilde{F}^x at kc (k3d)
@@ -403,7 +407,7 @@ contains
                    gamc,csml,c,qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
-       
+
        ! Compute U'^y_x at kc (k3d)
        call transy1(qxm,qmxy,qxp,qpxy,qt_lo,qt_hi, &
                     fy,fy_lo,fy_hi, &
@@ -435,7 +439,7 @@ contains
                    2,lo(1),hi(1),lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
        if (k3d.ge.lo(3)) then
-          
+
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
              call tracez_ppm(q,c,flatn,qd_lo,qd_hi, &
@@ -485,9 +489,9 @@ contains
                       fzy,fz_lo,fz_hi, &
                       qgdnvtmpz2,qt_lo,qt_hi, &
                       gamc,csml,c,qd_lo,qd_hi, &
-                      shk,shk_lo,shk_hi, &                       
+                      shk,shk_lo,shk_hi, &
                       3,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
-          
+
           ! Compute U''_z at kc (k3d)
           call transxy(qzm,qzl,qzp,qzr,qt_lo,qt_hi, &
                        fxy,fx_lo,fx_hi, &
@@ -521,7 +525,7 @@ contains
                 end do
              end do
           end if
-          
+
           if (k3d.gt.lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
@@ -530,7 +534,7 @@ contains
                          qgdnvz,qt_lo,qt_hi, &
                          gamc,qd_lo,qd_hi, &
                          cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
-         
+
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz,qpxz,qt_lo,qt_hi, &
                          fxz,fx_lo,fx_hi, &
@@ -574,13 +578,13 @@ contains
                          gamc,csml,c,qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
-             
+
              do j=lo(2)-1,hi(2)+1
                 do i=lo(1)-1,hi(1)+2
                    q1(i,j,k3d-1,:) = qgdnvxf(i,j,km,:)
                 end do
              end do
-             
+
              ! Compute F^y at km (k3d-1)
              call cmpflx(qyl,qyr,qt_lo,qt_hi, &
                          flux2,fd2_lo,fd2_hi, &
@@ -604,7 +608,7 @@ contains
                              (qgdnvyf(i,j+1,km,GDV) - qgdnvyf(i,j,km,GDV))*dyinv
                 end do
              end do
-               
+
           end if
        end if
     enddo
@@ -613,7 +617,7 @@ contains
     call bl_deallocate ( qgdnvx)
     call bl_deallocate ( qgdnvxf)
     call bl_deallocate ( qgdnvtmpx)
-    
+
     call bl_deallocate ( qgdnvy)
     call bl_deallocate ( qgdnvyf)
     call bl_deallocate ( qgdnvtmpy)
@@ -622,7 +626,7 @@ contains
     call bl_deallocate ( qgdnvzf)
     call bl_deallocate ( qgdnvtmpz1)
     call bl_deallocate ( qgdnvtmpz2)
-    
+
     call bl_deallocate ( qxm)
     call bl_deallocate ( qxp)
 
@@ -673,10 +677,10 @@ contains
     if (ppm_type .gt. 0) then
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
-       
+
        call bl_deallocate ( Ip_src)
        call bl_deallocate ( Im_src)
-       
+
        call bl_deallocate ( Ip_gc)
        call bl_deallocate ( Im_gc)
     else
@@ -686,12 +690,12 @@ contains
     end if
 
     call bl_deallocate(shk)
-      
+
   end subroutine umeth3d
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine ctoprim(lo,hi,          uin,uin_lo,uin_hi, &
                      q,c,gamc,csml,flatn,  q_lo,  q_hi, &
@@ -703,7 +707,7 @@ contains
     !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
     !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
     !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-    !     routine that computes flatn).  
+    !     routine that computes flatn).
     !
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
@@ -720,35 +724,41 @@ contains
 
     implicit none
 
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: uin_lo(3), uin_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
+
+    integer, intent(in) :: ngp, ngf
+
+    double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision, intent(in) ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+
+    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision, intent(inout) :: c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+
+    double precision, intent(in) :: dx(3), dt
+    double precision, intent(inout) :: courno
+
     double precision, parameter:: small = 1.d-8
 
-    integer          :: lo(3), hi(3)
-    integer          :: uin_lo(3), uin_hi(3)
-    integer          :: q_lo(3), q_hi(3)
-    integer          :: src_lo(3), src_hi(3)
-    integer          :: srQ_lo(3), srQ_hi(3)
-    
-    double precision :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision :: c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
-    double precision :: dx(3), dt, courno
 
     double precision, pointer:: dpdrho(:,:,:)
     double precision, pointer:: dpde(:,:,:)
 !    double precision, pointer:: dpdX_er(:,:,:,:)
 
     integer          :: i, j, k
-    integer          :: ngp, ngf, loq(3), hiq(3)
+    integer          :: loq(3), hiq(3)
     integer          :: n, nq, ipassive
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
     double precision :: dtdx, dtdy, dtdz
-    
+
     type (eos_t) :: eos_state
 
     dtdx = dt/dx(1)
@@ -758,8 +768,8 @@ contains
     do i=1,3
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
-    enddo    
-    
+    enddo
+
     call bl_allocate( dpdrho, q_lo, q_hi)
     call bl_allocate(   dpde, q_lo, q_hi)
 !    call bl_allocate(dpdX_er, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,nspec)
@@ -770,7 +780,7 @@ contains
     !
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)             
+          do i = loq(1),hiq(1)
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
@@ -783,13 +793,13 @@ contains
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
-             
+
              q(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv
              q(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv
              q(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv
 
              ! Get the internal energy, which we'll use for determining the pressure.
-             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small,
              ! then we risk serious numerical truncation error in the internal energy.
              ! Therefore we'll use the result of the separately updated internal energy equation.
              ! Otherwise, we'll set e = E - K.
@@ -803,7 +813,7 @@ contains
              endif
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
-             
+
              ! convert "rho K" to "K"
              if (QESGS .gt. -1) &
                   q(i,j,k,QESGS) = uin(i,j,k,UESGS)*rhoinv
@@ -825,8 +835,8 @@ contains
        enddo
     enddo
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.    
-    
+    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
+
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
@@ -850,9 +860,9 @@ contains
              csml(i,j,k)     = max(small, small * c(i,j,k))
 
              q(i,j,k,QREINT) = q(i,j,k,QREINT) * q(i,j,k,QRHO)
-             
+
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
-             
+
           enddo
        enddo
     enddo
@@ -907,15 +917,15 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             
+
              courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dtdx
              coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dtdy
              courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dtdz
-             
+
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
-             
+
              if (courx .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
@@ -924,7 +934,7 @@ contains
                 print *,'>>> ... u, c                ',q(i,j,k,QU), c(i,j,k)
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
-             
+
              if (coury .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
@@ -933,7 +943,7 @@ contains
                 print *,'>>> ... v, c                ',q(i,j,k,QV), c(i,j,k)
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
-             
+
              if (courz .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
@@ -942,7 +952,7 @@ contains
                 print *,'>>> ... w, c                ',q(i,j,k,QW), c(i,j,k)
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
-             
+
           enddo
        enddo
     enddo
@@ -968,12 +978,12 @@ contains
     call bl_deallocate( dpdrho)
     call bl_deallocate(   dpde)
 !    call bl_deallocate(dpdX_er)
-    
+
   end subroutine ctoprim
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine consup(uin,uin_lo,uin_hi, &
                     uout,uout_lo,uout_hi, &
@@ -1000,57 +1010,59 @@ contains
     use hybrid_advection_module, only : hybrid_update
     use advection_util_module, only : normalize_species_fluxes
 
-    integer          ::       lo(3),       hi(3)
-    integer          ::   uin_lo(3),   uin_hi(3)
-    integer          ::  uout_lo(3),  uout_hi(3)
-    integer          ::   src_lo(3),   src_hi(3) 
-    integer          :: flux1_lo(3), flux1_hi(3)
-    integer          :: flux2_lo(3), flux2_hi(3)
-    integer          :: flux3_lo(3), flux3_hi(3)
-    integer          :: area1_lo(3), area1_hi(3)
-    integer          :: area2_lo(3), area2_hi(3)
-    integer          :: area3_lo(3), area3_hi(3)
-    integer          ::    qx_lo(3),    qx_hi(3)
-    integer          ::    qy_lo(3),    qy_hi(3)
-    integer          ::    qz_lo(3),    qz_hi(3)
-    integer          ::   vol_lo(3),   vol_hi(3)
+    integer, intent(in) ::       lo(3),       hi(3)
+    integer, intent(in) ::   uin_lo(3),   uin_hi(3)
+    integer, intent(in) ::  uout_lo(3),  uout_hi(3)
+    integer, intent(in) ::   src_lo(3),   src_hi(3)
+    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
+    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
+    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: area3_lo(3), area3_hi(3)
+    integer, intent(in) ::    qx_lo(3),    qx_hi(3)
+    integer, intent(in) ::    qy_lo(3),    qy_hi(3)
+    integer, intent(in) ::    qz_lo(3),    qz_hi(3)
+    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
 
-    integer          :: verbose
+    integer, intent(in) :: verbose
 
-    double precision :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    double precision ::   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    double precision :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    double precision :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    double precision ::    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision ::    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision ::    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-    double precision :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
-    double precision :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
-    double precision :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-    double precision :: dx(3), dt
-    double precision :: E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
+    double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+
+    double precision, intent(in) ::   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    double precision, intent(in) ::    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    double precision, intent(in) ::    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    double precision, intent(in) ::    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    double precision, intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    double precision, intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    double precision, intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    double precision, intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    double precision, intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
+    double precision, intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+    double precision, intent(in) :: dx(3), dt
+
+    double precision, intent(inout) :: E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
     double precision :: div1, volinv
     integer          :: i, j, k, n
-    
+
     do n = 1, NVAR
-         
+
        if ( n.eq.UTEMP ) then
-          
+
           flux1(:,:,:,n) = ZERO
           flux2(:,:,:,n) = ZERO
           flux3(:,:,:,n) = ZERO
-          
+
        else
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
-                do i = lo(1),hi(1)+1                  
+                do i = lo(1),hi(1)+1
                    div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
 
@@ -1083,7 +1095,7 @@ contains
                 enddo
              enddo
           enddo
-          
+
        endif
 
     enddo
@@ -1105,7 +1117,7 @@ contains
                 enddo
              enddo
           enddo
-       else 
+       else
           ! update everything else with fluxes
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
@@ -1129,7 +1141,7 @@ contains
              enddo
           enddo
        endif
-         
+
     enddo
 
     ! Add up some diagnostic quantities. Note that these are volumetric sums
@@ -1159,19 +1171,19 @@ contains
     endif
 
     ! Now update the hybrid momenta, and overwrite the linear momenta accordingly.
-    
+
     if (hybrid_hydro .eq. 1) then
-       
+
        call hybrid_update(lo, hi, dx, dt, &
                           uin, uin_lo, uin_hi, &
                           uout, uout_lo, uout_hi, &
                           qx, qx_lo, qx_hi, &
                           qy, qy_lo, qy_hi, &
                           qz, qz_lo, qz_hi)
-       
+
     endif
-    
-    
+
+
   end subroutine consup
 
 end module advection_module
