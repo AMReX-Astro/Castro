@@ -11,6 +11,13 @@ module transverse_module
                                  npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+#ifdef RADIATION
+  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
+                                     fspace_type, comoving
+  use rad_params_module, only : ngroups
+  use fluxlimiter_module, only : Edd_factor
+#endif
+
   use eos_module
 
   implicit none
@@ -83,8 +90,16 @@ contains
   !===========================================================================
   ! transx1
   !===========================================================================
-  subroutine transx1(qym,qymo,qyp,qypo,qd_lo,qd_hi, &
-                     fx,fx_lo,fx_hi, &
+  subroutine transx1( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+                     fx, &
+#ifdef RADIATION
+                     rfx, &
+#endif
+                     fx_lo,fx_hi, &
                      qx,qx_lo,qx_hi, &
                      gamc,gd_lo,gd_hi, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,k3d)
@@ -94,22 +109,34 @@ contains
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: qx_lo(3),qx_hi(3)
     integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -127,7 +154,14 @@ contains
     double precision pnewry, pnewly
     double precision rhoekenry, rhoekenly
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+#ifdef RADIATION
+    double precision :: dre, dmom
+    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    double precision eddf, f1, ugc
+#endif
 
     logical :: reset_state
 
@@ -173,8 +207,8 @@ contains
           ! for the fluid variables
           !-------------------------------------------------------------------
 
-          pgp  = qx(i+1,j,kc,GDPRES)
-          pgm  = qx(i  ,j,kc,GDPRES)
+          pggp  = qx(i+1,j,kc,GDPRES)
+          pggm  = qx(i  ,j,kc,GDPRES)
           ugp  = qx(i+1,j,kc,GDU   )
           ugm  = qx(i  ,j,kc,GDU   )
           gegp = qx(i+1,j,kc,GDGAME)
@@ -184,8 +218,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -353,28 +387,48 @@ contains
   !===========================================================================
   ! transx2
   !===========================================================================
-  subroutine transx2(qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
-                     fx,fx_lo,fx_hi, &
+  subroutine transx2( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+                     fx, &
+#ifdef RADIATION
+                     rfx, &
+#endif
+                     fx_lo,fx_hi, &
                      qx,qx_lo,qx_hi, &
                      gamc,gd_lo,gd_hi, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: qx_lo(3),qx_hi(3)
     integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -392,7 +446,14 @@ contains
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
     double precision compn, compu
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+#ifdef RADIATION
+    double precision :: pggp, pggm, dre, dmom
+    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    double precision eddf, f1, ugc
+#endif
 
     logical :: reset_state
 
@@ -439,8 +500,8 @@ contains
           ! qzpo state
           !-------------------------------------------------------------------
 
-          pgp  = qx(i+1,j,kc,GDPRES)
-          pgm  = qx(i  ,j,kc,GDPRES)
+          pggp  = qx(i+1,j,kc,GDPRES)
+          pggm  = qx(i  ,j,kc,GDPRES)
           ugp  = qx(i+1,j,kc,GDU   )
           ugm  = qx(i  ,j,kc,GDU   )
           gegp = qx(i+1,j,kc,GDGAME)
@@ -450,8 +511,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -531,8 +592,8 @@ contains
           ! qzmo state
           !-------------------------------------------------------------------
 
-          pgp  = qx(i+1,j,km,GDPRES)
-          pgm  = qx(i  ,j,km,GDPRES)
+          pggp  = qx(i+1,j,km,GDPRES)
+          pggm  = qx(i  ,j,km,GDPRES)
           ugp  = qx(i+1,j,km,GDU   )
           ugm  = qx(i  ,j,km,GDU   )
           gegp = qx(i+1,j,km,GDGAME)
@@ -542,8 +603,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -627,28 +688,48 @@ contains
   !===========================================================================
   ! transy1
   !===========================================================================
-  subroutine transy1(qxm,qxmo,qxp,qxpo,qd_lo,qd_hi, &
-                     fy,fy_lo,fy_hi, &
+  subroutine transy1( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qxm,qxmo,qxp,qxpo,qd_lo,qd_hi, &
+                     fy, &
+#ifdef RADIATION
+                     rfy, &
+#endif
+                     fy_lo,fy_hi, &
                      qy,qy_lo,qy_hi, &
                      gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: qy_lo(3),qy_hi(3)
     integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -666,7 +747,14 @@ contains
     double precision renewrx, renewlx
     double precision pnewrx, pnewlx
     double precision rhoekenrx, rhoekenlx
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+#ifdef RADIATION
+    double precision :: dre, dmom
+    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    double precision eddf, f1, ugc
+#endif
 
     logical :: reset_state
 
@@ -710,8 +798,8 @@ contains
           ! for the fluid variables
           !-------------------------------------------------------------------
 
-          pgp  = qy(i,j+1,kc,GDPRES)
-          pgm  = qy(i,j  ,kc,GDPRES)
+          pggp  = qy(i,j+1,kc,GDPRES)
+          pggm  = qy(i,j  ,kc,GDPRES)
           ugp  = qy(i,j+1,kc,GDV   )
           ugm  = qy(i,j  ,kc,GDV   )
           gegp = qy(i,j+1,kc,GDGAME)
@@ -721,8 +809,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -891,28 +979,49 @@ contains
   !===========================================================================
   ! transy2
   !===========================================================================
-  subroutine transy2(qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
-                     fy,fy_lo,fy_hi, &
+  subroutine transy2( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+                     fy, &
+#ifdef RADIATION
+                     rfy, &
+#endif
+                     fy_lo,fy_hi, &
                      qy,qy_lo,qy_hi, &
                      gamc,gd_lo,gd_hi, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: qy_lo(3),qy_hi(3)
     integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
+
     double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -930,7 +1039,14 @@ contains
     double precision renewrz, renewlz
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+#ifdef RADIATION
+    double precision :: dre, dmom
+    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    double precision eddf, f1, ugc
+#endif
 
     logical :: reset_state
 
@@ -977,8 +1093,8 @@ contains
           ! qzpo states
           !-------------------------------------------------------------------
 
-          pgp  = qy(i,j+1,kc,GDPRES)
-          pgm  = qy(i,j  ,kc,GDPRES)
+          pggp  = qy(i,j+1,kc,GDPRES)
+          pggm  = qy(i,j  ,kc,GDPRES)
           ugp  = qy(i,j+1,kc,GDV   )
           ugm  = qy(i,j  ,kc,GDV   )
           gegp = qy(i,j+1,kc,GDGAME)
@@ -988,8 +1104,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -1069,8 +1185,8 @@ contains
           ! qzmo states
           !-------------------------------------------------------------------
 
-          pgp  = qy(i,j+1,km,GDPRES)
-          pgm  = qy(i,j  ,km,GDPRES)
+          pggp  = qy(i,j+1,km,GDPRES)
+          pggm  = qy(i,j  ,km,GDPRES)
           ugp  = qy(i,j+1,km,GDV   )
           ugm  = qy(i,j  ,km,GDV   )
           gegp = qy(i,j+1,km,GDGAME)
@@ -1080,8 +1196,8 @@ contains
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
           ! be able to deal with the general EOS
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -1165,18 +1281,41 @@ contains
   !===========================================================================
   ! transz
   !===========================================================================
-  subroutine transz(qxm,qxmo,qxp,qxpo,qym,qymo,qyp,qypo,qd_lo,qd_hi, &
-                    fz,fz_lo,fz_hi, &
+  subroutine transz( &
+#ifdef RADIATION
+                    lam, lam_lo, lam_hi, &
+#endif
+                    qxm,qxmo,qxp,qxpo,qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+                    fz, &
+#ifdef RADIATION
+                    rfz, &
+#endif
+                    fz_lo,fz_hi, &
                     qz,qz_lo,qz_hi, &
                     gamc,gd_lo,gd_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fz_lo(3),fz_hi(3)
     integer :: qz_lo(3),qz_hi(3)
     integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -1185,12 +1324,13 @@ contains
     double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
 
-    integer n, nq, i, j, ipassive
+    integer n, nq, i, j, g, ipassive
 
     double precision rrnew, rr
     double precision compn, compu
@@ -1207,7 +1347,14 @@ contains
     double precision renewrx, renewry, renewlx, renewly
     double precision pnewrx, pnewry, pnewlx, pnewly
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
-    double precision pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+#ifdef RADIATION
+    double precision :: dmz, dre
+    double precision, dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
+         ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
+    double precision eddf, f1
+#endif
 
     logical :: reset_state
 
@@ -1266,15 +1413,15 @@ contains
           ! y-states for the fluid variables
           !-------------------------------------------------------------------
 
-          pgp  = qz(i,j,kc,GDPRES)
-          pgm  = qz(i,j,km,GDPRES)
+          pggp  = qz(i,j,kc,GDPRES)
+          pggm  = qz(i,j,km,GDPRES)
           ugp  = qz(i,j,kc,GDW   )
           ugm  = qz(i,j,km,GDW   )
           gegp = qz(i,j,kc,GDGAME)
           gegm = qz(i,j,km,GDGAME)
 
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
+          dup = pggp*ugp - pggm*ugm
+          pav = HALF*(pggp+pggm)
           uav = HALF*(ugp+ugm)
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
@@ -1587,15 +1734,30 @@ contains
   !===========================================================================
   ! transxy
   !===========================================================================
-  subroutine transxy(qm,qmo,qp,qpo,qd_lo,qd_hi, &
-                     fxy,fx_lo,fx_hi, &
-                     fyx,fy_lo,fy_hi, &
+  subroutine transxy( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &       
+#endif
+                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fxy, &
+#ifdef RADIATION
+                     rfxy, &
+#endif
+                     fx_lo,fx_hi, &
+                     fyx, &
+#ifdef RADIATION
+                     rfyx, &
+#endif
+                     fy_lo,fy_hi, &
                      qx,qx_lo,qx_hi, &
                      qy,qy_lo,qy_hi, &
                      gamc,gd_lo,gd_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -1605,10 +1767,20 @@ contains
     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    double precision rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
@@ -1617,20 +1789,27 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
 
-    integer i, j, n , nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
     double precision uxav, gexav, dgex, uyav, geyav, dgey
-    double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
-    double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
+    double precision pggxpm, pggxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
+    double precision pggypm, pggymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
     double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
+
+#ifdef RADIATION
+    double precision :: dmx, dmy, dre
+    double precision, dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
+         err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
+    double precision eddf, f1
+#endif
 
     logical :: reset_state
 
@@ -1678,36 +1857,36 @@ contains
           ! fluid variables
           !-------------------------------------------------------------------
 
-          pgxp  = qx(i+1,j,kc,GDPRES)
-          pgxm  = qx(i  ,j,kc,GDPRES)
+          pggxp  = qx(i+1,j,kc,GDPRES)
+          pggxm  = qx(i  ,j,kc,GDPRES)
           ugxp  = qx(i+1,j,kc,GDU   )
           ugxm  = qx(i  ,j,kc,GDU   )
           gegxp = qx(i+1,j,kc,GDGAME)
           gegxm = qx(i  ,j,kc,GDGAME)
 
-          pgyp  = qy(i,j+1,kc,GDPRES)
-          pgym  = qy(i,j  ,kc,GDPRES)
+          pggyp  = qy(i,j+1,kc,GDPRES)
+          pggym  = qy(i,j  ,kc,GDPRES)
           ugyp  = qy(i,j+1,kc,GDV   )
           ugym  = qy(i,j  ,kc,GDV   )
           gegyp = qy(i,j+1,kc,GDGAME)
           gegym = qy(i,j  ,kc,GDGAME)
 
-          pgxpm  = qx(i+1,j,km,GDPRES)
-          pgxmm  = qx(i  ,j,km,GDPRES)
+          pggxpm  = qx(i+1,j,km,GDPRES)
+          pggxmm  = qx(i  ,j,km,GDPRES)
           ugxpm  = qx(i+1,j,km,GDU   )
           ugxmm  = qx(i  ,j,km,GDU   )
           gegxpm = qx(i+1,j,km,GDGAME)
           gegxmm = qx(i  ,j,km,GDGAME)
 
-          pgypm  = qy(i,j+1,km,GDPRES)
-          pgymm  = qy(i,j  ,km,GDPRES)
+          pggypm  = qy(i,j+1,km,GDPRES)
+          pggymm  = qy(i,j  ,km,GDPRES)
           ugypm  = qy(i,j+1,km,GDV   )
           ugymm  = qy(i,j  ,km,GDV   )
           gegypm = qy(i,j+1,km,GDGAME)
           gegymm = qy(i,j  ,km,GDGAME)
 
-          duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = HALF*(pgxp+pgxm)
+          duxp = pggxp*ugxp - pggxm*ugxm
+          pxav = HALF*(pggxp+pggxm)
           uxav = HALF*(ugxp+ugxm)
           gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
@@ -1715,8 +1894,8 @@ contains
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
           gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
 
-          duxpm = pgxpm*ugxpm - pgxmm*ugxmm
-          pxavm = HALF*(pgxpm+pgxmm)
+          duxpm = pggxpm*ugxpm - pggxmm*ugxmm
+          pxavm = HALF*(pggxpm+pggxmm)
           uxavm = HALF*(ugxpm+ugxmm)
           gexavm = HALF*(gegxpm+gegxmm)
           duxm = ugxpm-ugxmm
@@ -1724,8 +1903,8 @@ contains
           pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
           gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
 
-          duyp = pgyp*ugyp - pgym*ugym
-          pyav = HALF*(pgyp+pgym)
+          duyp = pggyp*ugyp - pggym*ugym
+          pyav = HALF*(pggyp+pggym)
           uyav = HALF*(ugyp+ugym)
           geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
@@ -1733,8 +1912,8 @@ contains
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
           geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
 
-          duypm = pgypm*ugypm - pgymm*ugymm
-          pyavm = HALF*(pgypm+pgymm)
+          duypm = pggypm*ugypm - pggymm*ugymm
+          pyavm = HALF*(pggypm+pggymm)
           uyavm = HALF*(ugypm+ugymm)
           geyavm = HALF*(gegypm+gegymm)
           duym = ugypm-ugymm
@@ -1923,15 +2102,30 @@ contains
   !===========================================================================
   ! transxz
   !===========================================================================
-  subroutine transxz(qm,qmo,qp,qpo,qd_lo,qd_hi, &
-                     fxz,fx_lo,fx_hi, &
-                     fzx,fz_lo,fz_hi, &
+  subroutine transxz( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fxz, &
+#ifdef RADIATION
+                     rfxz, &
+#endif
+                     fx_lo,fx_hi, &
+                     fzx, &
+#ifdef RADIATION
+                     rfzx, &
+#endif
+                     fz_lo,fz_hi, &
                      qx,qx_lo,qx_hi, &
                      qz,qz_lo,qz_hi, &
                      gamc,gc_lo,gc_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3), lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: fz_lo(3),fz_hi(3)
@@ -1941,10 +2135,20 @@ contains
     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    double precision rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
@@ -1953,17 +2157,26 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uxav, gexav, dgex, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl, drr, dcompn
+
+#ifdef RADIATION
+    double precision :: dmx, dmz, dre
+    double precision, dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+         err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
+    double precision eddf, f1
+
+    double precision :: dcompn, drr
+#endif
 
     logical :: reset_state
 
@@ -2016,22 +2229,22 @@ contains
           ! add the transverse xz and zx differences to the y-states for the
           ! fluid variables
           !-------------------------------------------------------------------
-          pgxp  = qx(i+1,j,km,GDPRES)
-          pgxm  = qx(i  ,j,km,GDPRES)
+          pggxp  = qx(i+1,j,km,GDPRES)
+          pggxm  = qx(i  ,j,km,GDPRES)
           ugxp  = qx(i+1,j,km,GDU   )
           ugxm  = qx(i  ,j,km,GDU   )
           gegxp = qx(i+1,j,km,GDGAME)
           gegxm = qx(i  ,j,km,GDGAME)
 
-          pgzp  = qz(i,j,kc,GDPRES)
-          pgzm  = qz(i,j,km,GDPRES)
+          pggzp  = qz(i,j,kc,GDPRES)
+          pggzm  = qz(i,j,km,GDPRES)
           ugzp  = qz(i,j,kc,GDW   )
           ugzm  = qz(i,j,km,GDW   )
           gegzp = qz(i,j,kc,GDGAME)
           gegzm = qz(i,j,km,GDGAME)
 
-          duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = HALF*(pgxp+pgxm)
+          duxp = pggxp*ugxp - pggxm*ugxm
+          pxav = HALF*(pggxp+pggxm)
           uxav = HALF*(ugxp+ugxm)
           gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
@@ -2039,8 +2252,8 @@ contains
           pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
           gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
 
-          duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = HALF*(pgzp+pgzm)
+          duzp = pggzp*ugzp - pggzm*ugzm
+          pzav = HALF*(pggzp+pggzm)
           uzav = HALF*(ugzp+ugzm)
           gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
@@ -2228,15 +2441,30 @@ contains
   !===========================================================================
   ! transyz
   !===========================================================================
-  subroutine transyz(qm,qmo,qp,qpo,qd_lo,qd_hi, &
-                     fyz,fy_lo,fy_hi, &
-                     fzy,fz_lo,fz_hi, &
+  subroutine transyz( &
+#ifdef RADIATION
+                     lam, lam_lo, lam_hi, &
+#endif
+                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     fyz, &
+#ifdef RADIATION
+                     rfyz, &
+#endif
+                     fy_lo, fy_hi, &
+                     fzy, &
+#ifdef RADIATION
+                     rfzy, &
+#endif
+                     fz_lo,fz_hi, &
                      qy,qy_lo,qy_hi, &
                      qz,qz_lo,qz_hi, &
                      gamc,gc_lo,gc_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+#ifdef RADIATION
+    integer :: lam_lo(3),lam_hi(3)
+#endif
     integer :: qd_lo(3),qd_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: fz_lo(3),fz_hi(3)
@@ -2246,10 +2474,20 @@ contains
     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
+#ifdef RADIATION
+    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    double precision rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    double precision rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+#else
     double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+#endif
     double precision fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
@@ -2258,18 +2496,25 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, g, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
     double precision rrnewr, runewr, rvnewr, rwnewr, renewr
     double precision rrnewl, runewl, rvnewl, rwnewl, renewl
     double precision pnewr, pnewl
-    double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    double precision pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     double precision uyav, geyav, dgey, uzav, gezav, dgez
     double precision compr, compl, compnr, compnl
     double precision drr, dcompn
+
+#ifdef RADIATION
+    double precision :: dmy, dmz, dre
+    double precision, dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
+         err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
+    double precision eddf, f1
+#endif
 
     logical :: reset_state
 
@@ -2322,22 +2567,22 @@ contains
           ! fluid variables
           !-------------------------------------------------------------------
 
-          pgyp  = qy(i,j+1,km,GDPRES)
-          pgym  = qy(i,j  ,km,GDPRES)
+          pggyp  = qy(i,j+1,km,GDPRES)
+          pggym  = qy(i,j  ,km,GDPRES)
           ugyp  = qy(i,j+1,km,GDV   )
           ugym  = qy(i,j  ,km,GDV   )
           gegyp = qy(i,j+1,km,GDGAME)
           gegym = qy(i,j  ,km,GDGAME)
 
-          pgzp  = qz(i,j,kc,GDPRES)
-          pgzm  = qz(i,j,km,GDPRES)
+          pggzp  = qz(i,j,kc,GDPRES)
+          pggzm  = qz(i,j,km,GDPRES)
           ugzp  = qz(i,j,kc,GDW   )
           ugzm  = qz(i,j,km,GDW   )
           gegzp = qz(i,j,kc,GDGAME)
           gegzm = qz(i,j,km,GDGAME)
 
-          duyp = pgyp*ugyp - pgym*ugym
-          pyav = HALF*(pgyp+pgym)
+          duyp = pggyp*ugyp - pggym*ugym
+          pyav = HALF*(pggyp+pggym)
           uyav = HALF*(ugyp+ugym)
           geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
@@ -2345,8 +2590,8 @@ contains
           pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
           geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
 
-          duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = HALF*(pgzp+pgzm)
+          duzp = pggzp*ugzp - pggzm*ugzm
+          pzav = HALF*(pggzp+pggzm)
           uzav = HALF*(ugzp+ugzm)
           gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
