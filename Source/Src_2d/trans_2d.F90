@@ -494,13 +494,13 @@ contains
     integer ilo, ihi, jlo, jhi
 
 #ifdef RADIATION
+    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+    double precision rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
     double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
 #else
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
-    double precision rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
     double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
     double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
