@@ -10,6 +10,7 @@ module transverse_module
                                  transverse_use_eos, ppm_type, ppm_trace_sources, &
                                  transverse_reset_density, transverse_reset_rhoe, &
                                  ppm_predict_gammae
+  use prob_params_module, only : coord_type
 #ifdef RADIATION
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
                                      fspace_type, comoving
@@ -106,6 +107,13 @@ contains
 
     eos_state % check_small = .false.
 
+    !-------------------------------------------------------------------
+    ! add the transverse flux difference in the x-direction to y-states
+    ! for the fluid variables
+    !-------------------------------------------------------------------
+
+    ! here cdtdx = 0.5 dt / dx
+
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -165,11 +173,6 @@ contains
           geav = HALF*(gegp+gegm)
           dge = gegp-gegm
 
-          !-------------------------------------------------------------------
-          ! add the transverse flux difference in the x-direction to y-states
-          ! for the fluid variables
-          !-------------------------------------------------------------------
-
 #ifdef RADIATION
           lamge(:) = lambda(:) * (ergp(:)-ergm(:))
           luge(:) = ugc * lamge(:)
@@ -213,9 +216,21 @@ contains
              ! Add transverse predictor
              rrnewr = rrr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                  area1(i,j)*fx(i,j,URHO))/vol(i,j)
+
+             ! Note that pressure may be treated specially here, depending on 
+             ! the geometry.  Our y-interface equation for (rho u) is:
+             !
+             !  d(rho u)/dt + d(rho u v)/dy = - 1/r d(r rho u u)/dr - dp/dr
+             !
+             ! in cylindrical coords -- note that the p term is not in
+             ! a divergence, so there are no area factors.  For this
+             ! geometry, we do not include p in our definition of the
+             ! flux in the x-direction, for we need to fix this now.
              runewr = rur - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
-                                 area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                      -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pggp-pggm)/vol(i,j)
+                                 area1(i,j)*fx(i,j,UMX))/vol(i,j)
+             if (coord_type == 1) then
+                runewr = runewr -cdtdx *(pggp-pggm)
+             endif
              rvnewr = rvr - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                                  area1(i,j)*fx(i,j,UMY))/vol(i,j)
              renewr = rer - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
@@ -347,8 +362,10 @@ contains
              rrnewl = rrl - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                  area1(i,j)*fx(i,j,URHO))/vol(i,j)
              runewl = rul - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
-                                 area1(i,j)*fx(i,j,UMX))/vol(i,j) &
-                      -HALF*hdt*(area1(i+1,j)+area1(i,j))*(pggp-pggm)/vol(i,j)
+                                 area1(i,j)*fx(i,j,UMX))/vol(i,j) 
+             if (coord_type == 1) then
+                runewl = runewl -cdtdx *(pggp-pggm)
+             endif
              rvnewl = rvl - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
                                  area1(i,j)*fx(i,j,UMY))/vol(i,j)
              renewl = rel - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
@@ -539,6 +556,11 @@ contains
     eos_state % check_small = .false.
 
 
+    !-------------------------------------------------------------------
+    ! add the transverse flux difference in the y-direction to x-states
+    ! for the fluid variables
+    !-------------------------------------------------------------------
+
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -617,11 +639,6 @@ contains
 #endif
 
           !-------------------------------------------------------------------
-          ! add the transverse flux difference in the y-direction to x-states
-          ! for the fluid variables
-          !-------------------------------------------------------------------
-
-          !-------------------------------------------------------------------
           ! qp state
           !-------------------------------------------------------------------
 
@@ -642,8 +659,9 @@ contains
              rrnewr = rrr - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO))
 
              runewr = rur - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX))
-             rvnewr = rvr - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) &
-                          -cdtdy*(pggp-pggm)
+             ! note: we are always Cartesian in the y-direction, so the
+             ! pressure term is already accounted for in the flux
+             rvnewr = rvr - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) 
              renewr = rer - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN))
 
 #ifdef RADIATION
@@ -762,8 +780,7 @@ contains
 
              rrnewl = rrl - cdtdy*(fy(i,j+1,URHO) - fy(i,j,URHO))
              runewl = rul - cdtdy*(fy(i,j+1,UMX)  - fy(i,j,UMX))
-             rvnewl = rvl - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) &
-                           -cdtdy*(pggp-pggm)
+             rvnewl = rvl - cdtdy*(fy(i,j+1,UMY)  - fy(i,j,UMY)) 
              renewl = rel - cdtdy*(fy(i,j+1,UEDEN)- fy(i,j,UEDEN))
 
 #ifdef RADIATION
