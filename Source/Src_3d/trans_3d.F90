@@ -1512,6 +1512,9 @@ contains
           ekenlz = HALF*rrlz*(qzm(i,j,kc,QU)**2 + qzm(i,j,kc,QV)**2 &
                + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
+#ifdef RADIATION
+          erl  = qzm(i,j,kc,qrad:qradhi)                                                                          
+#endif
 
           ! Add transverse predictor
           rrnewlz = rrlz - cdtdy*(fy(i,j+1,km,URHO) - fy(i,j,km,URHO))
@@ -1519,6 +1522,12 @@ contains
           rvnewlz = rvlz - cdtdy*(fy(i,j+1,km,UMY) - fy(i,j,km,UMY))
           rwnewlz = rwlz - cdtdy*(fy(i,j+1,km,UMZ) - fy(i,j,km,UMZ))
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
+#ifdef RADIATION
+          rvnewlz = rvnewlz + dmom                                                                                
+          renewlz = renewlz + dre
+          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,km,:)- rfy(i,j,km,:)) &                                             
+               + der      
+#endif
 
           ! Reset to original value if adding transverse terms made density negative
           reset_state = .false.
