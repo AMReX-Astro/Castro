@@ -11,7 +11,7 @@ contains
   subroutine uflaten(lo,hi,p,u,v,w,flatn,q_lo,q_hi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : iorder, small_pres
+    use meth_params_module, only : small_pres
     use prob_params_module, only : dg
     use bl_constants_module
 
