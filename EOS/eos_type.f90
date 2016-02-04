@@ -143,8 +143,6 @@ contains
 
     type (eos_t), intent(inout) :: state
 
-    integer :: i
-
     state % dpdX(:) = state % dpdA * (state % abar/aion(:))   &
                                    * (aion(:) - state % abar) &
                     + state % dpdZ * (state % abar/aion(:))   &
