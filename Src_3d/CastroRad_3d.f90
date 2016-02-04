@@ -95,7 +95,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer :: q2(:,:,:,:)
   double precision, pointer :: q3(:,:,:,:)
   
-  integer ngq,ngf,iflaten
+  integer ngq,ngf
   double precision dx,dy,dz, mass_added,eint_added,eden_added
 
   integer :: q_lo(3), q_hi(3)
