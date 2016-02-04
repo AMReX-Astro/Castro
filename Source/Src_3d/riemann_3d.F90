@@ -1466,19 +1466,15 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
 
     double precision :: rgdnv,regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, scr
     double precision :: rstar, cstar, estar, pstar, ustar
-    double precision :: ro, uo, po, reo, co, gamco, entho
+    double precision :: ro, uo, po, reo, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
-
-    double precision, pointer :: us1d(:)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -1487,8 +1483,6 @@ contains
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c
-
-    call bl_allocate(us1d,ilo,ihi)
 
     if (UESGS > 0) then
        call bl_error("ERROR: HLLC doesn't support SGS")
@@ -1703,8 +1697,6 @@ contains
           uflx(i,j,kflux,:) = F_state(:)
        enddo
     enddo
-
-    call bl_deallocate(us1d)
 
   end subroutine HLLC
 
