@@ -107,11 +107,14 @@ contains
                               reactions, r_lo, r_hi, &
                               lo, hi, dx, dt_old, dt) bind(C)
 
-    use bl_constants_module, only: ZERO, TWO
+    use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, react_T_min, react_T_max
     use prob_params_module, only : dim
+    use actual_rhs_module, only: actual_rhs
     use eos_module
+    use burn_type_module
+    use eos_type_module
 
     implicit none
 
@@ -125,13 +128,10 @@ contains
     double precision :: e, dedt
     integer          :: i, j, k
 
+    type (burn_t)    :: burn_state
     type (eos_t)     :: eos_state
-    double precision :: dtdx
+    double precision :: rhoInv
 
-    ! The reactions MultiFab contains the rate of changes of X (the
-    ! first nspec values), e (the nspec+1 value), and rho*e (the
-    ! nspec+2) value. 
-    !
     ! We want to limit the timestep so that it
     ! is equal to dtnuc * (e / (de/dt)).  If the timestep
     ! factor is equal to 1, this says that we don't want the
@@ -142,6 +142,12 @@ contains
     ! allow the internal energy to change in this timestep due to
     ! nuclear burning, provided that the last timestep's burning is a
     ! good estimate for the current timestep's burning.
+    !
+    ! To estimate de/dt, we are going to call the RHS of the
+    ! burner given the current state data. We need to do an EOS
+    ! call before we do the RHS call so that we have accurate
+    ! values for the thermodynamic data like abar, zbar, etc.
+    ! But we will call in (rho, T) mode, which is inexpensive.
 
     if (dtnuc > 1.d199) return
 
@@ -149,12 +155,27 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             e = u(i,j,k,UEINT) / u(i,j,k,URHO)
-             dedt = abs(reactions(i,j,k,nspec+1))
+             if (u(i,j,k,UTEMP) < react_T_min .or. u(i,j,k,UTEMP) > react_T_max) cycle
+
+             rhoInv = ONE / u(i,j,k,URHO)
+
+             burn_state % rho = u(i,j,k,URHO)
+             burn_state % T   = u(i,j,k,UTEMP)
+             burn_state % e   = u(i,j,k,UEINT) * rhoInv
+             burn_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+             burn_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+             call burn_to_eos(burn_state, eos_state)
+             call eos(eos_input_rt, eos_state)
+             call eos_to_burn(eos_state, burn_state)
+
+             call actual_rhs(burn_state)
+
+             dedt = abs(burn_state % ydot(net_ienuc))
 
              if (dedt > 1.d-100) then
 
-                dt = min(dt, dtnuc * e / dedt)
+                dt = min(dt, dtnuc * burn_state % e / dedt)
 
              endif
 
