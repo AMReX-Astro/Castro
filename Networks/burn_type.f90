@@ -1,5 +1,6 @@
 module burn_type_module
 
+  use bl_constants_module, only: ZERO
   use network, only: nspec, naux
   use actual_burner_data, only: nrates
   use eos_module, only: eos_t
@@ -15,6 +16,21 @@ module burn_type_module
   double precision, parameter :: init_num  = -1.0d200
   double precision, parameter :: init_test = -1.0d199
 
+  ! Set the number of independent variables -- this should be
+  ! temperature, enuc + the number of species which participate
+  ! in the evolution equations.
+
+  integer, parameter :: neqs = 2 + nspec
+
+  ! Indices of the temperature and energy variables in the work arrays.
+
+  integer, parameter :: net_itemp = nspec + 1
+  integer, parameter :: net_ienuc = nspec + 2
+
+  ! Number of rates groups to store.
+
+  integer, parameter :: num_rate_groups = 4
+
   type :: burn_t
 
     double precision :: rho              = init_num
@@ -25,21 +41,30 @@ module burn_type_module
     double precision :: aux(naux)        = init_num
     double precision :: cv               = init_num
     double precision :: cp               = init_num
+    double precision :: y_e              = init_num
+    double precision :: eta              = init_num
     double precision :: dedX(nspec)      = init_num
     double precision :: dhdX(nspec)      = init_num
     double precision :: abar             = init_num
     double precision :: zbar             = init_num
-    double precision :: rates(nrates)    = init_num
-    double precision :: dratesdT(nrates) = init_num
 
-    ! The following are time derivatives
+    ! Rates data. We have multiple entries so that
+    ! we can store both the rates and their derivatives.
 
-    double precision :: rhodot           = init_num
-    double precision :: Tdot             = init_num
-    double precision :: xndot(nspec)     = init_num
-    double precision :: auxdot(naux)     = init_num
-    double precision :: edot             = init_num
-    double precision :: hdot             = init_num
+    double precision :: rates(num_rate_groups, nrates) = init_num
+
+    ! The following are the actual integration data.
+    ! To avoid potential incompatibilities we won't
+    ! include the integration vector y itself here.
+    ! It can be reconstructed from all of the above
+    ! data, particularly xn, e, and T.
+
+    double precision :: ydot(neqs)       = ZERO
+    double precision :: jac(neqs, neqs)  = ZERO
+
+    ! Whether we are self-heating or not.
+
+    logical          :: self_heat        = .true.
 
   end type burn_t
 
@@ -61,6 +86,8 @@ contains
     burn_state % aux  = eos_state % aux
     burn_state % cv   = eos_state % cv
     burn_state % cp   = eos_state % cp
+    burn_state % y_e  = eos_state % y_e
+    burn_state % eta  = eos_state % eta
     burn_state % dedX = eos_state % dedX
     burn_state % dhdX = eos_state % dhdX
     burn_state % abar = eos_state % abar
@@ -88,6 +115,8 @@ contains
     eos_state % aux  = burn_state % aux
     eos_state % cv   = burn_state % cv
     eos_state % cp   = burn_state % cp
+    eos_state % y_e  = burn_state % y_e
+    eos_state % eta  = burn_state % eta
     eos_state % dedX = burn_state % dedX
     eos_state % dhdX = burn_state % dhdX
     eos_state % abar = burn_state % abar
