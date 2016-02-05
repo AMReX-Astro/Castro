@@ -171,6 +171,11 @@ change_max                   Real          1.1
 # {\tt dtnuc}  $\cdot\,(e / \dot{e})$
 dtnuc                        Real          1.e200             y
 
+# limit the timestep based on how much the burning can change the mass fractions
+# of the species in a one. The timestep for a given species $k$ is equal to
+# {\tt dsnuc} $\cdot\, (X_k / \dot{X_k})$
+dsnuc                        Real          1.e200             y
+
 # limit the zone size based on how much the burning can change the internal 
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
@@ -183,6 +188,7 @@ do_react                     int          -1
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0                y
+
 # maximum temperature for allowing reactions to occur in a zone
 react_T_max                  Real          1.e200             y
 

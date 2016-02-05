@@ -44,6 +44,7 @@ pp.query("cfl", cfl);
 pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
 pp.query("dtnuc", dtnuc);
+pp.query("dsnuc", dsnuc);
 pp.query("dxnuc", dxnuc);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);

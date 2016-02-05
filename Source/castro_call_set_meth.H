@@ -31,9 +31,10 @@ set_castro_method_params
     use_pslope, normalize_species, 
     fix_mass_flux, allow_negative_energy, 
     do_sponge, dtnuc, 
-    dxnuc, react_T_min, 
-    react_T_max, do_grav, 
-    grav_source_type, do_rotation, 
-    rotational_period, rotational_dPdt, 
-    rot_source_type, rot_axis, 
-    point_mass, do_acc);
+    dsnuc, dxnuc, 
+    react_T_min, react_T_max, 
+    do_grav, grav_source_type, 
+    do_rotation, rotational_period, 
+    rotational_dPdt, rot_source_type, 
+    rot_axis, point_mass, 
+    do_acc);

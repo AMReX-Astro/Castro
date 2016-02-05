@@ -44,6 +44,7 @@ static Real cfl;
 static Real init_shrink;
 static Real change_max;
 static Real dtnuc;
+static Real dsnuc;
 static Real dxnuc;
 static int do_react;
 static Real react_T_min;

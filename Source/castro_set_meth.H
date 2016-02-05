@@ -16,9 +16,10 @@ void set_castro_method_params
     const int& use_pslope, const int& normalize_species, 
     const int& fix_mass_flux, const int& allow_negative_energy, 
     const int& do_sponge, const Real& dtnuc, 
-    const Real& dxnuc, const Real& react_T_min, 
-    const Real& react_T_max, const int& do_grav, 
-    const int& grav_source_type, const int& do_rotation, 
-    const Real& rotational_period, const Real& rotational_dPdt, 
-    const int& rot_source_type, const int& rot_axis, 
-    const Real& point_mass, const int& do_acc);
+    const Real& dsnuc, const Real& dxnuc, 
+    const Real& react_T_min, const Real& react_T_max, 
+    const int& do_grav, const int& grav_source_type, 
+    const int& do_rotation, const Real& rotational_period, 
+    const Real& rotational_dPdt, const int& rot_source_type, 
+    const int& rot_axis, const Real& point_mass, 
+    const int& do_acc);

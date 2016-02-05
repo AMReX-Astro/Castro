@@ -109,7 +109,7 @@ contains
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, react_T_min, react_T_max
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, dsnuc, react_T_min, react_T_max
     use prob_params_module, only : dim
     use actual_rhs_module, only: actual_rhs
     use eos_module
@@ -125,16 +125,16 @@ contains
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     double precision :: dx(3), dt, dt_old
 
-    double precision :: e, dedt
-    integer          :: i, j, k
+    double precision :: dedt, dXdt(nspec)
+    integer          :: i, j, k, n
 
     type (burn_t)    :: burn_state
     type (eos_t)     :: eos_state
     double precision :: rhoInv
 
-    ! We want to limit the timestep so that it
-    ! is equal to dtnuc * (e / (de/dt)).  If the timestep
-    ! factor is equal to 1, this says that we don't want the
+    ! We want to limit the timestep so that it is not larger than
+    ! dtnuc * (e / (de/dt)).  If the timestep factor dtnuc is
+    ! equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
     ! magnitude in the next timestep. 
     !
@@ -143,13 +143,16 @@ contains
     ! nuclear burning, provided that the last timestep's burning is a
     ! good estimate for the current timestep's burning.
     !
-    ! To estimate de/dt, we are going to call the RHS of the
+    ! We do the same thing for the species, using a timestep
+    ! limiter dsnuc * (X_k / (dX_k/dt)).
+    !
+    ! To estimate de/dt and dX/dt, we are going to call the RHS of the
     ! burner given the current state data. We need to do an EOS
     ! call before we do the RHS call so that we have accurate
     ! values for the thermodynamic data like abar, zbar, etc.
     ! But we will call in (rho, T) mode, which is inexpensive.
 
-    if (dtnuc > 1.d199) return
+    if (dtnuc > 1.d199 .and. dsnuc > 1.d199) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -171,13 +174,13 @@ contains
 
              call actual_rhs(burn_state)
 
-             dedt = abs(burn_state % ydot(net_ienuc))
+             dedt = max(abs(burn_state % ydot(net_ienuc)), 1.d-200)
 
-             if (dedt > 1.d-100) then
+             dt = min(dt, dtnuc * burn_state % e / dedt)
 
-                dt = min(dt, dtnuc * burn_state % e / dedt)
+             dXdt = max(abs(burn_state % ydot(n) * aion(n)), 1.d-200)
 
-             endif
+             dt = min(dt, dsnuc * minval(burn_state % xn / dXdt))
 
           enddo
        enddo
