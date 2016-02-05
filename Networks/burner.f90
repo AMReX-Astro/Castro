@@ -7,6 +7,8 @@ module burner_module
   use actual_burner_module
   use burn_type_module
 
+  logical :: burner_initialized = .false.
+
 contains
 
   subroutine burner_init() bind(C)
@@ -14,6 +16,8 @@ contains
     implicit none
 
     call actual_burner_init()
+
+    burner_initialized = .true.
 
   end subroutine burner_init
 
@@ -48,10 +52,14 @@ contains
     type (burn_t), intent(inout) :: state_out
     double precision, intent(in) :: dt, time
 
-    ! Make sure the network has been initialized.
+    ! Make sure the network and burner have been initialized.
 
     if (.NOT. network_initialized) then
        call bl_error("ERROR in burner: must initialize network first.")
+    endif
+
+    if (.NOT. burner_initialized) then
+       call bl_error("ERROR in burner: must initialize burner first.")
     endif
 
     ! Initialize the final state by assuming it does not change.
