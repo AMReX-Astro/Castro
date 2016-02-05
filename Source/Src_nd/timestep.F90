@@ -109,10 +109,11 @@ contains
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, dsnuc, react_T_min, react_T_max
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, dsnuc
     use prob_params_module, only : dim
     use actual_rhs_module, only: actual_rhs
     use eos_module
+    use burner_module, only: ok_to_burn
     use burn_type_module
     use eos_type_module
 
@@ -158,8 +159,6 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (u(i,j,k,UTEMP) < react_T_min .or. u(i,j,k,UTEMP) > react_T_max) cycle
-
              rhoInv = ONE / u(i,j,k,URHO)
 
              burn_state % rho = u(i,j,k,URHO)
@@ -167,6 +166,8 @@ contains
              burn_state % e   = u(i,j,k,UEINT) * rhoInv
              burn_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
              burn_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+             if (.not. ok_to_burn(burn_state)) cycle
 
              call burn_to_eos(burn_state, eos_state)
              call eos(eos_input_rt, eos_state)
