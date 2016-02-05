@@ -11,6 +11,7 @@ section_sources = Introduction/CastroIntroduction.tex \
 	          Inputs/CastroInputs.tex \
                   UnitsAndConstants/CastroUnits.tex \
                   Equations/Equations.tex \
+                  FAQ/faq.tex \
 	          Gravity/CastroGravity.tex \
 	          Diffusion/CastroDiffusion.tex \
 	          FlowChart/FlowChart.tex \
