@@ -179,7 +179,7 @@ contains
 
              dt = min(dt, dtnuc * burn_state % e / dedt)
 
-             dXdt = max(abs(burn_state % ydot(n) * aion(n)), 1.d-200)
+             dXdt = max(abs(burn_state % ydot * aion), 1.d-200)
 
              dt = min(dt, dsnuc * minval(burn_state % xn / dXdt))
 
