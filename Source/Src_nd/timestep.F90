@@ -127,7 +127,7 @@ contains
     double precision :: dx(3), dt, dt_old
 
     double precision :: dedt, dXdt(nspec)
-    integer          :: i, j, k, n
+    integer          :: i, j, k
 
     type (burn_t)    :: burn_state
     type (eos_t)     :: eos_state
@@ -179,7 +179,7 @@ contains
 
              dt = min(dt, dtnuc * burn_state % e / dedt)
 
-             dXdt = max(abs(burn_state % ydot * aion), 1.d-200)
+             dXdt = max(abs(burn_state % ydot(1:nspec) * aion), 1.d-200)
 
              dt = min(dt, dsnuc * minval(burn_state % xn / dXdt))
 
