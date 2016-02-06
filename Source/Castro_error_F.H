@@ -5,10 +5,6 @@
 extern "C"
 {
 
-  void check_tagging_criteria
-    (const int* name, const int* name_length,
-     const int* level, const Real* time, int* doErrorEst);
-
   void ca_laplac_error
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,

@@ -19,107 +19,19 @@ module tagging_module
 
 contains
 
-  ! For a given error estimator, check whether we fail to meet any of
-  ! the criteria for tagging on this level. If so, set flag to zero.
-
-  subroutine check_tagging_criteria(int_name, int_name_length, level, time, flag) bind(C)
-
-    use meth_params_module, only: dxnuc
-
-    implicit none
-
-    integer, intent(in)          :: int_name(int_name_length)
-    integer, intent(in)          :: int_name_length
-    integer, intent(in)          :: level
-    double precision, intent(in) :: time
-    integer, intent(inout)       :: flag
-
-    character(len=:), allocatable :: name
-    integer                       :: i
-
-    ! First, convert the integer name to a Fortran character type.
-
-    allocate(character(len=int_name_length) :: name)
-
-    do i = 1, int_name_length
-       name(i:i) = char(int_name(i))
-    enddo
-
-    ! Now check the criteria for this type.
-
-    if (name == "density") then
-
-       if (level .ge. max_denerr_lev .and. level .ge. max_dengrad_lev) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "x_velocity" .or. name == "y_velocity" .or. name == "z_velocity") then
-
-       if (level .ge. max_velerr_lev .and. level .ge. max_velgrad_lev) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "entropy") then
-
-       if (level .ge. max_enterr_lev .and. level .ge. max_entgrad_lev) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "Temp") then
-
-       if (level .ge. max_temperr_lev .and. level .ge. max_tempgrad_lev) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "pressure") then
-
-       if (level .ge. max_presserr_lev .and. level .ge. max_pressgrad_lev) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "t_sound_t_enuc") then
-
-       if (dxnuc > 1.d199) then
-
-          flag = 0
-
-       endif
-
-    else if (name == "rad") then
-
-       if (level .ge. max_raderr_lev .and. level .ge. max_radgrad_lev) then
-
-          flag = 0
-
-       endif
-
-    endif
-
-  end subroutine check_tagging_criteria
-
-
-
   ! All tagging subroutines in this file must be threadsafe because
   ! they are called inside OpenMP parallel regions.
 
 ! ::: -----------------------------------------------------------
+! ::: This routine will tag high error cells based on the temperature
+! ::: 
 ! ::: INPUTS/OUTPUTS:
 ! ::: 
 ! ::: tag      <=  integer tag array
 ! ::: lo,hi     => index extent of work region
 ! ::: set       => integer value to tag cell for refinement
 ! ::: clear     => integer value to untag cell
-! ::: var       => variable to test on
+! ::: temp      => temperature array
 ! ::: np        => number of components in temp array (should be 1)
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: delta     => cell spacing

@@ -2915,8 +2915,8 @@ Castro::errorEst (TagBoxArray& tags,
 {
     BL_PROFILE("Castro::errorEst()");
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
-
+    set_amr_info(level, -1, -1, -1.0, -1.0);    
+    
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
@@ -2924,30 +2924,6 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < err_list.size(); j++)
     {
-
-        std::string name = err_list[j].name();
-
-        int doErrorEst = 1;
-
-	//
-	// Populate integer array with name of derived quantity,
-	// for passing to Fortran.
-	//
-
-	int name_length = name.length();
-
-	Array<int> int_name(name_length);
-
-	for (int i = 0; i < name_length; i++)
-	  int_name[i] = name[i];
-
-        // Check whether we want to actually do the derive for
-	// this quantity. We may be on a level where this is not needed.
-
-        check_tagging_criteria(int_name.dataPtr(), &name_length, &level, &time, &doErrorEst);
-
-	if (doErrorEst != 1) continue;
-
         MultiFab* mf = derive(err_list[j].name(), time, err_list[j].nGrow());
 
         BL_ASSERT(!(mf == 0));
