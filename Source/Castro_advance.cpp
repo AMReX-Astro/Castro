@@ -795,6 +795,9 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
+	if (verbose && ParallelDescriptor::IOProcessor())
+	  std::cout << "... Entering hydro advance" << std::endl << std::endl;
+
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
 
@@ -1285,6 +1288,9 @@ Castro::advance_hydro (Real time,
 	    }
 
 #endif    // RADIATION
+
+	    if (verbose && ParallelDescriptor::IOProcessor())
+	      std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
     }
 
 #ifdef POINTMASS
