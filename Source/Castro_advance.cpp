@@ -248,17 +248,18 @@ Castro::advance (Real time,
 
 	Real subcycle_time = time;
 	subcycle_iter = 0;
+	Real dt_advance = dt_subcycle;
 
 	// Subcycle until we've reached the target time.
 
 	while (subcycle_time < time + dt) {
 
-	  if (subcycle_time + dt_subcycle >= time + dt)
-	    dt_subcycle = (time + dt) - subcycle_time;
+	  if (subcycle_time + dt_advance >= time + dt)
+	    dt_advance = (time + dt) - subcycle_time;
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " starting at time " << subcycle_time
-		      << " with dt = " << dt_subcycle << "\n";
+		      << " with dt = " << dt_advance << "\n";
 	    std::cout << "  \n";
 	  }
 
@@ -271,17 +272,19 @@ Castro::advance (Real time,
 	    if (k == Source_Type)
 	      state[k].swapTimeLevels(0.0);
 
-	    state[k].swapTimeLevels(dt_subcycle);
+	    state[k].swapTimeLevels(dt_advance);
 
 	  }
+
+	  Real dt_temp;
 
 	  if (do_hydro)
 	  {
-	    dt_new = std::min(dt_new, advance_hydro(subcycle_time,dt_subcycle,iteration,ncycle,subcycle_iter));
+	    dt_temp = advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 	  else
 	  {
-	    dt_new = std::min(dt_new, advance_no_hydro(subcycle_time,dt_subcycle,iteration,ncycle,subcycle_iter));
+	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -290,7 +293,7 @@ Castro::advance (Real time,
 	    std::cout << "  \n";
 	  }
 
-	  subcycle_time += dt_subcycle;
+	  subcycle_time += dt_advance;
 	  subcycle_iter += 1;
 
 	}
@@ -301,8 +304,7 @@ Castro::advance (Real time,
 	dt_new = std::min(dt_new, dt_subcycle);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
-	  std::cout << "  Subcycling complete\n";
-	  std::cout << "  \n";
+	  std::cout << "  Retry subcycling complete" << std::endl << std::endl;
 	}
 
 	// Finally, copy the original data back to the old state
