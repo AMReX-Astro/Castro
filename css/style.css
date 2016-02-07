@@ -628,6 +628,10 @@ ul.unstyled li {
     padding: 0.4em 0;
 }
 
+ul.unstyled h3 {
+    margin-bottom: 0.5em;
+}
+
 ul.icons {
     cursor: default;
     list-style: none;
