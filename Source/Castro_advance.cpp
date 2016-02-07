@@ -1329,7 +1329,7 @@ Castro::advance_hydro (Real time,
 	}
 	if (rad_fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        rad_fine->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
+	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
         }
 #endif
     }
