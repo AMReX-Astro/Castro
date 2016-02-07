@@ -3,11 +3,11 @@ module timestep_module
   implicit none
 
   public
-  
+
 contains
 
   ! Courant-condition limited timestep
-  
+
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C)
 
     use network, only: nspec, naux
@@ -49,7 +49,7 @@ contains
 
              call eos(eos_input_re, eos_state)
 
-             ! Compute velocity and then calculate CFL timestep.     
+             ! Compute velocity and then calculate CFL timestep.
 
              ux = u(i,j,k,UMX) * rhoInv
              uy = u(i,j,k,UMY) * rhoInv
@@ -220,8 +220,8 @@ contains
     type (eos_t) :: eos_state
 
     ! dt < 0.5 dx**2 / D
-    ! where D = k/(rho c_v), and k is the conductivity      
-    
+    ! where D = k/(rho c_v), and k is the conductivity
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -270,5 +270,88 @@ contains
 
   end subroutine ca_estdt_diffusion
 #endif
-  
+
+
+  ! Check whether the last timestep violated any of our stability criteria.
+  ! If so, suggest a new timestep which would not.
+
+  subroutine ca_check_timestep(s_old, so_lo, so_hi, &
+                               s_new, sn_lo, sn_hi, &
+#ifdef REACTIONS
+                               r_old, ro_lo, ro_hi, &
+                               r_new, rn_lo, rn_hi, &
+#endif
+                               lo, hi, &
+                               dx, dt_old, dt_new) bind(C)
+
+    use bl_constants_module, only: HALF, ONE
+    use meth_params_module, only: NVAR, URHO, UEINT, UFS, dtnuc, dsnuc
+    use network, only: nspec
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: so_lo(3), so_hi(3)
+    integer          :: sn_lo(3), sn_hi(3)
+#ifdef REACTIONS
+    integer          :: ro_lo(3), ro_hi(3)
+    integer          :: rn_lo(3), rn_hi(3)
+#endif
+    double precision :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    double precision :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+#ifdef REACTIONS
+    double precision :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    double precision :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+#endif
+    double precision :: dx(3), dt_old, dt_new
+
+    integer          :: i, j, k
+    double precision :: rhooinv, rhoninv
+    double precision :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
+    double precision :: e_old, e_new, e_avg, e_dot
+    double precision :: tau_X, tau_e
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+#ifdef REACTIONS
+             rhooinv = ONE / s_old(i,j,k,URHO)
+             rhoninv = ONE / s_new(i,j,k,URHO)
+
+             X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
+             X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
+             X_avg = HALF * (X_old + X_new)
+             X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
+
+             X_dot = max(abs(X_dot), 1.d-200)
+             tau_X = minval( X_avg / X_dot )
+
+             e_old = s_old(i,j,k,UEINT) * rhooinv
+             e_new = s_new(i,j,k,UEINT) * rhoninv
+             e_avg = HALF * (e_old + e_new)
+             e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
+
+             e_dot = max(abs(e_dot), 1.d-200)
+             tau_e = e_avg / e_dot
+
+             if (dt_old > dtnuc * tau_e) then
+
+                dt_new = min(dt_new, dtnuc * tau_e)
+
+             endif
+
+             if (dt_old > dsnuc * tau_X) then
+
+                dt_new = min(dt_new, dsnuc * tau_X)
+
+             endif
+#endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_check_timestep
+
 end module timestep_module

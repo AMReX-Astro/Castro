@@ -401,7 +401,17 @@ extern "C"
      const int* lo, const int* hi,
      const Real* dx, const Real* dt_old, Real* dt);
 #endif
-  
+
+  void ca_check_timestep
+    (const BL_FORT_FAB_ARG_3D(state_old),
+     const BL_FORT_FAB_ARG_3D(state_new),
+#ifdef REACTIONS
+     const BL_FORT_FAB_ARG_3D(reactions_old),
+     const BL_FORT_FAB_ARG_3D(reactions_new),
+#endif
+     const int* lo, const int* hi,
+     const Real* dx, const Real* dt_old, Real* dt);
+
   void ca_umdrv
     (const int* is_finest_level,
      const Real* time, 

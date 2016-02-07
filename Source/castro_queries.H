@@ -43,6 +43,7 @@ pp.query("max_dt", max_dt);
 pp.query("cfl", cfl);
 pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
+pp.query("use_retry", use_retry);
 pp.query("dtnuc", dtnuc);
 pp.query("dsnuc", dsnuc);
 pp.query("dxnuc", dxnuc);

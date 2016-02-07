@@ -43,6 +43,7 @@ static Real max_dt;
 static Real cfl;
 static Real init_shrink;
 static Real change_max;
+static int use_retry;
 static Real dtnuc;
 static Real dsnuc;
 static Real dxnuc;

@@ -43,6 +43,7 @@ Real        Castro::max_dt = 1.e200;
 Real        Castro::cfl = 0.8;
 Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
+int         Castro::use_retry = 0;
 Real        Castro::dtnuc = 1.e200;
 Real        Castro::dsnuc = 1.e200;
 Real        Castro::dxnuc = 1.e200;
