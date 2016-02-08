@@ -41,6 +41,39 @@ Castro::advance (Real time,
 
     set_amr_info(level, iteration, ncycle, time, dt);
 
+    // Swap the new data from the last timestep into the old state data.
+    // If we're on level 0, do it for all levels below this one as well.
+    // Or, if we're on a later iteration at a finer timestep, swap for all
+    // lower time levels as well.
+
+    if (level == 0 || iteration > 1) {
+
+        for (int lev = level; lev <= parent->finestLevel(); lev++) {
+
+	    Real dt_lev = parent->dtLevel(lev);
+            for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	        // The following is a hack to make sure that
+	        // we only ever have new data for the Source_Type;
+	        // by doing a swap now, we'll guarantee that
+	        // allocOldData() does nothing. We do this because
+	        // we never need the old data, so we don't want to
+	        // allocate memory for it.
+
+	        if (k == Source_Type) {
+		  getLevel(lev).state[k].swapTimeLevels(0.0);
+		}
+
+	        getLevel(lev).state[k].allocOldData();
+                getLevel(lev).state[k].swapTimeLevels(dt_lev);
+            }
+
+	    if (do_grav)
+               gravity->swapTimeLevels(lev);
+
+        }
+    }
+
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
     PArray<MultiFab> old_data(NUM_STATE_TYPE,PArrayManage);
@@ -52,21 +85,13 @@ Castro::advance (Real time,
     Array<Real> t_old(NUM_STATE_TYPE);
     Array<Real> t_new(NUM_STATE_TYPE);
 
-    int subcycle_iter = -1;
+    int subcycle_iter = 0;
 
     if (use_retry) {
 
       for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
-	// Store the old and time levels, but note that
-	// on levels > 0, we have already performed a swapTimeLevels()
-	// call within the advance, so subtract dt off to get the
-	// time at the beginning of the timestep. We also need to
-	// account for the fact that swapTimeLevels() has switched
-	// the data pointers.
-
-	if (level > 0 && iteration == 1)
-	  state[k].swapTimeLevels(-dt);
+	// Store the old and new time levels.
 
 	t_new[k] = state[k].curTime();
 	t_old[k] = state[k].prevTime();
@@ -101,10 +126,6 @@ Castro::advance (Real time,
 
 	}
 
-	// Reset the change we made with swapTimeLevels above.
-
-	if (level > 0 && iteration == 1)
-	  state[k].swapTimeLevels(dt);
       }
 
     }
@@ -165,10 +186,13 @@ Castro::advance (Real time,
 
       if (dt_subcycle < dt) {
 
+	int n_subcycle_iters = ceil(dt / dt_subcycle);
+
 	if (verbose && ParallelDescriptor::IOProcessor()) {
 	  std::cout << "  \n";
 	  std::cout << "  Timestep " << dt << " rejected at level " << level << ".\n";
-	  std::cout << "  Performing a retry, with subcycled timesteps of length dt = " << dt_subcycle << "\n";
+	  std::cout << "  Performing a retry, with " << n_subcycle_iters
+		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << "\n";
 	  std::cout << "  \n";
 	}
 
@@ -247,33 +271,19 @@ Castro::advance (Real time,
 	}
 
 	Real subcycle_time = time;
-	subcycle_iter = 0;
+	subcycle_iter = 1;
 	Real dt_advance = dt_subcycle;
 
 	// Subcycle until we've reached the target time.
 
 	while (subcycle_time < time + dt) {
 
-	  if (subcycle_time + dt_advance >= time + dt)
+	  if (subcycle_time + dt_advance > time + dt)
 	    dt_advance = (time + dt) - subcycle_time;
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " starting at time " << subcycle_time
-		      << " with dt = " << dt_advance << "\n";
-	    std::cout << "  \n";
-	  }
-
-	  for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	    // For the Source_Type we want to update the time
-	    // but not switch the data pointers; it should
-	    // always only have "new" data.
-
-	    if (k == Source_Type)
-	      state[k].swapTimeLevels(0.0);
-
-	    state[k].swapTimeLevels(dt_advance);
-
+		      << " with dt = " << dt_advance << std::endl << std::endl;
 	  }
 
 	  Real dt_temp;
@@ -289,7 +299,7 @@ Castro::advance (Real time,
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << "  \n";
-	    std::cout << "  Retry subcycle " << subcycle_iter << " completed \n";
+	    std::cout << "  Retry subcycle " << subcycle_iter << " completed" << std::endl;
 	    std::cout << "  \n";
 	  }
 
@@ -315,17 +325,15 @@ Castro::advance (Real time,
 
 	  state[k].setTimeLevel(time + dt, dt, 0.0);
 
-	  if (k == Source_Type) continue;
+	  if (got_old_data[k]) {
 
-	  if (!got_old_data[k])
-	    BoxLib::Abort("Error: No old data to restore at the end of the retry.");
+	    MultiFab& state_old = get_old_data(k);
 
-	  MultiFab& state_old = get_old_data(k);
+	    int nc = state_old.nComp();
+	    int ng = state_old.nGrow();
 
-	  int nc = state_old.nComp();
-	  int ng = state_old.nGrow();
-
-	  MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
+	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
+	  }
 
 	}
 
@@ -421,7 +429,7 @@ Castro::advance_hydro (Real time,
     
     int finest_level = parent->finestLevel();
 
-    if (do_reflux && level < finest_level && subcycle_iter < 1) {
+    if (do_reflux && level < finest_level && subcycle_iter < 2) {
         //
         // Set reflux registers to zero.
         //
@@ -434,33 +442,6 @@ Castro::advance_hydro (Real time,
 	  getRADFluxReg(level+1).setVal(0.0);
 	}
 #endif
-    }
-
-    // Swap the new data from the last timestep into the old state data.
-    // If we're on level 0, do it for all levels below this one as well.
-    // Or, if we're on a later iteration at a finer timestep, swap for all
-    // lower time levels as well.
-
-    if ((level == 0 || iteration > 1) && subcycle_iter < 0) {
-        for (int lev = level; lev <= finest_level; lev++) {
-            Real dt_lev = parent->dtLevel(lev);
-            for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	        // The following is a hack to make sure that
-	        // we only ever have new data for the Source_Type;
-	        // by doing a swap now, we'll guarantee that
-	        // allocOldData() does nothing. We do this because
-	        // we never need the old data, so we don't want to
-	        // allocate memory for it.
-
-	        if (k == Source_Type) {
-		  getLevel(lev).state[k].swapTimeLevels(0.0);
-		}
-
-	        getLevel(lev).state[k].allocOldData();
-                getLevel(lev).state[k].swapTimeLevels(dt_lev);
-            }
-        } 
     }
 
 #ifdef SGS
@@ -530,15 +511,12 @@ Castro::advance_hydro (Real time,
 
        if (level == 0 || iteration > 1) {
 
-	 if (subcycle_iter < 1)
+	 if (subcycle_iter < 2)
 	   for (int lev = level; lev < finest_level; lev++) {
                if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
                    gravity->zeroPhiFluxReg(lev+1);
            }
 
-	 if (subcycle_iter < 0)
-           for (int lev = level; lev <= finest_level; lev++)
-               gravity->swapTimeLevels(lev);
        }
 
        // Define the old gravity vector (aka grad_phi on cell centers)
@@ -1784,15 +1762,6 @@ Castro::advance_no_hydro (Real time,
         getFluxReg(level+1).setVal(0.0);
     }
 
-    if (subcycle_iter < 0) {
-
-      for (int k = 0; k < NUM_STATE_TYPE; k++) {
-          state[k].allocOldData();
-          state[k].swapTimeLevels(dt);
-      }
-
-    }
-
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -1828,10 +1797,8 @@ Castro::advance_no_hydro (Real time,
     MultiFab& grav_new = get_new_data(Gravity_Type);
     
     if (do_grav) {
-       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav")
+       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && subcycle_iter < 2)
            gravity->zeroPhiFluxReg(level+1);
-
-       gravity->swapTimeLevels(level);
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".
