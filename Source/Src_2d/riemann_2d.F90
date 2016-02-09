@@ -374,7 +374,12 @@ contains
           p_post = e_x*px_post + e_y*py_post
 
           ! test for compression + pressure jump to flag a shock
-          pjump = eps - (p_post - p_pre)/p_pre
+          if (p_pre == ZERO) then
+             ! this can arise if e_x = e_y = 0 (U = 0)
+             pjump = ZERO
+          else
+             pjump = eps - (p_post - p_pre)/p_pre
+          endif
 
           if (pjump < ZERO .and. divU < ZERO) then
              shk(i,j) = ONE
