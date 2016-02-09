@@ -973,17 +973,21 @@ contains
        enddo
        call uflaten(loq, hiq, &
             q(:,:,:,qptot), &
-            q(:,:,:,QU), &
-            q(:,:,:,QV), &
-            q(:,:,:,QW), &
+            q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
             flatn, q_lo, q_hi)
-       call uflaten(loq,hiq, &
+
+       call uflaten(loq, hiq, &
             q(:,:,:,qpres), &
-            q(:,:,:,QU), &
-            q(:,:,:,QV), &
-            q(:,:,:,QW), &
+            q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
             flatg, q_lo, q_hi)
-       flatn = flatn * flatg
+
+       do k = loq(3), hiq(3)
+          do j = loq(2), hiq(2)
+             do i = loq(1), hiq(1)
+                flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
+             enddo
+          enddo
+       enddo
 
        if (flatten_pp_threshold > 0.d0) then
           call ppflaten(loq, hiq, flatn, q, q_lo, q_hi)
