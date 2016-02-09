@@ -285,8 +285,11 @@ contains
                                dx, dt_old, dt_new) bind(C)
 
     use bl_constants_module, only: HALF, ONE
-    use meth_params_module, only: NVAR, URHO, UEINT, UFS, dtnuc, dsnuc
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
+                                  dtnuc, dsnuc, cfl, do_hydro, do_react
+    use prob_params_module, only: dim
     use network, only: nspec
+    use eos_module
 
     implicit none
 
@@ -309,41 +312,72 @@ contains
     double precision :: rhooinv, rhoninv
     double precision :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
     double precision :: e_old, e_new, e_avg, e_dot
-    double precision :: tau_X, tau_e
+    double precision :: tau_X, tau_e, tau_CFL
+
+    double precision :: v(3), c
+    type (eos_t)     :: eos_state
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#ifdef REACTIONS
              rhooinv = ONE / s_old(i,j,k,URHO)
              rhoninv = ONE / s_new(i,j,k,URHO)
 
-             X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
-             X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
-             X_avg = HALF * (X_old + X_new)
-             X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
+             ! CFL hydrodynamic stability criterion
 
-             X_dot = max(abs(X_dot), 1.d-200)
-             tau_X = minval( X_avg / X_dot )
+             if (do_hydro .eq. 1) then
 
-             e_old = s_old(i,j,k,UEINT) * rhooinv
-             e_new = s_new(i,j,k,UEINT) * rhoninv
-             e_avg = HALF * (e_old + e_new)
-             e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
+                eos_state % rho = s_new(i,j,k,URHO )
+                eos_state % T   = s_new(i,j,k,UTEMP)
+                eos_state % e   = s_new(i,j,k,UEINT) * rhoninv
+                eos_state % xn  = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
+                eos_state % aux = s_new(i,j,k,UFX:UFX+naux-1) * rhoninv
 
-             e_dot = max(abs(e_dot), 1.d-200)
-             tau_e = e_avg / e_dot
+                call eos(eos_input_re, eos_state)
 
-             if (dt_old > dtnuc * tau_e) then
+                v = HALF * (s_old(i,j,k,UMX:UMZ) * rhooinv + s_new(i,j,k,UMX:UMZ) * rhoninv)
 
-                dt_new = min(dt_new, dtnuc * tau_e)
+                c = eos_state % cs
+
+                tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
+
+                dt_new = min(dt_new, cfl * tau_CFL)
 
              endif
 
-             if (dt_old > dsnuc * tau_X) then
+#ifdef REACTIONS
+             ! Burning stability criterion
 
-                dt_new = min(dt_new, dsnuc * tau_X)
+             if (do_react .eq. 1) then
+
+                X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
+                X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
+                X_avg = HALF * (X_old + X_new)
+                X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
+
+                X_dot = max(abs(X_dot), 1.d-200)
+                tau_X = minval( X_avg / X_dot )
+
+                e_old = s_old(i,j,k,UEINT) * rhooinv
+                e_new = s_new(i,j,k,UEINT) * rhoninv
+                e_avg = HALF * (e_old + e_new)
+                e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
+
+                e_dot = max(abs(e_dot), 1.d-200)
+                tau_e = e_avg / e_dot
+
+                if (dt_old > dtnuc * tau_e) then
+
+                   dt_new = min(dt_new, dtnuc * tau_e)
+
+                endif
+
+                if (dt_old > dsnuc * tau_X) then
+
+                   dt_new = min(dt_new, dsnuc * tau_X)
+
+                endif
 
              endif
 #endif

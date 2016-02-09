@@ -58,6 +58,7 @@ module meth_params_module
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
+  integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
@@ -86,9 +87,11 @@ module meth_params_module
   integer         , save :: fix_mass_flux
   integer         , save :: allow_negative_energy
   integer         , save :: do_sponge
+  double precision, save :: cfl
   double precision, save :: dtnuc
   double precision, save :: dsnuc
   double precision, save :: dxnuc
+  integer         , save :: do_react
   double precision, save :: react_T_min
   double precision, save :: react_T_max
   integer         , save :: do_grav

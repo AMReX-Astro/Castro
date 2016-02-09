@@ -22,7 +22,7 @@ small_pres                   Real         -1.e200             y
 small_ener                   Real         -1.e200             y
 
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1
+do_hydro                     int          -1                  y
 
 # if true, define an additional source term   
 add_ext_src                  int           0
@@ -151,11 +151,11 @@ max_dt                       Real          1.e200
 
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
-cfl                          Real          0.8
+cfl                          Real          0.8                y
 
 # a factor by which to reduce the first timestep from that requested by
 # the timestep estimators
-init_shrink                   Real          1.0
+init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase from one step to
 # the next.
@@ -189,7 +189,7 @@ dsnuc                        Real          1.e200             y
 dxnuc                        Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake 
-do_react                     int          -1
+do_react                     int          -1                  y
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0                y
