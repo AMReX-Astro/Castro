@@ -390,7 +390,12 @@ contains
              p_post = e_x*px_post + e_y*py_post + e_z*pz_post
 
              ! test for compression + pressure jump to flag a shock
-             pjump = eps - (p_post - p_pre)/p_pre
+             if (p_pre == ZERO) then
+                ! this can happen if U = 0, so e_x, ... = 0
+                pjump = ZERO
+             else
+                pjump = eps - (p_post - p_pre)/p_pre
+             endif
 
              if (pjump < ZERO .and. divU < ZERO) then
                 shk(i,j,k) = ONE
@@ -1472,7 +1477,7 @@ contains
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, scr
     double precision :: rstar, cstar, estar, pstar, ustar
-    double precision :: ro, uo, po, reo, co, gamco
+    double precision :: ro, uo, po, reo, co, gamco, entho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
 
@@ -1589,17 +1594,20 @@ contains
              ro = rl
              uo = ul
              po = pl
+             reo = rel
              gamco = gamcl(i,j)
 
           else if (ustar < ZERO) then
              ro = rr
              uo = ur
              po = pr
+             reo = rer
              gamco = gamcr(i,j)
           else
              ro = HALF*(rl+rr)
              uo = HALF*(ul+ur)
              po = HALF*(pl+pr)
+             reo = HALF*(rel+rer)
              gamco = HALF*(gamcl(i,j)+gamcr(i,j))
           endif
           ro = max(small_dens,ro)
@@ -1612,6 +1620,9 @@ contains
           rstar = ro + (pstar - po)*co2inv
           rstar = max(small_dens,rstar)
 
+          entho = (reo + po)*co2inv/ro
+          estar = reo + (pstar - po)*entho
+          
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
 
@@ -1633,12 +1644,11 @@ contains
           frac = max(ZERO,min(ONE,frac))
 
           rgdnv = frac*rstar + (ONE - frac)*ro
+          regdnv = frac*estar + (ONE - frac)*reo
 
           qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
           qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
-
-          ! TODO
-          !qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
+          qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
 
 
           ! now we do the HLLC construction
