@@ -43,7 +43,9 @@ Real        Castro::max_dt = 1.e200;
 Real        Castro::cfl = 0.8;
 Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
+int         Castro::use_retry = 0;
 Real        Castro::dtnuc = 1.e200;
+Real        Castro::dsnuc = 1.e200;
 Real        Castro::dxnuc = 1.e200;
 int         Castro::do_react = -1;
 Real        Castro::react_T_min = 0.0;
@@ -85,6 +87,7 @@ int         Castro::print_energy_diagnostics = 1;
 int         Castro::print_energy_diagnostics = 0;
 #endif
 int         Castro::sum_interval = -1;
+Real        Castro::sum_per = -1.0e0;
 int         Castro::show_center_of_mass = 0;
 int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";

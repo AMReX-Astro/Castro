@@ -1,5 +1,9 @@
 \subsection{List of Parameters}
 
+Note that in the following, {\tt MAX\_LEV} is a hard-coded
+parameter in Source/Gravity.cpp which is currently set to 15.
+It determines how many levels can be tracked by the Gravity object.
+
 \begin{table*}[h]
 \begin{scriptsize}
 \begin{center}
@@ -21,6 +25,9 @@ Parameter & Definition & Acceptable Values &Default\\
 \hline
 {\bf gravity.no\_composite} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
 & whether to perform a composite solve & 0 or 1 & 0 \\
+\hline
+{\bf gravity.max\_solve\_level} & maximum level to solve for $\phi$ and $\mathbf{g}$; & & \\
+& above this level, interpolate from below & Integer & ${\tt MAX\_LEV} - 1$ \\
 \hline
 {\bf gravity.ml\_tol} & if {\bf gravity.gravity\_type} = PoissonGrav, & & \\
 & this is the tolerance for level solves. & & \\

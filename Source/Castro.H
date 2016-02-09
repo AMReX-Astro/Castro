@@ -204,12 +204,14 @@ public:
     Real advance_hydro (Real time,
                         Real dt,
                         int  iteration,
-                        int  ncycle);
+                        int  ncycle,
+			int  subcycle_iter);
 
     Real advance_no_hydro (Real time,
                            Real dt,
                            int  iteration,
-                           int  ncycle);
+                           int  ncycle,
+			   int  subcycle_iter);
 
     void time_center_source_terms (MultiFab& S_new,
                                    MultiFab& ext_src_old,

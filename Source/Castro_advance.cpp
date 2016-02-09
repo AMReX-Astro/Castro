@@ -38,12 +38,105 @@ Castro::advance (Real time,
     Real dt_new = dt;
 
     // Pass some information about the state of the simulation to a Fortran module.
-    
+
     set_amr_info(level, iteration, ncycle, time, dt);
-   
+
+    // Swap the new data from the last timestep into the old state data.
+    // If we're on level 0, do it for all levels below this one as well.
+    // Or, if we're on a later iteration at a finer timestep, swap for all
+    // lower time levels as well.
+
+    if (level == 0 || iteration > 1) {
+
+        for (int lev = level; lev <= parent->finestLevel(); lev++) {
+
+	    Real dt_lev = parent->dtLevel(lev);
+            for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	        // The following is a hack to make sure that
+	        // we only ever have new data for the Source_Type;
+	        // by doing a swap now, we'll guarantee that
+	        // allocOldData() does nothing. We do this because
+	        // we never need the old data, so we don't want to
+	        // allocate memory for it.
+
+	        if (k == Source_Type) {
+		  getLevel(lev).state[k].swapTimeLevels(0.0);
+		}
+
+	        getLevel(lev).state[k].allocOldData();
+                getLevel(lev).state[k].swapTimeLevels(dt_lev);
+            }
+
+#ifdef GRAVITY
+	    if (do_grav)
+               gravity->swapTimeLevels(lev);
+#endif
+
+        }
+    }
+
+    // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
+
+    PArray<MultiFab> old_data(NUM_STATE_TYPE,PArrayManage);
+    PArray<MultiFab> new_data(NUM_STATE_TYPE,PArrayManage);
+
+    Array<int> got_old_data(NUM_STATE_TYPE);
+    Array<int> got_new_data(NUM_STATE_TYPE);
+
+    Array<Real> t_old(NUM_STATE_TYPE);
+    Array<Real> t_new(NUM_STATE_TYPE);
+
+    int subcycle_iter = 0;
+
+    if (use_retry) {
+
+      for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	// Store the old and new time levels.
+
+	t_new[k] = state[k].curTime();
+	t_old[k] = state[k].prevTime();
+
+	got_old_data[k] = state[k].hasOldData();
+
+	if (got_old_data[k]) {
+
+	  MultiFab& state_old = get_old_data(k);
+
+	  int nc = state_old.nComp();
+	  int ng = state_old.nGrow();
+
+	  old_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
+
+	  MultiFab::Copy(old_data[k], state_old, 0, 0, nc, ng);
+
+	}
+
+	got_new_data[k] = state[k].hasNewData();
+
+	if (got_new_data[k]) {
+
+	  MultiFab& state_new = get_new_data(k);
+
+	  int nc = state_new.nComp();
+	  int ng = state_new.nGrow();
+
+	  new_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
+
+	  MultiFab::Copy(new_data[k], state_new, 0, 0, nc, ng);
+
+	}
+
+      }
+
+    }
+
+    // Do the advance.
+
     if (do_hydro) 
     {
-        dt_new = advance_hydro(time,dt,iteration,ncycle);
+        dt_new = advance_hydro(time,dt,iteration,ncycle,subcycle_iter);
     } 
     else 
     {
@@ -51,17 +144,192 @@ Castro::advance (Real time,
         BoxLib::Abort("Castro::advance -- doesn't make sense to have SGS defined but not do_hydro");
         return 0.;
 #else
-        dt_new = advance_no_hydro(time,dt,iteration,ncycle);
+        dt_new = advance_no_hydro(time,dt,iteration,ncycle,subcycle_iter);
 #endif
     } 
- 
+
+    // Check to see if this advance violated certain stability criteria.
+    // If so, get a new timestep and do subcycled advances until we reach
+    // t = time + dt.
+
+    if (use_retry)
+    {
+
+      Real dt_subcycle = 1.e200;
+
+      MultiFab& S_old = get_old_data(State_Type);
+      MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef REACTIONS
+      MultiFab& R_old = get_old_data(Reactions_Type);
+      MultiFab& R_new = get_new_data(Reactions_Type);
+#endif
+
+      const Real* dx = geom.CellSize();
+
+      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	const Box& bx = mfi.tilebox();
+
+	const int* lo = bx.loVect();
+	const int* hi = bx.hiVect();
+
+	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
+			  BL_TO_FORTRAN_3D(S_new[mfi]),
+#ifdef REACTIONS
+			  BL_TO_FORTRAN_3D(R_old[mfi]),
+			  BL_TO_FORTRAN_3D(R_new[mfi]),
+#endif
+			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx), &dt, &dt_subcycle);
+
+      }
+
+      ParallelDescriptor::ReduceRealMin(dt_subcycle);
+
+      if (dt_subcycle < dt) {
+
+	int n_subcycle_iters = ceil(dt / dt_subcycle);
+
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	  std::cout << std::endl;
+	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+	  std::cout << "  Performing a retry, with " << n_subcycle_iters
+		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+	  std::cout << std::endl;
+	}
+
+	Real subcycle_time = time;
+	subcycle_iter = 1;
+	Real dt_advance = dt_subcycle;
+
+	// Restore the original values of the state data.
+
+	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	  if (got_old_data[k]) {
+
+	    MultiFab& state_old = get_old_data(k);
+
+	    int nc = state_old.nComp();
+	    int ng = state_old.nGrow();
+
+	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
+
+	  }
+
+	  if (got_new_data[k]) {
+
+	    MultiFab& state_new = get_new_data(k);
+
+	    int nc = state_new.nComp();
+	    int ng = state_new.nGrow();
+
+	    MultiFab::Copy(state_new, new_data[k], 0, 0, nc, ng);
+
+	  }
+
+	  // Anticipate the swapTimeLevels to come.
+
+	  if (k == Source_Type)
+	    state[k].swapTimeLevels(0.0);
+
+	  state[k].swapTimeLevels(0.0);
+
+	  state[k].setTimeLevel(time, 0.0, 0.0);
+
+	}
+
+	// Subcycle until we've reached the target time.
+
+	while (subcycle_time < time + dt) {
+
+	  if (subcycle_time + dt_advance > time + dt)
+	    dt_advance = (time + dt) - subcycle_time;
+
+	  if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " starting at time " << subcycle_time
+		      << " with dt = " << dt_advance << std::endl << std::endl;
+	  }
+
+	  for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	    if (k == Source_Type)
+	      state[k].swapTimeLevels(0.0);
+
+	    state[k].swapTimeLevels(dt_advance);
+
+	  }
+
+#ifdef GRAVITY
+	  if (do_grav)
+	    gravity->swapTimeLevels(level);
+#endif
+
+	  Real dt_temp;
+
+	  if (do_hydro)
+	  {
+	    dt_temp = advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	  }
+	  else
+	  {
+	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	  }
+
+
+
+	  if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  Retry subcycle " << subcycle_iter << " completed" << std::endl;
+	    std::cout << std::endl;
+	  }
+
+	  subcycle_time += dt_advance;
+	  subcycle_iter += 1;
+
+	}
+
+	// We want to return this subcycled timestep as a suggestion,
+	// if it is smaller than what the hydro estimates.
+
+	dt_new = std::min(dt_new, dt_subcycle);
+
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	  std::cout << "  Retry subcycling complete" << std::endl << std::endl;
+	}
+
+	// Finally, copy the original data back to the old state
+	// data so that externally it appears like we took only
+	// a single timestep.
+
+	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	  state[k].setTimeLevel(time + dt, dt, 0.0);
+
+	  if (got_old_data[k] && state[k].hasOldData()) {
+
+	    MultiFab& state_old = get_old_data(k);
+
+	    int nc = state_old.nComp();
+	    int ng = state_old.nGrow();
+
+	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
+
+	  }
+
+	}
+
+      }
+
+    }
+
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
- 
+
 #ifdef AUX_UPDATE
     advance_aux(time,dt);
 #endif
- 
+
 #ifdef LEVELSET
     advance_levelset(time,dt);
 #endif
@@ -73,7 +341,7 @@ Castro::advance (Real time,
        make_radial_data(is_new);
     }
 #endif
-    
+
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
     final_radiation_call(S_new,iteration,ncycle);
@@ -84,13 +352,13 @@ Castro::advance (Real time,
     {
 	int ng = iteration;
 	Real t = time + 0.5*dt;
-	
+
 	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
 
 	{
 	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
 	    MultiFab& S = fpi.get_mf();
-	    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -116,7 +384,8 @@ Real
 Castro::advance_hydro (Real time,
                        Real dt,
                        int  iteration,
-                       int  ncycle)
+                       int  ncycle,
+		       int  subcycle_iter)
 {
     BL_PROFILE("Castro::advance_hydro()");
 
@@ -142,7 +411,7 @@ Castro::advance_hydro (Real time,
     
     int finest_level = parent->finestLevel();
 
-    if (do_reflux && level < finest_level) {
+    if (do_reflux && level < finest_level && subcycle_iter < 2) {
         //
         // Set reflux registers to zero.
         //
@@ -155,33 +424,6 @@ Castro::advance_hydro (Real time,
 	  getRADFluxReg(level+1).setVal(0.0);
 	}
 #endif
-    }
-
-    // Swap the new data from the last timestep into the old state data.
-    // If we're on level 0, do it for all levels below this one as well.
-    // Or, if we're on a later iteration at a finer timestep, swap for all
-    // lower time levels as well.
-
-    if (level == 0 || iteration > 1) {
-        for (int lev = level; lev <= finest_level; lev++) {
-            Real dt_lev = parent->dtLevel(lev);
-            for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	        // The following is a hack to make sure that
-	        // we only ever have new data for the Source_Type;
-	        // by doing a swap now, we'll guarantee that
-	        // allocOldData() does nothing. We do this because
-	        // we never need the old data, so we don't wnat to
-	        // allocate memory for it.
-	      
-	        if (k == Source_Type) {
-		  getLevel(lev).state[k].swapTimeLevels(dt_lev);
-		}
-		
-	        getLevel(lev).state[k].allocOldData();
-                getLevel(lev).state[k].swapTimeLevels(dt_lev);
-            }
-        } 
     }
 
 #ifdef SGS
@@ -250,13 +492,13 @@ Castro::advance_hydro (Real time,
        // and zero out the flux registers. 
 
        if (level == 0 || iteration > 1) {
+
+	 if (subcycle_iter < 2)
 	   for (int lev = level; lev < finest_level; lev++) {
                if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
                    gravity->zeroPhiFluxReg(lev+1);
            }
 
-           for (int lev = level; lev <= finest_level; lev++)
-               gravity->swapTimeLevels(lev);
        }
 
        // Define the old gravity vector (aka grad_phi on cell centers)
@@ -514,6 +756,9 @@ Castro::advance_hydro (Real time,
 	react_half_dt(Sborder,reactions_old,time,dt,NUM_GROW);
 #endif
 #endif
+
+	if (verbose && ParallelDescriptor::IOProcessor())
+	  std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
@@ -1005,6 +1250,9 @@ Castro::advance_hydro (Real time,
 	    }
 
 #endif    // RADIATION
+
+	    if (verbose && ParallelDescriptor::IOProcessor())
+	      std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
     }
 
 #ifdef POINTMASS
@@ -1034,7 +1282,7 @@ Castro::advance_hydro (Real time,
 	}
 	if (fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-		fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.);
+	        fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
 	}
 #ifdef RADIATION
 	if (rad_current) {
@@ -1043,7 +1291,7 @@ Castro::advance_hydro (Real time,
 	}
 	if (rad_fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.);
+	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
         }
 #endif
     }
@@ -1466,7 +1714,8 @@ Real
 Castro::advance_no_hydro (Real time,
                           Real dt,
                           int  iteration,
-                          int  ncycle)
+                          int  ncycle,
+			  int  subcycle_iter)
 {
     BL_PROFILE("Castro::advance_no_hydro()");
 
@@ -1493,11 +1742,6 @@ Castro::advance_no_hydro (Real time,
         // Set reflux registers to zero.
         //
         getFluxReg(level+1).setVal(0.0);
-    }
-
-    for (int k = 0; k < NUM_STATE_TYPE; k++) {
-        state[k].allocOldData();
-        state[k].swapTimeLevels(dt);
     }
 
     MultiFab& S_old = get_old_data(State_Type);
@@ -1535,10 +1779,8 @@ Castro::advance_no_hydro (Real time,
     MultiFab& grav_new = get_new_data(Gravity_Type);
     
     if (do_grav) {
-       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav")
+       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && subcycle_iter < 2)
            gravity->zeroPhiFluxReg(level+1);
-
-       gravity->swapTimeLevels(level);
 
        // Define the old gravity vector (aka grad_phi on cell centers)
        //   Note that this is based on the multilevel solve when doing "PoissonGrav".

@@ -155,6 +155,7 @@ protected:
   static int   lnum;
   static int   direct_sum_bcs;
   static int   get_g_from_phi;
+  static int   max_solve_level;
   static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;

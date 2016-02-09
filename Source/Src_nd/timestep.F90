@@ -3,11 +3,11 @@ module timestep_module
   implicit none
 
   public
-  
+
 contains
 
   ! Courant-condition limited timestep
-  
+
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C)
 
     use network, only: nspec, naux
@@ -49,7 +49,7 @@ contains
 
              call eos(eos_input_re, eos_state)
 
-             ! Compute velocity and then calculate CFL timestep.     
+             ! Compute velocity and then calculate CFL timestep.
 
              ux = u(i,j,k,UMX) * rhoInv
              uy = u(i,j,k,UMY) * rhoInv
@@ -107,11 +107,15 @@ contains
                               reactions, r_lo, r_hi, &
                               lo, hi, dx, dt_old, dt) bind(C)
 
-    use bl_constants_module, only: ZERO, TWO
+    use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, dsnuc
     use prob_params_module, only : dim
+    use actual_rhs_module, only: actual_rhs
     use eos_module
+    use burner_module, only: ok_to_burn
+    use burn_type_module
+    use eos_type_module
 
     implicit none
 
@@ -122,19 +126,16 @@ contains
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     double precision :: dx(3), dt, dt_old
 
-    double precision :: e, dedt
+    double precision :: dedt, dXdt(nspec)
     integer          :: i, j, k
 
+    type (burn_t)    :: burn_state
     type (eos_t)     :: eos_state
-    double precision :: dtdx
+    double precision :: rhoInv
 
-    ! The reactions MultiFab contains the rate of changes of X (the
-    ! first nspec values), e (the nspec+1 value), and rho*e (the
-    ! nspec+2) value. 
-    !
-    ! We want to limit the timestep so that it
-    ! is equal to dtnuc * (e / (de/dt)).  If the timestep
-    ! factor is equal to 1, this says that we don't want the
+    ! We want to limit the timestep so that it is not larger than
+    ! dtnuc * (e / (de/dt)).  If the timestep factor dtnuc is
+    ! equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
     ! magnitude in the next timestep. 
     !
@@ -142,21 +143,45 @@ contains
     ! allow the internal energy to change in this timestep due to
     ! nuclear burning, provided that the last timestep's burning is a
     ! good estimate for the current timestep's burning.
+    !
+    ! We do the same thing for the species, using a timestep
+    ! limiter dsnuc * (X_k / (dX_k/dt)).
+    !
+    ! To estimate de/dt and dX/dt, we are going to call the RHS of the
+    ! burner given the current state data. We need to do an EOS
+    ! call before we do the RHS call so that we have accurate
+    ! values for the thermodynamic data like abar, zbar, etc.
+    ! But we will call in (rho, T) mode, which is inexpensive.
 
-    if (dtnuc > 1.d199) return
+    if (dtnuc > 1.d199 .and. dsnuc > 1.d199) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             e = u(i,j,k,UEINT) / u(i,j,k,URHO)
-             dedt = abs(reactions(i,j,k,nspec+1))
+             rhoInv = ONE / u(i,j,k,URHO)
 
-             if (dedt > 1.d-100) then
+             burn_state % rho = u(i,j,k,URHO)
+             burn_state % T   = u(i,j,k,UTEMP)
+             burn_state % e   = u(i,j,k,UEINT) * rhoInv
+             burn_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+             burn_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-                dt = min(dt, dtnuc * e / dedt)
+             if (.not. ok_to_burn(burn_state)) cycle
 
-             endif
+             call burn_to_eos(burn_state, eos_state)
+             call eos(eos_input_rt, eos_state)
+             call eos_to_burn(eos_state, burn_state)
+
+             call actual_rhs(burn_state)
+
+             dedt = max(abs(burn_state % ydot(net_ienuc)), 1.d-200)
+
+             dt = min(dt, dtnuc * burn_state % e / dedt)
+
+             dXdt = max(abs(burn_state % ydot(1:nspec) * aion), 1.d-200)
+
+             dt = min(dt, dsnuc * minval(burn_state % xn / dXdt))
 
           enddo
        enddo
@@ -195,8 +220,8 @@ contains
     type (eos_t) :: eos_state
 
     ! dt < 0.5 dx**2 / D
-    ! where D = k/(rho c_v), and k is the conductivity      
-    
+    ! where D = k/(rho c_v), and k is the conductivity
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -245,5 +270,122 @@ contains
 
   end subroutine ca_estdt_diffusion
 #endif
-  
+
+
+  ! Check whether the last timestep violated any of our stability criteria.
+  ! If so, suggest a new timestep which would not.
+
+  subroutine ca_check_timestep(s_old, so_lo, so_hi, &
+                               s_new, sn_lo, sn_hi, &
+#ifdef REACTIONS
+                               r_old, ro_lo, ro_hi, &
+                               r_new, rn_lo, rn_hi, &
+#endif
+                               lo, hi, &
+                               dx, dt_old, dt_new) bind(C)
+
+    use bl_constants_module, only: HALF, ONE
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
+                                  dtnuc, dsnuc, cfl, do_hydro, do_react
+    use prob_params_module, only: dim
+    use network, only: nspec
+    use eos_module
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: so_lo(3), so_hi(3)
+    integer          :: sn_lo(3), sn_hi(3)
+#ifdef REACTIONS
+    integer          :: ro_lo(3), ro_hi(3)
+    integer          :: rn_lo(3), rn_hi(3)
+#endif
+    double precision :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    double precision :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+#ifdef REACTIONS
+    double precision :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    double precision :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+#endif
+    double precision :: dx(3), dt_old, dt_new
+
+    integer          :: i, j, k
+    double precision :: rhooinv, rhoninv
+    double precision :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
+    double precision :: e_old, e_new, e_avg, e_dot
+    double precision :: tau_X, tau_e, tau_CFL
+
+    double precision :: v(3), c
+    type (eos_t)     :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rhooinv = ONE / s_old(i,j,k,URHO)
+             rhoninv = ONE / s_new(i,j,k,URHO)
+
+             ! CFL hydrodynamic stability criterion
+
+             if (do_hydro .eq. 1) then
+
+                eos_state % rho = s_new(i,j,k,URHO )
+                eos_state % T   = s_new(i,j,k,UTEMP)
+                eos_state % e   = s_new(i,j,k,UEINT) * rhoninv
+                eos_state % xn  = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
+                eos_state % aux = s_new(i,j,k,UFX:UFX+naux-1) * rhoninv
+
+                call eos(eos_input_re, eos_state)
+
+                v = HALF * (s_old(i,j,k,UMX:UMZ) * rhooinv + s_new(i,j,k,UMX:UMZ) * rhoninv)
+
+                c = eos_state % cs
+
+                tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
+
+                dt_new = min(dt_new, cfl * tau_CFL)
+
+             endif
+
+#ifdef REACTIONS
+             ! Burning stability criterion
+
+             if (do_react .eq. 1) then
+
+                X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
+                X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
+                X_avg = HALF * (X_old + X_new)
+                X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
+
+                X_dot = max(abs(X_dot), 1.d-200)
+                tau_X = minval( X_avg / X_dot )
+
+                e_old = s_old(i,j,k,UEINT) * rhooinv
+                e_new = s_new(i,j,k,UEINT) * rhoninv
+                e_avg = HALF * (e_old + e_new)
+                e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
+
+                e_dot = max(abs(e_dot), 1.d-200)
+                tau_e = e_avg / e_dot
+
+                if (dt_old > dtnuc * tau_e) then
+
+                   dt_new = min(dt_new, dtnuc * tau_e)
+
+                endif
+
+                if (dt_old > dsnuc * tau_X) then
+
+                   dt_new = min(dt_new, dsnuc * tau_X)
+
+                endif
+
+             endif
+#endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_check_timestep
+
 end module timestep_module

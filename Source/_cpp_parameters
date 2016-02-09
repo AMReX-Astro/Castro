@@ -22,7 +22,7 @@ small_pres                   Real         -1.e200             y
 small_ener                   Real         -1.e200             y
 
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1
+do_hydro                     int          -1                  y
 
 # if true, define an additional source term   
 add_ext_src                  int           0
@@ -151,16 +151,21 @@ max_dt                       Real          1.e200
 
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
-cfl                          Real          0.8
+cfl                          Real          0.8                y
 
 # a factor by which to reduce the first timestep from that requested by
 # the timestep estimators
-init_shrink                   Real          1.0
+init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase from one step to
 # the next.
 change_max                   Real          1.1
 
+# Retry a timestep if it violated the timestep-limiting criteria over
+# the course of an advance. The criteria will suggest a new timestep
+# that satisfies the criteria, and we will do subcycled timesteps
+# on the same level until we reach the original target time.
+use_retry                    int           0
 
 #-----------------------------------------------------------------------------
 # category: reactions
@@ -171,6 +176,11 @@ change_max                   Real          1.1
 # {\tt dtnuc}  $\cdot\,(e / \dot{e})$
 dtnuc                        Real          1.e200             y
 
+# limit the timestep based on how much the burning can change the mass fractions
+# of the species in a one. The timestep for a given species $k$ is equal to
+# {\tt dsnuc} $\cdot\, (X_k / \dot{X_k})$
+dsnuc                        Real          1.e200             y
+
 # limit the zone size based on how much the burning can change the internal 
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
@@ -179,10 +189,11 @@ dtnuc                        Real          1.e200             y
 dxnuc                        Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake 
-do_react                     int          -1
+do_react                     int          -1                  y
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0                y
+
 # maximum temperature for allowing reactions to occur in a zone
 react_T_max                  Real          1.e200             y
 
@@ -263,8 +274,11 @@ print_fortran_warnings       int           (0, 1)
 # display breakdown of energy sources 
 print_energy_diagnostics     int           (0, 1)
 
-# how often to compute integral sums (for runtime diagnostics)
-sum_interval                 int          -1
+# how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
+sum_interval                 int           -1
+
+# how often (simulation time) to compute integral sums (for runtime diagnostics)
+sum_per                      Real          -1.0e0
 
 # display center of mass diagnostics
 show_center_of_mass          int           0
