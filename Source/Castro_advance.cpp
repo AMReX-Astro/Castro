@@ -196,83 +196,46 @@ Castro::advance (Real time,
 	  std::cout << "  \n";
 	}
 
+	Real subcycle_time = time;
+	subcycle_iter = 1;
+	Real dt_advance = dt_subcycle;
+
 	// Restore the original values of the state data.
 
 	for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
-	  state[k].setTimeLevel(t_new[k], t_new[k] - t_old[k], 0.0);
+	  state[k].setTimeLevel(time, dt_advance, 0.0);
 
 	  if (got_old_data[k]) {
 
-	    if (state[k].hasOldData()) {
+	    MultiFab& state_old = get_old_data(k);
 
-	      MultiFab& state_old = get_old_data(k);
+	    int nc = state_old.nComp();
+	    int ng = state_old.nGrow();
 
-	      int nc = state_old.nComp();
-	      int ng = state_old.nGrow();
-
-	      MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
-
-	    }
-
-	  }
-	  else {
-
-	    if (state[k].hasOldData()) {
-
-	      MultiFab& state_old = get_old_data(k);
-
-	      int nc = state_old.nComp();
-	      int ng = state_old.nGrow();
-
-	      old_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
-
-	      MultiFab::Copy(old_data[k], state_old, 0, 0, nc, ng);
-
-	      got_old_data[k] = true;
-
-	    }
+	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
 
 	  }
 
 	  if (got_new_data[k]) {
 
-	    if (state[k].hasNewData()) {
+	    MultiFab& state_new = get_new_data(k);
 
-	      MultiFab& state_new = get_new_data(k);
+	    int nc = state_new.nComp();
+	    int ng = state_new.nGrow();
 
-	      int nc = state_new.nComp();
-	      int ng = state_new.nGrow();
-
-	      MultiFab::Copy(state_new, new_data[k], 0, 0, nc, ng);
-
-	    }
+	    MultiFab::Copy(state_new, new_data[k], 0, 0, nc, ng);
 
 	  }
-	  else {
 
-	    if (state[k].hasNewData()) {
+	  // Finally, anticipate the swapTimeLevels to come.
 
-	      MultiFab& state_new = get_new_data(k);
+	  if (k == Source_Type)
+	    state[k].swapTimeLevels(0.0);
 
-	      int nc = state_new.nComp();
-	      int ng = state_new.nGrow();
-
-	      new_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
-
-	      MultiFab::Copy(new_data[k], state_new, 0, 0, nc, ng);
-
-	      got_new_data[k] = true;
-
-	    }
-
-	  }
+	  state[k].swapTimeLevels(-dt_advance);
 
 	}
-
-	Real subcycle_time = time;
-	subcycle_iter = 1;
-	Real dt_advance = dt_subcycle;
 
 	// Subcycle until we've reached the target time.
 
@@ -286,6 +249,18 @@ Castro::advance (Real time,
 		      << " with dt = " << dt_advance << std::endl << std::endl;
 	  }
 
+	  for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	    if (k == Source_Type)
+	      state[k].swapTimeLevels(0.0);
+
+	    state[k].swapTimeLevels(dt_advance);
+
+	  }
+
+	  if (do_grav)
+	    gravity->swapTimeLevels(level);
+
 	  Real dt_temp;
 
 	  if (do_hydro)
@@ -296,6 +271,8 @@ Castro::advance (Real time,
 	  {
 	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
+
+
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << "  \n";
@@ -325,7 +302,7 @@ Castro::advance (Real time,
 
 	  state[k].setTimeLevel(time + dt, dt, 0.0);
 
-	  if (got_old_data[k]) {
+	  if (got_old_data[k] && state[k].hasOldData()) {
 
 	    MultiFab& state_old = get_old_data(k);
 
@@ -333,6 +310,7 @@ Castro::advance (Real time,
 	    int ng = state_old.nGrow();
 
 	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
+
 	  }
 
 	}
@@ -343,11 +321,11 @@ Castro::advance (Real time,
 
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
- 
+
 #ifdef AUX_UPDATE
     advance_aux(time,dt);
 #endif
- 
+
 #ifdef LEVELSET
     advance_levelset(time,dt);
 #endif
@@ -359,7 +337,7 @@ Castro::advance (Real time,
        make_radial_data(is_new);
     }
 #endif
-    
+
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
     final_radiation_call(S_new,iteration,ncycle);
@@ -370,13 +348,13 @@ Castro::advance (Real time,
     {
 	int ng = iteration;
 	Real t = time + 0.5*dt;
-	
+
 	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
 
 	{
 	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
 	    MultiFab& S = fpi.get_mf();
-	    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
