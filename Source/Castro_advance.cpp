@@ -68,8 +68,10 @@ Castro::advance (Real time,
                 getLevel(lev).state[k].swapTimeLevels(dt_lev);
             }
 
+#ifdef GRAVITY
 	    if (do_grav)
                gravity->swapTimeLevels(lev);
+#endif
 
         }
     }
@@ -258,8 +260,10 @@ Castro::advance (Real time,
 
 	  }
 
+#ifdef GRAVITY
 	  if (do_grav)
 	    gravity->swapTimeLevels(level);
+#endif
 
 	  Real dt_temp;
 
