@@ -259,7 +259,7 @@ contains
   pure subroutine cons_state(q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
-         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map, qpass_map
 
     real (kind=dp_t), intent(in)  :: q(QVAR)
@@ -278,6 +278,10 @@ contains
     U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)**2 + q(QV)**2 + q(QW)**2)
     U(UEINT) = q(QREINT)
 
+    ! we don't care about T here, but initialize it to make NaN
+    ! checking happy
+    U(UTEMP) = ZERO
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -290,7 +294,7 @@ contains
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
-         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
@@ -330,6 +334,8 @@ contains
          (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
     U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
 
+    U(UTEMP) = ZERO  ! we don't evolve T
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -341,7 +347,7 @@ contains
   
   pure subroutine compute_flux(idir, ndim, bnd_fac, U, p, F)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map
     use prob_params_module, only : coord_type
 
@@ -380,6 +386,8 @@ contains
 
     F(UEINT) = U(UEINT)*u_flx
     F(UEDEN) = (U(UEDEN) + p)*u_flx
+
+    F(UTEMP) = ZERO
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
