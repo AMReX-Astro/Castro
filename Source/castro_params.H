@@ -79,6 +79,7 @@ static int spherical_star;
 static int print_fortran_warnings;
 static int print_energy_diagnostics;
 static int sum_interval;
+static Real sum_per;
 static int show_center_of_mass;
 static int hard_cfl_limit;
 static std::string job_name;

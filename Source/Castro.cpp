@@ -1586,14 +1586,37 @@ Castro::post_timestep (int iteration)
 
     problem_post_timestep();
 
-#endif    
-    
+#endif
+
     if (level == 0)
     {
         int nstep = parent->levelSteps(0);
+	Real dtlev = parent->dtLevel(0);
+	Real cumtime = parent->cumTime() + dtlev;
 
-        if ((sum_interval > 0) && (nstep%sum_interval == 0) )
-            sum_integrated_quantities();
+	bool sum_int_test = false;
+
+	if (sum_interval > 0) {
+
+	  if (nstep%sum_interval == 0)
+	    sum_int_test = true;
+
+	}
+
+	bool sum_per_test = false;
+
+	if (sum_per > 0.0) {
+
+	  const int num_per_old = floor((cumtime - dtlev) / sum_per);
+	  const int num_per_new = floor((cumtime        ) / sum_per);
+
+	  if (num_per_old != num_per_new)
+	    sum_per_test = true;
+
+	}
+
+        if (sum_int_test || sum_per_test)
+	  sum_integrated_quantities();
 
 #ifdef GRAVITY
         if (moving_center) write_center();
@@ -1857,8 +1880,34 @@ Castro::post_init (Real stop_time)
 
 #endif
 
-    if ( (sum_interval > 0) && (parent->levelSteps(0)%sum_interval == 0) )
-        sum_integrated_quantities();
+        int nstep = parent->levelSteps(0);
+	Real dtlev = parent->dtLevel(0);
+	Real cumtime = parent->cumTime();
+	if (cumtime != 0.0) cumtime += dtlev;
+
+	bool sum_int_test = false;
+
+	if (sum_interval > 0) {
+
+	  if (nstep%sum_interval == 0)
+	    sum_int_test = true;
+
+	}
+
+	bool sum_per_test = false;
+
+	if (sum_per > 0.0) {
+
+	  const int num_per_old = floor((cumtime - dtlev) / sum_per);
+	  const int num_per_new = floor((cumtime        ) / sum_per);
+
+	  if (num_per_old != num_per_new)
+	    sum_per_test = true;
+
+	}
+
+        if (sum_int_test || sum_per_test)
+	  sum_integrated_quantities();
 
 #ifdef GRAVITY
     if (level == 0 && moving_center == 1)

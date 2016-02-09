@@ -87,6 +87,7 @@ int         Castro::print_energy_diagnostics = 1;
 int         Castro::print_energy_diagnostics = 0;
 #endif
 int         Castro::sum_interval = -1;
+Real        Castro::sum_per = -1.0e0;
 int         Castro::show_center_of_mass = 0;
 int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";

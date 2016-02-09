@@ -79,6 +79,7 @@ pp.query("spherical_star", spherical_star);
 pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_energy_diagnostics", print_energy_diagnostics);
 pp.query("sum_interval", sum_interval);
+pp.query("sum_per", sum_per);
 pp.query("show_center_of_mass", show_center_of_mass);
 pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("job_name", job_name);

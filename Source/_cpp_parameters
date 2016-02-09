@@ -274,8 +274,11 @@ print_fortran_warnings       int           (0, 1)
 # display breakdown of energy sources 
 print_energy_diagnostics     int           (0, 1)
 
-# how often to compute integral sums (for runtime diagnostics)
-sum_interval                 int          -1
+# how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
+sum_interval                 int           -1
+
+# how often (simulation time) to compute integral sums (for runtime diagnostics)
+sum_per                      Real          -1.0e0
 
 # display center of mass diagnostics
 show_center_of_mass          int           0
