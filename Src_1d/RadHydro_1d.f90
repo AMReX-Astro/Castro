@@ -234,30 +234,30 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   enddo
   courno = courmx
 
-  !     Compute flattening coef for slope calculations
+  ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
      flatn = 0.d0
+
   else if (iflaten.eq.1) then
      loq(1)=lo(1)-ngf
      hiq(1)=hi(1)+ngf
-     call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
-          q(:,qptot), &
-          q(:,QU), &
-          q(:,QV), &
-          q(:,QW), &
-          flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
-     call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
-          q(:,qpres), &
-          q(:,QU), &
-          q(:,QV), &
-          q(:,QW), &
-          flatg,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
-     flatn = flatn * flatg
+     call uflaten([loq(1), 0, 0], [hiq(1), 0, 0], &
+                  q(:,qptot), &
+                  q(:,QU), q(:,QV), q(:,QW), &
+                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+     call uflaten([loq(1), 0, 0], [hiq(1), 0, 0], &
+                  q(:,qpres), &
+                  q(:,QU), q(:,QV), q(:,QW), &
+                  flatg, [q_l1, 0, 0], [q_h1, 0, 0])
+
+     do i = loq(1), hiq(1)
+        flatn(i) = flatn(i) * flatg(i)
+     enddo
 
      if (flatten_pp_threshold > 0.d0) then
-        call ppflaten(loq,hiq, &
-             flatn, q, q_l1, q_h1)
+        call ppflaten(loq, hiq, flatn, q, q_l1, q_h1)
      end if
+
   else
      flatn = 1.d0
   endif
