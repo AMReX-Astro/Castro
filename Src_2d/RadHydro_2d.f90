@@ -250,23 +250,24 @@ subroutine ctoprim_rad(lo,hi, &
         loq(n)=lo(n)-ngf
         hiq(n)=hi(n)+ngf
      enddo
-     call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
-          q(:,:,qptot), &
-          q(:,:,QU), &
-          q(:,:,QV), &
-          q(:,:,QW), &
-          flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
-     call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
-          q(:,:,qpres), &
-          q(:,:,QU), &
-          q(:,:,QV), &
-          q(:,:,QW), &
-          flatg,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
-     flatn = flatn * flatg
+     call uflaten([loq(1), loq(2), 0], [hiq(1), hiq(2), 0], &
+                  q(:,:,qptot), &
+                  q(:,:,QU), q(:,:,QV), q(:,:,QW), &
+                  flatn, [q_l1, q_l2, 0], [q_h1, q_h2, 0])
+
+     call uflaten([loq(1), loq(2), 0], [hiq(1), hiq(2), 0], &
+                  q(:,:,qpres), &
+                  q(:,:,QU), q(:,:,QV), q(:,:,QW), &
+                  flatg, [q_l1, q_l2, 0], [q_h1, q_h2, 0])
+
+     do j = loq(2), hiq(2)
+        do i = loq(1), hiq(1)
+           flatn(i,j) = flatn(i,j) * flatg(i,j)
+        enddo
+     enddo
 
      if (flatten_pp_threshold > 0.d0) then
-        call ppflaten(loq,hiq, &
-             flatn, q, q_l1,q_l2,q_h1,q_h2)
+        call ppflaten(loq, hiq, flatn, q, q_l1, q_l2, q_h1, q_h2)
      end if
   else
      flatn = 1.d0
