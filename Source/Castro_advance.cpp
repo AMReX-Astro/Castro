@@ -191,11 +191,11 @@ Castro::advance (Real time,
 	int n_subcycle_iters = ceil(dt / dt_subcycle);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
-	  std::cout << "  \n";
-	  std::cout << "  Timestep " << dt << " rejected at level " << level << ".\n";
+	  std::cout << std::endl;
+	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
 	  std::cout << "  Performing a retry, with " << n_subcycle_iters
-		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << "\n";
-	  std::cout << "  \n";
+		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+	  std::cout << std::endl;
 	}
 
 	Real subcycle_time = time;
@@ -205,8 +205,6 @@ Castro::advance (Real time,
 	// Restore the original values of the state data.
 
 	for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	  state[k].setTimeLevel(time, dt_advance, 0.0);
 
 	  if (got_old_data[k]) {
 
@@ -230,12 +228,14 @@ Castro::advance (Real time,
 
 	  }
 
-	  // Finally, anticipate the swapTimeLevels to come.
+	  // Anticipate the swapTimeLevels to come.
 
 	  if (k == Source_Type)
 	    state[k].swapTimeLevels(0.0);
 
-	  state[k].swapTimeLevels(-dt_advance);
+	  state[k].swapTimeLevels(0.0);
+
+	  state[k].setTimeLevel(time, 0.0, 0.0);
 
 	}
 
@@ -279,9 +279,9 @@ Castro::advance (Real time,
 
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << "  \n";
+	    std::cout << std::endl;
 	    std::cout << "  Retry subcycle " << subcycle_iter << " completed" << std::endl;
-	    std::cout << "  \n";
+	    std::cout << std::endl;
 	  }
 
 	  subcycle_time += dt_advance;
