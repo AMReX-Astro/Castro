@@ -1055,7 +1055,7 @@ body.landing #header nav a {
 /* Banner */
 
 #banner {
-    background-image: url(../images/dark_tint.png), url(../images/bokeh_car_lights_bg.jpg);
+    background-image: url(../images/dark_tint.png), url(../science-images/fdp2_plt00550.png);  /*bokeh_car_lights_bg.jpg); */
     background-position: center center;
     background-size: cover;
     color: #ffffff;
