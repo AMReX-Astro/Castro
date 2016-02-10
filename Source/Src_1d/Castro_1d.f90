@@ -9,7 +9,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      area,area_l1,area_h1,&
      dloga,dloga_l1,dloga_h1,&
      vol,vol_l1,vol_h1,courno,verbose,&
-     mass_added,eint_added,eden_added,&
+     mass_added,eint_added,eden_added,frac_change,&
      xmom_added_flux,ymom_added_flux,zmom_added_flux,&
      E_added_flux) bind(C)
 
@@ -55,7 +55,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   double precision :: dx,E_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision :: mass_added, eint_added, eden_added
+  double precision :: mass_added, eint_added, eden_added, frac_change
   integer i,ngf,ngq
   integer q_l1, q_h1
 
@@ -132,7 +132,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi,lo,hi,&
-       mass_added,eint_added,eden_added,verbose)
+                               mass_added,eint_added,eden_added,frac_change,verbose)
 
   ! Enforce that the species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)

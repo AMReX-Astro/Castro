@@ -180,11 +180,23 @@ Castro::advance (Real time,
 			  BL_TO_FORTRAN_3D(R_old[mfi]),
 			  BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx), &dt, &dt_subcycle);
+			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
+			  &dt, &dt_subcycle);
 
       }
 
       ParallelDescriptor::ReduceRealMin(dt_subcycle);
+
+      Real negative_density_reset_factor = 1.0e-2;
+
+      // Negative density criterion
+      // Reset so that the desired maximum fractional change in density
+      // is not larger than negative_density_reset_factor.
+
+      if (frac_change < 0.0)
+	dt_subcycle = std::min(dt_subcycle, dt * -(negative_density_reset_factor / frac_change));
+
+
 
       if (dt_subcycle < dt) {
 
@@ -401,6 +413,10 @@ Castro::advance_hydro (Real time,
         radiation->pre_timestep(level);
     } 
 #endif
+
+    // Reset the change from density resets
+
+    frac_change = 1.e0;
 
     u_gdnv = new MultiFab[BL_SPACEDIM];
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
@@ -976,6 +992,7 @@ Castro::advance_hydro (Real time,
 	    Real mass_added      = 0.;
 	    Real eint_added      = 0.;
 	    Real eden_added      = 0.;
+	    Real dens_change     = 1.e200;
 	    Real xmom_added_flux = 0.;
 	    Real ymom_added_flux = 0.;
 	    Real zmom_added_flux = 0.;
@@ -999,14 +1016,16 @@ Castro::advance_hydro (Real time,
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
-                     reduction(+:mass_change_at_center)
+                     reduction(+:mass_change_at_center) \
+                     reduction(min:dens_change)
 #else
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
-                     reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
+                     reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
+                     reduction(min:dens_change)
 #endif
 #endif
 	    {
@@ -1055,7 +1074,8 @@ Castro::advance_hydro (Real time,
 #endif
 			 BL_TO_FORTRAN(volume[mfi]), 
 			 &cflLoc, verbose, 
-			 mass_added, eint_added, eden_added, 
+			 mass_added, eint_added, eden_added,
+			 dens_change,
 			 xmom_added_flux, 
                   	 ymom_added_flux, 
 	                 zmom_added_flux,
@@ -1152,6 +1172,8 @@ Castro::advance_hydro (Real time,
 	    }  // end of omp parallel region
 
 	    BL_PROFILE_VAR_STOP(CA_UMDRV);
+
+	    frac_change = dens_change;
 
 	    if (print_energy_diagnostics)
 	    {
@@ -1253,7 +1275,11 @@ Castro::advance_hydro (Real time,
 
 	    if (verbose && ParallelDescriptor::IOProcessor())
 	      std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+
     }
+
+    if (use_retry)
+      ParallelDescriptor::ReduceRealMin(frac_change);
 
 #ifdef POINTMASS
     if (level == finest_level)

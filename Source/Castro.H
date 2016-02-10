@@ -542,6 +542,9 @@ protected:
     static BCRec     phys_bc;
     static int       NUM_GROW;
 
+    // for keeping track of mass changes from negative density resets
+    static Real      frac_change;
+
     // for keeping track of the amount of CPU time used -- this will persist
     // after restarts
     static Real      previousCPUTimeUsed;

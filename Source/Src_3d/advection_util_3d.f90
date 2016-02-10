@@ -101,7 +101,8 @@ contains
 
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
-                                     lo,hi,mass_added,eint_added,eden_added,verbose) bind(C)
+                                     lo,hi,mass_added,eint_added, &
+                                     eden_added,frac_change,verbose) bind(C)
     
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, &
@@ -117,7 +118,7 @@ contains
 
     double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    double precision, intent(out) :: mass_added, eint_added, eden_added
+    double precision, intent(out) :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n,ipassive
@@ -144,19 +145,28 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             
+
              initial_mass = initial_mass + uout(i,j,k,URHO )
              initial_eint = initial_eint + uout(i,j,k,UEINT)
              initial_eden = initial_eden + uout(i,j,k,UEDEN)
-             
+
              if (uout(i,j,k,URHO) .eq. ZERO) then
-                
+
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
                 call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
-                
+
              else if (uout(i,j,k,URHO) < small_dens) then
-                
+
+                ! Store the maximum (negative) fractional change in the density
+
+                if ( uout(i,j,k,URHO) < ZERO .and. &
+                     (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO) < frac_change) then
+
+                   frac_change = (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO)
+
+                endif
+
                 max_dens = uout(i,j,k,URHO)
                 i_set = i
                 j_set = j
@@ -187,7 +197,7 @@ contains
                    i_set = i
                    j_set = j
                    k_set = k
-                   
+
                    do ipassive = 1, npassive
                       n = upass_map(ipassive)
                       uout(i,j,k,n) = uout(i,j,k,n) * (small_dens / uout(i,j,k,URHO))
@@ -210,7 +220,7 @@ contains
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
 
                 endif
-                
+
                 if (verbose .gt. 0) then
                    if (uout(i,j,k,URHO) < ZERO) then
                       print *,'   '
@@ -224,7 +234,7 @@ contains
                       print *,'   '
                    end if
                 end if
-                
+
                 uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
                 uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
                 uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
@@ -232,18 +242,18 @@ contains
                 uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
                 uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
                 uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
-   
+
                 do ipassive = 1, npassive
                    n = upass_map(ipassive)
                    uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
                 end do
-                
+
              end if
 
              final_mass = final_mass + uout(i,j,k,URHO )
              final_eint = final_eint + uout(i,j,k,UEINT)
-             final_eden = final_eden + uout(i,j,k,UEDEN)                
-             
+             final_eden = final_eden + uout(i,j,k,UEDEN)
+
           enddo
        enddo
     enddo

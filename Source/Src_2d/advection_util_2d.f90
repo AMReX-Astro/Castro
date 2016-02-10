@@ -71,7 +71,8 @@ contains
 
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
-                                     lo,hi,mass_added,eint_added,eden_added,verbose) bind(C)
+                                     lo,hi,mass_added,eint_added, &
+                                     eden_added,frac_change,verbose) bind(C)
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
                                    UFS, small_dens, smalL_temp, npassive, upass_map
@@ -86,7 +87,7 @@ contains
     integer          :: uout_lo(2), uout_hi(2)
     double precision ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2),NVAR)
     double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),NVAR)
-    double precision :: mass_added, eint_added, eden_added
+    double precision :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
     integer                       :: i,ii,j,jj,n,ipassive
@@ -113,7 +114,7 @@ contains
           initial_mass = initial_mass + uout(i,j,URHO)
           initial_eint = initial_eint + uout(i,j,UEINT)
           initial_eden = initial_eden + uout(i,j,UEDEN)
-          
+
           if (uout(i,j,URHO) .eq. ZERO) then
              
              print *,'   '
@@ -123,7 +124,16 @@ contains
              call bl_error("Error:: Castro_2d.f90 :: enforce_minimum_density")
              
           else if (uout(i,j,URHO) < small_dens) then
+
+             ! Store the maximum (negative) fractional change in the density
              
+             if ( uout(i,j,URHO) < ZERO .and. &
+                  (uout(i,j,URHO) - uin(i,j,URHO)) / uin(i,j,URHO) < frac_change) then
+
+                frac_change = (uout(i,j,URHO) - uin(i,j,URHO)) / uin(i,j,URHO)
+
+             endif
+
              max_dens = uout(i,j,URHO)
              do jj = -1,1
                 do ii = -1,1

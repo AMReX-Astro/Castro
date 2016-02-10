@@ -68,6 +68,8 @@ int          Castro::NUM_STATE     = -1;
 int          Castro::do_reflux     = 1;
 int          Castro::NUM_GROW      = -1;
 
+Real         Castro::frac_change   = 1.e200;
+
 int          Castro::Density       = -1;
 int          Castro::Eden          = -1;
 int          Castro::Eint          = -1;

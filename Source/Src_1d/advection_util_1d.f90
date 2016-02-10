@@ -47,7 +47,8 @@ contains
 
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
-                                     lo,hi,mass_added,eint_added,eden_added,verbose) bind(C)
+                                     lo,hi,mass_added,eint_added, &
+                                     eden_added,frac_change,verbose) bind(C)
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    UFS, UFX, small_dens, small_temp, npassive, upass_map
@@ -62,7 +63,7 @@ contains
     integer          :: uout_lo(1), uout_hi(1)
     double precision ::  uin( uin_lo(1): uin_hi(1),NVAR)
     double precision :: uout(uout_lo(1):uout_hi(1),NVAR)
-    double precision :: mass_added, eint_added, eden_added
+    double precision :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
     integer          :: i,ii,n,ipassive
@@ -100,7 +101,16 @@ contains
           call bl_error("Error:: Castro_1d.f90 :: enforce_minimum_density")
           
        else if (uout(i,URHO) < small_dens) then
+
+          ! Store the maximum (negative) fractional change in the density
           
+          if ( uout(i,URHO) < ZERO .and. &
+               (uout(i,URHO) - uin(i,URHO)) / uin(i,URHO) < frac_change) then
+
+             frac_change = (uout(i,URHO) - uin(i,URHO)) / uin(i,URHO)
+
+          endif
+
           max_dens = uout(i,URHO)
           do ii = -1,1
              if (i+ii.ge.lo(1) .and. i+ii.le.hi(1)) then
