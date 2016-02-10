@@ -84,7 +84,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable :: q2(:,:,:)
 
   integer ngq,ngf,iflaten
-  double precision dx,dy,mass_added,eint_added,eden_added
+  double precision dx,dy,mass_added,eint_added,eden_added,frac_change
 
   integer q_l1, q_l2, q_h1, q_h2
 
@@ -173,7 +173,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   eden_added = 0.d0
   call enforce_minimum_density(uin, [uin_l1, uin_l2], [uin_h1, uin_h2], &
                                uout,[uout_l1,uout_l2],[uout_h1,uout_h2],&
-                               lo,hi,mass_added,eint_added,eden_added,verbose)
+                               lo,hi,mass_added,eint_added,eden_added,frac_change,verbose)
   
   ! Enforce the species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)

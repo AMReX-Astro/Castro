@@ -65,7 +65,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: srcQ(:,:)
   double precision, allocatable:: pdivu(:)
   
-  double precision dx,mass_added,eint_added,eden_added
+  double precision dx,mass_added,eint_added,eden_added,frac_change
   integer i,ngf,ngq,iflaten
   integer q_l1, q_h1
 
@@ -155,7 +155,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   eden_added = 0.d0
 
   call enforce_minimum_density(uin,[uin_l1],[uin_h1],uout,[uout_l1],[uout_h1],lo,hi,&
-                               mass_added,eint_added,eden_added,verbose)
+                               mass_added,eint_added,eden_added,frac_change,verbose)
   
   ! Enforce that the species >= 0
   call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)
