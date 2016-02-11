@@ -10,12 +10,12 @@ subroutine set_castro_method_params( &
   transverse_reset_rhoe_in, dual_energy_update_E_from_e_in, dual_energy_eta1_in,  &
   dual_energy_eta2_in, dual_energy_eta3_in, use_pslope_in,  &
   normalize_species_in, fix_mass_flux_in, allow_negative_energy_in,  &
-  do_sponge_in, cfl_in, dtnuc_in,  &
-  dsnuc_in, dxnuc_in, do_react_in,  &
-  react_T_min_in, react_T_max_in, do_grav_in,  &
-  grav_source_type_in, do_rotation_in, rot_period_in,  &
-  rot_period_dot_in, rot_source_type_in, rot_axis_in,  &
-  point_mass_in, do_acc_in) bind(C)
+  do_sponge_in, cfl_in, dtnuc_e_in,  &
+  dtnuc_X_in, dtnuc_mode_in, dxnuc_in,  &
+  do_react_in, react_T_min_in, react_T_max_in,  &
+  do_grav_in, grav_source_type_in, do_rotation_in,  &
+  rot_period_in, rot_period_dot_in, rot_source_type_in,  &
+  rot_axis_in, point_mass_in, do_acc_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -62,8 +62,9 @@ subroutine set_castro_method_params( &
   integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: do_sponge_in
   double precision, intent(in) :: cfl_in
-  double precision, intent(in) :: dtnuc_in
-  double precision, intent(in) :: dsnuc_in
+  double precision, intent(in) :: dtnuc_e_in
+  double precision, intent(in) :: dtnuc_X_in
+  integer,          intent(in) :: dtnuc_mode_in
   double precision, intent(in) :: dxnuc_in
   integer,          intent(in) :: do_react_in
   double precision, intent(in) :: react_T_min_in
@@ -113,8 +114,9 @@ subroutine set_castro_method_params( &
   allow_negative_energy = allow_negative_energy_in
   do_sponge = do_sponge_in
   cfl = cfl_in
-  dtnuc = dtnuc_in
-  dsnuc = dsnuc_in
+  dtnuc_e = dtnuc_e_in
+  dtnuc_X = dtnuc_X_in
+  dtnuc_mode = dtnuc_mode_in
   dxnuc = dxnuc_in
   do_react = do_react_in
   react_T_min = react_T_min_in

@@ -1211,7 +1211,7 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef REACTIONS
     MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& reactions_new = get_new_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
 
     // Dummy value to start with
     Real estdt_burn = max_dt;
@@ -1229,10 +1229,29 @@ Castro::estTimeStep (Real dt_old)
 	    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	    {
 	        const Box& box = mfi.validbox();
-		ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
-				 BL_TO_FORTRAN_3D(reactions_new[mfi]),
-				 ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-				 ZFILL(dx),&dt_old,&dt);
+
+		if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
+
+		  MultiFab& S_old = get_old_data(State_Type);
+		  MultiFab& R_old = get_old_data(Reactions_Type);
+
+		  ca_estdt_burning(BL_TO_FORTRAN_3D(S_old[mfi]),
+                                   BL_TO_FORTRAN_3D(S_new[mfi]),
+				   BL_TO_FORTRAN_3D(R_old[mfi]),
+				   BL_TO_FORTRAN_3D(R_new[mfi]),
+				   ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+				   ZFILL(dx),&dt_old,&dt);
+
+		} else {
+
+		  ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
+                                   BL_TO_FORTRAN_3D(S_new[mfi]),
+				   BL_TO_FORTRAN_3D(R_new[mfi]),
+				   BL_TO_FORTRAN_3D(R_new[mfi]),
+				   ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+				   ZFILL(dx),&dt_old,&dt);
+
+		}
 
 	    }
 #ifdef _OPENMP

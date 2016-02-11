@@ -88,8 +88,9 @@ module meth_params_module
   integer         , save :: allow_negative_energy
   integer         , save :: do_sponge
   double precision, save :: cfl
-  double precision, save :: dtnuc
-  double precision, save :: dsnuc
+  double precision, save :: dtnuc_e
+  double precision, save :: dtnuc_X
+  integer         , save :: dtnuc_mode
   double precision, save :: dxnuc
   integer         , save :: do_react
   double precision, save :: react_T_min

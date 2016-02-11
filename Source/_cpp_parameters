@@ -171,15 +171,23 @@ use_retry                    int           0
 # category: reactions
 #-----------------------------------------------------------------------------
 
-# limit the timestep based on how much the burning can change the internal
+# Limit the timestep based on how much the burning can change the internal
 # energy of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(e / \dot{e})$
-dtnuc                        Real          1.e200             y
+# {\tt dtnuc}  $\cdot\,(e / \dot{e})$.
+dtnuc_e                      Real          1.e200             y
 
-# limit the timestep based on how much the burning can change the mass fractions
-# of the species in a one. The timestep for a given species $k$ is equal to
-# {\tt dsnuc} $\cdot\, (X_k / \dot{X_k})$
-dsnuc                        Real          1.e200             y
+# Limit the timestep based on how much the burning can change the species
+# mass fractions of a zone. The timestep is equal to
+# {\tt dtnuc}  $\cdot\,{X / \dot{X})$.
+dtnuc_X                      Real          1.e200             y
+
+# If we are doing burning timestep limiting, choose the method for
+# estimating $\dot{e}$ and $\dot{X}$.
+# 1 == call the burner's RHS for an instantaneous calculation
+# 2 == use the second-half burning from the last timestep
+# 3 == use both the first- and the second-half burning from the last timestep
+# 4 == use the change in the full state over the last timestep
+dtnuc_mode                   int           1                  y
 
 # limit the zone size based on how much the burning can change the internal 
 # energy of a zone. The zone size on the finest level must be smaller than

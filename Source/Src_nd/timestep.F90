@@ -103,13 +103,15 @@ contains
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
-  subroutine ca_estdt_burning(u, u_lo, u_hi, &
-                              reactions, r_lo, r_hi, &
+  subroutine ca_estdt_burning(sold, so_lo, so_hi, &
+                              snew, sn_lo, sn_hi, &
+                              rold, ro_lo, ro_hi, &
+                              rnew, rn_lo, rn_hi, &
                               lo, hi, dx, dt_old, dt) bind(C)
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc, dsnuc
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc_e, dtnuc_X, dtnuc_mode
     use prob_params_module, only : dim
     use actual_rhs_module, only: actual_rhs
     use eos_module
@@ -119,22 +121,26 @@ contains
 
     implicit none
 
-    integer          :: u_lo(3), u_hi(3)
-    integer          :: r_lo(3), r_hi(3)
+    integer          :: so_lo(3), so_hi(3)
+    integer          :: sn_lo(3), sn_hi(3)
+    integer          :: ro_lo(3), ro_hi(3)
+    integer          :: rn_lo(3), rn_hi(3)
     integer          :: lo(3), hi(3)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    double precision :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    double precision :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    double precision :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    double precision :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
     double precision :: dx(3), dt, dt_old
 
-    double precision :: dedt, dXdt(nspec)
+    double precision :: e, X(nspec), dedt, dXdt(nspec)
     integer          :: i, j, k
 
-    type (burn_t)    :: burn_state
+    type (burn_t)    :: state_old, state_new
     type (eos_t)     :: eos_state
-    double precision :: rhoInv
+    double precision :: rhooinv, rhoninv
 
     ! We want to limit the timestep so that it is not larger than
-    ! dtnuc * (e / (de/dt)).  If the timestep factor dtnuc is
+    ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
     ! equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
     ! magnitude in the next timestep. 
@@ -145,7 +151,7 @@ contains
     ! good estimate for the current timestep's burning.
     !
     ! We do the same thing for the species, using a timestep
-    ! limiter dsnuc * (X_k / (dX_k/dt)).
+    ! limiter dtnuc_X * (X_k / (dX_k/dt)).
     !
     ! To estimate de/dt and dX/dt, we are going to call the RHS of the
     ! burner given the current state data. We need to do an EOS
@@ -153,35 +159,69 @@ contains
     ! values for the thermodynamic data like abar, zbar, etc.
     ! But we will call in (rho, T) mode, which is inexpensive.
 
-    if (dtnuc > 1.d199 .and. dsnuc > 1.d199) return
+    if (dtnuc_e > 1.d199 .and. dtnuc_X > 1.d199) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhoInv = ONE / u(i,j,k,URHO)
+             rhooinv = ONE / sold(i,j,k,URHO)
+             rhoninv = ONE / snew(i,j,k,URHO)
 
-             burn_state % rho = u(i,j,k,URHO)
-             burn_state % T   = u(i,j,k,UTEMP)
-             burn_state % e   = u(i,j,k,UEINT) * rhoInv
-             burn_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             burn_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+             state_old % rho = sold(i,j,k,URHO)
+             state_old % T   = sold(i,j,k,UTEMP)
+             state_old % e   = sold(i,j,k,UEINT) * rhooinv
+             state_old % xn  = sold(i,j,k,UFS:UFS+nspec-1) * rhooinv
+             state_old % aux = sold(i,j,k,UFX:UFX+naux-1) * rhooinv
 
-             if (.not. ok_to_burn(burn_state)) cycle
+             state_new % rho = snew(i,j,k,URHO)
+             state_new % T   = snew(i,j,k,UTEMP)
+             state_new % e   = snew(i,j,k,UEINT) * rhoninv
+             state_new % xn  = snew(i,j,k,UFS:UFS+nspec-1) * rhoninv
+             state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
 
-             call burn_to_eos(burn_state, eos_state)
-             call eos(eos_input_rt, eos_state)
-             call eos_to_burn(eos_state, burn_state)
+             if (.not. ok_to_burn(state_new)) cycle
 
-             call actual_rhs(burn_state)
+             e    = state_new % e
+             X    = state_new % xn
 
-             dedt = max(abs(burn_state % ydot(net_ienuc)), 1.d-200)
+             if (dtnuc_mode == 1) then
 
-             dt = min(dt, dtnuc * burn_state % e / dedt)
+                call burn_to_eos(state_new, eos_state)
+                call eos(eos_input_rt, eos_state)
+                call eos_to_burn(eos_state, state_new)
 
-             dXdt = max(abs(burn_state % ydot(1:nspec) * aion), 1.d-200)
+                call actual_rhs(state_new)
 
-             dt = min(dt, dsnuc * minval(burn_state % xn / dXdt))
+                dedt = state_new % ydot(net_ienuc)
+                dXdt = state_new % ydot(1:nspec) * aion
+
+             else if (dtnuc_mode == 2) then
+
+                dedt = rnew(i,j,k,nspec+1)
+                dXdt = rnew(i,j,k,1:nspec)
+
+             else if (dtnuc_mode == 3) then
+
+                dedt = HALF * (rold(i,j,k,nspec+1) + rnew(i,j,k,nspec+1))
+                dXdt = HALF * (rold(i,j,k,1:nspec) + rnew(i,j,k,1:nspec))
+
+             else if (dtnuc_mode == 4) then
+
+                dedt = (state_new % e - state_old % e) / dt_old
+                dXdt = (state_new % xn - state_old % xn) / dt_old
+
+             else
+
+                call bl_error("Error: unrecognized burning timestep limiter mode in timestep.F90.")
+
+             endif
+
+             dedt = max(abs(dedt), 1.d-200)
+             dXdt = max(abs(dXdt), 1.d-200)
+
+             dt = min(dt, dtnuc_e * e / dedt)
+             dt = min(dt, dtnuc_X * minval(X / dXdt))
 
           enddo
        enddo
@@ -286,7 +326,7 @@ contains
 
     use bl_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-                                  dtnuc, dsnuc, cfl, do_hydro, do_react
+                                  dtnuc_e, dtnuc_X, cfl, do_hydro, do_react
     use prob_params_module, only: dim
     use network, only: nspec
     use eos_module
@@ -367,15 +407,15 @@ contains
                 e_dot = max(abs(e_dot), 1.d-200)
                 tau_e = e_avg / e_dot
 
-                if (dt_old > dtnuc * tau_e) then
+                if (dt_old > dtnuc_e * tau_e) then
 
-                   dt_new = min(dt_new, dtnuc * tau_e)
+                   dt_new = min(dt_new, dtnuc_e * tau_e)
 
                 endif
 
-                if (dt_old > dsnuc * tau_X) then
+                if (dt_old > dtnuc_X * tau_X) then
 
-                   dt_new = min(dt_new, dsnuc * tau_X)
+                   dt_new = min(dt_new, dtnuc_X * tau_X)
 
                 endif
 
