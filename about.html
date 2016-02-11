@@ -86,8 +86,10 @@
 	      either a simple monopole approximation or the full
 	      Poisson equation using geometry multigrid.  Isolated
 	      boundary conditions for the Poisson solver allow for
-	      modeling complex mass distributions.
-	    </p>
+	      modeling complex mass distributions.  Several implementations
+	      for incorporating gravity into the energy equation are
+	      implemented, including an explicit source term and
+	      a conservative flux formulation.</p>
 
 
 	    <!-- <a href="#" class="image fit"><img src="images/pic07.jpg" alt="" /></a> -->
@@ -133,6 +135,11 @@
 	      BoxLib source, and support repos, if available).  This
 	      allows for a recovery of the code base used for previous
 	      results.</p>
+
+	    <p>Castro is run through a nightly regression test suite that
+	      checks the output, bit-for-bit, against stored benchmarks
+	      for many of the problem setups (including real science 
+	      runs).</p>
 
 	    <header class="major">
 	      <h3>adaptive mesh refinement</h3>
