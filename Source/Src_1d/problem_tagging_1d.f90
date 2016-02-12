@@ -13,7 +13,7 @@ contains
                               state,state_l1,state_h1,&
                               set,clear,&
                               lo,hi,&
-                              dx,problo,time,level) bind(C)
+                              dx,problo,time,level) bind(C, name="set_problem_tags")
 
     use meth_params_module, only: URHO, UMX, UEDEN, NVAR
 

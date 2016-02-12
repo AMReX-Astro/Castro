@@ -12,7 +12,7 @@ contains
 
   ! Returns the gravitational constant, G
   
-  subroutine get_grav_const(Gconst_out) bind(C)
+  subroutine get_grav_const(Gconst_out) bind(C, name="get_grav_const")
 
     use fundamental_constants_module, only: Gconst
 
@@ -34,7 +34,7 @@ contains
   ! Outputs: grav(r)
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) bind(C)
+  subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) bind(C, name="ca_integrate_grav")
 
     use fundamental_constants_module, only : Gconst
     use bl_constants_module
@@ -142,7 +142,7 @@ contains
   ! Outputs: phi
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) bind(C)
+  subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) bind(C, name="ca_integrate_phi")
 
     use fundamental_constants_module, only : Gconst
 
@@ -186,7 +186,7 @@ contains
   ! Outputs: grav
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) bind(C)
+  subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) bind(C, name="ca_integrate_gr_grav")
 
     use fundamental_constants_module, only : Gconst
     use bl_constants_module

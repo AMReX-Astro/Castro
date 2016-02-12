@@ -9,7 +9,7 @@ contains
   subroutine ca_test_residual(lo, hi, &
        rhs, rhl1, rhh1,  &
        ecx, ecxl1, ecxh1, &
-       dx, problo, coord_type) bind(C)
+       dx, problo, coord_type) bind(C, name="ca_test_residual")
 
     use bl_constants_module
 

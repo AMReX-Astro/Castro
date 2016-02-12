@@ -8,7 +8,7 @@ contains
 
   ! Courant-condition limited timestep
 
-  subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C)
+  subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
     use network, only: nspec, naux
     use eos_module
@@ -107,7 +107,7 @@ contains
                               snew, sn_lo, sn_hi, &
                               rold, ro_lo, ro_hi, &
                               rnew, rn_lo, rn_hi, &
-                              lo, hi, dx, dt_old, dt) bind(C)
+                              lo, hi, dx, dt_old, dt) bind(C, name="ca_estdt_burning")
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
@@ -235,7 +235,7 @@ contains
   ! Diffusion-limited timestep
 
 #ifdef DIFFUSION
-  subroutine ca_estdt_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) bind(C)
+  subroutine ca_estdt_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) bind(C, name="ca_estdt_diffusion")
 
     use network, only: nspec, naux
     use eos_module
@@ -322,7 +322,7 @@ contains
                                r_new, rn_lo, rn_hi, &
 #endif
                                lo, hi, &
-                               dx, dt_old, dt_new) bind(C)
+                               dx, dt_old, dt_new) bind(C, name="ca_check_timestep")
 
     use bl_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &

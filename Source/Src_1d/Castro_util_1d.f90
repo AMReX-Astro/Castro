@@ -6,7 +6,7 @@ module castro_util_1d_module
 
 contains
 
-  subroutine ca_check_initial_species(lo,hi,state,state_l1,state_h1) bind(C)
+  subroutine ca_check_initial_species(lo,hi,state,state_l1,state_h1) bind(C, name="ca_check_initial_species")
 
     use network           , only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -39,7 +39,7 @@ contains
 
 
 
-  subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi) bind(C)
+  subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi) bind(C, name="ca_enforce_nonnegative_species")
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -131,7 +131,7 @@ contains
 
 
 
-  subroutine get_center(center_out) bind(C)
+  subroutine get_center(center_out) bind(C, name="get_center")
 
     use prob_params_module, only : center
 
@@ -145,7 +145,7 @@ contains
 
 
 
-  subroutine set_center(center_in) bind(C)
+  subroutine set_center(center_in) bind(C, name="set_center")
 
     use prob_params_module, only : center
 
@@ -158,7 +158,7 @@ contains
   end subroutine set_center
 
 
-  subroutine find_center(data,new_center) bind(C)
+  subroutine find_center(data,new_center) bind(C, name="find_center")
 
     use bl_constants_module
 

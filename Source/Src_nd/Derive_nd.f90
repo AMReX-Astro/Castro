@@ -11,7 +11,7 @@ contains
 
   subroutine ca_derstate(state,s_lo,s_hi,nv, &
                          dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                         domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                         domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derstate")
     !
     ! The incoming   "dat" vector contains (rho,T,(rho X)_1)
     ! The outgoing "state" vector contains (rho,T,X_1)
@@ -60,7 +60,7 @@ contains
 
   subroutine ca_dervel(vel,v_lo,v_hi,nv, &
                        dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                       domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                       domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dervel")
     !
     ! This routine will derive the velocity from the momentum.
     !
@@ -92,7 +92,7 @@ contains
 
   subroutine ca_deruplusc(vel,v_lo,v_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_deruplusc")
 
     use network, only : nspec, naux
     use eos_module
@@ -143,7 +143,7 @@ contains
 
   subroutine ca_deruminusc(vel,v_lo,v_hi,nv, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_deruminusc")
 
     use network, only : nspec, naux
     use eos_module
@@ -194,7 +194,7 @@ contains
 
   subroutine ca_dermagvel(magvel,v_lo,v_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dermagvel")
     !
     ! This routine will derive magnitude of velocity.
     !
@@ -230,7 +230,7 @@ contains
 
   subroutine ca_dermaggrav(maggrav,g_lo,g_hi,ng, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dermaggrav")
     !
     ! This routine will derive magnitude of the gravity vector.
     !
@@ -264,7 +264,7 @@ contains
 
   subroutine ca_derradialvel(radvel,v_lo,v_hi,nv, &
                              dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                             domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                             domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derradialvel")
     !
     ! This routine will derive the radial velocity.
     !
@@ -306,7 +306,7 @@ contains
 
   subroutine ca_dermagmom(magmom,m_lo,m_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                          domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dermagmom")
     !
     ! This routine will derive magnitude of momentum.
     !
@@ -339,7 +339,7 @@ contains
   subroutine ca_derangmomx(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derangmomx")
 
     use bl_constants_module, only: HALF
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
@@ -382,7 +382,7 @@ contains
   subroutine ca_derangmomy(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derangmomy")
 
     use bl_constants_module, only: HALF
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
@@ -425,7 +425,7 @@ contains
   subroutine ca_derangmomz(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                           dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derangmomz")
 
     use bl_constants_module, only: HALF
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
@@ -467,7 +467,7 @@ contains
 
   subroutine ca_derpres(p,p_lo,p_hi,ncomp_p, &
                         u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                        domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                        domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derpres")
 
     use network, only: nspec, naux
     use eos_module
@@ -518,7 +518,7 @@ contains
 
   subroutine ca_dereint1(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dereint1")
 
     use bl_constants_module
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
@@ -557,7 +557,7 @@ contains
 
   subroutine ca_dereint2(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dereint2")
 
     use meth_params_module, only: URHO, UEINT
 
@@ -590,7 +590,7 @@ contains
 
   subroutine ca_dersoundspeed(c,c_lo,c_hi,ncomp_c, &
                               u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                              domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                              domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dersoundspeed")
 
     use network, only: nspec, naux
     use eos_module
@@ -640,7 +640,7 @@ contains
 
   subroutine ca_dermachnumber(mach,m_lo,m_hi,ncomp_mach, &
                               u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                              domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                              domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dermachnumber")
 
     use network, only: nspec, naux
     use eos_module
@@ -690,7 +690,7 @@ contains
 
   subroutine ca_derentropy(s,s_lo,s_hi,ncomp_s, &
                            u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                           domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                           domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derentropy")
 
     use network, only: nspec, naux
     use eos_module
@@ -740,7 +740,7 @@ contains
 
   subroutine ca_derenuctimescale(t,t_lo,t_hi,ncomp_t, &
                                  u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                                 domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                                 domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derenuctimescale")
 
     use bl_constants_module, only: ZERO, ONE
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
@@ -808,7 +808,7 @@ contains
 
   subroutine ca_derspec(spec,s_lo,s_hi,nv, &
                         dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                        domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                        domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derspec")
     !
     ! This routine derives the mass fractions of the species.
     !
@@ -841,7 +841,7 @@ contains
   subroutine ca_derlogden(logden,l_lo,l_hi,nd, &
                           dat,d_lo,d_hi,nc, &
                           lo,hi,domlo,domhi,delta, &
-                          xlo,time,dt,bc,level,grid_no) bind(C)
+                          xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derlogden")
     
     implicit none
 
@@ -870,7 +870,7 @@ contains
 
   subroutine ca_dermagvort(vort,v_lo,v_hi,nv, & 
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C)
+                           domhi,delta,xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dermagvort")
     
     !
     ! This routine will calculate vorticity
@@ -951,7 +951,7 @@ contains
   subroutine ca_derdivu(divu,u_lo,u_hi,nd, &
                         dat,d_lo,d_hi,nc, &
                         lo,hi,domlo,domhi,delta, &
-                        xlo,time,dt,bc,level,grid_no) bind(C)
+                        xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derdivu")
     !
     ! This routine will calculate the divergence of velocity.
     !
@@ -1001,7 +1001,7 @@ contains
   subroutine ca_derkineng(kineng,k_lo,k_hi,nk, &
                           dat,d_lo,d_hi,nc, &
                           lo,hi,domlo,domhi,delta, &
-                          xlo,time,dt,bc,level,grid_no) bind(C)
+                          xlo,time,dt,bc,level,grid_no) bind(C, name="ca_derkineng")
     !
     ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
     !
@@ -1039,7 +1039,7 @@ contains
   subroutine ca_dernull(kineng,k_lo,k_hi,nk, &
                         dat,d_lo,d_hi,nc, &
                         lo,hi,domlo,domhi,delta, &
-                        xlo,time,dt,bc,level,grid_no) bind(C)
+                        xlo,time,dt,bc,level,grid_no) bind(C, name="ca_dernull")
     !
     ! This routine is used by particle_count.  Yes it does nothing.
     !

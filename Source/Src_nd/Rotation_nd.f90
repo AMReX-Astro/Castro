@@ -64,7 +64,7 @@ contains
 
 
 
-  subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) bind(C)
+  subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) bind(C, name="ca_fill_rotational_potential")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center
@@ -100,7 +100,7 @@ contains
 
 
 
-  subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) bind(C)
+  subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) bind(C, name="ca_fill_rotational_acceleration")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center

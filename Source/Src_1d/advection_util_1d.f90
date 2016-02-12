@@ -48,7 +48,7 @@ contains
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
                                      lo,hi,mass_added,eint_added, &
-                                     eden_added,frac_change,verbose) bind(C)
+                                     eden_added,frac_change,verbose) bind(C, name="enforce_minimum_density")
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    UFS, UFX, small_dens, small_temp, npassive, upass_map

@@ -9,7 +9,7 @@ contains
   subroutine ca_apply_metric(lo, hi, &
        xlo, xhi, &
        rhs, rl1, rh1,  &
-       ecx, ecxl1, ecxh1, dx, coord_type) bind(C)
+       ecx, ecxl1, ecxh1, dx, coord_type) bind(C, name="ca_apply_metric")
 
     implicit none
     
@@ -71,7 +71,7 @@ contains
 
   subroutine ca_weight_cc(lo, hi, &
        cc, cl1, ch1,  &
-       dx, coord_type) bind(C)
+       dx, coord_type) bind(C, name="ca_weight_cc")
 
     implicit none
     
@@ -111,7 +111,7 @@ contains
 
   subroutine ca_unweight_cc(lo, hi, &
        cc, cl1, ch1,  &
-       dx, coord_type) bind(C)
+       dx, coord_type) bind(C, name="ca_unweight_cc")
 
     implicit none
     
@@ -150,7 +150,7 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ecx, ecxl1, ecxh1, dx, coord_type, idir) bind(C)
+       ecx, ecxl1, ecxh1, dx, coord_type, idir) bind(C, name="ca_unweight_edges")
 
     implicit none
     

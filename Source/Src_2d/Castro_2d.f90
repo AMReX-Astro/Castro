@@ -13,7 +13,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                     courno,verbose,mass_added,eint_added,eden_added,frac_change, &
                     xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux) bind(C)
+                    E_added_flux) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
   use advection_module, only : umeth2d, ctoprim, consup

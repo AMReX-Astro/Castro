@@ -7,7 +7,7 @@ module castro_util_3d_module
 contains
 
   subroutine ca_check_initial_species(lo,hi, &
-                                      state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3) bind(C)
+                                      state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3) bind(C, name="ca_check_initial_species")
 
     use network           , only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -47,7 +47,7 @@ contains
   subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
                                  state,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,radial_state, &
                                  vol,v_l1,v_l2,v_l3,v_h1,v_h2,v_h3,radial_vol, &
-                                 problo,numpts_1d) bind(C)
+                                 problo,numpts_1d) bind(C, name="ca_compute_avgstate")
 
     use meth_params_module, only : URHO, UMX, UMY, UMZ
     use prob_params_module, only : center
@@ -115,7 +115,7 @@ contains
 
 
   subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
-                                            uout_h1,uout_h2,uout_h3,lo,hi) bind(C)
+                                            uout_h1,uout_h2,uout_h3,lo,hi) bind(C, name="ca_enforce_nonnegative_species")
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -219,7 +219,7 @@ contains
 
 
   
-  subroutine get_center(center_out) bind(C)
+  subroutine get_center(center_out) bind(C, name="get_center")
 
     use prob_params_module, only : center
 
@@ -233,7 +233,7 @@ contains
 
 
   
-  subroutine set_center(center_in) bind(C)
+  subroutine set_center(center_in) bind(C, name="set_center")
 
     use prob_params_module, only : center
 
@@ -247,7 +247,7 @@ contains
 
 
 
-  subroutine find_center(data,new_center,icen,dx,problo) bind(C)
+  subroutine find_center(data,new_center,icen,dx,problo) bind(C, name="find_center")
 
     use bl_constants_module  
 

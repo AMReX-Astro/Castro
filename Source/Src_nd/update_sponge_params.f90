@@ -3,7 +3,7 @@
 ! By default it does nothing, meaning that the probin
 ! parameters are used.
 
-subroutine update_sponge_params(time) bind(C)
+subroutine update_sponge_params(time) bind(C, name="update_sponge_params")
 
   use sponge_module
 

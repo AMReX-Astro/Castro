@@ -9,7 +9,7 @@ contains
   ! All subroutines in this file must be threadsafe because they are called
   ! inside OpenMP parallel regions.
   
-  subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
 
     use meth_params_module, only: NVAR
     use prob_params_module, only: dim
@@ -34,7 +34,7 @@ contains
 
 
 
-  subroutine ca_denfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_denfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use prob_params_module, only: dim  
 
@@ -55,7 +55,7 @@ contains
 
   
 #ifdef GRAVITY
-  subroutine ca_phigravfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_phigravfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
 
     use prob_params_module, only: dim  
 
@@ -75,7 +75,7 @@ contains
   
 
   
-  subroutine ca_gravxfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_gravxfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
 
     use prob_params_module, only: dim  
 
@@ -95,7 +95,7 @@ contains
 
 
 
-  subroutine ca_gravyfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_gravyfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
     use prob_params_module, only: dim  
 
@@ -115,7 +115,7 @@ contains
 
 
 
-  subroutine ca_gravzfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_gravzfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
 
     use prob_params_module, only: dim
 
@@ -137,7 +137,7 @@ contains
   
 
 #ifdef ROTATION
-  subroutine ca_phirotfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_phirotfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phirotfill")
 
     use prob_params_module, only: dim  
 
@@ -157,7 +157,7 @@ contains
 
   
 
-  subroutine ca_rotxfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_rotxfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotxfill")
 
     use prob_params_module, only: dim  
 
@@ -177,7 +177,7 @@ contains
 
 
 
-  subroutine ca_rotyfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_rotyfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotyfill")
 
     use prob_params_module, only: dim  
 
@@ -197,7 +197,7 @@ contains
 
 
 
-  subroutine ca_rotzfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_rotzfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotzfill")
 
     use prob_params_module, only: dim
 
@@ -218,7 +218,7 @@ contains
 
 
 #ifdef REACTIONS  
-  subroutine ca_reactfill(react,react_lo,react_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_reactfill(react,react_lo,react_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
 
     use prob_params_module, only: dim  
 
@@ -240,7 +240,7 @@ contains
 
 
 #ifdef RADIATION
-  subroutine ca_radfill(rad,rad_lo,rad_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_radfill(rad,rad_lo,rad_hi,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
 
     use prob_params_module, only: dim  
 

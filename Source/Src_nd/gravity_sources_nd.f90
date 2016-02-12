@@ -8,7 +8,7 @@ contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
-                     E_added,mom_added) bind(C)
+                     E_added,mom_added) bind(C, name="ca_gsrc")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use bl_constants_module
@@ -117,7 +117,7 @@ contains
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
                          vol,vol_lo,vol_hi, &
-                         E_added,mom_added) bind(C)
+                         E_added,mom_added) bind(C, name="ca_corrgsrc")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
@@ -444,7 +444,7 @@ contains
                          gdphi,gdphi_lo,gdphi_hi, &
                          state,state_lo,state_hi, &
                          dstate,dstate_lo,dstate_hi, &
-                         sync_src,src_lo,src_hi,dt) bind(C)
+                         sync_src,src_lo,src_hi,dt) bind(C, name="ca_syncgsrc")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ
     use bl_constants_module

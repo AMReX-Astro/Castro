@@ -11,7 +11,7 @@ contains
        ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
        ecy, ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3, &
        ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
-       dx,problo,coord_type) bind(C)
+       dx,problo,coord_type) bind(C, name="ca_test_residual")
 
     implicit none
 
@@ -49,7 +49,7 @@ contains
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
        rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
        radial_mass,radial_vol,problo,&
-       n1d,drdxfac,level) bind(C)
+       n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
     
     use bl_constants_module
     use prob_params_module, only: center
@@ -150,7 +150,7 @@ contains
 
   subroutine ca_put_radial_grav (lo,hi,dx,dr,&
        grav,g_l1,g_l2,g_l3,g_h1,g_h2,g_h3, &
-       radial_grav,problo,n1d,level) bind(C)
+       radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use bl_constants_module
     use prob_params_module, only: center
@@ -246,7 +246,7 @@ contains
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
        phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
        radial_phi,problo,&
-       numpts_1d,fill_interior) bind(C)
+       numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
     
     use bl_constants_module
     use prob_params_module, only: center
@@ -354,7 +354,7 @@ contains
 
   subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx,&
        phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C)
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C, name="ca_put_multipole_phi")
 
     use prob_params_module, only: problo, center, probhi
     use fundamental_constants_module, only: Gconst
@@ -492,7 +492,7 @@ contains
 
   subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,symmetry_type,lo_bc,hi_bc,&
        dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C)
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C, name="ca_compute_multipole_moments")
 
     use prob_params_module, only: problo, center, probhi
     use bl_constants_module
@@ -995,7 +995,7 @@ contains
        symmetry_type,lo_bc,hi_bc, &
        dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
        problo, probhi, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C)
+       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C, name="ca_compute_direct_sum_bc")
     
     use prob_params_module, only: center
     use fundamental_constants_module, only: Gconst
@@ -1259,7 +1259,7 @@ contains
 
 
   subroutine ca_put_direct_sum_bc (lo,hi,domlo,domhi,phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C)
+       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C, name="ca_put_direct_sum_bc")
     
     use prob_params_module, only: center
 

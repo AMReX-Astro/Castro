@@ -2,7 +2,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_network_init() bind(C)
+      subroutine ca_network_init() bind(C, name="ca_network_init")
 
         use network
 
@@ -15,7 +15,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_extern_init(name,namlen) bind(C)
+      subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
         ! initialize the external runtime parameters in
         ! extern_probin_module
@@ -31,7 +31,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_num_spec(nspec_out) bind(C)
+      subroutine get_num_spec(nspec_out) bind(C, name="get_num_spec")
 
         use network, only : nspec
 
@@ -47,7 +47,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_num_aux(naux_out) bind(C)
+      subroutine get_num_aux(naux_out) bind(C, name="get_num_aux")
 
         use network, only : naux
 
@@ -63,7 +63,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_spec_names(spec_names,ispec,len) bind(C)
+      subroutine get_spec_names(spec_names,ispec,len) bind(C, name="get_spec_names")
 
         use network, only : nspec, short_spec_names
 
@@ -88,7 +88,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_spec_az(ispec,A,Z) bind(C)
+      subroutine get_spec_az(ispec,A,Z) bind(C, name="get_spec_az")
 
         use network, only : nspec, aion, zion
 
@@ -107,7 +107,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_aux_names(aux_names,iaux,len) bind(C)
+      subroutine get_aux_names(aux_names,iaux,len) bind(C, name="get_aux_names")
 
         use network, only : naux, short_aux_names
 
@@ -132,7 +132,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) bind(C)
+      subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) bind(C, name="set_amr_info")
 
         use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
@@ -167,7 +167,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_method_params(nGrowHyp) bind(C)
+      subroutine get_method_params(nGrowHyp) bind(C, name="get_method_params")
 
         ! Passing data from f90 back to C++
 
@@ -185,7 +185,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine allocate_outflow_data(np,nc) bind(C)
+      subroutine allocate_outflow_data(np,nc) bind(C, name="allocate_outflow_data")
 
         use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
 
@@ -205,7 +205,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine set_old_outflow_data(radial,time,np,nc) bind(C)
+      subroutine set_old_outflow_data(radial,time,np,nc) bind(C, name="set_old_outflow_data")
 
         ! Passing data from C++ to f90
 
@@ -230,7 +230,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine set_new_outflow_data(radial,time,np,nc) bind(C)
+      subroutine set_new_outflow_data(radial,time,np,nc) bind(C, name="set_new_outflow_data")
 
         ! Passing data from C++ to f90
 
@@ -255,7 +255,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine swap_outflow_data() bind(C)
+      subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
         use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
                                       outflow_data_old, outflow_data_old_time
@@ -296,7 +296,7 @@
                                    get_g_from_phi_in, &
                                    use_sgs, &
                                    diffuse_cutoff_density_in, &
-                                   const_grav_in) bind(C)
+                                   const_grav_in) bind(C, name="set_method_params")
 
         ! Passing data from C++ into f90
 
@@ -491,7 +491,7 @@
       end subroutine set_method_params
 
 
-      subroutine init_godunov_indices() bind(C)
+      subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
 
         use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
                                        QU, QV, QW
@@ -521,7 +521,7 @@
                                     Interior_in, Inflow_in, Outflow_in, &
                                     Symmetry_in, SlipWall_in, NoSlipWall_in, &
                                     coord_type_in, &
-                                    problo_in, probhi_in, center_in) bind(C)
+                                    problo_in, probhi_in, center_in) bind(C, name="set_problem_params")
 
         ! Passing data from C++ into f90
 
@@ -574,7 +574,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in) bind(C)
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in) bind(C, name="set_grid_info")
 
         use prob_params_module
 
@@ -606,7 +606,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_set_special_tagging_flag(dummy,flag) bind(C)
+      subroutine ca_set_special_tagging_flag(dummy,flag) bind(C, name="ca_set_special_tagging_flag")
       double precision :: dummy
       integer          :: flag
       end subroutine ca_set_special_tagging_flag
@@ -615,7 +615,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_tagging_params(name, namlen) bind(C)
+      subroutine get_tagging_params(name, namlen) bind(C, name="get_tagging_params")
 
         use tagging_module
 
@@ -701,7 +701,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_sponge_params(name, namlen) bind(C)
+      subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
         use sponge_module
 

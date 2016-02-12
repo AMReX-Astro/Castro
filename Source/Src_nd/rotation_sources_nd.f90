@@ -8,7 +8,7 @@ contains
 
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
-                     E_added,mom_added) bind(C)
+                     E_added,mom_added) bind(C, name="ca_rsrc")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
@@ -111,7 +111,7 @@ contains
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
                          vol,vol_lo,vol_hi, &
-                         E_added,mom_added) bind(C)
+                         E_added,mom_added) bind(C, name="ca_corrrsrc")
 
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
