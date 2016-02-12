@@ -7,7 +7,7 @@ module bc_fill_module
 contains
   
   subroutine ca_hypfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
 
     use meth_params_module, only : NVAR
 
@@ -72,7 +72,7 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
     
     implicit none
 
