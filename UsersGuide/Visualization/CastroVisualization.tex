@@ -197,47 +197,54 @@ including all of the primary functions and data objects provided by
 analyzing. Remember, you must have the ``inputs'' file in the same
 directory:
 
-{\scriptsize$>>>$} pf = load(`plt\_def\_00020')
+{\scriptsize$>>>$} ds = load(`plt\_def\_00020')
 
 When this line is executed, it will print out some key parameters from
 the simulation. However, in order to access information about all of
-the fluid quantities in the simulation, we must use the ``heirarchy''
-object. It contains the geometry of the grid zones, their parentage
-relationships, and the fluid states within each one. It is easily
-created:
+the fluid quantities in the simulation, we must use the ``index''
+object. (Note that for yt versions earlier than 3.0, this information
+was contained in the ``hierarchy'' object; for these versions, replace
+pf.index with pf. h in the following examples. The ``hierarchy'' object
+was removed in yt-3.0 and its associated functionality for accessing data
+was moved directly to the datasets themselves.) It contains the geometry
+of the grid zones, their parentage relationships, and the fluid states
+within each one. It is easily created:
 
-{\scriptsize$>>>$} pf.h
+{\scriptsize$>>>$} ds.index
 
 Upon execution, \yt\ may print out a number of lines saying it's adding
 unknown fields to the list of fields. This is because Castro has
 different names for fields than what \yt\ expects. We can see what
 fields exist through the commands
 
-{\scriptsize$>>>$} print pf.h.field\_list
+{\scriptsize$>>>$} print ds.index.field\_list
 
-{\scriptsize$>>>$} print pf.h.derived\_field\_list
+{\scriptsize$>>>$} print ds.index.derived\_field\_list
 
 There may not be any derived fields for Castro data. We can find out
 the number of grids and cells at each level, the simulation time, and
 information about the finest resolution cells:
 
-{\scriptsize$>>>$} pf.h.print\_stats()
+{\scriptsize$>>>$} ds.index.print\_stats()
 
-You can also find the value and location of the maximum of a field in
-the domain:
+The dataset itself also stores a number of associated methods; for example,
+you can find the value and location of the maximum of a field in the domain:
 
-{\scriptsize$>>>$} value, location = pf.h.find\_max(`density')
+{\scriptsize$>>>$} value, location = ds.find\_max(`density')
+
+(Note that in yt versions before 3.0, this type of method was primarily
+associated with the hierarchy object and was accessed with ds.h.find\_max.)
 
 The list goes on. A full list of methods and attributes associated
-with the heirarchy object (and most any \yt\ object or function) can be
+with the index object (and most any \yt\ object or function) can be
 accessed by the help function:
 
-{\scriptsize$>>>$} help(pf.h)
+{\scriptsize$>>>$} help(pf.index)
 
 You can also use {\scriptsize$>>>$} {\it dir()} on an object or
 function to find out which names it defines. Don't be shy about
 searching the \yt\ documentation for help. Note that creating the
-heirarchy object in its own line is not always needed before calling
+index object in its own line is not always needed before calling
 functions like find\_max; \yt\ will construct it automatically if it
 does not already exist.
 
@@ -251,13 +258,14 @@ quantity values. There are many, including rays, cylinders, and clumps
 easiest to create is a sphere, centered on the location of the maximum
 density cell we found above:
 
-{\scriptsize$>>>$} my\_data\_container = pf.h.sphere(location, 5.0e4/pf[`km'])
+{\scriptsize$>>>$} my\_data\_container = ds.sphere(location, (5.0e4, `km'))
 
-Here, we put the radius in units of kilometers using a
-conversion. When specifying distances in \yt, the default is to use the
-simulation-native unit named ``1'', which is probably identical to one
-of the other units, like ``cm''. The pf.h.print\_stats() command lists
-available units. We can access the data within the container:
+Here, specify that the radius is in units of kilometers using a dimensionful
+quantity. When specifying distances in \yt, the default is to use the
+simulation-native unit named ``code\_length'', which for Castro is ``cm'', and
+if you just put in 5.0e4 instead of (5.0e4, `km'), you will get a 50,000 cm radius.
+The pf.index.print\_stats() command lists available units. We can access the data
+within the container:
 
 {\scriptsize$>>>$} print my\_data\_container[`density']
 
@@ -265,23 +273,23 @@ available units. We can access the data within the container:
 
 When the creation of objects is time-consuming, it can be convenient
 to save objects so they can be used in another session. To save an
-object as part of the {\tt .yt} file affiliated with the heirarchy:
+object as part of the {\tt .yt} file affiliated with the index:
 
-{\scriptsize$>>>$} pf.h.save\_object(my\_data\_container, `sphere\_to\_analyze\_later')
+{\scriptsize$>>>$} pf.index.save\_object(my\_data\_container, `sphere\_to\_analyze\_later')
 
 Once it has been saved, it can be easily loaded later:
 
-{\scriptsize$>>>$} sphere\_to\_analyze = pf.h.load\_object(`sphere\_to\_analyze\_later')
+{\scriptsize$>>>$} sphere\_to\_analyze = pf.index.load\_object(`sphere\_to\_analyze\_later')
 
 \subsection{Grid Inspection}
 
-\yt\ also allows for detailed grid inspection. The heirarchy object
+\yt\ also allows for detailed grid inspection. The index object
 possesses an array of grids, from which we can select and examine
 specific ones:
 
-{\scriptsize$>>>$} print pf.h.grids
+{\scriptsize$>>>$} print pf.index.grids
 
-{\scriptsize$>>>$} my\_grid = pf.h.grids[4]
+{\scriptsize$>>>$} my\_grid = pf.index.grids[4]
 
 Each grid is a data object that carries information about its
 location, parentage relationships (grids within which it resides, and
@@ -333,7 +341,7 @@ pf = load(`plt00020')
 
 field = `pressure'
 
-pf.h
+pf.index
 
 {\it\# Most Castro fields have no inherent units, so we add them in,
   in the form of a raw string} 
@@ -413,7 +421,7 @@ from yt.mods import *
 pf = load(`plt00020')
 
 field = `pressure'
-dd = pf.h.all\_data()
+dd = pf.all\_data()
 
 {\it\# We take the log of the extrema of the pressure field, as well as a couple other interesting}
 {\setlength{\parskip}{0pt}
@@ -427,7 +435,7 @@ h\_mi, h\_ma = np.log10(h\_mi), np.log10(h\_ma)
 
 s\_mi, s\_ma =  np.log10(2.90e13), np.log10(3.10e13)
 
-pf.h
+pf.index
 
 {\it\# We deal in terms of logarithms here because we have such a large range of values.}
 {\setlength{\parskip}{0pt}
@@ -524,7 +532,7 @@ Nvec = 768
 
 {\it\# speed difference, so we opt for a better-looking image.}
 
-cam = pf.h.camera(c, L, W, (Nvec,Nvec), transfer\_function = tf,
+cam = pf.camera(c, L, W, (Nvec,Nvec), transfer\_function = tf,
 }
 
 {\setlength{\parindent}{95pt}fields=[field], pf=pf, no\_ghost=False)}
@@ -599,7 +607,7 @@ field\_weight = `magvel'
 
 contour\_value = 2.83e13
 
-domain = pf.h.all\_data()
+domain = pf.all\_data()
 
 {\it\# This object identifies isocontours at a given value for a given field. It returns}
 {\setlength{\parskip}{0pt}
@@ -610,7 +618,7 @@ domain = pf.h.all\_data()
 
 {\it\# isocontour and color it the magnitude of velocity over the same contour.}
 
-surface = pf.h.surface(domain, field, contour\_value)
+surface = pf.surface(domain, field, contour\_value)
 }
 
 colors = apply\_colormap(np.log10(surface[field\_weight]), cmap\_name=`RdBu')
@@ -658,7 +666,7 @@ from yt.mods import *
 
 pf = load(`plt00020')
 
-pf.h
+pf.index
 
 {\it\# Just like with the pressure\_contours script, we can set the units for fields that}
 {\setlength{\parskip}{0pt}
@@ -745,7 +753,7 @@ ray.fields = [`X', `magvel']
 
 {\it\#  specifications of the region (a box) are the center, left bound, and right bound.}
 
-region = pf.h.region([5.0e9, 5.0e9, 5.0e9], [0.0, 0.0, 0.0],
+region = pf.region([5.0e9, 5.0e9, 5.0e9], [0.0, 0.0, 0.0],
 }
 
 {\setlength{\parindent}{100pt}[1.0e10, 1.0e10, 1.0e10])}
