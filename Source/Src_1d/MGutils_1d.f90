@@ -150,7 +150,8 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ecx, ecxl1, ecxh1, dx, coord_type, idir) bind(C, name="ca_unweight_edges")
+       ecx, ecxl1, ecxh1, dx, coord_type, idir) &
+       bind(C, name="ca_unweight_edges")
 
     implicit none
     

@@ -354,7 +354,8 @@ contains
 
   subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx,&
        phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C, name="ca_put_multipole_phi")
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) &
+       bind(C, name="ca_put_multipole_phi")
 
     use prob_params_module, only: problo, center, probhi
     use fundamental_constants_module, only: Gconst
@@ -492,7 +493,8 @@ contains
 
   subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi,symmetry_type,lo_bc,hi_bc,&
        dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3,&
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) bind(C, name="ca_compute_multipole_moments")
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS,npts,boundary_only) &
+       bind(C, name="ca_compute_multipole_moments")
 
     use prob_params_module, only: problo, center, probhi
     use bl_constants_module
@@ -995,7 +997,8 @@ contains
        symmetry_type,lo_bc,hi_bc, &
        dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
        problo, probhi, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C, name="ca_compute_direct_sum_bc")
+       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
+       bind(C, name="ca_compute_direct_sum_bc")
     
     use prob_params_module, only: center
     use fundamental_constants_module, only: Gconst
@@ -1259,7 +1262,8 @@ contains
 
 
   subroutine ca_put_direct_sum_bc (lo,hi,domlo,domhi,phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) bind(C, name="ca_put_direct_sum_bc")
+       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
+       bind(C, name="ca_put_direct_sum_bc")
     
     use prob_params_module, only: center
 

@@ -51,7 +51,8 @@ contains
                              set,clear, &
                              var,varlo,varhi, &
                              lo,hi,nd,domlo,domhi, &
-                             delta,xlo,problo,time,level) bind(C, name="ca_laplac_error")
+                             delta,xlo,problo,time,level) &
+                             bind(C, name="ca_laplac_error")
 
     use prob_params_module, only: dg, dim
 
@@ -186,7 +187,8 @@ contains
                          set,clear, &
                          den,denlo,denhi, &
                          lo,hi,nd,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C, name="ca_denerror")
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_denerror")
 
     use prob_params_module, only: dg
 
@@ -245,7 +247,8 @@ contains
                           set,clear, &
                           temp,templo,temphi, &
                           lo,hi,np,domlo,domhi, &
-                          delta,xlo,problo,time,level) bind(C, name="ca_temperror")
+                          delta,xlo,problo,time,level) &
+                          bind(C, name="ca_temperror")
 
     use prob_params_module, only: dg
 
@@ -304,7 +307,8 @@ contains
                            set,clear, &
                            press,presslo,presshi, &
                            lo,hi,np,domlo,domhi, &
-                           delta,xlo,problo,time,level) bind(C, name="ca_presserror")
+                           delta,xlo,problo,time,level) &
+                           bind(C, name="ca_presserror")
 
     use prob_params_module, only: dg
 
@@ -363,7 +367,8 @@ contains
                          set,clear, &
                          vel,vello,velhi, &
                          lo,hi,nv,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C, name="ca_velerror")
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_velerror")
 
     use prob_params_module, only: dg
 
@@ -422,7 +427,8 @@ contains
                          set,clear, &
                          rad,radlo,radhi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C, name="ca_raderror")
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_raderror")
 
     use prob_params_module, only: dg
 
@@ -481,7 +487,8 @@ contains
                          set,clear, &
                          ent,entlo,enthi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C, name="ca_enterror")
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_enterror")
 
     use prob_params_module, only: dg
 
@@ -543,7 +550,8 @@ contains
                          set,clear, &
                          t,tlo,thi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C, name="ca_nucerror")
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_nucerror")
 
     use meth_params_module, only: dxnuc
 

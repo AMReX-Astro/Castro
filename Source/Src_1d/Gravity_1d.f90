@@ -66,7 +66,8 @@ contains
 
 
 
-  subroutine ca_compute_1d_grav(rho, r_l1, r_h1, lo, hi, grav, phi, dx, problo) bind(C)
+  subroutine ca_compute_1d_grav(rho, r_l1, r_h1, lo, hi, grav, phi, dx, problo) &
+       bind(C)
 
     use fundamental_constants_module, only : Gconst
     use bl_constants_module

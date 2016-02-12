@@ -8,7 +8,8 @@ module sponge_module
 
 contains
 
-  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added) bind(C, name="ca_sponge")
+  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added) &
+       bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center, probhi
     use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR

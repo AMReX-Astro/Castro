@@ -1,7 +1,8 @@
 ! ::
 ! :: ----------------------------------------------------------
 ! ::
-       subroutine pm_add_to_grav(point_mass,grav,grav_l1,grav_h1,problo,dx,lo,hi) bind(C, name="pm_add_to_grav")
+       subroutine pm_add_to_grav(point_mass,grav,grav_l1,grav_h1,problo,dx,lo,hi) &
+            bind(C, name="pm_add_to_grav")
 
        use fundamental_constants_module, only : Gconst
        use bl_constants_module

@@ -11,7 +11,8 @@ contains
        xhi, yhi, &
        rhs, rl1, rl2, rh1, rh2,  &
        ecx, ecxl1, ecxl2, ecxh1, ecxh2, &
-       ecy, ecyl1, ecyl2, ecyh1, ecyh2, dx, coord_type) bind(C, name="ca_apply_metric")
+       ecy, ecyl1, ecyl2, ecyh1, ecyh2, dx, coord_type) &
+       bind(C, name="ca_apply_metric")
 
     implicit none
     
@@ -135,7 +136,8 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ec, ecl1, ecl2, ech1, ech2, dx, coord_type, idir) bind(C, name="ca_unweight_edges")
+       ec, ecl1, ecl2, ech1, ech2, dx, coord_type, idir) &
+       bind(C, name="ca_unweight_edges")
 
     implicit none
     

@@ -6,7 +6,8 @@ module diffusion_module
 
 contains
 
-  subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) bind(C, name="ca_tempdiffextrap")
+  subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) &
+       bind(C, name="ca_tempdiffextrap")
 
     use prob_params_module, only: dg, dim
 
@@ -196,7 +197,8 @@ contains
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
-       coefz,cz_lo,cz_hi, dx) bind(C, name="ca_fill_spec_coeff")
+       coefz,cz_lo,cz_hi, dx) &
+       bind(C, name="ca_fill_spec_coeff")
 
     use bl_constants_module
     use network, only: nspec, naux
@@ -282,7 +284,8 @@ contains
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
-       coefz,cz_lo,cz_hi, dx) bind(C, name="ca_fill_temp_cond")
+       coefz,cz_lo,cz_hi, dx) &
+       bind(C, name="ca_fill_temp_cond")
 
     use bl_constants_module
     use network, only: nspec, naux

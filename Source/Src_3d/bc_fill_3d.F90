@@ -7,7 +7,8 @@ module bc_fill_module
 contains
 
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
-                        adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
+                        adv_h3,domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_hypfill")
 
     use meth_params_module, only: NVAR
 
@@ -34,7 +35,8 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
-                        adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
+                        adv_h3,domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_denfill")
 
     implicit none
 
@@ -55,7 +57,8 @@ contains
 
 #ifdef GRAVITY  
   subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_l3, &
-                            phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
+                            phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
 
     implicit none
 
@@ -75,7 +78,8 @@ contains
 
 
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravxfill")
 
     implicit none
 
@@ -95,7 +99,8 @@ contains
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravyfill")
 
     implicit none
 
@@ -115,7 +120,8 @@ contains
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravzfill")
 
     implicit none
 
@@ -137,7 +143,8 @@ contains
 
 #ifdef ROTATION
   subroutine ca_phirotfill(phi,phi_l1,phi_l2,phi_l3, &
-                           phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phirotfill")
+                           phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) &
+                           bind(C, name="ca_phirotfill")
 
     implicit none
 
@@ -157,7 +164,8 @@ contains
 
 
   subroutine ca_rotxfill(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotxfill")
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotxfill")
 
     implicit none
 
@@ -177,7 +185,8 @@ contains
 
 
   subroutine ca_rotyfill(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotyfill")
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotyfill")
 
     implicit none
 
@@ -197,7 +206,8 @@ contains
 
 
   subroutine ca_rotzfill(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotzfill")
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotzfill")
 
     implicit none
 
@@ -219,7 +229,8 @@ contains
 
 #ifdef REACTIONS  
   subroutine ca_reactfill(react,react_l1,react_l2,react_l3, &
-       react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
+       react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,time,bc) &
+       bind(C, name="ca_reactfill")
 
     implicit none
 
@@ -241,7 +252,8 @@ contains
   
 #ifdef RADIATION
   subroutine ca_radfill(rad,rad_l1,rad_l2,rad_l3, &
-                        rad_h1,rad_h2,rad_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
+                        rad_h1,rad_h2,rad_h3,domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_radfill")
 
     implicit none
 

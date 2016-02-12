@@ -77,7 +77,8 @@ contains
 
   
   
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(C, name="ca_enforce_consistent_e")
+  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
+       bind(C, name="ca_enforce_consistent_e")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
@@ -115,7 +116,8 @@ contains
 
 
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(C, name="reset_internal_e")
+  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
+       bind(C, name="reset_internal_e")
 
     use eos_module 
     use network, only : nspec, naux
@@ -214,7 +216,8 @@ contains
 
 
 
-  subroutine compute_temp(lo,hi,state,s_lo,s_hi) bind(C, name="compute_temp")
+  subroutine compute_temp(lo,hi,state,s_lo,s_hi) &
+       bind(C, name="compute_temp")
 
     use network, only : nspec, naux
     use eos_module

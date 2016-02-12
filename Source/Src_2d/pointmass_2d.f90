@@ -3,7 +3,8 @@
 ! ::
        subroutine pm_add_to_grav(point_mass,&
                                  grav,grav_l1,grav_l2,grav_h1,grav_h2,&
-                                 problo,dx,lo,hi) bind(C, name="pm_add_to_grav")
+                                 problo,dx,lo,hi) &
+                                 bind(C, name="pm_add_to_grav")
 
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
@@ -49,7 +50,8 @@
              uin,  uin_l1,  uin_l2,  uin_h1,  uin_h2, &
             uout, uout_l1, uout_l2, uout_h1, uout_h2, &
              vol,  vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-           problo,dx,time,dt) bind(C, name="pm_compute_delta_mass")
+           problo,dx,time,dt) &
+           bind(C, name="pm_compute_delta_mass")
 
       use meth_params_module, only : NVAR, URHO
       use prob_params_module, only : center
@@ -107,7 +109,8 @@
       subroutine pm_fix_solution(lo,hi,&
              uin,  uin_l1,  uin_l2,  uin_h1,  uin_h2, &
             uout, uout_l1, uout_l2, uout_h1, uout_h2, &
-           problo,dx,time,dt) bind(C, name="pm_fix_solution")
+           problo,dx,time,dt) &
+           bind(C, name="pm_fix_solution")
 
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
