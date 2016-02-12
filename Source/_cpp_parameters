@@ -178,7 +178,7 @@ dtnuc_e                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,{X / \dot{X})$.
+# {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
 dtnuc_X                      Real          1.e200             y
 
 # If we are doing burning timestep limiting, choose the method for
