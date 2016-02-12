@@ -217,8 +217,8 @@ contains
 
              endif
 
-             dedt = max(abs(dedt), 1.d-200)
-             dXdt = max(abs(dXdt), 1.d-200)
+             dedt = max(abs(dedt), 1.d-50)
+             dXdt = max(abs(dXdt), 1.d-50)
 
              dt = min(dt, dtnuc_e * e / dedt)
              dt = min(dt, dtnuc_X * minval(X / dXdt))
@@ -396,7 +396,7 @@ contains
                 X_avg = HALF * (X_old + X_new)
                 X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
 
-                X_dot = max(abs(X_dot), 1.d-200)
+                X_dot = max(abs(X_dot), 1.d-50)
                 tau_X = minval( X_avg / X_dot )
 
                 e_old = s_old(i,j,k,UEINT) * rhooinv
@@ -404,7 +404,7 @@ contains
                 e_avg = HALF * (e_old + e_new)
                 e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
 
-                e_dot = max(abs(e_dot), 1.d-200)
+                e_dot = max(abs(e_dot), 1.d-50)
                 tau_e = e_avg / e_dot
 
                 if (dt_old > dtnuc_e * tau_e) then
