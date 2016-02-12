@@ -317,7 +317,7 @@
 
 \rowcolor{tableShade}
 \verb=  do_react  = &   permits reactions to be turned on and off -- mostly for efficiency's sake  &  -1 \\
-\verb=  dtnuc_X  = &   Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,{X / \dot{X})$.  &  1.e200 \\
+\verb=  dtnuc_X  = &   Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(X / \dot{X})$.  &  1.e200 \\
 \rowcolor{tableShade}
 \verb=  dtnuc_e  = &   Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.  &  1.e200 \\
 \verb=  dtnuc_mode  = &   If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep  &  1 \\
