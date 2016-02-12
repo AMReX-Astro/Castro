@@ -89,6 +89,12 @@ Castro::restart (Amr&     papa,
       state[Source_Type].restart(desc_lst[Source_Type], state[State_Type]);
     }
 
+#ifdef REACTIONS
+    if (version < 4) { // old checkpoing without Reactions_Type
+      state[Reactions_Type].restart(desc_lst[Source_Type], state[State_Type]);
+    }
+#endif
+
     // For versions < 2, we didn't store all three components
     // of the momenta in the checkpoint when doing 1D or 2D simulations.
     // So the state data that was read in will be a MultiFab with a
@@ -148,32 +154,39 @@ Castro::restart (Amr&     papa,
 #endif
 
 #ifdef REACTIONS
-    
-    // Get data from the reactions header file.
 
-    max_dedt = 0.0;
+    // For versions < 4, the way we stored information for the burning timestep 
+    // limiter was to write out the maximum value of de/dt to the ReactHeader file.
 
-    // Note that we want all grids on the domain to have this value,
-    // so we have all processors read this in. We could do the same
-    // with a broadcast from the IOProcessor but this avoids communication.
-    
-    std::ifstream ReactFile;
-    std::string FullPathReactFile = parent->theRestartFile();
-    FullPathReactFile += "/ReactHeader";
-    ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
+    if (version < 4) {
 
-    // Maximum rate of change of internal energy in last timestep.
-      
-    ReactFile >> max_dedt;
+      // Get data from the reactions header file.
 
-    ReactFile.close();
+      Real max_dedt = 0.0;
 
-    // Set the energy change to the components of the
-    // reactions MultiFab; it will get overwritten later
-    // but will achieve our desired effect of being
-    // utilized in the first timestep calculation.
-    
-    get_new_data(Reactions_Type).setVal(max_dedt);
+      // Note that we want all grids on the domain to have this value,
+      // so we have all processors read this in. We could do the same
+      // with a broadcast from the IOProcessor but this avoids communication.
+
+      std::ifstream ReactFile;
+      std::string FullPathReactFile = parent->theRestartFile();
+      FullPathReactFile += "/ReactHeader";
+      ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
+
+      // Maximum rate of change of internal energy in last timestep.
+
+      ReactFile >> max_dedt;
+
+      ReactFile.close();
+
+      // Set the energy change to the components of the
+      // reactions MultiFab; it will get overwritten later
+      // but will achieve our desired effect of being
+      // utilized in the first timestep calculation.
+
+      get_new_data(Reactions_Type).setVal(max_dedt);
+
+    }
 
 #endif
 	
@@ -383,6 +396,12 @@ Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
       // We are reading an old checkpoint with no Source_Type
       state_in_checkpoint[i] = 0;
     }
+#ifdef REACTIONS
+    if (version < 4 && i == Reactions_Type) {
+      // We are reading an old checkpoing with no Reactions_Type
+      state_in_checkpoint[i] = 0;
+    }
+#endif
   }
 }
 
@@ -412,7 +431,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCastroHeaderFile += "/CastroHeader";
 	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
-	    CastroHeaderFile << "Checkpoint version: 3" << std::endl;
+	    CastroHeaderFile << "Checkpoint version: 4" << std::endl;
 	    CastroHeaderFile.close();
 	}
 
@@ -445,37 +464,6 @@ Castro::checkPoint(const std::string& dir,
 	}
     }
 
-#ifdef REACTIONS		
-
-    // Write out maximum value of delta_e/delta_t from reactions data.
-    // First, determine the maximum value of de/dt on all levels.
-
-    if (level == 0)
-      max_dedt = 0.0;
-
-    // Determine the maximum absolute value of the delta_e component of the reactions MF.
-    // Note that there are NumSpec components starting from 0 corresponding to the species changes.
-	  
-    max_dedt = std::max(max_dedt, get_new_data(Reactions_Type).norm0(NumSpec));
-
-    ParallelDescriptor::ReduceRealMax(max_dedt);
-
-    // Now, write out to the header if we're on the finest level and therefore have checked all entries for delta_e.
-    
-    if (level == parent->finestLevel() && ParallelDescriptor::IOProcessor()) {
-	  
-      std::ofstream ReactHeaderFile;
-      std::string FullPathReactHeaderFile = dir;
-      FullPathReactHeaderFile += "/ReactHeader";
-      ReactHeaderFile.open(FullPathReactHeaderFile.c_str(), std::ios::out);
-
-      ReactHeaderFile << std::scientific << std::setprecision(16) << max_dedt;
-      ReactHeaderFile.close();
-
-    }
-
-#endif	      
-  
 }
 
 std::string

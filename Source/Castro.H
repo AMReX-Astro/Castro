@@ -552,9 +552,6 @@ protected:
 
     static Real getCPUTime();
 
-    // for keeping track of energy change from burning
-    static Real      max_dedt;
-
 #ifdef DIFFUSION
     static int       diffuse_temp;
     static int       diffuse_spec;
