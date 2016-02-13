@@ -11,7 +11,7 @@ module burner_module
 
 contains
 
-  subroutine burner_init() bind(C)
+  subroutine burner_init() bind(C, name="burner_init")
 
     implicit none
 
