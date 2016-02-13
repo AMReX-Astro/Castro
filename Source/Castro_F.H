@@ -96,8 +96,8 @@ extern "C"
      const Real* mass_added, const Real* e_added, const Real* E_added,
      const int* verbose);
 
-  void ca_enforce_nonnegative_species
-    (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);  
+  void ca_normalize_species
+    (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);  
 
   void get_center(Real* center);
   void set_center(Real* center);

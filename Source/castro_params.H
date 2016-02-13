@@ -29,7 +29,6 @@ static Real dual_energy_eta1;
 static Real dual_energy_eta2;
 static Real dual_energy_eta3;
 static int use_pslope;
-static int normalize_species;
 static int fix_mass_flux;
 static int allow_negative_energy;
 static int do_sponge;

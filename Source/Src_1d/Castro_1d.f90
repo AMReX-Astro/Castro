@@ -13,10 +13,10 @@ subroutine ca_umdrv(is_finest_level,time,&
      xmom_added_flux,ymom_added_flux,zmom_added_flux,&
      E_added_flux) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species
-  use castro_util_1d_module, only : ca_enforce_nonnegative_species
+  use advection_util_module, only : enforce_minimum_density
+  use castro_util_module, only : ca_normalize_species
   use bl_constants_module
 
   implicit none
@@ -134,12 +134,10 @@ subroutine ca_umdrv(is_finest_level,time,&
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi,lo,hi,&
                                mass_added,eint_added,eden_added,frac_change,verbose)
 
-  ! Enforce that the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)
-
-  ! Normalize the species
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout, &
+                            [uout_l1, 0, 0], [uout_h1, 0, 0], &
+                            [lo(1), 0, 0], [hi(1), 0, 0])
 
   deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 

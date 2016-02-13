@@ -83,7 +83,6 @@ module meth_params_module
   double precision, save :: dual_energy_eta2
   double precision, save :: dual_energy_eta3
   integer         , save :: use_pslope
-  integer         , save :: normalize_species
   integer         , save :: fix_mass_flux
   integer         , save :: allow_negative_energy
   integer         , save :: do_sponge

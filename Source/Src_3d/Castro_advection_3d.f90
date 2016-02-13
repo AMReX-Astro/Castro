@@ -1005,7 +1005,7 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, normalize_species, hybrid_hydro, QVAR, NGDNV
+         UEDEN, UEINT, UTEMP, hybrid_hydro, QVAR, NGDNV
     use bl_constants_module
     use hybrid_advection_module, only : hybrid_update
     use advection_util_module, only : normalize_species_fluxes
@@ -1100,11 +1100,10 @@ contains
 
     enddo
 
-    if (normalize_species .eq. 1) &
-         call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
-                                       flux2,flux2_lo,flux2_hi, &
-                                       flux3,flux3_lo,flux3_hi, &
-                                       lo,hi)
+    call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+                                  flux2,flux2_lo,flux2_hi, &
+                                  flux3,flux3_lo,flux3_hi, &
+                                  lo,hi)
 
     do n = 1, NVAR
 

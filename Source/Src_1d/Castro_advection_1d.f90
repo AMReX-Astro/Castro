@@ -323,8 +323,7 @@ contains
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, UFS, UFX, &
-                                   normalize_species
+                                   UEDEN, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
     use advection_util_module, only: normalize_species_fluxes
 
@@ -354,8 +353,7 @@ contains
     double precision :: div1, dpdx
     
     ! Normalize the species fluxes
-    if (normalize_species .eq. 1) &
-         call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
+    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
     
     do n = 1, NVAR
        if ( n.eq.UTEMP .or. n.eq.UMY .or. n.eq.UMZ ) then

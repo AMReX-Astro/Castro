@@ -2919,7 +2919,7 @@ Castro::enforce_nonnegative_species (MultiFab& S_new)
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.tilebox();
-       ca_enforce_nonnegative_species(BL_TO_FORTRAN(S_new[mfi]),bx.loVect(),bx.hiVect());
+       ca_normalize_species(BL_TO_FORTRAN_3D(S_new[mfi]),ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
     }
 }
 

@@ -492,9 +492,8 @@ contains
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, &
-                                   normalize_species
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, UFS, &
+                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES
     use prob_params_module, only : coord_type
     use bl_constants_module
     use advection_util_module, only : normalize_species_fluxes
@@ -534,11 +533,10 @@ contains
     !double precision rho, Up, Vp, SrE
 
     ! Normalize the species fluxes
-    if (normalize_species == 1) &
-         call normalize_species_fluxes( &
-                flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                lo,hi)
+    call normalize_species_fluxes( &
+         flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+         flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+         lo,hi)
 
     ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
@@ -587,6 +585,12 @@ contains
                 if (n == UEINT) then
                    ! Add p div(u) source term to (rho e)
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
+                endif
+
+                if (n == UFS .and. uout(i,j,n) == ZERO) then
+
+                   print *, i, j, uin(i,j,n), flux1(i:i+1,j,n), flux2(i,j:j+1,n)
+
                 endif
                    
              enddo

@@ -29,7 +29,6 @@ pp.query("dual_energy_eta1", dual_energy_eta1);
 pp.query("dual_energy_eta2", dual_energy_eta2);
 pp.query("dual_energy_eta3", dual_energy_eta3);
 pp.query("use_pslope", use_pslope);
-pp.query("normalize_species", normalize_species);
 pp.query("fix_mass_flux", fix_mass_flux);
 pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("do_sponge", do_sponge);

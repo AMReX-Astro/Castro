@@ -288,9 +288,46 @@ contains
     enddo
 
   end subroutine compute_temp 
-  
 
-  
+
+
+  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) &
+       bind(C, name="ca_normalize_species")
+
+    use network, only : nspec, smallx
+    use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module, only: ONE
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+
+    ! Local variables
+    integer          :: i, j, k
+    double precision :: xn(nspec)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xn = u(i,j,k,UFS:UFS+nspec-1)
+
+             xn = max(smallx * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
+
+             xn = u(i,j,k,URHO) * (xn / sum(xn))
+
+             u(i,j,k,UFS:UFS+nspec-1) = xn
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_normalize_species
+
+
+
   ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
   ! Optionally we can also be edge-centered in any of the directions.
   

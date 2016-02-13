@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, &
+  public enforce_minimum_density, &
          normalize_species_fluxes, divu
 
 contains
@@ -266,48 +266,6 @@ contains
     endif
 
   end subroutine enforce_minimum_density
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-  subroutine normalize_new_species(u,u_lo,u_hi,lo,hi)
-
-    use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    double precision, intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    
-    ! Local variables
-    integer          :: i,j,k,n
-    double precision :: fac,sum
-    
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-             sum = ZERO
-             do n = UFS, UFS+nspec-1
-                sum = sum + u(i,j,k,n)
-             end do
-             if (sum .ne. ZERO) then
-                fac = u(i,j,k,URHO) / sum
-             else
-                fac = ONE
-             end if
-             do n = UFS, UFS+nspec-1
-                u(i,j,k,n) = u(i,j,k,n) * fac
-             end do
-          end do
-       end do
-    end do
-    
-  end subroutine normalize_new_species
-
 
 ! ::: 
 ! ::: ------------------------------------------------------------------

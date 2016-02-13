@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, normalize_species_fluxes
+  public enforce_minimum_density, normalize_species_fluxes
 
 contains
 

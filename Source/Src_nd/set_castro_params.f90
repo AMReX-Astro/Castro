@@ -9,14 +9,13 @@ subroutine set_castro_method_params( &
   ppm_flatten_before_integrals_in, transverse_use_eos_in, transverse_reset_density_in,  &
   transverse_reset_rhoe_in, dual_energy_update_E_from_e_in, dual_energy_eta1_in,  &
   dual_energy_eta2_in, dual_energy_eta3_in, use_pslope_in,  &
-  normalize_species_in, fix_mass_flux_in, allow_negative_energy_in,  &
-  do_sponge_in, cfl_in, dtnuc_e_in,  &
-  dtnuc_X_in, dtnuc_mode_in, dxnuc_in,  &
-  do_react_in, react_T_min_in, react_T_max_in,  &
-  do_grav_in, grav_source_type_in, do_rotation_in,  &
-  rot_period_in, rot_period_dot_in, rot_source_type_in,  &
-  rot_axis_in, point_mass_in, do_acc_in) &
-  bind(C, name="set_castro_method_params")
+  fix_mass_flux_in, allow_negative_energy_in, do_sponge_in,  &
+  cfl_in, dtnuc_e_in, dtnuc_X_in,  &
+  dtnuc_mode_in, dxnuc_in, do_react_in,  &
+  react_T_min_in, react_T_max_in, do_grav_in,  &
+  grav_source_type_in, do_rotation_in, rot_period_in,  &
+  rot_period_dot_in, rot_source_type_in, rot_axis_in,  &
+  point_mass_in, do_acc_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -58,7 +57,6 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: dual_energy_eta2_in
   double precision, intent(in) :: dual_energy_eta3_in
   integer,          intent(in) :: use_pslope_in
-  integer,          intent(in) :: normalize_species_in
   integer,          intent(in) :: fix_mass_flux_in
   integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: do_sponge_in
@@ -110,7 +108,6 @@ subroutine set_castro_method_params( &
   dual_energy_eta2 = dual_energy_eta2_in
   dual_energy_eta3 = dual_energy_eta3_in
   use_pslope = use_pslope_in
-  normalize_species = normalize_species_in
   fix_mass_flux = fix_mass_flux_in
   allow_negative_energy = allow_negative_energy_in
   do_sponge = do_sponge_in

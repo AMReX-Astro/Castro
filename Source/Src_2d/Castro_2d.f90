@@ -15,10 +15,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     E_added_flux) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
   use advection_module, only : umeth2d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
-  use castro_util_2d_module, only : ca_enforce_nonnegative_species
+  use advection_util_module, only : enforce_minimum_density, divu
+  use castro_util_module, only : ca_normalize_species
 
   implicit none
 
@@ -154,12 +154,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                lo,hi,mass_added,eint_added,eden_added, &
                                frac_change, verbose)
 
-  ! Enforce the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-
-  ! Normalize the species 
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout, &
+                            [uout_lo(1), uout_lo(2), 0], [uout_hi(1), uout_hi(2), 0], &
+                            [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)

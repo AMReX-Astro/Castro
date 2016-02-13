@@ -29,7 +29,6 @@ Real        Castro::dual_energy_eta1 = 1.0e0;
 Real        Castro::dual_energy_eta2 = 1.0e-4;
 Real        Castro::dual_energy_eta3 = 0.0e0;
 int         Castro::use_pslope = 1;
-int         Castro::normalize_species = 0;
 int         Castro::fix_mass_flux = 0;
 int         Castro::allow_negative_energy = 1;
 int         Castro::do_sponge = 0;

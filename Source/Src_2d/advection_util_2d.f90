@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, &
+  public enforce_minimum_density, &
          normalize_species_fluxes, divu
 
 contains
