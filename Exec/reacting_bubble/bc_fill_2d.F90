@@ -7,7 +7,7 @@ module bc_fill_module
 contains
 
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
 
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
@@ -235,7 +235,7 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use probdata_module
     use interpolate_module
@@ -311,7 +311,7 @@ contains
   ! ::: -----------------------------------------------------------
 
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
 
     use probdata_module
     
@@ -332,7 +332,7 @@ contains
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
     use probdata_module
     
@@ -353,7 +353,7 @@ contains
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
 
     use probdata_module
     
@@ -374,7 +374,8 @@ contains
 
 
   subroutine ca_reactfill(react,react_l1,react_l2, &
-                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
 
     use probdata_module
     
@@ -395,7 +396,8 @@ contains
 
   
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
-                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
 
     implicit none
 
