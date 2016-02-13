@@ -9,7 +9,7 @@ contains
   ! ::: -----------------------------------------------------------
   
   subroutine ca_hypfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
  
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
     use network, only : nspec, naux
@@ -105,7 +105,7 @@ contains
   ! :::
 
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use probdata_module
 
@@ -146,7 +146,7 @@ contains
   ! :::
 
   subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
-                            domlo,domhi,delta,xlo,time,bc) bind(C)
+                            domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
 
     implicit none
 
@@ -168,7 +168,7 @@ contains
   ! :::
 
   subroutine ca_radfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
 
     use probdata_module
 
