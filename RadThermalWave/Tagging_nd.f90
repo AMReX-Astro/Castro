@@ -47,7 +47,7 @@ contains
        set,clear, &
        temp,templo,temphi, &
        lo,hi,np,domlo,domhi, &
-       delta,xlo,problo,time,level) bind(C)
+       delta,xlo,problo,time,level) bind(C, name="ca_temperror")
 
     use prob_params_module, only: dim
 
