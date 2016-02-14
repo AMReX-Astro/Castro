@@ -387,7 +387,9 @@ contains
           q(i,j,QGAME) = q(i,j,QPRES)/q(i,j,QREINT) + ONE
        enddo
     enddo
-    
+
+    srcQ = ZERO
+
     ! Compute sources in terms of Q
     do j = loq(2), hiq(2)
        do i = loq(1), hiq(1)

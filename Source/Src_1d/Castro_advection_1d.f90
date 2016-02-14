@@ -251,7 +251,9 @@ contains
        q(i,QREINT ) = q(i,QREINT )*q(i,QRHO)
        q(i,QGAME) = q(i,QPRES)/q(i,QREINT) + ONE
     enddo
-    
+
+    srcQ = ZERO
+
     ! compute srcQ terms
     do i = loq(1), hiq(1)
        srcQ(i,QRHO   ) = src(i,URHO)

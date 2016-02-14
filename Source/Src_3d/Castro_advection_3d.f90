@@ -867,6 +867,8 @@ contains
        enddo
     enddo
 
+    srcQ = ZERO
+
     ! compute srcQ terms
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
