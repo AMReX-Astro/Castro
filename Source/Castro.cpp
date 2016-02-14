@@ -1492,7 +1492,8 @@ Castro::post_timestep (int iteration)
 	  Real mass_added = 0.;
 	  Real e_added = 0.;
 	  Real E_added = 0.;
-	  int verbose = 0;	  
+	  Real dens_change = 0.;
+	  int verbose = 0;
 
 	  const Box& bx = mfi.tilebox();
 
@@ -1502,7 +1503,7 @@ Castro::post_timestep (int iteration)
 	  enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
 				  statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
 				  bx.loVect(), bx.hiVect(),
-				  &mass_added, &e_added, &E_added, 
+				  &mass_added, &e_added, &E_added, &dens_change,
 				  &verbose);
 
 	}

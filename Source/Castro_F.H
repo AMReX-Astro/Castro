@@ -93,7 +93,8 @@ extern "C"
     (const Real* S_old, const int* s_old_lo, const int* s_old_hi,
      const Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const int* lo, const int* hi,
-     const Real* mass_added, const Real* e_added, const Real* E_added,
+     const Real* mass_added, const Real* e_added,
+     const Real* E_added, const Real* frac_change,
      const int* verbose);
 
   void ca_normalize_species
