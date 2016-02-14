@@ -5,17 +5,17 @@ subroutine set_castro_method_params( &
   ppm_trace_sources_in, ppm_temp_fix_in, ppm_tau_in_tracing_in,  &
   ppm_predict_gammae_in, ppm_reference_edge_limit_in, ppm_reference_eigenvectors_in,  &
   hybrid_riemann_in, use_colglaz_in, riemann_solver_in,  &
-  cg_maxiter_in, cg_tol_in, use_flattening_in,  &
-  ppm_flatten_before_integrals_in, transverse_use_eos_in, transverse_reset_density_in,  &
-  transverse_reset_rhoe_in, dual_energy_update_E_from_e_in, dual_energy_eta1_in,  &
-  dual_energy_eta2_in, dual_energy_eta3_in, use_pslope_in,  &
-  fix_mass_flux_in, allow_negative_energy_in, do_sponge_in,  &
-  cfl_in, dtnuc_e_in, dtnuc_X_in,  &
-  dtnuc_mode_in, dxnuc_in, do_react_in,  &
-  react_T_min_in, react_T_max_in, do_grav_in,  &
-  grav_source_type_in, do_rotation_in, rot_period_in,  &
-  rot_period_dot_in, rot_source_type_in, rot_axis_in,  &
-  point_mass_in, do_acc_in) bind(C)
+  cg_maxiter_in, cg_tol_in, cg_blend_in,  &
+  use_flattening_in, ppm_flatten_before_integrals_in, transverse_use_eos_in,  &
+  transverse_reset_density_in, transverse_reset_rhoe_in, dual_energy_update_E_from_e_in,  &
+  dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in,  &
+  use_pslope_in, fix_mass_flux_in, allow_negative_energy_in,  &
+  do_sponge_in, cfl_in, dtnuc_e_in,  &
+  dtnuc_X_in, dtnuc_mode_in, dxnuc_in,  &
+  do_react_in, react_T_min_in, react_T_max_in,  &
+  do_grav_in, grav_source_type_in, do_rotation_in,  &
+  rot_period_in, rot_period_dot_in, rot_source_type_in,  &
+  rot_axis_in, point_mass_in, do_acc_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -47,6 +47,7 @@ subroutine set_castro_method_params( &
   integer,          intent(in) :: riemann_solver_in
   integer,          intent(in) :: cg_maxiter_in
   double precision, intent(in) :: cg_tol_in
+  integer,          intent(in) :: cg_blend_in
   integer,          intent(in) :: use_flattening_in
   integer,          intent(in) :: ppm_flatten_before_integrals_in
   integer,          intent(in) :: transverse_use_eos_in
@@ -98,6 +99,7 @@ subroutine set_castro_method_params( &
   riemann_solver = riemann_solver_in
   cg_maxiter = cg_maxiter_in
   cg_tol = cg_tol_in
+  cg_blend = cg_blend_in
   use_flattening = use_flattening_in
   ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
   transverse_use_eos = transverse_use_eos_in

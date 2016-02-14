@@ -73,6 +73,7 @@ module meth_params_module
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
+  integer         , save :: cg_blend
   integer         , save :: use_flattening
   integer         , save :: ppm_flatten_before_integrals
   integer         , save :: transverse_use_eos

@@ -9,7 +9,7 @@ module riemann_module
                                  UESGS, UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
                                  small_dens, small_pres, small_temp, &
-                                 cg_maxiter, cg_tol, &
+                                 cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                  allow_negative_energy
@@ -483,10 +483,11 @@ contains
     double precision :: pstnm1
     double precision :: taul, taur, tauo
     double precision :: ustarm, ustarp, ustnm1, ustnp1
+    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
 
     double precision, parameter :: weakwv = 1.d-3
 
-    double precision, pointer :: pstar_hist(:)
+    double precision, pointer :: pstar_hist(:), pstar_hist_extra(:)
 
     type (eos_t) :: eos_state
 
@@ -495,6 +496,12 @@ contains
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+
+    if (cg_blend .eq. 2 .and. cg_maxiter < 5) then
+
+       call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
+
+    endif
 
     if (idir .eq. 1) then
        iu = QU
@@ -546,6 +553,7 @@ contains
     iter_max = cg_maxiter
 
     call bl_allocate(pstar_hist, 1,iter_max)
+    call bl_allocate(pstar_hist_extra, 1,iter_max)
     call bl_allocate(us1d, ilo,ihi)
 
     do j = jlo, jhi
@@ -732,18 +740,114 @@ contains
 
           enddo
 
+          ! If we failed to converge using the secant iteration, we can either
+          ! stop here; or, revert to the original two-shock estimate for pstar;
+          ! or do a bisection root find using the bounds established by the most
+          ! recent iterations.
+
           if (.not. converged) then
-             print *, 'pstar history: '
-             do iter = 1, iter_max
-                print *, iter, pstar_hist(iter)
-             enddo
 
-             print *, ' '
-             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-             call bl_error("ERROR: non-convergence in the Riemann solver")
+             if (cg_blend .eq. 0) then
+
+                print *, 'pstar history: '
+                do iter = 1, iter_max
+                   print *, iter, pstar_hist(iter)
+                enddo
+
+                print *, ' '
+                print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+                print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
+
+                call bl_error("ERROR: non-convergence in the Riemann solver")
+
+             else if (cg_blend .eq. 1) then
+
+                pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
+
+             else if (cg_blend .eq. 2) then
+
+                pstarl = minval(pstar_hist(iter_max-5:iter_max))
+                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+
+                iter = 1
+
+                do while (iter <= iter_max .and. .not. converged)
+
+                   pstarc = HALF * (pstaru + pstarl)
+
+                   pstar_hist_extra(iter) = pstarc
+
+                   call wsqge(pl,taul,gamel,gdot,  &
+                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
+
+                   call wsqge(pr,taur,gamer,gdot,  &
+                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
+
+                   wl = ONE / sqrt(wlsq)
+                   wr = ONE / sqrt(wrsq)
+
+                   ustarm = ur-(pr-pstar)*wr
+                   ustarp = ul+(pl-pstar)*wl
+
+                   pfuncc = ustarp - ustarm
+
+                   if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
+                      converged = .true.
+                   endif
+
+                   iter = iter + 1
+
+                   call wsqge(pl,taul,gamel,gdot,  &
+                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
+
+                   call wsqge(pr,taur,gamer,gdot,  &
+                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
+
+                   wl = ONE / sqrt(wlsq)
+                   wr = ONE / sqrt(wrsq)
+
+                   ustarm = ur-(pr-pstar)*wr
+                   ustarp = ul+(pl-pstar)*wl
+
+                   pfuncu = ustarp - ustarm
+
+                   if (pfuncc * pfuncu < ZERO) then
+
+                      pstarl = pstarc
+
+                   else
+
+                      pstaru = pstarc
+
+                   endif
+
+                enddo
+
+                if (.not. converged) then
+
+                   print *, 'pstar history: '
+                   do iter = 1, iter_max
+                      print *, iter, pstar_hist(iter)
+                   enddo
+                   do iter = 1, iter_max
+                      print *, iter + iter_max, pstar_hist_extra(iter)
+                   enddo
+
+                   print *, ' '
+                   print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+                   print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
+
+                   call bl_error("ERROR: non-convergence in the Riemann solver")
+
+                endif
+
+             else
+
+                call bl_error("ERROR: unrecognized cg_blend option.")
+
+             endif
+
           endif
-
 
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves, using the updated wave speeds
@@ -942,6 +1046,7 @@ contains
     enddo
 
     call bl_deallocate(pstar_hist)
+    call bl_deallocate(pstar_hist_extra)
     call bl_deallocate(us1d)
 
   end subroutine riemanncg

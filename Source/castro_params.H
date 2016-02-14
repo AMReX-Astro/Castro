@@ -19,6 +19,7 @@ static int use_colglaz;
 static int riemann_solver;
 static int cg_maxiter;
 static Real cg_tol;
+static int cg_blend;
 static int use_flattening;
 static int ppm_flatten_before_integrals;
 static int transverse_use_eos;

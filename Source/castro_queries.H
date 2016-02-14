@@ -19,6 +19,7 @@ pp.query("use_colglaz", use_colglaz);
 pp.query("riemann_solver", riemann_solver);
 pp.query("cg_maxiter", cg_maxiter);
 pp.query("cg_tol", cg_tol);
+pp.query("cg_blend", cg_blend);
 pp.query("use_flattening", use_flattening);
 pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
 pp.query("transverse_use_eos", transverse_use_eos);
