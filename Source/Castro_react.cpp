@@ -46,11 +46,11 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
 
         reset_internal_energy(s);
 
-	if (verbose && ParallelDescriptor::IOProcessor()) {
+	if (verbose) {
 
 	  Real e_added = r.sum(NumSpec + 1);
 
-	  if (e_added != 0.0)
+	  if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
 	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
 
 	}
