@@ -19,12 +19,12 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol     ,     vol_l1,     vol_l2,     vol_h1,     vol_h2, &
                         courno,verbose, nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
+  use advection_util_module, only : enforce_minimum_density, divu
   use rad_advection_module, only : umeth2d_rad, ctoprim_rad, consup_rad
-  use castro_util_2d_module, only : ca_enforce_nonnegative_species
+  use castro_util_module, only : ca_normalize_species
 
   implicit none
 
@@ -175,12 +175,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                                uout,[uout_l1,uout_l2],[uout_h1,uout_h2],&
                                lo,hi,mass_added,eint_added,eden_added,frac_change,verbose)
   
-  ! Enforce the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-  
-  ! Normalize the species 
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+  ! Renormalize the species mass fractions
+  call ca_normalize_species(uout,[uout_l1,uout_l2,0],[uout_h1,uout_h2,0],[lo(1),lo(2),0],[hi(1),hi(2),0])
   
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)

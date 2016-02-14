@@ -23,12 +23,12 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, GDU, GDV, GDW, ngdnv
+  use meth_params_module, only : QVAR, NVAR, NHYP, GDU, GDV, GDW, ngdnv
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
+  use advection_util_module, only : enforce_minimum_density, divu
   use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
-  use castro_util_3d_module, only : ca_enforce_nonnegative_species
+  use castro_util_module, only : ca_normalize_species
   
   implicit none
 
@@ -272,15 +272,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call enforce_minimum_density(uin, uin_lo, uin_hi, uout, uout_lo, uout_hi, &
                                lo,hi,mass_added,eint_added,eden_added,frac_change,verbose)
 
-  ! Enforce species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
-                                      uout_h1,uout_h2,uout_h3,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout,uout_lo,uout_hi,lo,hi)
  
-  ! Re-normalize the species
-  if (normalize_species .eq. 1) then
-     call normalize_new_species(uout,uout_lo,uout_hi,lo,hi)
-  end if
-      
   ! Copy data from the edge-centered state into ugdnv
 
   ugdnvx_out(:,:,:) = q1(:,:,:,GDU)

@@ -15,12 +15,12 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol,vol_l1,vol_h1,courno,verbose, &
                         nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species
+  use advection_util_module, only : enforce_minimum_density
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
-  use castro_util_1d_module, only : ca_enforce_nonnegative_species
+  use castro_util_module, only : ca_normalize_species
   
   implicit none
 
@@ -157,12 +157,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   call enforce_minimum_density(uin,[uin_l1],[uin_h1],uout,[uout_l1],[uout_h1],lo,hi,&
                                mass_added,eint_added,eden_added,frac_change,verbose)
   
-  ! Enforce that the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)
-  
-  ! Normalize the species
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
+  ! Renormalize the species mass fractions
+  call ca_normalize_species(uout,[uout_l1,0,0],[uout_h1,0,0],[lo(1),0,0],[hi(1),0,0])
   
   deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
 

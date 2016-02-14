@@ -1030,7 +1030,7 @@ contains
                         lo,hi,dx,dy,dz,dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, normalize_species, &
+                                   UEDEN, UEINT, UTEMP, &
                                    GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, ngdnv
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_params_module, only : fspace_type, comoving
@@ -1196,11 +1196,10 @@ contains
        enddo
     enddo
 
-    if (normalize_species .eq. 1) &
-         call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
-                                       flux2,flux2_lo,flux2_hi, &
-                                       flux3,flux3_lo,flux3_hi, &
-                                       lo,hi)
+    call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+                                  flux2,flux2_lo,flux2_hi, &
+                                  flux3,flux3_lo,flux3_hi, &
+                                  lo,hi)
 
     do n = 1, NVAR
 

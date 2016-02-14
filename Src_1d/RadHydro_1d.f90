@@ -399,8 +399,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      div,pdivu,lo,hi,dx,dt, &
      nstep_fsp)
 
-  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-       normalize_species
+  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
@@ -461,8 +460,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   end if
 
   ! Normalize the species fluxes
-  if (normalize_species .eq. 1) &
-       call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
+  call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
   do n = 1, NVAR
      if ( n.eq.UTEMP ) then

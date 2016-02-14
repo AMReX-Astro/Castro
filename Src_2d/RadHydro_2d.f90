@@ -534,7 +534,7 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                       lo,hi,dx,dy,dt, nstep_fsp)
 
   use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
-       normalize_species, ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS
+       ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
@@ -600,11 +600,9 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   end if
 
   ! Normalize the species fluxes
-  if (normalize_species .eq. 1) &
-       call normalize_species_fluxes( &
-       flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-       flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-       lo,hi)
+  call normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                                flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                                lo,hi)
 
   ! correct the fluxes to include the effects of the artificial viscosity
   do n = 1, NVAR
