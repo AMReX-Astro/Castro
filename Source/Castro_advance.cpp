@@ -78,55 +78,19 @@ Castro::advance (Real time,
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
-    PArray<MultiFab> old_data(NUM_STATE_TYPE,PArrayManage);
-    PArray<MultiFab> new_data(NUM_STATE_TYPE,PArrayManage);
-
-    Array<int> got_old_data(NUM_STATE_TYPE);
-    Array<int> got_new_data(NUM_STATE_TYPE);
-
-    Array<Real> t_old(NUM_STATE_TYPE);
-    Array<Real> t_new(NUM_STATE_TYPE);
+    PArray<StateData> prev_state(NUM_STATE_TYPE,PArrayManage);
 
     int subcycle_iter = 0;
 
     if (use_retry) {
 
+      // Store the old and new time levels.
+
       for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
-	// Store the old and new time levels.
+	prev_state.set(k, new StateData());
 
-	t_new[k] = state[k].curTime();
-	t_old[k] = state[k].prevTime();
-
-	got_old_data[k] = state[k].hasOldData();
-
-	if (got_old_data[k]) {
-
-	  MultiFab& state_old = get_old_data(k);
-
-	  int nc = state_old.nComp();
-	  int ng = state_old.nGrow();
-
-	  old_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
-
-	  MultiFab::Copy(old_data[k], state_old, 0, 0, nc, ng);
-
-	}
-
-	got_new_data[k] = state[k].hasNewData();
-
-	if (got_new_data[k]) {
-
-	  MultiFab& state_new = get_new_data(k);
-
-	  int nc = state_new.nComp();
-	  int ng = state_new.nGrow();
-
-	  new_data.set(k, new MultiFab(grids, nc, ng, Fab_allocate));
-
-	  MultiFab::Copy(new_data[k], state_new, 0, 0, nc, ng);
-
-	}
+	StateData::Initialize(prev_state[k], state[k]);
 
       }
 
@@ -218,27 +182,11 @@ Castro::advance (Real time,
 
 	for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
-	  if (got_old_data[k]) {
+	  if (prev_state[k].hasOldData())
+	    state[k].copyOld(prev_state[k]);
 
-	    MultiFab& state_old = get_old_data(k);
-
-	    int nc = state_old.nComp();
-	    int ng = state_old.nGrow();
-
-	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
-
-	  }
-
-	  if (got_new_data[k]) {
-
-	    MultiFab& state_new = get_new_data(k);
-
-	    int nc = state_new.nComp();
-	    int ng = state_new.nGrow();
-
-	    MultiFab::Copy(state_new, new_data[k], 0, 0, nc, ng);
-
-	  }
+	  if (prev_state[k].hasNewData())
+	    state[k].copyNew(prev_state[k]);
 
 	  // Anticipate the swapTimeLevels to come.
 
@@ -316,18 +264,10 @@ Castro::advance (Real time,
 
 	for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
+	  if (prev_state[k].hasOldData())
+	    state[k].copyOld(prev_state[k]);
+
 	  state[k].setTimeLevel(time + dt, dt, 0.0);
-
-	  if (got_old_data[k] && state[k].hasOldData()) {
-
-	    MultiFab& state_old = get_old_data(k);
-
-	    int nc = state_old.nComp();
-	    int ng = state_old.nGrow();
-
-	    MultiFab::Copy(state_old, old_data[k], 0, 0, nc, ng);
-
-	  }
 
 	}
 
