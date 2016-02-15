@@ -111,7 +111,7 @@ contains
                               bind(C, name="ca_estdt_burning")
 
     use bl_constants_module, only: ONE
-    use network, only: nspec, naux
+    use network, only: nspec, naux, smallx
     use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc_e, dtnuc_X, dtnuc_mode
     use prob_params_module, only : dim
     use actual_rhs_module, only: actual_rhs
@@ -184,7 +184,7 @@ contains
              if (.not. ok_to_burn(state_new)) cycle
 
              e    = state_new % e
-             X    = state_new % xn
+             X    = max(state_new % xn, smallx)
 
              if (dtnuc_mode == 1) then
 
@@ -331,7 +331,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   dtnuc_e, dtnuc_X, cfl, do_hydro, do_react
     use prob_params_module, only: dim
-    use network, only: nspec
+    use network, only: nspec, naux, smallx
     use eos_module
 
     implicit none
@@ -396,7 +396,7 @@ contains
 
                 X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
                 X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
-                X_avg = HALF * (X_old + X_new)
+                X_avg = max(smallx, HALF * (X_old + X_new))
                 X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
 
                 X_dot = max(abs(X_dot), 1.d-50)
