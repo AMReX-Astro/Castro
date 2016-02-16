@@ -417,7 +417,7 @@ contains
 
              iter = 1
 
-             do while (iter <= iter_max .and. .not. converged)
+             do while (iter <= 2 * iter_max .and. .not. converged)
 
                 pstarc = HALF * (pstaru + pstarl)
 
