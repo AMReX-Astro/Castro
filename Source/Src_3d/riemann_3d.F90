@@ -553,7 +553,7 @@ contains
     iter_max = cg_maxiter
 
     call bl_allocate(pstar_hist, 1,iter_max)
-    call bl_allocate(pstar_hist_extra, 1,iter_max)
+    call bl_allocate(pstar_hist_extra, 1,2*iter_max)
     call bl_allocate(us1d, ilo,ihi)
 
     do j = jlo, jhi
@@ -829,7 +829,7 @@ contains
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
                    enddo
-                   do iter = 1, iter_max
+                   do iter = 1, 2 * iter_max
                       print *, iter + iter_max, pstar_hist_extra(iter)
                    enddo
 

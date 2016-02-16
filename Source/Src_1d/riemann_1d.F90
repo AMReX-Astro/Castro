@@ -225,7 +225,7 @@ contains
     iter_max = cg_maxiter
 
     allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(iter_max))
+    allocate (pstar_hist_extra(2*iter_max))
 
     do k = ilo, ihi+1
 
@@ -475,7 +475,7 @@ contains
                 do iter = 1, iter_max
                    print *, iter, pstar_hist(iter)
                 enddo
-                do iter = 1, iter_max
+                do iter = 1, 2 * iter_max
                    print *, iter + iter_max, pstar_hist_extra(iter)
                 enddo
 
