@@ -3461,7 +3461,7 @@ Castro::make_radial_data(int is_new)
 void
 Castro::define_new_center(MultiFab& S, Real time)
 {
-    Real center[BL_SPACEDIM];
+    Real center[3];
     const Real* dx = geom.CellSize();
 
     IntVect max_index = S.maxIndex(Density,0);
@@ -3480,7 +3480,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi) 
     {
-        find_center(mf[mfi].dataPtr(),&center[0],mi,dx,geom.ProbLo());
+        find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
     }
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
@@ -3488,7 +3488,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Make sure if R-Z that center stays exactly on axis
     if ( Geometry::IsRZ() ) center[0] = 0;  
 
-    set_center(&center[0]);
+    set_center(ZFILL(center));
 }
 
 void
@@ -3503,7 +3503,7 @@ Castro::write_center ()
        int nstep = parent->levelSteps(0);
        Real time = state[State_Type].curTime();
 
-       Real center[BL_SPACEDIM];
+       Real center[3];
        get_center(center);
  
        if (time == 0.0) {
