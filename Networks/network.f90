@@ -22,8 +22,6 @@ module network
   
   implicit none
 
-  double precision :: smallx = 1.d-30
-  
   logical :: network_initialized = .false.
 
 contains

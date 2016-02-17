@@ -329,11 +329,10 @@ contains
 
 
 
-  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) &
-       bind(C, name="ca_normalize_species")
+  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
 
-    use network, only : nspec, smallx
-    use meth_params_module, only : NVAR, URHO, UFS
+    use network, only : nspec
+    use meth_params_module, only : NVAR, URHO, UFS, small_x
     use bl_constants_module, only: ONE
 
     implicit none
@@ -352,7 +351,7 @@ contains
 
              xn = u(i,j,k,UFS:UFS+nspec-1)
 
-             xn = max(smallx * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
+             xn = max(small_x * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
 
              xn = u(i,j,k,URHO) * (xn / sum(xn))
 

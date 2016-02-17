@@ -171,12 +171,13 @@ contains
 
     use bl_constants_module
     use network
+    use meth_params_module, only: small_x
 
     implicit none
 
     type (eos_t), intent(inout) :: state
 
-    state % xn(:) = max(smallx, min(ONE, state % xn(:)))
+    state % xn(:) = max(small_x, min(ONE, state % xn(:)))
 
     state % xn(:) = state % xn(:) / sum(state % xn(:))
 

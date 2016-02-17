@@ -21,6 +21,10 @@ small_pres                   Real         -1.e200             y
 # value will be reset
 small_ener                   Real         -1.e200             y
 
+# the small mass fraction cutoff. Mass fractions below thi value will
+# be reset
+small_x                      Real          1.e30              y
+
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
