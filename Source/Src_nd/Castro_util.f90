@@ -291,6 +291,44 @@ contains
 
 
 
+  subroutine ca_check_initial_species(lo,hi,state,state_lo,state_hi) &
+                                      bind(C, name="ca_check_initial_species")
+
+    use network           , only : nspec
+    use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: state_lo(3), state_hi(3)
+    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+
+    ! Local variables
+    integer          :: i, j, k
+    double precision :: spec_sum
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
+
+             if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.d-8 * state(i,j,k,URHO)) then
+
+                print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
+                call bl_error("Error:: Failed check of initial species summing to 1")
+
+             end if
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_check_initial_species
+
+
+
   subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) &
        bind(C, name="ca_normalize_species")
 

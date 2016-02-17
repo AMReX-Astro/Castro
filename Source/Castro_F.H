@@ -87,7 +87,7 @@ extern "C"
 #endif  
   
   void ca_check_initial_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));  
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void enforce_minimum_density
     (const Real* S_old, const int* s_old_lo, const int* s_old_hi,

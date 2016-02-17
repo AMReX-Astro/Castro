@@ -804,7 +804,7 @@ Castro::initData ()
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
-          ca_check_initial_species(lo, hi, BL_TO_FORTRAN(S_new[mfi]));
+          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
     }

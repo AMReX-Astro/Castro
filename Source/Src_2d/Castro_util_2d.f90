@@ -6,43 +6,6 @@ module castro_util_2d_module
 
 contains
 
-  subroutine ca_check_initial_species(lo,hi, &
-                                      state,state_l1,state_l2,state_h1,state_h2) &
-                                      bind(C, name="ca_check_initial_species")
-
-    use network           , only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
-
-    implicit none
-
-    integer          :: lo(2), hi(2)
-    integer          :: state_l1,state_l2,state_h1,state_h2
-    double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-
-    ! Local variables
-    integer          :: i,j,n
-    double precision :: sum
-
-    do j = lo(2), hi(2)
-       do i = lo(1), hi(1)
-
-          sum = ZERO
-          do n = 1, nspec
-             sum = sum + state(i,j,UFS+n-1)
-          end do
-          if (abs(state(i,j,URHO)-sum).gt. 1.d-8 * state(i,j,URHO)) then
-             print *,'Sum of (rho X)_i vs rho at (i,j): ',i,j,sum,state(i,j,URHO)
-             call bl_error("Error:: Failed check of initial species summing to 1")
-          end if
-
-       enddo
-    enddo
-
-  end subroutine ca_check_initial_species
-
-
-  
   subroutine ca_compute_avgstate (lo,hi,dx,dr,nc,&
                                   state,s_l1,s_l2,s_h1,s_h2,radial_state, &
                                   vol,v_l1,v_l2,v_h1,v_h2,radial_vol, &
