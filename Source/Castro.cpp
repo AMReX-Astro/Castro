@@ -3377,10 +3377,10 @@ Castro::make_radial_data(int is_new)
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
-         ca_compute_avgstate(bx.loVect(), bx.hiVect(),dx,&dr,&nc,
-			     BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
-			     BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
-			     geom.ProbLo(),&numpts_1d);
+         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
+			     BL_TO_FORTRAN_3D(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN_3D(volume[mfi]),radial_vol.dataPtr(),
+			     ZFILL(geom.ProbLo()),&numpts_1d);
       }
 
       ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
@@ -3419,10 +3419,10 @@ Castro::make_radial_data(int is_new)
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
-         ca_compute_avgstate(bx.loVect(), bx.hiVect(),dx,&dr,&nc,
-			     BL_TO_FORTRAN(     S[mfi]),radial_state.dataPtr(),
-			     BL_TO_FORTRAN(volume[mfi]),radial_vol.dataPtr(),
-			     geom.ProbLo(),&numpts_1d);
+         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
+			     BL_TO_FORTRAN_3D(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN_3D(volume[mfi]),radial_vol.dataPtr(),
+			     ZFILL(geom.ProbLo()),&numpts_1d);
       }
 
       ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);

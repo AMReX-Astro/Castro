@@ -79,10 +79,10 @@ extern "C"
 
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
-    (const int lo[], const int hi[], 
+    (const int* lo, const int* hi, 
      const Real* dx, const Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG(S  ), const Real* avgden,
-     const BL_FORT_FAB_ARG(Vol), const Real* avgvol,
+     const BL_FORT_FAB_ARG_3D(S  ), const Real* avgden,
+     const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
 #endif  
   
