@@ -207,7 +207,8 @@ Castro::advance (Real time,
 	    dt_advance = (time + dt) - subcycle_time;
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " starting at time " << subcycle_time
+	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " of " << n_subcycle_iters
+		      << ", starting at time " << subcycle_time
 		      << " with dt = " << dt_advance << std::endl << std::endl;
 	  }
 
@@ -240,7 +241,7 @@ Castro::advance (Real time,
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << std::endl;
-	    std::cout << "  Retry subcycle " << subcycle_iter << " completed" << std::endl;
+	    std::cout << "  Retry subcycle " << subcycle_iter << " of " << n_subcycle_iters << " completed" << std::endl;
 	    std::cout << std::endl;
 	  }
 
