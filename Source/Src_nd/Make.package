@@ -22,6 +22,8 @@ f90EXE_sources += flatten_nd.f90
 
 f90EXE_sources += math.f90
 
+f90EXE_sources += io.f90
+
 ifeq ($(USE_GRAV), TRUE)
 f90EXE_sources += prescribe_grav_nd.f90
 f90EXE_sources += Gravity_nd.f90
