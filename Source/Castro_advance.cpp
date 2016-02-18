@@ -151,7 +151,7 @@ Castro::advance (Real time,
 
       ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
-      Real negative_density_reset_factor = 1.0e-2;
+      Real negative_density_reset_factor = 1.0e-1;
 
       // Negative density criterion
       // Reset so that the desired maximum fractional change in density
