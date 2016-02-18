@@ -110,6 +110,7 @@ contains
                                    small_dens, small_temp, npassive, upass_map
     use bl_constants_module
     use eos_module
+    use io_module, only: flush_output
 
     implicit none
 
@@ -263,6 +264,10 @@ contains
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
+    endif
+
+    if (verbose .gt. 0) then
+       call flush_output()
     endif
 
   end subroutine enforce_minimum_density

@@ -80,6 +80,7 @@ contains
     use bl_constants_module
     use eos_type_module, only : eos_t
     use eos_module, only : eos_input_rt, eos
+    use io_module, only: flush_output
 
     implicit none
 
@@ -225,7 +226,11 @@ contains
        eden_added = eden_added + (final_eden - initial_eden)
 
     endif
-    
+
+    if (verbose .gt. 0) then
+       call flush_output()
+    endif
+
   end subroutine enforce_minimum_density
 
 ! :::
