@@ -12,7 +12,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                     vol,vol_l1,vol_l2,vol_h1,vol_h2,&
                     courno,verbose,mass_added,eint_added,eden_added,frac_change, &
-                    xmom_added_flux, ymom_added_flux, zmom_added_flux, &
+                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     E_added_flux) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
@@ -49,7 +49,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
   double precision delta(2),dt,time,courno
-  double precision E_added_flux
+  double precision E_added_flux, mass_added_flux
   double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
   double precision mass_added,eint_added,eden_added,frac_change
 
@@ -145,7 +145,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area1,area1_l1,area1_l2,area1_h1,area1_h2, &
               area2,area2_l1,area2_l2,area2_h1,area2_h2, &
               vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-              div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+              div,pdivu,lo,hi,dx,dy,dt,mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
               verbose)
 

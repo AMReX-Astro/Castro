@@ -1000,7 +1000,7 @@ contains
                     area2,area2_lo,area2_hi, &
                     area3,area3_lo,area3_hi, &
                     vol,vol_lo,vol_hi, &
-                    div,pdivu,lo,hi,dx,dt,E_added_flux, &
+                    div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
                     verbose)
 
@@ -1047,7 +1047,7 @@ contains
     double precision, intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     double precision, intent(in) :: dx(3), dt
 
-    double precision, intent(inout) :: E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
+    double precision, intent(inout) :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
 
     double precision :: div1, volinv
     integer          :: i, j, k, n
@@ -1153,6 +1153,9 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
+                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) &
+                                                  +   flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) &
+                                                  +   flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
                 xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) &
                                                   +   flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) &
                                                   +   flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )

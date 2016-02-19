@@ -488,13 +488,13 @@ contains
                      area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
-                     div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+                     div,pdivu,lo,hi,dx,dy,dt,mass_added_flux,E_added_flux, &
                      xmom_added_flux,ymom_added_flux,zmom_added_flux, &
                      verbose)
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, UFS, &
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES
     use prob_params_module, only : coord_type
     use bl_constants_module
@@ -526,7 +526,7 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
-    double precision dx, dy, dt, E_added_flux
+    double precision dx, dy, dt, E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     
     integer i, j, n
@@ -607,6 +607,9 @@ contains
 
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             mass_added_flux = mass_added_flux + dt * ( flux1(i,j,URHO) - flux1(i+1,j,URHO) + &
+                                                        flux2(i,j,URHO) - flux2(i,j+1,URHO) )
 
              xmom_added_flux = xmom_added_flux + dt * ( flux1(i,j,UMX) - flux1(i+1,j,UMX) + &
                                                         flux2(i,j,UMX) - flux2(i,j+1,UMX) )

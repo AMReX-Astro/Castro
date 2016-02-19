@@ -447,6 +447,7 @@ extern "C"
      Real& eint_added,
      Real& eden_added,
      Real& frac_change,
+     Real& mass_added_flux,
      Real& xmom_added_flux,
      Real& ymom_added_flux,
      Real& zmom_added_flux,

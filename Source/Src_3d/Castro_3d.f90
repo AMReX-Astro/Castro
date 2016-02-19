@@ -14,7 +14,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,frac_change, &
-                    xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+                    mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                     E_added_flux) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
@@ -57,7 +57,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(in) :: area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
   double precision, intent(in) :: delta(3),dt,time
-  double precision, intent(out) ::courno,E_added_flux
+  double precision, intent(out) :: courno,E_added_flux,mass_added_flux
   double precision, intent(out) :: mass_added,eint_added,eden_added,frac_change
   double precision, intent(out) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
 
@@ -198,7 +198,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt,E_added_flux, &
+              div,pdivu,lo,hi,delta,dt,mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
               verbose)
 

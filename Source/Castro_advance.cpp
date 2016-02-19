@@ -934,6 +934,7 @@ Castro::advance_hydro (Real time,
 	    Real eint_added      = 0.;
 	    Real eden_added      = 0.;
 	    Real dens_change     = 1.e200;
+	    Real mass_added_flux = 0.;
 	    Real xmom_added_flux = 0.;
 	    Real ymom_added_flux = 0.;
 	    Real zmom_added_flux = 0.;
@@ -952,7 +953,7 @@ Castro::advance_hydro (Real time,
 #ifdef _OPENMP
 #ifdef POINTMASS
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
-                     reduction(+:mass_added,eint_added,eden_added) \
+                     reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
@@ -961,7 +962,7 @@ Castro::advance_hydro (Real time,
                      reduction(min:dens_change)
 #else
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
-                     reduction(+:mass_added,eint_added,eden_added) \
+                     reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
@@ -1017,6 +1018,7 @@ Castro::advance_hydro (Real time,
 			 &cflLoc, verbose, 
 			 mass_added, eint_added, eden_added,
 			 dens_change,
+			 mass_added_flux,
 			 xmom_added_flux, 
                   	 ymom_added_flux, 
 	                 zmom_added_flux,
@@ -1119,16 +1121,17 @@ Castro::advance_hydro (Real time,
 	    if (print_energy_diagnostics)
 	    {
 	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
-	       Real foo[19] = {mass_added, eint_added, eden_added, 
+	       Real foo[20] = {mass_added, eint_added, eden_added, 
 			       E_added_flux, E_added_grav, E_added_rot, E_added_sponge,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
 			       xmom_added_grav, ymom_added_grav, zmom_added_grav,
 			       xmom_added_rot,  ymom_added_rot,  zmom_added_rot,
-                               xmom_added_sponge, ymom_added_sponge, zmom_added_sponge};
+                               xmom_added_sponge, ymom_added_sponge, zmom_added_sponge,
+	                       mass_added_flux};
 #ifdef BL_LAZY
 	       Lazy::QueueReduction( [=] () mutable {
 #endif
-	       ParallelDescriptor::ReduceRealSum(foo, 19, ParallelDescriptor::IOProcessorNumber());
+	       ParallelDescriptor::ReduceRealSum(foo, 20, ParallelDescriptor::IOProcessorNumber());
 	       if (ParallelDescriptor::IOProcessor()) 
 	       {
 		   mass_added = foo[0];
@@ -1149,8 +1152,9 @@ Castro::advance_hydro (Real time,
 		   zmom_added_rot  = foo[15];
 		   xmom_added_sponge  = foo[16];
 		   ymom_added_sponge  = foo[17];
-		   zmom_added_sponge  = foo[18];		   
-		   if (std::abs(mass_added) != 0)
+		   zmom_added_sponge  = foo[18];
+		   mass_added_flux    = foo[19];
+		   if (std::abs(mass_added) != 0.0)
 		   {
 		      std::cout << "   Mass added from negative density correction : " << 
 				    mass_added*cell_vol << std::endl;
@@ -1160,14 +1164,16 @@ Castro::advance_hydro (Real time,
 				    eden_added*cell_vol << std::endl;
 		   }
 
-		   std::cout << "(rho E) added from fluxes                      : " << 
-				 E_added_flux << std::endl;
+		   std::cout << "mass added from fluxes                      : " <<
+                                 mass_added_flux << std::endl;
 		   std::cout << "xmom added from fluxes                      : " << 
 				 xmom_added_flux << std::endl;
 		   std::cout << "ymom added from fluxes                      : " << 
 				 ymom_added_flux << std::endl;
 		   std::cout << "zmom added from fluxes                      : " << 
 				 zmom_added_flux << std::endl;
+		   std::cout << "(rho E) added from fluxes                   : " << 
+				 E_added_flux << std::endl;
 #ifdef GRAVITY
 		   if (do_grav) 
 		   {	 

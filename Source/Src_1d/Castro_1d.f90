@@ -10,7 +10,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      dloga,dloga_l1,dloga_h1,&
      vol,vol_l1,vol_h1,courno,verbose,&
      mass_added,eint_added,eden_added,frac_change,&
-     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+     mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
      E_added_flux) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
@@ -53,7 +53,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision, allocatable:: srcQ(:,:)
   double precision, allocatable:: pdivu(:)
 
-  double precision :: dx,E_added_flux
+  double precision :: dx,E_added_flux,mass_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision :: mass_added, eint_added, eden_added, frac_change
   integer i,ngf,ngq
@@ -126,7 +126,7 @@ subroutine ca_umdrv(is_finest_level,time,&
        flux,flux_l1,flux_h1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
-       div ,pdivu,lo,hi,dx,dt,E_added_flux, &
+       div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
        xmom_added_flux,ymom_added_flux,zmom_added_flux, &
        verbose)
 

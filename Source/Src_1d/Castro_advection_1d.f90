@@ -319,7 +319,7 @@ contains
                     flux, flux_l1, flux_h1, &
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
-                    div,pdivu,lo,hi,dx,dt,E_added_flux, &
+                    div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
                     verbose)
 
@@ -348,7 +348,7 @@ contains
     double precision    div(lo(1):hi(1)+1)
     double precision  pdivu(lo(1):hi(1)  )
     double precision dx, dt
-    double precision E_added_flux
+    double precision E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     
     integer          :: i, n
@@ -389,7 +389,8 @@ contains
     if (verbose .eq. 1) then
 
        do i = lo(1), hi(1)
-                      
+
+          mass_added_flux = mass_added_flux + ( flux(i,URHO) - flux(i+1,URHO) )
           xmom_added_flux = xmom_added_flux + ( flux(i,UMX) - flux(i+1,UMX) )
           ymom_added_flux = ymom_added_flux + ( flux(i,UMY) - flux(i+1,UMY) )
           zmom_added_flux = zmom_added_flux + ( flux(i,UMZ) - flux(i+1,UMZ) )
