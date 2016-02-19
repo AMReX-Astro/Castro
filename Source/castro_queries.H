@@ -72,6 +72,9 @@ pp.query("rot_axis", rot_axis);
 #ifdef POINTMASS
 pp.query("point_mass", point_mass);
 #endif
+#ifdef POINTMASS
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
 pp.query("do_acc", do_acc);
 pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
 pp.query("grown_factor", grown_factor);

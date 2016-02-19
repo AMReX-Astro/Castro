@@ -13,6 +13,9 @@ static int rot_axis = 3;
 #ifndef POINTMASS
 static Real point_mass = 0.0;
 #endif
+#ifndef POINTMASS
+static int point_mass_fix_solution = 1;
+#endif
 set_castro_method_params
    (difmag, small_dens, 
     small_temp, small_pres, 
@@ -39,4 +42,5 @@ set_castro_method_params
     grav_source_type, do_rotation, 
     rotational_period, rotational_dPdt, 
     rot_source_type, rot_axis, 
-    point_mass, do_acc);
+    point_mass, point_mass_fix_solution, 
+    do_acc);

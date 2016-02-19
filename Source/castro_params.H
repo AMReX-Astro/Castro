@@ -72,6 +72,9 @@ static int rot_axis;
 #ifdef POINTMASS
 static Real point_mass;
 #endif
+#ifdef POINTMASS
+static int point_mass_fix_solution;
+#endif
 static int do_acc;
 static int bndry_func_thread_safe;
 static int grown_factor;

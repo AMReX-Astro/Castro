@@ -876,7 +876,7 @@ Castro::advance_hydro (Real time,
 		    }
 
 #ifdef POINTMASS
-		    if (level == finest_level)
+		    if (level == finest_level && point_mass_fix_solution)
 			pm_compute_delta_mass
 			    (&mass_change_at_center,
 			     ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -1095,7 +1095,7 @@ Castro::advance_hydro (Real time,
 			 
 		    
 #ifdef POINTMASS
-		    if (level == finest_level)
+		    if (level == finest_level && point_mass_fix_solution)
 			pm_compute_delta_mass
 			    (&mass_change_at_center, 
 			     ARLIM_3D(lo), ARLIM_3D(hi),
@@ -1229,7 +1229,7 @@ Castro::advance_hydro (Real time,
       ParallelDescriptor::ReduceRealMin(frac_change);
 
 #ifdef POINTMASS
-    if (level == finest_level)
+    if (level == finest_level && point_mass_fix_solution)
     {
           ParallelDescriptor::ReduceRealSum(mass_change_at_center);
   	  if (mass_change_at_center > 0.)

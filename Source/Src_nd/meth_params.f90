@@ -104,6 +104,7 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: rot_axis
   double precision, save :: point_mass
+  integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
 
   double precision, save :: rot_vec(3)
