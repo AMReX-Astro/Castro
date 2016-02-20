@@ -92,10 +92,12 @@ contains
                            q2, q2_lo, q2_hi, &
                            q3, q3_lo, q3_hi)
 
-    use bl_constants_module, only: HALF
+    use bl_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: URHO, UMX, UMZ, NVAR, QVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES
     use prob_params_module, only: center
     use castro_util_module, only: position, area, volume
+    use amrinfo_module, only: amr_level
+    use prob_params_module, only: domlo_level, domhi_level, physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
     
     implicit none
 
@@ -117,35 +119,73 @@ contains
     double precision :: flux2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),3)
     double precision :: flux3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),3)
 
-    integer :: i, j, k    
-    
+    integer          :: i, j, k
+
     double precision :: loc(3), R
     double precision :: hybrid_mom_new(3), hybrid_mom_old(3), linear_mom(3), rho_new, rho_old
 
+    logical          :: special_bnd_lo, special_bnd_hi
+    double precision :: bnd_fac
+    integer          :: domlo(3), domhi(3)
+
     ! First, construct the fluxes.
-    
+
+    ! Account for boundaries where we want to explicitly zero the fluxes.
+
+    domlo = domlo_level(:, amr_level)
+    domhi = domhi_level(:, amr_level)
+
+    special_bnd_lo = (physbc_lo(1) .eq. Symmetry &
+         .or.         physbc_lo(1) .eq. SlipWall &
+         .or.         physbc_lo(1) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(1) .eq. Symmetry &
+         .or.         physbc_hi(1) .eq. SlipWall &
+         .or.         physbc_hi(1) .eq. NoSlipWall)
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
+
+             bnd_fac = ONE
+
+             if ( i .eq. domlo(1)   .and. special_bnd_lo .or. &
+                  i .eq. domhi(1)+1 .and. special_bnd_hi ) then
+                bnd_fac = ZERO
+             endif
 
              loc = position(i,j,k,ccx=.false.) - center
 
              linear_mom = q1(i,j,k,GDRHO) * q1(i,j,k,GDU:GDW)
 
              hybrid_mom_old = linear_to_hybrid_momentum(loc, linear_mom)
-                
+
              flux1(i,j,k,1) = hybrid_mom_old(1) * q1(i,j,k,GDU)
              flux1(i,j,k,2) = hybrid_mom_old(2) * q1(i,j,k,GDU) + loc(2) * q1(i,j,k,GDPRES)
              flux1(i,j,k,3) = hybrid_mom_old(3) * q1(i,j,k,GDU)
 
-             flux1(i,j,k,:) = flux1(i,j,k,:) * area(i,j,k,1) * dt
-             
+             flux1(i,j,k,:) = flux1(i,j,k,:) * area(i,j,k,1) * dt * bnd_fac
+
           enddo
        enddo
     enddo
 
+    special_bnd_lo = (physbc_lo(2) .eq. Symmetry &
+         .or.         physbc_lo(2) .eq. SlipWall &
+         .or.         physbc_lo(2) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(2) .eq. Symmetry &
+         .or.         physbc_hi(2) .eq. SlipWall &
+         .or.         physbc_hi(2) .eq. NoSlipWall)
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
+
+          bnd_fac = ONE
+
+          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
+               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
+             bnd_fac = ZERO
+          endif
+
           do i = lo(1),hi(1)
 
              loc = position(i,j,k,ccy=.false.) - center
@@ -158,13 +198,28 @@ contains
              flux2(i,j,k,2) = hybrid_mom_old(2) * q2(i,j,k,GDV) - loc(1) * q2(i,j,k,GDPRES)
              flux2(i,j,k,3) = hybrid_mom_old(3) * q2(i,j,k,GDV)
 
-             flux2(i,j,k,:) = flux2(i,j,k,:) * area(i,j,k,2) * dt
+             flux2(i,j,k,:) = flux2(i,j,k,:) * area(i,j,k,2) * dt * bnd_fac
 
           enddo
        enddo
     enddo
 
+    special_bnd_lo = (physbc_lo(3) .eq. Symmetry &
+         .or.         physbc_lo(3) .eq. SlipWall &
+         .or.         physbc_lo(3) .eq. NoSlipWall)
+    special_bnd_hi = (physbc_hi(3) .eq. Symmetry &
+         .or.         physbc_hi(3) .eq. SlipWall &
+         .or.         physbc_hi(3) .eq. NoSlipWall)
+
     do k = lo(3),hi(3)+1
+
+       bnd_fac = ONE
+
+       if ( k .eq. domlo(3)   .and. special_bnd_lo .or. &
+            k .eq. domhi(3)+1 .and. special_bnd_hi ) then
+          bnd_fac = ZERO
+       endif
+
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
@@ -178,7 +233,7 @@ contains
              flux3(i,j,k,2) = hybrid_mom_old(2) * q3(i,j,k,GDW)
              flux3(i,j,k,3) = hybrid_mom_old(3) * q3(i,j,k,GDW)
 
-             flux3(i,j,k,:) = flux3(i,j,k,:) * area(i,j,k,3) * dt
+             flux3(i,j,k,:) = flux3(i,j,k,:) * area(i,j,k,3) * dt * bnd_fac
 
           enddo
        enddo
@@ -187,11 +242,11 @@ contains
 
 
     ! Now update state
-    
-    do k = lo(3), hi(3)       
+
+    do k = lo(3), hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             
+
              loc = position(i,j,k) - center
 
              R = sqrt( loc(1)**2 + loc(2)**2 )
@@ -200,7 +255,7 @@ contains
              rho_new = snew(i,j,k,URHO)
 
              hybrid_mom_old(:) = linear_to_hybrid_momentum(loc, sold(i,j,k,UMX:UMZ))
-             
+
              hybrid_mom_new(:) = hybrid_mom_old(:) &
                                + ( flux1(i,j,k,:) - flux1(i+1,j,k,:) &
                                  + flux2(i,j,k,:) - flux2(i,j+1,k,:) &
@@ -219,8 +274,8 @@ contains
           enddo
        enddo
     enddo
-    
+
   end subroutine hybrid_update
-  
+
 end module hybrid_advection_module
 
