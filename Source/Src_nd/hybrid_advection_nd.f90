@@ -61,6 +61,8 @@ contains
 
     type (eos_t)     :: eos_state
 
+    eos_state % reset = .true.
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
