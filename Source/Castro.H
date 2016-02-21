@@ -418,6 +418,10 @@ public:
 
     void set_special_tagging_flag (Real time);
 
+#ifdef HYBRID_MOMENTUM
+    void add_hybrid_hydro_source (MultiFab& sources, MultiFab& state);
+#endif
+
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
 
     void make_radial_data (int is_new);

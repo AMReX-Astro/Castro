@@ -638,7 +638,14 @@ Castro::advance_hydro (Real time,
     add_viscous_term_to_source(ext_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
 #endif
 #endif
-    
+
+    // Account for the hybrid hydro source by adding it to the ext_src arrays.
+
+#ifdef HYBRID_MOMENTUM
+    if (hybrid_hydro)
+      add_hybrid_hydro_source(ext_src_old, S_old);
+#endif
+
     BoxLib::fill_boundary(ext_src_old, geom);    
 
     MultiFab::Add(sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);    
@@ -1385,8 +1392,13 @@ Castro::advance_hydro (Real time,
 #endif
       }
 
+#ifdef HYBRID_MOMENTUM
+    if (hybrid_hydro)
+      add_hybrid_hydro_source(ext_src_new, S_new);
+#endif
+
 #ifdef SGS
-    
+
 // old way: time-centering for ext_src, diffusion are separated.
     if (add_ext_src) {
 	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
@@ -1395,7 +1407,7 @@ Castro::advance_hydro (Real time,
     }
     
 #else
-    
+
 // New way for non-SGS: time-centering for ext_src, diffusion are merged.
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;

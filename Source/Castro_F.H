@@ -89,6 +89,11 @@ extern "C"
 #ifdef HYBRID_MOMENTUM
   void init_hybrid_momentum
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void ca_hybrid_hydro_source
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(sources));
 #endif
 
   void ca_check_initial_species
