@@ -167,6 +167,11 @@ Castro::variableSetUp ()
   Xmom = cnt++;
   Ymom = cnt++;
   Zmom = cnt++;
+#ifdef HYBRID_MOMENTUM
+  Rmom = cnt++;
+  Lmom = cnt++;
+  Pmom = cnt++;
+#endif
   Eden = cnt++;
   Eint = cnt++;
 #ifdef SGS
@@ -380,6 +385,11 @@ Castro::variableSetUp ()
   cnt++; set_x_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "xmom";
   cnt++; set_y_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "ymom";
   cnt++; set_z_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "zmom";
+#ifdef HYBRID_MOMENTUM
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "rmom";
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "lmom";
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "pmom";
+#endif
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
 #ifdef SGS

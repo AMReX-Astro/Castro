@@ -80,6 +80,11 @@ int          Castro::Temp          = -1;
 int          Castro::Xmom          = -1;
 int          Castro::Ymom          = -1;
 int          Castro::Zmom          = -1;
+#ifdef HYBRID_MOMENTUM
+int          Castro::Rmom          = -1;
+int          Castro::Lmom          = -1;
+int          Castro::Pmom          = -1;
+#endif
 
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
@@ -801,6 +806,12 @@ Castro::initData ()
   	  (level, cur_time, lo, hi, ns,
   	   BL_TO_FORTRAN(S_new[mfi]), dx,
   	   gridloc.lo(), gridloc.hi());
+#endif
+
+	  // Generate the initial hybrid momenta based on this user data.
+
+#ifdef HYBRID_MOMENTUM
+	  init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell

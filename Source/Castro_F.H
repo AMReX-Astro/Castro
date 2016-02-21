@@ -85,7 +85,12 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
 #endif  
-  
+
+#ifdef HYBRID_MOMENTUM
+  void init_hybrid_momentum
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+#endif
+
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 

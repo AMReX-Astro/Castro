@@ -10,11 +10,13 @@ contains
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
                      E_added,mom_added) bind(C, name="ca_gsrc")
 
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, UMR, UMP, hybrid_hydro
     use bl_constants_module
     use math_module, only: cross_product
     use castro_util_module, only: position
-    use hybrid_advection_module, only: add_momentum_source
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+#endif
     use prob_params_module, only: center
 
     implicit none
@@ -64,7 +66,15 @@ contains
 
              Sr = rho * grav(i,j,k,:) * dt
 
-             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Sr)
+             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+
+#ifdef HYBRID_MOMENTUM
+             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Sr)
+
+             if (hybrid_hydro .eq. 1) then
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
+             endif
+#endif
 
              if (grav_source_type == 1 .or. grav_source_type == 2) then
 
@@ -120,14 +130,16 @@ contains
                          E_added,mom_added) bind(C, name="ca_corrgsrc")
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
-         grav_source_type, gravity_type, get_g_from_phi
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, &
+         grav_source_type, gravity_type, get_g_from_phi, hybrid_hydro
     use prob_params_module, only : dg, center
     use bl_constants_module
     use multifab_module
     use fundamental_constants_module, only: Gconst
     use castro_util_module, only : position
-    use hybrid_advection_module, only : add_momentum_source
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : add_hybrid_momentum_source, hybrid_to_linear_momentum
+#endif
 
     implicit none
 
@@ -331,7 +343,15 @@ contains
 
              ! Correct momenta
 
-             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
+             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+
+#ifdef HYBRID_MOMENTUM
+             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Srcorr)
+
+             if (hybrid_hydro .eq. 1) then
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
+             endif
+#endif             
 
              ! Correct energy
 

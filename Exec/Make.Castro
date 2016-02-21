@@ -42,6 +42,10 @@ ifeq ($(USE_TAU), TRUE)
   DEFINES += -DTAU
 endif
 
+ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
+  DEFINES += -DHYBRID_MOMENTUM
+endif
+
 ifeq ($(USE_PARTICLES), TRUE)
   DEFINES += -DPARTICLES
 endif

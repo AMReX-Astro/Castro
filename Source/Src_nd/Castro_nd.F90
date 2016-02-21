@@ -341,6 +341,9 @@
         ! NTHERM: number of thermodynamic variables (rho, 3 momenta, rho*e, rho*E, T)
         ! NVAR  : number of total variables in initial system
         NTHERM = 7
+#ifdef HYBRID_MOMENTUM
+        NTHERM = NTHERM + 3
+#endif
         if (use_sgs .eq. 1) NTHERM = NTHERM + 1
         NVAR = NTHERM + nspec + naux + numadv
 
@@ -351,6 +354,11 @@
         UMX   = Xmom      + 1
         UMY   = Xmom      + 2
         UMZ   = Xmom      + 3
+#ifdef HYBRID_MOMENTUM
+        UMR   = Xmom      + 4
+        UML   = Xmom      + 5
+        UMP   = Xmom      + 6
+#endif
         UEDEN = Eden      + 1
         UEINT = Eint      + 1
         if (use_sgs .eq. 1) then
@@ -385,7 +393,9 @@
 
         QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
                              ! the SGS component is accounted for already in NTHERM
-
+#ifdef HYBRID_MOMENTUM
+        QTHERM = QTHERM - 3
+#endif
         QVAR = QTHERM + nspec + naux + numadv
 
         ! We use these to index into the state "Q"

@@ -437,6 +437,9 @@ public:
 
     static int       NUM_STATE;
     static int       Density, Xmom, Ymom, Zmom, Eden, Eint, Temp;
+#ifdef HYBRID_MOMENTUM
+    static int       Rmom, Lmom, Pmom;
+#endif
 #ifdef SGS
     static int       Esgs;
     static Real      sum_turb_src;

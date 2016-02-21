@@ -712,15 +712,19 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UMR, UMP, &
                                    UEDEN, UEINT, UESGS, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy
+                                   allow_negative_energy, hybrid_hydro
     use flatten_module
     use bl_constants_module
+    use castro_util_module, only: position
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: hybrid_to_linear_momentum
+#endif
 
     implicit none
 
@@ -758,6 +762,7 @@ contains
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
     double precision :: dtdx, dtdy, dtdz
+    double precision :: loc(3), vel(3)
 
     type (eos_t) :: eos_state
 
@@ -791,12 +796,20 @@ contains
 
           do i = loq(1),hiq(1)
 
+             loc = position(i,j,k)
+
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
 
-             q(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv
-             q(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv
-             q(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv
+             vel = uin(i,j,k,UMX:UMZ) * rhoinv
+
+#ifdef HYBRID_MOMENTUM
+             if (hybrid_hydro .eq. 1) then
+                vel = hybrid_to_linear_momentum(loc, uin(i,j,k,UMR:UMP) * rhoinv)
+             endif
+#endif
+
+             q(i,j,k,QU:QW) = vel
 
              ! Get the internal energy, which we'll use for determining the pressure.
              ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small,
@@ -1009,7 +1022,9 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
          UEDEN, UEINT, UTEMP, hybrid_hydro, QVAR, NGDNV
     use bl_constants_module
+#ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : hybrid_update
+#endif
     use advection_util_module, only : normalize_species_fluxes
 
     integer, intent(in) ::       lo(3),       hi(3)
@@ -1176,17 +1191,14 @@ contains
 
     ! Now update the hybrid momenta, and overwrite the linear momenta accordingly.
 
-    if (hybrid_hydro .eq. 1) then
-
-       call hybrid_update(lo, hi, dx, dt, &
-                          uin, uin_lo, uin_hi, &
-                          uout, uout_lo, uout_hi, &
-                          qx, qx_lo, qx_hi, &
-                          qy, qy_lo, qy_hi, &
-                          qz, qz_lo, qz_hi)
-
-    endif
-
+#ifdef HYBRID_MOMENTUM
+    call hybrid_update(lo, hi, dx, dt, &
+                       uin, uin_lo, uin_hi, &
+                       uout, uout_lo, uout_hi, &
+                       qx, qx_lo, qx_hi, &
+                       qy, qy_lo, qy_hi, &
+                       qz, qz_lo, qz_hi)
+#endif
 
   end subroutine consup
 

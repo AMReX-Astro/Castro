@@ -107,10 +107,14 @@ contains
     
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, &
-                                   small_dens, small_temp, npassive, upass_map
+                                   small_dens, small_temp, npassive, upass_map, UMR, UMP
     use bl_constants_module
     use eos_module
     use io_module, only: flush_output
+    use castro_util_module, only: position
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: linear_to_hybrid_momentum
+#endif
 
     implicit none
 
@@ -130,6 +134,8 @@ contains
     double precision :: initial_mass, final_mass
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
+
+    double precision :: loc(3)
 
     type (eos_t) :: eos_state
     
@@ -244,6 +250,11 @@ contains
                 uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
                 uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
                 uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
+
+#ifdef HYBRID_MOMENTUM
+                loc = position(i,j,k)
+                uout(i,j,k,UMR:UMP) = linear_to_hybrid_momentum(loc, uout(i,j,k,UMX:UMZ))
+#endif
 
                 do ipassive = 1, npassive
                    n = upass_map(ipassive)

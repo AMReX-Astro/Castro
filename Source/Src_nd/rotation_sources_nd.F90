@@ -10,11 +10,13 @@ contains
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
                      E_added,mom_added) bind(C, name="ca_rsrc")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_period, rot_source_type, hybrid_hydro
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
     use castro_util_module, only: position
-    use hybrid_advection_module, only: add_momentum_source
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+#endif
 
     implicit none
 
@@ -57,7 +59,15 @@ contains
 
              Sr = rho * rot(i,j,k,:) * dt
 
-             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Sr)
+             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+
+#ifdef HYBRID_MOMENTUM
+             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Sr)
+
+             if (hybrid_hydro .eq. 1) then
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
+             endif
+#endif
 
              ! Kinetic energy source: this is v . the momentum source.
              ! We don't apply in the case of the conservative energy
@@ -120,14 +130,16 @@ contains
     ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, hybrid_hydro
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
     use math_module, only: cross_product
     use rotation_module, only: rotational_acceleration
     use rotation_frequency_module, only: get_omega, get_domegadt
     use castro_util_module, only: position
-    use hybrid_advection_module, only: add_momentum_source
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+#endif
 
     implicit none
 
@@ -273,8 +285,16 @@ contains
 
              ! Correct momenta
 
-             call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
- 
+             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+
+#ifdef HYBRID_MOMENTUM
+             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Srcorr)
+
+             if (hybrid_hydro .eq. 1) then
+                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
+             endif
+#endif
+
              ! Correct energy
 
              if (rot_source_type == 1) then
@@ -323,9 +343,12 @@ contains
                 new_mom = matmul(dt_omega_matrix, new_mom)
                 
                 Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
-                
-                call add_momentum_source(loc, unew(i,j,k,UMX:UMZ), Srcorr)
 
+                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+
+#ifdef HYBRID_MOMENTUM
+                call add_hybrid_momentum_source(loc, unew(i,j,k,UMP:UMR), Srcorr)
+#endif
 
 
 

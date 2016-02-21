@@ -4,6 +4,40 @@ module hybrid_advection_module
 
 contains
 
+  ! Takes the initial linear momentum data in a state and converts it
+  ! to the hybrid momenta.
+
+  subroutine init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C,name='init_hybrid_momentum')
+
+    use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
+    use castro_util_module, only: position
+    use prob_params_module, only: center
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3)
+    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    integer          :: i, j, k
+    double precision :: loc(3)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k) - center
+
+             state(i,j,k,UMR:UMP) = linear_to_hybrid_momentum(loc, state(i,j,k,UMX:UMZ))
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine init_hybrid_momentum
+
+
+
   ! Convert a linear momentum into a "hybrid" momentum that has
   ! an angular momentum component.
 
@@ -51,35 +85,21 @@ contains
 
   ! Update momentum to account for source term
 
-  subroutine add_momentum_source(loc, mom, source)
-
-    use meth_params_module, only: hybrid_hydro
+  subroutine add_hybrid_momentum_source(loc, mom, source)
 
     implicit none
 
     double precision :: loc(3), mom(3), source(3)
 
-    double precision :: hybrid_mom(3), R
+    double precision :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
-    
-    if (hybrid_hydro .eq. 1) then
 
-       hybrid_mom = linear_to_hybrid_momentum(loc, mom)
+    mom(1) = mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
+    mom(2) = mom(2) + source(1) * loc(2) - source(2) * loc(1)
+    mom(3) = mom(3) + source(3)
 
-       hybrid_mom(1) = hybrid_mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-       hybrid_mom(2) = hybrid_mom(2) + source(1) * loc(2) - source(2) * loc(1)
-       hybrid_mom(3) = hybrid_mom(3) + source(3)
-                  
-       mom = hybrid_to_linear_momentum(loc, hybrid_mom)    
-
-    else
-       
-       mom = mom + source
-       
-    endif
-
-  end subroutine add_momentum_source
+  end subroutine add_hybrid_momentum_source
 
 
 
@@ -93,7 +113,7 @@ contains
                            q3, q3_lo, q3_hi)
 
     use bl_constants_module, only: ZERO, HALF, ONE
-    use meth_params_module, only: URHO, UMX, UMZ, NVAR, QVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES
+    use meth_params_module, only: URHO, UMR, UML, UMP, UMX, UMZ, NVAR, QVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, hybrid_hydro
     use prob_params_module, only: center
     use castro_util_module, only: position, area, volume
     use amrinfo_module, only: amr_level
@@ -122,7 +142,7 @@ contains
     integer          :: i, j, k
 
     double precision :: loc(3), R
-    double precision :: hybrid_mom_new(3), hybrid_mom_old(3), linear_mom(3), rho_new, rho_old
+    double precision :: hybrid_mom(3), linear_mom(3), rho_new, rho_old
 
     logical          :: special_bnd_lo, special_bnd_hi
     double precision :: bnd_fac
@@ -142,9 +162,9 @@ contains
          .or.         physbc_hi(1) .eq. SlipWall &
          .or.         physbc_hi(1) .eq. NoSlipWall)
 
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)+1
 
              bnd_fac = ONE
 
@@ -157,11 +177,11 @@ contains
 
              linear_mom = q1(i,j,k,GDRHO) * q1(i,j,k,GDU:GDW)
 
-             hybrid_mom_old = linear_to_hybrid_momentum(loc, linear_mom)
+             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
 
-             flux1(i,j,k,1) = hybrid_mom_old(1) * q1(i,j,k,GDU)
-             flux1(i,j,k,2) = hybrid_mom_old(2) * q1(i,j,k,GDU) + loc(2) * q1(i,j,k,GDPRES)
-             flux1(i,j,k,3) = hybrid_mom_old(3) * q1(i,j,k,GDU)
+             flux1(i,j,k,1) = hybrid_mom(1) * q1(i,j,k,GDU)
+             flux1(i,j,k,2) = hybrid_mom(2) * q1(i,j,k,GDU) + loc(2) * q1(i,j,k,GDPRES)
+             flux1(i,j,k,3) = hybrid_mom(3) * q1(i,j,k,GDU)
 
              flux1(i,j,k,:) = flux1(i,j,k,:) * area(i,j,k,1) * dt * bnd_fac
 
@@ -176,8 +196,8 @@ contains
          .or.         physbc_hi(2) .eq. SlipWall &
          .or.         physbc_hi(2) .eq. NoSlipWall)
 
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)+1
 
           bnd_fac = ONE
 
@@ -186,17 +206,17 @@ contains
              bnd_fac = ZERO
           endif
 
-          do i = lo(1),hi(1)
+          do i = lo(1), hi(1)
 
              loc = position(i,j,k,ccy=.false.) - center
 
              linear_mom = q2(i,j,k,GDRHO) * q2(i,j,k,GDU:GDW)
 
-             hybrid_mom_old = linear_to_hybrid_momentum(loc, linear_mom)
+             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
 
-             flux2(i,j,k,1) = hybrid_mom_old(1) * q2(i,j,k,GDV)
-             flux2(i,j,k,2) = hybrid_mom_old(2) * q2(i,j,k,GDV) - loc(1) * q2(i,j,k,GDPRES)
-             flux2(i,j,k,3) = hybrid_mom_old(3) * q2(i,j,k,GDV)
+             flux2(i,j,k,1) = hybrid_mom(1) * q2(i,j,k,GDV)
+             flux2(i,j,k,2) = hybrid_mom(2) * q2(i,j,k,GDV) - loc(1) * q2(i,j,k,GDPRES)
+             flux2(i,j,k,3) = hybrid_mom(3) * q2(i,j,k,GDV)
 
              flux2(i,j,k,:) = flux2(i,j,k,:) * area(i,j,k,2) * dt * bnd_fac
 
@@ -211,7 +231,7 @@ contains
          .or.         physbc_hi(3) .eq. SlipWall &
          .or.         physbc_hi(3) .eq. NoSlipWall)
 
-    do k = lo(3),hi(3)+1
+    do k = lo(3), hi(3)+1
 
        bnd_fac = ONE
 
@@ -220,18 +240,18 @@ contains
           bnd_fac = ZERO
        endif
 
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              loc = position(i,j,k,ccz=.false.) - center
 
              linear_mom = q3(i,j,k,GDRHO) * q3(i,j,k,GDU:GDW)
 
-             hybrid_mom_old = linear_to_hybrid_momentum(loc, linear_mom)
+             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
 
-             flux3(i,j,k,1) = hybrid_mom_old(1) * q3(i,j,k,GDW)
-             flux3(i,j,k,2) = hybrid_mom_old(2) * q3(i,j,k,GDW)
-             flux3(i,j,k,3) = hybrid_mom_old(3) * q3(i,j,k,GDW)
+             flux3(i,j,k,1) = hybrid_mom(1) * q3(i,j,k,GDW)
+             flux3(i,j,k,2) = hybrid_mom(2) * q3(i,j,k,GDW)
+             flux3(i,j,k,3) = hybrid_mom(3) * q3(i,j,k,GDW)
 
              flux3(i,j,k,:) = flux3(i,j,k,:) * area(i,j,k,3) * dt * bnd_fac
 
@@ -244,8 +264,8 @@ contains
     ! Now update state
 
     do k = lo(3), hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
 
@@ -254,22 +274,26 @@ contains
              rho_old = sold(i,j,k,URHO)
              rho_new = snew(i,j,k,URHO)
 
-             hybrid_mom_old(:) = linear_to_hybrid_momentum(loc, sold(i,j,k,UMX:UMZ))
-
-             hybrid_mom_new(:) = hybrid_mom_old(:) &
-                               + ( flux1(i,j,k,:) - flux1(i+1,j,k,:) &
-                                 + flux2(i,j,k,:) - flux2(i,j+1,k,:) &
-                                 + flux3(i,j,k,:) - flux3(i,j,k+1,:) ) / volume(i,j,k)
+             snew(i,j,k,UMR:UMP) = sold(i,j,k,UMR:UMP) &
+                                 + ( flux1(i,j,k,:) - flux1(i+1,j,k,:) &
+                                 +   flux2(i,j,k,:) - flux2(i,j+1,k,:) &
+                                 +   flux3(i,j,k,:) - flux3(i,j,k+1,:) ) / volume(i,j,k)
 
              ! Add the time-centered source term to the radial momentum
 
-             hybrid_mom_new(1) = hybrid_mom_new(1) &
-                               + dt * ( - (loc(1) / R) * (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES)) / dx(1) &
-                                        - (loc(2) / R) * (q2(i,j+1,k,GDPRES) - q2(i,j,k,GDPRES)) / dx(2) &
-                                        + (HALF * (hybrid_mom_new(2) + hybrid_mom_old(2)))**2 / &
-                                        ( (HALF * (rho_new + rho_old)) * R**3) )
+             snew(i,j,k,UMR) = snew(i,j,k,UMR) &
+                             + dt * ( - (loc(1) / R) * (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES)) / dx(1) &
+                                      - (loc(2) / R) * (q2(i,j+1,k,GDPRES) - q2(i,j,k,GDPRES)) / dx(2) &
+                                      + (HALF * (snew(i,j,k,UML) + sold(i,j,k,UML)))**2 / &
+                                      ( (HALF * (rho_new + rho_old)) * R**3) )
 
-             snew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, hybrid_mom_new)
+             ! If we're doing the hybrid advection scheme, update the momenta accordingly.
+
+             if (hybrid_hydro .eq. 1) then
+
+                snew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, snew(i,j,k,UMR:UMP))
+
+             endif
 
           enddo
        enddo
