@@ -16,6 +16,8 @@ USE_POINTMASS = TRUE
 
 DIMENSION_AGNOSTIC = TRUE
 
+USE_HYBRID_MOMENTUM = TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_DIR  := ../..
 
