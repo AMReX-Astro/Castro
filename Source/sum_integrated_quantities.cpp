@@ -103,9 +103,10 @@ Castro::sum_integrated_quantities ()
     if (verbose > 0)
     {
 #ifdef SGS
-	int nfoo = 18;
 #ifdef HYBRID_MOMENTUM
-	nfoo += 3;
+	const int nfoo = 21;
+#else
+	const int nfoo = 18;
 #endif
 	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
 #ifdef HYBRID_MOMENTUM
@@ -114,9 +115,10 @@ Castro::sum_integrated_quantities ()
 			  rho_e, rho_K, rho_E, rho_phi, Etot, delta_E, delta_K, 
 			  prod_sgs, diss_sgs, turb_src, rms_mach};
 #else
-	int nfoo = 11;
 #ifdef HYBRID_MOMENTUM
-	nfoo += 3;
+	const int nfoo = 14;
+#else
+	const int nfoo = 11;
 #endif
 	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
 #ifdef HYBRID_MOMENTUM
