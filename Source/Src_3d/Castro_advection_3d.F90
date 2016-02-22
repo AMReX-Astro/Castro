@@ -1020,7 +1020,7 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, hybrid_hydro, QVAR, NGDNV
+         UEDEN, UEINT, UTEMP, QVAR, NGDNV
     use bl_constants_module
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : hybrid_update
@@ -1189,15 +1189,8 @@ contains
 
     endif
 
-    ! Now update the hybrid momenta, and overwrite the linear momenta accordingly.
-
 #ifdef HYBRID_MOMENTUM
-    call hybrid_update(lo, hi, dx, dt, &
-                       uin, uin_lo, uin_hi, &
-                       uout, uout_lo, uout_hi, &
-                       qx, qx_lo, qx_hi, &
-                       qy, qy_lo, qy_hi, &
-                       qz, qz_lo, qz_hi)
+    call hybrid_update(lo, hi, uout, uout_lo, uout_hi)
 #endif
 
   end subroutine consup

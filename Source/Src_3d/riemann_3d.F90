@@ -428,6 +428,9 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : compute_hybrid_flux
+#endif
 
     double precision, parameter:: small = 1.d-8
 
@@ -993,6 +996,10 @@ contains
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
 
+#ifdef HYBRID_MOMENTUM
+          call compute_hybrid_flux(qint(i,j,kc,:), uflx(i,j,kflux,:), idir, [i, j, k3d])
+#endif
+
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
           rhoetot = qint(i,j,kc,GDPRES)/(gamgdnv - ONE) + &
                HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
@@ -1068,6 +1075,9 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : compute_hybrid_flux
+#endif
 
     double precision, parameter:: small = 1.d-8
 
@@ -1445,6 +1455,10 @@ contains
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu ) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
+
+#ifdef HYBRID_MOMENTUM
+          call compute_hybrid_flux(qint(i,j,kc,:), uflx(i,j,kflux,:), idir, [i, j, k3d])
+#endif
 
 #ifdef RADIATION
           rhoetot = regdnv_g + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)

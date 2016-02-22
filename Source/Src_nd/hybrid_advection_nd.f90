@@ -164,195 +164,99 @@ contains
 
 
 
-  ! Update state to account for hybrid advection.
+  subroutine compute_hybrid_flux(state, flux, idir, idx)
 
-  subroutine hybrid_update(lo, hi, dx, dt, &
-                           sold, sold_lo, sold_hi, &
-                           snew, snew_lo, snew_hi, &
-                           q1, q1_lo, q1_hi, &
-                           q2, q2_lo, q2_hi, &
-                           q3, q3_lo, q3_hi)
-
-    use bl_constants_module, only: ZERO, HALF, ONE
-    use meth_params_module, only: URHO, UMR, UML, UMP, UMX, UMZ, NVAR, QVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, hybrid_hydro
+    use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
+    use bl_error_module, only: bl_error
     use prob_params_module, only: center
-    use castro_util_module, only: position, area, volume
-    use amrinfo_module, only: amr_level
-    use prob_params_module, only: domlo_level, domhi_level, physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-    
+    use castro_util_module, only: position
+
     implicit none
 
-    integer :: lo(3), hi(3)
-    integer :: sold_lo(3), sold_hi(3)
-    integer :: snew_lo(3), snew_hi(3)
-    integer :: q1_lo(3), q1_hi(3)
-    integer :: q2_lo(3), q2_hi(3)
-    integer :: q3_lo(3), q3_hi(3)
+    double precision :: state(NGDNV)
+    double precision :: flux(NVAR)
+    integer          :: idir, idx(3)
 
-    double precision :: dx(3), dt
-    double precision :: sold(sold_lo(1):sold_hi(1),sold_lo(2):sold_hi(2),sold_lo(3):sold_hi(3),NVAR)
-    double precision :: snew(snew_lo(1):snew_hi(1),snew_lo(2):snew_hi(2),snew_lo(3):snew_hi(3),NVAR)
-    double precision :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
-    double precision :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
-    double precision :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+    double precision :: linear_mom(3), hybrid_mom(3)
+    double precision :: loc(3), R
 
-    double precision :: flux1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),3)
-    double precision :: flux2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),3)
-    double precision :: flux3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),3)
+    if (idir .eq. 1) then
+       loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
+    else if (idir .eq. 2) then
+       loc = position(idx(1),idx(2),idx(3),ccy=.false.) - center
+    else if (idir .eq. 3) then
+       loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
+    else
+       call bl_error("Error: unknown direction in compute_hybrid_flux.")
+    endif
+
+    R = sqrt(loc(1)**2 + loc(2)**2)
+
+    linear_mom = state(GDRHO) * state(GDU:GDW)
+
+    hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
+
+    if (idir .eq. 1) then
+
+       flux(UMR) = hybrid_mom(1) * state(GDU) + (loc(1) / R) * state(GDPRES)
+       flux(UML) = hybrid_mom(2) * state(GDU) + loc(2) * state(GDPRES)
+       flux(UMP) = hybrid_mom(3) * state(GDU)
+
+    else if (idir .eq. 2) then
+
+       flux(UMR) = hybrid_mom(1) * state(GDV) + (loc(2) / R) * state(GDPRES)
+       flux(UML) = hybrid_mom(2) * state(GDV) - loc(1) * state(GDPRES)
+       flux(UMP) = hybrid_mom(3) * state(GDV)
+
+    else if (idir .eq. 3) then
+
+       flux(UMR) = hybrid_mom(1) * state(GDW)
+       flux(UML) = hybrid_mom(2) * state(GDW)
+       flux(UMP) = hybrid_mom(3) * state(GDW)
+
+    else
+
+       call bl_error("Error: unknown direction in compute_hybrid_flux.")
+
+    endif
+       
+  end subroutine compute_hybrid_flux
+
+
+
+  ! Update state to account for hybrid advection.
+
+  subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
+
+    use meth_params_module, only: UMR, UML, UMP, UMX, UMZ, NVAR, hybrid_hydro
+    use castro_util_module, only: position
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: state_lo(3), state_hi(3)
+    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     integer          :: i, j, k
+    double precision :: loc(3)
 
-    double precision :: loc(3), R
-    double precision :: hybrid_mom(3), linear_mom(3), rho_new, rho_old
+    ! If we're doing the hybrid advection scheme, update the momenta accordingly.
 
-    logical          :: special_bnd_lo, special_bnd_hi
-    double precision :: bnd_fac
-    integer          :: domlo(3), domhi(3)
+    if (hybrid_hydro .eq. 1) then
 
-    ! First, construct the fluxes.
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-    ! Account for boundaries where we want to explicitly zero the fluxes.
+                loc = position(i,j,k)
 
-    domlo = domlo_level(:, amr_level)
-    domhi = domhi_level(:, amr_level)
+                state(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, state(i,j,k,UMR:UMP))
 
-    special_bnd_lo = (physbc_lo(1) .eq. Symmetry &
-         .or.         physbc_lo(1) .eq. SlipWall &
-         .or.         physbc_lo(1) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(1) .eq. Symmetry &
-         .or.         physbc_hi(1) .eq. SlipWall &
-         .or.         physbc_hi(1) .eq. NoSlipWall)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)+1
-
-             bnd_fac = ONE
-
-             if ( i .eq. domlo(1)   .and. special_bnd_lo .or. &
-                  i .eq. domhi(1)+1 .and. special_bnd_hi ) then
-                bnd_fac = ZERO
-             endif
-
-             loc = position(i,j,k,ccx=.false.) - center
-
-             R = sqrt(loc(1)**2 + loc(2)**2)
-
-             linear_mom = q1(i,j,k,GDRHO) * q1(i,j,k,GDU:GDW)
-
-             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
-
-             flux1(i,j,k,1) = hybrid_mom(1) * q1(i,j,k,GDU) + (loc(1) / R) * q1(i,j,k,GDPRES)
-             flux1(i,j,k,2) = hybrid_mom(2) * q1(i,j,k,GDU) + loc(2) * q1(i,j,k,GDPRES)
-             flux1(i,j,k,3) = hybrid_mom(3) * q1(i,j,k,GDU)
-
-             flux1(i,j,k,:) = flux1(i,j,k,:) * area(i,j,k,1) * dt * bnd_fac
-
+             enddo
           enddo
        enddo
-    enddo
 
-    special_bnd_lo = (physbc_lo(2) .eq. Symmetry &
-         .or.         physbc_lo(2) .eq. SlipWall &
-         .or.         physbc_lo(2) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(2) .eq. Symmetry &
-         .or.         physbc_hi(2) .eq. SlipWall &
-         .or.         physbc_hi(2) .eq. NoSlipWall)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)+1
-
-          bnd_fac = ONE
-
-          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
-             bnd_fac = ZERO
-          endif
-
-          do i = lo(1), hi(1)
-
-             loc = position(i,j,k,ccy=.false.) - center
-
-             R = sqrt(loc(1)**2 + loc(2)**2)
-
-             linear_mom = q2(i,j,k,GDRHO) * q2(i,j,k,GDU:GDW)
-
-             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
-
-             flux2(i,j,k,1) = hybrid_mom(1) * q2(i,j,k,GDV) + (loc(2) / R) * q2(i,j,k,GDPRES)
-             flux2(i,j,k,2) = hybrid_mom(2) * q2(i,j,k,GDV) - loc(1) * q2(i,j,k,GDPRES)
-             flux2(i,j,k,3) = hybrid_mom(3) * q2(i,j,k,GDV)
-
-             flux2(i,j,k,:) = flux2(i,j,k,:) * area(i,j,k,2) * dt * bnd_fac
-
-          enddo
-       enddo
-    enddo
-
-    special_bnd_lo = (physbc_lo(3) .eq. Symmetry &
-         .or.         physbc_lo(3) .eq. SlipWall &
-         .or.         physbc_lo(3) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(3) .eq. Symmetry &
-         .or.         physbc_hi(3) .eq. SlipWall &
-         .or.         physbc_hi(3) .eq. NoSlipWall)
-
-    do k = lo(3), hi(3)+1
-
-       bnd_fac = ONE
-
-       if ( k .eq. domlo(3)   .and. special_bnd_lo .or. &
-            k .eq. domhi(3)+1 .and. special_bnd_hi ) then
-          bnd_fac = ZERO
-       endif
-
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             loc = position(i,j,k,ccz=.false.) - center
-
-             linear_mom = q3(i,j,k,GDRHO) * q3(i,j,k,GDU:GDW)
-
-             hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
-
-             flux3(i,j,k,1) = hybrid_mom(1) * q3(i,j,k,GDW)
-             flux3(i,j,k,2) = hybrid_mom(2) * q3(i,j,k,GDW)
-             flux3(i,j,k,3) = hybrid_mom(3) * q3(i,j,k,GDW)
-
-             flux3(i,j,k,:) = flux3(i,j,k,:) * area(i,j,k,3) * dt * bnd_fac
-
-          enddo
-       enddo
-    enddo
-
-
-
-    ! Now update state
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             loc = position(i,j,k) - center
-
-             rho_old = sold(i,j,k,URHO)
-             rho_new = snew(i,j,k,URHO)
-
-             snew(i,j,k,UMR:UMP) = sold(i,j,k,UMR:UMP) &
-                                 + ( flux1(i,j,k,:) - flux1(i+1,j,k,:) &
-                                 +   flux2(i,j,k,:) - flux2(i,j+1,k,:) &
-                                 +   flux3(i,j,k,:) - flux3(i,j,k+1,:) ) / volume(i,j,k)
-
-             ! If we're doing the hybrid advection scheme, update the momenta accordingly.
-
-             if (hybrid_hydro .eq. 1) then
-
-                snew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, snew(i,j,k,UMR:UMP))
-
-             endif
-
-          enddo
-       enddo
-    enddo
+    endif
 
   end subroutine hybrid_update
 
