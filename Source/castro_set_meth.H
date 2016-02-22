@@ -23,6 +23,6 @@ void set_castro_method_params
     const Real& react_T_max, const int& do_grav, 
     const int& grav_source_type, const int& do_rotation, 
     const Real& rotational_period, const Real& rotational_dPdt, 
-    const int& rot_source_type, const int& rot_axis, 
-    const Real& point_mass, const int& point_mass_fix_solution, 
-    const int& do_acc);
+    const int& rot_source_type, const int& implicit_rotation_update, 
+    const int& rot_axis, const Real& point_mass, 
+    const int& point_mass_fix_solution, const int& do_acc);

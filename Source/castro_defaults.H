@@ -67,6 +67,9 @@ Real        Castro::rotational_dPdt = 0.0;
 int         Castro::rot_source_type = 1;
 #endif
 #ifdef ROTATION
+int         Castro::implicit_rotation_update = 0;
+#endif
+#ifdef ROTATION
 int         Castro::rot_axis = 3;
 #endif
 #ifdef POINTMASS

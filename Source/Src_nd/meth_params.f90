@@ -102,6 +102,7 @@ module meth_params_module
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
   integer         , save :: rot_source_type
+  integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
   double precision, save :: point_mass
   integer         , save :: point_mass_fix_solution

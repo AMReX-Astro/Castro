@@ -8,6 +8,9 @@ static Real rotational_dPdt = 0.0;
 static int rot_source_type = 1;
 #endif
 #ifndef ROTATION
+static int implicit_rotation_update = 0;
+#endif
+#ifndef ROTATION
 static int rot_axis = 3;
 #endif
 #ifndef POINTMASS
@@ -41,6 +44,6 @@ set_castro_method_params
     react_T_max, do_grav, 
     grav_source_type, do_rotation, 
     rotational_period, rotational_dPdt, 
-    rot_source_type, rot_axis, 
-    point_mass, point_mass_fix_solution, 
-    do_acc);
+    rot_source_type, implicit_rotation_update, 
+    rot_axis, point_mass, 
+    point_mass_fix_solution, do_acc);

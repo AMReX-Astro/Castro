@@ -130,7 +130,8 @@ contains
     ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, hybrid_hydro
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, hybrid_hydro, &
+                                  implicit_rotation_update
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
     use math_module, only: cross_product
@@ -283,6 +284,30 @@ contains
 
              Srcorr = HALF * (Sr_new - Sr_old)
 
+             if (implicit_rotation_update .eq. 1 .and. hybrid_hydro .ne. 1) then
+
+                ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
+
+                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
+                ! and do the time-level n part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
+
+                new_mom = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
+                        + HALF * dt * loc * omega_new**2 * rhon &
+                        - HALF * dt * loc * omega_old**2 * rhoo
+
+                ! The following is the general solution to the 3D coupled system,
+                ! assuming that the rotation vector has components along all three
+                ! axes, obtained using Cramer's rule (the coefficient matrix is
+                ! defined above). In practice the user will probably only be using
+                ! one axis for rotation; if it's the z-axis, then this reduces to
+                ! Equations 25 and 26 in the wdmerger paper.
+
+                new_mom = matmul(dt_omega_matrix, new_mom)
+
+                Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
+
+             endif
+
              ! Correct momenta
 
              unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
@@ -324,38 +349,10 @@ contains
 
              else if (rot_source_type == 4) then
 
-                ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
-
-                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
-                ! and do the time-level n part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
-
-                new_mom = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
-                                              + HALF * dt * loc * omega_new**2 * rhon &
-                                              - HALF * dt * loc * omega_old**2 * rhoo                
-                
-                ! The following is the general solution to the 3D coupled system,
-                ! assuming that the rotation vector has components along all three
-                ! axes, obtained using Cramer's rule (the coefficient matrix is
-                ! defined above). In practice the user will probably only be using
-                ! one axis for rotation; if it's the z-axis, then this reduces to
-                ! Equations 25 and 26 in the wdmerger paper.
-
-                new_mom = matmul(dt_omega_matrix, new_mom)
-                
-                Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
-
-                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
-
-#ifdef HYBRID_MOMENTUM
-                call add_hybrid_momentum_source(loc, unew(i,j,k,UMP:UMR), Srcorr)
-#endif
-
-
-
                 ! Conservative energy update
 
                 ! First, subtract the predictor step we applied earlier.
-                
+
                 SrEcorr = - SrE_old
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,

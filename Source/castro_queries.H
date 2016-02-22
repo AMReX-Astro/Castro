@@ -67,6 +67,9 @@ pp.query("rotational_dPdt", rotational_dPdt);
 pp.query("rot_source_type", rot_source_type);
 #endif
 #ifdef ROTATION
+pp.query("implicit_rotation_update", implicit_rotation_update);
+#endif
+#ifdef ROTATION
 pp.query("rot_axis", rot_axis);
 #endif
 #ifdef POINTMASS

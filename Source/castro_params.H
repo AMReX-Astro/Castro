@@ -67,6 +67,9 @@ static Real rotational_dPdt;
 static int rot_source_type;
 #endif
 #ifdef ROTATION
+static int implicit_rotation_update;
+#endif
+#ifdef ROTATION
 static int rot_axis;
 #endif
 #ifdef POINTMASS

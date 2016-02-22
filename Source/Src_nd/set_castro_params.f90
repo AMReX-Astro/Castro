@@ -15,8 +15,8 @@ subroutine set_castro_method_params( &
   dxnuc_in, do_react_in, react_T_min_in,  &
   react_T_max_in, do_grav_in, grav_source_type_in,  &
   do_rotation_in, rot_period_in, rot_period_dot_in,  &
-  rot_source_type_in, rot_axis_in, point_mass_in,  &
-  point_mass_fix_solution_in, do_acc_in) bind(C)
+  rot_source_type_in, implicit_rotation_update_in, rot_axis_in,  &
+  point_mass_in, point_mass_fix_solution_in, do_acc_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -77,6 +77,7 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: rot_period_in
   double precision, intent(in) :: rot_period_dot_in
   integer,          intent(in) :: rot_source_type_in
+  integer,          intent(in) :: implicit_rotation_update_in
   integer,          intent(in) :: rot_axis_in
   double precision, intent(in) :: point_mass_in
   integer,          intent(in) :: point_mass_fix_solution_in
@@ -131,6 +132,7 @@ subroutine set_castro_method_params( &
   rot_period = rot_period_in
   rot_period_dot = rot_period_dot_in
   rot_source_type = rot_source_type_in
+  implicit_rotation_update = implicit_rotation_update_in
   rot_axis = rot_axis_in
   point_mass = point_mass_in
   point_mass_fix_solution = point_mass_fix_solution_in

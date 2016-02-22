@@ -245,6 +245,10 @@ rotational_dPdt              Real          0.0                y        ROTATION 
 # energy equations
 rot_source_type              int           1                  y        ROTATION
 
+# we can do a implicit solution of the rotation update to allow
+# for better coupling of the Coriolis terms
+implicit_rotation_update     int           0                  y        ROTATION
+
 # the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
 
