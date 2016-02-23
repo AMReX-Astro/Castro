@@ -84,7 +84,14 @@ contains
 
              else if (rot_source_type .eq. 4) then
 
-                ! Add a predictor here; we'll remove this later.
+                ! The conservative energy formulation does not strictly require
+                ! any energy source-term here, because it depends only on the
+                ! fluid motions from the hydrodynamical fluxes which we will only
+                ! have when we get to the 'corrector' step. Nevertheless we add a
+                ! predictor energy source term in the way that the other methods
+                ! do, for consistency. We will fully subtract this predictor value
+                ! during the corrector step, so that the final result is correct.
+                ! Here we use the same approach as rot_source_type == 2.
                 
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
                 
