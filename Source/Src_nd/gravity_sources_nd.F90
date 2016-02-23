@@ -10,12 +10,12 @@ contains
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
                      E_added,mom_added) bind(C, name="ca_gsrc")
 
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, UMR, UMP, hybrid_hydro
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, UMR, UMP
     use bl_constants_module
     use math_module, only: cross_product
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+    use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
     use prob_params_module, only: center
 
@@ -70,10 +70,6 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Sr)
-
-             if (hybrid_hydro .eq. 1) then
-                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
-             endif
 #endif
 
              if (grav_source_type == 1 .or. grav_source_type == 2) then
@@ -138,14 +134,14 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, &
-         grav_source_type, gravity_type, get_g_from_phi, hybrid_hydro
+         grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only : dg, center
     use bl_constants_module
     use multifab_module
     use fundamental_constants_module, only: Gconst
     use castro_util_module, only : position
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only : add_hybrid_momentum_source, hybrid_to_linear_momentum
+    use hybrid_advection_module, only : add_hybrid_momentum_source
 #endif
 
     implicit none
@@ -354,10 +350,6 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Srcorr)
-
-             if (hybrid_hydro .eq. 1) then
-                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
-             endif
 #endif             
 
              ! Correct energy

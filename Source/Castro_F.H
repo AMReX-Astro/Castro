@@ -94,6 +94,10 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(sources));
+
+  void hybrid_update
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state));
 #endif
 
   void ca_check_initial_species

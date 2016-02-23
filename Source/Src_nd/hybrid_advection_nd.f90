@@ -228,7 +228,7 @@ contains
 
   subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
 
-    use meth_params_module, only: UMR, UML, UMP, UMX, UMZ, NVAR, hybrid_hydro
+    use meth_params_module, only: UMR, UML, UMP, UMX, UMZ, NVAR
     use castro_util_module, only: position
 
     implicit none
@@ -240,23 +240,17 @@ contains
     integer          :: i, j, k
     double precision :: loc(3)
 
-    ! If we're doing the hybrid advection scheme, update the momenta accordingly.
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-    if (hybrid_hydro .eq. 1) then
+             loc = position(i,j,k)
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             state(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, state(i,j,k,UMR:UMP))
 
-                loc = position(i,j,k)
-
-                state(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, state(i,j,k,UMR:UMP))
-
-             enddo
           enddo
        enddo
-
-    endif
+    enddo
 
   end subroutine hybrid_update
 

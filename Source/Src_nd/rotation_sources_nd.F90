@@ -10,12 +10,12 @@ contains
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
                      E_added,mom_added) bind(C, name="ca_rsrc")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_period, rot_source_type, hybrid_hydro
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_period, rot_source_type
     use prob_params_module, only: coord_type, problo, center
     use bl_constants_module
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+    use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
     implicit none
@@ -63,10 +63,6 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Sr)
-
-             if (hybrid_hydro .eq. 1) then
-                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
-             endif
 #endif
 
              ! Kinetic energy source: this is v . the momentum source.
@@ -137,7 +133,7 @@ contains
     ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, hybrid_hydro, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, &
                                   implicit_rotation_update
     use prob_params_module, only: coord_type, problo, center, dg
     use bl_constants_module
@@ -146,7 +142,7 @@ contains
     use rotation_frequency_module, only: get_omega, get_domegadt
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: add_hybrid_momentum_source, hybrid_to_linear_momentum
+    use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
     implicit none
@@ -291,7 +287,7 @@ contains
 
              Srcorr = HALF * (Sr_new - Sr_old)
 
-             if (implicit_rotation_update .eq. 1 .and. hybrid_hydro .ne. 1) then
+             if (implicit_rotation_update .eq. 1) then
 
                 ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
 
@@ -321,10 +317,6 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Srcorr)
-
-             if (hybrid_hydro .eq. 1) then
-                unew(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, unew(i,j,k,UMR:UMP))
-             endif
 #endif
 
              ! Correct energy

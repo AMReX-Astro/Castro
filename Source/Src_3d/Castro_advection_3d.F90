@@ -718,13 +718,10 @@ contains
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy, hybrid_hydro
+                                   allow_negative_energy
     use flatten_module
     use bl_constants_module
     use castro_util_module, only: position
-#ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: hybrid_to_linear_momentum
-#endif
 
     implicit none
 
@@ -802,12 +799,6 @@ contains
              rhoinv = ONE/q(i,j,k,QRHO)
 
              vel = uin(i,j,k,UMX:UMZ) * rhoinv
-
-#ifdef HYBRID_MOMENTUM
-             if (hybrid_hydro .eq. 1) then
-                vel = hybrid_to_linear_momentum(loc, uin(i,j,k,UMR:UMP) * rhoinv)
-             endif
-#endif
 
              q(i,j,k,QU:QW) = vel
 
@@ -1022,9 +1013,6 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
          UEDEN, UEINT, UTEMP, QVAR, NGDNV
     use bl_constants_module
-#ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only : hybrid_update
-#endif
     use advection_util_module, only : normalize_species_fluxes
 
     integer, intent(in) ::       lo(3),       hi(3)
@@ -1188,10 +1176,6 @@ contains
        enddo
 
     endif
-
-#ifdef HYBRID_MOMENTUM
-    call hybrid_update(lo, hi, uout, uout_lo, uout_hi)
-#endif
 
   end subroutine consup
 
