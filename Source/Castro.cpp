@@ -3374,6 +3374,9 @@ Castro::add_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
 
   BL_ASSERT(ng >= sources.nGrow());
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.growntilebox(ng);

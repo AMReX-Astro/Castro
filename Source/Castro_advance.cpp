@@ -131,6 +131,9 @@ Castro::advance (Real time,
 
       const Real* dx = geom.CellSize();
 
+#ifdef _OPENMP
+#pragma omp parallel reduction(min:dt_subcycle)
+#endif
       for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
 	const Box& bx = mfi.tilebox();
