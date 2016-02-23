@@ -1690,6 +1690,25 @@ Castro::advance_hydro (Real time,
 #endif
 #endif
 
+       // Sync up the hybrid and linear momenta.
+
+#ifdef HYBRID_MOMENTUM
+       if (hybrid_hydro) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	 for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	   const Box& bx = mfi.tilebox();
+
+	   hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
+
+	 }
+
+       }
+#endif
+
 #ifndef LEVELSET
     delete [] u_gdnv;
 #endif
