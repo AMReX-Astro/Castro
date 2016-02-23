@@ -1899,6 +1899,7 @@ Castro::advance_no_hydro (Real time,
 
        // Sync up the hybrid and linear momenta.
 
+#ifdef HYBRID_MOMENTUM
        if (hybrid_hydro) {
 
 #ifdef _OPENMP
@@ -1913,6 +1914,7 @@ Castro::advance_no_hydro (Real time,
 	 }
 
        }
+#endif
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
