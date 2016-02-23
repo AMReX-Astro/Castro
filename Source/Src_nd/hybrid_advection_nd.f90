@@ -28,7 +28,7 @@ contains
 
              loc = position(i,j,k) - center
 
-             state(i,j,k,UMR:UMP) = linear_to_hybrid_momentum(loc, state(i,j,k,UMX:UMZ))
+             state(i,j,k,UMR:UMP) = linear_to_hybrid(loc, state(i,j,k,UMX:UMZ))
 
           enddo
        enddo
@@ -99,10 +99,10 @@ contains
 
 
 
-  ! Convert a linear momentum into a "hybrid" momentum that has
-  ! an angular momentum component.
+  ! Convert a linear quantity such as momentum into the
+  ! "hybrid" scheme that has radial and angular components.
 
-  function linear_to_hybrid_momentum(loc, mom_in) result(mom_out)
+  function linear_to_hybrid(loc, mom_in) result(mom_out)
 
     implicit none
 
@@ -113,18 +113,18 @@ contains
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     mom = mom_in
-    
+
     mom_out(1) = mom(1) * (loc(1) / R) + mom(2) * (loc(2) / R)
     mom_out(2) = mom(2) * loc(1)       - mom(1) * loc(2)
     mom_out(3) = mom(3)
 
-  end function linear_to_hybrid_momentum
+  end function linear_to_hybrid
 
 
 
-  ! Convert a "hybrid" momentum into a linear momentum.
+  ! Convert a "hybrid" quantity into a linear one.
 
-  function hybrid_to_linear_momentum(loc, mom_in) result(mom_out)
+  function hybrid_to_linear(loc, mom_in) result(mom_out)
 
     implicit none
 
@@ -135,12 +135,12 @@ contains
     mom = mom_in
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
-    
+
     mom_out(1) = mom(1) * (loc(1) / R)    - mom(2) * (loc(2) / R**2)
     mom_out(2) = mom(2) * (loc(1) / R**2) + mom(1) * (loc(2) / R)
     mom_out(3) = mom(3)
-    
-  end function hybrid_to_linear_momentum
+
+  end function hybrid_to_linear
 
 
 
@@ -152,13 +152,7 @@ contains
 
     double precision :: loc(3), mom(3), source(3)
 
-    double precision :: R
-
-    R = sqrt( loc(1)**2 + loc(2)**2 )
-
-    mom(1) = mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-    mom(2) = mom(2) + source(1) * loc(2) - source(2) * loc(1)
-    mom(3) = mom(3) + source(3)
+    mom = mom + linear_to_hybrid(loc, source)
 
   end subroutine add_hybrid_momentum_source
 
@@ -194,7 +188,7 @@ contains
 
     linear_mom = state(GDRHO) * state(GDU:GDW)
 
-    hybrid_mom = linear_to_hybrid_momentum(loc, linear_mom)
+    hybrid_mom = linear_to_hybrid(loc, linear_mom)
 
     if (idir .eq. 1) then
 
@@ -219,7 +213,7 @@ contains
        call bl_error("Error: unknown direction in compute_hybrid_flux.")
 
     endif
-       
+
   end subroutine compute_hybrid_flux
 
 
@@ -246,7 +240,7 @@ contains
 
              loc = position(i,j,k)
 
-             state(i,j,k,UMX:UMZ) = hybrid_to_linear_momentum(loc, state(i,j,k,UMR:UMP))
+             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
 
           enddo
        enddo

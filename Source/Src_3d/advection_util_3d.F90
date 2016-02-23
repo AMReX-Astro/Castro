@@ -113,7 +113,7 @@ contains
     use io_module, only: flush_output
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: linear_to_hybrid_momentum
+    use hybrid_advection_module, only: linear_to_hybrid
 #endif
 
     implicit none
@@ -253,7 +253,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
                 loc = position(i,j,k)
-                uout(i,j,k,UMR:UMP) = linear_to_hybrid_momentum(loc, uout(i,j,k,UMX:UMZ))
+                uout(i,j,k,UMR:UMP) = linear_to_hybrid(loc, uout(i,j,k,UMX:UMZ))
 #endif
 
                 do ipassive = 1, npassive
