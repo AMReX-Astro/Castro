@@ -645,8 +645,7 @@ Castro::advance_hydro (Real time,
     // Account for the hybrid hydro source by adding it to the ext_src arrays.
 
 #ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro)
-      add_hybrid_hydro_source(ext_src_old, S_old);
+    add_hybrid_hydro_source(ext_src_old, S_old);
 #endif
 
     BoxLib::fill_boundary(ext_src_old, geom);    
@@ -1396,8 +1395,7 @@ Castro::advance_hydro (Real time,
       }
 
 #ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro)
-      add_hybrid_hydro_source(ext_src_new, S_new);
+    add_hybrid_hydro_source(ext_src_new, S_new);
 #endif
 
 #ifdef SGS
