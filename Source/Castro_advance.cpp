@@ -179,7 +179,7 @@ Castro::advance (Real time,
 
 	Real subcycle_time = time;
 	subcycle_iter = 1;
-	Real dt_advance = dt_subcycle;
+	Real dt_advance = dt / n_subcycle_iters;
 
 	// Restore the original values of the state data.
 
@@ -206,7 +206,14 @@ Castro::advance (Real time,
 
 	while (subcycle_time < time + dt) {
 
-	  if (subcycle_time + dt_advance > time + dt)
+	  // Shorten the last timestep so that we don't overshoot
+	  // the ending time. We want to protect against taking
+	  // a very small last timestep due to precision issues,
+	  // so subtract a small number from that time.
+
+	  Real eps = 1.0e-10 * dt;
+
+	  if (subcycle_time + dt_advance > time + dt - eps)
 	    dt_advance = (time + dt) - subcycle_time;
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -679,8 +686,8 @@ Castro::advance_hydro (Real time,
     if (do_rotation)
       add_force_to_sources(rot_old, sources, Sborder);
 #endif
-    
-    
+
+
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
@@ -691,18 +698,18 @@ Castro::advance_hydro (Real time,
       update_sponge_params(&time);
 
     // Set up the time-rate of change of the source terms.
-    
-    MultiFab& dSdt_new = get_new_data(Source_Type);    
-    
+
+    MultiFab& dSdt_new = get_new_data(Source_Type);
+
     // Optionally we can predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
     // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so 
     // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
-      
+
     if (source_term_predictor == 1) {
 
       AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
-      
+
       dSdt_new.mult(dt / 2.0, NUM_GROW);
 
       MultiFab::Add(sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
