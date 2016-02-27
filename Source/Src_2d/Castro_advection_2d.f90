@@ -589,12 +589,6 @@ contains
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
                 endif
 
-                if (n == UFS .and. uout(i,j,n) == ZERO) then
-
-                   print *, i, j, uin(i,j,n), flux1(i:i+1,j,n), flux2(i,j:j+1,n)
-
-                endif
-                   
              enddo
           enddo
        end if
