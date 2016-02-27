@@ -43,7 +43,9 @@ ifeq ($(USE_TAU), TRUE)
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
-  DEFINES += -DHYBRID_MOMENTUM
+  ifeq ($(DIM), 3)
+    DEFINES += -DHYBRID_MOMENTUM
+  endif
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)
