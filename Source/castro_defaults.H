@@ -33,6 +33,7 @@ Real        Castro::dual_energy_eta3 = 0.0e0;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
 int         Castro::allow_negative_energy = 1;
+int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 #ifdef SGS
 Real        Castro::sum_turb_src = 0.0;

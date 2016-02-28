@@ -122,7 +122,7 @@ contains
     use eos_module 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-         small_temp, allow_negative_energy, &
+         UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
     use io_module, only: flush_output
@@ -140,7 +140,65 @@ contains
     type (eos_t) :: eos_state
 
     ! Reset internal energy
-    if (allow_negative_energy .eq. 0) then
+
+    ! First, check if the internal energy variable is
+    ! smaller than the internal energy computed via
+    ! a call to the EOS using the small temperature.
+    ! If so, reset it using the current temperature,
+    ! assuming it is at least as large as small_temp.
+    ! Note that allow_small_energy .eq. 0 overrides
+    ! allow_negative_energy .eq. 0 since a negative
+    ! energy is of course smaller than the smallest
+    ! allowed energy.
+
+    if (allow_small_energy .eq. 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                rhoInv = ONE / u(i,j,k,URHO)
+                Up = u(i,j,k,UMX) * rhoInv
+                Vp = u(i,j,k,UMY) * rhoInv
+                Wp = u(i,j,k,UMZ) * rhoInv
+                ke = HALF * (Up**2 + Vp**2 + Wp**2)
+
+                rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+
+                ! Reset (e from e) if it's greater than eta * E.
+
+                if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
+
+                   u(i,j,k,UEINT) = rho_eint
+
+                endif
+
+                eos_state % rho = u(i,j,k,URHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                call eos(eos_input_rt, eos_state)
+
+                if (u(i,j,k,UEINT) * rhoInv < eos_state % e) then
+
+                   eos_state % T = max(u(i,j,k,UTEMP), small_temp)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   if (dual_energy_update_E_from_e) then
+                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
+                   endif
+
+                   u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+
+                endif
+
+             enddo
+          enddo
+       enddo
+
+    else if (allow_negative_energy .eq. 0) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -195,7 +253,8 @@ contains
           enddo
        enddo
 
-       ! If (allow_negative_energy .eq. 1) then just reset (rho e) from (rho E)
+       ! If (allow_negative_energy .eq. 1) and (allow_small_energy .eq. 1)
+       ! then just reset (rho e) from (rho E)
     else
 
        do k = lo(3), hi(3)
