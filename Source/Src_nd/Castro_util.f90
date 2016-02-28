@@ -184,7 +184,10 @@ contains
                       print *,'    '
                    end if
 
-                   u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                   if (dual_energy_update_E_from_e) then
+                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                   endif
+
                    u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
 
                 end if
@@ -227,7 +230,7 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, allow_negative_energy
+         UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
     use bl_constants_module
 
     implicit none
@@ -285,7 +288,10 @@ contains
 
              ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
 
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
+             if (dual_energy_update_E_from_e) then
+                state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
+             endif
+
              state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
 
           enddo
