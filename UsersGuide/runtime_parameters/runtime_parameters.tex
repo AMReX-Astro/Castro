@@ -133,7 +133,7 @@
 \verb=  do_grav  = &   permits gravity calculation to be turned on and off  &  -1 \\
 \verb=  do_rotation  = &   permits rotation calculation to be turned on and off  &  -1 \\
 \rowcolor{tableShade}
-\verb=  grav_source_type  = &    &  2 \\
+\verb=  grav_source_type  = &   determines how the gravitational source term is added to the momentum and energy state variables.  &  2 \\
 \verb=  implicit_rotation_update  = &   we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms  &  0 \\
 \rowcolor{tableShade}
 \verb=  moving_center  = &   to we recompute the center used for the multipole gravity solve each step?  &  0 \\
@@ -187,7 +187,7 @@
 
 \rowcolor{tableShade}
 \verb=  add_ext_src  = &   if true, define an additional source term  &  0 \\
-\verb=  allow_negative_energy  = &    &  1 \\
+\verb=  allow_negative_energy  = &   Whether or not to allow internal energy to be less than zero  &  1 \\
 \rowcolor{tableShade}
 \verb=  cg_blend  = &   for the Colella \& Glaz Riemann solver, what to do if we do not converge to a solution for the star state. 0 = do nothing; print iterations and exit 1 = revert to the original guess for p-star 2 = do a bisection search for another 2 * cg\_maxiter iterations.  &  0 \\
 \verb=  cg_maxiter  = &   for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state  &  12 \\
@@ -198,11 +198,11 @@
 \verb=  do_hydro  = &   permits hydro to be turned on and off for running pure rad problems  &  -1 \\
 \verb=  do_sponge  = &   permits sponge to be turned on and off  &  0 \\
 \rowcolor{tableShade}
-\verb=  dual_energy_eta1  = &    &  1.0e0 \\
-\verb=  dual_energy_eta2  = &    &  1.0e-4 \\
+\verb=  dual_energy_eta1  = &   Threshold value of (E - K) / E such that below eta1, the hydrodynamic pressure is derived from the internal energy variable UEINT; above this, the pressure is derived from E - K.  &  1.0e0 \\
+\verb=  dual_energy_eta2  = &   Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged.  &  1.0e-4 \\
 \rowcolor{tableShade}
-\verb=  dual_energy_eta3  = &    &  0.0e0 \\
-\verb=  dual_energy_update_E_from_e  = &    &  1 \\
+\verb=  dual_energy_eta3  = &   Threshold value of (E - K) / such that below eta3, the temperature used in the burning module is derived from the internal energy variable UEINT; above this, the pressure is derived from E - K.  &  0.0e0 \\
+\verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the interanl energy variable UEINT.  &  1 \\
 \rowcolor{tableShade}
 \verb=  fix_mass_flux  = &    &  0 \\
 \verb=  hybrid_hydro  = &   whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only)  &  0 \\

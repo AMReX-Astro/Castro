@@ -123,9 +123,24 @@ transverse_reset_density     int           0                  y
 # with a value constructed from the $(\rho e)$ evolution equation
 transverse_reset_rhoe        int           0                  y
 
+# Allow internal energy resets and temperature flooring to change the
+# total energy variable UEDEN in addition to the interanl energy variable
+# UEINT.
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
+
+# Threshold value of (E - K) / E such that below eta1, the hydrodynamic
+# pressure is derived from the internal energy variable UEINT; above this,
+# the pressure is derived from E - K.
 dual_energy_eta1             Real          1.0e0              y
+
+# Threshold value of (E - K) / E such that above eta2, we update the
+# internal energy variable UEINT to match E - K. Below this, UEINT
+# remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
+
+# Threshold value of (E - K) / such that below eta3, the temperature used
+# in the burning module is derived from the internal energy variable UEINT;
+# above this, the pressure is derived from E - K.
 dual_energy_eta3             Real          0.0e0              y
 
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
@@ -133,6 +148,8 @@ dual_energy_eta3             Real          0.0e0              y
 use_pslope                   int           1                  y
 
 fix_mass_flux                int           0                  y
+
+# Whether or not to allow internal energy to be less than zero
 allow_negative_energy        int           1                  y
 
 # permits sponge to be turned on and off 
@@ -225,6 +242,8 @@ do_grav                      int          -1                  y
 # to we recompute the center used for the multipole gravity solve each step?
 moving_center                int           0
 
+# determines how the gravitational source term is added to the momentum and
+# energy state variables.
 grav_source_type             int           2                  y
 
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
