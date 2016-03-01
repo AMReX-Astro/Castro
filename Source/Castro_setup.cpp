@@ -415,7 +415,7 @@ Castro::variableSetUp ()
     for (int j = 0; j < len; j++) 
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
-    spec_names.push_back(char_spec_names);
+    spec_names.push_back(std::string(char_spec_names));
   }
   
   if ( ParallelDescriptor::IOProcessor())
@@ -445,7 +445,7 @@ Castro::variableSetUp ()
     for (int j = 0; j < len; j++)
       char_aux_names[j] = int_aux_names[j];
     char_aux_names[len] = '\0';
-    aux_names.push_back(char_aux_names);
+    aux_names.push_back(std::string(char_aux_names));
   }
 
   if ( ParallelDescriptor::IOProcessor())
