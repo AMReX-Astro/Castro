@@ -194,7 +194,7 @@ contains
     double precision :: rhoo, rhon, rhooinv, rhoninv
 
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
+    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3), rot_temp(3)
 
     double precision, pointer :: phi(:,:,:)
 
@@ -291,12 +291,11 @@ contains
 
                 ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
 
-                ! Do the full corrector step with the centrifugal force (add 1/2 the new term, subtract 1/2 the old term)
-                ! and do the time-level n part of the corrector step for the Coriolis term (subtract 1/2 the old term). 
+                ! Do the full corrector step with the old contribution (subtract 1/2 times the old term) and do
+                ! the non-Coriolis parts of the new contribution (add 1/2 of the new term).
 
-                new_mom = unew(i,j,k,UMX:UMZ) - dt * cross_product(omega_old, uold(i,j,k,UMX:UMZ)) &
-                        + HALF * dt * loc * omega_new**2 * rhon &
-                        - HALF * dt * loc * omega_old**2 * rhoo
+                new_mom = unew(i,j,k,UMX:UMZ) - HALF * Sr_old + &
+                          HALF * rhon * rotational_acceleration(loc, vnew, time, coriolis = .false.) * dt
 
                 ! The following is the general solution to the 3D coupled system,
                 ! assuming that the rotation vector has components along all three
