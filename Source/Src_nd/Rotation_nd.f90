@@ -17,7 +17,7 @@ contains
   ! the centrifugal force (- omega x ( omega x r)),
   ! and a changing rotation rate (-d(omega)/dt x r).
 
-  function rotational_acceleration(r, v, time) result(Sr)
+  function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
 
     use bl_constants_module, only: ZERO, TWO
 
@@ -28,6 +28,26 @@ contains
 
     double precision :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
 
+    logical, optional :: centrifugal, coriolis, domegadt
+    logical :: c1, c2, c3
+
+    ! Allow the various terms to be turned off.
+
+    c1 = .true.
+    if (present(centrifugal)) then
+       if (.not. centrifugal) c1 = .false.
+    endif
+
+    c2 = .true.
+    if (present(coriolis)) then
+       if (.not. coriolis) c2 = .false.
+    endif
+
+    c3 = .true.
+    if (present(domegadt)) then
+       if (.not. domegadt) c3 = .false.
+    endif
+
     omega = get_omega(time)
 
     domega_dt = get_domegadt(time)
@@ -35,7 +55,19 @@ contains
     omegacrossr = cross_product(omega,r)
     omegacrossv = cross_product(omega,v)
 
-    Sr = -TWO * omegacrossv - cross_product(omega, omegacrossr) - cross_product(domega_dt, r)
+    Sr = ZERO
+
+    if (c1) then
+       Sr = Sr - TWO * omegacrossv 
+    endif
+
+    if (c2) then
+       Sr = Sr - cross_product(omega, omegacrossr) 
+    endif
+
+    if (c3) then
+       Sr = Sr - cross_product(domega_dt, r)
+    endif
 
   end function rotational_acceleration
 
