@@ -175,7 +175,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
@@ -199,7 +198,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -533,7 +531,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              compn = cdtdx*(fx(i+1,j,kc,n) - fx(i,j,kc,n))
@@ -555,7 +552,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -929,7 +925,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
 
@@ -952,7 +947,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -1285,7 +1279,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
@@ -1307,7 +1300,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -1686,7 +1678,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              compn = cdtdz*(fz(i,j,kc,n) - fz(i,j,km,n))
@@ -1724,7 +1715,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -2241,7 +2231,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              rrr = qp(i,j,kc,QRHO)
@@ -2268,7 +2257,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -2712,7 +2700,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              drr    = - cdtdx*(fxz(i+1,j,km,URHO) - fxz(i,j,km,URHO)) &
@@ -2745,7 +2732,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------
@@ -3130,7 +3116,6 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
        do j = jlo, jhi
-          !DIR$ vector always
           do i = ilo, ihi
 
              drr    = - cdtdy*(fyz(i,j+1,km,URHO) - fyz(i,j,km,URHO)) &
@@ -3162,7 +3147,6 @@ contains
     enddo
 
     do j = jlo, jhi
-       !DIR$ vector always
        do i = ilo, ihi
 
           !-------------------------------------------------------------------

@@ -123,7 +123,6 @@ contains
     ! Trace to left and right edges using upwind PPM
 
     do j = ilo2-1, ihi2+1
-       !DIR$ vector always
        do i = ilo1-1, ihi1+1
 
           gfactor = ONE ! to help compiler resolve ANTI dependence
@@ -604,7 +603,6 @@ contains
        do j = ilo2-1, ihi2+1
 
           ! Plus state on face i
-          !DIR$ vector always
           do i = ilo1, ihi1+1
              u = q(i,j,k3d,QU)
 
@@ -645,7 +643,6 @@ contains
           enddo
 
           ! Minus state on face i+1
-          !DIR$ vector always
           do i = ilo1-1, ihi1
              u = q(i,j,k3d,QU)
 
@@ -674,7 +671,6 @@ contains
     ! Trace to bottom and top edges using upwind PPM
 
     do j = ilo2-1, ihi2+1
-       !DIR$ vector always
        do i = ilo1-1, ihi1+1
 
           gfactor = ONE ! to help compiler resolve ANTI dependence
@@ -1140,7 +1136,6 @@ contains
 
        ! Plus state on face j
        do j = ilo2, ihi2+1
-          !DIR$ vector always
           do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
@@ -1162,7 +1157,6 @@ contains
 
        ! Minus state on face j+1
        do j = ilo2-1, ihi2
-          !DIR$ vector always
           do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
@@ -1280,7 +1274,6 @@ contains
     ! construct qzp  -- plus state on face kc
     !--------------------------------------------------------------------------
     do j = ilo2-1, ihi2+1
-       !DIR$ vector always
        do i = ilo1-1, ihi1+1
 
           gfactor = ONE ! to help compiler resolve ANTI dependence
@@ -1752,7 +1745,6 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
-          !DIR$ vector always
           do i = ilo1-1, ihi1+1
 
              ! Plus state on face kc
