@@ -58,11 +58,11 @@ contains
     Sr = ZERO
 
     if (c1) then
-       Sr = Sr - TWO * omegacrossv 
+       Sr = Sr - cross_product(omega, omegacrossr) 
     endif
 
     if (c2) then
-       Sr = Sr - cross_product(omega, omegacrossr) 
+       Sr = Sr - TWO * omegacrossv 
     endif
 
     if (c3) then
