@@ -1522,6 +1522,11 @@ Castro::post_timestep (int iteration)
         // This needs to be done after any changes to the state from refluxing.
         enforce_nonnegative_species(S_new_crse);
 
+	// Flush Fortran output
+
+	if (verbose)
+	  flush_output();
+
 #ifdef GRAVITY
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
@@ -3253,6 +3258,11 @@ Castro::reset_internal_energy(MultiFab& S_new)
                          BL_TO_FORTRAN_3D(S_new[mfi]), 
 			 print_fortran_warnings);
     }
+
+    // Flush Fortran output
+
+    if (verbose)
+      flush_output();
 
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {

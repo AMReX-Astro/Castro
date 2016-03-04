@@ -125,7 +125,6 @@ contains
          UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
-    use io_module, only: flush_output
 
     implicit none
 
@@ -273,10 +272,6 @@ contains
           enddo
        enddo
 
-    endif
-
-    if (verbose .gt. 0) then
-       call flush_output()
     endif
 
   end subroutine reset_internal_e  

@@ -1134,6 +1134,11 @@ Castro::advance_hydro (Real time,
 
 	    frac_change = dens_change;
 
+	    // Flush Fortran output
+
+	    if (verbose)
+	      flush_output();
+
 	    if (print_energy_diagnostics)
 	    {
 	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);

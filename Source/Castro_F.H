@@ -520,6 +520,8 @@ extern "C"
 
   void update_sponge_params(const Real* time);  
 
+  void flush_output();
+
 #ifdef POINTMASS
   void pm_compute_delta_mass
     (const Real* pm_delta_mass, const int* lo, const int* hi,
