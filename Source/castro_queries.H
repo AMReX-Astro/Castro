@@ -53,6 +53,8 @@ pp.query("dxnuc", dxnuc);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);
+pp.query("react_rho_min", react_rho_min);
+pp.query("react_rho_max", react_rho_max);
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);

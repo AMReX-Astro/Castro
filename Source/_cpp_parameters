@@ -236,6 +236,12 @@ react_T_min                  Real          0.0                y
 # maximum temperature for allowing reactions to occur in a zone
 react_T_max                  Real          1.e200             y
 
+# minimum density for allowing reactions to occur in a zone
+react_rho_min                Real          0.0                y
+
+# maximum density for allowing reactions to occur in a zone
+react_rho_max                Real          1.e200             y
+
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
 #-----------------------------------------------------------------------------

@@ -97,6 +97,8 @@ module meth_params_module
   integer         , save :: do_react
   double precision, save :: react_T_min
   double precision, save :: react_T_max
+  double precision, save :: react_rho_min
+  double precision, save :: react_rho_max
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation

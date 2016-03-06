@@ -42,6 +42,7 @@ set_castro_method_params
     dtnuc_X, dtnuc_mode, 
     dxnuc, do_react, 
     react_T_min, react_T_max, 
+    react_rho_min, react_rho_max, 
     do_grav, grav_source_type, 
     do_rotation, rotational_period, 
     rotational_dPdt, rot_source_type, 

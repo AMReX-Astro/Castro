@@ -21,6 +21,7 @@ void set_castro_method_params
     const Real& dtnuc_X, const int& dtnuc_mode, 
     const Real& dxnuc, const int& do_react, 
     const Real& react_T_min, const Real& react_T_max, 
+    const Real& react_rho_min, const Real& react_rho_max, 
     const int& do_grav, const int& grav_source_type, 
     const int& do_rotation, const Real& rotational_period, 
     const Real& rotational_dPdt, const int& rot_source_type, 
