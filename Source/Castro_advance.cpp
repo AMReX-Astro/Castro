@@ -152,18 +152,18 @@ Castro::advance (Real time,
 
       }
 
-      ParallelDescriptor::ReduceRealMin(dt_subcycle);
+      if (retry_neg_dens_factor > 0.0) {
 
-      Real negative_density_reset_factor = 1.0e-1;
+	ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
-      // Negative density criterion
-      // Reset so that the desired maximum fractional change in density
-      // is not larger than negative_density_reset_factor.
+	// Negative density criterion
+	// Reset so that the desired maximum fractional change in density
+	// is not larger than retry_neg_dens_factor.
 
-      if (frac_change < 0.0)
-	dt_subcycle = std::min(dt_subcycle, dt * -(negative_density_reset_factor / frac_change));
+	if (frac_change < 0.0)
+	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));
 
-
+      }
 
       if (dt_subcycle < dt) {
 

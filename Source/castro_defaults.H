@@ -46,6 +46,7 @@ Real        Castro::cfl = 0.8;
 Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
 int         Castro::use_retry = 0;
+Real        Castro::retry_neg_dens_factor = 1.e-1;
 Real        Castro::dtnuc_e = 1.e200;
 Real        Castro::dtnuc_X = 1.e200;
 int         Castro::dtnuc_mode = 1;
