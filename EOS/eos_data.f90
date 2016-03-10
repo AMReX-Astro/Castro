@@ -11,6 +11,8 @@ module eos_data_module
   integer, parameter :: eos_input_ph = 7  ! p, h are inputs
   integer, parameter :: eos_input_th = 8  ! T, h are inputs
 
+  ! these are used to allow for a generic interface to the 
+  ! root finding
   integer, parameter :: itemp = 1
   integer, parameter :: idens = 2
   integer, parameter :: iener = 3
@@ -18,6 +20,7 @@ module eos_data_module
   integer, parameter :: ientr = 5
   integer, parameter :: ipres = 6
 
+  ! error codes
   integer, parameter :: ierr_general         = 1
   integer, parameter :: ierr_input           = 2
   integer, parameter :: ierr_iter_conv       = 3
