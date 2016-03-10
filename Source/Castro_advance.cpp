@@ -154,8 +154,6 @@ Castro::advance (Real time,
 
       if (retry_neg_dens_factor > 0.0) {
 
-	ParallelDescriptor::ReduceRealMin(dt_subcycle);
-
 	// Negative density criterion
 	// Reset so that the desired maximum fractional change in density
 	// is not larger than retry_neg_dens_factor.
@@ -164,6 +162,8 @@ Castro::advance (Real time,
 	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));
 
       }
+
+      ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
       if (dt_subcycle < dt) {
 
