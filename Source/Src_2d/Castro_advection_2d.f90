@@ -490,15 +490,19 @@ contains
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                      div,pdivu,lo,hi,dx,dy,dt,mass_added_flux,E_added_flux, &
                      xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                     mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                     eden_lost,xang_lost,yang_lost,zang_lost, &
                      verbose)
 
     use eos_module
     use network, only : nspec, naux
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, &
-                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES
-    use prob_params_module, only : coord_type
+                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
+    use prob_params_module, only : coord_type, domlo_level, domhi_level
     use bl_constants_module
     use advection_util_module, only : normalize_species_fluxes
+    use castro_util_module, only : position, linear_to_angular_momentum
+    use amrinfo_module, only : amr_level
 
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
@@ -528,11 +532,15 @@ contains
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
     double precision dx, dy, dt, E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
+    double precision mass_lost, xmom_lost, ymom_lost, zmom_lost
+    double precision eden_lost, xang_lost, yang_lost, zang_lost
     
-    integer i, j, n
+    integer i, j, k, n
 
     double precision div1
     !double precision rho, Up, Vp, SrE
+    integer domlo(3), domhi(3)
+    double precision loc(3), ang_mom(3)
 
     ! Normalize the species fluxes
     call normalize_species_fluxes( &
@@ -652,7 +660,104 @@ contains
           !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
        enddo
     enddo
-    
+
+    if (track_grid_losses .eq. 1) then
+
+       domlo = domlo_level(:,amr_level)
+       domhi = domhi_level(:,amr_level)
+
+       k = 0
+
+       if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
+          
+          j = domlo(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccy=.false.)
+
+             mass_lost = mass_lost - flux2(i,j,URHO)
+             xmom_lost = xmom_lost - flux2(i,j,UMX)
+             ymom_lost = ymom_lost - flux2(i,j,UMY)
+             zmom_lost = zmom_lost - flux2(i,j,UMZ)
+             eden_lost = eden_lost - flux2(i,j,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc, flux2(i,j,UMX:UMZ))
+             xang_lost = xang_lost - ang_mom(1)
+             yang_lost = yang_lost - ang_mom(2)
+             zang_lost = zang_lost - ang_mom(3)
+
+          enddo
+
+       endif
+
+       if (lo(2) .le. domhi(2) .and. hi(2) .ge. domhi(2)) then
+          
+          j = domhi(2) + 1
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccy=.false.)
+
+             mass_lost = mass_lost + flux2(i,j,URHO)
+             xmom_lost = xmom_lost + flux2(i,j,UMX)
+             ymom_lost = ymom_lost + flux2(i,j,UMY)
+             zmom_lost = zmom_lost + flux2(i,j,UMZ)
+             eden_lost = eden_lost + flux2(i,j,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc, flux2(i,j,UMX:UMZ))
+             xang_lost = xang_lost + ang_mom(1)
+             yang_lost = yang_lost + ang_mom(2)
+             zang_lost = zang_lost + ang_mom(3)
+
+          enddo
+
+       endif
+
+       if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
+          
+          i = domlo(1)
+          do j = lo(2), hi(2)
+
+             loc = position(i,j,k,ccx=.false.)
+
+             mass_lost = mass_lost - flux1(i,j,URHO)
+             xmom_lost = xmom_lost - flux1(i,j,UMX)
+             ymom_lost = ymom_lost - flux1(i,j,UMY)
+             zmom_lost = zmom_lost - flux1(i,j,UMZ)
+             eden_lost = eden_lost - flux1(i,j,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc, flux1(i,j,UMX:UMZ))
+             xang_lost = xang_lost - ang_mom(1)
+             yang_lost = yang_lost - ang_mom(2)
+             zang_lost = yang_lost - ang_mom(3)
+
+          enddo
+
+       endif
+
+       if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
+          
+          i = domhi(1) + 1
+          do j = lo(2), hi(2)
+
+             loc = position(i,j,k,ccx=.false.)
+
+             mass_lost = mass_lost + flux1(i,j,URHO)
+             xmom_lost = xmom_lost + flux1(i,j,UMX)
+             ymom_lost = ymom_lost + flux1(i,j,UMY)
+             zmom_lost = zmom_lost + flux1(i,j,UMZ)
+             eden_lost = eden_lost + flux1(i,j,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc, flux1(i,j,UMX:UMZ))
+             xang_lost = xang_lost + ang_mom(1)
+             yang_lost = yang_lost + ang_mom(2)
+             zang_lost = zang_lost + ang_mom(3)
+
+          enddo
+
+       endif
+
+    endif
+
   end subroutine consup
 
 end module advection_module

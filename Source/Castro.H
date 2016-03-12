@@ -552,6 +552,12 @@ protected:
     // for keeping track of mass changes from negative density resets
     static Real      frac_change;
 
+    // For keeping track of fluid quantities lost at physical grid boundaries.
+    // This should persist through restarts, but right now only on level 0.
+    static const int n_lost = 8;
+    Real             material_lost_through_boundary_cumulative[n_lost];
+    Real             material_lost_through_boundary_temp[n_lost];
+
     // for keeping track of the amount of CPU time used -- this will persist
     // after restarts
     static Real      previousCPUTimeUsed;

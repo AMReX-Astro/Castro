@@ -221,6 +221,22 @@ Castro::restart (Amr&     papa,
 
     }
 
+    if (track_grid_losses && level == 0)
+    {
+
+      // get the current value of the diagnostic quantities
+      std::ifstream DiagFile;
+      std::string FullPathDiagFile = parent->theRestartFile();
+      FullPathDiagFile += "/Diagnostics";
+      DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
+
+      for (int i = 0; i < n_lost; i++)
+	DiagFile >> material_lost_through_boundary_cumulative[i];
+
+      DiagFile.close();
+
+    }
+
 
     if (level == 0)
       {
@@ -457,6 +473,21 @@ Castro::checkPoint(const std::string& dir,
 	    
 	    CPUFile << std::setprecision(15) << getCPUTime();
 	    CPUFile.close();
+	}
+
+	if (track_grid_losses) {
+
+	    // store diagnostic quantities
+            std::ofstream DiagFile;
+	    std::string FullPathDiagFile = dir;
+	    FullPathDiagFile += "/Diagnostics";
+	    DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+
+	    for (int i = 0; i < n_lost; i++)
+	      DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+
+	    DiagFile.close();
+
 	}
 
 	{

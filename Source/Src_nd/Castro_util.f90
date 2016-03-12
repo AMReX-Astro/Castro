@@ -831,4 +831,19 @@ contains
 
   end subroutine ca_compute_avgstate
 
+
+
+  function linear_to_angular_momentum(loc, mom) result(ang_mom)
+
+    implicit none
+
+    double precision :: loc(3), mom(3)
+    double precision :: ang_mom(3)
+
+    ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
+    ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)
+    ang_mom(3) = loc(1) * mom(2) - loc(2) * mom(1)
+
+  end function linear_to_angular_momentum
+
 end module castro_util_module
