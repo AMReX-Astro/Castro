@@ -201,9 +201,19 @@ contains
 
                 if (max_dens < small_dens) then
 
-                   i_set = i
-                   j_set = j
-                   k_set = k
+                   if (verbose .gt. 0) then
+                      if (uout(i,j,k,URHO) < ZERO) then
+                         print *,'   '
+                         print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
+                         print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',small_dens
+                         print *,'   '
+                      else
+                         print *,'   '
+                         print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
+                         print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',small_dens
+                         print *,'   '
+                      end if
+                   end if
 
                    do ipassive = 1, npassive
                       n = upass_map(ipassive)
@@ -226,39 +236,45 @@ contains
                    uout(i,j,k,UEINT) = eos_state % rho * eos_state % e
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
 
-                endif
-
-                if (verbose .gt. 0) then
-                   if (uout(i,j,k,URHO) < ZERO) then
-                      print *,'   '
-                      print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
-                      print *,'   '
-                   else
-                      print *,'   '
-                      print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
-                      print *,'   '
-                   end if
-                end if
-
-                uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
-                uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
-                uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
-                uout(i,j,k,UEDEN) = uout(i_set,j_set,k_set,UEDEN)
-                uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
-                uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
-                uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
-
 #ifdef HYBRID_MOMENTUM
-                loc = position(i,j,k)
-                uout(i,j,k,UMR:UMP) = linear_to_hybrid(loc, uout(i,j,k,UMX:UMZ))
+                   loc = position(i,j,k)
+                   uout(i,j,k,UMR:UMP) = linear_to_hybrid(loc, uout(i,j,k,UMX:UMZ))
 #endif
 
-                do ipassive = 1, npassive
-                   n = upass_map(ipassive)
-                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
-                end do
+                else
+
+                   if (verbose .gt. 0) then
+                      if (uout(i,j,k,URHO) < ZERO) then
+                         print *,'   '
+                         print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
+                         print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+                         print *,'   '
+                      else
+                         print *,'   '
+                         print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
+                         print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+                         print *,'   '
+                      end if
+                   end if
+
+                   uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
+                   uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
+                   uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
+                   uout(i,j,k,UEDEN) = uout(i_set,j_set,k_set,UEDEN)
+                   uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
+                   uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
+                   uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
+
+                   do ipassive = 1, npassive
+                      n = upass_map(ipassive)
+                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
+                   end do
+
+#ifdef HYBRID_MOMENTUM
+                   uout(i,j,k,UMR:UMP) = uout(i_set,j_set,k_set,UMR:UMP)
+#endif
+
+                endif
 
              end if
 

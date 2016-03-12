@@ -129,7 +129,21 @@ contains
 
           if (max_dens < small_dens) then
 
-             i_set = i
+             if (verbose .gt. 0) then
+                if (uout(i,URHO) < ZERO) then
+                   print *,'   '
+                   print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
+                   print *,'>>> ... resetting negative density '
+                   print *,'>>> ... from ',uout(i,URHO),' to ',small_dens
+                   print *,'    '
+                else
+                   print *,'   '
+                   print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
+                   print *,'>>> ... resetting small density '
+                   print *,'>>> ... from ',uout(i,URHO),' to ',small_dens
+                   print *,'    '
+                end if
+             end if
              
              do ipassive = 1, npassive
                 n = upass_map(ipassive)
@@ -150,35 +164,37 @@ contains
              uout(i,UEINT) = eos_state % rho * eos_state % e
              uout(i,UEDEN) = uout(i,UEINT)
 
-          endif
+          else
           
-          if (verbose .gt. 0) then
-             if (uout(i,URHO) < ZERO) then
-                print *,'   '
-                print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
-                print *,'>>> ... resetting negative density '
-                print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
-                print *,'    '
-             else
-                print *,'   '
-                print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
-                print *,'>>> ... resetting small density '
-                print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
-                print *,'    '
+             if (verbose .gt. 0) then
+                if (uout(i,URHO) < ZERO) then
+                   print *,'   '
+                   print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
+                   print *,'>>> ... resetting negative density '
+                   print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
+                   print *,'    '
+                else
+                   print *,'   '
+                   print *,'>>> Warning: Castro_1d::enforce_minimum_density ',i
+                   print *,'>>> ... resetting small density '
+                   print *,'>>> ... from ',uout(i,URHO),' to ',uout(i_set,URHO)
+                   print *,'    '
+                end if
              end if
-          end if
 
-          uout(i,URHO ) = uout(i_set,URHO )
-          uout(i,UTEMP) = uout(i_set,UTEMP)
-          uout(i,UEINT) = uout(i_set,UEINT)
-          uout(i,UEDEN) = uout(i_set,UEDEN)
-          uout(i,UMX  ) = uout(i_set,UMX  )
+             uout(i,URHO ) = uout(i_set,URHO )
+             uout(i,UTEMP) = uout(i_set,UTEMP)
+             uout(i,UEINT) = uout(i_set,UEINT)
+             uout(i,UEDEN) = uout(i_set,UEDEN)
+             uout(i,UMX  ) = uout(i_set,UMX  )
 
-          do ipassive = 1, npassive
-             n = upass_map(ipassive)
-             uout(i,n) = uout(i_set,n)
-          end do
-          
+             do ipassive = 1, npassive
+                n = upass_map(ipassive)
+                uout(i,n) = uout(i_set,n)
+             end do
+
+          endif
+
        end if
 
        final_mass = final_mass + uout(i,URHO)
