@@ -724,7 +724,7 @@ Castro::writePlotFile (const std::string& dir,
 
 	// job information
 	jobInfoFile << PrettyLine;
-	jobInfoFile << " Job Information\n";
+	jobInfoFile << " Castro Job Information\n";
 	jobInfoFile << PrettyLine;
 	
 	jobInfoFile << "job name: " << job_name << "\n\n";
