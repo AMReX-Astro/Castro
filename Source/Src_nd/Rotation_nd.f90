@@ -90,7 +90,7 @@ contains
 
     omegacrossr = cross_product(omega, r)
 
-    phi = HALF * dot_product(omegacrossr,omegacrossr)
+    phi = -HALF * dot_product(omegacrossr,omegacrossr)
 
   end function rotational_potential
 
