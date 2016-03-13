@@ -110,6 +110,7 @@ module meth_params_module
   double precision, save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
+  integer         , save :: track_grid_losses
 
   double precision, save :: rot_vec(3)
 

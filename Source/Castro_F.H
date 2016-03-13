@@ -465,7 +465,15 @@ extern "C"
      Real& xmom_added_flux,
      Real& ymom_added_flux,
      Real& zmom_added_flux,
-     Real& E_added_flux);
+     Real& E_added_flux,
+     Real& mass_lost,
+     Real& xmom_lost,
+     Real& ymom_lost,
+     Real& zmom_lost,
+     Real& eden_lost,
+     Real& xang_lost,
+     Real& yang_lost,
+     Real& zang_lost);
 
 #ifdef RADIATION
   void ca_umdrv_rad

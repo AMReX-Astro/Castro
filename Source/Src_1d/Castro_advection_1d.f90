@@ -321,13 +321,18 @@ contains
                     vol,vol_l1,vol_h1, &
                     div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                    mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                    eden_lost,xang_lost,yang_lost,zang_lost, &
                     verbose)
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, UFS, UFX
+                                   UEDEN, UEINT, UTEMP, UFS, UFX, track_grid_losses
     use bl_constants_module
     use advection_util_module, only: normalize_species_fluxes
+    use prob_params_module, only : domlo_level, domhi_level
+    use castro_util_module, only : position, linear_to_angular_momentum
+    use amrinfo_module, only : amr_level
 
     integer lo(1), hi(1)
     integer   uin_l1,  uin_h1
@@ -350,9 +355,13 @@ contains
     double precision dx, dt
     double precision E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
+    double precision mass_lost, xmom_lost, ymom_lost, zmom_lost
+    double precision eden_lost, xang_lost, yang_lost, zang_lost
     
-    integer          :: i, n
+    integer          :: i, j, k, n
     double precision :: div1, dpdx
+    integer          :: domlo(3), domhi(3)
+    double precision :: loc(3), ang_mom(3)
     
     ! Normalize the species fluxes
     call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
@@ -417,7 +426,55 @@ contains
     do i = lo(1),hi(1)+1
        flux(i,UMX) = flux(i,UMX) + dt*area(i)*pgdnv(i)
     enddo
-    
+
+    if (track_grid_losses .eq. 1) then
+
+       domlo = domlo_level(:,amr_level)
+       domhi = domhi_level(:,amr_level)
+
+       j = 0
+       k = 0
+
+       if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
+          
+          i = domlo(1)
+
+          loc = position(i,j,k,ccx=.false.)
+
+          mass_lost = mass_lost - flux(i,URHO)
+          xmom_lost = xmom_lost - flux(i,UMX)
+          ymom_lost = ymom_lost - flux(i,UMY)
+          zmom_lost = zmom_lost - flux(i,UMZ)
+          eden_lost = eden_lost - flux(i,UEDEN)
+
+          ang_mom   = linear_to_angular_momentum(loc, flux(i,UMX:UMZ))
+          xang_lost = xang_lost - ang_mom(1)
+          yang_lost = yang_lost - ang_mom(2)
+          zang_lost = yang_lost - ang_mom(3)
+
+       endif
+
+       if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
+          
+          i = domhi(1) + 1
+
+          loc = position(i,j,k,ccx=.false.)
+
+          mass_lost = mass_lost + flux(i,URHO)
+          xmom_lost = xmom_lost + flux(i,UMX)
+          ymom_lost = ymom_lost + flux(i,UMY)
+          zmom_lost = zmom_lost + flux(i,UMZ)
+          eden_lost = eden_lost + flux(i,UEDEN)
+
+          ang_mom   = linear_to_angular_momentum(loc, flux(i,UMX:UMZ))
+          xang_lost = xang_lost + ang_mom(1)
+          yang_lost = yang_lost + ang_mom(2)
+          zang_lost = zang_lost + ang_mom(3)
+
+       endif
+
+    endif
+
   end subroutine consup
   
 end module advection_module

@@ -11,7 +11,8 @@ subroutine ca_umdrv(is_finest_level,time,&
      vol,vol_l1,vol_h1,courno,verbose,&
      mass_added,eint_added,eden_added,frac_change,&
      mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-     E_added_flux) bind(C, name="ca_umdrv")
+     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
@@ -56,6 +57,8 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision :: dx,E_added_flux,mass_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision :: mass_added, eint_added, eden_added, frac_change
+  double precision :: mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision :: eden_lost,xang_lost,yang_lost,zang_lost
   integer i,ngf,ngq
   integer q_l1, q_h1
 
@@ -128,6 +131,8 @@ subroutine ca_umdrv(is_finest_level,time,&
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
        xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+       mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+       eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
 
   ! Enforce the density >= small_dens.

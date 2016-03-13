@@ -48,4 +48,4 @@ set_castro_method_params
     rotational_dPdt, rot_source_type, 
     implicit_rotation_update, rot_axis, 
     point_mass, point_mass_fix_solution, 
-    do_acc);
+    do_acc, track_grid_losses);

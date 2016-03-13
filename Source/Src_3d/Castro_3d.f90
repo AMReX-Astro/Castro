@@ -15,7 +15,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose,mass_added,eint_added,eden_added,frac_change, &
                     mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    E_added_flux) bind(C, name="ca_umdrv")
+                    E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                    eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, &
@@ -60,6 +61,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(out) :: courno,E_added_flux,mass_added_flux
   double precision, intent(out) :: mass_added,eint_added,eden_added,frac_change
   double precision, intent(out) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
+  double precision, intent(out) :: mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision, intent(out) :: eden_lost,xang_lost,yang_lost,zang_lost
 
   ! Automatic arrays for workspace
   double precision, pointer:: q(:,:,:,:)
@@ -200,6 +203,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               vol, vol_lo, vol_hi, &
               div,pdivu,lo,hi,delta,dt,mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+              eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
   ! Add the radiative cooling -- for SGS only.

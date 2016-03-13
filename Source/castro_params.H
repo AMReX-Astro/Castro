@@ -90,6 +90,7 @@ static int do_special_tagging;
 static int spherical_star;
 static int print_fortran_warnings;
 static int print_energy_diagnostics;
+static int track_grid_losses;
 static int sum_interval;
 static Real sum_per;
 static int show_center_of_mass;

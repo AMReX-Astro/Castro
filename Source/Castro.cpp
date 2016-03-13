@@ -463,6 +463,14 @@ Castro::Castro (Amr&            papa,
 {
     buildMetrics();
 
+    //    material_lost_through_boundary_cumulative.resize(n_lost);
+    //    material_lost_through_boundary_temp.resize(n_lost);
+
+    for (int i = 0; i < n_lost; i++) {
+      material_lost_through_boundary_cumulative[i] = 0.0;
+      material_lost_through_boundary_temp[i] = 0.;
+    }
+
     flux_reg = 0;
     if (level > 0 && do_reflux)
     {

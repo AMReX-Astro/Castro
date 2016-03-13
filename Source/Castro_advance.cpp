@@ -96,6 +96,12 @@ Castro::advance (Real time,
 
     }
 
+    // Reset the grid loss tracking.
+
+    if (track_grid_losses)
+      for (int i = 0; i < n_lost; i++)
+	material_lost_through_boundary_temp[i] = 0.0;
+
     // Do the advance.
 
     if (do_hydro) 
@@ -202,6 +208,10 @@ Castro::advance (Real time,
 
 	}
 
+	if (track_grid_losses)
+	  for (int i = 0; i < n_lost; i++)
+	    material_lost_through_boundary_temp[i] = 0.0;
+
 	// Subcycle until we've reached the target time.
 
 	while (subcycle_time < time + dt) {
@@ -283,6 +293,17 @@ Castro::advance (Real time,
 	}
 
       }
+
+    }
+
+    // Add the material lost in this timestep to the cumulative losses.
+
+    if (track_grid_losses) {
+
+      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
+
+      for (int i = 0; i < n_lost; i++)
+	material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
 
     }
 
@@ -954,6 +975,14 @@ Castro::advance_hydro (Real time,
 	    Real xmom_added_flux = 0.;
 	    Real ymom_added_flux = 0.;
 	    Real zmom_added_flux = 0.;
+	    Real mass_lost       = 0.;
+	    Real xmom_lost       = 0.;
+	    Real ymom_lost       = 0.;
+	    Real zmom_lost       = 0.;
+	    Real eden_lost       = 0.;
+	    Real xang_lost       = 0.;
+	    Real yang_lost       = 0.;
+	    Real zang_lost       = 0.;
 	    Real xmom_added_grav = 0.;
 	    Real ymom_added_grav = 0.;
 	    Real zmom_added_grav = 0.;
@@ -971,6 +1000,8 @@ Castro::advance_hydro (Real time,
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
+                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
@@ -980,6 +1011,8 @@ Castro::advance_hydro (Real time,
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
+                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
                      reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
                      reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
@@ -1038,7 +1071,9 @@ Castro::advance_hydro (Real time,
 			 xmom_added_flux, 
                   	 ymom_added_flux, 
 	                 zmom_added_flux,
-                         E_added_flux);
+                         E_added_flux,
+			 mass_lost, xmom_lost, ymom_lost, zmom_lost,
+			 eden_lost, xang_lost, yang_lost, zang_lost);
 
 		    // Add dt * old-time external source terms
 
@@ -1138,6 +1173,20 @@ Castro::advance_hydro (Real time,
 
 	    if (verbose)
 	      flush_output();
+
+	    if (track_grid_losses)
+	    {
+
+	      material_lost_through_boundary_temp[0] += mass_lost;
+	      material_lost_through_boundary_temp[1] += xmom_lost;
+	      material_lost_through_boundary_temp[2] += ymom_lost;
+	      material_lost_through_boundary_temp[3] += zmom_lost;
+	      material_lost_through_boundary_temp[4] += eden_lost;
+	      material_lost_through_boundary_temp[5] += xang_lost;
+	      material_lost_through_boundary_temp[6] += yang_lost;
+	      material_lost_through_boundary_temp[7] += zang_lost;
+
+	    }
 
 	    if (print_energy_diagnostics)
 	    {

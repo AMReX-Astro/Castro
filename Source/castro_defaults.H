@@ -98,6 +98,7 @@ int         Castro::print_energy_diagnostics = 1;
 #else
 int         Castro::print_energy_diagnostics = 0;
 #endif
+int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;
 Real        Castro::sum_per = -1.0e0;
 int         Castro::show_center_of_mass = 0;
