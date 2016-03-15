@@ -134,7 +134,7 @@ contains
 
     do n = 1, nspec
        if (state % xn(n) .lt. init_test) then
-          call bl_error('EOS: data not initialized.')
+          call bl_error('EOS: mass fractions not initialized.')
        endif
     enddo
 
