@@ -68,6 +68,15 @@ pp.query("rotational_period", rotational_period);
 pp.query("rotational_dPdt", rotational_dPdt);
 #endif
 #ifdef ROTATION
+pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
+#endif
+#ifdef ROTATION
+pp.query("rotation_include_coriolis", rotation_include_coriolis);
+#endif
+#ifdef ROTATION
+pp.query("rotation_include_domegadt", rotation_include_domegadt);
+#endif
+#ifdef ROTATION
 pp.query("rot_source_type", rot_source_type);
 #endif
 #ifdef ROTATION

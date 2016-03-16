@@ -104,6 +104,9 @@ module meth_params_module
   integer         , save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
+  integer         , save :: rotation_include_centrifugal
+  integer         , save :: rotation_include_coriolis
+  integer         , save :: rotation_include_domegadt
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis

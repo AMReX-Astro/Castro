@@ -68,6 +68,15 @@ Real        Castro::rotational_period = -1.e200;
 Real        Castro::rotational_dPdt = 0.0;
 #endif
 #ifdef ROTATION
+int         Castro::rotation_include_centrifugal = 1;
+#endif
+#ifdef ROTATION
+int         Castro::rotation_include_coriolis = 1;
+#endif
+#ifdef ROTATION
+int         Castro::rotation_include_domegadt = 1;
+#endif
+#ifdef ROTATION
 int         Castro::rot_source_type = 1;
 #endif
 #ifdef ROTATION

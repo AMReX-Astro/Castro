@@ -144,9 +144,14 @@
 \verb=  rot_axis  = &   the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector  &  3 \\
 \rowcolor{tableShade}
 \verb=  rot_source_type  = &   determines how the rotation source terms are added to the momentum and energy equations  &  1 \\
-\verb=  rotational_dPdt  = &   the rotation periods time evolution---this allows the rotation rate to change durning the simulation time  &  0.0 \\
+\verb=  rotation_include_centrifugal  = &   permits the centrifugal terms in the rotation to be turned on and off  &  1 \\
 \rowcolor{tableShade}
+\verb=  rotation_include_coriolis  = &   permits the Coriolis terms in the rotation to be turned on and off  &  1 \\
+\verb=  rotation_include_domegadt  = &   permits the d(omega)/dt terms in the rotation to be turned on and off  &  1 \\
+\rowcolor{tableShade}
+\verb=  rotational_dPdt  = &   the rotation periods time evolution---this allows the rotation rate to change durning the simulation time  &  0.0 \\
 \verb=  rotational_period  = &   the rotation period for the corotating frame  &  -1.e200 \\
+\rowcolor{tableShade}
 \verb=  source_term_predictor  = &   extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction  &  0 \\
 
 

@@ -275,6 +275,15 @@ rotational_period            Real         -1.e200             y        ROTATION 
 # change durning the simulation time
 rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
 
+# permits the centrifugal terms in the rotation to be turned on and off
+rotation_include_centrifugal int           1                  y        ROTATION
+
+# permits the Coriolis terms in the rotation to be turned on and off
+rotation_include_coriolis    int           1                  y        ROTATION
+
+# permits the d(omega)/dt terms in the rotation to be turned on and off
+rotation_include_domegadt    int           1                  y        ROTATION
+
 # determines how the rotation source terms are added to the momentum and
 # energy equations
 rot_source_type              int           1                  y        ROTATION

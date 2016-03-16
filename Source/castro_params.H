@@ -68,6 +68,15 @@ static Real rotational_period;
 static Real rotational_dPdt;
 #endif
 #ifdef ROTATION
+static int rotation_include_centrifugal;
+#endif
+#ifdef ROTATION
+static int rotation_include_coriolis;
+#endif
+#ifdef ROTATION
+static int rotation_include_domegadt;
+#endif
+#ifdef ROTATION
 static int rot_source_type;
 #endif
 #ifdef ROTATION

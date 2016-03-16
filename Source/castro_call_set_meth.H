@@ -5,6 +5,15 @@ static Real rotational_period = -1.e200;
 static Real rotational_dPdt = 0.0;
 #endif
 #ifndef ROTATION
+static int rotation_include_centrifugal = 1;
+#endif
+#ifndef ROTATION
+static int rotation_include_coriolis = 1;
+#endif
+#ifndef ROTATION
+static int rotation_include_domegadt = 1;
+#endif
+#ifndef ROTATION
 static int rot_source_type = 1;
 #endif
 #ifndef ROTATION
@@ -45,7 +54,9 @@ set_castro_method_params
     react_rho_min, react_rho_max, 
     do_grav, grav_source_type, 
     do_rotation, rotational_period, 
-    rotational_dPdt, rot_source_type, 
-    implicit_rotation_update, rot_axis, 
-    point_mass, point_mass_fix_solution, 
-    do_acc, track_grid_losses);
+    rotational_dPdt, rotation_include_centrifugal, 
+    rotation_include_coriolis, rotation_include_domegadt, 
+    rot_source_type, implicit_rotation_update, 
+    rot_axis, point_mass, 
+    point_mass_fix_solution, do_acc, 
+    track_grid_losses);
