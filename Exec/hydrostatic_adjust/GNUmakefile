@@ -17,6 +17,8 @@ USE_GRAV   = TRUE
 
 CASTRO_DIR = ../..
 
+USE_MODELPARSER = TRUE
+
 ifdef MICROPHYSICS_DIR
 
 # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
