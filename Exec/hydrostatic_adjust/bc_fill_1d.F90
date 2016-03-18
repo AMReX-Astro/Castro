@@ -154,4 +154,24 @@ contains
   end subroutine ca_phigravfill
 #endif
 
+
+#ifdef REACTIONS
+  subroutine ca_reactfill(adv,adv_l1,adv_h1, &
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
+
+    implicit none
+
+    integer          :: adv_l1,adv_h1
+    integer          :: bc(1,2,*)
+    integer          :: domlo(1), domhi(1)
+    double precision :: delta(1), xlo(1), time
+    double precision :: adv(adv_l1:adv_h1)
+    logical          :: rho_only
+
+    call filcc(adv,adv_l1,adv_h1, &
+               domlo,domhi,delta,xlo,bc)
+
+  end subroutine ca_reactfill
+#endif
+
 end module bc_fill_module
