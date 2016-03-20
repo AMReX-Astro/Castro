@@ -1019,6 +1019,9 @@ contains
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level
     use amrinfo_module, only : amr_level
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : add_hybrid_advection_source
+#endif
 
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
@@ -1156,6 +1159,14 @@ contains
        endif
 
     enddo
+
+#ifdef HYBRID_MOMENTUM
+    call add_hybrid_advection_source(lo, hi, dt, &
+                                     uout, uout_lo, uout_hi, &
+                                     qx, qx_lo, qx_hi, &
+                                     qy, qy_lo, qy_hi, &
+                                     qz, qz_lo, qz_hi)
+#endif
 
     ! Add up some diagnostic quantities. Note that these are volumetric sums
     ! so we are not dividing by the cell volume.
