@@ -70,7 +70,7 @@ algorithm: http://adsabs.harvard.edu/abs/2010arXiv1008.2801A
 algorithm: http://adsabs.harvard.edu/abs/2010ApJ...715.1221A
 
 # White Dwarf Mergers on Adaptive Meshes I. Methodology and Code Verification
-Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2015arXiv151206099K
+Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2016ApJ...819...94K
 
 
 
