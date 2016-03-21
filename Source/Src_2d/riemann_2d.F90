@@ -323,6 +323,8 @@ contains
     double precision :: e_x, e_y, d
     double precision :: p_pre, p_post, pjump
 
+    double precision :: rc, rm, rp
+
     double precision, parameter :: small = 1.d-10
     double precision, parameter :: eps = 0.33d0
 
@@ -333,17 +335,25 @@ contains
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
 
-    if (coord_type /= 0) then
-       call bl_error("ERROR: invalid geometry in shock()")
-    endif
-
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
           ! construct div{U}
-          divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
-                 HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          if (coord_type == 0) then
+             divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
+                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          else if (coord_type == 1) then
+             ! r-z
+             rc = dble(i + HALF)*dx
+             rm = dble(i - 1 + HALF)*dx
+             rp = dble(i + 1 + HALF)*dx
 
+             divU = HALF*(rp*q(i+1,j,QU) - rm*q(i-1,j,QU))/(rc*dx) + &
+                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          else
+             call bl_error("ERROR: invalid coord_type in shock")
+          endif
+             
           ! find the pre- and post-shock pressures in each direction
           if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
              px_pre  = q(i+1,j,QPRES)
