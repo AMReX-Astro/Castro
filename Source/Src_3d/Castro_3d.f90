@@ -176,6 +176,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call umeth3d(q,c,gamc,csml,flatn,q_lo,q_hi, &
                srcQ,q_lo,q_hi, &
                lo,hi,delta,dt, &
+               uout,uout_lo,uout_hi, &
                flux1,flux1_lo,flux1_hi, &
                flux2,flux2_lo,flux2_hi, &
                flux3,flux3_lo,flux3_hi, &

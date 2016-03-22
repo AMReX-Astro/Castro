@@ -444,6 +444,9 @@ public:
 #ifdef HYBRID_MOMENTUM
     static int       Rmom, Lmom, Pmom;
 #endif
+#ifdef SHOCK_VAR
+    static int       Shock;
+#endif
 #ifdef SGS
     static int       Esgs;
     static Real      sum_turb_src;

@@ -66,6 +66,10 @@ module burn_type_module
 
     logical          :: self_heat        = .true.
 
+    ! Whether we are inside a shock.
+
+    logical          :: shock            = .false.
+
   end type burn_t
 
 contains

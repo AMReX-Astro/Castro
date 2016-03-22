@@ -14,12 +14,12 @@ subroutine set_castro_method_params( &
   cfl_in, dtnuc_e_in, dtnuc_X_in,  &
   dtnuc_mode_in, dxnuc_in, do_react_in,  &
   react_T_min_in, react_T_max_in, react_rho_min_in,  &
-  react_rho_max_in, do_grav_in, grav_source_type_in,  &
-  do_rotation_in, rot_period_in, rot_period_dot_in,  &
-  rotation_include_centrifugal_in, rotation_include_coriolis_in, rotation_include_domegadt_in,  &
-  rot_source_type_in, implicit_rotation_update_in, rot_axis_in,  &
-  point_mass_in, point_mass_fix_solution_in, do_acc_in,  &
-  track_grid_losses_in) bind(C)
+  react_rho_max_in, disable_shock_burning_in, do_grav_in,  &
+  grav_source_type_in, do_rotation_in, rot_period_in,  &
+  rot_period_dot_in, rotation_include_centrifugal_in, rotation_include_coriolis_in,  &
+  rotation_include_domegadt_in, rot_source_type_in, implicit_rotation_update_in,  &
+  rot_axis_in, point_mass_in, point_mass_fix_solution_in,  &
+  do_acc_in, track_grid_losses_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -77,6 +77,7 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: react_T_max_in
   double precision, intent(in) :: react_rho_min_in
   double precision, intent(in) :: react_rho_max_in
+  integer,          intent(in) :: disable_shock_burning_in
   integer,          intent(in) :: do_grav_in
   integer,          intent(in) :: grav_source_type_in
   integer,          intent(in) :: do_rotation_in
@@ -139,6 +140,7 @@ subroutine set_castro_method_params( &
   react_T_max = react_T_max_in
   react_rho_min = react_rho_min_in
   react_rho_max = react_rho_max_in
+  disable_shock_burning = disable_shock_burning_in
   do_grav = do_grav_in
   grav_source_type = grav_source_type_in
   do_rotation = do_rotation_in

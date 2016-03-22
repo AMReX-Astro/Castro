@@ -48,6 +48,10 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   endif
 endif
 
+ifeq ($(USE_SHOCK_VAR), TRUE)
+  DEFINES += -DSHOCK_VAR
+endif
+
 ifeq ($(USE_PARTICLES), TRUE)
   DEFINES += -DPARTICLES
 endif

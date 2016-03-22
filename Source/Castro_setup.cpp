@@ -211,7 +211,11 @@ Castro::variableSetUp ()
       FirstAux = cnt;
       cnt += NumAux;
     }
-  
+
+#ifdef SHOCK_VAR
+  Shock = cnt++;
+#endif
+
   NUM_STATE = cnt;
 
   // Define NUM_GROW from the f90 module.
@@ -244,7 +248,10 @@ Castro::variableSetUp ()
 #include <castro_call_set_meth.H>    
     
   set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-		    NumAdv, 
+		    NumAdv,
+#ifdef SHOCK_VAR
+		    Shock,
+#endif
 		    gravity_type_name.dataPtr(), &gravity_type_length,
 		    get_g_from_phi,
 		    use_sgs,
@@ -463,6 +470,10 @@ Castro::variableSetUp ()
       bcs[cnt] = bc;
       name[cnt] = "rho_" + aux_names[i];
     }
+
+#ifdef SHOCK_VAR
+  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Shock";
+#endif
 
   desc_lst.setComponent(State_Type,
 			Density,

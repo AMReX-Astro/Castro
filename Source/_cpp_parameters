@@ -247,6 +247,9 @@ react_rho_min                Real          0.0                y
 # maximum density for allowing reactions to occur in a zone
 react_rho_max                Real          1.e200             y
 
+# disable burning inside hydrodynamic shock regions
+disable_shock_burning        int           0                  y
+
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
 #-----------------------------------------------------------------------------

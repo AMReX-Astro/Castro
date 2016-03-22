@@ -45,7 +45,10 @@ extern "C"
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
-     const int& NumAdv, 
+     const int& NumAdv,
+#ifdef SHOCK_VAR
+     const int& Shock,
+#endif
      const int* gravity_type, const int* gravity_type_len,
      const int& get_g_from_phi,
      const int& use_sgs,

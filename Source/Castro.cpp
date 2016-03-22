@@ -95,6 +95,9 @@ int          Castro::FirstAux      = -1;
 int          Castro::NumAdv        = 0;
 int          Castro::FirstAdv      = -1;
 
+#ifdef SHOCK_VAR
+int          Castro::Shock         = -1;
+#endif
 
 #include <castro_defaults.H>
 

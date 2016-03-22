@@ -56,6 +56,7 @@ Real        Castro::react_T_min = 0.0;
 Real        Castro::react_T_max = 1.e200;
 Real        Castro::react_rho_min = 0.0;
 Real        Castro::react_rho_max = 1.e200;
+int         Castro::disable_shock_burning = 0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 2;

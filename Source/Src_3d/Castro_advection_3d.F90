@@ -34,6 +34,7 @@ contains
   subroutine umeth3d(q, c, gamc, csml, flatn, qd_lo, qd_hi, &
                      srcQ, src_lo, src_hi, &
                      lo, hi, dx, dt, &
+                     uout, uout_lo, uout_hi, &
                      flux1, fd1_lo, fd1_hi, &
                      flux2, fd2_lo, fd2_hi, &
                      flux3, fd3_lo, fd3_hi, &
@@ -48,7 +49,7 @@ contains
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
-                                   hybrid_riemann
+                                   hybrid_riemann, USHK
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
@@ -64,6 +65,7 @@ contains
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) :: fd1_lo(3), fd1_hi(3)
     integer, intent(in) :: fd2_lo(3), fd2_hi(3)
     integer, intent(in) :: fd3_lo(3), fd3_hi(3)
@@ -79,6 +81,7 @@ contains
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
+    double precision, intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     double precision, intent(inout) :: flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),fd1_lo(3):fd1_hi(3),NVAR)
     double precision, intent(inout) :: flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),fd2_lo(3):fd2_hi(3),NVAR)
     double precision, intent(inout) :: flux3(fd3_lo(1):fd3_hi(1),fd3_lo(2):fd3_hi(2),fd3_lo(3):fd3_hi(3),NVAR)
@@ -259,7 +262,21 @@ contains
     ! Initialize pdivu to zero
     pdivu(:,:,:) = ZERO
 
+#ifdef SHOCK_VAR
+    call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
 
+    do k3d = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             uout(i,j,k3d,USHK) = shk(i,j,k3d)
+          enddo
+       enddo
+    enddo
+
+    if (hybrid_riemann /= 1) then
+       shk(:,:,:) = ZERO
+    endif
+#else
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
@@ -267,7 +284,7 @@ contains
     else
        shk(:,:,:) = ZERO
     endif
-
+#endif
 
     ! We come into this routine with a 3-d box of data, but we operate
     ! on it locally by considering 2 planes that encompass all of the
