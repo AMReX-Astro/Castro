@@ -123,7 +123,7 @@ contains
 
     double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    double precision, intent(out) :: mass_added, eint_added, eden_added, frac_change
+    double precision, intent(inout) :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n,ipassive

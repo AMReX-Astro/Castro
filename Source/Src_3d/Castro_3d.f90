@@ -58,11 +58,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(in) :: area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
   double precision, intent(in) :: delta(3),dt,time
-  double precision, intent(out) :: courno,E_added_flux,mass_added_flux
-  double precision, intent(out) :: mass_added,eint_added,eden_added,frac_change
-  double precision, intent(out) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision, intent(out) :: mass_lost,xmom_lost,ymom_lost,zmom_lost
-  double precision, intent(out) :: eden_lost,xang_lost,yang_lost,zang_lost
+  double precision, intent(inout) :: courno,E_added_flux,mass_added_flux
+  double precision, intent(inout) :: mass_added,eint_added,eden_added,frac_change
+  double precision, intent(inout) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
+  double precision, intent(inout) :: mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision, intent(inout) :: eden_lost,xang_lost,yang_lost,zang_lost
 
   ! Automatic arrays for workspace
   double precision, pointer:: q(:,:,:,:)
