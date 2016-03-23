@@ -675,6 +675,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
         fill_direct_sum_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
       else
         fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+#elif (BL_SPACEDIM == 2)
+      if (lnum > 0) {
+	fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+      } else {
+	int fill_interior = 0;
+	make_radial_phi(crse_level,CrseRhsAvgDown,delta_phi[crse_level],fill_interior);
+      }
 #else
       int fill_interior = 0;
       make_radial_phi(crse_level,CrseRhsAvgDown,delta_phi[crse_level],fill_interior);
@@ -1709,7 +1716,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 }
 
 
-#if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM > 1)
 void
 Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 {
@@ -1720,13 +1727,24 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
 
+#if (BL_SPACEDIM == 3)
+    const int npts = numpts_at_level;
+#else
+    const int npts = 1;
+#endif
+
     // Storage arrays for the multipole moments.
     // We will initialize them to zero, and then
     // sum up the results over grids.
+    // Note that since Boxes are defined with
+    // BL_SPACEDIM dimensions, we cannot presently
+    // use this array to fill the interior of the
+    // domain in 2D, since we can only have one
+    // radial index for calculating the multipole moments.
 
-    Box boxq0( IntVect(0, 0, 0), IntVect(lnum, 0,    numpts_at_level-1) );
-    Box boxqC( IntVect(0, 0, 0), IntVect(lnum, lnum, numpts_at_level-1) );
-    Box boxqS( IntVect(0, 0, 0), IntVect(lnum, lnum, numpts_at_level-1) );
+    Box boxq0( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, 0,    npts-1)) );
+    Box boxqC( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, lnum, npts-1)) );
+    Box boxqS( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, lnum, npts-1)) );
 
     FArrayBox qL0(boxq0);
     FArrayBox qLC(boxqC);
@@ -1744,7 +1762,15 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     qUC.setVal(0.0);
     qUS.setVal(0.0);
 
+    // This section needs to be generalized for computing
+    // full multipole gravity, not just BCs. At present this
+    // does nothing.
+
+#if (BL_SPACEDIM == 3)
     int boundary_only = 1;
+#else
+    const int boundary_only = 1;
+#endif
     
     // Loop through the grids and compute the individual contributions
     // to the various moments. The multipole moment constructor
@@ -1754,10 +1780,15 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     int lo_bc[3];
     int hi_bc[3];
 
-    for (int dir = 0; dir < 3; dir++)
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
       lo_bc[dir] = phys_bc->lo(dir);
       hi_bc[dir] = phys_bc->hi(dir);
+    }
+    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    {
+      lo_bc[dir] = -1;
+      hi_bc[dir] = -1;
     }
 
     int symmetry_type = Symmetry;
@@ -1794,10 +1825,11 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_compute_multipole_moments(bx.loVect(), bx.hiVect(),
-					 domain.loVect(), domain.hiVect(), 
+	    ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					 ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()), 
 					 &symmetry_type,lo_bc,hi_bc,
-					 dx,BL_TO_FORTRAN(Rhs[mfi]),
+					 ZFILL(dx),BL_TO_FORTRAN_3D(Rhs[mfi]),
+					 BL_TO_FORTRAN_3D(volume[level][mfi]),
 					 &lnum,
 #ifdef _OPENMP
 					 priv_qL0[tid].dataPtr(),
@@ -1808,7 +1840,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 					 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 					 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 #endif
-					 &numpts_at_level,&boundary_only);
+					 &npts,&boundary_only);
 
 	}
 
@@ -1896,13 +1928,13 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        ca_put_multipole_phi(bx.loVect(), bx.hiVect(),
-			     domain.loVect(), domain.hiVect(),
-			     dx, BL_TO_FORTRAN(phi[mfi]),
+        ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
+			     ZFILL(dx), BL_TO_FORTRAN_3D(phi[mfi]),
 			     &lnum,
 			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-			     &numpts_at_level,&boundary_only);
+			     &npts,&boundary_only);
     }
 
     if (verbose)
@@ -1922,7 +1954,9 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     }
 
 }
+#endif
 
+#if (BL_SPACEDIM == 3)
 void
 Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 {
@@ -2638,6 +2672,13 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	    fill_direct_sum_BCs(crse_level, rhs[0], phi[0]);
         } else {
 	    fill_multipole_BCs(crse_level, rhs[0], phi[0]);
+	}
+#elif (BL_SPACEDIM == 2)
+	if (lnum > 0) {
+	  fill_multipole_BCs(crse_level, rhs[0], phi[0]);
+	} else {
+	  int fill_interior = 0;
+	  make_radial_phi(crse_level, rhs[0], phi[0], fill_interior);
 	}
 #else
 	int fill_interior = 0;
