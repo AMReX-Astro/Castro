@@ -117,7 +117,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
                                    npassive, upass_map, qpass_map, small_temp, allow_negative_energy, use_flattening, &

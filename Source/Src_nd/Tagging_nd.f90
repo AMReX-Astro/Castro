@@ -562,7 +562,6 @@ contains
     double precision :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
     double precision :: delta(3), xlo(3), problo(3), time
 
-    double precision :: t_sound, t_enuc
     integer          :: i, j, k
 
     ! Disable if we're not utilizing this tagging
