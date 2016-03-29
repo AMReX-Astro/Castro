@@ -9,7 +9,7 @@ contains
   subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) &
        bind(C, name="ca_tempdiffextrap")
 
-    use prob_params_module, only: dg, dim
+    use prob_params_module, only: dg
 
     implicit none
 
@@ -202,7 +202,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -289,7 +289,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -374,7 +374,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -454,7 +454,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEDEN, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -538,7 +538,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UTEMP, UFS, UFX
+    use meth_params_module, only : NVAR, URHO, UMX, UTEMP, UFS, UFX
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
