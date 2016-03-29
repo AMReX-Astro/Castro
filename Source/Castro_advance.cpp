@@ -257,8 +257,6 @@ Castro::advance (Real time,
 	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 
-
-
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << std::endl;
 	    std::cout << "  Retry subcycle " << subcycle_iter << " of " << n_subcycle_iters << " completed" << std::endl;

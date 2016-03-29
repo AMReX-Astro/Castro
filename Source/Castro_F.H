@@ -666,6 +666,11 @@ extern "C"
   void ca_tempdiffextrap
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(TempDiffTerm));
+
+  void make_enthalpy
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+           BL_FORT_FAB_ARG_3D(enth));
   
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
@@ -675,32 +680,35 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
+  
+  void ca_fill_enth_cond
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
   
   void ca_fill_spec_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
 
   void ca_fill_first_visc_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
 
   void ca_fill_secnd_visc_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
   
   void ca_compute_div_tau_u
     (const int* lo, const int* hi,

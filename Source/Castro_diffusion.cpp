@@ -12,22 +12,27 @@ using std::string;
 
 void
 #ifdef TAU
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t, MultiFab& tau_diff)
+Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, MultiFab& tau_diff)
 #else
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t)
+Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t)
 #endif
 {
     // Define an explicit temperature update.
-    TempDiffTerm.setVal(0.);
+    DiffTerm.setVal(0.);
     if (diffuse_temp == 1) {
 #ifdef TAU
-       getTempDiffusionTerm(t,TempDiffTerm,&tau_diff);
+       getTempDiffusionTerm(t,DiffTerm,&tau_diff);
 #else
-       getTempDiffusionTerm(t,TempDiffTerm);
+       getTempDiffusionTerm(t,DiffTerm);
 #endif
-       int ng = std::min(ext_src.nGrow(),TempDiffTerm.nGrow());
-       MultiFab::Add(ext_src,TempDiffTerm,0,Eden,1,ng);
-       MultiFab::Add(ext_src,TempDiffTerm,0,Eint,1,ng);
+    } else if (diffuse_enth == 1) {
+       getEnthDiffusionTerm(t,DiffTerm);
+    }
+
+    if (diffuse_temp == 1 or diffuse_enth == 1) {
+       int ng = std::min(ext_src.nGrow(),DiffTerm.nGrow());
+       MultiFab::Add(ext_src,DiffTerm,0,Eden,1,ng);
+       MultiFab::Add(ext_src,DiffTerm,0,Eint,1,ng);
     }
 }
 
@@ -35,27 +40,31 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm,
 
 void
 #ifdef TAU
-Castro::time_center_temp_diffusion(MultiFab& S_new, MultiFab& OldTempDiffTerm, Real cur_time, Real dt, MultiFab& tau_diff)
+Castro::time_center_temp_diffusion(MultiFab& S_new, MultiFab& OldDiffTerm, Real cur_time, Real dt, MultiFab& tau_diff)
 #else
-Castro::time_center_temp_diffusion(MultiFab& S_new, MultiFab& OldTempDiffTerm, Real cur_time, Real dt)
+Castro::time_center_temp_diffusion(MultiFab& S_new, MultiFab& OldDiffTerm, Real cur_time, Real dt)
 #endif
 {
         // Correct the temperature update so that it will be time-centered.
-        MultiFab NewTempDiffTerm(grids,1,1);
-        NewTempDiffTerm.setVal(0.);
+        MultiFab NewDiffTerm(grids,1,1);
+        NewDiffTerm.setVal(0.);
         if (diffuse_temp == 1) {
 #ifdef TAU
-           getTempDiffusionTerm(cur_time,NewTempDiffTerm,&tau_diff);
+           getTempDiffusionTerm(cur_time,NewDiffTerm,&tau_diff);
 #else
-           getTempDiffusionTerm(cur_time,NewTempDiffTerm);
+           getTempDiffusionTerm(cur_time,NewDiffTerm);
 #endif
-           NewTempDiffTerm.mult( 0.5*dt);
-           OldTempDiffTerm.mult(-0.5*dt);
+        } else if (diffuse_enth == 1) {
+           getEnthDiffusionTerm(cur_time,NewDiffTerm);
+        }
+        if (diffuse_temp == 1 or diffuse_enth == 1) {
+           NewDiffTerm.mult( 0.5*dt);
+           OldDiffTerm.mult(-0.5*dt);
            // Subtract off half of the old source term, and add half of the new.
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eden,1,0);
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eint,1,0);
-           MultiFab::Add(S_new,NewTempDiffTerm,0,Eden,1,0);
-           MultiFab::Add(S_new,NewTempDiffTerm,0,Eint,1,0);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eden,1,0);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eint,1,0);
+           MultiFab::Add(S_new,NewDiffTerm,0,Eden,1,0);
+           MultiFab::Add(S_new,NewDiffTerm,0,Eint,1,0);
            computeTemp(S_new);
         }
 }
@@ -69,35 +78,52 @@ Castro::full_temp_diffusion_update (MultiFab& S_new, Real prev_time, Real cur_ti
 Castro::full_temp_diffusion_update (MultiFab& S_new, Real prev_time, Real cur_time, Real dt)
 #endif
 {
+        MultiFab OldDiffTerm, NewDiffTerm;
+        if (diffuse_temp == 1 or diffuse_enth == 1) {
+           // Define an explicit temperature/enthalpy update.
+           OldDiffTerm.define(grids,1,1,Fab_allocate);
+           OldDiffTerm.setVal(0.);
+        }
+
         if (diffuse_temp == 1) {
-           // Define an explicit temperature update.
-           MultiFab OldTempDiffTerm(grids,1,1);
-           OldTempDiffTerm.setVal(0.);
 #ifdef TAU
-           getTempDiffusionTerm(prev_time,OldTempDiffTerm,&tau_diff);
+           getTempDiffusionTerm(prev_time,OldDiffTerm,&tau_diff);
 #else
-           getTempDiffusionTerm(prev_time,OldTempDiffTerm);
+           getTempDiffusionTerm(prev_time,OldDiffTerm);
 #endif
-           OldTempDiffTerm.mult(dt);
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eden,1,0);
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eint,1,0);
+        } else if (diffuse_enth == 1) {
+           getEnthDiffusionTerm(prev_time,OldDiffTerm);
+        }
+
+        if (diffuse_temp == 1 or diffuse_enth == 1) {
+           OldDiffTerm.mult(dt);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eden,1,0);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eint,1,0);
            computeTemp(S_new);
 
            // Correct the temperature update so that it will be time-centered.
-           MultiFab NewTempDiffTerm(grids,1,1);
-           NewTempDiffTerm.setVal(0.);
+           NewDiffTerm.define(grids,1,1,Fab_allocate);
+           NewDiffTerm.setVal(0.);
+        }
+
+        if (diffuse_temp == 1) {
 #ifdef TAU
-           getTempDiffusionTerm(cur_time,NewTempDiffTerm,&tau_diff);
+           getTempDiffusionTerm(cur_time,NewDiffTerm,&tau_diff);
 #else
-           getTempDiffusionTerm(cur_time,NewTempDiffTerm);
+           getTempDiffusionTerm(cur_time,NewDiffTerm);
 #endif
-           NewTempDiffTerm.mult( 0.5*dt);
-           OldTempDiffTerm.mult(-0.5*dt);
+        } else if (diffuse_enth == 1) {
+           getEnthDiffusionTerm(cur_time,NewDiffTerm);
+        }
+
+        if (diffuse_temp == 1 or diffuse_enth == 1) {
+           NewDiffTerm.mult( 0.5*dt);
+           OldDiffTerm.mult(-0.5*dt);
            // Subtract off half of the old source term, and add half of the new.
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eden,1,0);
-           MultiFab::Add(S_new,OldTempDiffTerm,0,Eint,1,0);
-           MultiFab::Add(S_new,NewTempDiffTerm,0,Eden,1,0);
-           MultiFab::Add(S_new,NewTempDiffTerm,0,Eint,1,0);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eden,1,0);
+           MultiFab::Add(S_new,OldDiffTerm,0,Eint,1,0);
+           MultiFab::Add(S_new,NewDiffTerm,0,Eden,1,0);
+           MultiFab::Add(S_new,NewDiffTerm,0,Eint,1,0);
            computeTemp(S_new);
         }
 }
