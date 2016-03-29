@@ -99,7 +99,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
          allow_negative_energy
     use bl_constants_module
 
@@ -151,7 +151,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
          allow_negative_energy
     use bl_constants_module
 
@@ -351,7 +351,6 @@ contains
                            bind(C, name="ca_derangmomx")
 
     use bl_constants_module, only: HALF
-    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
     use math_module, only: cross_product
 
     implicit none
@@ -395,7 +394,6 @@ contains
                            bind(C, name="ca_derangmomy")
 
     use bl_constants_module, only: HALF
-    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
     use math_module, only: cross_product
 
     implicit none
@@ -439,7 +437,6 @@ contains
                            bind(C, name="ca_derangmomz")
 
     use bl_constants_module, only: HALF
-    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT
     use math_module, only: cross_product
 
     implicit none
@@ -514,8 +511,8 @@ contains
              eos_state % rho  = u(i,j,k,URHO)
              eos_state % T    = u(i,j,k,UTEMP)
              eos_state % e    = u(i,j,k,UEINT) * rhoInv
-             eos_state % xn = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+             eos_state % xn   = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+             eos_state % aux  = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
              call eos(eos_input_re, eos_state)
 
@@ -675,7 +672,7 @@ contains
     double precision :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv, ux, uy, uz
+    double precision :: rhoInv
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -711,7 +708,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
          allow_negative_energy
     use bl_constants_module
 

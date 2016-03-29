@@ -22,26 +22,23 @@ contains
   ! All tagging subroutines in this file must be threadsafe because
   ! they are called inside OpenMP parallel regions.
 
-! ::: -----------------------------------------------------------
-! ::: This routine will tag high error cells based on the temperature
-! ::: 
-! ::: INPUTS/OUTPUTS:
-! ::: 
-! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of work region
-! ::: set       => integer value to tag cell for refinement
-! ::: clear     => integer value to untag cell
-! ::: temp      => temperature array
-! ::: np        => number of components in temp array (should be 1)
-! ::: domlo,hi  => index extent of problem domain
-! ::: delta     => cell spacing
-! ::: xlo       => physical location of lower left hand
-! :::              corner of work region
-! ::: problo    => phys loc of lower left corner of prob domain
-! ::: time      => problem evolution time
-! ::: level     => refinement level of this array
-! ::: -----------------------------------------------------------
-
+  ! ::: -----------------------------------------------------------
+  ! ::: INPUTS/OUTPUTS:
+  ! ::: 
+  ! ::: tag      <=  integer tag array
+  ! ::: lo,hi     => index extent of work region
+  ! ::: set       => integer value to tag cell for refinement
+  ! ::: clear     => integer value to untag cell
+  ! ::: temp      => temperature array
+  ! ::: np        => number of components in temp array (should be 1)
+  ! ::: domlo,hi  => index extent of problem domain
+  ! ::: delta     => cell spacing
+  ! ::: xlo       => physical location of lower left hand
+  ! :::              corner of work region
+  ! ::: problo    => phys loc of lower left corner of prob domain
+  ! ::: time      => problem evolution time
+  ! ::: level     => refinement level of this array
+  ! ::: -----------------------------------------------------------
 
   ! ::: -----------------------------------------------------------
   ! ::: This routine will tag high error cells based on the Laplacian.
