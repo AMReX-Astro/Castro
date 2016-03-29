@@ -475,9 +475,9 @@ contains
     double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: kappa, mu, twothirds
+    double precision :: bulk_visc, mu, twothirds
 
-    kappa = 0.d0
+    bulk_visc = 0.d0
     twothirds = 2.d0 / 3.d0
 
     ! fill the cell-centered viscous coefficient
@@ -497,7 +497,7 @@ contains
              endif
              !          coef_cc(i,j,k) = coeff
 
-             coef_cc(i,j,k) = (kappa - twothirds*mu)
+             coef_cc(i,j,k) = (bulk_visc - twothirds*mu)
 
           enddo
        enddo
