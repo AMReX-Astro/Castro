@@ -122,6 +122,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                srcQ, q_l1,q_l2,q_h1,q_h2, &
                lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
+               uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                q1, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &

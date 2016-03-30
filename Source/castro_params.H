@@ -56,6 +56,7 @@ static Real react_T_min;
 static Real react_T_max;
 static Real react_rho_min;
 static Real react_rho_max;
+static int disable_shock_burning;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
@@ -66,6 +67,15 @@ static Real rotational_period;
 #endif
 #ifdef ROTATION
 static Real rotational_dPdt;
+#endif
+#ifdef ROTATION
+static int rotation_include_centrifugal;
+#endif
+#ifdef ROTATION
+static int rotation_include_coriolis;
+#endif
+#ifdef ROTATION
+static int rotation_include_domegadt;
 #endif
 #ifdef ROTATION
 static int rot_source_type;

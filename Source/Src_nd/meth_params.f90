@@ -15,6 +15,7 @@ module meth_params_module
   ! NTHERM: number of thermodynamic variables
   integer         , save :: NTHERM, NVAR
   integer         , save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer         , save :: USHK
 
   ! QTHERM: number of primitive variables
   integer         , save :: QTHERM, QVAR
@@ -99,11 +100,15 @@ module meth_params_module
   double precision, save :: react_T_max
   double precision, save :: react_rho_min
   double precision, save :: react_rho_max
+  integer         , save :: disable_shock_burning
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
+  integer         , save :: rotation_include_centrifugal
+  integer         , save :: rotation_include_coriolis
+  integer         , save :: rotation_include_domegadt
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis

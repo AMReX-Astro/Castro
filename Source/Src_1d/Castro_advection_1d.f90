@@ -117,8 +117,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, &
+    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
                                    npassive, upass_map, qpass_map, small_temp, allow_negative_energy, use_flattening, &
@@ -327,7 +326,7 @@ contains
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, UFS, UFX, track_grid_losses
+                                   UEDEN, UEINT, UTEMP, track_grid_losses
     use bl_constants_module
     use advection_util_module, only: normalize_species_fluxes
     use prob_params_module, only : domlo_level, domhi_level

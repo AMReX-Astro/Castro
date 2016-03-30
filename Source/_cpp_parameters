@@ -247,6 +247,9 @@ react_rho_min                Real          0.0                y
 # maximum density for allowing reactions to occur in a zone
 react_rho_max                Real          1.e200             y
 
+# disable burning inside hydrodynamic shock regions
+disable_shock_burning        int           0                  y
+
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
 #-----------------------------------------------------------------------------
@@ -274,6 +277,15 @@ rotational_period            Real         -1.e200             y        ROTATION 
 # the rotation periods time evolution---this allows the rotation rate to
 # change durning the simulation time
 rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
+
+# permits the centrifugal terms in the rotation to be turned on and off
+rotation_include_centrifugal int           1                  y        ROTATION
+
+# permits the Coriolis terms in the rotation to be turned on and off
+rotation_include_coriolis    int           1                  y        ROTATION
+
+# permits the d(omega)/dt terms in the rotation to be turned on and off
+rotation_include_domegadt    int           1                  y        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations

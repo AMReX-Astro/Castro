@@ -184,7 +184,7 @@ main (int   argc,
     time_pointer = gmtime(&time_type);
 
     if (ParallelDescriptor::IOProcessor())
-      std::cout << std::setfill('0') << "\nStarting run at "
+      std::cout << std::setfill('0') << "\nEnding run at "
 		<< std::setw(2) << time_pointer->tm_hour << ":"
 		<< std::setw(2) << time_pointer->tm_min << ":"
 		<< std::setw(2) << time_pointer->tm_sec << " UTC on "

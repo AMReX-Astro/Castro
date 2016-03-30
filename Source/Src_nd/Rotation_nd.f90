@@ -2,6 +2,8 @@ module rotation_module
 
   use math_module, only: cross_product
   use rotation_frequency_module, only: get_omega, get_domegadt
+  use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
+                                rotation_include_domegadt
 
   implicit none
 
@@ -33,17 +35,32 @@ contains
 
     ! Allow the various terms to be turned off.
 
-    c1 = .true.
+    if (rotation_include_centrifugal == 1) then
+       c1 = .true.
+    else
+       c1 = .false.
+    endif
+
     if (present(centrifugal)) then
        if (.not. centrifugal) c1 = .false.
     endif
 
-    c2 = .true.
+    if (rotation_include_coriolis == 1) then
+       c2 = .true.
+    else
+       c2 = .false.
+    endif
+
     if (present(coriolis)) then
        if (.not. coriolis) c2 = .false.
     endif
 
-    c3 = .true.
+    if (rotation_include_domegadt == 1) then
+       c3 = .true.
+    else
+       c3 = .false.
+    endif
+
     if (present(domegadt)) then
        if (.not. domegadt) c3 = .false.
     endif

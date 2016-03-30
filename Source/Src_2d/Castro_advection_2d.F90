@@ -31,6 +31,7 @@ contains
   subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
+                     uout, uout_l1, uout_l2, uout_h1, uout_h2, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
@@ -43,7 +44,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
-                                   GDU, GDV, GDPRES, ngdnv
+                                   GDU, GDV, GDPRES, ngdnv, USHK
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
@@ -55,6 +56,7 @@ contains
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
     integer src_l1, src_l2, src_h1, src_h2
+    integer uout_l1, uout_l2, uout_h1, uout_h2
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
     integer q1_l1, q1_l2, q1_h1, q1_h2
@@ -75,6 +77,7 @@ contains
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
     double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
+    double precision  uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -117,7 +120,21 @@ contains
     hdtdy = HALF*dt/dy
     hdt = HALF*dt
 
+#ifdef SHOCK_VAR
+    call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
+               shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
+               ilo1,ilo2,ihi1,ihi2,dx,dy)
 
+    do j = ilo2, ihi2
+       do i = ilo1, ihi1
+          uout(i,j,USHK) = shk(i,j)
+       enddo
+    enddo
+
+    if (hybrid_riemann /= 1) then
+       shk(:,:) = ZERO
+    endif
+#else
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
@@ -127,8 +144,8 @@ contains
     else
        shk(:,:) = ZERO
     endif
+#endif
 
-    
     ! NOTE: Geometry terms need to be punched through
 
     ! Trace to edges w/o transverse flux correction terms.  Here,

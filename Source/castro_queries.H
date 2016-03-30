@@ -56,6 +56,7 @@ pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);
 pp.query("react_rho_min", react_rho_min);
 pp.query("react_rho_max", react_rho_max);
+pp.query("disable_shock_burning", disable_shock_burning);
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);
@@ -66,6 +67,15 @@ pp.query("rotational_period", rotational_period);
 #endif
 #ifdef ROTATION
 pp.query("rotational_dPdt", rotational_dPdt);
+#endif
+#ifdef ROTATION
+pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
+#endif
+#ifdef ROTATION
+pp.query("rotation_include_coriolis", rotation_include_coriolis);
+#endif
+#ifdef ROTATION
+pp.query("rotation_include_domegadt", rotation_include_domegadt);
 #endif
 #ifdef ROTATION
 pp.query("rot_source_type", rot_source_type);

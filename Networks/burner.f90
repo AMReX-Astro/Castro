@@ -25,7 +25,8 @@ contains
 
   function ok_to_burn(state)
 
-    use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max
+    use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max, &
+                                  disable_shock_burning
 
     implicit none
 
@@ -35,7 +36,8 @@ contains
     ok_to_burn = .true.
 
     if (state % T < react_T_min .or. state % T > react_T_max .or. &
-        state % rho < react_rho_min .or. state % rho > react_rho_max) then
+        state % rho < react_rho_min .or. state % rho > react_rho_max .or. &
+        (disable_shock_burning .eq. 1 .and. state % shock) ) then
 
        ok_to_burn = .false.
 

@@ -56,6 +56,7 @@ Real        Castro::react_T_min = 0.0;
 Real        Castro::react_T_max = 1.e200;
 Real        Castro::react_rho_min = 0.0;
 Real        Castro::react_rho_max = 1.e200;
+int         Castro::disable_shock_burning = 0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 2;
@@ -66,6 +67,15 @@ Real        Castro::rotational_period = -1.e200;
 #endif
 #ifdef ROTATION
 Real        Castro::rotational_dPdt = 0.0;
+#endif
+#ifdef ROTATION
+int         Castro::rotation_include_centrifugal = 1;
+#endif
+#ifdef ROTATION
+int         Castro::rotation_include_coriolis = 1;
+#endif
+#ifdef ROTATION
+int         Castro::rotation_include_domegadt = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rot_source_type = 1;

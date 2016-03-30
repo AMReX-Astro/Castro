@@ -57,4 +57,5 @@ endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
 f90EXE_sources += Diffusion_nd.f90
+f90EXE_sources += Enthalpy_nd.f90
 endif

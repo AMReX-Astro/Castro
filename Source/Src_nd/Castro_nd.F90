@@ -298,6 +298,9 @@
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
+#ifdef SHOCK_VAR
+                                   Shock, &
+#endif
                                    gravity_type_in, gravity_type_len, &
                                    get_g_from_phi_in, &
                                    use_sgs, &
@@ -318,6 +321,9 @@
         integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
                                FirstAdv, FirstSpec, FirstAux
         integer, intent(in) :: numadv
+#ifdef SHOCK_VAR
+        integer, intent(in) :: Shock
+#endif
         integer, intent(in) :: gravity_type_len
         integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
@@ -382,6 +388,11 @@
           UFX = 1
         end if
 
+#ifdef SHOCK_VAR
+        USHK  = Shock + 1
+#else
+        USHK  = -1
+#endif
 
         !---------------------------------------------------------------------
         ! primitive state components
