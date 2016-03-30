@@ -139,11 +139,17 @@ contains
     enddo
 
     if ( state % y_e .lt. minye ) then
-       print *, 'Y_E = ', state % y_e
+       print *, 'Y_E  = ', state % y_e
+       print *, 'DENS = ', state % rho
+       print *, 'TEMP = ', state % T
+       print *, 'X    = ', state % xn
        call bl_error('EOS: y_e less than minimum possible electron fraction.')
     endif
     if ( state % y_e .gt. maxye ) then
-       print *, 'Y_E = ', state % y_e
+       print *, 'Y_E  = ', state % y_e
+       print *, 'DENS = ', state % rho
+       print *, 'TEMP = ', state % T
+       print *, 'X    = ', state % xn
        call bl_error('EOS: y_e greater than maximum possible electron fraction.')
     endif
 
@@ -216,12 +222,16 @@ contains
           state % rho = smalld
        else
           print *, 'DENS = ', state % rho
+          print *, 'TEMP = ', state % T
+          print *, 'X    = ', state % xn
           call bl_error('EOS: rho smaller than small_dens and we have not chosen to reset.')
        endif
     endif
 
     if (state % rho .gt. maxdens) then
        print *, 'DENS = ', state % rho
+       print *, 'TEMP = ', state % T
+       print *, 'X    = ', state % xn
        call bl_error('EOS: dens greater than maximum possible density.')
     endif
 
@@ -244,12 +254,16 @@ contains
           state % T = smallt
        else
           print *, 'TEMP = ', state % T
+          print *, 'DENS = ', state % rho
+          print *, 'X    = ', state % xn
           call bl_error('EOS: T smaller than small_temp and we have not chosen to reset.')
        endif
     endif
 
     if (state % T .gt. maxdens) then
        print *, 'TEMP = ', state % T
+       print *, 'DENS = ', state % rho
+       print *, 'X    = ', state % xn
        call bl_error('EOS: T greater than maximum possible temperature.')
     endif
 
