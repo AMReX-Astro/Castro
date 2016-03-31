@@ -338,13 +338,6 @@ Castro::read_params ()
       }
 #endif
 
-    // ppm_flatten_before_integrals is only done for ppm_type != 0
-    if (ppm_type == 0 && ppm_flatten_before_integrals > 0)
-      {
-        std::cerr << "ppm_flatten_before_integrals > 0 not implemented for ppm_type != 0 \n";
-        BoxLib::Error();
-      }
-	
 
     if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
       {

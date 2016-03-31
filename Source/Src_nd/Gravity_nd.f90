@@ -3,7 +3,18 @@ module gravity_module
   implicit none
 
   public
-  
+
+  ! Data for the multipole gravity
+
+  double precision, save :: volumeFactor, parityFactor
+  double precision, save :: edgeTolerance = 1.0d-2
+  double precision, save :: rmax
+  logical,          save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
+  logical,          save :: doReflectionLo(3), doReflectionHi(3)
+  integer,          save :: lnum_max
+  double precision, allocatable, save :: factArray(:,:)
+  double precision, allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
+
 contains
   
 ! ::
@@ -276,13 +287,130 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
+  subroutine init_multipole_gravity(lnum, lo_bc, hi_bc) bind(C,name="init_multipole_gravity")
+
+    use bl_constants_module
+    use prob_params_module, only: coord_type, Symmetry, problo, probhi, center
+
+    implicit none
+
+    integer :: lnum, lo_bc(3), hi_bc(3)
+
+    integer :: b, l, m
+
+    ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
+    ! to lie on the opposite side of the symmetric axis. If the center in any direction 
+    ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
+    ! Otherwise, we need to do a more general solve. We include a logical that is set to true
+    ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
+
+    volumeFactor = ONE
+    parityFactor = ONE
+
+    doSymmetricAddLo(:) = .false.
+    doSymmetricAddHi(:) = .false.
+
+    doSymmetricAdd      = .false.
+
+    doReflectionLo(:)   = .false.
+    doReflectionHi(:)   = .false.
+
+    do b = 1, 3
+
+       if ( (lo_bc(b) .eq. Symmetry) .and. (coord_type .eq. 0) ) then
+          if ( abs(center(b) - problo(b)) < edgeTolerance ) then
+             volumeFactor = volumeFactor * TWO
+             doReflectionLo(b) = .true.
+          else
+             doSymmetricAddLo(b) = .true.
+             doSymmetricAdd      = .true.
+          endif
+       endif
+
+       if ( (hi_bc(b) .eq. Symmetry) .and. (coord_type .eq. 0) ) then
+          if ( abs(center(b) - probhi(b)) < edgeTolerance ) then
+             volumeFactor = volumeFactor * TWO
+             doReflectionHi(b) = .true.
+          else
+             doSymmetricAddHi(b) = .true.
+             doSymmetricAdd      = .true.
+          endif
+       endif
+
+    enddo
+
+    ! Compute pre-factors now to save computation time, for qC and qS
+
+    lnum_max = lnum
+
+    allocate(factArray(0:lnum_max, 0:lnum_max))
+    allocate(parity_q0(0:lnum_max))
+    allocate(parity_qC_qS(0:lnum_max, 0:lnum_max))
+
+    factArray(:,:) = ZERO
+    parity_q0 = ONE
+    parity_qC_qS = ONE
+
+    do l = 0, lnum_max
+
+       ! The odd l Legendre polynomials are odd in their argument, so
+       ! a symmetric reflection about the z axis leads to a total cancellation.
+
+       parity_q0(l) = ONE
+
+       if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+          parity_q0(l) = ZERO
+       endif
+
+       do m = 1, l
+
+          ! The parity properties of the associated Legendre polynomials are:
+          ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
+          ! Therefore, a complete cancellation occurs if l+m is odd and
+          ! we are reflecting about the z axis.
+
+          ! Additionally, the cosine and sine terms flip sign when reflected
+          ! about the x or y axis, so if we have a reflection about x or y
+          ! then the terms have a complete cancellation.
+
+          parity_qC_qS(l,m) = ONE
+
+          if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+             parity_qC_qS(l,m) = ZERO
+          endif
+
+          if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
+             parity_qC_qS(l,m) = ZERO
+          endif
+
+          factArray(l,m) = TWO * factorial(l-m) / factorial(l+m) * volumeFactor
+
+       enddo
+
+    enddo
+
+    ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l,
+    ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
+    ! we will normalize all distances to the maximum possible physical distance from the center,
+    ! which is the diagonal from the center to the edge of the box. Then r^l will always be
+    ! less than or equal to one. For large enough lnum, this may still result in roundoff
+    ! errors that don't make your answer any more precise, but at least it avoids
+    ! possible NaN issues from having numbers that are too large for double precision.
+    ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
+
+    rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE) ! Account for distance from the center to the corner of a cube.
+
+  end subroutine init_multipole_gravity
+
+
+
   subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx, &
                                    phi,p_lo,p_hi, &
                                    lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
                                    npts,boundary_only) &
                                    bind(C, name="ca_put_multipole_phi")
 
-    use prob_params_module, only: problo, center, probhi
+    use prob_params_module, only: problo, center
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
@@ -302,7 +430,6 @@ contains
     integer          :: i, j, k
     integer          :: l, m, n, nlo
     double precision :: x, y, z, r, cosTheta, phiAngle
-    double precision :: rmax
     double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
     double precision :: r_L, r_U
 
@@ -315,7 +442,9 @@ contains
        nlo = 0
     endif
 
-    rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE)
+    if (lnum > lnum_max) then
+       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+    endif
 
     do k = lo(3), hi(3)
        if (k .gt. domhi(3)) then
@@ -415,28 +544,24 @@ contains
 
 
   subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi, &
-                                           symmetry_type,lo_bc,hi_bc, &
                                            dx,rho,r_lo,r_hi, &
                                            vol,v_lo,v_hi, &
                                            lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
                                            npts,boundary_only) &
                                            bind(C, name="ca_compute_multipole_moments")
 
-    use prob_params_module, only: problo, center, probhi, coord_type
+    use prob_params_module, only: problo, center, probhi
     use bl_constants_module
 
     implicit none
 
     integer          :: lo(3),hi(3)
-    integer          :: lo_bc(3),hi_bc(3)
-    integer          :: symmetry_type
     integer          :: domlo(3),domhi(3)
     double precision :: dx(3)
     integer          :: boundary_only, npts, lnum
 
     double precision :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     double precision :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
-    double precision :: factArray(0:lnum,0:lnum)
 
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
@@ -444,120 +569,9 @@ contains
     double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
-    integer          :: l, m, n, nlo, b, index
+    integer          :: nlo, index
 
     double precision :: x, y, z, r, drInv, cosTheta, phiAngle
-
-    double precision :: volumeFactor, parityFactor
-    double precision :: edgeTolerance = 1.0d-2
-    double precision :: rmax
-    double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
-    double precision :: rho_r_L, rho_r_U
-    double precision :: parity_q0(0:lnum), parity_qC_qS(0:lnum,0:lnum)
-
-    logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
-    logical          :: doReflectionLo(3), doReflectionHi(3)
-
-    double precision :: q
-
-    ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
-    ! to lie on the opposite side of the symmetric axis. If the center in any direction 
-    ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
-    ! Otherwise, we need to do a more general solve. We include a logical that is set to true
-    ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
-
-    volumeFactor = ONE
-    parityFactor = ONE
-
-    doSymmetricAddLo(:) = .false.
-    doSymmetricAddHi(:) = .false.
-
-    doSymmetricAdd      = .false.
-
-    doReflectionLo(:)   = .false.
-    doReflectionHi(:)   = .false.
-
-    do b = 1, 3
-
-       if ( (lo_bc(b) .eq. symmetry_type) .and. (coord_type .eq. 0) ) then
-          if ( abs(center(b) - problo(b)) < edgeTolerance ) then
-             volumeFactor = volumeFactor * TWO
-             doReflectionLo(b) = .true.
-          else
-             doSymmetricAddLo(b) = .true.
-             doSymmetricAdd      = .true.
-          endif
-       endif
-
-       if ( (hi_bc(b) .eq. symmetry_type) .and. (coord_type .eq. 0) ) then
-          if ( abs(center(b) - probhi(b)) < edgeTolerance ) then
-             volumeFactor = volumeFactor * TWO
-             doReflectionHi(b) = .true.
-          else
-             doSymmetricAddHi(b) = .true.
-             doSymmetricAdd      = .true.
-          endif
-       endif
-
-    enddo
-
-
-    ! Compute pre-factors now to save computation time, for qC and qS
-
-    factArray(:,:) = ZERO
-
-    do l = 0, lnum
-
-       ! The odd l Legendre polynomials are odd in their argument, so
-       ! a symmetric reflection about the z axis leads to a total cancellation.
-
-       parity_q0(l) = ONE
-
-       if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-          parity_q0(l) = ZERO
-       endif
-
-       do m = 1, l
-
-          ! The parity properties of the associated Legendre polynomials are:
-          ! P_l^m (-x) = (-1)^(l+m) P_l^m (x)
-          ! Therefore, a complete cancellation occurs if l+m is odd and
-          ! we are reflecting about the z axis.
-
-          ! Additionally, the cosine and sine terms flip sign when reflected
-          ! about the x or y axis, so if we have a reflection about x or y
-          ! then the terms have a complete cancellation.
-
-          parity_qC_qS(l,m) = ONE
-
-          if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-             parity_qC_qS(l,m) = ZERO
-          endif
-
-          if ( doReflectionLo(1) .or. doReflectionLo(2) .or. doReflectionHi(1) .or. doReflectionHi(2) ) then
-             parity_qC_qS(l,m) = ZERO
-          endif
-
-          factArray(l,m) = TWO * factorial(l-m) / factorial(l+m) * volumeFactor
-
-       enddo
-
-    enddo
-
-    ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l,
-    ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
-    ! we will normalize all distances to the maximum possible physical distance from the center,
-    ! which is the diagonal from the center to the edge of the box. Then r^l will always be
-    ! less than or equal to one. For large enough lnum, this may still result in roundoff
-    ! errors that don't make your answer any more precise, but at least it avoids
-    ! possible NaN issues from having numbers that are too large for double precision.
-    ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
-
-    rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE) ! Account for distance from the center to the corner of a cube.
-
-    ! Note that we don't currently support dx != dy != dz, so this is acceptable.
-
-    drInv = ONE / dx(1)
 
     ! If we're using this to construct boundary values, then only fill
     ! the outermost bin.
@@ -566,6 +580,16 @@ contains
        nlo = npts-1
     else
        nlo = 0
+    endif
+
+    ! Note that we don't currently support dx != dy != dz, so this is acceptable.
+
+    drInv = ONE / dx(1)
+
+    ! Sanity check
+
+    if (lnum > lnum_max) then
+       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 
     do k = lo(3), hi(3)
@@ -579,68 +603,25 @@ contains
 
              r = sqrt( x**2 + y**2 + z**2 )
 
-             index = int(r*drInv)
+             index = int(r * drInv)
 
              cosTheta = z / r
 
-             phiAngle = atan2(y,x)
-
-             ! Compute contribution from this cell to all multipole moments.
-             ! First, calculate the Legendre polynomials.
-
-             call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
-
-             ! Absorb the factorial terms into the Legendre polynomials to save on multiplications later.
-
-             assocLegPolyArr = assocLegPolyArr * factArray
+             phiAngle = atan2(y, x)
 
              ! Now, compute the multipole moments using the tabulated polynomials.
 
-             do n = nlo, npts-1
+             call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k), &
+                                qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
-                do l = 0, lnum
 
-                   rho_r_L = rho(i,j,k) * (r**dble( l  ))
-                   rho_r_U = rho(i,j,k) * (r**dble(-l-1))
-
-                   if (index .le. n) then
-                      qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * vol(i,j,k) * volumeFactor * parity_q0(l)
-                   else
-                      qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * vol(i,j,k) * volumeFactor * parity_q0(l)
-                   endif
-
-                   do m = 1, l
-
-                      if (index .le. n) then
-
-                         qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
-                                                   rho_r_L * parity_qC_qS(l,m) * vol(i,j,k)
-
-                         qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
-                                                   rho_r_L * parity_qC_qS(l,m) * vol(i,j,k)
-
-                      else
-
-                         qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * &
-                                                   rho_r_U * parity_qC_qS(l,m) * vol(i,j,k)
-
-                         qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * &
-                                                   rho_r_U * parity_qC_qS(l,m) * vol(i,j,k)
-
-                      endif
-                   enddo
-
-                enddo
-
-             enddo
-
-             ! Now add in contributions if we have any symmetric boundaries
+             ! Now add in contributions if we have any symmetric boundaries.
 
              if ( doSymmetricAdd ) then
 
                 call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-                                             x, y, z, problo, probhi, rmax, &
-                                             rho(i,j,k), vol(i,j,k), factArray, &
+                                             x, y, z, problo, probhi, &
+                                             rho(i,j,k), vol(i,j,k), &
                                              qL0, qLC, qLS, qU0, qUC, qUS, &
                                              lnum, npts, nlo, index)
 
@@ -758,8 +739,8 @@ contains
 
 
   subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-                                     x, y, z, problo, probhi, rmax, &
-                                     rho, vol, factArray, &
+                                     x, y, z, problo, probhi, &
+                                     rho, vol, &
                                      qU0, qUC, qUS, qL0, qLC, qLS, &
                                      lnum, npts, nlo, index)
 
@@ -769,9 +750,8 @@ contains
     implicit none
 
     integer,          intent(in) :: lnum, npts, nlo, index
-    double precision, intent(in) :: factArray(0:lnum,0:lnum)
     double precision, intent(in) :: x, y, z
-    double precision, intent(in) :: problo(3), probhi(3), rmax
+    double precision, intent(in) :: problo(3), probhi(3)
     double precision, intent(in) :: rho, vol
 
     logical,          intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
@@ -800,7 +780,7 @@ contains
        phiAngle = atan2(y, xLo)
        cosTheta = z / r
 
-       call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+       call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        if ( doSymmetricAddLo(2) ) then
 
@@ -808,7 +788,7 @@ contains
           phiAngle = atan2(yLo, xLo)
           cosTheta = z / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+          call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        endif
 
@@ -818,7 +798,7 @@ contains
           phiAngle = atan2(y, xLo)
           cosTheta = zLo / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+          call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        endif
 
@@ -828,7 +808,7 @@ contains
           phiAngle = atan2(yLo, xLo)
           cosTheta = zLo / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+          call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        endif
 
@@ -840,7 +820,7 @@ contains
        phiAngle = atan2(yLo, x)
        cosTheta = z / r
 
-       call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+       call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        if ( doSymmetricAddLo(3) ) then
 
@@ -848,7 +828,7 @@ contains
           phiAngle = atan2(yLo, x)
           cosTheta = zLo / r
 
-          call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+          call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
        endif
 
@@ -860,7 +840,7 @@ contains
        phiAngle = atan2(y, x)
        cosTheta = zLo / r
 
-       call multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
+       call multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index)
 
     endif
 
@@ -868,17 +848,21 @@ contains
 
 
 
-  subroutine multipole_add(cosTheta, phiAngle, r, rho, vol, factArray, &
+  subroutine multipole_add(cosTheta, phiAngle, r, rho, vol, &
                            qL0, qLC, qLS, qU0, qUC, qUS, &
-                           lnum, npts, nlo, index)
+                           lnum, npts, nlo, index, do_parity)
+
+    use bl_constants_module, only: ONE
 
     implicit none
 
     integer,          intent(in)    :: lnum, npts, nlo, index
-    double precision, intent(in)    :: cosTheta, phiAngle, r, rho, vol, factArray(0:lnum,0:lnum)
+    double precision, intent(in)    :: cosTheta, phiAngle, r, rho, vol
 
     double precision, intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     double precision, intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+
+    logical, optional, intent(in)   :: do_parity
 
     integer :: l, m, n
 
@@ -886,11 +870,23 @@ contains
 
     double precision :: rho_r_L, rho_r_U
 
+    double precision :: p0(0:lnum), pCS(0:lnum,0:lnum)
+
     call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
     ! Absorb factorial terms into associated Legendre polynomials
 
     assocLegPolyArr = assocLegPolyArr * factArray
+
+    p0 = ONE
+    pCS = ONE
+
+    if (present(do_parity)) then
+       if (do_parity) then
+          p0 = parity_q0
+          pCS = parity_qC_qS
+       endif
+    endif
 
     do n = nlo, npts-1
 
@@ -900,19 +896,19 @@ contains
           rho_r_U = rho * (r ** dble(-l-1))
 
           if (n .le. index) then
-             qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * vol
+             qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * vol * volumeFactor * p0(l)
           else
-             qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * vol
+             qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * vol * volumeFactor * p0(l)
           endif
 
           do m = 1, l
 
              if (n .le. index) then
-                qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_L * vol
-                qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_L * vol
+                qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_L * vol * pCS(l,m)
+                qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_L * vol * pCS(l,m)
              else
-                qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_U * vol
-                qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_U * vol
+                qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_U * vol * pCS(l,m)
+                qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_U * vol * pCS(l,m)
              endif
 
           enddo

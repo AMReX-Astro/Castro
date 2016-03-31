@@ -74,6 +74,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      read_params();
      finest_level_allocated = -1;
      if (gravity_type == "PoissonGrav") make_mg_bc();
+     if (gravity_type == "PoissonGrav") init_multipole_grav();
 }
 
 Gravity::~Gravity() {}
@@ -1718,6 +1719,27 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
 #if (BL_SPACEDIM > 1)
 void
+Gravity::init_multipole_grav()
+{
+
+    int lo_bc[3];
+    int hi_bc[3];
+
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+      lo_bc[dir] = phys_bc->lo(dir);
+      hi_bc[dir] = phys_bc->hi(dir);
+    }
+    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    {
+      lo_bc[dir] = -1;
+      hi_bc[dir] = -1;
+    }
+
+    init_multipole_gravity(&lnum, lo_bc, hi_bc);
+}
+
+void
 Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 {
     BL_ASSERT(level==0);
@@ -1777,21 +1799,6 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // is coded to only add to the moment arrays, so it is safe
     // to directly hand the arrays to them.
 
-    int lo_bc[3];
-    int hi_bc[3];
-
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-      lo_bc[dir] = phys_bc->lo(dir);
-      hi_bc[dir] = phys_bc->hi(dir);
-    }
-    for (int dir = BL_SPACEDIM; dir < 3; dir++)
-    {
-      lo_bc[dir] = -1;
-      hi_bc[dir] = -1;
-    }
-
-    int symmetry_type = Symmetry;
     const Box& domain = parent->Geom(level).Domain();
 
 #ifdef _OPENMP
@@ -1827,7 +1834,6 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 	    const Box& bx = mfi.tilebox();
 	    ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 					 ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()), 
-					 &symmetry_type,lo_bc,hi_bc,
 					 ZFILL(dx),BL_TO_FORTRAN_3D(Rhs[mfi]),
 					 BL_TO_FORTRAN_3D(volume[level][mfi]),
 					 &lnum,

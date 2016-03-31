@@ -100,6 +100,7 @@ public:
 
 #if (BL_SPACEDIM > 1)
   void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
   void fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi);

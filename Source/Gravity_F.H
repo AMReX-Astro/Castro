@@ -108,6 +108,9 @@ extern "C"
      const Real* problo, 
      const int* numpts_1d, const int* fill_interior);
 
+  void init_multipole_gravity
+    (const int* lnum, const int* lo_bc, const int* hi_bc);
+
   void ca_put_multipole_phi
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
@@ -121,7 +124,6 @@ extern "C"
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
-     const int* symmetry_type, const int lo_bc[], const int hi_bc[],
      const Real* dx,
      const BL_FORT_FAB_ARG_3D(rho),
      const BL_FORT_FAB_ARG_3D(vol),
