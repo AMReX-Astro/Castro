@@ -49,7 +49,7 @@ ppm_reference                int           1                  y
 
 # to we reconstruct and trace under the parabolas of the source
 # terms to the velocity (gravity and rotation)
-ppm_trace_sources            int           0                  y
+ppm_trace_sources            int           1                  y
 
 # various methods of giving temperature a larger role in the 
 # reconstruction---see Zingale \& Katz 2015
@@ -70,7 +70,7 @@ ppm_predict_gammae           int           0                  y
 ppm_reference_edge_limit     int           1                  y
 
 # do we use the reference state in evaluating the eigenvectors?
-ppm_reference_eigenvectors   int           0                  y
+ppm_reference_eigenvectors   int           1                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
@@ -107,7 +107,7 @@ use_flattening               int           1                  y
 # where do we apply the flattening?  after we've done the tracing of 
 # the states (0); or on the parabolic profiles before we've integrated
 # under them (1)
-ppm_flatten_before_integrals int           0                  y
+ppm_flatten_before_integrals int           1                  y
 
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using $e$ and $\rho$).
@@ -116,7 +116,7 @@ transverse_use_eos           int           0                  y
 # if the transverse interface state correction, if the new density is
 # negative, then replace all of the interface quantities with their
 # values without the transverse correction.
-transverse_reset_density     int           0                  y
+transverse_reset_density     int           1                  y
 
 # if the interface state for $(\rho e)$ is negative after we add the
 # transverse terms, then replace the interface value of $(\rho e)$
