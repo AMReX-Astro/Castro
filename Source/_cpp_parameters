@@ -124,7 +124,7 @@ transverse_reset_density     int           0                  y
 transverse_reset_rhoe        int           0                  y
 
 # Allow internal energy resets and temperature flooring to change the
-# total energy variable UEDEN in addition to the interanl energy variable
+# total energy variable UEDEN in addition to the internal energy variable
 # UEINT.
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
 
