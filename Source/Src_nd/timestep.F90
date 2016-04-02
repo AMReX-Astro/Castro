@@ -98,8 +98,6 @@ contains
 
   end subroutine ca_estdt
 
-
-
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
@@ -231,8 +229,6 @@ contains
   end subroutine ca_estdt_burning
 #endif
 
-
-
   ! Diffusion-limited timestep
 
 #ifdef DIFFUSION
@@ -256,7 +252,7 @@ contains
     double precision :: dx(3), dt
 
     double precision :: dt1, dt2, dt3, rho_inv
-    integer          :: i, j, k, n
+    integer          :: i, j, k
     double precision :: cond, D
 
     type (eos_t) :: eos_state
@@ -332,7 +328,7 @@ contains
     double precision :: dx(3), dt
 
     double precision :: dt1, dt2, dt3, rho_inv
-    integer          :: i, j, k, n
+    integer          :: i, j, k
     double precision :: cond, D
 
     type (eos_t) :: eos_state
@@ -403,8 +399,13 @@ contains
                                bind(C, name="ca_check_timestep")
 
     use bl_constants_module, only: HALF, ONE
+#ifdef REACTIONS
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   dtnuc_e, dtnuc_X, cfl, do_hydro, do_react, small_x
+#else
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
+                                  cfl, do_hydro
+#endif
     use prob_params_module, only: dim
     use network, only: nspec, naux
     use eos_module
