@@ -42,7 +42,6 @@ contains
                      dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
                      domlo, domhi)
 
-    use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, ngdnv, USHK
     use trace_module, only : trace
@@ -512,7 +511,6 @@ contains
                      verbose)
 
     use eos_module
-    use network, only : nspec, naux
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
     use prob_params_module, only : coord_type, domlo_level, domhi_level

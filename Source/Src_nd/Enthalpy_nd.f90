@@ -16,7 +16,6 @@ contains
     use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
-    use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
 

@@ -74,7 +74,7 @@ contains
                                      lo,hi,mass_added,eint_added, &
                                      eden_added,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
-    use network, only : nspec, naux
+    use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
                                    UFS, small_dens, smalL_temp, npassive, upass_map
     use bl_constants_module
