@@ -2626,9 +2626,10 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm)
        CrseEnth.define (crse_grids,1,1,Fab_allocate);
        CrseState.define(crse_grids,NUM_STATE,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseState,1,time,State_Type,Density,NUM_STATE);
+
        for (MFIter mfi(CrseState); mfi.isValid(); ++mfi)
        {
-	   const Box& bx = grids[mfi.index()];
+	   const Box& bx = crse_grids[mfi.index()];
 	   make_enthalpy(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 	                 BL_TO_FORTRAN_3D(CrseState[mfi]),
 	                 BL_TO_FORTRAN_3D( CrseEnth[mfi]));

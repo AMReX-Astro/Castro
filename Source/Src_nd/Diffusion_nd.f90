@@ -202,7 +202,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -230,9 +230,11 @@ contains
        do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)
+!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
+             call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call thermal_conductivity(eos_state, coeff)
@@ -286,7 +288,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -313,10 +315,13 @@ contains
     do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
        do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
+
              eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)
+!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
+             call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call thermal_conductivity(eos_state, cond)
@@ -369,7 +374,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -397,12 +402,16 @@ contains
        do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)
+!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
+             call eos(eos_input_re,eos_state)
+
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call thermal_conductivity(eos_state, cond)
+                cond = cond / eos_state%cp
              else
                 cond = ZERO
              endif
