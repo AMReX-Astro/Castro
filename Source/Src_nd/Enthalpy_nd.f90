@@ -15,8 +15,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
-    use prob_params_module, only : dg
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use conductivity_module
     use eos_type_module
 
@@ -30,18 +29,29 @@ contains
 
     ! local variables
     integer          :: i, j, k
+    integer          :: i_lo, i_hi
+    integer          :: j_lo, j_hi
+    integer          :: k_lo, k_hi
 
     type (eos_t) :: eos_state
 
-    ! fill the cell-centered diffusion coefficient
+    i_lo = max(e_lo(1),s_lo(1))
+    i_hi = min(e_hi(1),s_hi(1))
+    j_lo = max(e_lo(2),s_lo(2))
+    j_hi = min(e_hi(2),s_hi(2))
+    k_lo = max(e_lo(3),s_lo(3))
+    k_hi = min(e_hi(3),s_hi(3))
 
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
+    ! Fill the cell-centered diffusion coefficient
+    do k = k_lo, k_hi
+       do j = j_lo, j_hi
+          do i = i_lo, i_hi
              eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)
+!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
+             call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 enth(i,j,k) = eos_state%h

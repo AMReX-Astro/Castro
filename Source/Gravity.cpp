@@ -74,7 +74,9 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      read_params();
      finest_level_allocated = -1;
      if (gravity_type == "PoissonGrav") make_mg_bc();
+#if (BL_SPACEDIM > 1)
      if (gravity_type == "PoissonGrav") init_multipole_grav();
+#endif
 }
 
 Gravity::~Gravity() {}

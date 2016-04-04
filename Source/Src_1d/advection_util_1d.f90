@@ -50,9 +50,9 @@ contains
                                      lo,hi,mass_added,eint_added, &
                                      eden_added,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
-    use network, only : nspec, naux
+    use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, small_dens, small_temp, npassive, upass_map
+                                   UFS, small_dens, small_temp, npassive, upass_map
     use bl_constants_module
     use eos_type_module, only : eos_t
     use eos_module, only : eos_input_rt, eos

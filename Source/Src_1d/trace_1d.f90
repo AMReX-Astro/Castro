@@ -17,7 +17,7 @@ contains
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
-      use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, QFS, QFX, & 
+      use meth_params_module, only : iorder, QVAR, QRHO, QU, QREINT, QPRES, & 
                                      npassive, qpass_map, small_dens, ppm_type, fix_mass_flux, use_pslope
       use prob_params_module, only : physbc_lo, physbc_hi, Outflow
       use slope_module, only : uslope, pslope
@@ -55,7 +55,6 @@ contains
       double precision :: apright, amright, azrright, azeright
       double precision :: apleft, amleft, azrleft, azeleft
       double precision :: acmprght, acmpleft
-      double precision :: ascmprght, ascmpleft
       double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
       logical :: fix_mass_flux_lo, fix_mass_flux_hi

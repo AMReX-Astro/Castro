@@ -154,7 +154,6 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QFS, &
                                    QFX, URHO, UMX, UEDEN, UEINT, &
-                                   UFS, UFX, &
                                    npassive, upass_map, qpass_map, small_dens, small_pres, small_temp, &
                                    cg_maxiter, cg_tol, cg_blend
     use riemann_util_module
@@ -685,7 +684,6 @@ contains
 #endif                       
                        ilo,ihi,domlo,domhi)
 
-    use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UEDEN, UEINT, small_dens, small_pres, &
                                    npassive, upass_map, qpass_map, &

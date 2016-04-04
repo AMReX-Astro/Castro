@@ -1178,8 +1178,8 @@ Castro::estTimeStep (Real dt_old)
 	    
 #ifdef DIFFUSION
 	// Diffusion-limited timestep
-	if (diffuse_temp or diffuse_enth)
-	  {
+	if (diffuse_temp)
+	{
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1189,10 +1189,9 @@ Castro::estTimeStep (Real dt_old)
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 		{
 		  const Box& box = mfi.tilebox();
-
-		  ca_estdt_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-				     BL_TO_FORTRAN_3D(stateMF[mfi]),
-				     ZFILL(dx),&dt);
+		  ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+			  	          BL_TO_FORTRAN_3D(stateMF[mfi]),
+				          ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
 #pragma omp critical (castro_estdt)	      
@@ -1201,7 +1200,30 @@ Castro::estTimeStep (Real dt_old)
 		estdt_hydro = std::min(estdt_hydro,dt);
 	      }
 	    }
-	  }
+	}
+	if (diffuse_enth)
+	{
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	    {
+	      Real dt = max_dt;
+	      
+	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+		{
+		  const Box& box = mfi.tilebox();
+		  ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+				          BL_TO_FORTRAN_3D(stateMF[mfi]),
+				          ZFILL(dx),&dt);
+		}
+#ifdef _OPENMP
+#pragma omp critical (castro_estdt)	      
+#endif
+	      {
+		estdt_hydro = std::min(estdt_hydro,dt);
+	      }
+	    }
+	}
 #endif  // diffusion
 
 #ifdef RADIATION
@@ -2604,9 +2626,10 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm)
        CrseEnth.define (crse_grids,1,1,Fab_allocate);
        CrseState.define(crse_grids,NUM_STATE,1,Fab_allocate);
        FillPatch(getLevel(level-1),CrseState,1,time,State_Type,Density,NUM_STATE);
+
        for (MFIter mfi(CrseState); mfi.isValid(); ++mfi)
        {
-	   const Box& bx = grids[mfi.index()];
+	   const Box& bx = crse_grids[mfi.index()];
 	   make_enthalpy(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 	                 BL_TO_FORTRAN_3D(CrseState[mfi]),
 	                 BL_TO_FORTRAN_3D( CrseEnth[mfi]));
