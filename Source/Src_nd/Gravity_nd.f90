@@ -584,7 +584,7 @@ contains
 
     ! Note that we don't currently support dx != dy != dz, so this is acceptable.
 
-    drInv = ONE / dx(1)
+    drInv = rmax / dx(1)
 
     ! Sanity check
 
@@ -895,7 +895,7 @@ contains
           rho_r_L = rho * (r ** dble( l  ))
           rho_r_U = rho * (r ** dble(-l-1))
 
-          if (n .le. index) then
+          if (index .le. n) then
              qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * vol * volumeFactor * p0(l)
           else
              qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * vol * volumeFactor * p0(l)
@@ -903,7 +903,7 @@ contains
 
           do m = 1, l
 
-             if (n .le. index) then
+             if (index .le. n) then
                 qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_L * vol * pCS(l,m)
                 qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_L * vol * pCS(l,m)
              else
