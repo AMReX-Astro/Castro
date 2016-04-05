@@ -1183,6 +1183,8 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef DIFFUSION
 	// Diffusion-limited timestep
+	// Note that the diffusion uses the same CFL safety factor
+	// as the main hydrodynamics timestep limiter.
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
