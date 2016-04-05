@@ -321,6 +321,9 @@ Castro::read_params ()
         BoxLib::Error();
       }	
 
+    if (cfl <= 0.0 || cfl > 1.0)
+      BoxLib::Error("Invalid CFL factor; must be between zero and one.");
+
     // for the moment, ppm_type = 0 does not support ppm_trace_sources --
     // we need to add the momentum sources to the states (and not
     // add it in trans_3d
