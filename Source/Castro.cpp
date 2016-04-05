@@ -1092,20 +1092,25 @@ Castro::estTimeStep (Real dt_old)
     if (fixed_dt > 0.0)
         return fixed_dt;
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);    
-    
+    set_amr_info(level, -1, -1, -1.0, -1.0);
+
     Real estdt = max_dt;
 
     const MultiFab& stateMF = get_new_data(State_Type);
 
-    const Real* dx = geom.CellSize();    
+    const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
 
-    Real estdt_hydro = max_dt;
-    
+    // Start the hydro with the max_dt value, but divide by CFL
+    // to account for the fact that we multiply by it at the end.
+    // This ensures that if max_dt is more restrictive than the hydro
+    // criterion, we will get exactly max_dt for a timestep.
+
+    Real estdt_hydro = max_dt / cfl;
+
 #ifdef DIFFUSION
-    if (do_hydro or diffuse_temp or diffuse_enth)  
+    if (do_hydro or diffuse_temp or diffuse_enth)
 #else
     if (do_hydro)
 #endif
@@ -1120,34 +1125,34 @@ Castro::estTimeStep (Real dt_old)
 #pragma omp parallel
 #endif
 	  {
-	      Real dt = max_dt;
+	      Real dt = max_dt / cfl;
 
 	      const MultiFab& radMF = get_new_data(Rad_Type);
 	      FArrayBox gPr;
 
-	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi) 
+	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
 	      {
 	          const Box& tbox = mfi.tilebox();
 	          const Box& vbox = mfi.validbox();
-		  
+
 		  gPr.resize(tbox);
 		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
-	  
+
 		  ca_estdt_rad(BL_TO_FORTRAN(stateMF[mfi]),
 			       BL_TO_FORTRAN(gPr),
 			       tbox.loVect(),tbox.hiVect(),dx,&dt);
               }
 #ifdef _OPENMP
-#pragma omp critical (castro_estdt_rad)	      
+#pragma omp critical (castro_estdt_rad)
 #endif
 	      {
 	          estdt_hydro = std::min(estdt_hydro,dt);
               }
           }
       }
-      else 
+      else
       {
-#endif   
+#endif
 
 	  // Compute hydro-limited timestep.
 	if (do_hydro)
@@ -1157,25 +1162,25 @@ Castro::estTimeStep (Real dt_old)
 #pragma omp parallel
 #endif
 	    {
-	      Real dt = max_dt;
-	      
+	      Real dt = max_dt / cfl;
+
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 		{
 		  const Box& box = mfi.tilebox();
-		  
+
 		  ca_estdt(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
 			   ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
-#pragma omp critical (castro_estdt)	      
+#pragma omp critical (castro_estdt)
 #endif
 	      {
 		estdt_hydro = std::min(estdt_hydro,dt);
 	      }
 	    }
 	  }
-	    
+
 #ifdef DIFFUSION
 	// Diffusion-limited timestep
 	if (diffuse_temp)
@@ -1184,8 +1189,8 @@ Castro::estTimeStep (Real dt_old)
 #pragma omp parallel
 #endif
 	    {
-	      Real dt = max_dt;
-	      
+	      Real dt = max_dt / cfl;
+
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 		{
 		  const Box& box = mfi.tilebox();
@@ -1194,7 +1199,7 @@ Castro::estTimeStep (Real dt_old)
 				          ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
-#pragma omp critical (castro_estdt)	      
+#pragma omp critical (castro_estdt)
 #endif
 	      {
 		estdt_hydro = std::min(estdt_hydro,dt);
@@ -1207,8 +1212,8 @@ Castro::estTimeStep (Real dt_old)
 #pragma omp parallel
 #endif
 	    {
-	      Real dt = max_dt;
-	      
+	      Real dt = max_dt / cfl;
+
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 		{
 		  const Box& box = mfi.tilebox();
@@ -1217,7 +1222,7 @@ Castro::estTimeStep (Real dt_old)
 				          ZFILL(dx),&dt);
 		}
 #ifdef _OPENMP
-#pragma omp critical (castro_estdt)	      
+#pragma omp critical (castro_estdt)
 #endif
 	      {
 		estdt_hydro = std::min(estdt_hydro,dt);
@@ -1232,12 +1237,12 @@ Castro::estTimeStep (Real dt_old)
 
        ParallelDescriptor::ReduceRealMin(estdt_hydro);
        estdt_hydro *= cfl;
-       if (verbose && ParallelDescriptor::IOProcessor()) 
+       if (verbose && ParallelDescriptor::IOProcessor())
            std::cout << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
 
        // Determine if this is more restrictive than the maximum timestep limiting
 
-       if (estdt_hydro < estdt) {	 
+       if (estdt_hydro < estdt) {
 	 limiter = "hydro";
 	 estdt = estdt_hydro;
        }
@@ -1251,15 +1256,15 @@ Castro::estTimeStep (Real dt_old)
     Real estdt_burn = max_dt;
 
     if (do_react) {
-    
+
         // Compute burning-limited timestep.
-    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
         {
             Real dt = max_dt;
-    
+
 	    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	    {
 	        const Box& box = mfi.validbox();
@@ -1294,9 +1299,9 @@ Castro::estTimeStep (Real dt_old)
 	    {
 	        estdt_burn = std::min(estdt_burn,dt);
 	    }
-	      
+
         }
-    
+
 	ParallelDescriptor::ReduceRealMin(estdt_burn);
 
 	if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt) 
