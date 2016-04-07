@@ -522,6 +522,11 @@ contains
 
                 call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
+                ! We want to undo the volume scaling; tack that onto the polynomial arrays.
+
+                legPolyArr = legPolyArr * rmax**3
+                assocLegPolyArr = assocLegPolyArr * rmax**3
+
                 ! Now compute the potentials on the ghost cells.
 
                 do n = nlo, npts-1
@@ -628,7 +633,7 @@ contains
 
              ! Now, compute the multipole moments.
 
-             call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k), &
+             call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k) / rmax**3, &
                                 qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
              ! Now add in contributions if we have any symmetric boundaries in 3D.
@@ -638,7 +643,7 @@ contains
 
                 call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
                                              x, y, z, problo, probhi, &
-                                             rho(i,j,k), vol(i,j,k), &
+                                             rho(i,j,k), vol(i,j,k) / rmax**3, &
                                              qL0, qLC, qLS, qU0, qUC, qUS, &
                                              lnum, npts, nlo, index)
 
