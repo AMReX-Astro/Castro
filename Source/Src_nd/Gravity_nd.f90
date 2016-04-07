@@ -290,7 +290,7 @@ contains
   subroutine init_multipole_gravity(lnum, lo_bc, hi_bc) bind(C,name="init_multipole_gravity")
 
     use bl_constants_module
-    use prob_params_module, only: coord_type, Symmetry, problo, probhi, center
+    use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
 
     implicit none
 
@@ -358,8 +358,12 @@ contains
 
        parity_q0(l) = ONE
 
-       if ( MODULO(l,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
-          parity_q0(l) = ZERO
+       if ( MODULO(l,2) /= 0 ) then
+          if ( dim .eq. 3 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
+             parity_q0(l) = ZERO
+          else if ( dim .eq. 2 .and. coord_type .eq. 1 ) then
+             parity_q0(l) = ZERO
+          endif
        endif
 
        do m = 1, l
@@ -373,7 +377,11 @@ contains
           ! about the x or y axis, so if we have a reflection about x or y
           ! then the terms have a complete cancellation.
 
-          parity_qC_qS(l,m) = ONE
+          if (dim .eq. 3) then
+             parity_qC_qS(l,m) = ONE
+          else if (dim .eq. 2 .and. coord_type .eq. 1) then
+             parity_qC_qS(l,m) = ZERO
+          endif
 
           if ( MODULO(l+m,2) /= 0 .and. ( doReflectionLo(3) .or. doReflectionHi(3) ) ) then
              parity_qC_qS(l,m) = ZERO
@@ -398,7 +406,7 @@ contains
     ! possible NaN issues from having numbers that are too large for double precision.
     ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
 
-    rmax = (HALF * maxval(probhi - problo)) * sqrt(THREE) ! Account for distance from the center to the corner of a cube.
+    rmax = HALF * maxval(probhi(1:dim) - problo(1:dim)) * sqrt(dble(dim))
 
   end subroutine init_multipole_gravity
 
@@ -410,7 +418,7 @@ contains
                                    npts,boundary_only) &
                                    bind(C, name="ca_put_multipole_phi")
 
-    use prob_params_module, only: problo, center
+    use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
@@ -497,8 +505,13 @@ contains
                    cycle
                 endif
 
-                cosTheta = z / r
-                phiAngle = atan2(y,x)
+                if (dim .eq. 3) then
+                   cosTheta = z / r
+                   phiAngle = atan2(y,x)
+                else if (dim .eq. 2 .and. coord_type .eq. 1) then
+                   cosTheta = y / r
+                   phiAngle = ZERO
+                endif
 
                 phi(i,j,k) = ZERO
 
@@ -550,7 +563,7 @@ contains
                                            npts,boundary_only) &
                                            bind(C, name="ca_compute_multipole_moments")
 
-    use prob_params_module, only: problo, center, probhi
+    use prob_params_module, only: problo, center, probhi, dim, coord_type
     use bl_constants_module
 
     implicit none
@@ -603,19 +616,23 @@ contains
 
              r = sqrt( x**2 + y**2 + z**2 )
 
-             index = int(r * drInv)
+             if (dim .eq. 3) then
+                index = int(r * drInv)
+                cosTheta = z / r
+                phiAngle = atan2(y, x)
+             else if (dim .eq. 2 .and. coord_type .eq. 1) then
+                index = nlo ! We only do the boundary potential in 2D.
+                cosTheta = y / r
+                phiAngle = z
+             endif
 
-             cosTheta = z / r
-
-             phiAngle = atan2(y, x)
-
-             ! Now, compute the multipole moments using the tabulated polynomials.
+             ! Now, compute the multipole moments.
 
              call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k), &
                                 qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
-
-             ! Now add in contributions if we have any symmetric boundaries.
+             ! Now add in contributions if we have any symmetric boundaries in 3D.
+             ! The symmetric boundary in 2D axisymmetric is handled separately.
 
              if ( doSymmetricAdd ) then
 
