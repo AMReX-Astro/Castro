@@ -103,8 +103,8 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef REACTIONS
-    if (input_version < 4) { // old checkpoing without Reactions_Type
-      state[Reactions_Type].restart(desc_lst[Source_Type], state[State_Type]);
+    if (input_version < 4) { // old checkpoint without Reactions_Type
+      state[Reactions_Type].restart(desc_lst[Reactions_Type], state[State_Type]);
     }
 #endif
 
