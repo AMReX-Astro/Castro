@@ -616,6 +616,20 @@
 
         integer :: lev, dir
 
+        ! Sometimes this routine can get called multiple
+        ! times upon initialization; in this case, just to
+        ! be safe, we'll deallocate and start again.
+
+        if (allocated(dx_level)) then
+           deallocate(dx_level)
+        endif
+        if (allocated(domlo_level)) then
+           deallocate(domlo_level)
+        endif
+        if (allocated(domhi_level)) then
+           deallocate(domhi_level)
+        endif
+
         max_level = max_level_in
 
         allocate(dx_level(1:3, 0:max_level))
