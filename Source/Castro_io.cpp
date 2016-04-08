@@ -427,7 +427,7 @@ Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
     }
 #ifdef REACTIONS
     if (input_version < 4 && i == Reactions_Type) {
-      // We are reading an old checkpoing with no Reactions_Type
+      // We are reading an old checkpoint with no Reactions_Type
       state_in_checkpoint[i] = 0;
     }
 #endif
