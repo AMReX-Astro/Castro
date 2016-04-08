@@ -1812,11 +1812,6 @@ Castro::post_restart ()
          }
 #endif
 
-#ifdef REACTIONS
-    MultiFab &React_new = get_new_data(Reactions_Type);
-    React_new.setVal(0.0);
-#endif
-
     set_special_tagging_flag(cur_time);
 
     // initialize the Godunov state array used in hydro -- we wait
