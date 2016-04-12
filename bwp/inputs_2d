@@ -38,7 +38,7 @@ castro.ppm_temp_fix = 0
 #castro.ppm_reference_eigenvectors = 1                                           
 castro.ppm_reference_edge_limit = 1                                             
 castro.ppm_tau_in_tracing = 0                                                   
-ppm_trace_grav = 1
+castro.ppm_trace_sources = 0
                                                                                 
 castro.use_flattening = 1                                                       
 castro.ppm_flatten_before_integrals = 1                                         
@@ -50,7 +50,7 @@ gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
 
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-castro.cfl            = 0.9     # cfl number for hyperbolic system
+castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep by this factor
 castro.change_max     = 1.05    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
@@ -93,7 +93,7 @@ radiation.abstol  = 0.0   # absolute tolerance for implicit update loop
 radiation.maxiter = 50    # return after numiter iterations if not converged
 
 # RADIATION LIMITER
-radiation.limiter = 2     # 0 = no limiter
+radiation.limiter = 0     # 0 = no limiter
                           # 2 = correct form of Lev-Pom limiter
 radiation.delta_temp            = 0.01
 
@@ -106,8 +106,8 @@ radiation.v               = 2    # verbosity
 # 101 = LO_DIRICHLET           102 = LO_NEUMANN
 # 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
 
-radiation.lo_bc     = 102 102 102
-radiation.hi_bc     = 105 102 102
+radiation.lo_bc     = 102 101 102
+radiation.hi_bc     = 105 101 102
 
 # For each boundary, we can specify either a constant boundary value
 # or use a Fortran function FORT_RADBNDRY to specify values that vary
@@ -138,9 +138,10 @@ radiation.do_real_eos = 1
 #
 # Planck mean opacity
 
-radiation.const_kappa_p =  6.35e-3
-radiation.kappa_p_exp_m =  2.0
-radiation.kappa_p_exp_n = -1.0
+# this is Free-free Kramers opacity from K&W (Eq. 17.5)
+radiation.const_kappa_p =  3.8e19  #3.8e22
+radiation.kappa_p_exp_m =  1.0
+radiation.kappa_p_exp_n = 3.5
 
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
@@ -162,7 +163,7 @@ radiation.kappa_p_exp_n = -1.0
 # 1002  PCG   using ParCSR ObjectType
 # 1003  PCG   using SStruct ObjectType
 
-radsolve.level_solver_flag = 0   # can be any supported hypre solver flag
+radsolve.level_solver_flag = 0  # can be any supported hypre solver flag
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
