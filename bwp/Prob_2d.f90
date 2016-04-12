@@ -145,6 +145,10 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
                       delta,xlo,xhi)
 
   use probdata_module
+  use fundamental_constants_module, only: a_rad                                 
+  use interpolate_module
+  use model_parser_module
+  use prob_params_module, only : center
 
   integer level, nrad
   integer lo(2), hi(2)
@@ -154,11 +158,21 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   double precision :: rad_state(rad_state_l1:rad_state_h1, &
                                 rad_state_l2:rad_state_h2, nrad)
 
+  double precision xcen, ycen, dist, T
   integer i,j
 
   do j = lo(2), hi(2)
+     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0) - center(2)
+
      do i = lo(1), hi(1)
+        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0) - center(1)
+
+        dist = sqrt(xcen**2 + ycen**2)
         rad_state(i,j,:) = 0.d0
+
+        !T  = interpolate(dist,npts_model,model_r,model_state(:,itemp_model))
+        !rad_state(i,j,:) = a_rad*T**4                                        
+
      end do
   end do
 
