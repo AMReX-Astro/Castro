@@ -116,7 +116,7 @@ program riemann_exact
      eos_state%rho = rho
      eos_state%p = p
      eos_state%xn(:) = xn_s(:)
-     eos_state%T = 100000.0_dp_t   ! initial guess
+     eos_state%T = initial_temp_guess
 
      call eos(eos_input_rp, eos_state)
         

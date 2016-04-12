@@ -18,4 +18,6 @@ npts       integer  128
 
 use_Tinit  logical  .false.
 
+initial_temp_guess  real  1.0d5
+
 co_moving_frame logical .false.
