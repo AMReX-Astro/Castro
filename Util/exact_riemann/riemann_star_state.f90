@@ -14,6 +14,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   use eos_type_module
   use network, only: nspec
   use riemann_support
+  use probin_module, only: riemann_max_iter
 
   implicit none
 
@@ -46,7 +47,6 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   logical :: converged
 
   integer :: iter
-  integer, parameter :: max_iter = 10
 
   type (eos_t) :: eos_state
 
@@ -141,7 +141,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   converged = .false.
   iter = 1
-  do while (.not. converged .and. iter < max_iter)
+  do while (.not. converged .and. iter < riemann_max_iter)
 
      ! compute Z_l and Z_r -- the form of these depend on whether the
      ! wave is a shock or a rarefaction

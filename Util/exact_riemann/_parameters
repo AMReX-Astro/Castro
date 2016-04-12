@@ -20,4 +20,6 @@ use_Tinit  logical  .false.
 
 initial_temp_guess  real  1.0d5
 
+riemann_max_iter  integer  10
+
 co_moving_frame logical .false.
