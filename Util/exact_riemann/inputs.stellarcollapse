@@ -9,6 +9,10 @@ T_r   = 5.d10
 
 use_Tinit = T
 
+initial_temp_guess = 1.d5
+
+riemann_max_iter = 20
+
 xmin  = 0.0d0
 xmax  = 1.0d4
 xjump = 0.5d4
