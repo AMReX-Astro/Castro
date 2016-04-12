@@ -32,6 +32,7 @@ NETWORK_TOP_DIR := $(MICROPHYSICS_DIR)/networks
 
 EOS_DIR := gamma_law_general
 #EOS_DIR := helmholtz
+#EOS_DIR := stellarcollapse
 
 NETWORK_DIR := ignition_simple
 
@@ -55,6 +56,18 @@ endif
 helm_table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_TOP_DIR)/$(EOS_DIR)/helm_table.dat .;  fi
 
+ifeq ($(findstring stellarcollapse, $(EOS_DIR)), stellarcollapse)
+  # stellarcollapse needs HDF5
+  # HDF5_DIR should be set to the root HDF5 directory
+  libraries += -lhdf5 -lhdf5_fortran -lz
+  LDFLAGS += -L$(HDF5_DIR)/lib
+  VPATH_LOCATIONS += $(HDF5_DIR)/include
+  FINCLUDE_LOCATIONS += $(HDF5_DIR)/include
+
+  # it also needs the interpolation module
+  FINCLUDE_LOCATIONS += $(CASTRO_TOP_DIR)/Source/Src_nd
+  f90sources += interpolate.f90
+endif
 
 
 # any Util stuff (BLAS and VODE -- for now these seem to have a GPackage.mak)
