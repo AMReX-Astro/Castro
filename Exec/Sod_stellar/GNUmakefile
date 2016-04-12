@@ -34,7 +34,9 @@ endif
 # This sets the network directory in Castro/Networks
 
 
-Bpack   := ./Make.package $(CASTRO_DIR)/Util/exact_riemann/Make.package
-Blocs   := . $(CASTRO_DIR)/Util/exact_riemann/
+Bpack   := ./Make.package 
+#$(CASTRO_DIR)/Util/exact_riemann/Make.package
+#Blocs   := . $(CASTRO_DIR)/Util/exact_riemann/
+#EXTERN_CORE_ADD := $(CASTRO_DIR)/Util/exact_riemann/
 
 include $(CASTRO_DIR)/Exec/Make.Castro
