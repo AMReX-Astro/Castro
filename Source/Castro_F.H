@@ -398,7 +398,11 @@ extern "C"
      const Real* dx, Real* dt);
 
 #ifdef DIFFUSION
-  void ca_estdt_diffusion
+  void ca_estdt_temp_diffusion
+    (const int* lo, const int* hi, 
+     const BL_FORT_FAB_ARG_3D(state),
+     const Real* dx, Real* dt);
+  void ca_estdt_enth_diffusion
     (const int* lo, const int* hi, 
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);

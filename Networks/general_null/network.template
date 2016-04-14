@@ -21,6 +21,7 @@ module actual_network
   implicit none
 
   integer, parameter :: nspec = @@NSPEC@@
+  integer, parameter :: nspec_evolve = @@NSPEC@@
   integer, parameter :: naux =  @@NAUX@@
 
   character (len=16), save :: spec_names(nspec) 

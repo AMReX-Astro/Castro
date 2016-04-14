@@ -50,7 +50,7 @@ program riemann_exact
      eos_state%T = T_l
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
 
      p_l = eos_state%p
 
@@ -60,7 +60,7 @@ program riemann_exact
      eos_state%T = T_r
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
 
      p_r = eos_state%p
 
@@ -116,9 +116,9 @@ program riemann_exact
      eos_state%rho = rho
      eos_state%p = p
      eos_state%xn(:) = xn_s(:)
-     eos_state%T = 100000.0_dp_t   ! initial guess
+     eos_state%T = initial_temp_guess
 
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
         
      if (i == 1) then
         write (unit=lun, fmt="(a1, a3, 8(1x, a25))") &

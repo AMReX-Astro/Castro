@@ -103,8 +103,8 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef REACTIONS
-    if (input_version < 4) { // old checkpoing without Reactions_Type
-      state[Reactions_Type].restart(desc_lst[Source_Type], state[State_Type]);
+    if (input_version < 4) { // old checkpoint without Reactions_Type
+      state[Reactions_Type].restart(desc_lst[Reactions_Type], state[State_Type]);
     }
 #endif
 
@@ -427,7 +427,7 @@ Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
     }
 #ifdef REACTIONS
     if (input_version < 4 && i == Reactions_Type) {
-      // We are reading an old checkpoing with no Reactions_Type
+      // We are reading an old checkpoint with no Reactions_Type
       state_in_checkpoint[i] = 0;
     }
 #endif

@@ -1,7 +1,7 @@
 module burn_type_module
 
   use bl_constants_module, only: ZERO
-  use network, only: nspec, naux
+  use network, only: nspec, nspec_evolve, naux
   use actual_burner_data, only: nrates
   use eos_module, only: eos_t
 
@@ -20,12 +20,12 @@ module burn_type_module
   ! temperature, enuc + the number of species which participate
   ! in the evolution equations.
 
-  integer, parameter :: neqs = 2 + nspec
+  integer, parameter :: neqs = 2 + nspec_evolve
 
   ! Indices of the temperature and energy variables in the work arrays.
 
-  integer, parameter :: net_itemp = nspec + 1
-  integer, parameter :: net_ienuc = nspec + 2
+  integer, parameter :: net_itemp = nspec_evolve + 1
+  integer, parameter :: net_ienuc = nspec_evolve + 2
 
   ! Number of rates groups to store.
 

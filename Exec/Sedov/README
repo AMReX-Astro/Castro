@@ -1,0 +1,4 @@
+Note: for the verification tests, you need to make sure that gamma is
+set to 1.4 -- this is what the exact solutions were run with.
+
+This is done by setting eos_gamma = 1.4 in the extern section of probin.

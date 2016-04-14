@@ -1,6 +1,15 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
 #-----------------------------------------------------------------------------
+# category: AMR
+#-----------------------------------------------------------------------------
+
+# how to do limiting of the state data when interpolating
+# 0: only prevent new extrema
+# 1: preserve linear combinations of state variables
+lin_limit_state_interp       int           0
+
+#-----------------------------------------------------------------------------
 # category: hydrodynamics
 #-----------------------------------------------------------------------------
 
