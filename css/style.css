@@ -38,7 +38,7 @@ body, input, select, textarea {
 a {
     color: #383b43;
     border-bottom: 1px gray dotted;
-    text-decoration: none;    
+    text-decoration: none;
 }
 
 a:active, a:hover {
@@ -582,6 +582,13 @@ input[type="radio"] + label:before {
 }
 
 
+/* see https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php */
+.h_iframe_fourthree {position: relative; width: 100%; padding-bottom: 75%;}
+.video {position: absolute; top:0;left:0;width:100%; height:100%;}
+
+.h_iframe_sixteennine {position: relative; width: 100%; padding-bottom: 56.25%;}
+
+
 /* List */
 
 ol {
@@ -1012,7 +1019,7 @@ body.landing #header nav a {
     color: #cdced0;
     display: inline-block;
     text-decoration: none;
-    border: none;    
+    border: none;
 }
 
 #header nav > ul > li a:active, #header nav > ul > li a:hover {
@@ -1257,4 +1264,3 @@ body.landing #header nav a {
     padding-right: 1em;
     border-right: 1px solid black;
 }
-
