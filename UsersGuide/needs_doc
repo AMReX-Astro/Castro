@@ -4,5 +4,4 @@ These are things that need to be better documented:
 
 -- Different internal energy switches
 
-
-
+-- the _cpp_parameters runtime parameter stuff + priorities
