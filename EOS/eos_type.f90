@@ -153,7 +153,7 @@ contains
                     + state % dedZ * (state % abar/aion(:))   &
                                    * (zion(:) - state % zbar)
 
-    if (state % dPdr > ZERO) then
+    if (state % dPdr .ne. ZERO) then
 
        state % dhdX(:) = state % dedX(:) &
                        + (state % p / state % rho**2 - state % dedr) &
