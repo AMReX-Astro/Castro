@@ -291,8 +291,13 @@ Castro::variableSetUp ()
   // and store them in the Fortran module.
   
   get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);    
-  
-  Interpolater* interp = &cell_cons_interp;
+
+  Interpolater* interp;
+
+  if (lin_limit_state_interp == 1)
+    interp = &lincc_interp;
+  else
+    interp = &cell_cons_interp;
   
 #ifdef RADIATION
   // cell_cons_interp is not conservative in spherical coordinates.

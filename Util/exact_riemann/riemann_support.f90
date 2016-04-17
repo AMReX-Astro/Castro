@@ -6,6 +6,7 @@ module riemann_support
   use eos_type_module
   use eos_module
   use network
+  use probin_module, only: initial_temp_guess
 
   implicit none
 
@@ -71,7 +72,7 @@ contains
     eos_state%rho = rho_s
     eos_state%p = p_s
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0   ! we need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -242,7 +243,7 @@ contains
     eos_state%rho = rho_s
     eos_state%p = p_s
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0   ! we need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -358,7 +359,7 @@ contains
     eos_state%rho = rhostar_s
     eos_state%p = pstar
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0   ! we need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -430,7 +431,7 @@ contains
     eos_state%rho = ONE/tau
     eos_state%p = p
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0_dp_t   ! need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -505,7 +506,7 @@ contains
     eos_state%rho = ONE/tau
     eos_state%p = p
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0_dp_t   ! need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -548,7 +549,7 @@ contains
        eos_state%rho = ONE/tau
        eos_state%p = p
        eos_state%xn(:) = xn(:)
-       eos_state%T = 100000.0_dp_t   ! need an initial guess
+       eos_state%T = initial_temp_guess
 
        !print *, 'calling EOS:',  tau, p, xn
        call eos(eos_input_rp, eos_state)
@@ -607,7 +608,7 @@ contains
     eos_state%rho = ONE/tau
     eos_state%p = p
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0_dp_t   ! need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 
@@ -641,7 +642,7 @@ contains
     eos_state%rho = ONE/tau
     eos_state%p = p
     eos_state%xn(:) = xn(:)
-    eos_state%T = 100000.0_dp_t   ! need an initial guess
+    eos_state%T = initial_temp_guess
 
     call eos(eos_input_rp, eos_state)
 

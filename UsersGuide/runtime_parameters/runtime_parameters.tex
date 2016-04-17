@@ -15,6 +15,46 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
+\caption[ AMR
+ parameters.]{ AMR
+ parameters.} \label{table:  AMR
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  lin_limit_state_interp  = &   how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables  &  0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
 \caption[ diagnostics
  parameters.]{ diagnostics
  parameters.} \label{table:  diagnostics
@@ -210,7 +250,7 @@
 \verb=  dual_energy_eta2  = &   Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged.  &  1.0e-4 \\
 \verb=  dual_energy_eta3  = &   Threshold value of (E - K) / such that below eta3, the temperature used in the burning module is derived from the internal energy variable UEINT; above this, the pressure is derived from E - K.  &  0.0e0 \\
 \rowcolor{tableShade}
-\verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the interanl energy variable UEINT.  &  1 \\
+\verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT.  &  1 \\
 \verb=  fix_mass_flux  = &    &  0 \\
 \rowcolor{tableShade}
 \verb=  hybrid_hydro  = &   whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only)  &  0 \\
@@ -328,18 +368,19 @@
 
 
 \rowcolor{tableShade}
+\verb=  disable_shock_burning  = &   disable burning inside hydrodynamic shock regions  &  0 \\
 \verb=  do_react  = &   permits reactions to be turned on and off -- mostly for efficiency's sake  &  -1 \\
+\rowcolor{tableShade}
 \verb=  dtnuc_X  = &   Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(X / \dot{X})$.  &  1.e200 \\
-\rowcolor{tableShade}
 \verb=  dtnuc_e  = &   Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.  &  1.e200 \\
+\rowcolor{tableShade}
 \verb=  dtnuc_mode  = &   If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep  &  1 \\
-\rowcolor{tableShade}
 \verb=  dxnuc  = &   limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale.  &  1.e200 \\
+\rowcolor{tableShade}
 \verb=  react_T_max  = &   maximum temperature for allowing reactions to occur in a zone  &  1.e200 \\
-\rowcolor{tableShade}
 \verb=  react_T_min  = &   minimum temperature for allowing reactions to occur in a zone  &  0.0 \\
-\verb=  react_rho_max  = &   maximum density for allowing reactions to occur in a zone  &  1.e200 \\
 \rowcolor{tableShade}
+\verb=  react_rho_max  = &   maximum density for allowing reactions to occur in a zone  &  1.e200 \\
 \verb=  react_rho_min  = &   minimum density for allowing reactions to occur in a zone  &  0.0 \\
 
 

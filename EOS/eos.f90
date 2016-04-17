@@ -40,13 +40,12 @@ contains
   subroutine eos_init(small_temp, small_dens)
 
     use extern_probin_module
+    use parallel
 
     implicit none
 
     double precision, optional :: small_temp
     double precision, optional :: small_dens
-
-    integer :: ioproc
 
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
@@ -56,12 +55,10 @@ contains
     ! These cannot be less than zero and they also cannot be less than the 
     ! minimum possible EOS quantities.
 
-    call bl_pd_is_ioproc(ioproc)
-
     if (present(small_temp)) then
        if (small_temp > ZERO) then
           if (small_temp < mintemp) then
-             if (ioproc == 1) then
+             if (parallel_IOProcessor()) then
                 call bl_warn('EOS: small_temp cannot be less than the mintemp allowed by the EOS. Resetting smallt to mintemp.')
              endif
              small_temp = mintemp
@@ -73,7 +70,7 @@ contains
     if (present(small_dens)) then
        if (small_dens > ZERO) then
           if (small_dens < mindens) then
-             if (ioproc == 1) then
+             if (parallel_IOProcessor()) then
                 call bl_warn('EOS: small_dens cannot be less than the mindens allowed by the EOS. Resetting smalld to mindens.')
              endif
              small_dens = mindens

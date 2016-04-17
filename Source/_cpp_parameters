@@ -1,6 +1,15 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
 #-----------------------------------------------------------------------------
+# category: AMR
+#-----------------------------------------------------------------------------
+
+# how to do limiting of the state data when interpolating
+# 0: only prevent new extrema
+# 1: preserve linear combinations of state variables
+lin_limit_state_interp       int           0
+
+#-----------------------------------------------------------------------------
 # category: hydrodynamics
 #-----------------------------------------------------------------------------
 
@@ -17,7 +26,7 @@ small_temp                   Real         -1.e200             y
 # the small pressure cutoff.  Pressures below this value will be reset
 small_pres                   Real         -1.e200             y
 
-# the small specific internal energy cutoff.  Pressures below this
+# the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
 small_ener                   Real         -1.e200             y
 
