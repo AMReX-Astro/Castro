@@ -3,7 +3,7 @@ module burn_type_module
   use bl_constants_module, only: ZERO
   use network, only: nspec, nspec_evolve, naux
   use actual_burner_data, only: nrates
-  use eos_module, only: eos_t
+  use eos_module, only: eos_t, eos_input_rt
 
   implicit none
 
@@ -26,6 +26,10 @@ module burn_type_module
 
   integer, parameter :: net_itemp = nspec_evolve + 1
   integer, parameter :: net_ienuc = nspec_evolve + 2
+
+  ! If we call the EOS in the burner, define the mode to call it in.
+
+  integer, parameter :: eos_input_burn = eos_input_rt
 
   ! Number of rates groups to store.
 
