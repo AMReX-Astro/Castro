@@ -94,8 +94,32 @@ We augment these with an internal energy equation:
                                         + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \nonumber\\
 && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
 \end{eqnarray}
-Technically, this is redundant, but for a general equation of state, carrying around an additional
-the thermodynamic quantity allows us to avoid equation of state calls.
+This has two benefits. First, for a general equation of state, carrying around an additional
+thermodynamic quantity allows us to avoid equation of state calls. Second, it is sometimes
+the case that the internal energy calculated as $e_T \equiv E - \mathbf{v}^2 / 2$ is unreliable.
+This has two usual causes: one, for high Mach number flows, the kinetic energy can dominate the
+total gas energy, making the subtraction numerically unreliable; two, if you use gravity or
+other source terms, these can indirectly alter the value of the internal energy if obtained
+from the total energy. For this reason, we have implemented the dual energy formalism from ENZO
+\cite{bryan:1995,bryan:2014}, where we switch between $(\rho e)$ and $(\rho e_T)$
+depending on the local state of the fluid. To do so, we define parameters $\eta_1$, $\eta_2$, and
+$\eta_3$, corresponding to the code parameters {\tt castro.dual\_energy\_eta1},
+{\tt castro.dual\_energy\_eta2}, and {\tt castro.dual\_energy\_eta3}. We then consider the ratio
+$e_T / E$, the ratio of the internal energy (derived from the total energy)
+to the total energy. If $e_T > \eta_1 E$, then we use $e_T$ for the purpose of calculating the pressure
+in the hydrodynamics update. Otherwise, we use the $e$ from the internal energy equation in our EOS call to get
+the pressure. Similarly, if $e_T < \eta_3 E$, we use $e_T$ for the purposes of our nuclear reactions;
+otherwise, we use $e$ (note that this convention for reactions is reversed from the hydro version).
+
+At the end of each hydro advance, we examine whether $e_T > \eta_2 E$. If so, we reset
+$e$ to be equal to $e_T$, discarding the results of the internal energy equation. Otherwise,
+we keep $e$ as it is. Optionally we can also update $E$ so that it gains the difference of the
+old and and new $e$, by setting {\tt castro.dual\_energy\_update\_E\_from\_e} to 1.
+
+Note that our version of the internal energy equation does not require an artificial viscosity,
+as used in some other hydrodynamics codes. The update for $(\rho e)$ uses information from
+the Riemann solve to calculate the fluxes, which contains the information intrinsic to the
+shock-capturing part of the scheme.
 
 The advected quantities appear as:
 \begin{eqnarray}
