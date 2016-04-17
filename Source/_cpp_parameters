@@ -137,9 +137,9 @@ transverse_reset_rhoe        int           0                  y
 # UEINT.
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
 
-# Threshold value of (E - K) / E such that below eta1, the hydrodynamic
-# pressure is derived from the internal energy variable UEINT; above this,
-# the pressure is derived from E - K.
+# Threshold value of (E - K) / E such that above eta1, the hydrodynamic
+# pressure is derived from E - K; otherwise, we use the internal energy
+# variable UEINT.
 dual_energy_eta1             Real          1.0e0              y
 
 # Threshold value of (E - K) / E such that above eta2, we update the
@@ -147,10 +147,9 @@ dual_energy_eta1             Real          1.0e0              y
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
 
-# Threshold value of (E - K) / such that below eta3, the temperature used
-# in the burning module is derived from the internal energy variable UEINT;
-# above this, the pressure is derived from E - K.
-dual_energy_eta3             Real          0.0e0              y
+# Threshold value of (E - K) / E such that above eta3, the temperature used
+# in the burning module is derived from E-K; otherwise, we use UEINT.
+dual_energy_eta3             Real          1.0e0              y
 
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
 # from the pressure before limiting?
