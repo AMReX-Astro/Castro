@@ -55,6 +55,10 @@ contains
     ! These cannot be less than zero and they also cannot be less than the 
     ! minimum possible EOS quantities.
 
+    ! Note that in this routine we use the Fortran-based parallel_IOProcessor()
+    ! command rather than the C++-based version used elsewhere in Castro; this
+    ! ensures compatibility with Fortran-based test programs.
+
     if (present(small_temp)) then
        if (small_temp > ZERO) then
           if (small_temp < mintemp) then
