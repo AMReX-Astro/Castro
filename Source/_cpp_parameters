@@ -26,7 +26,7 @@ small_temp                   Real         -1.e200             y
 # the small pressure cutoff.  Pressures below this value will be reset
 small_pres                   Real         -1.e200             y
 
-# the small specific internal energy cutoff.  Pressures below this
+# the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
 small_ener                   Real         -1.e200             y
 
