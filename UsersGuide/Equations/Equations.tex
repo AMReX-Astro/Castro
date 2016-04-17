@@ -108,8 +108,8 @@ $\eta_3$, corresponding to the code parameters {\tt castro.dual\_energy\_eta1},
 $e_T / E$, the ratio of the internal energy (derived from the total energy)
 to the total energy. If $e_T > \eta_1 E$, then we use $e_T$ for the purpose of calculating the pressure
 in the hydrodynamics update. Otherwise, we use the $e$ from the internal energy equation in our EOS call to get
-the pressure. Similarly, if $e_T < \eta_3 E$, we use $e_T$ for the purposes of our nuclear reactions;
-otherwise, we use $e$ (note that this convention for reactions is reversed from the hydro version).
+the pressure. Similarly, if $e_T > \eta_3 E$, we use $e_T$ for the purposes of our nuclear reactions,
+otherwise, we use $e$.
 
 At the end of each hydro advance, we examine whether $e_T > \eta_2 E$. If so, we reset
 $e$ to be equal to $e_T$, discarding the results of the internal energy equation. Otherwise,

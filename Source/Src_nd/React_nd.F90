@@ -46,7 +46,7 @@ contains
 
              ! Dual energy formalism: switch between e and (E - K) depending on (E - K) / E.
 
-             if ( rho_e_K / state(i,j,k,UEDEN) .lt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
+             if ( rho_e_K / state(i,j,k,UEDEN) .gt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
                 state_in % e = rho_E_K * rhoInv
              else
                 state_in % e = state(i,j,k,UEINT) * rhoInv

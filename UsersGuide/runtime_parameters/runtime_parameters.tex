@@ -245,10 +245,10 @@
 \verb=  do_hydro  = &   permits hydro to be turned on and off for running pure rad problems  &  -1 \\
 \rowcolor{tableShade}
 \verb=  do_sponge  = &   permits sponge to be turned on and off  &  0 \\
-\verb=  dual_energy_eta1  = &   Threshold value of (E - K) / E such that below eta1, the hydrodynamic pressure is derived from the internal energy variable UEINT; above this, the pressure is derived from E - K.  &  1.0e0 \\
+\verb=  dual_energy_eta1  = &   Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT.  &  1.0e0 \\
 \rowcolor{tableShade}
 \verb=  dual_energy_eta2  = &   Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged.  &  1.0e-4 \\
-\verb=  dual_energy_eta3  = &   Threshold value of (E - K) / such that below eta3, the temperature used in the burning module is derived from the internal energy variable UEINT; above this, the pressure is derived from E - K.  &  0.0e0 \\
+\verb=  dual_energy_eta3  = &   Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT.  &  1.0e0 \\
 \rowcolor{tableShade}
 \verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT.  &  1 \\
 \verb=  fix_mass_flux  = &    &  0 \\
@@ -272,7 +272,7 @@
 \verb=  riemann_solver  = &   which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC  &  0 \\
 \rowcolor{tableShade}
 \verb=  small_dens  = &   the small density cutoff.  Densities below this value will be reset  &  -1.e200 \\
-\verb=  small_ener  = &   the small specific internal energy cutoff.  Pressures below this value will be reset  &  -1.e200 \\
+\verb=  small_ener  = &   the small specific internal energy cutoff.  Internal energies below this value will be reset  &  -1.e200 \\
 \rowcolor{tableShade}
 \verb=  small_pres  = &   the small pressure cutoff.  Pressures below this value will be reset  &  -1.e200 \\
 \verb=  small_temp  = &   the small temperature cutoff.  Temperatures below this value will be reset  &  -1.e200 \\
