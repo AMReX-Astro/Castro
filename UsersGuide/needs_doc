@@ -2,6 +2,12 @@ These are things that need to be better documented:
 
 -- The gravity solver options that Max put in, same with rotation options
 
--- Different internal energy switches
-
 -- the _cpp_parameters runtime parameter stuff + priorities
+
+-- Source term predictor for the hydrodynamics
+
+-- Retries
+
+-- Burning timestep limiters
+
+-- Checkpoint versioning
