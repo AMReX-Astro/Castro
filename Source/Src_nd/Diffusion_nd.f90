@@ -9,6 +9,9 @@ contains
   subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) &
        bind(C, name="ca_tempdiffextrap")
 
+    ! this routine extrapolates the temperature diffusion term into the
+    ! ghostcells
+
     use prob_params_module, only: dg
 
     implicit none
@@ -288,7 +291,7 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, diffuse_cutoff_density, small_temp
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -317,13 +320,20 @@ contains
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
 
              eos_state%rho    = state(i,j,k,URHO)
-!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%T      = state(i,j,k,UTEMP)   ! needed as an initial guess
              eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
              eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
-             call eos(eos_input_re,eos_state)
+
+             if (eos_state%e < ZERO) then
+                eos_state%T = small_temp
+                call eos(eos_input_rt,eos_state)
+             else
+                call eos(eos_input_re,eos_state)
+             endif
 
              if (eos_state%rho > diffuse_cutoff_density) then
+
                 call thermal_conductivity(eos_state, cond)
              else
                 cond = ZERO
