@@ -20,6 +20,7 @@ module prob_params_module
 
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
+  ! the format is dg(1:dim) = 1, dg(dim+1:3) = 0
   integer         , save :: dg(3)
 
   ! grid information
