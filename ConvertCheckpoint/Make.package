@@ -5,8 +5,5 @@ ifneq ($(findstring BL_NOLINEVALUES, $(DEFINES)), BL_NOLINEVALUES)
 CEXE_sources += XYPlotDataList.cpp
 endif
 
-ifeq ($(DIM),3)
-FEXE_sources += FABUTIL_3D.F
-else
-FEXE_sources += FABUTIL_2D.F
-endif
+FEXE_sources += FABUTIL_$(DIM)D.F
+
