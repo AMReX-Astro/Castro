@@ -11,3 +11,5 @@ These are things that need to be better documented:
 -- Burning timestep limiters
 
 -- Checkpoint versioning
+
+-- problem tagging, problem specific files / includes
