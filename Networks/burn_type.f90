@@ -52,6 +52,13 @@ module burn_type_module
     double precision :: abar             = init_num
     double precision :: zbar             = init_num
 
+    ! Last temperature we evaluated the EOS at
+    double precision :: T_old            = init_num
+
+    ! Temperature derivatives of specific heat
+    double precision :: dcvdT            = init_num
+    double precision :: dcpdT            = init_num
+
     ! Rates data. We have multiple entries so that
     ! we can store both the rates and their derivatives.
 
