@@ -59,6 +59,10 @@ module burn_type_module
     double precision :: dcvdT            = init_num
     double precision :: dcpdT            = init_num
 
+    ! Do we have valid rates data stored?
+
+    logical          :: have_rates       = .false.
+
     ! Rates data. We have multiple entries so that
     ! we can store both the rates and their derivatives.
 
