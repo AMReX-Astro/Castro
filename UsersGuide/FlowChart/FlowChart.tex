@@ -97,7 +97,7 @@ S_{{\rm ext},\rho Y_k}
 \end{array}\right)^n.
 \end{equation}
 
-\item[Step 3:] {\em Advect $\Delta t$.}
+\item[Step 4:] {\em Advect $\Delta t$.}
 
 The goal is to advance
 \begin{equation}
@@ -121,7 +121,7 @@ Solve for gravity using:
 \gb^{n+1} = \nabla\phi^{n+1}; \qquad \Delta\phi^{n+1} = -4\pi G\rho^{n+1},
 \end{equation}
 or use one of the simpler gravity types.
-\item[Step 5:] {\em Correct solution with time-centered source terms.}
+\item[Step 6:] {\em Correct solution with time-centered source terms.}
 
 We need to correct the solution by effectively time-centering the
 source terms.  These corrections are to be performed sequentially
@@ -145,17 +145,31 @@ Finally, we correct the solution with updated thermal diffusion using
 \begin{equation}
 (\rho E)^{n+1} = (\rho E)^{n+1} + \frac{\dt}{2}\left(\nabla\cdot\kappa\nabla T^{n+1} - \nabla\cdot\kappa\nabla T^n\right).
 \end{equation}
-\item[Step 6:] {\em React $\Delta t/2$.}
+\item[Step 7:] {\em React $\Delta t/2$.}
 
 Update the solution due to the effect of reactions over half a time step.
 \begin{eqnarray}
 (\rho E)^{n+1} &=& (\rho E)^{n+1} - \frac{\dt}{2}\sum_k(\rho q_k\omegadot_k)^{n+1},\\
 (\rho X_k)^{n+1} &=& (\rho X_k)^{n+1} + \frac{\dt}{2}(\rho\omegadot_k)^{n+1}.
 \end{eqnarray}
-\item[Step 7:] {\em Modify auxiliary variables.}
+\item[Step 8:] {\em Modify auxiliary variables.}
 
 This is problem-dependent.  By default we treat the auxiliary
 variables as advected quantities, so no additional steps are required.
+
+\item[Step 9:] {\em Optionally, retry the timestep from Step 1.}
+
+If the timestep that you took had a timestep that was not sufficient to
+enforce the stability criteria that you would like to achieve, such as
+the CFL criterion for hydrodynamics or the burning stability criterion
+for reactions, you can retry the timestep by setting {\tt castro.use\_retry = 1}
+in your inputs file. This will save the current state data at the beginning
+of the level advance, and then if the criteria are not satisfied, will
+reject that advance and start over from the old data, with a series of
+subcycled timesteps that should be small enough to satisfy the criteria.
+Note that this will effectively double the memory footprint on each level
+if you choose to use it.
+
 \end{description}
 Thus concludes the single-level algorithm description.
 
