@@ -73,4 +73,8 @@ algorithm: http://adsabs.harvard.edu/abs/2010ApJ...715.1221A
 Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2016ApJ...819...94K
 
 
+# Magnetar-Powered Supernovae in Two Dimensions. I. Superluminous Supernovae
+core-collapse supernovae: http://adsabs.harvard.edu/abs/2016arXiv160407989C
 
+# Low Energy Population III Supernovae and the Origin of the Extremely Metal-Poor Star SMSS J031300.36-670839.3
+pop III supernovae: http://adsabs.harvard.edu/abs/2016arXiv160106896C
