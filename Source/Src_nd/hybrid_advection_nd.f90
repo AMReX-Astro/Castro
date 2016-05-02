@@ -82,21 +82,20 @@ contains
   ! Convert a linear quantity such as momentum into the
   ! "hybrid" scheme that has radial and angular components.
 
-  function linear_to_hybrid(loc, mom_in) result(mom_out)
+  function linear_to_hybrid(loc, vec_in) result(vec_out)
 
     implicit none
 
-    double precision :: loc(3), mom_in(3), mom_out(3)
+    double precision, intent(in ) :: loc(3), vec_in(3)
+    double precision :: vec_out(3)
 
-    double precision :: R, mom(3)
+    double precision :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
-    mom = mom_in
-
-    mom_out(1) = mom(1) * (loc(1) / R) + mom(2) * (loc(2) / R)
-    mom_out(2) = mom(2) * loc(1)       - mom(1) * loc(2)
-    mom_out(3) = mom(3)
+    vec_out(1) = vec_in(1) * (loc(1) / R) + vec_in(2) * (loc(2) / R)
+    vec_out(2) = vec_in(2) * loc(1)       - vec_in(1) * loc(2)
+    vec_out(3) = vec_in(3)
 
   end function linear_to_hybrid
 
@@ -104,21 +103,20 @@ contains
 
   ! Convert a "hybrid" quantity into a linear one.
 
-  function hybrid_to_linear(loc, mom_in) result(mom_out)
+  function hybrid_to_linear(loc, vec_in) result(vec_out)
 
     implicit none
 
-    double precision :: loc(3), mom_in(3), mom_out(3)
+    double precision, intent(in ) :: loc(3), vec_in(3)
+    double precision :: vec_out(3)
 
-    double precision :: R, mom(3)
-
-    mom = mom_in
+    double precision :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
-    mom_out(1) = mom(1) * (loc(1) / R)    - mom(2) * (loc(2) / R**2)
-    mom_out(2) = mom(2) * (loc(1) / R**2) + mom(1) * (loc(2) / R)
-    mom_out(3) = mom(3)
+    vec_out(1) = vec_in(1) * (loc(1) / R)    - vec_in(2) * (loc(2) / R**2)
+    vec_out(2) = vec_in(2) * (loc(1) / R**2) + vec_in(1) * (loc(2) / R)
+    vec_out(3) = vec_in(3)
 
   end function hybrid_to_linear
 
@@ -252,6 +250,7 @@ contains
 
     use meth_params_module, only: UMR, UML, UMP, UMX, UMZ, NVAR
     use castro_util_module, only: position
+    use prob_params_module, only: center
 
     implicit none
 
@@ -266,7 +265,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             loc = position(i,j,k)
+             loc = position(i,j,k) - center
 
              state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
 
@@ -277,4 +276,3 @@ contains
   end subroutine hybrid_update
 
 end module hybrid_advection_module
-
