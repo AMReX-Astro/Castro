@@ -2007,8 +2007,7 @@ Castro::post_grown_restart ()
        // Make this call just to fill the initial state data.
        for (int k = 0; k <= parent->finestLevel(); k++)
        {
-          BoxArray ba = getLevel(k).boxArray();
-          MultiFab& grav_new = get_new_data(Gravity_Type);
+          MultiFab& grav_new = getLevel(k).get_new_data(Gravity_Type);
           gravity->get_new_grav_vector(k,grav_new,cur_time);
        }
     }
