@@ -472,13 +472,13 @@ static void ReadCheckpointFile(const std::string& fileName) {
 }
 
 // ---------------------------------------------------------------
-static void WriteCheckpointFile(const std::string &fileName) {
+static void WriteCheckpointFile(const std::string& inFileName, const std::string &outFileName) {
     VisMF::SetNOutFiles(nFiles);
     // In checkpoint files always write out FABs in NATIVE format.
     FABio::Format thePrevFormat = FArrayBox::getFormat();
     FArrayBox::setFormat(FABio::FAB_NATIVE);
 
-    const std::string ckfile = fileName;
+    const std::string ckfile = outFileName;
 
     // Only the I/O processor makes the directory if it doesn't already exist.
     if(ParallelDescriptor::IOProcessor()) {
@@ -488,6 +488,36 @@ static void WriteCheckpointFile(const std::string &fileName) {
     }
     // Force other processors to wait till directory is built.
     ParallelDescriptor::Barrier();
+
+    // Copy some standard auxiliary files to the new checkpoint.
+    // Only one processor (the I/O processor) needs to do this.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+      std::ifstream oldCastroHeaderFile;
+
+      std::string oldCastroHeaderName = inFileName + "/CastroHeader";
+      oldCastroHeaderFile.open(oldCastroHeaderName.c_str(), std::ios::binary);
+
+      if (oldCastroHeaderFile.good()) {
+
+	std::ofstream newCastroHeaderFile;
+
+	std::string newCastroHeaderName = outFileName + "/CastroHeader";
+	newCastroHeaderFile.open(newCastroHeaderName.c_str(), std::ios::binary);
+
+	if (newCastroHeaderFile.good()) {
+	  newCastroHeaderFile << oldCastroHeaderFile.rdbuf();
+	  newCastroHeaderFile.close();
+	}
+
+	oldCastroHeaderFile.close();
+
+      }
+
+    }
+
+    // Write the main header file.
 
     std::string HeaderFileName = ckfile + "/Header";
 
@@ -973,7 +1003,7 @@ int main(int argc, char *argv[]) {
     ConvertData();
 
     // Write out the new checkpoint directory
-    WriteCheckpointFile(CheckFileOut);
+    WriteCheckpointFile(CheckFileIn, CheckFileOut);
 
     if(verbose && ParallelDescriptor::IOProcessor()) {
       cout << " " << std::endl;
