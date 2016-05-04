@@ -25,6 +25,8 @@ contains
 
   function ok_to_burn(state)
 
+    !$acc routine seq
+
     use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max, &
                                   disable_shock_burning
 
@@ -49,6 +51,8 @@ contains
 
   subroutine burner(state_in, state_out, dt, time)
 
+    !$acc routine seq
+
     implicit none
 
     type (burn_t), intent(inout) :: state_in
@@ -57,6 +61,7 @@ contains
 
     ! Make sure the network and burner have been initialized.
 
+#ifndef ACC
     if (.NOT. network_initialized) then
        call bl_error("ERROR in burner: must initialize network first.")
     endif
@@ -64,6 +69,7 @@ contains
     if (.NOT. burner_initialized) then
        call bl_error("ERROR in burner: must initialize burner first.")
     endif
+#endif
 
     ! Initialize the final state by assuming it does not change.
 
