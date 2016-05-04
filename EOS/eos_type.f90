@@ -99,6 +99,9 @@ module eos_type_module
     double precision :: dedA        = init_num
     double precision :: dedZ        = init_num
 
+    double precision :: smallt
+    double precision :: smalld
+
     logical :: reset                = .false.
     logical :: check_small          = .true.
 

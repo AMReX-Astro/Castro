@@ -108,6 +108,11 @@ contains
 
     call composition(state)
 
+    ! Set small variables.
+
+    state % smallt = smallt
+    state % smalld = smalld
+
     ! Check to make sure the inputs are valid.
 
     call check_inputs(input, state, has_been_reset)
