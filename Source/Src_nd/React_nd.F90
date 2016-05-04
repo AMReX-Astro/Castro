@@ -33,6 +33,11 @@ contains
     type (burn_t) :: state_in
     type (burn_t) :: state_out
 
+    !$acc data copy(state, reactions)
+
+    !$acc parallel loop gang vector independent collapse(3) private(i,j,k) &
+    !$acc private(rhoInv, state_in, state_out, rho_e_K, delta_x, delta_e, delta_rho_e) &
+    !$acc copyin(dt_react, lo, hi, s_lo, s_hi, r_lo, r_hi)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -97,6 +102,9 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel
+
+    !$acc end data
 
   end subroutine ca_react_state
 
