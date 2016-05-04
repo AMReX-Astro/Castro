@@ -56,51 +56,51 @@ module eos_type_module
 
   type :: eos_t
 
-    double precision :: rho         = init_num
-    double precision :: T           = init_num
-    double precision :: p           = init_num
-    double precision :: e           = init_num
-    double precision :: h           = init_num
-    double precision :: s           = init_num
-    double precision :: dpdT        = init_num
-    double precision :: dpdr        = init_num
-    double precision :: dedT        = init_num
-    double precision :: dedr        = init_num
-    double precision :: dhdT        = init_num
-    double precision :: dhdr        = init_num
-    double precision :: dsdT        = init_num
-    double precision :: dsdr        = init_num
-    double precision :: dpde        = init_num
-    double precision :: dpdr_e      = init_num
+    double precision :: rho         != init_num
+    double precision :: T           != init_num
+    double precision :: p           != init_num
+    double precision :: e           != init_num
+    double precision :: h           != init_num
+    double precision :: s           != init_num
+    double precision :: dpdT        != init_num
+    double precision :: dpdr        != init_num
+    double precision :: dedT        != init_num
+    double precision :: dedr        != init_num
+    double precision :: dhdT        != init_num
+    double precision :: dhdr        != init_num
+    double precision :: dsdT        != init_num
+    double precision :: dsdr        != init_num
+    double precision :: dpde        != init_num
+    double precision :: dpdr_e      != init_num
 
-    double precision :: xn(nspec)   = init_num
-    double precision :: aux(naux)   = init_num
-    double precision :: cv          = init_num
-    double precision :: cp          = init_num
-    double precision :: xne         = init_num
-    double precision :: xnp         = init_num
-    double precision :: eta         = init_num
-    double precision :: pele        = init_num
-    double precision :: ppos        = init_num
-    double precision :: mu          = init_num
-    double precision :: mu_e        = init_num
-    double precision :: y_e         = init_num
-    double precision :: dedX(nspec) = init_num
-    double precision :: dpdX(nspec) = init_num
-    double precision :: dhdX(nspec) = init_num
-    double precision :: gam1        = init_num
-    double precision :: cs          = init_num
+    double precision :: xn(nspec)   != init_num
+    double precision :: aux(naux)   != init_num
+    double precision :: cv          != init_num
+    double precision :: cp          != init_num
+    double precision :: xne         != init_num
+    double precision :: xnp         != init_num
+    double precision :: eta         != init_num
+    double precision :: pele        != init_num
+    double precision :: ppos        != init_num
+    double precision :: mu          != init_num
+    double precision :: mu_e        != init_num
+    double precision :: y_e         != init_num
+    double precision :: dedX(nspec) != init_num
+    double precision :: dpdX(nspec) != init_num
+    double precision :: dhdX(nspec) != init_num
+    double precision :: gam1        != init_num
+    double precision :: cs          != init_num
 
-    double precision :: abar        = init_num
-    double precision :: zbar        = init_num
-    double precision :: dpdA        = init_num
+    double precision :: abar        != init_num
+    double precision :: zbar        != init_num
+    double precision :: dpdA        != init_num
 
-    double precision :: dpdZ        = init_num
-    double precision :: dedA        = init_num
-    double precision :: dedZ        = init_num
+    double precision :: dpdZ        != init_num
+    double precision :: dedA        != init_num
+    double precision :: dedZ        != init_num
 
-    logical :: reset                = .false.
-    logical :: check_small          = .true.
+    logical :: reset                != .false.
+    logical :: check_small          != .true.
 
   end type eos_t
 
@@ -110,6 +110,8 @@ contains
   ! on the composition like abar and zbar.
 
   subroutine composition(state)
+
+    !$acc routine seq
 
     use bl_constants_module
     use network
@@ -135,6 +137,8 @@ contains
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state)
+
+    !$acc routine seq
 
     use bl_constants_module
     use network
@@ -169,6 +173,8 @@ contains
 
   subroutine normalize_abundances(state)
 
+    !$acc routine seq
+
     use bl_constants_module
     use network
     use meth_params_module, only: small_x
@@ -177,9 +183,9 @@ contains
 
     type (eos_t), intent(inout) :: state
 
-    state % xn(:) = max(small_x, min(ONE, state % xn(:)))
+    state % xn = max(small_x, min(ONE, state % xn))
 
-    state % xn(:) = state % xn(:) / sum(state % xn(:))
+    state % xn = state % xn / sum(state % xn)
 
   end subroutine normalize_abundances
 

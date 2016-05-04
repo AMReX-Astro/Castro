@@ -49,5 +49,7 @@ module eos_data_module
   double precision, save :: maxye   = 1.d0 + 1.d-12
 
   logical, save :: initialized = .false.  
-  
+
+  !$acc declare create(smallt, smalld, mintemp, maxtemp, mindens, maxdens, minye, maxye)
+
 end module eos_data_module
