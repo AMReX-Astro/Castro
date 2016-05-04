@@ -27,17 +27,16 @@ contains
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     double precision :: time, dt_react
 
-    integer          :: i, j, k
+    integer          :: i, j, k, n
     double precision :: rhoInv, rho_e_K, delta_x(nspec), delta_e, delta_rho_e
 
     type (burn_t) :: state_in
     type (burn_t) :: state_out
 
-    !$acc data copy(state, reactions)
+    !$acc data copy(state, reactions) copyin(dt_react, lo, hi, s_lo, s_hi, r_lo, r_hi)
 
-    !$acc parallel loop gang vector independent collapse(3) private(i,j,k) &
-    !$acc private(rhoInv, state_in, state_out, rho_e_K, delta_x, delta_e, delta_rho_e) &
-    !$acc copyin(dt_react, lo, hi, s_lo, s_hi, r_lo, r_hi)
+    !$acc parallel loop gang vector independent collapse(3) &
+    !$acc private(rhoInv, state_in, state_out, rho_e_K, delta_x(:), delta_e, delta_rho_e)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -57,8 +56,12 @@ contains
                 state_in % e = state(i,j,k,UEINT) * rhoInv
              endif
 
-             state_in % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             state_in % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+             do n = 1, nspec
+                state_in % xn(n)  = state(i,j,k,UFS+n-1) * rhoInv
+             enddo
+             do n = 1, naux
+                state_in % aux = state(i,j,k,UFX+n-1) * rhoInv
+             enddo
 
              state_in % shock = .false.
 
@@ -81,8 +84,12 @@ contains
 
              state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
              state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
-             state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * state_out % xn
-             state(i,j,k,UFX:UFX+naux-1)  = state(i,j,k,URHO) * state_out % aux
+             do n = 1, nspec
+                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state_out % xn(n)
+             enddo
+             do n = 1, naux
+                state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * state_out % aux(n)
+             enddo
              state(i,j,k,UTEMP)           = state_out % T
 
              ! Add burning rates to reactions MultiFab, but be
