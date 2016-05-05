@@ -263,8 +263,29 @@ def write_meth_module(plist, meth_template):
     for line in mt:
         if line.find("@@f90_declaractions@@") > 0:
             mo.write(decls)
+
+            # Now do the OpenACC declarations
+
+            mo.write("\n")
+            mo.write("  !$acc declare &\n")
+            mo.write("  !$acc create(")
+
+            params = [p for p in plist if p.in_fortran == 1]
+
+            for n, p in enumerate(params):
+                mo.write("{}".format(p.f90_name))
+
+                if n == len(params)-1:
+                    mo.write(")\n")
+                else:
+                    if n % 3 == 2:
+                        mo.write(") &\n  !$acc create(")
+                    else:
+                        mo.write(", ")
+
         else:
             mo.write(line)
+
 
     mo.close()
     mt.close()
@@ -322,6 +343,23 @@ def write_set_meth_sub(plist, set_template):
                     else:
                         sys.exit("unsupported combination of data types")
 
+
+            # Now do the OpenACC device updates
+
+            so.write("\n")
+            so.write("  !$acc update &\n")
+            so.write("  !$acc device(")
+
+            for n, p in enumerate(params):
+                so.write("{}".format(p.f90_name))
+
+                if n == len(params)-1:
+                    so.write(")\n")
+                else:
+                    if n % 3 == 2:
+                        so.write(") &\n  !$acc device(")
+                    else:
+                        so.write(", ")
 
         elif line.find("@@end_sub@@") >= 0:
             so.write("end subroutine set_castro_method_params\n")
