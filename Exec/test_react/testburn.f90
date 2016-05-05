@@ -13,7 +13,7 @@ subroutine do_burn() bind(C)
 
   double precision, parameter :: time = 0.0d0, dt = 1.0d-3
 
-  integer, parameter :: lo(3) = [0, 0, 0], hi(3) = [47, 47, 47], w(3) = hi - lo
+  integer, parameter :: lo(3) = [0, 0, 0], hi(3) = [63, 63, 63], w(3) = hi - lo
 
   double precision, parameter :: dens_min = 1.0d6, dens_max = 1.0d9
   double precision, parameter :: temp_min = 1.0d6, temp_max = 1.0d12
@@ -26,6 +26,8 @@ subroutine do_burn() bind(C)
   integer :: i, j, k
 
   type (eos_t) :: eos_state
+
+  double precision :: start, finish
 
   character (len=32) :: probin_file
   integer :: probin_pass(32)
@@ -70,6 +72,9 @@ subroutine do_burn() bind(C)
   smallt = react_T_min
   smalld = react_rho_min
 
+  !$acc update device(URHO, UTEMP, UEINT, UEDEN, UMX, UMY, UMZ, UFS, UFX)
+  !$acc update device(react_T_min, react_T_max, react_rho_min, react_rho_max, disable_shock_burning)
+
   dlogrho = (log10(dens_max) - log10(dens_min)) / w(1)
   dlogT   = (log10(temp_max) - log10(temp_min)) / w(2)
 
@@ -96,8 +101,14 @@ subroutine do_burn() bind(C)
      enddo
   enddo
 
+  call cpu_time(start)
+
   call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, time, dt)
 
+  call cpu_time(finish)
+
   print *, 'done!'
+  print *, 'execution time = ', finish - start
+  print *, 'sum of reactions energy = ', sum(reactions(:,:,:,nspec+1))
 
 end subroutine do_burn
