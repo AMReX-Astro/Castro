@@ -117,6 +117,29 @@ module meth_params_module
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
 
+  !$acc declare &
+  !$acc create(difmag, small_dens, small_temp) &
+  !$acc create(small_pres, small_ener, small_x) &
+  !$acc create(do_hydro, hybrid_hydro, ppm_type) &
+  !$acc create(ppm_reference, ppm_trace_sources, ppm_temp_fix) &
+  !$acc create(ppm_tau_in_tracing, ppm_predict_gammae, ppm_reference_edge_limit) &
+  !$acc create(ppm_reference_eigenvectors, hybrid_riemann, use_colglaz) &
+  !$acc create(riemann_solver, cg_maxiter, cg_tol) &
+  !$acc create(cg_blend, use_flattening, ppm_flatten_before_integrals) &
+  !$acc create(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
+  !$acc create(dual_energy_update_E_from_e, dual_energy_eta1, dual_energy_eta2) &
+  !$acc create(dual_energy_eta3, use_pslope, fix_mass_flux) &
+  !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
+  !$acc create(cfl, dtnuc_e, dtnuc_X) &
+  !$acc create(dtnuc_mode, dxnuc, do_react) &
+  !$acc create(react_T_min, react_T_max, react_rho_min) &
+  !$acc create(react_rho_max, disable_shock_burning, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, track_grid_losses)
+
   double precision, save :: rot_vec(3)
 
 end module meth_params_module

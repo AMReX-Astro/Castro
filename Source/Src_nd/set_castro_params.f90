@@ -157,6 +157,29 @@ subroutine set_castro_method_params( &
   do_acc = do_acc_in
   track_grid_losses = track_grid_losses_in
 
+  !$acc update &
+  !$acc device(difmag, small_dens, small_temp) &
+  !$acc device(small_pres, small_ener, small_x) &
+  !$acc device(do_hydro, hybrid_hydro, ppm_type) &
+  !$acc device(ppm_reference, ppm_trace_sources, ppm_temp_fix) &
+  !$acc device(ppm_tau_in_tracing, ppm_predict_gammae, ppm_reference_edge_limit) &
+  !$acc device(ppm_reference_eigenvectors, hybrid_riemann, use_colglaz) &
+  !$acc device(riemann_solver, cg_maxiter, cg_tol) &
+  !$acc device(cg_blend, use_flattening, ppm_flatten_before_integrals) &
+  !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
+  !$acc device(dual_energy_update_E_from_e, dual_energy_eta1, dual_energy_eta2) &
+  !$acc device(dual_energy_eta3, use_pslope, fix_mass_flux) &
+  !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
+  !$acc device(cfl, dtnuc_e, dtnuc_X) &
+  !$acc device(dtnuc_mode, dxnuc, do_react) &
+  !$acc device(react_T_min, react_T_max, react_rho_min) &
+  !$acc device(react_rho_max, disable_shock_burning, do_grav) &
+  !$acc device(grav_source_type, do_rotation, rot_period) &
+  !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc device(rotation_include_domegadt, rot_source_type, implicit_rotation_update) &
+  !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc device(do_acc, track_grid_losses)
+
   ! some checks
   call bl_pd_is_ioproc(ioproc)
 
