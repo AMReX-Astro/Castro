@@ -13,7 +13,7 @@ contains
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, dual_energy_eta3, allow_negative_energy, USHK
+         UFS, UFX, dual_energy_eta3, allow_negative_energy, USHK, do_acc
     use burner_module
     use burn_type_module
     use bl_constants_module
@@ -33,9 +33,9 @@ contains
     type (burn_t) :: state_in
     type (burn_t) :: state_out
 
-    !$acc data copy(state, reactions) copyin(dt_react, lo, hi, s_lo, s_hi, r_lo, r_hi)
+    !$acc data copy(state, reactions) copyin(dt_react, lo, hi, s_lo, s_hi, r_lo, r_hi) if(do_acc == 1)
 
-    !$acc parallel loop gang vector independent collapse(3) &
+    !$acc parallel loop gang vector independent collapse(3) if(do_acc == 1) &
     !$acc private(rhoInv, state_in, state_out, rho_e_K, delta_x(:), delta_e, delta_rho_e)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -31,6 +31,9 @@ module meth_params_module
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
+  !$acc declare create(NTHERM, NVAR, URHO, UMX, UMY, UMZ, UMR, UML, UMP)
+  !$acc declare create(UEDEN, UEINT, UTEMP, UFA, UFS, UFX, USHK)
+
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
