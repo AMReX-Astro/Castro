@@ -1186,33 +1186,61 @@ void Radiation::init_flux(int level, int ncycle)
   }
 }
 
-void Radiation::clear_internal_borders(FluxRegister& fr)
+void Radiation::clear_internal_borders(FluxRegister& fr, const Geometry& geom)
 {
   int ncomp = fr.nComp();
+  const Box& domain = geom.Domain();
 
   for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-    Orientation lo(dir, Orientation::low);
-    Orientation hi(dir, Orientation::high);
-
-    const BoxArray& grids = fr.boxes();
-    for (int j = 0; j < grids.size(); j++) {
-      Box jbox = BoxLib::bdryHi(grids[j], dir);
-      for (FabSetIter fsi(fr[lo]); fsi.isValid(); ++fsi) {
-	Box ibox = fr[lo][fsi].box();
-	ibox &= jbox;
-	if (ibox.ok()) {
-	  fr[lo][fsi].setVal(0.0, ibox, 0, ncomp);
-	}
+      Orientation lo(dir, Orientation::low);
+      Orientation hi(dir, Orientation::high);
+      
+      FabSet& frlo = fr[lo];
+      FabSet& frhi = fr[hi];
+      
+      const BoxArray& balo = frlo.boxArray();
+      const BoxArray& bahi = frhi.boxArray();
+      
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      {
+	  for (FabSetIter fsi(frlo); fsi.isValid(); ++fsi) {
+	      const Box& bx = fsi.validbox();
+	      const std::vector< std::pair<int,Box> >& isects = bahi.intersections(bx);
+	      for (int ii = 0; ii < isects.size(); ++ii) {
+		  frlo[fsi].setVal(0.0, isects[ii].second, 0, ncomp);
+	      }
+	      if (geom.isPeriodic(dir)) {
+		  if (bx.smallEnd(dir) == domain.smallEnd(dir)) {
+		      const Box& sbx = BoxLib::shift(bx, dir, domain.length(dir));
+		      const std::vector<std::pair<int,Box> >& isects2 = bahi.intersections(sbx);
+		      for (int ii = 0; ii < isects2.size(); ++ii) {
+			  const Box& bx2 = BoxLib::shift(isects2[ii].second, dir, -domain.length(dir));
+			  frlo[fsi].setVal(0.0, bx2, 0, ncomp);
+		      }		      
+		  }
+	      }
+	  }
+	  
+	  for (FabSetIter fsi(frhi); fsi.isValid(); ++fsi) {
+	      const Box& bx = fsi.validbox();
+	      const std::vector< std::pair<int,Box> >& isects = balo.intersections(bx);
+	      for (int ii = 0; ii < isects.size(); ++ii) {
+		  frhi[fsi].setVal(0.0, isects[ii].second, 0, ncomp);
+	      }
+	      if (geom.isPeriodic(dir)) {
+		  if (bx.bigEnd(dir) == domain.bigEnd(dir)) {
+		      const Box& sbx = BoxLib::shift(bx, dir, -domain.length(dir));
+		      const std::vector<std::pair<int,Box> >& isects2 = balo.intersections(sbx);
+		      for (int ii = 0; ii < isects2.size(); ++ii) {
+			  const Box& bx2 = BoxLib::shift(isects2[ii].second, dir, domain.length(dir));
+			  frhi[fsi].setVal(0.0, bx2, 0, ncomp);
+		      }		      
+		  }
+	      }
+	  }
       }
-      jbox = BoxLib::bdryLo(grids[j], dir);
-      for (FabSetIter fsi(fr[hi]); fsi.isValid(); ++fsi) {
-	Box ibox = fr[hi][fsi].box();
-	ibox &= jbox;
-	if (ibox.ok()) {
-	  fr[hi][fsi].setVal(0.0, ibox, 0, ncomp);
-	}
-      }
-    }
   }
 }
 
@@ -2009,7 +2037,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
     if (indx == 0) {
       // clean up fine-fine interfaces (does all groups at once)
-      clear_internal_borders(sync_flux);
+      clear_internal_borders(sync_flux, castro->Geom());
     }
 
     Real scale = delta_t_old[level] / delta_t;
@@ -2121,7 +2149,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
               if (indx == 0) {
                 // clean up fine-fine interfaces (does all groups at once)
-                clear_internal_borders(ff_sync);
+		clear_internal_borders(ff_sync, parent->Geom(flev));
               }
 
               BoxArray coarsened_grids(ffgr);
@@ -2739,7 +2767,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
 	  FArrayBox& mask_fab = mask[mfi];
 	  const Box& mask_box = mask_fab.box();
 	  
-	  std::vector< std::pair<int,Box> > isects = baf.intersections(mask_box);
+	  const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
 	  
 	  for (int ii = 0; ii < isects.size(); ii++) {
 	      mask_fab.setVal(1.0, isects[ii].second, 0);
