@@ -246,15 +246,13 @@ Castro::advance (Real time,
 	    gravity->swapTimeLevels(level);
 #endif
 
-	  Real dt_temp;
-
 	  if (do_hydro)
 	  {
-	    dt_temp = advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 	  else
 	  {
-	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {

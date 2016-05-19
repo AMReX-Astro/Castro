@@ -30,7 +30,9 @@ Castro::sum_integrated_quantities ()
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
     Real rho_phi     = 0.0;
+#ifdef GRAVITY
     Real total_energy = 0.0;
+#endif
 #ifdef SGS
     Real dt_crse     = parent->dtLevel(0);
     Real Etot        = 0.0;
