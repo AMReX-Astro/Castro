@@ -20,7 +20,7 @@ ALL: testburn.ex table
 
 EOS_dir := helmholtz
 
-Network_dir := ignition_simple
+Network_dir := aprox13
 
 INTEGRATOR_DIR := BS
 
