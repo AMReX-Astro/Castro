@@ -28,25 +28,17 @@ contains
     double precision :: time, dt_react
 
     integer          :: i, j, k, n
-    double precision :: rhoInv, rho_e_K, delta_x(nspec), delta_e, delta_rho_e
+    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e
 
-    type (burn_t) :: state_in
-    type (burn_t) :: state_out
+    type (burn_t) :: state_in, state_out
 
-    !$acc data copy(state)
-    !$acc data copy(reactions)
-    !$acc data copyin(dt_react) 
-    !$acc data copyin(lo)
-    !$acc data copyin(hi)
-    !$acc data copyin(r_lo)
-    !$acc data copyin(r_hi)
-    !$acc data copyin(s_lo)
-    !$acc data copyin(s_hi)
+    !$acc data copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, dt_react, time) copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
-    !$acc loop collapse(3) private(i,j,k) &
-    !$acc private(rhoInv, state_in, state_out, rho_e_K, delta_x(:), delta_e, delta_rho_e)
+    !$acc loop gang vector collapse(3) &
+    !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e, state_in, state_out) &
+    !$acc private(i,j,k)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -67,10 +59,11 @@ contains
              endif
 
              do n = 1, nspec
-                state_in % xn(n)  = state(i,j,k,UFS+n-1) * rhoInv
+                state_in % xn(n) = state(i,j,k,UFS+n-1) * rhoInv
              enddo
+
              do n = 1, naux
-                state_in % aux = state(i,j,k,UFX+n-1) * rhoInv
+                state_in % aux(n) = state(i,j,k,UFX+n-1) * rhoInv
              enddo
 
              state_in % shock = .false.
@@ -88,19 +81,21 @@ contains
              ! this reset should be enforced through an appropriate choice for the dual energy 
              ! formalism parameter dual_energy_eta2 in reset_internal_energy.
 
-             delta_x     = state_out % xn - state_in % xn
              delta_e     = state_out % e - state_in % e
              delta_rho_e = state_out % rho * delta_e
 
-             state(i,j,k,UEINT)           = state(i,j,k,UEINT) + delta_rho_e
-             state(i,j,k,UEDEN)           = state(i,j,k,UEDEN) + delta_rho_e
+             state(i,j,k,UEINT) = state(i,j,k,UEINT) + delta_rho_e
+             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + delta_rho_e
+
              do n = 1, nspec
                 state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state_out % xn(n)
              enddo
+
              do n = 1, naux
                 state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * state_out % aux(n)
              enddo
-             state(i,j,k,UTEMP)           = state_out % T
+
+             state(i,j,k,UTEMP) = state_out % T
 
              ! Add burning rates to reactions MultiFab, but be
              ! careful because the reactions and state MFs may
@@ -110,11 +105,14 @@ contains
                   j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
                   k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                reactions(i,j,k,1:nspec) = delta_x / dt_react
+                do n = 1, nspec
+                   reactions(i,j,k,n) = (state_out % xn(n) - state_in % xn(n)) / dt_react
+                enddo
                 reactions(i,j,k,nspec+1) = delta_e / dt_react
                 reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
 
              endif
+
 
           enddo
        enddo
@@ -122,14 +120,6 @@ contains
 
     !$acc end parallel
 
-    !$acc end data
-    !$acc end data
-    !$acc end data
-    !$acc end data
-    !$acc end data
-    !$acc end data
-    !$acc end data
-    !$acc end data
     !$acc end data
 
   end subroutine ca_react_state
