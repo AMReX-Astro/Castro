@@ -14,10 +14,10 @@ subroutine do_burn() bind(C)
 
   double precision, parameter :: time = 0.0d0, dt = 1.0d-3
 
-  integer, parameter :: lo(3) = [0, 0, 0], hi(3) = [0, 7, 7], w(3) = hi - lo + 1
+  integer, parameter :: lo(3) = [0, 0, 0], hi(3) = [7, 7, 7], w(3) = hi - lo + 1
 
-  double precision, parameter :: dens_min = 1.0d6, dens_max = 1.0d9
-  double precision, parameter :: temp_min = 1.0d9, temp_max = 1.0d12
+  double precision, parameter :: dens_min = 1.0d7, dens_max = 5.0d7
+  double precision, parameter :: temp_min = 1.0d9, temp_max = 5.0d9
 
   double precision :: dlogrho, dlogT
 
@@ -78,21 +78,6 @@ subroutine do_burn() bind(C)
   !$acc update device(react_T_min, react_T_max, react_rho_min, react_rho_max, disable_shock_burning)
 
   ! Update the extern probin variables
-
-  call_eos_in_rhs = .true.
-  renormalize_abundances = .true.
-  do_constant_volume_burn = .true.
-  use_eos_coulomb = .true.
-  jacobian = 1
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
-  rtol_enuc = 1.d-6
-  atol_enuc = 1.d-6
-  rtol_temp = 1.d-6
-  atol_temp = 1.d-6
-
-  !$acc update device(call_eos_in_rhs, renormalize_abundances, do_constant_volume_burn, use_eos_coulomb, jacobian)
-  !$acc update device(rtol_spec, atol_spec, rtol_enuc, atol_enuc, rtol_temp, atol_temp)
 
   dlogrho = (log10(dens_max) - log10(dens_min)) / w(1)
   dlogT   = (log10(temp_max) - log10(temp_min)) / w(2)
