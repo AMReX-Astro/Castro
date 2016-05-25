@@ -29,7 +29,11 @@ module burn_type_module
 
   ! If we call the EOS in the burner, define the mode to call it in.
 
-  integer, parameter :: eos_input_burn = eos_input_rt
+  integer, parameter :: eos_input_burn = eos_input_re
+
+  ! Specify whether we want an EOS call at the end of the burn.
+
+  logical, parameter :: eos_on_burn_finalize = .true.
 
   ! Number of rates groups to store.
 

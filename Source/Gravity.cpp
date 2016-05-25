@@ -323,7 +323,7 @@ Gravity::install_level (int                   level,
 #if (BL_SPACEDIM > 1)
     if (level == 0)
     {
-        Real center[BL_SPACEDIM];
+        Real center[3];
         get_center(center);
         Real x = Geometry::ProbHi(0) - center[0];
         Real y = Geometry::ProbHi(1) - center[1];
