@@ -3,7 +3,7 @@ module burn_type_module
   use bl_constants_module, only: ZERO
   use network, only: nspec, nspec_evolve, naux
   use actual_burner_data, only: nrates
-  use eos_module, only: eos_t, eos_input_rt
+  use eos_module, only: eos_t, eos_input_re
 
   implicit none
 
