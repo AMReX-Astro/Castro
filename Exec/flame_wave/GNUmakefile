@@ -11,23 +11,20 @@ FCOMP	   = gfortran
 USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
-USE_REACT = TRUE
+USE_REACT  = TRUE
 
 USE_MODELPARSER  = TRUE
 
-USE_ROTATION = TRUE
+USE_ROTATION  = TRUE
 USE_DIFFUSION = TRUE
-
-#CASTRO_DIR = ../..
 
 ifdef MICROPHYSICS_DIR
 
-# This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
+  # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
   EOS_dir     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_DIR)/networks
   Network_dir := triple_alpha_plus_cago
-  #GENERAL_NET_INPUTS := $(CASTRO_DIR)/Networks/general_null/triple_alpha_plus_o.net
 
 else
 
