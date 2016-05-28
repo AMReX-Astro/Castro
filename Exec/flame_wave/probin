@@ -1,0 +1,27 @@
+&fortin
+
+  model_name =  "flame_wave.hse"
+
+  pert_temp_factor = 1.d0
+  pert_rad_factor = 1.d0
+
+  interp_BC = F
+  zero_vels = F
+/
+
+&sponge
+
+  sponge_upper_density = 1.d6
+  sponge_lower_density = 1.d4
+  sponge_timescale     = 1.d-5
+
+/
+
+&perturbation
+
+  temp0 = 1.0d8
+  dtemp = 3.81d8
+  x_half_max = 1.2d5
+  x_half_width = 3.6d4
+
+/
