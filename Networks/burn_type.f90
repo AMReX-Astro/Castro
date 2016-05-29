@@ -27,14 +27,6 @@ module burn_type_module
   integer, parameter :: net_itemp = nspec_evolve + 1
   integer, parameter :: net_ienuc = nspec_evolve + 2
 
-  ! If we call the EOS in the burner, define the mode to call it in.
-
-  integer, parameter :: eos_input_burn = eos_input_re
-
-  ! Specify whether we want an EOS call at the end of the burn.
-
-  logical, parameter :: eos_on_burn_finalize = .true.
-
   ! Number of rates groups to store.
 
   integer, parameter :: num_rate_groups = 4

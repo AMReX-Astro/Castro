@@ -30,14 +30,16 @@ contains
     integer          :: i, j, k, n
     double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e
 
-    type (burn_t) :: state_in, state_out
+    type (burn_t) :: burn_state_in, burn_state_out
+    type (eos_t) :: eos_state_in, eos_state_out
 
     !$acc data copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, dt_react, time) copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
     !$acc loop gang vector collapse(3) &
-    !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e, state_in, state_out) &
+    !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e) &
+    !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -45,57 +47,76 @@ contains
 
              rhoInv = ONE / state(i,j,k,URHO)
 
-             state_in % rho = state(i,j,k,URHO)
-             state_in % T   = state(i,j,k,UTEMP)
+             burn_state_in % rho = state(i,j,k,URHO)
+             burn_state_in % T   = state(i,j,k,UTEMP)
 
              rho_e_K = state(i,j,k,UEDEN) - HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
 
              ! Dual energy formalism: switch between e and (E - K) depending on (E - K) / E.
 
              if ( rho_e_K / state(i,j,k,UEDEN) .gt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
-                state_in % e = rho_E_K * rhoInv
+                burn_state_in % e = rho_E_K * rhoInv
              else
-                state_in % e = state(i,j,k,UEINT) * rhoInv
+                burn_state_in % e = state(i,j,k,UEINT) * rhoInv
              endif
 
              do n = 1, nspec
-                state_in % xn(n) = state(i,j,k,UFS+n-1) * rhoInv
+                burn_state_in % xn(n) = state(i,j,k,UFS+n-1) * rhoInv
              enddo
 
              do n = 1, naux
-                state_in % aux(n) = state(i,j,k,UFX+n-1) * rhoInv
+                burn_state_in % aux(n) = state(i,j,k,UFX+n-1) * rhoInv
              enddo
 
-             state_in % shock = .false.
+             ! Ensure that the temperature going in is consistent with the internal energy.
+
+             call burn_to_eos(burn_state_in, eos_state_in)
+             call eos(eos_input_re, eos_state_in)
+             call eos_to_burn(eos_state_in, burn_state_in)
+
+             ! Now reset the internal energy to zero for the burn state.
+
+             burn_state_in % e = ZERO
+
+             burn_state_in % shock = .false.
 
 #ifdef SHOCK_VAR
              if (state(i,j,k,USHK) > ZERO) then
-                state_in % shock = .true.
+                burn_state_in % shock = .true.
              endif
 #endif
 
-             call burner(state_in, state_out, dt_react, time)
+             call burner(burn_state_in, burn_state_out, dt_react, time)
 
              ! Note that we want to update the total energy by taking the difference of the old
              ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,
              ! this reset should be enforced through an appropriate choice for the dual energy 
              ! formalism parameter dual_energy_eta2 in reset_internal_energy.
 
-             delta_e     = state_out % e - state_in % e
-             delta_rho_e = state_out % rho * delta_e
+             delta_e     = burn_state_out % e - burn_state_in % e
+             delta_rho_e = burn_state_out % rho * delta_e
 
              state(i,j,k,UEINT) = state(i,j,k,UEINT) + delta_rho_e
              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + delta_rho_e
 
              do n = 1, nspec
-                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state_out % xn(n)
+                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * burn_state_out % xn(n)
              enddo
 
              do n = 1, naux
-                state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * state_out % aux(n)
+                state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * burn_state_out % aux(n)
              enddo
 
-             state(i,j,k,UTEMP) = state_out % T
+             ! Do an EOS call to get a temperature consistent with the new energy.
+             ! Note that the burn state only contains the energy released during the burn,
+             ! so we need to add to it the initial zone energy.
+
+             call burn_to_eos(burn_state_out, eos_state_out)
+             eos_state_out % e = eos_state_in % e + delta_e
+             call eos(eos_input_re, eos_state_out)
+             call eos_to_burn(eos_state_out, burn_state_out)
+             
+             state(i,j,k,UTEMP) = burn_state_out % T
 
              ! Add burning rates to reactions MultiFab, but be
              ! careful because the reactions and state MFs may
@@ -106,7 +127,7 @@ contains
                   k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
                 do n = 1, nspec
-                   reactions(i,j,k,n) = (state_out % xn(n) - state_in % xn(n)) / dt_react
+                   reactions(i,j,k,n) = (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
                 enddo
                 reactions(i,j,k,nspec+1) = delta_e / dt_react
                 reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
