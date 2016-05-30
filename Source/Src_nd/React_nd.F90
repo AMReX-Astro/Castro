@@ -64,9 +64,11 @@ contains
                 burn_state_in % xn(n) = state(i,j,k,UFS+n-1) * rhoInv
              enddo
 
+#if naux > 0
              do n = 1, naux
                 burn_state_in % aux(n) = state(i,j,k,UFX+n-1) * rhoInv
              enddo
+#endif
 
              ! Ensure that the temperature going in is consistent with the internal energy.
 
@@ -103,9 +105,11 @@ contains
                 state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * burn_state_out % xn(n)
              enddo
 
+#if naux > 0
              do n = 1, naux
                 state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * burn_state_out % aux(n)
              enddo
+#endif
 
              ! Do an EOS call to get a temperature consistent with the new energy.
              ! Note that the burn state only contains the energy released during the burn,

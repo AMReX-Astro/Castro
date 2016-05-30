@@ -171,13 +171,17 @@ contains
              state_old % T   = sold(i,j,k,UTEMP)
              state_old % e   = sold(i,j,k,UEINT) * rhooinv
              state_old % xn  = sold(i,j,k,UFS:UFS+nspec-1) * rhooinv
+#if naux > 0
              state_old % aux = sold(i,j,k,UFX:UFX+naux-1) * rhooinv
+#endif
 
              state_new % rho = snew(i,j,k,URHO)
              state_new % T   = snew(i,j,k,UTEMP)
              state_new % e   = snew(i,j,k,UEINT) * rhoninv
              state_new % xn  = snew(i,j,k,UFS:UFS+nspec-1) * rhoninv
+#if naux > 0
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
+#endif
 
              if (.not. ok_to_burn(state_new)) cycle
 
