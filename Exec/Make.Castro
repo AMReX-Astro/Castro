@@ -326,8 +326,8 @@ buildInfo.cpp:
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
-          --COMP "$(COMP)" \
-          --FCOMP "$(FCOMP)" \
+          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(ASTRODEV_DIR)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
@@ -335,8 +335,8 @@ ifdef BUILD_GIT_NAME
 else
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
-          --COMP "$(COMP)" \
-          --FCOMP "$(FCOMP)" \
+          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(ASTRODEV_DIR)"
 endif

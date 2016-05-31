@@ -1,10 +1,12 @@
 &fortin
 
-  model_name =  "model.hse.cool.coulomb"
+  model_name =  "flame_wave.hse"
 
   pert_temp_factor = 1.d0
   pert_rad_factor = 1.d0
 
+  interp_BC = F
+  zero_vels = F
 /
 
 &sponge
@@ -15,11 +17,11 @@
 
 /
 
-&tagging
+&perturbation
 
-  temperr = 6.e8
-  tempgrad = 1.e9
-  max_temperr_lev = 5
-  max_tempgrad_lev = 5
+  temp0 = 1.0d8
+  dtemp = 3.81d8
+  x_half_max = 1.2d5
+  x_half_width = 3.6d4
 
 /

@@ -69,8 +69,8 @@ contains
                    adv(i,j,UMX) = adv(domlo(1),j,UMX)
 
                    ! zero transverse momentum
-                   adv(i,j,UMY) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMY) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -80,7 +80,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -115,8 +115,8 @@ contains
                    adv(i,j,UMX) = adv(domhi(1),j,UMX)
 
                    ! zero transverse momentum
-                   adv(i,j,UMY) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMY) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -126,7 +126,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -160,11 +160,11 @@ contains
                    !                     adv(i,j,UMY) = adv(i,domlo(2),UMY)
 
                    ! zero normal momentum causes pi waves to pass through
-                   adv(i,j,UMY) = 0.d0
+                   adv(i,j,UMY) = ZERO
 
                    ! zero transverse momentum
-                   adv(i,j,UMX) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMX) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -174,7 +174,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -207,8 +207,8 @@ contains
                    adv(i,j,UMY) = adv(i,domhi(2),UMY)
 
                    ! zero transverse momentum
-                   adv(i,j,UMX) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMX) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -218,7 +218,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 

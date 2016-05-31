@@ -47,3 +47,5 @@ Exec/*/helm_table.dat
 
 *.hack
 *.bak
+
+Backtrace.*
