@@ -33,14 +33,22 @@ module burn_type_module
 
   type :: burn_t
 
-    double precision :: rho              != init_num
-    double precision :: T                != init_num
-    double precision :: e                != init_num
-    double precision :: h                != init_num
-    double precision :: xn(nspec)        != init_num
+    ! Input quantities; these should be initialized
+    ! so that we can do sanity checks.
+
+    double precision :: rho              = init_num
+    double precision :: T                = init_num
+    double precision :: e                = init_num
+    double precision :: h                = init_num
+    double precision :: xn(nspec)        = init_num
 #if naux > 0
-    double precision :: aux(naux)        != init_num
+    double precision :: aux(naux)        = init_num
 #endif
+
+    ! We choose not to initialize other quantities,
+    ! due to a compiler bug in PGI that prevents us
+    ! from using them correctly on GPUs with OpenACC.
+
     double precision :: cv               != init_num
     double precision :: cp               != init_num
     double precision :: y_e              != init_num

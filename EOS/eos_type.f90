@@ -56,12 +56,22 @@ module eos_type_module
 
   type :: eos_t
 
-    double precision :: rho         != init_num
-    double precision :: T           != init_num
-    double precision :: p           != init_num
-    double precision :: e           != init_num
-    double precision :: h           != init_num
-    double precision :: s           != init_num
+    ! Input quantities; these should be initialized
+    ! so that we can do sanity checks.
+
+    double precision :: rho         = init_num
+    double precision :: T           = init_num
+    double precision :: p           = init_num
+    double precision :: e           = init_num
+    double precision :: h           = init_num
+    double precision :: s           = init_num
+    double precision :: xn(nspec)   = init_num
+    double precision :: aux(naux)   = init_num
+
+    ! We choose not to initialize other quantities,
+    ! due to a compiler bug in PGI that prevents us
+    ! from using them correctly on GPUs with OpenACC.
+
     double precision :: dpdT        != init_num
     double precision :: dpdr        != init_num
     double precision :: dedT        != init_num
@@ -73,8 +83,6 @@ module eos_type_module
     double precision :: dpde        != init_num
     double precision :: dpdr_e      != init_num
 
-    double precision :: xn(nspec)   != init_num
-    double precision :: aux(naux)   != init_num
     double precision :: cv          != init_num
     double precision :: cp          != init_num
     double precision :: xne         != init_num
@@ -99,8 +107,8 @@ module eos_type_module
     double precision :: dedA        != init_num
     double precision :: dedZ        != init_num
 
-    double precision :: smallt
-    double precision :: smalld
+    double precision :: smallt      != init_num
+    double precision :: smalld      != init_num
 
     logical :: reset                != .false.
     logical :: check_small          != .true.
