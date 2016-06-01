@@ -10,11 +10,11 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0. 
-geometry.prob_hi   =  1.24e10 2.48e10
+geometry.prob_hi   =  2.48e10 4.96e10
 
 amr.n_cell         = 128 256
 
-amr.max_level      = 0       # maximum level number allowed
+amr.max_level      = 2       # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -55,10 +55,9 @@ castro.init_shrink    = 0.1     # scale back initial timestep by this factor
 castro.change_max     = 1.05    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
 
-#amr.ref_ratio       = 2 2 2 2 # refinement ratio
-#amr.regrid_int      = 10000   # how often to regrid
-#amr.n_error_buf     = 0 0 0 0 # number of buffer cells in error est
-amr.n_error_buf	    = 0   
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 10000   # how often to regrid
+amr.n_error_buf     = 0 0 0 0 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
@@ -83,7 +82,7 @@ amr.probin_file = probin
 # # 5: SGFLD       6: MGFLD
 radiation.SolverType = 5
 
-radiation.comoving = 1
+radiation.comoving = 0
 
 radiation.Er_Lorentz_term = 0
 
@@ -139,9 +138,14 @@ radiation.do_real_eos = 1
 # Planck mean opacity
 
 # this is Free-free Kramers opacity from K&W (Eq. 17.5)
-radiation.const_kappa_p =  3.8e19  #3.8e22
-radiation.kappa_p_exp_m =  1.0
+radiation.const_kappa_p =  3.8e22  #3.8e22
+radiation.kappa_p_exp_m =  2.0
 radiation.kappa_p_exp_n = 3.5
+
+# Rosseland mean
+radiation.const_kappa_r =  3.8e22  #3.8e22
+radiation.kappa_r_exp_m =  2.0
+radiation.kappa_r_exp_n = 3.5
 
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
@@ -163,7 +167,7 @@ radiation.kappa_p_exp_n = 3.5
 # 1002  PCG   using ParCSR ObjectType
 # 1003  PCG   using SStruct ObjectType
 
-radsolve.level_solver_flag = 0  # can be any supported hypre solver flag
+radsolve.level_solver_flag = 104  # can be any supported hypre solver flag
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
