@@ -17,12 +17,12 @@ USE_MODELPARSER  = TRUE
 ifdef MICROPHYSICS_DIR
 
 #This sets the EOS directory in $(MICROPHYSICS_DIR)/eos
-EOS_dir     := helmholtz
+EOS_dir     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_DIR)/networks
 Network_dir := general_null
 #GENERAL_NET_INPUTS = $(MICROPHYSICS_DIR)/networks/$(Network_dir)/ignition_wdconvect.net
-Network_inputs  := ignition_wdconvect.net
+Network_inputs  := H_He.net
 
 else
 
