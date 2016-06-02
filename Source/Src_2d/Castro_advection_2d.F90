@@ -513,7 +513,7 @@ contains
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
-    use prob_params_module, only : coord_type, domlo_level, domhi_level
+    use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module
     use advection_util_module, only : normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
@@ -684,7 +684,7 @@ contains
        k = 0
 
        if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
-          
+
           j = domlo(2)
           do i = lo(1), hi(1)
 
@@ -696,7 +696,7 @@ contains
              zmom_lost = zmom_lost - flux2(i,j,UMZ)
              eden_lost = eden_lost - flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc, flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
              zang_lost = zang_lost - ang_mom(3)
@@ -706,7 +706,7 @@ contains
        endif
 
        if (lo(2) .le. domhi(2) .and. hi(2) .ge. domhi(2)) then
-          
+
           j = domhi(2) + 1
           do i = lo(1), hi(1)
 
@@ -718,7 +718,7 @@ contains
              zmom_lost = zmom_lost + flux2(i,j,UMZ)
              eden_lost = eden_lost + flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc, flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
@@ -728,7 +728,7 @@ contains
        endif
 
        if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
-          
+
           i = domlo(1)
           do j = lo(2), hi(2)
 
@@ -740,17 +740,17 @@ contains
              zmom_lost = zmom_lost - flux1(i,j,UMZ)
              eden_lost = eden_lost - flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc, flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
-             zang_lost = yang_lost - ang_mom(3)
+             zang_lost = zang_lost - ang_mom(3)
 
           enddo
 
        endif
 
        if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
-          
+
           i = domhi(1) + 1
           do j = lo(2), hi(2)
 
@@ -762,7 +762,7 @@ contains
              zmom_lost = zmom_lost + flux1(i,j,UMZ)
              eden_lost = eden_lost + flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc, flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
