@@ -657,15 +657,20 @@ Castro::advance_hydro (Real time,
     MultiFab OldSpecDiffTerm(grids,NumSpec,1);
     MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
     MultiFab OldViscousTermforEnergy(grids,1,1);
+
+    MultiFab diff_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    diff_src_old.setVal(0.0,NUM_GROW);
 #ifdef TAU
-    add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time,tau_diff);
+    add_temp_diffusion_to_source(diff_src_old,OldTempDiffTerm,prev_time,tau_diff);
 #else
-    add_temp_diffusion_to_source(ext_src_old,OldTempDiffTerm,prev_time);
+    add_temp_diffusion_to_source(diff_src_old,OldTempDiffTerm,prev_time);
 #endif
 #if (BL_SPACEDIM == 1) 
-    add_spec_diffusion_to_source(ext_src_old,OldSpecDiffTerm,prev_time);
-    add_viscous_term_to_source(ext_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
+    add_spec_diffusion_to_source(diff_src_old,OldSpecDiffTerm,prev_time);
+    add_viscous_term_to_source(diff_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
 #endif
+    BoxLib::fill_boundary(diff_src_old, geom);
+    MultiFab::Add(sources,diff_src_old,0,0,NUM_STATE,NUM_GROW);
 #endif
 
     // Account for the hybrid hydro source by adding it to the ext_src arrays.
@@ -843,7 +848,11 @@ Castro::advance_hydro (Real time,
 
 		    // Add dt * old-time external source terms
 
-		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);		    
+		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);
+
+#ifdef DIFFUSION
+		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+#endif
 
 		    // Gravitational source term for the time-level n data.
 
@@ -1076,6 +1085,10 @@ Castro::advance_hydro (Real time,
 		    // Add dt * old-time external source terms
 
 		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);
+
+#ifdef DIFFUSION
+		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+#endif
 
 		    // Copy the normal velocities from the Riemann solver
 		    
@@ -1468,21 +1481,33 @@ Castro::advance_hydro (Real time,
     
 #else
 
-// New way for non-SGS: time-centering for ext_src, diffusion are merged.
+    // Do the new-time diffusion source term and then add it to the
+    // state using the call to time_center_source_terms. We keep
+    // this separate from the user-defined external source terms
+    // because the user might not have any.
+
 #ifdef DIFFUSION
     MultiFab& NewTempDiffTerm = OldTempDiffTerm;
     MultiFab& NewSpecDiffTerm = OldSpecDiffTerm;
     MultiFab& NewViscousTermforMomentum = OldViscousTermforMomentum;
     MultiFab& NewViscousTermforEnergy   = OldViscousTermforEnergy;
+
+    MultiFab diff_src_new(grids,NUM_STATE,0,Fab_allocate);
+    diff_src_new.setVal(0.0);
+
+    computeTemp(S_new);
 #ifdef TAU
-    add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time,tau_diff);
+    add_temp_diffusion_to_source(diff_src_new,NewTempDiffTerm,cur_time,tau_diff);
 #else
-    add_temp_diffusion_to_source(ext_src_new,NewTempDiffTerm,cur_time);
+    add_temp_diffusion_to_source(diff_src_new,NewTempDiffTerm,cur_time);
 #endif
 #if (BL_SPACEDIM == 1) 
-    add_spec_diffusion_to_source(ext_src_new,NewSpecDiffTerm,cur_time);
-    add_viscous_term_to_source(ext_src_new,NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
+    add_spec_diffusion_to_source(diff_src_new,NewSpecDiffTerm,cur_time);
+    add_viscous_term_to_source(diff_src_new,NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
 #endif
+    time_center_source_terms(S_new, diff_src_old, diff_src_new, dt);
+    computeTemp(S_new);
+    MultiFab::Add(sources,diff_src_new,0,0,NUM_STATE,0);
 #endif
 
     if (add_ext_src) {
