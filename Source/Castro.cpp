@@ -2700,6 +2700,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    // Create MultiFabs that only hold the data for one species at a time.
    MultiFab Species(grids,1,1,Fab_allocate);
    MultiFab     SDT(grids,SpecDiffTerm.nComp(),SpecDiffTerm.nGrow(),Fab_allocate);
+   SDT.setVal(0.);
    MultiFab CrseSpec, CrseDen;
    if (level > 0) {
        const BoxArray& crse_grids = getLevel(level-1).boxArray();

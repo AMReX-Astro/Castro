@@ -1,5 +1,7 @@
-module actual_newtork_data
+module actual_network_data
 
   implicit none
 
-end module actual_newtork_data
+  integer, parameter :: nrates = 0
+
+end module actual_network_data
