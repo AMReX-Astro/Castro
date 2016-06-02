@@ -586,9 +586,6 @@ protected:
 
     bool             FillPatchedOldState_ok;
 
-    std::map<std::string,MultiFab*> auxDiag;
-    static std::map<std::string,Array<std::string> > auxDiag_names;
-
     // There can be only one Gravity object, it covers all levels:
     static class Gravity *gravity;
 
