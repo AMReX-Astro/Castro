@@ -1,6 +1,6 @@
 &fortin
 
-  model_name =  "flame_wave.hse"
+  model_name =  "flame_wave.hse.tanh.delta_12.000cm.dx_10.000cm"
 
   pert_temp_factor = 1.d0
   pert_rad_factor = 1.d0
