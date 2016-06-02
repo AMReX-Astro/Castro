@@ -676,7 +676,10 @@ Castro::advance_hydro (Real time,
     // Account for the hybrid hydro source by adding it to the ext_src arrays.
 
 #ifdef HYBRID_MOMENTUM
-    add_hybrid_hydro_source(ext_src_old, S_old);
+    MultiFab hybrid_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    hybrid_src_old.setVal(0.0,NUM_GROW);
+    add_hybrid_hydro_source(hybrid_src_old, S_old);
+    MultiFab::Add(sources,hybrid_src_old,0,0,NUM_STATE,NUM_GROW);
 #endif
 
     BoxLib::fill_boundary(ext_src_old, geom);    
@@ -852,6 +855,10 @@ Castro::advance_hydro (Real time,
 
 #ifdef DIFFUSION
 		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+		    stateout.saxpy(dt,hybrid_src_old[mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    // Gravitational source term for the time-level n data.
@@ -1088,6 +1095,10 @@ Castro::advance_hydro (Real time,
 
 #ifdef DIFFUSION
 		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+		    stateout.saxpy(dt,hybrid_src_old[mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    // Copy the normal velocities from the Riemann solver
@@ -1467,7 +1478,11 @@ Castro::advance_hydro (Real time,
       }
 
 #ifdef HYBRID_MOMENTUM
-    add_hybrid_hydro_source(ext_src_new, S_new);
+    MultiFab hybrid_src_new(grids,NUM_STATE,0,Fab_allocate);
+    hybrid_src_new.setVal(0.0);
+    add_hybrid_hydro_source(hybrid_src_new, S_new);
+    time_center_source_terms(S_new, hybrid_src_old, hybrid_src_new, dt);
+    MultiFab::Add(sources,hybrid_src_new,0,0,NUM_STATE,0);
 #endif
 
 #ifdef SGS
