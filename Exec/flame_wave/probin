@@ -6,8 +6,8 @@
   zero_vels = F
 
   dtemp = 3.81d8
-  x_half_max = 1.2d5
-  x_half_width = 3.6d4
+  x_half_max = 2.048d4
+  x_half_width = 2.048d3
 
 /
 
