@@ -50,23 +50,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Read initial model
   call read_model_file(model_name)
 
-  open(unit=15, file="output.dat")
-
-  dCoord=(xmax-xmin)/dble(nx)
-
-  do a=2,nx-1
-     xzn_1 = model_r(a)
-     xzn_2 = model_r(a-1)
-     delx=xzn_2-xzn_1
-     dpdr=(model_state(a,ipres_model)-model_state(a-1,ipres_model))/delx
-     rhog=0.5*(model_state(a,idens_model)+model_state(a-1,idens_model))*g
-     hse_err=abs(dpdr-rhog)/abs(dpdr)
-     write (15,*) model_r(a),"       ",dpdr,"        ",rhog,&
-          "       ",hse_err
-  enddo
-
-  close(15)
-
 end subroutine PROBINIT
 
 
@@ -149,9 +132,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,UEINT) = eos_state%e
         temppres(i,j) = eos_state%p
-
-        open(unit=2, file='eos.dat')
-        write(2,*) state(i,j,URHO), ' ',state(i,j,UTEMP),' ',temppres(i,j)
 
      end do
   end do
