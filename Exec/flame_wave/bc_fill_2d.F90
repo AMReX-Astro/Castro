@@ -317,7 +317,7 @@ contains
   
 #ifdef ROTATION
   subroutine ca_phirotfill(phi,phi_l1,phi_l2, &
-                           phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                           phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phirotfill")
 
     implicit none
 
@@ -337,7 +337,7 @@ contains
   
   
   subroutine ca_rotxfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotxfill")
 
     implicit none
 
@@ -356,7 +356,7 @@ contains
 
 
   subroutine ca_rotyfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotyfill")
 
     implicit none
 
@@ -375,7 +375,7 @@ contains
 
 
   subroutine ca_rotzfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_rotzfill")
 
     implicit none
 
