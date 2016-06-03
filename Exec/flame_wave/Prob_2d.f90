@@ -17,14 +17,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  integer :: a
-  real (kind=dp_t) :: g=2.0d14
-  real (kind=dp_t) :: xmin=0.0_dp_t, xmax=2.e3_dp_t
-  integer, parameter :: nx=640
-  real (kind=dp_t) :: delx, dCoord, xzn_1, xzn_2
-  double precision :: dpdr, rhog, hse_err
-
-
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
