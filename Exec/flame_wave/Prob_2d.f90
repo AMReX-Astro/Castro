@@ -12,7 +12,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
   
-  namelist /fortin/ model_name, pert_temp_factor, pert_rad_factor, interp_BC, zero_vels
+  namelist /fortin/ model_name, interp_BC, zero_vels, &
+                    dtemp, x_half_max, x_half_width, &
+                    H_min, cutoff_density
   
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -29,9 +31,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Namelist defaults
   H_min = 1.d-4
   cutoff_density = 500.d0
-
   
-  ! Read namelists
+  
+  dtemp = 3.81d8
+  x_half_max = 1.2d5
+  x_half_width = 3.6d4
+  
   interp_BC = .false.
   zero_vels = .false.
 
@@ -90,13 +95,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   double precision temppres(state_l1:state_h1,state_l2:state_h2)
 
-  namelist /perturbation/ temp0, dtemp, x_half_max, x_half_width
-
   type (eos_t) :: eos_state
-
-  open(1,file='probin',form='formatted',status='old')
-  read(1,perturbation)
-  close(unit=1)
 
   do j = lo(2), hi(2)
      y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
