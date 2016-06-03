@@ -1880,9 +1880,10 @@ Castro::post_init (Real stop_time)
     for (int k = finest_level-1; k>= 0; k--)
         getLevel(k).avgDown();
 
-    Real cur_time = state[State_Type].curTime();
-    
 #ifdef GRAVITY
+
+    Real cur_time = state[State_Type].curTime();
+
     if (do_grav) {
        if (gravity->get_gravity_type() == "PoissonGrav") {
 
@@ -1987,10 +1988,11 @@ Castro::post_grown_restart ()
     if (level > 0)
         return;
 
+#ifdef GRAVITY
+
     int finest_level = parent->finestLevel();
     Real cur_time = state[State_Type].curTime();
-    
-#ifdef GRAVITY
+
     if (do_grav) {
        if (gravity->get_gravity_type() == "PoissonGrav") {
 

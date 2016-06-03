@@ -110,8 +110,10 @@ contains
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc_e, dtnuc_X, dtnuc_mode, small_x
-    use prob_params_module, only : dim
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_mode, small_x
+#if naux > 0
+    use meth_params_module, only : UFX
+#endif
     use actual_rhs_module, only: actual_rhs
     use eos_module
     use burner_module, only: ok_to_burn

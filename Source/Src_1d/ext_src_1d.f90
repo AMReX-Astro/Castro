@@ -23,7 +23,7 @@
                         new_state,new_state_l1,new_state_h1, &
                         src,src_l1,src_h1,problo,dx,time,dt)
 
-    use meth_params_module, only : NVAR, UMX
+    use meth_params_module, only : NVAR
     use bl_constants_module
 
     implicit none
@@ -36,8 +36,6 @@
     double precision,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
     double precision,intent(  out) :: src(src_l1:src_h1,NVAR)
     double precision,intent(in   ) :: problo(1),dx(1),time,dt
-
-    integer          :: i
 
     ! lo and hi specify work region
     src(lo(1):hi(1),:) = ZERO ! Fill work region only
