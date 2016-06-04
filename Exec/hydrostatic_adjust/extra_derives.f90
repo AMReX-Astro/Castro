@@ -5,7 +5,6 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
   use network, only : nspec, naux
   use eos_module
   use eos_type_module
-  use eos_data_module
   use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX, &
                                  allow_negative_energy
   use probdata_module, only: hse_p
