@@ -329,7 +329,7 @@ contains
                                    UEDEN, UEINT, UTEMP, track_grid_losses
     use bl_constants_module
     use advection_util_module, only: normalize_species_fluxes
-    use prob_params_module, only : domlo_level, domhi_level
+    use prob_params_module, only : domlo_level, domhi_level, center
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 
@@ -435,7 +435,7 @@ contains
        k = 0
 
        if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
-          
+
           i = domlo(1)
 
           loc = position(i,j,k,ccx=.false.)
@@ -446,15 +446,15 @@ contains
           zmom_lost = zmom_lost - flux(i,UMZ)
           eden_lost = eden_lost - flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc, flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost - ang_mom(1)
           yang_lost = yang_lost - ang_mom(2)
-          zang_lost = yang_lost - ang_mom(3)
+          zang_lost = zang_lost - ang_mom(3)
 
        endif
 
        if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
-          
+
           i = domhi(1) + 1
 
           loc = position(i,j,k,ccx=.false.)
@@ -465,7 +465,7 @@ contains
           zmom_lost = zmom_lost + flux(i,UMZ)
           eden_lost = eden_lost + flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc, flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost + ang_mom(1)
           yang_lost = yang_lost + ang_mom(2)
           zang_lost = zang_lost + ang_mom(3)
@@ -475,5 +475,5 @@ contains
     endif
 
   end subroutine consup
-  
+
 end module advection_module

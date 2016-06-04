@@ -23,8 +23,6 @@ section_sources = Introduction/CastroIntroduction.tex \
                   Software/CastroSoftware.tex \
                   CastroVerification/Verification.tex \
                   Parallel/Parallel.tex \
-                  Scaling/Scaling.tex \
-                  Suggestions/Suggestions.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
 	          Rotation/CastroRotation.tex \
                   runtime_parameters/runtime_parameters.tex

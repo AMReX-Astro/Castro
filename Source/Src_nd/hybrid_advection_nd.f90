@@ -186,7 +186,7 @@ contains
 
        flux(UMR) = hybrid_mom(1) * state(GDW)
        flux(UML) = hybrid_mom(2) * state(GDW)
-       flux(UMP) = hybrid_mom(3) * state(GDW)
+       flux(UMP) = hybrid_mom(3) * state(GDW) + state(GDPRES)
 
     else
 

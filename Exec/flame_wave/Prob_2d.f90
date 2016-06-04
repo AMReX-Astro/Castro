@@ -12,18 +12,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer untin,i
   
-  namelist /fortin/ model_name, pert_temp_factor, pert_rad_factor, interp_BC, zero_vels
+  namelist /fortin/ model_name, interp_BC, zero_vels, &
+                    dtemp, x_half_max, x_half_width, &
+                    H_min, cutoff_density
   
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
-
-  integer :: a
-  real (kind=dp_t) :: g=2.0d14
-  real (kind=dp_t) :: xmin=0.0_dp_t, xmax=2.e3_dp_t
-  integer, parameter :: nx=640
-  real (kind=dp_t) :: delx, dCoord, xzn_1, xzn_2
-  double precision :: dpdr, rhog, hse_err
-
 
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
@@ -37,9 +31,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! Namelist defaults
   H_min = 1.d-4
   cutoff_density = 500.d0
-
   
-  ! Read namelists
+  
+  dtemp = 3.81d8
+  x_half_max = 1.2d5
+  x_half_width = 3.6d4
+  
   interp_BC = .false.
   zero_vels = .false.
 
@@ -49,23 +46,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! Read initial model
   call read_model_file(model_name)
-
-  open(unit=15, file="output.dat")
-
-  dCoord=(xmax-xmin)/dble(nx)
-
-  do a=2,nx-1
-     xzn_1 = model_r(a)
-     xzn_2 = model_r(a-1)
-     delx=xzn_2-xzn_1
-     dpdr=(model_state(a,ipres_model)-model_state(a-1,ipres_model))/delx
-     rhog=0.5*(model_state(a,idens_model)+model_state(a-1,idens_model))*g
-     hse_err=abs(dpdr-rhog)/abs(dpdr)
-     write (15,*) model_r(a),"       ",dpdr,"        ",rhog,&
-          "       ",hse_err
-  enddo
-
-  close(15)
 
 end subroutine PROBINIT
 
@@ -93,10 +73,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
+  use bl_constants_module
   use probdata_module
   use interpolate_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use prob_params_module, only: problo
   use network, only: nspec
   use model_parser_module
   
@@ -115,16 +97,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   double precision temppres(state_l1:state_h1,state_l2:state_h2)
 
-  namelist /perturbation/ temp0, dtemp, x_half_max, x_half_width
-
   type (eos_t) :: eos_state
 
-  open(1,file='probin',form='formatted',status='old')
-  read(1,perturbation)
-  close(unit=1)
-
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = problo(2) + (dble(j)+HALF)*delta(2)
+     
      do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
@@ -143,15 +120,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i = lo(1), hi(1)
         eos_state%rho = state(i,j,URHO)
         eos_state%T = state(i,j,UTEMP)
-        eos_state%xn(:) = state(i,j,UFS:)
+        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
 
         call eos(eos_input_rt, eos_state)
 
         state(i,j,UEINT) = eos_state%e
         temppres(i,j) = eos_state%p
-
-        open(unit=2, file='eos.dat')
-        write(2,*) state(i,j,URHO), ' ',state(i,j,UTEMP),' ',temppres(i,j)
 
      end do
   end do
@@ -162,7 +136,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEINT)
         state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)
         
-        do n = 1,nspec
+        do n = 1, nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
         end do
 
@@ -174,16 +148,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! Now add the perturbation
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = problo(2) + (dble(j)+HALF)*delta(2)
+     
      do i = lo(1), hi(1)
-        x = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+        x = problo(1) + (dble(i)+HALF)*delta(1)
         
-        if (state(i,j,UFS)>0.1 .AND. state(i,j,URHO)>1.0d5) then
-                state(i,j,UTEMP)=state(i,j,UTEMP)+dtemp/(1+exp((x-x_half_max)/x_half_width))   
+        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 1.0d5) then
+           state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
+                (ONE + exp((x-x_half_max)/x_half_width))   
         end if 
  
         do n = 1,nspec
-           state(i,j,UFS+n-1) =  state(i,j,UFS+n-1) / state(i,j,URHO)
+           state(i,j,UFS+n-1) = state(i,j,UFS+n-1) / state(i,j,URHO)
         end do
 
         eos_state%T = state(i,j,UTEMP)

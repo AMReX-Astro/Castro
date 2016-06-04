@@ -226,6 +226,10 @@ contains
        ! update more easy to understand.
 
        phi = ZERO
+       grav = ZERO
+       gravx = ZERO
+       gravy = ZERO
+       gravz = ZERO
 
        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
