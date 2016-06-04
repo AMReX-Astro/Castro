@@ -4,7 +4,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use prob_params_module, only: center
   use eos_module
-  use eos_data_module
   use eos_type_module
   use model_parser_module
 
@@ -127,7 +126,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use eos_module
-  use eos_data_module
   use eos_type_module
   use network, only : nspec
   use interpolate_module

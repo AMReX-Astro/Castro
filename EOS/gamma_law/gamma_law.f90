@@ -9,7 +9,6 @@ module actual_eos_module
   use bl_error_module
   use bl_constants_module
   use eos_type_module
-  use eos_data_module
 
   implicit none
 
