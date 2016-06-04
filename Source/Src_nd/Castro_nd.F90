@@ -4,9 +4,11 @@
 
       subroutine ca_network_init() bind(C, name="ca_network_init")
 
-        use network
+        use network, only: network_init
+        use actual_rhs_module, only: actual_rhs_init
 
         call network_init()
+        call actual_rhs_init()
 
       end subroutine ca_network_init
 
