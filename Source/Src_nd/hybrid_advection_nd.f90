@@ -91,6 +91,8 @@ contains
 
     double precision :: R
 
+    ! this conversion is Eqs. 25 and 26 in Byerly et al. 2014.  We
+    ! we do not use the corotating frame here
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     vec_out(1) = vec_in(1) * (loc(1) / R) + vec_in(2) * (loc(2) / R)
