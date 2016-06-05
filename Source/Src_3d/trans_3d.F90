@@ -161,6 +161,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -518,6 +519,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -912,6 +914,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -1266,6 +1269,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -1665,6 +1669,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
          ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -2218,6 +2223,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -2687,6 +2693,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -3103,6 +3110,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
