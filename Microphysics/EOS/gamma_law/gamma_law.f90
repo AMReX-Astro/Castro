@@ -42,6 +42,7 @@ contains
   subroutine actual_eos(input, state)
 
     use fundamental_constants_module, only: k_B, n_A
+    use network, only: aion, zion
 
     implicit none
 
