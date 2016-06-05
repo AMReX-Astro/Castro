@@ -28,7 +28,7 @@ EOS_dir     := gamma_law
 
 # This sets the network directory in Castro/Networks
 Network_dir ?= general_null
-GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/gammalaw.net
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Microphysics/networks/$(Network_dir)/gammalaw.net
 
 Bpack   += $(TEST_DIR)/Make.package
 Blocs   += $(TEST_DIR)
