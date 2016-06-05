@@ -692,7 +692,8 @@ contains
     use rad_params_module, only : ngroups
     use flatten_module, only : uflaten
     use fluxlimiter_module, only : Edd_factor
-
+    use mempool_module, only : bl_allocate, bl_deallocate
+    
     implicit none
 
     double precision, parameter:: small = 1.d-8
