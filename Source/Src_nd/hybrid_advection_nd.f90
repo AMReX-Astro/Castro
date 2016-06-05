@@ -42,7 +42,7 @@ contains
 
   subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi) bind(C,name='ca_hybrid_hydro_source')
 
-    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, UMR, UML
+    use meth_params_module, only: NVAR, URHO, UMR, UML
     use prob_params_module, only: center
     use castro_util_module, only: position
     use network, only: nspec, naux
@@ -248,7 +248,7 @@ contains
 
   subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
 
-    use meth_params_module, only: UMR, UML, UMP, UMX, UMZ, NVAR
+    use meth_params_module, only: UMR, UMP, UMX, UMZ, NVAR
     use castro_util_module, only: position
     use prob_params_module, only: center
 

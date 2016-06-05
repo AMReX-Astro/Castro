@@ -7,9 +7,9 @@ contains
   subroutine ca_prescribe_grav (lo,hi,grav,g_lo,g_hi,dx) &
        bind(C, name="ca_prescribe_grav")
 
-    use fundamental_constants_module, only: Gconst, M_PI
-    use bl_constants_module
-    use prob_params_module, only: problo, center, dim
+    use bl_constants_module, only: ZERO
+    ! use fundamental_constants_module, only: Gconst, M_PI
+    ! use prob_params_module, only: problo, center, dim
 
     implicit none
 
