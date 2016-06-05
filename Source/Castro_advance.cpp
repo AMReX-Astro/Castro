@@ -679,7 +679,7 @@ Castro::advance_hydro (Real time,
 #ifdef HYBRID_MOMENTUM
     MultiFab hybrid_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     hybrid_src_old.setVal(0.0,NUM_GROW);
-    add_hybrid_hydro_source(hybrid_src_old, S_old);
+    add_hybrid_hydro_source(hybrid_src_old, Sborder);
     MultiFab::Add(hydro_sources,hybrid_src_old,0,0,NUM_STATE,NUM_GROW);
 #endif
 
