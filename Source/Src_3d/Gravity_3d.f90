@@ -67,7 +67,7 @@ contains
     integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
     double precision :: rho(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3)
 
-    integer          :: i,j,k,index,tid,nthreads
+    integer          :: i,j,k,index
     integer          :: ii,jj,kk
     double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
     double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
@@ -359,7 +359,6 @@ contains
        bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
        bind(C, name="ca_compute_direct_sum_bc")
     
-    use prob_params_module, only: center
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
@@ -624,8 +623,6 @@ contains
        bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
        bind(C, name="ca_put_direct_sum_bc")
     
-    use prob_params_module, only: center
-
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -704,7 +701,6 @@ contains
   function direct_sum_symmetric_add (loc,locb,problo,probhi, &
        rho,dV,doSymmetricAddLo,doSymmetricAddHi) result(bcTerm)
 
-    use prob_params_module, only: center
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 

@@ -246,15 +246,13 @@ Castro::advance (Real time,
 	    gravity->swapTimeLevels(level);
 #endif
 
-	  Real dt_temp;
-
 	  if (do_hydro)
 	  {
-	    dt_temp = advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 	  else
 	  {
-	    dt_temp = advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
 	  }
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -681,7 +679,7 @@ Castro::advance_hydro (Real time,
 #ifdef HYBRID_MOMENTUM
     MultiFab hybrid_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     hybrid_src_old.setVal(0.0,NUM_GROW);
-    add_hybrid_hydro_source(hybrid_src_old, S_old);
+    add_hybrid_hydro_source(hybrid_src_old, Sborder);
     MultiFab::Add(hydro_sources,hybrid_src_old,0,0,NUM_STATE,NUM_GROW);
 #endif
 

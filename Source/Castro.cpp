@@ -3478,7 +3478,7 @@ Castro::add_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
 {
   int ng = state.nGrow();
 
-  BL_ASSERT(ng >= sources.nGrow());
+  BL_ASSERT(sources.nGrow() >= ng);
 
 #ifdef _OPENMP
 #pragma omp parallel
