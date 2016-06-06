@@ -5,12 +5,13 @@ module eos_module
   use bl_constants_module
   use network, only: nspec, aion, zion
   use eos_type_module
-  use eos_data_module
   use actual_eos_module
 
   implicit none
 
   public eos_init, eos, eos_get_small_temp, eos_get_small_dens
+
+  logical, save :: initialized = .false.  
 
 contains
 
@@ -407,7 +408,5 @@ contains
     reset = .true.
 
   end subroutine eos_reset
-
-
 
 end module eos_module

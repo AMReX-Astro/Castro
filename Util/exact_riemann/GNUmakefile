@@ -85,7 +85,6 @@ Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_DIR)/$(dir))
 # CASTRO-specific stuff that the Microphysics directories rely on
 Fmlocs += $(CASTRO_TOP_DIR)/EOS
 f90sources += eos.f90
-f90sources += eos_data.f90
 f90sources += eos_type.f90
 
 Fmlocs += $(CASTRO_TOP_DIR)/Networks

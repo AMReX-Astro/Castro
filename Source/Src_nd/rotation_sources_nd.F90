@@ -10,8 +10,8 @@ contains
                      uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
                      E_added,mom_added) bind(C, name="ca_rsrc")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_period, rot_source_type
-    use prob_params_module, only: coord_type, problo, center
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_source_type
+    use prob_params_module, only: center
     use bl_constants_module
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
@@ -133,9 +133,9 @@ contains
     ! be called directly from C++.
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_period, rot_source_type, UMR, UMP, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, UMR, UMP, &
                                   implicit_rotation_update
-    use prob_params_module, only: coord_type, problo, center, dg
+    use prob_params_module, only: center, dg
     use bl_constants_module
     use math_module, only: cross_product
     use rotation_module, only: rotational_acceleration
@@ -194,13 +194,9 @@ contains
     double precision :: rhoo, rhon, rhooinv, rhoninv
 
     double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3), rot_temp(3)
+    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
     double precision, pointer :: phi(:,:,:)
-
-    double precision :: mom1, mom2
-
-    integer :: idir1, idir2, midx1, midx2
 
     ! Rotation source options for how to add the work to (rho E):
     ! rot_source_type = 

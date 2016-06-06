@@ -18,6 +18,9 @@ USE_MODELPARSER  = TRUE
 USE_ROTATION  = TRUE
 USE_DIFFUSION = TRUE
 
+# define the location of the CASTRO top directory
+CASTRO_DIR  := ../..
+
 ifdef MICROPHYSICS_DIR
 
   # This sets the EOS directory in $(MICROPHYSICS_DIR)/eos

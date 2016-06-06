@@ -3,9 +3,9 @@ CASTRO_DIR ?= /path/to/Castro
 
 TOP := $(CASTRO_DIR)
 
-EOS_HOME ?= $(TOP)/EOS
-NETWORK_HOME ?= $(TOP)/Networks
-COND_HOME ?= $(TOP)/Conductivity
+EOS_HOME ?= $(TOP)/Microphysics/EOS
+NETWORK_HOME ?= $(TOP)/Microphysics/networks
+COND_HOME ?= $(TOP)/Microphysics/conductivity
 
 EBASE = Castro
 

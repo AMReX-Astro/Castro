@@ -1,9 +1,8 @@
 module burn_type_module
 
   use bl_constants_module, only: ZERO
-  use network, only: nspec, nspec_evolve, naux
-  use actual_network_data, only: nrates
-  use eos_module, only: eos_t, eos_input_re
+  use actual_network, only: nspec, nspec_evolve, naux, nrates
+  use eos_module, only: eos_t
 
   implicit none
 

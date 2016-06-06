@@ -1,0 +1,7 @@
+* changes since the last release:
+
+  -- The EOS, network, and conductivity routines have been moved to sub-directories
+     or Castro/Microphysics/.  This reflects the way the layout in the standalone
+     Microphysics repo as well as that in Maestro.
+
+

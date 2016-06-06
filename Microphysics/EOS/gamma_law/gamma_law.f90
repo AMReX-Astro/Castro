@@ -9,7 +9,6 @@ module actual_eos_module
   use bl_error_module
   use bl_constants_module
   use eos_type_module
-  use eos_data_module
 
   implicit none
 
@@ -43,6 +42,7 @@ contains
   subroutine actual_eos(input, state)
 
     use fundamental_constants_module, only: k_B, n_A
+    use network, only: aion, zion
 
     implicit none
 

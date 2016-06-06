@@ -1,4 +1,13 @@
-\section{Automatic Restarting and Archiving of Data}
+\section{General Info}
+
+
+\section{Linux boxes}
+
+
+\section{Working at OLCF (ORNL)}
+
+
+\subsection{Automatic Restarting and Archiving of Data}
 
 The submission script {\tt jaguar.run} and shell script
 {\tt process.jaguar} in {\tt Exec/job\_scripts/}
@@ -74,3 +83,69 @@ msub -l depend=<JOB-ID> <MSUB SCRIPT>
 where, again, {\tt <JOB-ID>} is the id number of the job that must
 complete before the current submission runs and {\tt <MSUB SCRIPT>}
 is the job submission script (e.g.\ {\tt atlas.run}).
+
+
+\section{Working at NERSC}
+
+\subsection{Edison compilers}
+
+The default compilers on edison are the Intel compilers.  Intel version 15.0
+works well with \castro.
+
+\subsection{Running jobs}
+
+A sample jobs script is in {\tt Castro/Util/job\_scripts/edison/}, and 
+includes logic to automatically add the correct restart options to the 
+run to continue a simulation from the last checkpoint file in the 
+submission directory.
+
+
+
+\section{Scaling}
+
+Needs to be updated
+
+
+
+\section{Gotyas}
+
+\begin{enumerate}
+
+\item 3/4/16: The default version loaded of Python on Mira is not
+  recent enough to support the Python scripts in our build system. Add
+  {\tt +python} to your {\tt .soft} to fix this.
+
+\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
+  cannot compile BoxLib. To fix this, switch to an earlier version
+  (e.g., at the terminal, do {\tt module swap intel
+    intel/15.0.1.133}).
+
+\item 3/1/16: The default version loaded of Python on Edison and Cori
+  (2.6.9) is not recent enough to support the Python scripts in our
+  build system. At the terminal, do {\tt module load python} to fix
+  this.
+
+\item 2/18/16: The default version loaded of Python on Titan (2.6.9)
+  is not recent enough to support the Python scripts in our build
+  system. At the terminal, do {\tt module load python} to fix this.
+
+\item 2/12/09: If running on more than 64 processors on
+  pleiades.ucsc.edu, you must set
+
+\begin{verbatim}
+amr.plot\_nfiles = NUMBER
+
+amr.checkpoint\_nfiles = NUMBER
+\end{verbatim}
+
+where NUMBER is a number greater than or equal to the number of
+processors (putting a large integer here is fine). The default value
+for plot\_nfiles and checkpoint\_nfiles is 64, so if you are running
+on 64 or fewer processors you are ok.
+
+There is a problem with writing to the file system on pleiades. We
+have not yet been able to come up with a fix but this appears to be a
+good solution for now.
+
+\end{enumerate}
+
