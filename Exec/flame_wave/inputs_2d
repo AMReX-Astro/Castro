@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 8.192e4     2.048e4
-amr.n_cell           = 256         64
+geometry.prob_hi     = 8.192e4     4.096e4
+amr.n_cell           = 256         128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -40,6 +40,10 @@ gravity.const_grav   = -2.0e14
 
 castro.rotational_period = 0.001
 
+castro.diffuse_temp = 1
+castro.diffuse_cutoff_density = 1.e4
+
+
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
@@ -61,11 +65,11 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 25         # number of timesteps between checkpoints
+amr.check_int       = 50         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_per         = 1.e-7      # number of timesteps between plotfiles
+amr.plot_per         = 5.e-7      # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
