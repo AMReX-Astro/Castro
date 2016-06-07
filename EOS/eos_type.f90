@@ -50,6 +50,8 @@ module eos_type_module
   double precision, save :: minye   = 1.d-200
   double precision, save :: maxye   = 1.d0 + 1.d-12
 
+  !$acc declare create(smallt, smalld, mintemp, maxtemp, mindens, maxdens, minye, maxye)
+
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
 
