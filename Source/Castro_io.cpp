@@ -788,13 +788,13 @@ Castro::writePlotFile (const std::string& dir,
 	const char* githash2 = buildInfoGetGitHash(2);
 	const char* githash3 = buildInfoGetGitHash(3);
 	if (strlen(githash1) > 0) {
-	  jobInfoFile << "Castro   git hash: " << githash1 << "\n";
+	  jobInfoFile << "Castro       git hash: " << githash1 << "\n";
 	}
 	if (strlen(githash2) > 0) {
-	  jobInfoFile << "BoxLib   git hash: " << githash2 << "\n";
+	  jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
 	}
 	if (strlen(githash3) > 0) {	
-	  jobInfoFile << "AstroDev git hash: " << githash3 << "\n";
+	  jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
 	}
 
 	const char* buildgithash = buildInfoGetBuildGitHash();
@@ -1152,13 +1152,13 @@ Castro::writeSmallPlotFile (const std::string& dir,
 	const char* githash2 = buildInfoGetGitHash(2);
 	const char* githash3 = buildInfoGetGitHash(3);
 	if (strlen(githash1) > 0) {
-	  jobInfoFile << "Castro   git hash: " << githash1 << "\n";
+	  jobInfoFile << "Castro       git hash: " << githash1 << "\n";
 	}
 	if (strlen(githash2) > 0) {
-	  jobInfoFile << "BoxLib   git hash: " << githash2 << "\n";
+	  jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
 	}
 	if (strlen(githash3) > 0) {	
-	  jobInfoFile << "AstroDev git hash: " << githash3 << "\n";
+	  jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
 	}
 
 	const char* buildgithash = buildInfoGetBuildGitHash();
