@@ -96,16 +96,25 @@ is the job submission script (e.g.\ {\tt atlas.run}).
 \subsection{General issues}
 
 \begin{itemize}
-  
-\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
-  cannot compile BoxLib. To fix this, switch to an earlier version
-  (e.g., at the terminal, do {\tt module swap intel
-    intel/15.0.1.133}).
 
 \item 3/1/16: The default version loaded of Python on Edison and Cori
   (2.6.9) is not recent enough to support the Python scripts in our
   build system. At the terminal, do {\tt module load python} to fix
   this.
+
+  Note: if you want to swap from the default Intel compilers to the 
+  Cray compiler, this will break the python installation.  The workaround
+  is to do:
+  \begin{verbatim}
+    $ module rm PrgEnv-intel
+    $ module load PrgEnv-cray
+  \end{verbatim}
+
+\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
+  cannot compile BoxLib. To fix this, switch to an earlier version
+  (e.g., at the terminal, do {\tt module swap intel
+    intel/15.0.1.133}).
+
 
 \end{itemize}
 
