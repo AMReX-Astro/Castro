@@ -12,4 +12,7 @@ USE_HYPRE  = TRUE
 USE_RAD    = TRUE
 RAD_INTERP = TRUE
 
+BUILD_GIT_NAME := CastroRadiation
+BUILD_GIT_DIR := $(realpath $(RADIATION_DIR))
+
 include $(CASTRO_DIR)/Exec/Make.Castro
