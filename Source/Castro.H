@@ -110,6 +110,7 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     VisMF::How     how) BL_OVERRIDE;
+    void writeJobInfo (const std::string& dir);
 
     //
     //Define data descriptors.

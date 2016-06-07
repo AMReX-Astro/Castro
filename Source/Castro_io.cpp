@@ -582,6 +582,211 @@ Castro::setPlotVariables ()
   }
 }
 
+
+
+void
+Castro::writeJobInfo (const std::string& dir)
+
+{
+
+  // job_info file with details about the run
+  std::ofstream jobInfoFile;
+  std::string FullPathJobInfoFile = dir;
+  FullPathJobInfoFile += "/job_info";
+  jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
+
+  std::string PrettyLine = "===============================================================================\n";
+  std::string OtherLine = "--------------------------------------------------------------------------------\n";
+  std::string SkipSpace = "        ";
+
+
+  // job information
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Castro Job Information\n";
+  jobInfoFile << PrettyLine;
+	
+  jobInfoFile << "job name: " << job_name << "\n\n";
+  jobInfoFile << "inputs file: " << inputs_name << "\n\n";
+
+  jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
+#ifdef _OPENMP
+  jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
+#endif
+
+  jobInfoFile << "\n";
+  jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
+    getCPUTime()/3600.0;
+
+  jobInfoFile << "\n\n";
+
+  // plotfile information
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Plotfile Information\n";
+  jobInfoFile << PrettyLine;
+
+  time_t now = time(0);
+
+  // Convert now to tm struct for local timezone
+  tm* localtm = localtime(&now);
+  jobInfoFile   << "output data / time: " << asctime(localtm);
+
+  char currentDir[FILENAME_MAX];
+  if (getcwd(currentDir, FILENAME_MAX)) {
+    jobInfoFile << "output dir:         " << currentDir << "\n";
+  }
+
+  jobInfoFile << "\n\n";
+
+
+  // build information
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Build Information\n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
+  jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
+  jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
+  jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
+
+  jobInfoFile << "\n";
+	
+  jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
+  jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
+  jobInfoFile << "FCOMP:         " << buildInfoGetFcomp() << "\n";
+  jobInfoFile << "FCOMP version: " << buildInfoGetFcompVersion() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "EOS:     " << buildInfoGetAux(1) << "\n";
+  jobInfoFile << "network: " << buildInfoGetAux(2) << "\n";
+
+  jobInfoFile << "\n";
+
+  const char* githash1 = buildInfoGetGitHash(1);
+  const char* githash2 = buildInfoGetGitHash(2);
+  const char* githash3 = buildInfoGetGitHash(3);
+  if (strlen(githash1) > 0) {
+    jobInfoFile << "Castro       git hash: " << githash1 << "\n";
+  }
+  if (strlen(githash2) > 0) {
+    jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
+  }
+  if (strlen(githash3) > 0) {	
+    jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
+  }
+
+  const char* buildgithash = buildInfoGetBuildGitHash();
+  const char* buildgitname = buildInfoGetBuildGitName();
+  if (strlen(buildgithash) > 0){
+    jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
+  }
+	
+  jobInfoFile << "\n\n";
+
+
+  // grid information
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Grid Information\n";
+  jobInfoFile << PrettyLine;
+
+  int f_lev = parent->finestLevel();
+
+  for (int i = 0; i <= f_lev; i++)
+    {
+      jobInfoFile << " level: " << i << "\n";
+      jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
+      jobInfoFile << "   maximum zones   = ";
+      for (int n = 0; n < BL_SPACEDIM; n++)
+	{
+	  jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
+	  //jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
+	}
+      jobInfoFile << "\n\n";
+    }
+
+  jobInfoFile << " Boundary conditions\n";
+  Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+  ParmParse pp("castro");
+  pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
+
+
+  // these names correspond to the integer flags setup in the 
+  // Castro_setup.cpp
+  const char* names_bc[] =
+    { "interior", "inflow", "outflow", 
+      "symmetry", "slipwall", "noslipwall" };
+
+
+  jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
+  jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
+  if (BL_SPACEDIM >= 2) {
+    jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
+    jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
+  }
+  if (BL_SPACEDIM == 3) {
+    jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
+    jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
+  }
+
+  jobInfoFile << "\n\n";
+
+
+  // species info
+  Real Aion = 0.0;
+  Real Zion = 0.0;
+
+  int mlen = 20;
+
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Species Information\n";
+  jobInfoFile << PrettyLine;
+	
+  jobInfoFile << 
+    std::setw(6) << "index" << SkipSpace << 
+    std::setw(mlen+1) << "name" << SkipSpace <<
+    std::setw(7) << "A" << SkipSpace <<
+    std::setw(7) << "Z" << "\n";
+  jobInfoFile << OtherLine;
+
+  for (int i = 0; i < NumSpec; i++)
+    {
+
+      int len = mlen;
+      Array<int> int_spec_names(len);
+      //
+      // This call return the actual length of each string in "len"
+      //
+      get_spec_names(int_spec_names.dataPtr(),&i,&len);
+      char* spec_name = new char[len+1];
+      for (int j = 0; j < len; j++) 
+	spec_name[j] = int_spec_names[j];
+      spec_name[len] = '\0';
+
+      // get A and Z
+      get_spec_az(&i, &Aion, &Zion);
+
+      jobInfoFile << 
+	std::setw(6) << i << SkipSpace << 
+	std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
+	std::setw(7) << Aion << SkipSpace <<
+	std::setw(7) << Zion << "\n";
+      delete [] spec_name;
+    }
+  jobInfoFile << "\n\n";
+
+
+  // runtime parameters
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Inputs File Parameters\n";
+  jobInfoFile << PrettyLine;
+	
+  ParmParse::dumpTable(jobInfoFile, true);
+
+  jobInfoFile.close();
+	
+}
+
 void
 Castro::writePlotFile (const std::string& dir,
                        ostream&       os,
@@ -710,201 +915,7 @@ Castro::writePlotFile (const std::string& dir,
 	  groupfile.close();
 	}
 #endif
-
-        // job_info file with details about the run
-	std::ofstream jobInfoFile;
-	std::string FullPathJobInfoFile = dir;
-	FullPathJobInfoFile += "/job_info";
-	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
-
-	std::string PrettyLine = "===============================================================================\n";
-	std::string OtherLine = "--------------------------------------------------------------------------------\n";
-	std::string SkipSpace = "        ";
-
-
-	// job information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Castro Job Information\n";
-	jobInfoFile << PrettyLine;
-	
-	jobInfoFile << "job name: " << job_name << "\n\n";
-	jobInfoFile << "inputs file: " << inputs_name << "\n\n";
-
-	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
-	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
-#endif
-
-	jobInfoFile << "\n";
-	jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
-	  getCPUTime()/3600.0;
-
-	jobInfoFile << "\n\n";
-
-        // plotfile information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Plotfile Information\n";
-	jobInfoFile << PrettyLine;
-
-	time_t now = time(0);
-
-	// Convert now to tm struct for local timezone
-	tm* localtm = localtime(&now);
-	jobInfoFile   << "output data / time: " << asctime(localtm);
-
-	char currentDir[FILENAME_MAX];
-	if (getcwd(currentDir, FILENAME_MAX)) {
-	  jobInfoFile << "output dir:         " << currentDir << "\n";
-	}
-
-	jobInfoFile << "\n\n";
-
-
-        // build information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Build Information\n";
-	jobInfoFile << PrettyLine;
-
-	jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
-	jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
-	jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-	jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
-
-	jobInfoFile << "\n";
-	
-	jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
-	jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
-	jobInfoFile << "FCOMP:         " << buildInfoGetFcomp() << "\n";
-	jobInfoFile << "FCOMP version: " << buildInfoGetFcompVersion() << "\n";
-
-	jobInfoFile << "\n";
-
-	jobInfoFile << "EOS:     " << buildInfoGetAux(1) << "\n";
-	jobInfoFile << "network: " << buildInfoGetAux(2) << "\n";
-
-	jobInfoFile << "\n";
-
-	const char* githash1 = buildInfoGetGitHash(1);
-	const char* githash2 = buildInfoGetGitHash(2);
-	const char* githash3 = buildInfoGetGitHash(3);
-	if (strlen(githash1) > 0) {
-	  jobInfoFile << "Castro       git hash: " << githash1 << "\n";
-	}
-	if (strlen(githash2) > 0) {
-	  jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
-	}
-	if (strlen(githash3) > 0) {	
-	  jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
-	}
-
-	const char* buildgithash = buildInfoGetBuildGitHash();
-	const char* buildgitname = buildInfoGetBuildGitName();
-	if (strlen(buildgithash) > 0){
-	  jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
-	}
-	
-	jobInfoFile << "\n\n";
-
-
-	// grid information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Grid Information\n";
-	jobInfoFile << PrettyLine;
-
-	for (i = 0; i <= f_lev; i++)
-	  {
-	    jobInfoFile << " level: " << i << "\n";
-	    jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
-	    jobInfoFile << "   maximum zones   = ";
-	    for (n = 0; n < BL_SPACEDIM; n++)
-	      {
-		jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
-		//jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
-	      }
-	    jobInfoFile << "\n\n";
-	  }
-
-	jobInfoFile << " Boundary conditions\n";
-	Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
-	ParmParse pp("castro");
-	pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
-	pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
-
-
-	// these names correspond to the integer flags setup in the 
-	// Castro_setup.cpp
-	const char* names_bc[] =
-	  { "interior", "inflow", "outflow", 
-	    "symmetry", "slipwall", "noslipwall" };
-
-
-	jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
-	jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
-	if (BL_SPACEDIM >= 2) {
-	  jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
-	  jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
-	}
-	if (BL_SPACEDIM == 3) {
-	  jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
-	  jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
-	}
-
-	jobInfoFile << "\n\n";
-
-
-	// species info
-	Real Aion = 0.0;
-	Real Zion = 0.0;
-
-	int mlen = 20;
-
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Species Information\n";
-	jobInfoFile << PrettyLine;
-	
-	jobInfoFile << 
-	      std::setw(6) << "index" << SkipSpace << 
-	      std::setw(mlen+1) << "name" << SkipSpace <<
-	      std::setw(7) << "A" << SkipSpace <<
-	      std::setw(7) << "Z" << "\n";
-	jobInfoFile << OtherLine;
-
-	for (int i = 0; i < NumSpec; i++)
-          {
-
-	    int len = mlen;
-	    Array<int> int_spec_names(len);
-	    //
-	    // This call return the actual length of each string in "len"
-	    //
-	    get_spec_names(int_spec_names.dataPtr(),&i,&len);
-	    char* spec_name = new char[len+1];
-	    for (int j = 0; j < len; j++) 
-	      spec_name[j] = int_spec_names[j];
-	    spec_name[len] = '\0';
-
-	    // get A and Z
-	    get_spec_az(&i, &Aion, &Zion);
-
-	    jobInfoFile << 
-	      std::setw(6) << i << SkipSpace << 
-	      std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
-	      std::setw(7) << Aion << SkipSpace <<
-	      std::setw(7) << Zion << "\n";
-	    delete [] spec_name;
-	  }
-	jobInfoFile << "\n\n";
-
-
-	// runtime parameters
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Inputs File Parameters\n";
-	jobInfoFile << PrettyLine;
-	
-	ParmParse::dumpTable(jobInfoFile, true);
-
-	jobInfoFile.close();
-	
+	writeJobInfo(dir);
 
     }
     // Build the directory to hold the MultiFab at this level.
@@ -1078,197 +1089,7 @@ Castro::writeSmallPlotFile (const std::string& dir,
         os << "0\n"; // Write bndry data.
 
         // job_info file with details about the run
-	std::ofstream jobInfoFile;
-	std::string FullPathJobInfoFile = dir;
-	FullPathJobInfoFile += "/job_info";
-	jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);	
-
-	std::string PrettyLine = "===============================================================================\n";
-	std::string OtherLine = "--------------------------------------------------------------------------------\n";
-	std::string SkipSpace = "        ";
-
-
-	// job information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Job Information\n";
-	jobInfoFile << PrettyLine;
-	
-	jobInfoFile << "job name: " << job_name << "\n\n";
-	jobInfoFile << "inputs file: " << inputs_name << "\n\n";
-
-	jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
-	jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
-#endif
-
-	jobInfoFile << "\n";
-	jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
-	  getCPUTime()/3600.0;
-
-	jobInfoFile << "\n\n";
-
-        // plotfile information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Plotfile Information\n";
-	jobInfoFile << PrettyLine;
-
-	time_t now = time(0);
-
-	// Convert now to tm struct for local timezone
-	tm* localtm = localtime(&now);
-	jobInfoFile   << "output data / time: " << asctime(localtm);
-
-	char currentDir[FILENAME_MAX];
-	if (getcwd(currentDir, FILENAME_MAX)) {
-	  jobInfoFile << "output dir:         " << currentDir << "\n";
-	}
-
-	jobInfoFile << "\n\n";
-
-
-        // build information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Build Information\n";
-	jobInfoFile << PrettyLine;
-
-	jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
-	jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
-	jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-	jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
-
-	jobInfoFile << "\n";
-	
-	jobInfoFile << "COMP:  " << buildInfoGetComp() << "\n";
-	jobInfoFile << "FCOMP: " << buildInfoGetFcomp() << "\n";
-
-	jobInfoFile << "\n";
-
-	jobInfoFile << "EOS:     " << buildInfoGetAux(1) << "\n";
-	jobInfoFile << "network: " << buildInfoGetAux(2) << "\n";
-
-	jobInfoFile << "\n";
-
-	const char* githash1 = buildInfoGetGitHash(1);
-	const char* githash2 = buildInfoGetGitHash(2);
-	const char* githash3 = buildInfoGetGitHash(3);
-	if (strlen(githash1) > 0) {
-	  jobInfoFile << "Castro       git hash: " << githash1 << "\n";
-	}
-	if (strlen(githash2) > 0) {
-	  jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
-	}
-	if (strlen(githash3) > 0) {	
-	  jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
-	}
-
-	const char* buildgithash = buildInfoGetBuildGitHash();
-	const char* buildgitname = buildInfoGetBuildGitName();
-	if (strlen(buildgithash) > 0){
-	  jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
-	}
-	
-	jobInfoFile << "\n\n";
-
-
-	// grid information
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Grid Information\n";
-	jobInfoFile << PrettyLine;
-
-	for (i = 0; i <= f_lev; i++)
-	  {
-	    jobInfoFile << " level: " << i << "\n";
-	    jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
-	    jobInfoFile << "   maximum zones   = ";
-	    for (n = 0; n < BL_SPACEDIM; n++)
-	      {
-		jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
-		//jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
-	      }
-	    jobInfoFile << "\n\n";
-	  }
-
-	jobInfoFile << " Boundary conditions\n";
-	Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
-	ParmParse pp("castro");
-	pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
-	pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
-
-
-	// these names correspond to the integer flags setup in the 
-	// Castro_setup.cpp
-	const char* names_bc[] =
-	  { "interior", "inflow", "outflow", 
-	    "symmetry", "slipwall", "noslipwall" };
-
-
-	jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
-	jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
-	if (BL_SPACEDIM >= 2) {
-	  jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
-	  jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
-	}
-	if (BL_SPACEDIM == 3) {
-	  jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
-	  jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
-	}
-
-	jobInfoFile << "\n\n";
-
-
-	// species info
-	Real Aion = 0.0;
-	Real Zion = 0.0;
-
-	int mlen = 20;
-
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Species Information\n";
-	jobInfoFile << PrettyLine;
-	
-	jobInfoFile << 
-	      std::setw(6) << "index" << SkipSpace << 
-	      std::setw(mlen+1) << "name" << SkipSpace <<
-	      std::setw(7) << "A" << SkipSpace <<
-	      std::setw(7) << "Z" << "\n";
-	jobInfoFile << OtherLine;
-
-	for (int i = 0; i < NumSpec; i++)
-          {
-
-	    int len = mlen;
-	    Array<int> int_spec_names(len);
-	    //
-	    // This call return the actual length of each string in "len"
-	    //
-	    get_spec_names(int_spec_names.dataPtr(),&i,&len);
-	    char* spec_name = new char[len+1];
-	    for (int j = 0; j < len; j++) 
-	      spec_name[j] = int_spec_names[j];
-	    spec_name[len] = '\0';
-
-	    // get A and Z
-	    get_spec_az(&i, &Aion, &Zion);
-
-	    jobInfoFile << 
-	      std::setw(6) << i << SkipSpace << 
-	      std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
-	      std::setw(7) << Aion << SkipSpace <<
-	      std::setw(7) << Zion << "\n";
-	    delete [] spec_name;
-	  }
-	jobInfoFile << "\n\n";
-
-
-	// runtime parameters
-	jobInfoFile << PrettyLine;
-	jobInfoFile << " Inputs File Parameters\n";
-	jobInfoFile << PrettyLine;
-	
-	ParmParse::dumpTable(jobInfoFile, true);
-
-	jobInfoFile.close();
-	
+	writeJobInfo(dir);
 
     }
     // Build the directory to hold the MultiFab at this level.
