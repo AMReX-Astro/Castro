@@ -4,6 +4,7 @@ subroutine do_burn() bind(C)
   use eos_module
   use burner_module
   use actual_burner_module
+  use actual_rhs_module, only: actual_rhs_init
   use meth_params_module
   use reactions_module, only: ca_react_state
   use extern_probin_module
@@ -42,6 +43,7 @@ subroutine do_burn() bind(C)
   call runtime_init(probin_pass(1:len(trim(probin_file))), len(trim(probin_file)))
 
   call network_init()
+  call actual_rhs_init()
   call burner_init()
   call eos_init()
 
