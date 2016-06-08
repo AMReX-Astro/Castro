@@ -6,7 +6,8 @@ module bc_fill_module
 
 contains
 
-  subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+  subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc) &
+       bind(C, name="ca_hypfill")
 
     use meth_params_module, only : NVAR
     use hse_bc_module
@@ -45,7 +46,8 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_denfill")
 
     use probdata_module
     use hse_bc_module
@@ -85,7 +87,8 @@ contains
 
 
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravxfill")
 
     use probdata_module
     
@@ -115,7 +118,8 @@ contains
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravyfill")
 
     use probdata_module
 
@@ -145,7 +149,8 @@ contains
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravzfill")
 
     use probdata_module
     
@@ -175,7 +180,8 @@ contains
 
 
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
-                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
 
     implicit none
 
@@ -203,7 +209,8 @@ contains
 
 
   subroutine ca_rotxfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotxfill")
 
     use probdata_module
     
@@ -233,7 +240,8 @@ contains
 
 
   subroutine ca_rotyfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotyfill")
 
     use probdata_module
 
@@ -263,7 +271,8 @@ contains
 
 
   subroutine ca_rotzfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
-                         domlo,domhi,delta,xlo,time,bc) bind(C)
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotzfill")
 
     use probdata_module
     
@@ -293,7 +302,8 @@ contains
 
 
   subroutine ca_phirotfill(phi,phi_l1,phi_l2, &
-                           phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                           phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+                           bind(C, name="ca_phirotfill")
 
     implicit none
 
@@ -321,7 +331,8 @@ contains
 
 
   subroutine ca_reactfill(react,react_l1,react_l2, &
-                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
 
     implicit none
 

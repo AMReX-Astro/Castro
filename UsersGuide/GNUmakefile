@@ -10,23 +10,26 @@ section_sources = Introduction/CastroIntroduction.tex \
                   GettingStarted/CastroGettingStarted.tex \
 	          Inputs/CastroInputs.tex \
                   UnitsAndConstants/CastroUnits.tex \
+                  Software/CastroSoftware.tex \
+                  Parallel/Parallel.tex \
+	          FlowChart/FlowChart.tex \
+                  runtime_parameters/runtime_parameters.tex \
+                  ManagingJobs/managingjobs.tex \
+                  FAQ/faq.tex \
                   Equations/Equations.tex \
 	          Gravity/CastroGravity.tex \
 	          Diffusion/CastroDiffusion.tex \
-	          FlowChart/FlowChart.tex \
-                  LevelSet/LevelSet.tex \
-                  AMR/AMR.tex \
-                  EOSNetwork/EOSNetwork.tex \
-                  ConvertCheckpoint/ConvertCheckpoint.tex \
-                  Visualization/CastroVisualization.tex \
-                  Software/CastroSoftware.tex \
-                  CastroVerification/Verification.tex \
-                  Parallel/Parallel.tex \
-                  Scaling/Scaling.tex \
-                  Suggestions/Suggestions.tex \
-		  MAESTRO_restart/MAESTRO_restart.tex \
 	          Rotation/CastroRotation.tex \
-                  runtime_parameters/runtime_parameters.tex
+                  EOSNetwork/EOSNetwork.tex \
+                  AMR/AMR.tex \
+                  LevelSet/LevelSet.tex \
+                  ConvertCheckpoint/ConvertCheckpoint.tex \
+		  MAESTRO_restart/MAESTRO_restart.tex \
+                  Visualization/CastroVisualization.tex \
+                  CastroVerification/Verification.tex 
+
+
+
 
 CastroUserGuide.dvi: CastroUserGuide.tex $(eps_source) $(section_sources) $(eps_source)
 	latex CastroUserGuide.tex < /dev/null

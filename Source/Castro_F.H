@@ -45,7 +45,10 @@ extern "C"
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
-     const int& NumAdv, 
+     const int& NumAdv,
+#ifdef SHOCK_VAR
+     const int& Shock,
+#endif
      const int* gravity_type, const int* gravity_type_len,
      const int& get_g_from_phi,
      const int& use_sgs,
@@ -79,25 +82,40 @@ extern "C"
 
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
-    (const int lo[], const int hi[], 
+    (const int* lo, const int* hi, 
      const Real* dx, const Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG(S  ), const Real* avgden,
-     const BL_FORT_FAB_ARG(Vol), const Real* avgvol,
+     const BL_FORT_FAB_ARG_3D(S  ), const Real* avgden,
+     const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
 #endif  
-  
+
+#ifdef HYBRID_MOMENTUM
+  void init_hybrid_momentum
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void ca_hybrid_hydro_source
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(sources));
+
+  void hybrid_update
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state));
+#endif
+
   void ca_check_initial_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG(state));  
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void enforce_minimum_density
     (const Real* S_old, const int* s_old_lo, const int* s_old_hi,
      const Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const int* lo, const int* hi,
-     const Real* mass_added, const Real* e_added, const Real* E_added,
+     const Real* mass_added, const Real* e_added,
+     const Real* E_added, const Real* frac_change,
      const int* verbose);
 
-  void ca_enforce_nonnegative_species
-    (BL_FORT_FAB_ARG(S_new), const int lo[], const int hi[]);  
+  void ca_normalize_species
+    (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);  
 
   void get_center(Real* center);
   void set_center(Real* center);
@@ -380,7 +398,11 @@ extern "C"
      const Real* dx, Real* dt);
 
 #ifdef DIFFUSION
-  void ca_estdt_diffusion
+  void ca_estdt_temp_diffusion
+    (const int* lo, const int* hi, 
+     const BL_FORT_FAB_ARG_3D(state),
+     const Real* dx, Real* dt);
+  void ca_estdt_enth_diffusion
     (const int* lo, const int* hi, 
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
@@ -396,12 +418,24 @@ extern "C"
 
 #ifdef REACTIONS
     void ca_estdt_burning
-    (const BL_FORT_FAB_ARG_3D(state),
-     const BL_FORT_FAB_ARG_3D(reactions),
+    (const BL_FORT_FAB_ARG_3D(state_old),
+     const BL_FORT_FAB_ARG_3D(state_new),
+     const BL_FORT_FAB_ARG_3D(reactions_old),
+     const BL_FORT_FAB_ARG_3D(reactions_new),
      const int* lo, const int* hi,
      const Real* dx, const Real* dt_old, Real* dt);
 #endif
-  
+
+  void ca_check_timestep
+    (const BL_FORT_FAB_ARG_3D(state_old),
+     const BL_FORT_FAB_ARG_3D(state_new),
+#ifdef REACTIONS
+     const BL_FORT_FAB_ARG_3D(reactions_old),
+     const BL_FORT_FAB_ARG_3D(reactions_new),
+#endif
+     const int* lo, const int* hi,
+     const Real* dx, const Real* dt_old, Real* dt);
+
   void ca_umdrv
     (const int* is_finest_level,
      const Real* time, 
@@ -433,10 +467,20 @@ extern "C"
      Real& mass_added,
      Real& eint_added,
      Real& eden_added,
+     Real& frac_change,
+     Real& mass_added_flux,
      Real& xmom_added_flux,
      Real& ymom_added_flux,
      Real& zmom_added_flux,
-     Real& E_added_flux);
+     Real& E_added_flux,
+     Real& mass_lost,
+     Real& xmom_lost,
+     Real& ymom_lost,
+     Real& zmom_lost,
+     Real& eden_lost,
+     Real& xang_lost,
+     Real& yang_lost,
+     Real& zang_lost);
 
 #ifdef RADIATION
   void ca_umdrv_rad
@@ -490,6 +534,8 @@ extern "C"
      const Real& E_added, const Real* mom_added);
 
   void update_sponge_params(const Real* time);  
+
+  void flush_output();
 
 #ifdef POINTMASS
   void pm_compute_delta_mass
@@ -624,6 +670,11 @@ extern "C"
   void ca_tempdiffextrap
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(TempDiffTerm));
+
+  void make_enthalpy
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+           BL_FORT_FAB_ARG_3D(enth));
   
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
@@ -633,32 +684,35 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
+  
+  void ca_fill_enth_cond
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(xcoeffs),
+     const BL_FORT_FAB_ARG_3D(ycoeffs),
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
   
   void ca_fill_spec_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
 
   void ca_fill_first_visc_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
 
   void ca_fill_secnd_visc_coeff
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
-     const BL_FORT_FAB_ARG_3D(zcoeffs),
-     const Real* dx);
+     const BL_FORT_FAB_ARG_3D(zcoeffs));
   
   void ca_compute_div_tau_u
     (const int* lo, const int* hi,

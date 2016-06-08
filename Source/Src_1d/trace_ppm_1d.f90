@@ -14,8 +14,8 @@ contains
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, &
-         QREINT, QPRES, QFS, QFX, &
+    use meth_params_module, only : QVAR, QRHO, QU, &
+         QREINT, QPRES, &
          small_dens, small_pres, ppm_type, fix_mass_flux, &
          ppm_reference, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, &
@@ -44,7 +44,7 @@ contains
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
 
     ! Local variables
-    integer          :: i, j = 0, k = 0
+    integer          :: i
     integer          :: n, ipassive
 
     double precision :: hdt,dtdx
@@ -60,11 +60,8 @@ contains
     double precision :: gam
 
     double precision :: enth, alpham, alphap, alpha0r, alpha0e
-    double precision :: spminus, spplus, spzero
     double precision :: apright, amright, azrright, azeright
     double precision :: apleft, amleft, azrleft, azeleft
-    double precision :: acmprght, acmpleft
-    double precision :: ascmprght, ascmpleft
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
     double precision :: xi, xi1

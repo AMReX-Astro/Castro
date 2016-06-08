@@ -77,7 +77,8 @@ contains
 
   
   
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(C)
+  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
+       bind(C, name="ca_enforce_consistent_e")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
@@ -115,12 +116,13 @@ contains
 
 
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(C)
+  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
+       bind(C, name="reset_internal_e")
 
     use eos_module 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-         small_temp, allow_negative_energy, &
+         UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
 
@@ -137,7 +139,65 @@ contains
     type (eos_t) :: eos_state
 
     ! Reset internal energy
-    if (allow_negative_energy .eq. 0) then
+
+    ! First, check if the internal energy variable is
+    ! smaller than the internal energy computed via
+    ! a call to the EOS using the small temperature.
+    ! If so, reset it using the current temperature,
+    ! assuming it is at least as large as small_temp.
+    ! Note that allow_small_energy .eq. 0 overrides
+    ! allow_negative_energy .eq. 0 since a negative
+    ! energy is of course smaller than the smallest
+    ! allowed energy.
+
+    if (allow_small_energy .eq. 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                rhoInv = ONE / u(i,j,k,URHO)
+                Up = u(i,j,k,UMX) * rhoInv
+                Vp = u(i,j,k,UMY) * rhoInv
+                Wp = u(i,j,k,UMZ) * rhoInv
+                ke = HALF * (Up**2 + Vp**2 + Wp**2)
+
+                rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+
+                ! Reset (e from e) if it's greater than eta * E.
+
+                if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
+
+                   u(i,j,k,UEINT) = rho_eint
+
+                endif
+
+                eos_state % rho = u(i,j,k,URHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                call eos(eos_input_rt, eos_state)
+
+                if (u(i,j,k,UEINT) * rhoInv < eos_state % e) then
+
+                   eos_state % T = max(u(i,j,k,UTEMP), small_temp)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   if (dual_energy_update_E_from_e) then
+                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
+                   endif
+
+                   u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+
+                endif
+
+             enddo
+          enddo
+       enddo
+
+    else if (allow_negative_energy .eq. 0) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -181,7 +241,10 @@ contains
                       print *,'    '
                    end if
 
-                   u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                   if (dual_energy_update_E_from_e) then
+                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                   endif
+
                    u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
 
                 end if
@@ -189,7 +252,8 @@ contains
           enddo
        enddo
 
-       ! If (allow_negative_energy .eq. 1) then just reset (rho e) from (rho E)
+       ! If (allow_negative_energy .eq. 1) and (allow_small_energy .eq. 1)
+       ! then just reset (rho e) from (rho E)
     else
 
        do k = lo(3), hi(3)
@@ -214,12 +278,13 @@ contains
 
 
 
-  subroutine compute_temp(lo,hi,state,s_lo,s_hi) bind(C)
+  subroutine compute_temp(lo,hi,state,s_lo,s_hi) &
+       bind(C, name="compute_temp")
 
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, allow_negative_energy
+         UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
     use bl_constants_module
 
     implicit none
@@ -277,7 +342,10 @@ contains
 
              ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
 
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
+             if (dual_energy_update_E_from_e) then
+                state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
+             endif
+
              state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
 
           enddo
@@ -285,9 +353,83 @@ contains
     enddo
 
   end subroutine compute_temp 
-  
 
-  
+
+
+  subroutine ca_check_initial_species(lo,hi,state,state_lo,state_hi) &
+                                      bind(C, name="ca_check_initial_species")
+
+    use network           , only : nspec
+    use meth_params_module, only : NVAR, URHO, UFS
+    use bl_constants_module
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: state_lo(3), state_hi(3)
+    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+
+    ! Local variables
+    integer          :: i, j, k
+    double precision :: spec_sum
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
+
+             if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.d-8 * state(i,j,k,URHO)) then
+
+                print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
+                call bl_error("Error:: Failed check of initial species summing to 1")
+
+             end if
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_check_initial_species
+
+
+
+  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
+
+    use network, only : nspec
+    use meth_params_module, only : NVAR, URHO, UFS, small_x
+    use bl_constants_module, only: ONE
+
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3)
+    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+
+    ! Local variables
+    integer          :: i, j, k
+    double precision :: xn(nspec)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xn = u(i,j,k,UFS:UFS+nspec-1)
+
+             xn = max(small_x * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
+
+             xn = u(i,j,k,URHO) * (xn / sum(xn))
+
+             u(i,j,k,UFS:UFS+nspec-1) = xn
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_normalize_species
+
+
+
   ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
   ! Optionally we can also be edge-centered in any of the directions.
   
@@ -518,5 +660,190 @@ contains
     endif
 
   end function volume
+
+
+
+  subroutine get_center(center_out) bind(C, name="get_center")
+
+    use prob_params_module, only : center
+
+    implicit none
+
+    double precision, intent(inout) :: center_out(3)
+
+    center_out = center
+
+  end subroutine get_center
+
+
+
+  subroutine set_center(center_in) bind(C, name="set_center")
+
+    use prob_params_module, only : center
+
+    implicit none
+
+    double precision :: center_in(3)
+
+    center = center_in
+
+  end subroutine set_center
+
+
+
+  subroutine find_center(data,new_center,icen,dx,problo) &
+                         bind(C, name="find_center")
+
+    use bl_constants_module
+    use prob_params_module, only: dg, dim
+
+    implicit none
+
+    double precision :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
+    double precision :: new_center(3)
+    double precision :: dx(3),problo(3)
+    double precision :: a,b,x,y,z,cen
+    integer          :: icen(3)
+    integer          :: i,j,k
+
+    if (dim .eq. 1) then
+
+       ! In 1-D it only make sense to have the center at the origin
+       new_center = ZERO
+
+    else if (dim .ge. 2) then
+
+       ! We do this to take care of precision issues
+       cen = data(0,0,0)
+       do k = -1*dg(3),1*dg(3)
+          do j = -1*dg(2),1*dg(2)
+             do i = -1*dg(1),1*dg(1)
+                data(i,j,k) = data(i,j,k) - cen 
+             end do
+          end do
+       end do
+
+       ! This puts the "center" at the cell center
+       new_center(1:dim) = problo(1:dim) +  (icen(1:dim)+HALF) * dx(1:dim)
+
+       ! Fit parabola y = a x^2  + b x + c through three points
+       ! a = 1/2 ( y_1 + y_-1)
+       ! b = 1/2 ( y_1 - y_-1)
+       ! x_vertex = -b / 2a
+
+       ! ... in x-direction
+       a = HALF * (data(1,0,0) + data(-1,0,0)) - data(0,0,0)
+       b = HALF * (data(1,0,0) - data(-1,0,0)) - data(0,0,0)
+       x = -b / (TWO*a)
+       new_center(1) = new_center(1) +  x*dx(1)
+
+       ! ... in y-direction
+       a = HALF * (data(0,1,0) + data(0,-1,0)) - data(0,0,0)
+       b = HALF * (data(0,1,0) - data(0,-1,0)) - data(0,0,0)
+       y = -b / (TWO*a)
+       new_center(2) = new_center(2) +  y*dx(2)
+
+       if (dim .eq. 3) then
+
+          ! ... in z-direction
+          a = HALF * (data(0,0,1) + data(0,0,-1)) - data(0,0,0)
+          b = HALF * (data(0,0,1) - data(0,0,-1)) - data(0,0,0)
+          z = -b / (TWO*a)
+          new_center(3) = new_center(3) +  z*dx(3)
+
+       endif
+
+    endif
+
+  end subroutine find_center
+
+
+
+  subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
+                                 state,s_lo,s_hi,radial_state, &
+                                 vol,v_lo,v_hi,radial_vol, &
+                                 problo,numpts_1d) &
+                                 bind(C, name="ca_compute_avgstate")
+
+    use meth_params_module, only : URHO, UMX, UMY, UMZ
+    use prob_params_module, only : center, dim
+    use bl_constants_module
+
+    implicit none
+
+    integer          :: lo(3),hi(3),nc
+    double precision :: dx(3),dr,problo(3)
+
+    integer          :: numpts_1d
+    double precision :: radial_state(nc,0:numpts_1d-1)
+    double precision :: radial_vol(0:numpts_1d-1)
+
+    integer          :: s_lo(3), s_hi(3)
+    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nc)
+
+    integer          :: v_lo(3), v_hi(3)
+    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+
+    integer          :: i,j,k,n,index
+    double precision :: x,y,z,r
+    double precision :: x_mom,y_mom,z_mom,radial_mom
+
+    if (dim .eq. 1) call bl_error("Error: cannot do ca_compute_avgstate in 1D.")
+
+    !
+    ! Do not OMP this.
+    !
+    do k = lo(3), hi(3)
+       z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
+             r = sqrt(x**2 + y**2 + z**2)
+             index = int(r/dr)
+             if (index .gt. numpts_1d-1) then
+                print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
+                print *,'AT (i,j,k) ',i,j,k
+                print *,'R / DR ',r,dr
+                call bl_error("Error:: Castro_3d.f90 :: ca_compute_avgstate")
+             end if
+             radial_state(URHO,index) = radial_state(URHO,index) &
+                                      + vol(i,j,k)*state(i,j,k,URHO)
+             !
+             ! Store the radial component of the momentum in the 
+             ! UMX, UMY and UMZ components for now.
+             !
+             x_mom = state(i,j,k,UMX)
+             y_mom = state(i,j,k,UMY)
+             z_mom = state(i,j,k,UMZ)
+             radial_mom = x_mom * (x/r) + y_mom * (y/r) + z_mom * (z/r)
+             radial_state(UMX,index) = radial_state(UMX,index) + vol(i,j,k)*radial_mom
+             radial_state(UMY,index) = radial_state(UMY,index) + vol(i,j,k)*radial_mom
+             radial_state(UMZ,index) = radial_state(UMZ,index) + vol(i,j,k)*radial_mom
+
+             do n = UMZ+1,nc
+                radial_state(n,index) = radial_state(n,index) + vol(i,j,k)*state(i,j,k,n)
+             end do
+             radial_vol(index) = radial_vol(index) + vol(i,j,k)
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_compute_avgstate
+
+
+
+  function linear_to_angular_momentum(loc, mom) result(ang_mom)
+
+    implicit none
+
+    double precision :: loc(3), mom(3)
+    double precision :: ang_mom(3)
+
+    ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
+    ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)
+    ang_mom(3) = loc(1) * mom(2) - loc(2) * mom(1)
+
+  end function linear_to_angular_momentum
 
 end module castro_util_module

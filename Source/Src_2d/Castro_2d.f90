@@ -11,14 +11,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                     dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                     vol,vol_l1,vol_l2,vol_h1,vol_h2,&
-                    courno,verbose,mass_added,eint_added,eden_added,&
-                    xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux) bind(C)
+                    courno,verbose,mass_added,eint_added,eden_added,frac_change, &
+                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
+                    E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                    eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, normalize_species, ngdnv, GDU, GDV
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
   use advection_module, only : umeth2d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species, divu
-  use castro_util_2d_module, only : ca_enforce_nonnegative_species
+  use advection_util_module, only : enforce_minimum_density, divu
+  use castro_util_module, only : ca_normalize_species
 
   implicit none
 
@@ -49,9 +50,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
   double precision delta(2),dt,time,courno
-  double precision E_added_flux
+  double precision E_added_flux, mass_added_flux
   double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
-  double precision mass_added,eint_added,eden_added
+  double precision mass_added,eint_added,eden_added,frac_change
+  double precision mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision eden_lost,xang_lost,yang_lost,zang_lost
 
   ! Automatic arrays for workspace
   double precision, allocatable :: q(:,:,:)
@@ -119,6 +122,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                srcQ, q_l1,q_l2,q_h1,q_h2, &
                lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
+               uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                q1, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
@@ -145,20 +149,21 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area1,area1_l1,area1_l2,area1_h1,area1_h2, &
               area2,area2_l1,area2_l2,area2_h1,area2_h2, &
               vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-              div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
+              div,pdivu,lo,hi,dx,dy,dt,mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+              eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi, &
-                               lo,hi,mass_added,eint_added,eden_added,verbose)
+                               lo,hi,mass_added,eint_added,eden_added, &
+                               frac_change, verbose)
 
-  ! Enforce the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
-
-  ! Normalize the species 
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_l2,uout_h1,uout_h2,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout, &
+                            [uout_lo(1), uout_lo(2), 0], [uout_hi(1), uout_hi(2), 0], &
+                            [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)

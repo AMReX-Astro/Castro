@@ -9,14 +9,15 @@ subroutine ca_umdrv(is_finest_level,time,&
      area,area_l1,area_h1,&
      dloga,dloga_l1,dloga_h1,&
      vol,vol_l1,vol_h1,courno,verbose,&
-     mass_added,eint_added,eden_added,&
-     xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-     E_added_flux) bind(C)
+     mass_added,eint_added,eden_added,frac_change,&
+     mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP, normalize_species
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density, normalize_new_species
-  use castro_util_1d_module, only : ca_enforce_nonnegative_species
+  use advection_util_module, only : enforce_minimum_density
+  use castro_util_module, only : ca_normalize_species
   use bl_constants_module
 
   implicit none
@@ -53,9 +54,11 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision, allocatable:: srcQ(:,:)
   double precision, allocatable:: pdivu(:)
 
-  double precision :: dx,E_added_flux
+  double precision :: dx,E_added_flux,mass_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision :: mass_added, eint_added, eden_added
+  double precision :: mass_added, eint_added, eden_added, frac_change
+  double precision :: mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision :: eden_lost,xang_lost,yang_lost,zang_lost
   integer i,ngf,ngq
   integer q_l1, q_h1
 
@@ -126,20 +129,20 @@ subroutine ca_umdrv(is_finest_level,time,&
        flux,flux_l1,flux_h1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
-       div ,pdivu,lo,hi,dx,dt,E_added_flux, &
+       div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
        xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+       mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+       eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi,lo,hi,&
-       mass_added,eint_added,eden_added,verbose)
+                               mass_added,eint_added,eden_added,frac_change,verbose)
 
-  ! Enforce that the species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_h1,lo,hi)
-
-  ! Normalize the species
-  if (normalize_species .eq. 1) &
-       call normalize_new_species(uout,uout_l1,uout_h1,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout, &
+                            [uout_l1, 0, 0], [uout_h1, 0, 0], &
+                            [lo(1), 0, 0], [hi(1), 0, 0])
 
   deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 

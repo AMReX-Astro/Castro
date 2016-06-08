@@ -10,7 +10,7 @@ contains
        rhs, rhl1, rhl2, rhh1, rhh2, &
        ecx, ecxl1, ecxl2, ecxh1, ecxh2, &
        ecy, ecyl1, ecyl2, ecyh1, ecyh2, &
-       dx,problo,coord_type) bind(C)
+       dx,problo,coord_type) bind(C, name="ca_test_residual")
 
     use bl_constants_module
 
@@ -74,7 +74,7 @@ contains
   subroutine ca_compute_avgden (lo,hi,dx,dr,&
        rho,r_l1,r_l2,r_h1,r_h2, &
        radial_den,radial_vol,problo, &
-       n1d,drdxfac,level) bind(C)
+       n1d,drdxfac,level) bind(C, name="ca_compute_avgden")
 
     use prob_params_module, only: center
     use bl_constants_module
@@ -155,7 +155,7 @@ contains
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
        rho,r_l1,r_l2,r_h1,r_h2, &
        radial_mass,radial_vol,problo, &
-       n1d,drdxfac,level) bind(C)
+       n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
     
     use bl_constants_module
     use prob_params_module, only: center
@@ -243,7 +243,7 @@ contains
 
   subroutine ca_put_radial_grav (lo,hi,dx,dr,&
        grav,g_l1,g_l2,g_h1,g_h2, &
-       radial_grav,problo,n1d,level) bind(C)
+       radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use prob_params_module, only: center
     use bl_constants_module
@@ -323,7 +323,7 @@ contains
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
        phi,p_l1,p_l2,p_h1,p_h2, &
        radial_phi,problo, &
-       numpts_1d,fill_interior) bind(C)
+       numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
     use prob_params_module, only: center
     use bl_constants_module

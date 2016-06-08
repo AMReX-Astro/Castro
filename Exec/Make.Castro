@@ -3,9 +3,9 @@ CASTRO_DIR ?= /path/to/Castro
 
 TOP := $(CASTRO_DIR)
 
-EOS_HOME ?= $(TOP)/EOS
-NETWORK_HOME ?= $(TOP)/Networks
-COND_HOME ?= $(TOP)/Conductivity
+EOS_HOME ?= $(TOP)/Microphysics/EOS
+NETWORK_HOME ?= $(TOP)/Microphysics/networks
+COND_HOME ?= $(TOP)/Microphysics/conductivity
 
 EBASE = Castro
 
@@ -40,6 +40,16 @@ endif
 
 ifeq ($(USE_TAU), TRUE)
   DEFINES += -DTAU
+endif
+
+ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
+  ifeq ($(DIM), 3)
+    DEFINES += -DHYBRID_MOMENTUM
+  endif
+endif
+
+ifeq ($(USE_SHOCK_VAR), TRUE)
+  DEFINES += -DSHOCK_VAR
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)
@@ -241,10 +251,6 @@ Blocs	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir))
 Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
-ifeq ($(USE_TRACING), TRUE)
-   Blocs := $(ASTRODEV_DIR)/Castro_source/tracing $(Blocs)
-endif
-
 ifeq ($(USE_RAD), TRUE)
 include $(RADIATION_DIR)/Exec/Make.Radiation
 endif
@@ -312,19 +318,19 @@ buildInfo.cpp:
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
-          --COMP "$(COMP)" \
-          --FCOMP "$(FCOMP)" \
+          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(ASTRODEV_DIR)" \
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
 	  --build_git_dir "$(BUILD_GIT_DIR)"
 else
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
-          --COMP "$(COMP)" \
-          --FCOMP "$(FCOMP)" \
+          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(ASTRODEV_DIR)"
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)"
 endif
 
 vpath %.c   . $(VPATH_LOCATIONS)
@@ -360,5 +366,5 @@ clean::
 # for debugging.  To see the value of a Makefile variable,
 # e.g. Fmlocs, simply do "make print-Fmlocs".  This will
 # print out the value.
-print-%: ; @echo $* is $($*)
+print-%: ; @echo $* is $($*) ; $(SILENT) $(RM) buildInfo.cpp
 

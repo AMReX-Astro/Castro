@@ -13,16 +13,17 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                    courno,verbose,mass_added,eint_added,eden_added,&
-                    xmom_added_flux,ymom_added_flux,zmom_added_flux,&
-                    E_added_flux) bind(C)
+                    courno,verbose,mass_added,eint_added,eden_added,frac_change, &
+                    mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+                    E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                    eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, &
-                                 normalize_species, GDU, GDV, GDW
+                                 GDU, GDV, GDW
   use advection_module, only : umeth3d, ctoprim, consup
-  use advection_util_module, only : divu, enforce_minimum_density, normalize_new_species
-  use castro_util_3d_module, only : ca_enforce_nonnegative_species
+  use advection_util_module, only : divu, enforce_minimum_density
+  use castro_util_module, only : ca_normalize_species
 
   implicit none
 
@@ -57,9 +58,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(in) :: area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
   double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
   double precision, intent(in) :: delta(3),dt,time
-  double precision, intent(out) ::courno,E_added_flux
-  double precision, intent(out) :: mass_added,eint_added,eden_added
-  double precision, intent(out) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
+  double precision, intent(inout) :: courno,E_added_flux,mass_added_flux
+  double precision, intent(inout) :: mass_added,eint_added,eden_added,frac_change
+  double precision, intent(inout) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
+  double precision, intent(inout) :: mass_lost,xmom_lost,ymom_lost,zmom_lost
+  double precision, intent(inout) :: eden_lost,xang_lost,yang_lost,zang_lost
 
   ! Automatic arrays for workspace
   double precision, pointer:: q(:,:,:,:)
@@ -173,6 +176,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call umeth3d(q,c,gamc,csml,flatn,q_lo,q_hi, &
                srcQ,q_lo,q_hi, &
                lo,hi,delta,dt, &
+               uout,uout_lo,uout_hi, &
                flux1,flux1_lo,flux1_hi, &
                flux2,flux2_lo,flux2_hi, &
                flux3,flux3_lo,flux3_hi, &
@@ -198,8 +202,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt,E_added_flux, &
+              div,pdivu,lo,hi,delta,dt,mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+              eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
   ! Add the radiative cooling -- for SGS only.
@@ -210,17 +216,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi, &
-                               lo,hi,mass_added,eint_added,eden_added,verbose)
+                               lo,hi,mass_added,eint_added,eden_added, &
+                               frac_change,verbose)
 
-  ! Enforce species >= 0
-  call ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
-                                      uout_h1,uout_h2,uout_h3,lo,hi)
+  ! Renormalize species mass fractions
+  call ca_normalize_species(uout,uout_lo,uout_hi,lo,hi)
  
-  ! Re-normalize the species
-  if (normalize_species .eq. 1) then
-     call normalize_new_species(uout,uout_lo,uout_hi,lo,hi)
-  end if
-
   ! Copy data from the edge-centered state into ugdnv
 
   ugdnvx_out(:,:,:) = q1(:,:,:,GDU)

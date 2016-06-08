@@ -110,6 +110,7 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     VisMF::How     how) BL_OVERRIDE;
+    void writeJobInfo (const std::string& dir);
 
     //
     //Define data descriptors.
@@ -204,12 +205,14 @@ public:
     Real advance_hydro (Real time,
                         Real dt,
                         int  iteration,
-                        int  ncycle);
+                        int  ncycle,
+			int  subcycle_iter);
 
     Real advance_no_hydro (Real time,
                            Real dt,
                            int  iteration,
-                           int  ncycle);
+                           int  ncycle,
+			   int  subcycle_iter);
 
     void time_center_source_terms (MultiFab& S_new,
                                    MultiFab& ext_src_old,
@@ -360,8 +363,9 @@ public:
 #endif
 
 #ifdef DIFFUSION
-    void getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau = 0);
-    void getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm);
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
+    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
     void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
@@ -370,16 +374,19 @@ public:
 #endif
 #ifdef TAU
     void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t, MultiFab& tau_diff);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
+    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, MultiFab& tau_diff);
+    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
     void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt, MultiFab& tau_diff);
 #else
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt);
+    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void time_center_enth_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
+    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
     void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
 #endif
-    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& TempDiffTerm, Real t);
-    void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldTempDiffTerm, Real  cur_time, Real dt);
+    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
     void full_spec_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
@@ -416,6 +423,10 @@ public:
 
     void set_special_tagging_flag (Real time);
 
+#ifdef HYBRID_MOMENTUM
+    void add_hybrid_hydro_source (MultiFab& sources, MultiFab& state);
+#endif
+
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
 
     void make_radial_data (int is_new);
@@ -435,6 +446,12 @@ public:
 
     static int       NUM_STATE;
     static int       Density, Xmom, Ymom, Zmom, Eden, Eint, Temp;
+#ifdef HYBRID_MOMENTUM
+    static int       Rmom, Lmom, Pmom;
+#endif
+#ifdef SHOCK_VAR
+    static int       Shock;
+#endif
 #ifdef SGS
     static int       Esgs;
     static Real      sum_turb_src;
@@ -540,6 +557,15 @@ protected:
     static BCRec     phys_bc;
     static int       NUM_GROW;
 
+    // for keeping track of mass changes from negative density resets
+    static Real      frac_change;
+
+    // For keeping track of fluid quantities lost at physical grid boundaries.
+    // This should persist through restarts, but right now only on level 0.
+    static const int n_lost = 8;
+    Real             material_lost_through_boundary_cumulative[n_lost];
+    Real             material_lost_through_boundary_temp[n_lost];
+
     // for keeping track of the amount of CPU time used -- this will persist
     // after restarts
     static Real      previousCPUTimeUsed;
@@ -547,11 +573,9 @@ protected:
 
     static Real getCPUTime();
 
-    // for keeping track of energy change from burning
-    static Real      max_dedt;
-
 #ifdef DIFFUSION
     static int       diffuse_temp;
+    static int       diffuse_enth;
     static int       diffuse_spec;
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
@@ -562,9 +586,6 @@ protected:
 #endif
 
     bool             FillPatchedOldState_ok;
-
-    std::map<std::string,MultiFab*> auxDiag;
-    static std::map<std::string,Array<std::string> > auxDiag_names;
 
     // There can be only one Gravity object, it covers all levels:
     static class Gravity *gravity;

@@ -98,8 +98,11 @@ public:
 
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
-#if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM > 1)
   void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void init_multipole_grav();
+#endif
+#if (BL_SPACEDIM == 3)
   void fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi);
 #endif
 
@@ -155,6 +158,7 @@ protected:
   static int   lnum;
   static int   direct_sum_bcs;
   static int   get_g_from_phi;
+  static int   max_solve_level;
   static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;

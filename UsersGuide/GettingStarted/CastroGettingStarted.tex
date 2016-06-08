@@ -21,7 +21,7 @@ git clone https://github.com/BoxLib-Codes/BoxLib.git
 Alternately, if you have a {\sf github} account with your
 machine's SSH-keys registered, you can do:
 \begin{verbatim}
-git clone ssh://git@github.com:/BoxLib-Codes/Castro.git
+git clone ssh://git@github.com/BoxLib-Codes/BoxLib.git
 \end{verbatim}
 
 This will create a directory called {\tt BoxLib/} on your machine.
@@ -31,6 +31,11 @@ You will want to periodically update \boxlib\ by typing
 git pull
 \end{verbatim}
 in the {\tt BoxLib/} directory.  
+
+Note: actively development is done on the {\tt development} branch
+in each repo, and merged into the {\tt master} branch periodically.
+If you wish to use the \castro\ {\tt development} branch, then you
+should also switch to the {\tt development} branch for \boxlib.
 
 If you prefer not to use {\sf git}, you can navigate to the
 \href{https://github.com/BoxLib-Codes}{\boxlib\ Codes} page in
@@ -61,12 +66,22 @@ Or, as above, you can download a ZIP file of the code from
 \href{https://github.com/BoxLib-Codes}{our main {\sf github} page},
 by clicking on the \castro\ link.
 
+As with \boxlib, development on \castro\ is done in the
+{\tt development} branch, so you should work there if you want
+the latest source.
+
 \item We recommend setting the {\tt CASTRO\_DIR} environment
   variable to point to the path name where you have put \castro.
   Add the following to your {\tt .bashrc}:
 \begin{verbatim}
 export CASTRO_DIR="/path/to/Castro/"
 \end{verbatim}
+
+
+\item (optional) Two additional repositories, {\tt Microphysics.git} and
+{\tt CastroRadiation.git} are available at the {\tt BoxLib-Codes} github
+page.  These add additional reaction networks/EOSes and radiation, respectively,
+and can be cloned following the same procedure as above.
 
 \end{enumerate}
 

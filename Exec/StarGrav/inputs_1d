@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-amr.plot_files_output = 0
-amr.checkpoint_files_output = 0
+amr.plot_files_output = 1
+amr.checkpoint_files_output = 1
 
 max_step = 100000
 stop_time = 1.0

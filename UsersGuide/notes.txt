@@ -1,0 +1,88 @@
+Amr class is what drives the whole simulation -- this is the highest level
+
+AmrLevel is a C++ object that has the whole fluid state
+
+Castro is an AmrLevel class for a single level -- contains all the data needed to advance the state for a single level
+
+Multifab is a class that contains the data on an AMR level -- this is the main datastructure in the AmrLevel 
+
+
+e.g. look at Amr::CoarseTimestep() in the AMR class -- driver for the 
+ main level
+
+  -- this will also drive the finer grids, including subcycling
+
+
+
+Each AMR level is a Castro object
+
+   Castro has StateData -- these are basically MultiFabs
+
+   StateType = fluids
+   PhiGrav_Type = gravitational potential, etc.
+
+
+   These all are on the same domain / gridding, and have different number
+   of components.
+
+   The reason for having them separate StateData (these are essentially
+   different offsets into the MF)
+
+   StateData has a new time and old time MF
+
+   The different types of data have different logistics (number of
+   ghost cells, boundary condition fills, etc.)
+
+
+
+level advance is calling Castro::advance()
+
+   advance_hydro() is where most of the action is
+
+      initializes data at the old time (e.g. call the gravity solve at
+      the old time)
+
+      calculate the source terms at the old time
+
+      does reactions
+
+      does hydro 
+
+
+A multifab covers the entire domain.  This is a collection of Fortran
+Array Boxes.
+
+    Each processor owns different FABs.
+
+    To do work, we loop over the boxes local on the processor (this is 
+    done via the MFIter)
+
+Different data can have different numbers of ghost cells.  To do the
+hydrodynamics, we need to have ghost cells.  Ghost cells are instantiated
+as needed (by creating a new FAB using the FillPatch)
+
+   Sborder has ghost zone (NUM_GROW = 4)
+
+   FillPatch -- you give it the State_Type, the time-level, components
+      -- this is where all the communication is done.
+
+
+All the numerics is done in Fortran kernels.  You had to Fortran a FAB
+and Fortran will do the updating.  No parallel communication is done
+in Fortran -- it is all local.  You don't need to know about neighbors, etc.
+
+   Note that the interger indices refer to the global index space AT THAT
+   LEVEL
+
+   In Fortran, we will always use subroutines, not functions
+
+
+
+  
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, normalize_new_species, &
+  public enforce_minimum_density, &
          normalize_species_fluxes, divu
 
 contains
@@ -71,8 +71,10 @@ contains
 
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
-                                     lo,hi,mass_added,eint_added,eden_added,verbose) bind(C)
-    use network, only : nspec, naux
+                                     lo,hi,mass_added,eint_added, &
+                                     eden_added,frac_change,verbose) &
+                                     bind(C, name="enforce_minimum_density")
+    use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
                                    UFS, small_dens, smalL_temp, npassive, upass_map
     use bl_constants_module
@@ -86,7 +88,7 @@ contains
     integer          :: uout_lo(2), uout_hi(2)
     double precision ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2),NVAR)
     double precision :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),NVAR)
-    double precision :: mass_added, eint_added, eden_added
+    double precision :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
     integer                       :: i,ii,j,jj,n,ipassive
@@ -113,7 +115,7 @@ contains
           initial_mass = initial_mass + uout(i,j,URHO)
           initial_eint = initial_eint + uout(i,j,UEINT)
           initial_eden = initial_eden + uout(i,j,UEDEN)
-          
+
           if (uout(i,j,URHO) .eq. ZERO) then
              
              print *,'   '
@@ -123,7 +125,16 @@ contains
              call bl_error("Error:: Castro_2d.f90 :: enforce_minimum_density")
              
           else if (uout(i,j,URHO) < small_dens) then
+
+             ! Store the maximum (negative) fractional change in the density
              
+             if ( uout(i,j,URHO) < ZERO .and. &
+                  (uout(i,j,URHO) - uin(i,j,URHO)) / uin(i,j,URHO) < frac_change) then
+
+                frac_change = (uout(i,j,URHO) - uin(i,j,URHO)) / uin(i,j,URHO)
+
+             endif
+
              max_dens = uout(i,j,URHO)
              do jj = -1,1
                 do ii = -1,1
@@ -145,8 +156,21 @@ contains
 
              if (max_dens < small_dens) then
 
-                i_set = i
-                j_set = j
+                if (verbose .gt. 0) then
+                   if (uout(i,j,URHO) < ZERO) then
+                      print *,'   '
+                      print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                      print *,'>>> ... resetting negative density '
+                      print *,'>>> ... from ',uout(i,j,URHO),' to ',small_dens
+                      print *,'    '
+                   else
+                      print *,'   '
+                      print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                      print *,'>>> ... resetting small density '
+                      print *,'>>> ... from ',uout(i,j,URHO),' to ',small_dens
+                      print *,'    '
+                   end if
+                end if
                 
                 do ipassive = 1, npassive
                    n = upass_map(ipassive)
@@ -168,36 +192,38 @@ contains
                 uout(i,j,UEINT) = eos_state % rho * eos_state % e
                 uout(i,j,UEDEN) = uout(i,j,UEINT)
 
-             endif
+             else
              
-             if (verbose .gt. 0) then
-                if (uout(i,j,URHO) < ZERO) then
-                   print *,'   '
-                   print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                   print *,'>>> ... resetting negative density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
-                   print *,'    '
-                else
-                   print *,'   '
-                   print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                   print *,'>>> ... resetting small density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
-                   print *,'    '
+                if (verbose .gt. 0) then
+                   if (uout(i,j,URHO) < ZERO) then
+                      print *,'   '
+                      print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                      print *,'>>> ... resetting negative density '
+                      print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
+                      print *,'    '
+                   else
+                      print *,'   '
+                      print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
+                      print *,'>>> ... resetting small density '
+                      print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
+                      print *,'    '
+                   end if
                 end if
-             end if
 
-             uout(i,j,URHO ) = uout(i_set,j_set,URHO )
-             uout(i,j,UTEMP) = uout(i_set,j_set,UTEMP)
-             uout(i,j,UEINT) = uout(i_set,j_set,UEINT)
-             uout(i,j,UEDEN) = uout(i_set,j_set,UEDEN)
-             uout(i,j,UMX  ) = uout(i_set,j_set,UMX  )
-             uout(i,j,UMY  ) = uout(i_set,j_set,UMY  )
+                uout(i,j,URHO ) = uout(i_set,j_set,URHO )
+                uout(i,j,UTEMP) = uout(i_set,j_set,UTEMP)
+                uout(i,j,UEINT) = uout(i_set,j_set,UEINT)
+                uout(i,j,UEDEN) = uout(i_set,j_set,UEDEN)
+                uout(i,j,UMX  ) = uout(i_set,j_set,UMX  )
+                uout(i,j,UMY  ) = uout(i_set,j_set,UMY  )
 
-             do ipassive = 1, npassive
-                n = upass_map(ipassive)
-                uout(i,j,n) = uout(i_set,j_set,n)
-             end do
-             
+                do ipassive = 1, npassive
+                   n = upass_map(ipassive)
+                   uout(i,j,n) = uout(i_set,j_set,n)
+                end do
+
+             endif
+
           end if
 
           final_mass = final_mass + uout(i,j,URHO )
@@ -214,7 +240,7 @@ contains
        eden_added = eden_added + (final_eden - initial_eden)
 
     endif
-    
+
   end subroutine enforce_minimum_density
 
 ! :::

@@ -1,4 +1,0 @@
-f90EXE_sources += eos.f90
-f90EXE_sources += eos_type.f90
-f90EXE_sources += eos_data.f90
-

@@ -46,12 +46,21 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
 
         reset_internal_energy(s);
 
+	if (verbose) {
+
+	  Real e_added = r.sum(NumSpec + 1);
+
+	  if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
+	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
+
+	}
+
 	if (verbose && ParallelDescriptor::IOProcessor())
-	  std::cout << "... Leaving burner after completing half-timestep of burning." << "\n\n";
+	  std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
 
     }
 
-    if (verbose > 0)
+    if (verbose > 0 && do_react)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
@@ -60,8 +69,9 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
 	Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
 	if (ParallelDescriptor::IOProcessor()) 
-	    std::cout << "react_half_dt time = " << run_time << '\n';
+	  std::cout << "Castro::react_half_dt() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
 	});
 #endif

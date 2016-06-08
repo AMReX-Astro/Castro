@@ -1,6 +1,7 @@
 subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
                     u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                    domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                    domhi,dx,xlo,time,dt,bc,level,grid_no) &
+                    bind(C, name="ca_derpi")
 
   use network, only : nspec, naux
   use eos_module
@@ -56,7 +57,8 @@ end subroutine ca_derpi
 
 subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
                           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                          domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                          domhi,dx,xlo,time,dt,bc,level,grid_no) &
+                          bind(C, name="ca_derpioverp0")
 
   use network, only : nspec, naux
   use eos_module
@@ -112,7 +114,8 @@ end subroutine ca_derpioverp0
 
 subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                         domhi,dx,xlo,time,dt,bc,level,grid_no) &
+                         bind(C, name="ca_derrhopert")
 
   use network, only : nspec, naux
   use eos_module
@@ -157,7 +160,8 @@ end subroutine ca_derrhopert
 
 subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
                        u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                       domhi,dx,xlo,time,dt,bc,level,grid_no) bind(C)
+                       domhi,dx,xlo,time,dt,bc,level,grid_no) &
+                       bind(C, name="ca_dertpert")
 
   use network, only : nspec, naux
   use eos_module

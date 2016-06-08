@@ -14,7 +14,8 @@ module meth_params_module
 
   ! NTHERM: number of thermodynamic variables
   integer         , save :: NTHERM, NVAR
-  integer         , save :: URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer         , save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer         , save :: USHK
 
   ! QTHERM: number of primitive variables
   integer         , save :: QTHERM, QVAR
@@ -58,6 +59,8 @@ module meth_params_module
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
+  double precision, save :: small_x
+  integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
   integer         , save :: ppm_reference
@@ -72,6 +75,7 @@ module meth_params_module
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
+  integer         , save :: cg_blend
   integer         , save :: use_flattening
   integer         , save :: ppm_flatten_before_integrals
   integer         , save :: transverse_use_eos
@@ -82,23 +86,36 @@ module meth_params_module
   double precision, save :: dual_energy_eta2
   double precision, save :: dual_energy_eta3
   integer         , save :: use_pslope
-  integer         , save :: normalize_species
   integer         , save :: fix_mass_flux
   integer         , save :: allow_negative_energy
+  integer         , save :: allow_small_energy
   integer         , save :: do_sponge
-  double precision, save :: dtnuc
+  double precision, save :: cfl
+  double precision, save :: dtnuc_e
+  double precision, save :: dtnuc_X
+  integer         , save :: dtnuc_mode
   double precision, save :: dxnuc
+  integer         , save :: do_react
   double precision, save :: react_T_min
   double precision, save :: react_T_max
+  double precision, save :: react_rho_min
+  double precision, save :: react_rho_max
+  integer         , save :: disable_shock_burning
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
+  integer         , save :: rotation_include_centrifugal
+  integer         , save :: rotation_include_coriolis
+  integer         , save :: rotation_include_domegadt
   integer         , save :: rot_source_type
+  integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
   double precision, save :: point_mass
+  integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
+  integer         , save :: track_grid_losses
 
   double precision, save :: rot_vec(3)
 

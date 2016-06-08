@@ -1,0 +1,25 @@
+&PROBIN
+rho_l = 1.0d13
+u_l   = 0.0d0
+T_l   = 5.d10
+
+rho_r = 5.0d12
+u_r   = 0.0d0
+T_r   = 5.d10
+
+use_Tinit = T
+
+initial_temp_guess = 1.d5
+
+riemann_max_iter = 20
+
+xmin  = 0.0d0
+xmax  = 1.0d4
+xjump = 0.5d4
+
+t     = 1.d-6
+
+npts  = 128
+
+eos_file = 'LS220_240r_140t_50y_analmu_20120628_SVNr28.h5'
+/

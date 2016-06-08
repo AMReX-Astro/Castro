@@ -21,7 +21,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   namelist /fortin/ model_name, &
        pert_factor, x_pert_loc, pert_width, &
-       cutoff_density, &
+       cutoff_density, refine_cutoff_height, &
        zero_vels
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
@@ -39,7 +39,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   x_pert_loc = ONE
   pert_width = 0.1_dp_t
   pert_factor = ONE
-
+  refine_cutoff_height = HALF*(problo(2)+probhi(2))
+  
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)

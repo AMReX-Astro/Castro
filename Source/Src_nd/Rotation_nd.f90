@@ -2,6 +2,8 @@ module rotation_module
 
   use math_module, only: cross_product
   use rotation_frequency_module, only: get_omega, get_domegadt
+  use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
+                                rotation_include_domegadt
 
   implicit none
 
@@ -17,7 +19,7 @@ contains
   ! the centrifugal force (- omega x ( omega x r)),
   ! and a changing rotation rate (-d(omega)/dt x r).
 
-  function rotational_acceleration(r, v, time) result(Sr)
+  function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
 
     use bl_constants_module, only: ZERO, TWO
 
@@ -28,6 +30,41 @@ contains
 
     double precision :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
 
+    logical, optional :: centrifugal, coriolis, domegadt
+    logical :: c1, c2, c3
+
+    ! Allow the various terms to be turned off.
+
+    if (rotation_include_centrifugal == 1) then
+       c1 = .true.
+    else
+       c1 = .false.
+    endif
+
+    if (present(centrifugal)) then
+       if (.not. centrifugal) c1 = .false.
+    endif
+
+    if (rotation_include_coriolis == 1) then
+       c2 = .true.
+    else
+       c2 = .false.
+    endif
+
+    if (present(coriolis)) then
+       if (.not. coriolis) c2 = .false.
+    endif
+
+    if (rotation_include_domegadt == 1) then
+       c3 = .true.
+    else
+       c3 = .false.
+    endif
+
+    if (present(domegadt)) then
+       if (.not. domegadt) c3 = .false.
+    endif
+
     omega = get_omega(time)
 
     domega_dt = get_domegadt(time)
@@ -35,7 +72,19 @@ contains
     omegacrossr = cross_product(omega,r)
     omegacrossv = cross_product(omega,v)
 
-    Sr = -TWO * omegacrossv - cross_product(omega, omegacrossr) - cross_product(domega_dt, r)
+    Sr = ZERO
+
+    if (c1) then
+       Sr = Sr - cross_product(omega, omegacrossr) 
+    endif
+
+    if (c2) then
+       Sr = Sr - TWO * omegacrossv 
+    endif
+
+    if (c3) then
+       Sr = Sr - cross_product(domega_dt, r)
+    endif
 
   end function rotational_acceleration
 
@@ -58,15 +107,15 @@ contains
 
     omegacrossr = cross_product(omega, r)
 
-    phi = HALF * dot_product(omegacrossr,omegacrossr)
+    phi = -HALF * dot_product(omegacrossr,omegacrossr)
 
   end function rotational_potential
 
 
 
-  subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) bind(C)
+  subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) &
+       bind(C, name="ca_fill_rotational_potential")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center
     use bl_constants_module, only: HALF
 
@@ -100,7 +149,8 @@ contains
 
 
 
-  subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) bind(C)
+  subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) &
+       bind(C, name="ca_fill_rotational_acceleration")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center

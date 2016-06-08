@@ -15,4 +15,6 @@ module probdata_module
 
   double precision, save :: rho_ambient, T_ambient, e_ambient, xn_ambient(nspec)
 
+  double precision, save :: refine_cutoff_height
+  
 end module probdata_module

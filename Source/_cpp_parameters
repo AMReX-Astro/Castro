@@ -1,6 +1,15 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
 #-----------------------------------------------------------------------------
+# category: AMR
+#-----------------------------------------------------------------------------
+
+# how to do limiting of the state data when interpolating
+# 0: only prevent new extrema
+# 1: preserve linear combinations of state variables
+lin_limit_state_interp       int           0
+
+#-----------------------------------------------------------------------------
 # category: hydrodynamics
 #-----------------------------------------------------------------------------
 
@@ -17,12 +26,16 @@ small_temp                   Real         -1.e200             y
 # the small pressure cutoff.  Pressures below this value will be reset
 small_pres                   Real         -1.e200             y
 
-# the small specific internal energy cutoff.  Pressures below this
+# the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
 small_ener                   Real         -1.e200             y
 
+# the small mass fraction cutoff. Mass fractions below this value will
+# be reset
+small_x                      Real          1.e-30             y
+
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1
+do_hydro                     int          -1                  y
 
 # if true, define an additional source term   
 add_ext_src                  int           0
@@ -89,6 +102,13 @@ cg_maxiter                   int          12                  y
 # demand in finding the star state
 cg_tol                       Real          1.0e-5             y
 
+# for the Colella \& Glaz Riemann solver, what to do if
+# we do not converge to a solution for the star state.
+# 0 = do nothing; print iterations and exit
+# 1 = revert to the original guess for p-star
+# 2 = do a bisection search for another 2 * cg\_maxiter iterations.
+cg_blend                     int           0                  y
+
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1                  y
@@ -96,7 +116,7 @@ use_flattening               int           1                  y
 # where do we apply the flattening?  after we've done the tracing of 
 # the states (0); or on the parabolic profiles before we've integrated
 # under them (1)
-ppm_flatten_before_integrals int           0                  y
+ppm_flatten_before_integrals int           1                  y
 
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using $e$ and $\rho$).
@@ -105,25 +125,44 @@ transverse_use_eos           int           0                  y
 # if the transverse interface state correction, if the new density is
 # negative, then replace all of the interface quantities with their
 # values without the transverse correction.
-transverse_reset_density     int           0                  y
+transverse_reset_density     int           1                  y
 
 # if the interface state for $(\rho e)$ is negative after we add the
 # transverse terms, then replace the interface value of $(\rho e)$
 # with a value constructed from the $(\rho e)$ evolution equation
 transverse_reset_rhoe        int           0                  y
 
+# Allow internal energy resets and temperature flooring to change the
+# total energy variable UEDEN in addition to the internal energy variable
+# UEINT.
 dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
+
+# Threshold value of (E - K) / E such that above eta1, the hydrodynamic
+# pressure is derived from E - K; otherwise, we use the internal energy
+# variable UEINT.
 dual_energy_eta1             Real          1.0e0              y
+
+# Threshold value of (E - K) / E such that above eta2, we update the
+# internal energy variable UEINT to match E - K. Below this, UEINT
+# remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
-dual_energy_eta3             Real          0.0e0              y
+
+# Threshold value of (E - K) / E such that above eta3, the temperature used
+# in the burning module is derived from E-K; otherwise, we use UEINT.
+dual_energy_eta3             Real          1.0e0              y
 
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
 # from the pressure before limiting?
 use_pslope                   int           1                  y
 
-normalize_species            int           0                  y
 fix_mass_flux                int           0                  y
+
+# Whether or not to allow internal energy to be less than zero
 allow_negative_energy        int           1                  y
+
+# Whether or not to allow the internal energy to be less than the
+# internal energy corresponding to small\_temp
+allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off 
 do_sponge                    int           0                  y
@@ -151,25 +190,48 @@ max_dt                       Real          1.e200
 
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
-cfl                          Real          0.8
+cfl                          Real          0.8                y
 
 # a factor by which to reduce the first timestep from that requested by
 # the timestep estimators
-init_shrink                   Real          1.0
+init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase from one step to
 # the next.
 change_max                   Real          1.1
 
+# Retry a timestep if it violated the timestep-limiting criteria over
+# the course of an advance. The criteria will suggest a new timestep
+# that satisfies the criteria, and we will do subcycled timesteps
+# on the same level until we reach the original target time.
+use_retry                    int           0
+
+# If we're doing retries, set the target threshold for changes in density
+# if a retry is triggered by a negative density. If this is set to a negative
+# number then it will disable retries using this criterion.
+retry_neg_dens_factor        Real          1.e-1
 
 #-----------------------------------------------------------------------------
 # category: reactions
 #-----------------------------------------------------------------------------
 
-# limit the timestep based on how much the burning can change the internal
+# Limit the timestep based on how much the burning can change the internal
 # energy of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(e / \dot{e})$
-dtnuc                        Real          1.e200             y
+# {\tt dtnuc}  $\cdot\,(e / \dot{e})$.
+dtnuc_e                      Real          1.e200             y
+
+# Limit the timestep based on how much the burning can change the species
+# mass fractions of a zone. The timestep is equal to
+# {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
+dtnuc_X                      Real          1.e200             y
+
+# If we are doing burning timestep limiting, choose the method for
+# estimating $\dot{e}$ and $\dot{X}$.
+# 1 == call the burner's RHS for an instantaneous calculation
+# 2 == use the second-half burning from the last timestep
+# 3 == use both the first- and the second-half burning from the last timestep
+# 4 == use the change in the full state over the last timestep
+dtnuc_mode                   int           1                  y
 
 # limit the zone size based on how much the burning can change the internal 
 # energy of a zone. The zone size on the finest level must be smaller than
@@ -179,12 +241,22 @@ dtnuc                        Real          1.e200             y
 dxnuc                        Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake 
-do_react                     int          -1
+do_react                     int          -1                  y
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0                y
+
 # maximum temperature for allowing reactions to occur in a zone
 react_T_max                  Real          1.e200             y
+
+# minimum density for allowing reactions to occur in a zone
+react_rho_min                Real          0.0                y
+
+# maximum density for allowing reactions to occur in a zone
+react_rho_max                Real          1.e200             y
+
+# disable burning inside hydrodynamic shock regions
+disable_shock_burning        int           0                  y
 
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
@@ -196,6 +268,8 @@ do_grav                      int          -1                  y
 # to we recompute the center used for the multipole gravity solve each step?
 moving_center                int           0
 
+# determines how the gravitational source term is added to the momentum and
+# energy state variables.
 grav_source_type             int           2                  y
 
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
@@ -212,15 +286,33 @@ rotational_period            Real         -1.e200             y        ROTATION 
 # change durning the simulation time
 rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
 
+# permits the centrifugal terms in the rotation to be turned on and off
+rotation_include_centrifugal int           1                  y        ROTATION
+
+# permits the Coriolis terms in the rotation to be turned on and off
+rotation_include_coriolis    int           1                  y        ROTATION
+
+# permits the d(omega)/dt terms in the rotation to be turned on and off
+rotation_include_domegadt    int           1                  y        ROTATION
+
 # determines how the rotation source terms are added to the momentum and
 # energy equations
 rot_source_type              int           1                  y        ROTATION
+
+# we can do a implicit solution of the rotation update to allow
+# for better coupling of the Coriolis terms
+implicit_rotation_update     int           0                  y        ROTATION
 
 # the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
 point_mass                   Real          0.0                y        POINTMASS
+
+# if we have a central point mass, we can prevent mass from building
+# up in the zones adjacent to it by keeping their density constant and
+# adding their mass to the point mass object
+point_mass_fix_solution      int           1                  y        POINTMASS
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -263,8 +355,14 @@ print_fortran_warnings       int           (0, 1)
 # display breakdown of energy sources 
 print_energy_diagnostics     int           (0, 1)
 
-# how often to compute integral sums (for runtime diagnostics)
-sum_interval                 int          -1
+# calculate losses of material through physical grid boundaries
+track_grid_losses            int            0                    y
+
+# how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
+sum_interval                 int           -1
+
+# how often (simulation time) to compute integral sums (for runtime diagnostics)
+sum_per                      Real          -1.0e0
 
 # display center of mass diagnostics
 show_center_of_mass          int           0

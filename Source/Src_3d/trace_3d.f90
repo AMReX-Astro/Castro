@@ -54,7 +54,6 @@ contains
       double precision apleft, amleft, azrleft, azeleft
       double precision azu1left, azv1left, azw1left
       double precision acmprght, acmpleft, acmpbot, acmptop
-      double precision ascmprght, ascmpleft, ascmpbot, ascmptop
 
       double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
       double precision e(3)
@@ -527,7 +526,6 @@ contains
       double precision apleft, amleft, azrleft, azeleft
       double precision azu1left, azv1left
       double precision acmpbot, acmptop
-      double precision ascmpbot, ascmptop
 
       double precision rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
       double precision e(3)

@@ -22,26 +22,23 @@ contains
   ! All tagging subroutines in this file must be threadsafe because
   ! they are called inside OpenMP parallel regions.
 
-! ::: -----------------------------------------------------------
-! ::: This routine will tag high error cells based on the temperature
-! ::: 
-! ::: INPUTS/OUTPUTS:
-! ::: 
-! ::: tag      <=  integer tag array
-! ::: lo,hi     => index extent of work region
-! ::: set       => integer value to tag cell for refinement
-! ::: clear     => integer value to untag cell
-! ::: temp      => temperature array
-! ::: np        => number of components in temp array (should be 1)
-! ::: domlo,hi  => index extent of problem domain
-! ::: delta     => cell spacing
-! ::: xlo       => physical location of lower left hand
-! :::              corner of work region
-! ::: problo    => phys loc of lower left corner of prob domain
-! ::: time      => problem evolution time
-! ::: level     => refinement level of this array
-! ::: -----------------------------------------------------------
-
+  ! ::: -----------------------------------------------------------
+  ! ::: INPUTS/OUTPUTS:
+  ! ::: 
+  ! ::: tag      <=  integer tag array
+  ! ::: lo,hi     => index extent of work region
+  ! ::: set       => integer value to tag cell for refinement
+  ! ::: clear     => integer value to untag cell
+  ! ::: temp      => temperature array
+  ! ::: np        => number of components in temp array (should be 1)
+  ! ::: domlo,hi  => index extent of problem domain
+  ! ::: delta     => cell spacing
+  ! ::: xlo       => physical location of lower left hand
+  ! :::              corner of work region
+  ! ::: problo    => phys loc of lower left corner of prob domain
+  ! ::: time      => problem evolution time
+  ! ::: level     => refinement level of this array
+  ! ::: -----------------------------------------------------------
 
   ! ::: -----------------------------------------------------------
   ! ::: This routine will tag high error cells based on the Laplacian.
@@ -51,7 +48,8 @@ contains
                              set,clear, &
                              var,varlo,varhi, &
                              lo,hi,nd,domlo,domhi, &
-                             delta,xlo,problo,time,level) bind(C)
+                             delta,xlo,problo,time,level) &
+                             bind(C, name="ca_laplac_error")
 
     use prob_params_module, only: dg, dim
 
@@ -186,7 +184,8 @@ contains
                          set,clear, &
                          den,denlo,denhi, &
                          lo,hi,nd,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C)
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_denerror")
 
     use prob_params_module, only: dg
 
@@ -245,7 +244,8 @@ contains
                           set,clear, &
                           temp,templo,temphi, &
                           lo,hi,np,domlo,domhi, &
-                          delta,xlo,problo,time,level) bind(C)
+                          delta,xlo,problo,time,level) &
+                          bind(C, name="ca_temperror")
 
     use prob_params_module, only: dg
 
@@ -304,7 +304,8 @@ contains
                            set,clear, &
                            press,presslo,presshi, &
                            lo,hi,np,domlo,domhi, &
-                           delta,xlo,problo,time,level) bind(C)
+                           delta,xlo,problo,time,level) &
+                           bind(C, name="ca_presserror")
 
     use prob_params_module, only: dg
 
@@ -363,7 +364,8 @@ contains
                          set,clear, &
                          vel,vello,velhi, &
                          lo,hi,nv,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C)
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_velerror")
 
     use prob_params_module, only: dg
 
@@ -422,7 +424,8 @@ contains
                          set,clear, &
                          rad,radlo,radhi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C)
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_raderror")
 
     use prob_params_module, only: dg
 
@@ -481,7 +484,8 @@ contains
                          set,clear, &
                          ent,entlo,enthi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C)
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_enterror")
 
     use prob_params_module, only: dg
 
@@ -543,7 +547,8 @@ contains
                          set,clear, &
                          t,tlo,thi, &
                          lo,hi,nr,domlo,domhi, &
-                         delta,xlo,problo,time,level) bind(C)
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_nucerror")
 
     use meth_params_module, only: dxnuc
 
@@ -557,7 +562,6 @@ contains
     double precision :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
     double precision :: delta(3), xlo(3), problo(3), time
 
-    double precision :: t_sound, t_enuc
     integer          :: i, j, k
 
     ! Disable if we're not utilizing this tagging

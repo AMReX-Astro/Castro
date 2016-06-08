@@ -14,3 +14,12 @@
   sponge_timescale     = 1.d-5
 
 /
+
+&tagging
+
+  temperr = 6.e8
+  tempgrad = 1.e9
+  max_temperr_lev = 5
+  max_tempgrad_lev = 5
+
+/

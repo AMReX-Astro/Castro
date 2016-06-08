@@ -210,6 +210,7 @@
 \newcommand{\castro}{{\sf Castro}}
 \newcommand{\maestro}{{\sf Maestro}}
 \newcommand{\boxlib}{{\sf BoxLib}}
+\newcommand{\microphysics}{{\sf Microphysics}}
 \newcommand{\yt}{{\sf yt}}
 \newcommand{\amrvis}{{\sf Amrvis}}
 \newcommand{\visit}{{\sf VisIt}}
@@ -279,7 +280,7 @@
 \chaptermark{Preface}
 \addcontentsline{toc}{chapter}{preface}
 
-\input Introduction/CastroIntroduction
+\input Introduction/CastroIntroduction.tex
 
 \clearpage
 
@@ -287,7 +288,7 @@
 
 
 \chapter{Getting Started}
-\input GettingStarted/CastroGettingStarted
+\input GettingStarted/CastroGettingStarted.tex
 
 \chapter{Inputs Files}
 \input Inputs/CastroInputs.tex
@@ -304,6 +305,12 @@
 
 \chapter{Runtime Parameters}
 \input runtime_parameters/runtime_parameters.tex
+
+\chapter{Compilers, Managing Jobs, and Scaling}
+\input ManagingJobs/managingjobs.tex
+
+\chapter{Frequently Asked Questions}
+\input FAQ/faq.tex
 
 \chapter{Hydrodynamics}
 \input Equations/Equations.tex
@@ -338,15 +345,6 @@
 
 \chapter{Verification Test Problems}
 \input CastroVerification/Verification.tex
-
-\chapter{Managing Jobs}\label{Chap:Managing}
-\input ManagingJobs/managingjobs.tex
-
-\chapter{Scaling}
-\input Scaling/Scaling
-
-\chapter{Suggestions, Warnings, and Gotchas}
-\input Suggestions/Suggestions
 
 
 %------------------------------------------------------------------------------

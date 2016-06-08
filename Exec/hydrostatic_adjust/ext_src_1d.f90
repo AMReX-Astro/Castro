@@ -24,7 +24,7 @@
     integer          :: i
     double precision :: x, r_0, H_0, W_0, Hext, t_stop
 
-    integer :: ihe4
+    integer :: ihe4_p
 
     r_0 = heating_rad
 
@@ -57,7 +57,7 @@
 
     else if (prob_type == 3) then
 
-       ihe4 = network_species_index("helium-4")
+       ihe4_p = network_species_index("helium-4")
 
        ! sub-chandra heating -- modulate by He
        if (time .le. t_stop) then
@@ -66,7 +66,7 @@
 
              x = problo(1) + ((dble(i)+0.5d0)*dx(1) + xmin) - center(1)
 
-             Hext = H_0*exp(-((x-r_0)**2)/W_0**2)*old_state(i,UFS-1+ihe4)/old_state(i,URHO)
+             Hext = H_0*exp(-((x-r_0)**2)/W_0**2)*old_state(i,UFS-1+ihe4_p)/old_state(i,URHO)
 
              src(i,UEINT) = old_state(i,URHO)*Hext
              src(i,UEDEN) = old_state(i,URHO)*Hext

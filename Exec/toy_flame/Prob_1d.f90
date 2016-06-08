@@ -90,7 +90,7 @@ end subroutine PROBINIT
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                       state,state_l1,state_h1,delta,xlo,xhi)
 
-  use network, only: nspec
+  use network, only: nspec, network_species_index
   use probdata_module
   use prob_params_module, only: problo, probhi
   use extern_probin_module, only : specific_q_burn

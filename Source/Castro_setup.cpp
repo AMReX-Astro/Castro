@@ -167,6 +167,11 @@ Castro::variableSetUp ()
   Xmom = cnt++;
   Ymom = cnt++;
   Zmom = cnt++;
+#ifdef HYBRID_MOMENTUM
+  Rmom = cnt++;
+  Lmom = cnt++;
+  Pmom = cnt++;
+#endif
   Eden = cnt++;
   Eint = cnt++;
 #ifdef SGS
@@ -206,7 +211,11 @@ Castro::variableSetUp ()
       FirstAux = cnt;
       cnt += NumAux;
     }
-  
+
+#ifdef SHOCK_VAR
+  Shock = cnt++;
+#endif
+
   NUM_STATE = cnt;
 
   // Define NUM_GROW from the f90 module.
@@ -239,7 +248,10 @@ Castro::variableSetUp ()
 #include <castro_call_set_meth.H>    
     
   set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
-		    NumAdv, 
+		    NumAdv,
+#ifdef SHOCK_VAR
+		    Shock,
+#endif
 		    gravity_type_name.dataPtr(), &gravity_type_length,
 		    get_g_from_phi,
 		    use_sgs,
@@ -279,8 +291,13 @@ Castro::variableSetUp ()
   // and store them in the Fortran module.
   
   get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);    
-  
-  Interpolater* interp = &cell_cons_interp;
+
+  Interpolater* interp;
+
+  if (lin_limit_state_interp == 1)
+    interp = &lincc_interp;
+  else
+    interp = &cell_cons_interp;
   
 #ifdef RADIATION
   // cell_cons_interp is not conservative in spherical coordinates.
@@ -356,7 +373,6 @@ Castro::variableSetUp ()
   // Component    NumSpec            is      enuc =      (eout-ein)
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
   store_in_checkpoint = true;
-  store_in_checkpoint = false;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,0,NumSpec+2,
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
@@ -381,6 +397,11 @@ Castro::variableSetUp ()
   cnt++; set_x_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "xmom";
   cnt++; set_y_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "ymom";
   cnt++; set_z_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "zmom";
+#ifdef HYBRID_MOMENTUM
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "rmom";
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "lmom";
+  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "pmom";
+#endif
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
 #ifdef SGS
@@ -406,7 +427,7 @@ Castro::variableSetUp ()
     for (int j = 0; j < len; j++) 
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
-    spec_names.push_back(char_spec_names);
+    spec_names.push_back(std::string(char_spec_names));
   }
   
   if ( ParallelDescriptor::IOProcessor())
@@ -436,7 +457,7 @@ Castro::variableSetUp ()
     for (int j = 0; j < len; j++)
       char_aux_names[j] = int_aux_names[j];
     char_aux_names[len] = '\0';
-    aux_names.push_back(char_aux_names);
+    aux_names.push_back(std::string(char_aux_names));
   }
 
   if ( ParallelDescriptor::IOProcessor())
@@ -454,6 +475,10 @@ Castro::variableSetUp ()
       bcs[cnt] = bc;
       name[cnt] = "rho_" + aux_names[i];
     }
+
+#ifdef SHOCK_VAR
+  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Shock";
+#endif
 
   desc_lst.setComponent(State_Type,
 			Density,

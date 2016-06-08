@@ -7,7 +7,7 @@ module bc_fill_module
 contains
 
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
 
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
@@ -69,8 +69,8 @@ contains
                    adv(i,j,UMX) = adv(domlo(1),j,UMX)
 
                    ! zero transverse momentum
-                   adv(i,j,UMY) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMY) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -80,7 +80,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -115,8 +115,8 @@ contains
                    adv(i,j,UMX) = adv(domhi(1),j,UMX)
 
                    ! zero transverse momentum
-                   adv(i,j,UMY) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMY) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -126,7 +126,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -160,11 +160,11 @@ contains
                    !                     adv(i,j,UMY) = adv(i,domlo(2),UMY)
 
                    ! zero normal momentum causes pi waves to pass through
-                   adv(i,j,UMY) = 0.d0
+                   adv(i,j,UMY) = ZERO
 
                    ! zero transverse momentum
-                   adv(i,j,UMX) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMX) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -174,7 +174,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -207,8 +207,8 @@ contains
                    adv(i,j,UMY) = adv(i,domhi(2),UMY)
 
                    ! zero transverse momentum
-                   adv(i,j,UMX) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMX) = ZERO
+                   adv(i,j,UMZ) = ZERO
 
                    eos_state%rho = density
                    eos_state%T = temperature
@@ -218,7 +218,7 @@ contains
 
                    adv(i,j,URHO) = density
                    adv(i,j,UEINT) = density*eos_state%e
-                   adv(i,j,UEDEN) = density*eos_state%e + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/density
+                   adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
                    adv(i,j,UFS:UFS+2) = density*species
 
@@ -235,7 +235,7 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use probdata_module
     use interpolate_module
@@ -311,7 +311,7 @@ contains
   ! ::: -----------------------------------------------------------
 
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
 
     use probdata_module
     
@@ -332,7 +332,7 @@ contains
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
     use probdata_module
     
@@ -353,7 +353,7 @@ contains
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
 
     use probdata_module
     
@@ -374,7 +374,8 @@ contains
 
 
   subroutine ca_reactfill(react,react_l1,react_l2, &
-                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
 
     use probdata_module
     
@@ -395,7 +396,8 @@ contains
 
   
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
-                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
 
     implicit none
 

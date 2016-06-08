@@ -9,7 +9,7 @@ module riemann_module
                                  QFX, URHO, UMX, UMY, UEDEN, UEINT, &
                                  GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
                                  small_dens, small_pres, small_temp, &
-                                 cg_maxiter, cg_tol, &
+                                 cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                  allow_negative_energy, use_colglaz
@@ -323,6 +323,8 @@ contains
     double precision :: e_x, e_y, d
     double precision :: p_pre, p_post, pjump
 
+    double precision :: rc, rm, rp
+
     double precision, parameter :: small = 1.d-10
     double precision, parameter :: eps = 0.33d0
 
@@ -333,17 +335,25 @@ contains
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
 
-    if (coord_type /= 0) then
-       call bl_error("ERROR: invalid geometry in shock()")
-    endif
-
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
           ! construct div{U}
-          divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
-                 HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          if (coord_type == 0) then
+             divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
+                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          else if (coord_type == 1) then
+             ! r-z
+             rc = dble(i + HALF)*dx
+             rm = dble(i - 1 + HALF)*dx
+             rp = dble(i + 1 + HALF)*dx
 
+             divU = HALF*(rp*q(i+1,j,QU) - rm*q(i-1,j,QU))/(rc*dx) + &
+                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
+          else
+             call bl_error("ERROR: invalid coord_type in shock")
+          endif
+             
           ! find the pre- and post-shock pressures in each direction
           if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
              px_pre  = q(i+1,j,QPRES)
@@ -374,7 +384,12 @@ contains
           p_post = e_x*px_post + e_y*py_post
 
           ! test for compression + pressure jump to flag a shock
-          pjump = eps - (p_post - p_pre)/p_pre
+          if (p_pre == ZERO) then
+             ! this can arise if e_x = e_y = 0 (U = 0)
+             pjump = ZERO
+          else
+             pjump = eps - (p_post - p_pre)/p_pre
+          endif
 
           if (pjump < ZERO .and. divU < ZERO) then
              shk(i,j) = ONE
@@ -452,14 +467,21 @@ contains
     double precision :: pstnm1
     double precision :: taul, taur, tauo
     double precision :: ustarm, ustarp, ustnm1, ustnp1
+    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
 
     double precision, parameter :: weakwv = 1.d-3
 
-    double precision, allocatable :: pstar_hist(:)
+    double precision, allocatable :: pstar_hist(:), pstar_hist_extra(:)
 
     type (eos_t) :: eos_state
 
     integer :: iu, iv1, iv2
+
+    if (cg_blend .eq. 2 .and. cg_maxiter < 5) then
+
+       call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
+
+    endif
 
     tol = cg_tol
     iter_max = cg_maxiter
@@ -486,6 +508,7 @@ contains
     endif
 
     allocate (pstar_hist(iter_max))
+    allocate (pstar_hist_extra(2*iter_max))
 
     do j = jlo, jhi
        do i = ilo, ihi
@@ -658,16 +681,113 @@ contains
 
           enddo
 
-          if (.not. converged) then
-             print *, 'pstar history: '
-             do iter = 1, iter_max
-                print *, iter, pstar_hist(iter)
-             enddo
+          ! If we failed to converge using the secant iteration, we can either
+          ! stop here; or, revert to the original two-shock estimate for pstar;
+          ! or do a bisection root find using the bounds established by the most
+          ! recent iterations.
 
-             print *, ' '
-             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-             call bl_error("ERROR: non-convergence in the Riemann solver")
+          if (.not. converged) then
+
+             if (cg_blend .eq. 0) then
+
+                print *, 'pstar history: '
+                do iter = 1, iter_max
+                   print *, iter, pstar_hist(iter)
+                enddo
+
+                print *, ' '
+                print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+                print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
+
+                call bl_error("ERROR: non-convergence in the Riemann solver")
+
+             else if (cg_blend .eq. 1) then
+
+                pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
+
+             else if (cg_blend .eq. 2) then
+
+                pstarl = minval(pstar_hist(iter_max-5:iter_max))
+                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+
+                iter = 1
+
+                do while (iter <= 2 * iter_max .and. .not. converged)
+
+                   pstarc = HALF * (pstaru + pstarl)
+
+                   pstar_hist_extra(iter) = pstarc
+
+                   call wsqge(pl,taul,gamel,gdot,  &
+                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
+
+                   call wsqge(pr,taur,gamer,gdot,  &
+                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
+
+                   wl = ONE / sqrt(wlsq)
+                   wr = ONE / sqrt(wrsq)
+
+                   ustarm = ur-(pr-pstar)*wr
+                   ustarp = ul+(pl-pstar)*wl
+
+                   pfuncc = ustarp - ustarm
+
+                   if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
+                      converged = .true.
+                   endif
+
+                   iter = iter + 1
+
+                   call wsqge(pl,taul,gamel,gdot,  &
+                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
+
+                   call wsqge(pr,taur,gamer,gdot,  &
+                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
+
+                   wl = ONE / sqrt(wlsq)
+                   wr = ONE / sqrt(wrsq)
+
+                   ustarm = ur-(pr-pstar)*wr
+                   ustarp = ul+(pl-pstar)*wl
+
+                   pfuncu = ustarp - ustarm
+
+                   if (pfuncc * pfuncu < ZERO) then
+
+                      pstarl = pstarc
+
+                   else
+
+                      pstaru = pstarc
+
+                   endif
+
+                enddo
+
+                if (.not. converged) then
+
+                   print *, 'pstar history: '
+                   do iter = 1, iter_max
+                      print *, iter, pstar_hist(iter)
+                   enddo
+                   do iter = 1, 2 * iter_max
+                      print *, iter + iter_max, pstar_hist_extra(iter)
+                   enddo
+
+                   print *, ' '
+                   print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+                   print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
+
+                   call bl_error("ERROR: non-convergence in the Riemann solver")
+
+                endif
+
+             else
+
+                call bl_error("ERROR: unrecognized cg_blend option.")
+
+             endif
+
           endif
 
 
@@ -851,6 +971,7 @@ contains
        enddo
     enddo
 
+    deallocate(pstar_hist_extra)
     deallocate(pstar_hist)
 
   end subroutine riemanncg

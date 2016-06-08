@@ -4,8 +4,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use prob_params_module, only: center
   use eos_module
-  use eos_data_module
   use eos_type_module
+  use model_parser_module
 
   use network, only : nspec
   implicit none
@@ -31,10 +31,6 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   character probin*(maxlen)
   character (len=256) :: header_line
 
-  integer :: nvars_model_file
-
-  nvars_model_file = 3 + nspec
-
   if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
@@ -56,50 +52,23 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  !     Open file of initial profile
-  open(unit=99,file=model_name)
+  ! Read in the initial model
 
-  ! the model file is assumed to be of the follow form:
-  ! # npts = 896
-  ! # num of variables = 6
-  ! # density
-  ! # temperature
-  ! # pressure
-  ! # carbon-12
-  ! # oxygen-16
-  ! # magnesium-24
-  ! 195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
-  ! 585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+  call read_model_file(model_name)
 
-  ! the first line has the number of points in the model
-  read (99, '(a256)') header_line
-
-  ipos = index(header_line, '=') + 1
-  read (header_line(ipos:),*) npts_model
-
-  print *, npts_model, '    points found in the initial model file'
-
-  ! now read in the number of variables
-  read (99, '(a256)') header_line
-  ipos = index(header_line, '=') + 1
-  read (header_line(ipos:),*) nvars_model_file
-
-  print *, nvars_model_file, 'variables found in the initial model'
-
-  ! now read in the names of the variables
-  do i = 1, nvars_model_file
-     read (99, '(a256)') header_line
-  enddo
+  ! Save some of the data locally
 
   allocate(hse_r(npts_model),hse_rho(npts_model), &
            hse_t(npts_model),hse_p(npts_model))
   allocate(hse_s(nspec,npts_model))
 
-  do k = 1,npts_model
-     read(99,*) hse_r(k), hse_rho(k), hse_t(k), hse_p(k), &
-                hse_s(1,k), hse_s(2,k), hse_s(3,k)
-  end do
-
+  hse_r   = model_r(:)
+  hse_rho = model_state(:,idens_model)
+  hse_t   = model_state(:,itemp_model)
+  hse_p   = model_state(:,ipres_model)
+  do i = 1, nspec
+     hse_s(i,:) = model_state(:,ispec_model+i-1)
+  enddo
 
   center(1) = 0.0d0
 
@@ -113,6 +82,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! store the state at the very top of the model for the boundary
   ! conditions
   allocate (hse_X_top(nspec))
+
 
   hse_rho_top  = hse_rho(npts_model)
   hse_t_top    = hse_t(npts_model)
@@ -156,10 +126,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use eos_module
-  use eos_data_module
   use eos_type_module
   use network, only : nspec
   use interpolate_module
+  use model_parser_module, only: npts_model
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
 
   implicit none

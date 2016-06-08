@@ -1,7 +1,5 @@
 module probdata_module
 
-  integer         , save :: npts_model
-
   ! make the model name enter through the probin file
   character (len=80), save  :: model_name
 
