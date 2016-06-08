@@ -13,7 +13,7 @@ contains
     use radhydro_params_module, only: comoving, QRAD, QPTOT, QRADVAR
     use fluxlimiter_module, only : Edd_factor
 
-    real (kind=dp_t), intent(in) :: lam(ngroups)
+    real (kind=dp_t), intent(in) :: lam(0:ngroups-1)
     real (kind=dp_t), intent(in) :: q(QRADVAR)
     real (kind=dp_t), intent(in) :: cg
     real (kind=dp_t), intent(out) :: ptot
