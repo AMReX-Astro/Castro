@@ -87,12 +87,9 @@ contains
     double precision, allocatable :: Ip_src(:,:,:,:,:)
     double precision, allocatable :: Im_src(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_r(:,:,:,:,:)
-    double precision, allocatable :: Im_r(:,:,:,:,:)
-
     double precision :: er_foo
 
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_2d.f90 :: trace_ppm")
     end if

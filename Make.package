@@ -12,8 +12,9 @@ C$(CA_BASE)_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
                        Radiation.H RadSolve.H RadBndry.H \
 		       RadTypes.H LHH.H MGRadBndry.H
 
-F$(CA_BASE)_headers += RAD_F.H HABEC_F.H 
+F$(CA_BASE)_headers += RAD_F.H HABEC_F.H
 
 f90$(CA_BASE)_sources += rad_params.f90 blackbody.f90 radhydro_params.f90 \
-                         Rad_nd.f90 fluxlimiter.f90 RadHydro_nd.f90 filter.f90 RadDerive_nd.f90
-			 
+                         Rad_nd.f90 fluxlimiter.f90 RadHydro_nd.f90 filter.f90 \
+                         RadDerive_nd.f90 rad_util.f90
+
